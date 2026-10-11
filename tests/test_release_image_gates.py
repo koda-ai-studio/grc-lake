@@ -73,6 +73,47 @@ def test_docker_console_builder_uses_the_ci_node_major():
 
 
 @pytest.mark.parametrize(
+    ("workflow", "job", "image", "platform"),
+    [
+        ("ci.yml", "docker-build", "grc-lake:ci", "linux/amd64"),
+        ("release.yml", "image", "grc-lake:scan", "linux/amd64"),
+        ("release.yml", "image", "grc-lake:scan-arm64", "linux/arm64"),
+    ],
+)
+def test_unfiltered_image_evidence_is_retained_even_when_policy_scan_fails(workflow, job, image, platform):
+    steps = yaml.safe_load((ROOT / ".github/workflows" / workflow).read_text())["jobs"][job]["steps"]
+    scans = [
+        (i, step)
+        for i, step in enumerate(steps)
+        if step.get("uses", "").startswith("aquasecurity/trivy-action@")
+        and step.get("with", {}).get("image-ref") == image
+    ]
+    full = [(i, step) for i, step in scans if step["with"].get("format") == "json"]
+    assert len(full) == 1, f"{image} lacks an unfiltered vulnerability report"
+    report_index, report = full[0]
+    options = report["with"]
+    assert options["ignore-unfixed"] is False
+    assert set(options["severity"].split(",")) == {"UNKNOWN", "LOW", "MEDIUM", "HIGH", "CRITICAL"}
+    assert options["scanners"] == "vuln"
+    assert options["exit-code"] == "0", "Unfixed findings are evidence, not a replacement release policy"
+    assert not report.get("continue-on-error"), "Scanner errors must not look like complete evidence"
+    assert report.get("env", {}).get("TRIVY_PLATFORM") == platform
+    gate_index, gate = next((i, step) for i, step in scans if step["with"].get("exit-code") == "1")
+    assert report_index < gate_index, "A failing policy gate would prevent evidence collection"
+    assert gate["with"]["ignore-unfixed"] is True
+    assert not gate.get("continue-on-error")
+    upload_index, upload = next(
+        (i, step)
+        for i, step in enumerate(steps)
+        if step.get("uses", "").startswith("actions/upload-artifact@")
+        and options["output"] in step.get("with", {}).get("path", "").splitlines()
+    )
+    assert upload_index > gate_index
+    assert upload["if"] == "always()", "Failed gates must retain the full report"
+    assert upload["with"]["retention-days"] >= 14
+
+
+@pytest.mark.parametrize(
     ("runs", "allowed"),
     [
         ([(2, "push", "main", "completed", "failure"), (1, "push", "main", "completed", "success")], False),
