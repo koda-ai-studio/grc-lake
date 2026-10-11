@@ -112,7 +112,7 @@ def _framework_rows(
     stale = stale_control_ids(
         freshness, required_types={key: row.get("required_evidence_types") or [] for key, row in catalog.items()}
     )
-    evidenced = {str(control_id) for row in freshness for control_id in row["control_ids"]}
+    evidenced = {str(control_id) for row in freshness if row["verdict_eligible"] for control_id in row["control_ids"]}
     rows: list[dict[str, Any]] = []
     for framework_id, label, prefix in AI_FRAMEWORKS:
         pack = coverage.get(framework_id, {})

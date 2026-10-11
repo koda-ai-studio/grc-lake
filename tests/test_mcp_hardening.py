@@ -105,6 +105,8 @@ READ_TOOLS = {
     "list_audit_log",
     "list_audit_workpapers",
     "list_ccf_asset_results",
+    "list_ccf_asset_summaries",
+    "list_ccf_evidence_links",
     "list_connector_runs",
     "list_connectors",
     "list_control_tests",
