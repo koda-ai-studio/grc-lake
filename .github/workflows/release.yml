@@ -53,13 +53,15 @@ jobs:
           # rather than failing a tag pushed right after the merge.
           for attempt in $(seq 1 40); do
             runs="$(gh api "repos/${REPO}/actions/workflows/ci.yml/runs?head_sha=${SHA}&per_page=50" \
-              --jq '[.workflow_runs[] | {status, conclusion}]')"
-            if [ "$(jq '[.[] | select(.conclusion == "success")] | length' <<<"${runs}")" -gt 0 ]; then
+              --jq '[.workflow_runs[] | select(.event == "push" and .head_branch == "main") | {run_number, status, conclusion}] | sort_by(.run_number) | reverse')"
+            # A stale green run or a PR run must not mask a newer main failure.
+            latest="$(jq '.[0] // {}' <<<"${runs}")"
+            if [ "$(jq -r '.conclusion // ""' <<<"${latest}")" = "success" ]; then
               echo "ci passed on ${SHA}"
               exit 0
             fi
-            if [ "$(jq '[.[] | select(.status != "completed")] | length' <<<"${runs}")" -eq 0 ]; then
-              echo "::error::no successful ci run for ${SHA} (runs: ${runs}); fix or re-run ci on main, then re-run this workflow"
+            if [ "$(jq -r '.status // "completed"' <<<"${latest}")" = "completed" ]; then
+              echo "::error::latest main-push ci run did not succeed for ${SHA} (runs: ${runs}); fix or re-run ci on main, then re-run this workflow"
               exit 1
             fi
             echo "ci still running on ${SHA} (check ${attempt}/40); waiting"
@@ -174,7 +176,9 @@ jobs:
           if-no-files-found: error
 
   pypi:
-    needs: build
+    # PyPI versions are immutable: wait for both container architectures and
+    # their authenticated runtime probes before publishing the Python package.
+    needs: [build, image]
     # Publish only from a version tag. A workflow_dispatch with dry_run:false on
     # a branch would otherwise reach PyPI with no tag↔version gate having run.
     if: github.ref_type == 'tag' && (github.event_name == 'push' || !inputs.dry_run)
@@ -215,7 +219,7 @@ jobs:
   image:
     needs: build
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 60
     permissions:
       contents: read
       packages: write
@@ -231,9 +235,9 @@ jobs:
         with:
           platforms: arm64
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
-      # Build and scan the amd64 image before anything reaches the registry.
-      # The arm64 image installs the same hash-pinned lockfile; the push below
-      # reuses the cached amd64 layers.
+      # Qualify both architectures before any registry publication. A shared
+      # Python lockfile does not establish ARM64 OS-package or runtime parity.
+      # The final multi-platform build reuses this builder's qualified layers.
       - name: Build image for scanning
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
@@ -242,6 +246,7 @@ jobs:
           load: true
           provenance: false
           tags: grc-lake:scan
+          platforms: linux/amd64
           cache-from: type=gha
           cache-to: type=gha,mode=max
       - name: Check installed runtime dependencies
@@ -254,6 +259,41 @@ jobs:
           severity: CRITICAL,HIGH,MEDIUM
           ignore-unfixed: true
           exit-code: "1"
+      - name: Qualify authenticated AMD64 runtime
+        run: python tools/authenticated_smoke.py --image grc-lake:scan --platform linux/amd64 --output build/release-smoke-amd64
+      - name: Build ARM64 image for scanning
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          push: false
+          load: true
+          provenance: false
+          platforms: linux/arm64
+          tags: grc-lake:scan-arm64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Check installed ARM64 runtime dependencies
+        run: bash tools/check_image_dependencies.sh grc-lake:scan-arm64 --platform linux/arm64
+      - name: Scan ARM64 image (fixable MEDIUM/HIGH/CRITICAL block the release)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        env:
+          TRIVY_PLATFORM: linux/arm64
+        with:
+          image-ref: grc-lake:scan-arm64
+          version: v0.70.0
+          severity: CRITICAL,HIGH,MEDIUM
+          ignore-unfixed: true
+          exit-code: "1"
+      - name: Qualify authenticated ARM64 runtime
+        run: python tools/authenticated_smoke.py --image grc-lake:scan-arm64 --platform linux/arm64 --output build/release-smoke-arm64
+      - name: Retain architecture qualification receipts
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: image-qualification
+          path: build/release-smoke-*/result.json
+          if-no-files-found: warn
+          retention-days: 14
       - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         if: env.PUBLISH == 'true'
         with:

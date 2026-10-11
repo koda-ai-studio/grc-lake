@@ -5,6 +5,8 @@ Python package, Helm chart, and bundled web console.
 
 ## 0.3.3 - 2026-10-11
 
+- Gate container publication on dependency scans and authenticated runtime qualification for both AMD64 and ARM64, and make PyPI wait for the image job so a failed container check cannot leave an immutable Python release published first. Require the latest main-push CI run to pass; an older green run or a PR-only run no longer authorizes a tag.
+
 - Replace the G-and-waves logo with a shared layered-evidence mark across the console, favicon, MCP icon, README and social preview. Enlarge the README banner and regenerate the synthetic console screenshots.
 
 - Security: refresh the container's liblzma package for DSA-6549-1, remove pip and ensurepip from both runtime Python environments, remove the unused vulnerable infocmp executable, and remove setuid/setgid bits from system utilities. CI and release builds now reject fixable MEDIUM findings as well as HIGH and CRITICAL findings. Unfixed distribution findings remain tracked; this does not certify a vulnerability-free image.
@@ -13,7 +15,7 @@ Python package, Helm chart, and bundled web console.
 
 - Security: sign browser-session, OIDC-state and SAML-correlation cookies with SHA-256 and require at least 32 bytes for signing secrets in authenticated deployments. Existing browser sessions must sign in again after upgrading; replace short secrets before starting the new server.
 
-- Split GRC workflow routes out of the server application factory while preserving route behavior. Update LangGraph, web dependencies, the Node build image and the pinned cache action.
+- Split GRC workflow routes out of the server application factory while preserving route behavior. Update LangGraph, web dependencies and the pinned cache action. Keep the Node build image on a current digest of supported Node 22 LTS, aligned with console CI; Node major upgrades require an explicit coordinated change.
 
 - Refresh README setup instructions and synthetic console screenshots. Correct package visibility and release-status guidance; the published 0.3.2 image remains available while 0.3.3 is qualified.
 
