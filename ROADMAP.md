@@ -1,18 +1,18 @@
 # GRC Lake Roadmap
 
-Status as of v0.3.2 source preparation; publication is verified separately. Remaining gaps come first. Track work in GitHub issues.
+Status as of v0.3.3 source preparation; v0.3.2 is published. Remaining gaps come first. Track work in GitHub issues.
 
 ## Remaining gaps
 
 The linked epics are closed on GitHub; each row names what is still left.
 
-| Epic                                                   | Area           | What remains                                                                                                                                                                                                                                              |
-| ------------------------------------------------------ | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [#611](https://github.com/msaad00/grc-lake/issues/611) | Frameworks     | ISO 27701:2025 is a limited pack (10 of 78 Annex A controls); SOC 1 stays planned (no official catalog); NIST 800-171 Rev 3, NIS2, and DORA are new and proposed-only                                                                                     |
-| [#608](https://github.com/msaad00/grc-lake/issues/608) | Connectors     | CIS Azure/GCP benchmarks, ISO 27001 clauses 4–10; live-tenant runs for the Jamf, CrowdStrike, Kubernetes, KnowBe4 previews                                                                                                                                |
-| [#609](https://github.com/msaad00/grc-lake/issues/609) | Existing lakes | Databricks, Iceberg/Parquet, and BigQuery readers are preview and lake mappings are experimental; live verification pending                                                                                                                               |
-| [#610](https://github.com/msaad00/grc-lake/issues/610) | Platform       | Billing and SCIM shipped (gated commercial features); live Stripe + IdP verification pending                                                                                                                                                              |
-| —                                                      | Mapping review | Mapping review remains incomplete, including all NIST RMF, ISO 27701, NIST 800-171 Rev 3, NIS2, and DORA mappings. See the generated [coverage ledger](docs/FRAMEWORK_COVERAGE.md) for current counts. Proposed mappings are evaluated but not attestable |
+| Epic                                                          | Area           | What remains                                                                                                                                                                                                                                              |
+| ------------------------------------------------------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [#611](https://github.com/koda-ai-studio/grc-lake/issues/611) | Frameworks     | ISO 27701:2025 is a limited pack (10 of 78 Annex A controls); SOC 1 stays planned (no official catalog); NIST 800-171 Rev 3, NIS2, and DORA are new and proposed-only                                                                                     |
+| [#608](https://github.com/koda-ai-studio/grc-lake/issues/608) | Connectors     | CIS Azure/GCP benchmarks, ISO 27001 clauses 4–10; live-tenant runs for the Jamf, CrowdStrike, Kubernetes, KnowBe4 previews                                                                                                                                |
+| [#609](https://github.com/koda-ai-studio/grc-lake/issues/609) | Existing lakes | Databricks, Iceberg/Parquet, and BigQuery readers are preview and lake mappings are experimental; live verification pending                                                                                                                               |
+| [#610](https://github.com/koda-ai-studio/grc-lake/issues/610) | Platform       | Billing and SCIM shipped (gated commercial features); live Stripe + IdP verification pending                                                                                                                                                              |
+| —                                                             | Mapping review | Mapping review remains incomplete, including all NIST RMF, ISO 27701, NIST 800-171 Rev 3, NIS2, and DORA mappings. See the generated [coverage ledger](docs/FRAMEWORK_COVERAGE.md) for current counts. Proposed mappings are evaluated but not attestable |
 
 1,357 of 1,697 safeguard-to-requirement mapping rows are proposed, so 1,078 of the 1,417 mapped requirements have no reviewed mapping.
 
@@ -32,14 +32,22 @@ Cross-database sharding, automated shard placement, provider HA/failover testing
 and production capacity qualification remain future work. Storage replication,
 erasure coding and RAID belong to the selected infrastructure.
 
-## Prepared for v0.3.2
+## Prepared for v0.3.3
+
+- Container dependency remediation and stricter fixable-vulnerability gates.
+- SHA-256 cookie signatures, minimum signing-secret lengths, and deprecated SAML algorithm rejection.
+- Refreshed README screenshots and accurate release/deployment guidance.
+
+This remains a candidate until final-main CI, publication and artifact verification pass.
+Unfixed distribution findings and live-provider verification remain open; see
+[dependency security](docs/DEPENDENCY_SECURITY.md) and the release gates.
+
+## Published in v0.3.2
 
 - CCF title/mapping accuracy, source-reconciliation attribution and coverage labels.
 - Streaming gold writes, bounded dashboard detail and faster cold posture reads.
 - Auth/API/interop corrections, deployment hardening and signature/parser fuzzing.
 - Release references aligned to the current repository namespace.
-
-This remains a candidate until final-main CI, publication and artifact verification pass.
 
 ## Published in v0.3.1
 
