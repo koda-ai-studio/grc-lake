@@ -47,4 +47,7 @@ def test_distributed_marks_match_the_shared_identity() -> None:
         assert (root / file).read_text().strip() == approved
     nodes = ElementTree.fromstring(approved)
     assert nodes.find("{http://www.w3.org/2000/svg}title").text == "GRC Lake"
-    assert "collected evidence and traceable records" in nodes.find("{http://www.w3.org/2000/svg}desc").text
+    assert (
+        "Cloud, identities, AI agents, and activity logs above an evidence lake"
+        in nodes.find("{http://www.w3.org/2000/svg}desc").text
+    )

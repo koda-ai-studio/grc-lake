@@ -26,7 +26,7 @@ export snapshots, workpapers, and OSCAL.
 <!-- END README AT A GLANCE -->
 
 [Quick start](#quick-start) · [Architecture](#architecture) · [Evidence modes](#evidence-modes) ·
-[Product tour](#product-tour) · [Self-host](#self-host) · [Frameworks](#frameworks) · [Documentation](#documentation)
+[Product tour](#product-tour) · [Self-host](#self-host) · [Frameworks](#frameworks) · [Documentation](#documentation) · [Current coverage](docs/CURRENT_STATE.md) · [Roadmap](ROADMAP.md)
 
 ## Quick start
 

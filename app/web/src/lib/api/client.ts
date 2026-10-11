@@ -47,6 +47,7 @@ import type {
   Crosswalk,
   CreateAgentRunPayload,
   EvidenceFreshness,
+  EvidenceLineageEnvelope,
   EvidenceFreshnessSummary,
   EscalateFreshnessResult,
   EntityTag,
@@ -523,6 +524,13 @@ export const api = {
       `/v1/violations/${encodeURIComponent(violationId)}/triage`,
       payload,
     ).then((b) => ({ event: b.data })),
+  evidenceLineage: (eventId: string, offset = 0, generationId?: string) => {
+    const params = new URLSearchParams({ limit: "5", offset: String(offset) });
+    if (generationId) params.set("generation_id", generationId);
+    return get<EvidenceLineageEnvelope>(
+      `/v1/evidence/${encodeURIComponent(eventId)}/lineage?${params}`,
+    );
+  },
   verifyEvidence: (eventId: string) =>
     post<{ data: VerifyResult }>(
       `/v1/evidence/${encodeURIComponent(eventId)}/verify`,

@@ -2127,3 +2127,26 @@ export interface CcfAssessment {
   }[];
   requirements: { control_id: string; status: string }[];
 }
+
+export interface EvidenceLineageEnvelope {
+  data: {
+    event_id: string;
+    raw_sha256: string;
+    source: {
+      connector_id: string | null;
+      source_event_id: string;
+      source_account_id: string;
+      source: string;
+      event_time: string;
+    };
+    integrity: { verified: boolean; external_authenticity: string };
+    generation: { generation_id: string; manifest_sha256: string };
+    links: Array<{
+      kind: "declared_control" | "safeguard_result";
+      control_id?: string;
+      safeguard_id?: string;
+      result: string;
+    }>;
+  };
+  meta: { count: number; returned: number };
+}

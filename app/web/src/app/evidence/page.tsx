@@ -469,6 +469,7 @@ function EvidencePageContent() {
         </Card>
       </QueryState>
       <EvidenceDrawer
+        key={selected?.event_id ?? "closed"}
         evidence={selected}
         freshness={selected?.freshness}
         freshnessUnavailable={freshness.isError}
