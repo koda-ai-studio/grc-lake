@@ -305,6 +305,15 @@
     },
     {
       "kind": "singleton",
+      "methods": ["GET"],
+      "path": "/api/v1/evidence/{event_id}/lineage",
+      "path_params": ["event_id"],
+      "query": ["limit", "offset", "generation_id"],
+      "resource": "evidence.lineage",
+      "scopes": ["read"]
+    },
+    {
+      "kind": "singleton",
       "methods": ["POST"],
       "path": "/api/v1/evidence/{event_id}/verify",
       "path_params": ["event_id"],

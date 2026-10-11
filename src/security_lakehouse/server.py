@@ -8,7 +8,7 @@ import mimetypes
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, unquote, urlparse
 
 from security_lakehouse import api_legacy, api_v1, strict_json
 from security_lakehouse.dashboard import render_dashboard
@@ -160,6 +160,8 @@ class _Handler(BaseHTTPRequestHandler):
             snapshot_id = path[len(export_prefix) : -len("/export.pdf")]
             self._handle_snapshot_pdf_export(snapshot_id)
             return
+        if path.startswith("/api/v1/evidence/") and path.endswith("/lineage"):
+            path = unquote(path)
         status, body = api_v1.handle_get(path, query, self.lake_dir)
         self._send_json(body, status=status)
 

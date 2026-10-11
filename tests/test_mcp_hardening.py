@@ -68,6 +68,7 @@ READ_TOOLS = {
     "get_collection_page",
     "get_control_remediation",
     "get_evidence_freshness_summary",
+    "get_evidence_lineage",
     "get_framework_coverage",
     "get_framework_detail",
     "get_framework_equivalence",

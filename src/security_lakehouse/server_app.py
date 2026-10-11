@@ -2600,9 +2600,17 @@ def create_app(lake_dir: str | Path, *, require_auth: bool = True) -> FastAPI:
     # --- versioned data surface (authenticated) ---
     @app.get("/api/v1/{rest:path}")
     def v1_get(rest: str, request: Request, identity: Identity = Depends(_require_read)) -> JSONResponse:
+        path = f"/api/v1/{rest}"
+        if path.startswith("/api/v1/evidence/") and path.endswith("/lineage"):
+            from urllib.parse import unquote
+
+            # Decode once from the wire; provider IDs may contain literal %2F.
+            raw_path = request.scope.get("raw_path")
+            if raw_path is not None:
+                path = unquote(raw_path.decode("ascii").split("?", 1)[0])
         with server_execution(identity.tenant_id):
             _status, body = api_v1.handle_get(
-                f"/api/v1/{rest}",
+                path,
                 _params(request),
                 lake_for(identity),
                 share_lakes=additional_share_lakes(identity, rest),

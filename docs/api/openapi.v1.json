@@ -4726,6 +4726,60 @@
         "tags": ["platform"]
       }
     },
+    "/api/v1/evidence/{event_id}/lineage": {
+      "get": {
+        "description": "Requires scope: read.",
+        "operationId": "get_evidence_lineage",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "event_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "generation_id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V1Envelope"
+                }
+              }
+            },
+            "description": "v1 envelope"
+          }
+        },
+        "summary": "Get evidence.lineage",
+        "tags": ["evidence"]
+      }
+    },
     "/api/v1/evidence/{event_id}/verify": {
       "post": {
         "description": "Requires scope: read.",
