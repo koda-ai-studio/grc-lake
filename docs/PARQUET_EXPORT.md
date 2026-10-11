@@ -26,9 +26,12 @@ grc-lake pipeline export-parquet \
 ```
 
 The repository sample above contains only synthetic `acme-prod` evidence. For
-real evidence, use the tenant recorded in both the assessment manifest and every
-normalized row. A mixed-tenant lake or a mismatched manifest is rejected, not
-silently filtered or relabeled. Normalize a correctly scoped source first.
+real evidence, use the platform tenant recorded in the assessment manifest.
+Normalization v4 and later can retain different source accounts in row
+`tenant_id`; v5 also carries the explicit `source_account_id` alias. These are
+provenance, not platform authorization identities. Older v1–v3 exports require
+each row tenant to match the platform tenant. A mismatched manifest is rejected,
+not silently filtered or relabeled. Normalize a correctly scoped source first.
 The explicit tenant argument is a consistency check; local filesystem access
 and permissions remain the authorization boundary.
 
@@ -53,10 +56,10 @@ actual PyArrow writer version.
 
 ## Files and provenance
 
-| File               | Content                                                                                                                                                                                  |
-| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `evidence.parquet` | All normalized v1 fields with explicit types and non-null columns. Strings and ISO timestamp text remain lossless; severity score is an integer and evidence/control types remain lists. |
-| `manifest.json`    | Export and normalization versions, tenant, source generation identity, catalog digests, source/output SHA-256 hashes, row count, column definitions, and writer version.                 |
+| File               | Content                                                                                                                                                                                                                                      |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `evidence.parquet` | Normalized fields selected by transformation version, with explicit types; optional connector identities are nullable. Strings and ISO timestamp text remain lossless; severity score is an integer and evidence/control types remain lists. |
+| `manifest.json`    | Export and normalization versions, tenant, source generation identity, catalog digests, source/output SHA-256 hashes, row count, column definitions, and writer version.                                                                     |
 
 Arrow schema metadata also carries the normalization version, tenant, generation
 ID, and generation-manifest hash. The source generation and catalog hashes bind

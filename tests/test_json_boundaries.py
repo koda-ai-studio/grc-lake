@@ -87,6 +87,7 @@ def raw_event():
     "patch",
     [
         {"entity": None},
+        {"connector_id": "   "},
         {"controls": None},
         {"controls": [1]},
         {"event_id": 123},
@@ -195,6 +196,7 @@ def test_declared_schema_and_runtime_reject_same_invalid_event_shapes():
     validator = Draft202012Validator(schema, format_checker=checker)
     for patch in [
         {"entity": None},
+        {"connector_id": "   "},
         {"controls": None},
         {"controls": [1]},
         {"event_id": 1},

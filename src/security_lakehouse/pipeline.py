@@ -47,6 +47,7 @@ RAW_EVENT_SCHEMA_VERSION = "trustops.raw_event.v1"
 NORMALIZED_EVENT_SCHEMA_VERSION = "trustops.normalized_event.v1"
 NORMALIZATION_TRANSFORM_VERSION = "trustops.normalization.v5"
 CONTROL_EVALUATION_VERSION = "trustops.control_evaluation.v9"
+MART_SCHEMA_VERSION = "trustops.mart.v2"
 
 
 @serialized_publication
@@ -361,6 +362,7 @@ def _write_generation(
             "tenant_id": tenant_id,
             "control_map_sha256": _canonical_sha256(control_map),
             "control_evaluation_version": CONTROL_EVALUATION_VERSION,
+            "mart_schema_version": MART_SCHEMA_VERSION,
             "evaluation_dependencies_sha256": _evaluation_dependencies_sha256(ccf_payload=effective),
             "next_freshness_transition": _next_freshness_transition(evidence_freshness_rows),
             "generation_id": out.name,
@@ -442,6 +444,7 @@ def _evaluation_dependencies_sha256(*, lake: Path | None = None, ccf_payload: di
             "normalization": NORMALIZATION_TRANSFORM_VERSION,
             "control_evaluation": CONTROL_EVALUATION_VERSION,
             "ccf_projection_version": 2,
+            "mart_schema_version": MART_SCHEMA_VERSION,
             "freshness": {key: row.get("freshness_slo_minutes") for key, row in load_connector_catalog().items()},
             "programs": load_program_catalog(),
             "safeguards": ccf_payload if ccf_payload is not None else effective_safeguards(lake),
@@ -890,7 +893,13 @@ def _write_sqlite_mart(
                 evidence_id TEXT NOT NULL,
                 evidence_ref TEXT NOT NULL,
                 evidence_collected_at TEXT NOT NULL,
-                raw_sha256 TEXT NOT NULL
+                raw_sha256 TEXT NOT NULL,
+                source_account_id TEXT NOT NULL,
+                connector_id TEXT,
+                source_event_id TEXT,
+                evidence_available INTEGER CHECK (evidence_available IN (0, 1)),
+                evidence_types_json TEXT NOT NULL,
+                safeguard_ids_json TEXT NOT NULL
             )
             """
         )
@@ -982,7 +991,8 @@ def _write_sqlite_mart(
                 score INTEGER NOT NULL,
                 age_minutes INTEGER,
                 expires_at TEXT,
-                reason TEXT NOT NULL
+                reason TEXT NOT NULL,
+                verdict_eligible INTEGER CHECK (verdict_eligible IN (0, 1))
             )
             """
         )
@@ -993,10 +1003,11 @@ def _write_sqlite_mart(
                 :event_id, :tenant_id, :event_time, :source, :event_type, :asset_id,
                 :asset_type, :asset_owner, :environment, :severity, :severity_score,
                 :status, :control_ids_json, :evidence_id, :evidence_ref,
-                :evidence_collected_at, :raw_sha256
+                :evidence_collected_at, :raw_sha256, :source_account_id, :connector_id,
+                :source_event_id, :evidence_available, :evidence_types_json, :safeguard_ids_json
             )
             """,
-            [{**row, "control_ids_json": json.dumps(row["control_ids"])} for row in silver_rows],
+            [_normalized_sql_row(row) for row in silver_rows],
         )
         conn.executemany(
             "INSERT INTO control_posture VALUES (:tenant_id,:control_id,:framework,:title,:risk_domain,:owner,:status,:risk_score,:event_count,:open_event_count,:evidence_count,:evidence_coverage,:latest_event_time)",
@@ -1045,7 +1056,7 @@ def _write_sqlite_mart(
                 :event_id, :evidence_id, :evidence_ref, :source, :connector_id,
                 :event_type, :asset_id, :control_ids_json, :evidence_collected_at,
                 :evaluated_at, :freshness_slo_minutes, :status, :score,
-                :age_minutes, :expires_at, :reason
+                :age_minutes, :expires_at, :reason, :verdict_eligible
             )
             """,
             [_evidence_freshness_sql_row(row) for row in evidence_freshness_rows],
@@ -1118,10 +1129,25 @@ def _control_test_sql_row(row: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _normalized_sql_row(row: dict[str, Any]) -> dict[str, Any]:
+    # Retained pre-v4 evidence has unknown availability, never inferred True.
+    return {
+        **row,
+        "source_account_id": row.get("source_account_id", row["tenant_id"]),
+        "connector_id": row.get("connector_id"),
+        "source_event_id": row.get("source_event_id"),
+        "evidence_available": row.get("evidence_available"),
+        "control_ids_json": json.dumps(row["control_ids"]),
+        "evidence_types_json": json.dumps(row.get("evidence_types", [])),
+        "safeguard_ids_json": json.dumps(row.get("safeguard_ids", [])),
+    }
+
+
 def _evidence_freshness_sql_row(row: dict[str, Any]) -> dict[str, Any]:
     return {
         **row,
         "control_ids_json": json.dumps(row["control_ids"], sort_keys=True),
+        "verdict_eligible": row.get("verdict_eligible"),
     }
 
 
@@ -1144,6 +1170,12 @@ _DUCKDB_TABLES: dict[str, tuple[tuple[str, str], ...]] = {
         ("evidence_ref", "VARCHAR"),
         ("evidence_collected_at", "TIMESTAMP"),
         ("raw_sha256", "VARCHAR"),
+        ("source_account_id", "VARCHAR"),
+        ("connector_id", "VARCHAR"),
+        ("source_event_id", "VARCHAR"),
+        ("evidence_available", "BOOLEAN"),
+        ("evidence_types_json", "VARCHAR"),
+        ("safeguard_ids_json", "VARCHAR"),
     ),
     "control_posture": (
         ("tenant_id", "VARCHAR"),
@@ -1220,6 +1252,7 @@ _DUCKDB_TABLES: dict[str, tuple[tuple[str, str], ...]] = {
         ("age_minutes", "INTEGER"),
         ("expires_at", "TIMESTAMP"),
         ("reason", "VARCHAR"),
+        ("verdict_eligible", "BOOLEAN"),
     ),
     "metrics": (("metric", "VARCHAR"), ("value", "VARCHAR")),
 }
@@ -1267,6 +1300,7 @@ def _duckdb_load_arrow(connection: Any, table: str, rows: list[tuple[Any, ...]])
     arrow_types = {
         "VARCHAR": pa.string(),
         "INTEGER": pa.int64(),
+        "BOOLEAN": pa.bool_(),
         "DOUBLE": pa.float64(),
         "TIMESTAMP": pa.timestamp("us"),
     }
@@ -1343,8 +1377,14 @@ def _write_duckdb_mart_if_available(
                     row["evidence_ref"],
                     utc_timestamp(row["evidence_collected_at"]),
                     row["raw_sha256"],
+                    row["source_account_id"],
+                    row["connector_id"],
+                    row["source_event_id"],
+                    row["evidence_available"],
+                    row["evidence_types_json"],
+                    row["safeguard_ids_json"],
                 )
-                for row in silver_rows
+                for row in map(_normalized_sql_row, silver_rows)
             ],
         )
         load(
@@ -1447,6 +1487,7 @@ def _write_duckdb_mart_if_available(
                     row["age_minutes"],
                     utc_timestamp(row["expires_at"]),
                     row["reason"],
+                    row.get("verdict_eligible"),
                 )
                 for row in evidence_freshness_rows
             ],
