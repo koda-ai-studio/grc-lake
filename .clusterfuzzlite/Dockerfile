@@ -6,7 +6,7 @@
 # before build.sh runs, so the source copied here only serves local builds.
 FROM ghcr.io/astral-sh/uv:0.13.0@sha256:cdc6093146eb3ff6a40107b38f008b789e050e77ad87865e381d9917da55a168 AS uv
 
-FROM gcr.io/oss-fuzz-base/base-builder-python:v1@sha256:88bcf57cb6507ccc95cb5fcc3afeece6278b24880ec483a17f044a154277f9d0
+FROM gcr.io/oss-fuzz-base/base-builder-python:v1@sha256:756c7196c97d62a66c448e70bdeecce400e68ae2ee96d4393cb38d58ffca18d2
 COPY --from=uv /uv /usr/local/bin/uv
 # Third-party imports (the Stripe webhook target needs SQLAlchemy) come from
 # uv.lock with sha256 hashes; nothing unpinned is resolved.
