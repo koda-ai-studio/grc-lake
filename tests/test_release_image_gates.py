@@ -1,5 +1,6 @@
 """A release cannot publish Python before both image architectures qualify."""
 
+import shlex
 from pathlib import Path
 
 import pytest
@@ -41,8 +42,9 @@ def test_each_published_architecture_is_loaded_checked_and_scanned_first(platfor
     build_index, build = builds[0]
     image = build["with"]["tags"]
     preflight = steps[build_index + 1 : publish_index]
-    assert any("check_image_dependencies.sh " + image in step.get("run", "") for step in preflight)
-    assert any("authenticated_smoke.py" in step.get("run", "") and image in step["run"] for step in preflight), (
+    commands = [shlex.split(step.get("run", "")) for step in preflight if not step.get("continue-on-error")]
+    assert any("tools/check_image_dependencies.sh" in args and image in args for args in commands)
+    assert any("tools/authenticated_smoke.py" in args and image in args and platform in args for args in commands), (
         f"{platform} has no authenticated runtime qualification"
     )
     scans = [

@@ -29,6 +29,11 @@ def long_job(root, row):
     return 200, {"data": {"done": True}}
 
 
+def slow_starting_job(root, row):
+    time.sleep(4)
+    return long_job(root, row)
+
+
 def _locked() -> OperationalError:
     return OperationalError("UPDATE operation_jobs", {}, sqlite3.OperationalError("database is locked"))
 
@@ -74,19 +79,30 @@ def test_isolated_renewal_retries_lock_errors_and_the_job_completes(tmp_path, mo
     assert queue.get("insecure", job["id"])["status"] == "succeeded"
 
 
-def test_isolated_renewal_gives_up_before_the_lease_can_expire(tmp_path, monkeypatch):
+@pytest.mark.parametrize("execute", [long_job, slow_starting_job])
+def test_isolated_renewal_gives_up_before_the_lease_can_expire(tmp_path, monkeypatch, execute):
     monkeypatch.setattr(operation_jobs, "LEASE_SECONDS", 3)
     app = create_app(tmp_path, require_auth=False)
     queue = app.state.operation_queue
     job = queue.enqueue(_INSECURE_IDENTITY, "/api/v1/ingestion/eval", {}, "locked-renew")
-    calls = _flaky_renew(queue, monkeypatch, failures=None)
-    worker = JobWorker(queue, lambda row: (200, {}), subprocess_execute=long_job, timeout_seconds=60)
+    real_renew = queue.renew
+    failures = []
 
-    started = time.monotonic()
+    def fail_after_execution_starts(row):
+        # Spawn/import time is not the outage under test. Keep the lease valid
+        # until the child is executing, including on a busy or slow machine.
+        if not (tmp_path / "started").is_file():
+            return real_renew(row)
+        failures.append(time.monotonic())
+        raise _locked()
+
+    monkeypatch.setattr(queue, "renew", fail_after_execution_starts)
+    worker = JobWorker(queue, lambda row: (200, {}), subprocess_execute=execute, timeout_seconds=60)
+
     assert worker.run_once(isolated=True)
-    elapsed = time.monotonic() - started
 
-    assert calls["failed"] > 3, "renewal was not retried"
+    assert len(failures) > 3, "renewal was not retried"
+    elapsed = time.monotonic() - failures[0]
     assert elapsed < 3 + 5, elapsed
     assert (tmp_path / "started").is_file()
     assert not (tmp_path / "finished").exists()
