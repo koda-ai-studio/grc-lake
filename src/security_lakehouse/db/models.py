@@ -17,6 +17,7 @@ from sqlalchemy import (
     DateTime,
     Float,
     ForeignKey,
+    ForeignKeyConstraint,
     Index,
     Integer,
     String,
@@ -972,3 +973,80 @@ class DistributedScheduleState(Base):
     target_kind: Mapped[str] = mapped_column(String(32), primary_key=True)
     target_id: Mapped[str] = mapped_column(String(256), primary_key=True)
     last_fired_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class SafeguardImplementation(Base):
+    """Immutable tenant scope revisions; they never overwrite evidence verdicts."""
+
+    __tablename__ = "safeguard_implementations"
+    __table_args__ = (
+        UniqueConstraint("tenant_id", "id", name="uq_safeguard_impl_tenant_id"),
+        UniqueConstraint("tenant_id", "supersedes_id", name="uq_safeguard_impl_successor"),
+        ForeignKeyConstraint(
+            ["tenant_id", "supersedes_id"],
+            ["safeguard_implementations.tenant_id", "safeguard_implementations.id"],
+            name="fk_impl_successor_tenant",
+        ),
+    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id", ondelete="CASCADE"), index=True)
+    safeguard_id: Mapped[str] = mapped_column(String(128))
+    definition_sha256: Mapped[str] = mapped_column(String(64))
+    supersedes_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    content_json: Mapped[str] = mapped_column(Text)
+    content_sha256: Mapped[str] = mapped_column(String(64))
+    created_by_id: Mapped[str] = mapped_column(String(36))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
+class GovernanceDecision(Base):
+    """An immutable scoped proposal; separate human review establishes authority."""
+
+    __tablename__ = "governance_decisions"
+    __table_args__ = (
+        UniqueConstraint("tenant_id", "id", name="uq_governance_decision_tenant_id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "supersedes_id"],
+            ["governance_decisions.tenant_id", "governance_decisions.id"],
+            name="fk_decision_successor_tenant",
+        ),
+    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id", ondelete="CASCADE"), index=True)
+    supersedes_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    content_json: Mapped[str] = mapped_column(Text)
+    content_sha256: Mapped[str] = mapped_column(String(64))
+    created_by_id: Mapped[str] = mapped_column(String(36))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class GovernanceReview(Base):
+    """Append-only approval/rejection or revocation of exact proposal bytes."""
+
+    __tablename__ = "governance_reviews"
+    __table_args__ = (
+        UniqueConstraint("tenant_id", "decision_id", "slot", name="uq_governance_review_slot"),
+        UniqueConstraint("tenant_id", "replaces_id", name="uq_governance_approved_successor"),
+        ForeignKeyConstraint(
+            ["tenant_id", "decision_id"],
+            ["governance_decisions.tenant_id", "governance_decisions.id"],
+            name="fk_review_decision_tenant",
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "replaces_id"],
+            ["governance_decisions.tenant_id", "governance_decisions.id"],
+            name="fk_review_replaces_tenant",
+        ),
+    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id", ondelete="CASCADE"), index=True)
+    decision_id: Mapped[str] = mapped_column(String(36), index=True)
+    replaces_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    slot: Mapped[str] = mapped_column(String(16))
+    action: Mapped[str] = mapped_column(String(16))
+    rationale: Mapped[str] = mapped_column(Text)
+    content_sha256: Mapped[str] = mapped_column(String(64))
+    reviewer_id: Mapped[str] = mapped_column(String(36))
+    auth_method: Mapped[str] = mapped_column(String(32))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)

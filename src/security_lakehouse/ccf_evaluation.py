@@ -8,6 +8,7 @@ from collections import Counter, defaultdict
 from datetime import datetime
 
 from security_lakehouse.control_verdict import evaluate_evidence_verdict
+from security_lakehouse.domain_identity import source_asset_key
 from security_lakehouse.evidence_freshness import build_evidence_freshness, current_evidence_is_stale
 from security_lakehouse.jsontypes import JsonObject
 from security_lakehouse.safeguards import ATTESTABLE_STATES, contributes_to_coverage, effective_review_state
@@ -36,7 +37,7 @@ def evaluate_safeguards(
     bound: dict[str, dict[tuple[str, str], list[JsonObject]]] = defaultdict(lambda: defaultdict(list))
     freshness = {(row["tenant_id"], row["event_id"]): row for row in build_evidence_freshness(events, now=now)}
     for event in events:
-        asset_key = (str(event.get("tenant_id", "")), str(event["asset_id"]))
+        asset_key: tuple[str, str] = source_asset_key(event)
         assets[asset_key].add(str(event["asset_type"]))
         for safeguard_id in event.get("safeguard_ids", []):
             if safeguard_id not in definitions:
@@ -44,6 +45,7 @@ def evaluate_safeguards(
             bound[safeguard_id][asset_key].append(event)
     # Index the observed population once. Avoid a safeguards x events scan.
     type_counts = Counter(next(iter(types)) for types in assets.values() if len(types) == 1)
+    global_ambiguous_count = sum(len(types) != 1 for types in assets.values())
     results = []
     asset_results = []
     for safeguard_id, definition in definitions.items():
@@ -141,7 +143,7 @@ def evaluate_safeguards(
         "scope": "observed_assets",
         "population_completeness": "not_established",
         "asset_count": len(assets),
-        "ambiguous_asset_count": ambiguous_count,
+        "ambiguous_asset_count": global_ambiguous_count,
         "review_log_verified": payload.get("review_log_verified", False),
         "safeguards": results,
         "asset_results": asset_results,

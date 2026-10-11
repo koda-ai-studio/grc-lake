@@ -238,12 +238,13 @@ def test_partition_downgrade_refuses_to_discard_child_security_policy(catalog):
 
     cfg = _config(catalog.engine.url.render_as_string(hide_password=False))
     with catalog.engine.begin() as connection:
+        starting_revision = connection.scalar(text("SELECT version_num FROM alembic_version"))
         connection.execute(text("ALTER TABLE distributed_revisions_p00 ENABLE ROW LEVEL SECURITY"))
         connection.execute(text("CREATE POLICY local_policy ON distributed_revisions_p00 USING (tenant_id='tenant-a')"))
     with pytest.raises(RuntimeError, match="custom RLS"):
         command.downgrade(cfg, "0028_distributed_lake")
     with catalog.engine.connect() as connection:
-        assert connection.scalar(text("SELECT version_num FROM alembic_version")) == "0029_distributed_scaling"
+        assert connection.scalar(text("SELECT version_num FROM alembic_version")) == starting_revision
         assert connection.scalar(
             text("SELECT relrowsecurity FROM pg_class WHERE oid='distributed_revisions_p00'::regclass")
         )

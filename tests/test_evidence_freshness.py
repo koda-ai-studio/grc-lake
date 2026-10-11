@@ -91,10 +91,10 @@ def test_source_freshness_surfaces_workflow_action() -> None:
 
 def test_control_test_moves_to_needs_evidence_when_required_evidence_is_stale() -> None:
     silver_rows = [
-        _event(event_id="evt-runtime", event_type="runtime.tool_call"),
-        _event(event_id="evt-detection", event_type="detection.alert"),
-        _event(event_id="evt-vuln", event_type="vulnerability.finding"),
-        _event(event_id="evt-ticket", event_type="remediation.ticket"),
+        _event(status="passed", event_id="evt-runtime", event_type="runtime.tool_call"),
+        _event(status="passed", event_id="evt-detection", event_type="detection.alert"),
+        _event(status="passed", event_id="evt-vuln", event_type="vulnerability.finding"),
+        _event(status="passed", event_id="evt-ticket", event_type="remediation.ticket"),
     ]
     control_rows = [
         {

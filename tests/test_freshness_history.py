@@ -15,8 +15,8 @@ CONTROL = "NIST-AI-RMF-MEASURE-2.7"
 
 def history():
     return [
-        _event(event_id="old", evidence_collected_at="2026-05-24T00:00:00Z"),
-        _event(event_id="new", evidence_collected_at="2026-05-24T00:45:00Z"),
+        _event(status="passed", event_id="old", evidence_collected_at="2026-05-24T00:00:00Z"),
+        _event(status="passed", event_id="new", evidence_collected_at="2026-05-24T00:45:00Z"),
     ]
 
 
@@ -37,8 +37,8 @@ def test_fresh_asset_cannot_hide_another_assets_expired_evidence():
 
 def test_latest_means_parsed_instant_not_string_order():
     rows = [
-        _event(event_id="old", evidence_collected_at="2026-05-24T01:00:00+01:00"),
-        _event(event_id="new", evidence_collected_at="2026-05-24T00:45:00Z"),
+        _event(status="passed", event_id="old", evidence_collected_at="2026-05-24T01:00:00+01:00"),
+        _event(status="passed", event_id="new", evidence_collected_at="2026-05-24T00:45:00Z"),
     ]
     summary = summarize_control_freshness(rows, required_evidence_types=["runtime.tool_call"], now=NOW)
     assert summary["status"] == "fresh"

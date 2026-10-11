@@ -47,7 +47,7 @@ const STATUS_TONE: Record<
 > = {
   open: "attention",
   mitigating: "info",
-  accepted: "ready",
+  accepted: "info",
   closed: "default",
 };
 
@@ -246,7 +246,7 @@ export default function RisksPage() {
     <div className="page-shell space-y-6">
       <PageHeader
         title={ROUTE_LABELS["/risks"]}
-        description="Track identified risks scored by severity, likelihood, and impact. Assign an owner, link a mitigating control, and walk each risk through the open → mitigating → accepted → closed lifecycle."
+        description="Track identified risks, treatment and ownership. An accepted register status records intent; independently reviewed decisions and time-limited exceptions establish approval. Neither changes a control result."
       />
       <Card className="overflow-hidden">
         <CardHeader>

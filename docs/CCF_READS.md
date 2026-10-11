@@ -91,3 +91,24 @@ were identical across repeats. Timings include `tracemalloc` instrumentation.
 
 These measurements cover one scalar filter, one sort, and a 25-row page. They do
 not measure native SQLite allocations, operating-system cache, or total RSS.
+
+## Compact pages and separately paged references
+
+Projection v2 adds `GET /api/v1/ccf/asset-results?include_evidence=false`. It reads
+precomputed scalar summaries and `event_ids_count`, `evidence_hashes_count`, and
+`reasons_count`, without deserializing the full per-asset arrays. The default
+`include_evidence=true` preserves existing clients.
+
+Use `GET /api/v1/ccf/evidence-links` to page individual references, filtered by
+`safeguard_id`, `source_tenant_id`, `asset_id` and `kind`. The source tenant filter
+means source account, not platform ownership. `kind` distinguishes `event_ids`,
+`evidence_hashes` and `reasons`; independently ordered arrays do not establish
+an event-to-hash pairing. Each response contains at most 1,000 items. Compare the
+response generation across requests before combining pages.
+
+MCP exposes `list_ccf_asset_summaries` and `list_ccf_evidence_links`, returning
+the API envelope with `data` and generation/pagination `meta`. Existing full
+reads still accept projection v1. Compact and reference reads require v2 and
+return assessment unavailable until an old generation is reevaluated; they never
+fall back to loading the complete JSON artifact. These limits bound returned row
+counts, not string sizes, query execution time, total RSS or production capacity.

@@ -317,6 +317,7 @@ def test_v2_table_requires_explicit_identity_column_evolution(setup, tmp_path, m
         def v2_row(row, digest):
             result = normalize(row, digest)
             result.pop("evidence_available")
+            result.pop("source_account_id")
             return result
 
         legacy.setattr(pipeline, "_silver_row", v2_row)
@@ -336,6 +337,7 @@ def test_v2_table_requires_explicit_identity_column_evolution(setup, tmp_path, m
     with table.update_schema() as update:
         update.add_column("connector_id", StringType(), required=False)
         update.add_column("source_event_id", StringType(), required=False)
+        update.add_column("source_account_id", StringType(), required=False)
         from pyiceberg.types import BooleanType
 
         update.add_column("evidence_available", BooleanType(), required=False)

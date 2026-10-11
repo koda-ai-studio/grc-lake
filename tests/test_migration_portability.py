@@ -57,3 +57,55 @@ def test_upgrade_preserves_existing_tenant_and_user(migration_url):
         command.check(cfg)
     finally:
         engine.dispose()
+
+
+def test_governance_composite_references_reject_foreign_tenant(migration_url):
+    from datetime import UTC, datetime, timedelta
+
+    from sqlalchemy.exc import IntegrityError
+    from sqlalchemy.orm import Session
+
+    from security_lakehouse.db.models import GovernanceDecision, GovernanceReview, Tenant
+
+    cfg = _config(migration_url)
+    command.upgrade(cfg, "head")
+    engine = create_engine(migration_url)
+    try:
+        with engine.connect() as conn:
+            if engine.dialect.name == "sqlite":
+                conn.execute(text("PRAGMA foreign_keys=ON"))
+                conn.commit()
+            with Session(conn) as session:
+                session.add_all(
+                    [Tenant(id="t-a", slug="tenant-a", name="A"), Tenant(id="t-b", slug="tenant-b", name="B")]
+                )
+                session.commit()
+                session.add(
+                    GovernanceDecision(
+                        id="d",
+                        tenant_id="t-a",
+                        content_json="{}",
+                        content_sha256="a" * 64,
+                        created_by_id="u",
+                        expires_at=datetime.now(UTC) + timedelta(days=1),
+                    )
+                )
+                session.commit()
+                session.add(
+                    GovernanceReview(
+                        tenant_id="t-b",
+                        decision_id="d",
+                        slot="decision",
+                        action="approve",
+                        rationale="Invalid cross-tenant review",
+                        content_sha256="a" * 64,
+                        reviewer_id="r",
+                        auth_method="session:oidc",
+                    )
+                )
+                with pytest.raises(IntegrityError):
+                    session.commit()
+                session.rollback()
+                assert session.get(GovernanceDecision, "d").tenant_id == "t-a"
+    finally:
+        engine.dispose()

@@ -110,7 +110,14 @@
       "kind": "collection",
       "methods": ["GET"],
       "path": "/api/v1/ccf/asset-results",
-      "query": ["limit", "offset", "cursor", "sort", "<field>=<value>"],
+      "query": [
+        "limit",
+        "offset",
+        "cursor",
+        "sort",
+        "<field>=<value>",
+        "include_evidence"
+      ],
       "resource": "ccf.asset-results"
     },
     {
@@ -118,6 +125,30 @@
       "methods": ["GET"],
       "path": "/api/v1/ccf/coverage",
       "resource": "ccf.coverage"
+    },
+    {
+      "kind": "collection",
+      "methods": ["GET"],
+      "path": "/api/v1/ccf/evidence-links",
+      "query": [
+        "safeguard_id",
+        "source_tenant_id",
+        "asset_id",
+        "kind",
+        "limit",
+        "offset",
+        "cursor"
+      ],
+      "resource": "ccf.evidence-links",
+      "scopes": ["read"]
+    },
+    {
+      "kind": "collection",
+      "methods": ["GET", "POST"],
+      "path": "/api/v1/ccf/implementations",
+      "query": ["limit", "offset"],
+      "resource": "ccf.implementations",
+      "scopes": ["read", "control_manage"]
     },
     {
       "kind": "collection",
@@ -322,6 +353,22 @@
       "path": "/api/v1/gov-compliance/sprs",
       "resource": "gov-compliance.sprs",
       "scopes": ["read"]
+    },
+    {
+      "kind": "collection",
+      "methods": ["GET", "POST"],
+      "path": "/api/v1/governance/decisions",
+      "query": ["limit", "offset"],
+      "resource": "governance.decisions",
+      "scopes": ["read", "control_manage"]
+    },
+    {
+      "kind": "singleton",
+      "methods": ["POST"],
+      "path": "/api/v1/governance/decisions/{decision_id}/reviews",
+      "path_params": ["decision_id"],
+      "resource": "governance.reviews",
+      "scopes": ["control_manage"]
     },
     {
       "default_paged": true,

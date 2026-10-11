@@ -3,6 +3,7 @@
 from typing import Any
 
 from security_lakehouse.event_status import FAIL_STATUSES, normalize_event_status
+from security_lakehouse.evidence_eligibility import evidence_available, has_verdict
 from security_lakehouse.policy import ControlContext, RuleResult, evaluate_control
 from security_lakehouse.vocabulary import ControlVerdict, EventStatus, Severity
 
@@ -14,10 +15,10 @@ def evaluate_evidence_verdict(control_id: str, rows: list[dict[str, Any]], rule:
     evidence. Source failures respect the declared rule's severity threshold.
     Freshness is evaluated over current evidence populations by the caller.
     """
-    verdict_rows = [row for row in rows if normalize_event_status(row["status"]) != EventStatus.OBSERVED]
+    verdict_rows = [row for row in rows if has_verdict(row)]
     failures = [row for row in verdict_rows if normalize_event_status(row["status"]) in FAIL_STATUSES]
     unknown = any(normalize_event_status(row["status"]) == EventStatus.NOT_EVALUATED for row in verdict_rows)
-    evidence = [row for row in verdict_rows if row.get("evidence_ref") and row.get("evidence_available", True)]
+    evidence = [row for row in verdict_rows if evidence_available(row)]
     top_open = max(failures, key=lambda row: row["severity_score"], default=None)
     context = ControlContext(
         control_id=control_id,

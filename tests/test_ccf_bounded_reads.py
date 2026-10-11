@@ -3,7 +3,7 @@
 import pytest
 
 from security_lakehouse import api_v1
-from security_lakehouse.io import read_json, write_jsonl
+from security_lakehouse.io import read_json, write_json, write_jsonl
 from security_lakehouse.pipeline import run_pipeline
 from test_assurance_truth import event
 
@@ -104,8 +104,6 @@ def test_projection_cannot_redirect_to_a_different_generation(lake):
 
 
 def test_old_generation_without_projection_remains_readable(lake, tmp_path):
-    from security_lakehouse.io import write_json
-
     legacy = tmp_path / "legacy"
     assessment = read_json(lake / "gold/ccf_assessment.json")
     write_json(legacy / "gold/ccf_assessment.json", assessment)
@@ -149,3 +147,39 @@ def test_indexed_and_json_collections_reject_unknown_filter_fields(lake):
     status, body = api_v1.handle_get("/api/v1/ccf/asset-results", {"unknown": ["x' OR 1=1 --"]}, lake)
     assert status == 400
     assert body["errors"][0]["code"] == "bad_request"
+
+
+def test_compact_asset_page_and_paginated_links_preserve_exact_totals(lake):
+    status, page = api_v1.handle_get("/api/v1/ccf/asset-results", {"include_evidence": ["false"], "limit": ["2"]}, lake)
+    assert status == 200
+    assert page["meta"]["count"] == 8
+    assert len(page["data"]) == 2
+    first = page["data"][0]
+    assert "event_ids" not in first
+    assert first["event_ids_count"] == 1
+    params = {key: [first[key]] for key in ("safeguard_id", "source_tenant_id", "asset_id")}
+    params.update(kind=["event_ids"], limit=["1"])
+    status, links = api_v1.handle_get("/api/v1/ccf/evidence-links", params, lake)
+    assert status == 200
+    assert links["meta"]["count"] == 1
+    assert links["data"][0]["value"] == "event-0"
+    assert links["meta"]["generation"] == page["meta"]["generation"]
+
+
+def test_legacy_projection_needs_rebuild_for_compact_reads(lake):
+    import json
+    import sqlite3
+
+    from security_lakehouse.generations import active_generation
+
+    generation = active_generation(lake)
+    marker = read_json(generation / "generation.json")
+    marker["ccf_projection_version"] = 1
+    # Simulate the on-disk shape written by the previous projection version.
+    (generation / "generation.json").write_text(json.dumps(marker))
+    with sqlite3.connect(generation / "mart/security_lakehouse.sqlite") as connection:
+        connection.execute("DROP TABLE ccf_asset_summaries")
+        connection.execute("DROP TABLE ccf_evidence_links")
+    assert api_v1.handle_get("/api/v1/ccf/asset-results", {}, lake)[0] == 200
+    assert api_v1.handle_get("/api/v1/ccf/asset-results", {"include_evidence": ["false"]}, lake)[0] == 409
+    assert api_v1.handle_get("/api/v1/ccf/evidence-links", {}, lake)[0] == 409

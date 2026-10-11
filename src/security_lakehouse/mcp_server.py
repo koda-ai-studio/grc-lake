@@ -772,6 +772,28 @@ def build_server(lake_dir: Path | None = None) -> FastMCP:
         """Read a bounded page of asset/safeguard outcomes with evidence IDs and hashes."""
         return _get("/api/v1/ccf/asset-results", lake, limit=str(limit), offset=str(offset))
 
+    @trustops_tool(title="CCF Asset Summaries")
+    def list_ccf_asset_summaries(limit: int = 100, offset: int = 0) -> JsonObject:
+        """Read outcomes and exact reference counts without embedded evidence lists."""
+        return _get_envelope(
+            "/api/v1/ccf/asset-results", lake, include_evidence="false", limit=str(limit), offset=str(offset)
+        )
+
+    @trustops_tool(title="CCF Evidence Links")
+    def list_ccf_evidence_links(
+        safeguard_id: str, source_tenant_id: str, asset_id: str, limit: int = 100, offset: int = 0
+    ) -> JsonObject:
+        """Page references for one source-account asset and safeguard in the current generation."""
+        return _get_envelope(
+            "/api/v1/ccf/evidence-links",
+            lake,
+            safeguard_id=safeguard_id,
+            source_tenant_id=source_tenant_id,
+            asset_id=asset_id,
+            limit=str(limit),
+            offset=str(offset),
+        )
+
     @trustops_tool(title="Mapping Review Queue")
     def get_mapping_review_queue(
         framework_id: str | None = None, risk_domain: str | None = None, limit: int = 25, offset: int = 0

@@ -167,3 +167,29 @@ Sizes use decimal units. These are single local synthetic observations, not
 production capacity or native AMD64 measurements. Cold handler timing excludes
 HTTP transport; its response remains 5.33 MB with the existing inline violation
 limit. Full evaluation still keeps raw and normalized events in memory.
+
+## Evaluation admission budgets
+
+Both full and incremental pipeline entry points validate raw input before building
+an assessment in memory. The following per-process settings apply equally on a
+local host, container or cloud worker:
+
+| Setting                           |             Default | Allowed range | Effect                                                            |
+| --------------------------------- | ------------------: | ------------: | ----------------------------------------------------------------- |
+| `GRC_LAKE_EVALUATION_INPUT_BYTES` | 268435456 (256 MiB) |  1–4294967296 | Maximum raw input bytes per evaluation                            |
+| `GRC_LAKE_EVALUATION_RELATIONS`   |             1000000 |    1–10000000 | Maximum explicit control and safeguard bindings across raw events |
+| Raw record size                   |               8 MiB |         Fixed | Rejects an oversized JSONL record                                 |
+
+Invalid configuration, excessive bytes or excessive explicit relations reject the
+run before publication; the prior generation remains current. Evidence is not
+silently truncated. Relation admission counts raw bindings, not all possible
+derived catalog fan-out. These are admission guards, not a hard RSS cap or a
+replacement for worker memory/CPU limits. Evaluation still materializes evidence
+and a single tenant's run stays on one worker.
+
+For a small deployment, retain defaults and measure representative evidence before
+changing them. For several tenants, budget worker concurrency against aggregate
+peak RSS, disk headroom, queue delay and provider throttling. Raising an input
+limit does not enable distributed evaluation within a tenant or remove the server's
+100k-event routing guard. Qualify larger limits using full-pipeline measurements;
+compact API read benchmarks do not establish safe evaluation capacity.

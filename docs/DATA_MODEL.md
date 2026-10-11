@@ -1,137 +1,88 @@
-# Data Model
+# Data model
 
-The model separates evidence from evaluation. Evidence describes what was
-observed. Assessment describes what that evidence means for controls, risk, and
-owners.
+GRC Lake separates collected evidence, deterministic assessment, and human
+operating decisions. A reviewed mapping is not a passing control. An accepted
+risk, exception, or implementation record does not supply evidence or change a
+verdict.
 
-## Logical Model
+## Identity and ownership
 
-```mermaid
-erDiagram
-  ASSET {
-    string asset_id PK
-    string asset_type
-    string owner
-    string environment
-    string business_unit
-  }
+| Identity        | Meaning and scope                                                                                                                                                                                |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Platform tenant | Authenticated organization; owns a lake, its sealed generation and server database records. The generation manifest carries this `tenant_id`.                                                    |
+| Source account  | Account or workspace reported by a connector. Normalized evidence exposes `source_account_id`; the legacy evidence field `tenant_id` remains an equal alias. Neither authorizes platform access. |
+| Asset           | Within a platform-owned lake, `(source_account_id, asset_id)` identifies an observed asset. An asset ID alone is ambiguous across source accounts.                                               |
+| Evidence event  | Normalized `event_id`, with connector/source event identity and `raw_sha256` preserving provenance. References are resolved within the owned generation.                                         |
+| Requirement     | A versioned catalog `control_id` in a named framework.                                                                                                                                           |
+| Safeguard       | An operated CCF activity identified by `safeguard_id`; its definition digest binds objective, evidence requirements, rule, asset/evidence types, frequency, owner and mapping source.            |
+| Mapping         | A safeguard-to-framework-requirement relationship, including relationship type, version, source and review state.                                                                                |
 
-  EVIDENCE_ITEM {
-    string evidence_id PK
-    string source
-    string evidence_ref
-    datetime collected_at
-    datetime expires_at
-    string raw_sha256
-  }
+Normalization v5 adds the source-account alias. Historical v1–v4 exports remain
+readable without rewriting saved evidence. Warehouse gold `tenant_id` is platform
+ownership; silver `tenant_id` is the legacy source-account field. Do not join these
+columns as if they represented the same identity.
 
-  CONTROL {
-    string control_id PK
-    string framework
-    string title
-    string owner
-    string risk_domain
-    string evidence_requirement
-    string frequency
-  }
+## Assessment and governance
 
-  CONTROL_TEST {
-    string test_id PK
-    string control_id FK
-    string result
-    datetime evaluated_at
-    string reason
-  }
+| Entity                      | Contract                                                                                                                                                                               |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Raw and normalized evidence | Source facts and references; observations may describe inventory without asserting pass or fail.                                                                                       |
+| Asset safeguard result      | Evaluates explicitly bound evidence for one safeguard and source-account asset. Ambiguous assets remain visible.                                                                       |
+| Framework/control result    | Evaluates required evidence and freshness. An `observed` row cannot refresh an old verdict or provide operating test credit. Unknown and unavailable evidence cannot establish a pass. |
+| Control workpaper           | Separates available design evidence, eligible period samples, population gaps and human judgment; output schema `trustops.control_assurance.v2`.                                       |
+| Assessment generation       | Catalog, evidence and derived outputs published atomically with artifact hashes. Readers pin one generation per operation.                                                             |
+| Snapshot                    | Point-in-time assessment with a predecessor hash in the snapshot ledger. A snapshot is distinct from an evaluation generation.                                                         |
+| Scoped implementation       | Immutable revision declaring owner, system, cadence, controls/safeguards and optional assets, with evidence and definition digests. Supersession retains earlier content.              |
+| Governance decision         | Evidence-backed, scoped, expiring disposition: risk acceptance, by design, not applicable, inherited or compensating. Independent human approval binds the exact proposal hash.        |
+| Governance review           | Append-only approval/rejection or revocation. An approved extension supersedes the prior decision; a pending extension leaves it unchanged.                                            |
 
-  VIOLATION {
-    string violation_id PK
-    string control_id FK
-    string asset_id FK
-    string evidence_id FK
-    string severity
-    string state
-    datetime detected_at
-  }
+Organization mapping approvals bind a versioned review basis containing the
+safeguard semantics, mapping member and requirement. Semantic changes or legacy
+approvals without that basis require fresh review. Rejections and requests for
+changes remain holds until explicitly superseded. No migration invents approvals.
 
-  SNAPSHOT {
-    string assessment_hash PK
-    string assessment_type
-    datetime evaluated_at
-    string reason
-    string posture_state
-  }
+Governance decisions separately verify their saved safeguard and requirement
+basis against the installed catalog. Changed definitions disable active status
+and block approval until a new proposal is reviewed. Historical records remain
+readable. Custom catalog definitions must match the server catalog before their
+proposals can become active.
 
-  ASSET ||--o{ EVIDENCE_ITEM : observed_on
-  CONTROL ||--o{ CONTROL_TEST : evaluated_by
-  CONTROL ||--o{ VIOLATION : violated_by
-  ASSET ||--o{ VIOLATION : has
-  EVIDENCE_ITEM ||--o{ VIOLATION : supports
-  SNAPSHOT ||--o{ CONTROL_TEST : freezes
-  SNAPSHOT ||--o{ VIOLATION : freezes
-```
+## Physical storage and read surfaces
 
-## Physical Tables
+| Store                                       | Contents and purpose                                                                                                                                                                                                          |
+| ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `bronze/`, `silver/normalized_events.jsonl` | Replayable evidence and normalized facts inside a generation.                                                                                                                                                                 |
+| `catalog/` in a generation                  | Pinned control and safeguard inputs for reproducible evaluation.                                                                                                                                                              |
+| `gold/`                                     | Control posture, tests, asset risk, CCF results and assessment outputs.                                                                                                                                                       |
+| Sealed SQLite mart                          | Derived indexed CCF rows, compact asset summaries and paged evidence/reason references. Rebuilt by evaluation; never the source of truth.                                                                                     |
+| Mapping review JSONL ledger                 | Tenant-local attributable mapping decisions, separate from shipped catalog data.                                                                                                                                              |
+| Server SQLite/PostgreSQL                    | Auth, workflow state, risks, scoped implementation revisions, governance proposals and reviews. API queries enforce tenant scope; composite governance foreign keys additionally guard databases with FK enforcement enabled. |
+| Optional warehouse exports                  | Copies of committed generation data. Export success and assessment publication are separate results.                                                                                                                          |
 
-| Layer   | Table/object               | Purpose                                         |
-| ------- | -------------------------- | ----------------------------------------------- |
-| Bronze  | `raw_events`               | immutable source evidence plus raw hash         |
-| Silver  | `normalized_events`        | canonical evidence facts                        |
-| Gold    | `control_posture`          | current control status and evidence coverage    |
-| Gold    | `control_tests`            | control test results and confidence             |
-| Gold    | `asset_risk`               | owner-ready risk queue                          |
-| Gold    | `current_posture`          | live assessment result                          |
-| Gold    | `assessment_snapshots`     | point-in-time assessment exports                |
-| API     | `/api/posture/current`     | current posture contract                        |
-| API     | `/api/violations`          | open violation contract                         |
-| Catalog | `frameworks/registry.json` | official framework source registry              |
-| Catalog | `controls/catalog.json`    | implemented controls with evidence requirements |
+Use `/api/v1/ccf/asset-results?include_evidence=false` for compact pages and
+`/api/v1/ccf/evidence-links` for bounded detail. Full result reads retain their
+compatibility contract. New governance records are available through authenticated
+server APIs; they are not automatically injected into workpapers or evaluated
+results, and do not yet have a dedicated console editor.
 
-## Tenant Isolation
+## Upgrade and rollback
 
-Every gold table — `control_posture`, `control_tests`, and `asset_risk` —
-carries a `tenant_id` column as its first field, mirroring the silver
-`normalized_events` table. This lets a single shared warehouse host multiple
-tenants without one tenant's control posture, tests, or asset risk collapsing
-into another's.
+Database migration `0030` adds governance tables without altering existing risk or
+exception records. Back up the database before upgrading. Export new records and
+reviews before downgrading: downgrade removes these new tables. Restoring a
+backup is the recovery path for their history; a downgrade cannot reconstruct it.
 
-- **Shared warehouses (ClickHouse / Snowflake):** `tenant_id` is the leading
-  key. In ClickHouse it leads every gold table's `ORDER BY` and is the
-  partition key, so `ReplacingMergeTree` deduplicates within a tenant rather
-  than across tenants (two tenants reporting the same `control_id` no longer
-  last-writer-collapse). In Snowflake it leads the primary key and the
-  clustering key.
-- **File mart (SQLite / DuckDB):** the local mart is single-tenant per
-  deployment. `run_pipeline(..., tenant_id="acme")` stamps every gold row with
-  that value; it defaults to `"default"` so existing single-tenant pipelines
-  are unaffected. The gold JSONL row shape is unchanged — `tenant_id` lives
-  only on the warehouse DDL and the mart tables.
+Normal evaluation rebuilds derived artifacts with normalization v5, evaluation v9
+and CCF projection v2. Existing sealed generations remain unchanged. Projection
+v1 remains readable through the existing full-results API; compact/link reads
+require reevaluation. Admission failures leave the current generation in place.
 
-## Schema Contracts
+## Related contracts
 
-- [Raw security event](../data/schemas/raw-security-event.schema.json)
-- [Normalized event](../data/schemas/normalized-event.schema.json)
-- [Current posture](../data/schemas/current-posture.schema.json)
-- [Violation](../data/schemas/violation.schema.json)
-
-## Control source provenance (auditable, not "vibes")
-
-Every control in `controls/catalog.json` carries source-provenance so a mapping
-can be traced to its origin and review:
-
-| Field                           | Meaning                                                          |
-| ------------------------------- | ---------------------------------------------------------------- |
-| `framework_ref`                 | The framework + clause the control answers (e.g. `SOC 2 CC6.1`). |
-| `source_url`                    | The authoritative source the control text/intent came from.      |
-| `mapping_rationale`             | Why the chosen signal satisfies this control.                    |
-| `reviewed_by` / `reviewed_date` | The review gate — who attested the mapping and when.             |
-| `signal_source`                 | The silver table / connector feed the control test reads.        |
-
-The catalog validator **requires** all six, and CI fails a control merged
-without them. Inspect gaps any time:
-
-```bash
-grc-lake controls provenance   # exit 1 if any control lacks provenance
-```
-
-This is the answer to "how do you get the controls right?": every mapping is
-source-linked, has a rationale, names its signal, and passes a provenance gate.
+- [Unified model diagram](diagrams/unified-data-model.md)
+- [Raw event schema](../data/schemas/raw-security-event.schema.json)
+- [Normalized event schema](../data/schemas/normalized-event.schema.json)
+- [Mapping review](MAPPING_REVIEW.md)
+- [Workpapers](CONTROL_TEST_WORKPAPERS.md)
+- [Governed decisions and remediation](GOVERNED_REMEDIATION.md)
+- [CCF reads](CCF_READS.md) and [scale limits](AUDIT_SCALE.md)

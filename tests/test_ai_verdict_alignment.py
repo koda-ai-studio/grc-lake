@@ -9,7 +9,7 @@ from security_lakehouse.ai_governance import _framework_rows, _framework_score
 CONTROL = "NIST-AI-RMF-GOVERN-1.1"
 
 
-@pytest.mark.parametrize("evidence", ["missing", "expired", "unavailable"])
+@pytest.mark.parametrize("evidence", ["missing", "expired", "unavailable", "observed"])
 def test_ai_materialized_pass_cannot_ignore_missing_or_stale_evidence(evidence):
     moment = datetime.now(UTC)
     events = (
@@ -19,6 +19,7 @@ def test_ai_materialized_pass_cannot_ignore_missing_or_stale_evidence(evidence):
             {
                 "event_id": "one",
                 "source": "fixture",
+                "status": "observed" if evidence == "observed" else "pass",
                 "control_ids": [CONTROL],
                 "event_time": (moment - timedelta(days=100) if evidence == "expired" else moment).isoformat(),
                 "evidence_ref": "fixture://one",
@@ -56,6 +57,7 @@ def test_ai_framework_can_use_noninventory_evidence_for_its_controls(tmp_path):
                 "event_id": "review",
                 "source": "fixture",
                 "event_type": "compliance.evidence_bundle",
+                "status": "pass",
                 "control_ids": [CONTROL],
                 "event_time": datetime.now(UTC).isoformat(),
                 "evidence_ref": "fixture://review",
