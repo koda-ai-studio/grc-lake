@@ -81,7 +81,8 @@
     "raw_sha256": {
       "type": "string",
       "minLength": 64,
-      "maxLength": 64
+      "maxLength": 64,
+      "pattern": "^[a-f0-9]{64}$"
     },
     "safeguard_ids": {
       "type": "array",
@@ -102,6 +103,20 @@
     "source_account_id": {
       "type": "string",
       "description": "Source account provenance; equal to the legacy tenant_id. Not a platform authorization identity."
+    },
+    "evidence_available": {
+      "type": "boolean",
+      "description": "Whether the source supplied an evidence object; availability alone does not establish a verdict."
+    },
+    "evidence_types": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
     }
+  },
+  "dependentRequired": {
+    "connector_id": ["source_event_id"],
+    "source_event_id": ["connector_id"]
   }
 }

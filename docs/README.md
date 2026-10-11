@@ -66,6 +66,8 @@ Every guide in `docs/`, grouped by task. New here? Start with the
 
 ## Integrate
 
+[Data contracts](DATA_CONTRACTS.md) covers schemas, formats, and read/write boundaries.
+
 | Guide                                                                | Covers                                                   |
 | -------------------------------------------------------------------- | -------------------------------------------------------- |
 | [Connectors](CONNECTORS.md)                                          | Connector catalog, release stages, and access model      |

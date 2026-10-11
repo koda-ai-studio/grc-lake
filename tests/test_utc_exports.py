@@ -22,6 +22,7 @@ def test_native_duckdb_mart_keeps_offset_instant(tmp_path):
             datetime(2026, 1, 1, 12),
             datetime(2026, 1, 1, 12),
         )
+        assert connection.execute("SELECT evidence_available FROM normalized_events").fetchone() == (None,)
 
 
 @pytest.mark.parametrize("zone", ["UTC", "America/New_York", "Pacific/Kiritimati"])
