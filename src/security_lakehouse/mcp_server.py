@@ -758,6 +758,21 @@ def build_server(lake_dir: Path | None = None) -> FastMCP:
         rows = build_framework_coverage(lake_dir=lake)
         return {"summary": framework_coverage_summary(rows), "frameworks": rows}
 
+    @trustops_tool(title="Evidence Lineage")
+    def get_evidence_lineage(
+        event_id: str, limit: int = 25, offset: int = 0, generation_id: str | None = None
+    ) -> JsonObject:
+        """Read exact source provenance and frozen result links, with generation metadata.
+
+        Pass generation_id from the first page to reject pagination drift. A
+        declared control link is not proof of sufficient operating evidence.
+        """
+        params = {"limit": str(limit), "offset": str(offset)}
+        if generation_id is not None:
+            params["generation_id"] = generation_id
+        identity = urllib.parse.quote(event_id, safe="") if _remote_api_configured() else event_id
+        return _get_envelope(f"/api/v1/evidence/{identity}/lineage", lake, **params)
+
     @trustops_tool(title="CCF Assessment")
     def get_ccf_assessment(limit: int = 25, offset: int = 0) -> JsonObject:
         """Read frozen safeguard and requirement results within observed asset scope.
