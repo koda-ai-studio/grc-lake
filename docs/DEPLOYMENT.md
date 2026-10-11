@@ -1,7 +1,7 @@
 # Deployment
 
-GRC Lake is an **open-source trust operations platform** you can run locally or
-self-host in your cloud. The product goal is enterprise-grade continuous
+GRC Lake is an **open-source trust operations platform** you can run on-premises or
+in your cloud. The product goal is enterprise-grade continuous
 compliance — evidence ingestion, control tests, posture dashboards, trust-center
 sharing, and agent APIs — without locking evidence in a vendor silo.
 
@@ -10,16 +10,37 @@ to preserve volumes, release names, secrets and compatibility aliases.
 
 ## Deployment models
 
-| Model           | Who runs it                   | Best for                                                         |
-| --------------- | ----------------------------- | ---------------------------------------------------------------- |
-| **OSS local**   | You, on a laptop or CI runner | Contributors, evaluators, pipeline proofs                        |
-| **Self-hosted** | You, in your VPC / cluster    | Teams that need data residency, custom connectors, full control  |
-| **Hosted mode** | An operator you choose        | Teams that want a live URL without running Kubernetes themselves |
+| Model           | Who runs it                                  | Best for                                                         |
+| --------------- | -------------------------------------------- | ---------------------------------------------------------------- |
+| **OSS local**   | You, on a laptop or CI runner                | Contributors, evaluators, pipeline proofs                        |
+| **Self-hosted** | You, on-premises or in a cloud VPC / cluster | Teams that need data residency, custom connectors, full control  |
+| **Hosted mode** | An operator you choose                       | Teams that want a live URL without running Kubernetes themselves |
 
-Evidence stays in **your boundary** in every model: local files, customer-owned
-Snowflake/ClickHouse/DuckDB, a tenant-scoped `/lake` volume, or PostgreSQL/S3 in distributed mode.
-GRC Lake is not a hosted evidence warehouse that copies your cloud posture into
-an opaque SaaS database.
+Application state lives in storage you operate: a filesystem lake with SQLite or
+PostgreSQL in local mode, or PostgreSQL plus S3-compatible storage in distributed
+mode. Source lakes and optional warehouse exports are separate integrations;
+Snowflake or ClickHouse does not replace the application state store. Configured
+connectors, exports, model integrations and sharing determine data egress.
+
+## Deployment and lake compatibility
+
+Hosting location does not select the storage mode. Both filesystem and distributed
+modes can run on-premises or in the cloud; OSS includes both.
+
+| Choice                         | Supported implementation                                                                                    | Qualification boundary                                                                                                                                  |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Application hosting            | VM, container, or Kubernetes; Docker/Helm templates and EKS reference Terraform                             | Operator provisions infrastructure, TLS, identity and backups; AKS/GKE have no dedicated Terraform module here                                          |
+| Filesystem mode                | One writable application replica, filesystem evidence, SQLite or PostgreSQL operational state               | A cloud VM or PVC can hold the filesystem; shared disks do not make multi-writer operation safe                                                         |
+| Distributed mode               | Multiple API replicas and tenant workers, PostgreSQL primary, S3-compatible object storage, private scratch | Cross-tenant concurrency; one tenant evaluation still runs on one worker. See [qualification limits](DISTRIBUTED.md#container-deployment-qualification) |
+| Existing OSS/self-managed lake | ClickHouse tables or supported Iceberg/Parquet layouts; object-storage and SIEM evidence adapters           | Requires the matching reader, schema and credentials; an arbitrary SQL engine or object-store protocol is not automatically supported                   |
+| Existing cloud lake            | Snowflake, Databricks, BigQuery, supported Iceberg/Parquet and S3 evidence                                  | Databricks, BigQuery and Iceberg/Parquet readers are preview; mapped-table mode is experimental. See [reader status](BRING_YOUR_OWN_LAKE.md)            |
+| Optional exports               | Snowflake, ClickHouse and DuckDB sinks from an operator-owned filesystem run                                | Post-assessment projection; server-mode export needs tenant-scoped destination support and is currently rejected                                        |
+
+Readers copy the selected evidence into GRC Lake's assessment storage while
+preserving the source system. Source compatibility is separate from framework
+mapping coverage and does not certify live-provider accuracy or deployment scale.
+See [supported evidence lakes](HERO_DATA_LAKES.md) and the generated
+[framework coverage matrix](FRAMEWORK_COVERAGE.md).
 
 <p align="center">
   <img src="images/grc-lake-readonly-connections.svg" alt="Read-only connections vs vendor SaaS evidence boundary" width="92%">
@@ -104,18 +125,66 @@ gated commercial features (invites, usage limits, SCIM 2.0, Stripe billing).
 
 Evaluator flow: [Shareable Demo](SHAREABLE_DEMO.md).
 
+## Configuration and scaling tradeoffs
+
+Select a deployment profile before sizing it. These are shipped configuration
+examples, not capacity promises or production sizing recommendations. Hosting in
+a cloud does not automatically select distributed mode.
+
+| Workload                                 | Starting profile and configuration                                                                                                                                                             | Tradeoff / when to change                                                                                                                                                                |
+| ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Evaluation or CI fixture                 | Loopback-only Docker Compose; filesystem and SQLite; no model required                                                                                                                         | Minimal setup. Bundled no-auth mode is for local evaluation, not a shared service.                                                                                                       |
+| Small authenticated deployment           | [Self-hosted values](../deploy/examples/self-hosted-values.yaml); one writable replica, persistent lake, OIDC/SAML, coordinated backups                                                        | Simplest operations. Vertical sizing only; `Recreate` updates have downtime. PostgreSQL alone does not remove the single-writer constraint.                                              |
+| Concurrent tenants                       | [Distributed API values](../deploy/examples/distributed/api-values.yaml); PostgreSQL + S3; two API replicas; 1 CPU / 2 GiB requested, 2 CPU / 4 GiB limit per API pod                          | More application availability and tenant concurrency; adds database/object-store operations, network I/O and private scratch. Provider failover still needs testing.                     |
+| Evaluation queue pressure across tenants | Add the [worker overlay](../deploy/examples/distributed/worker-values.yaml); two worker replicas inherited from API values, one job each; 2 CPU / 4 GiB requested, 4 CPU / 8 GiB limit per pod | Increase replicas or job concurrency only after measuring memory and database/storage pressure. One tenant still has one running job and one in-memory evaluation.                       |
+| Read-heavy console/API traffic           | Add the [reader overlay](../deploy/examples/distributed/reader-values.yaml); separate read Service, API-sized resources                                                                        | Isolates read traffic. Each replica has its own cache and hydration cost; readers still need the PostgreSQL primary for auth/audit writes.                                               |
+| One large tenant                         | Profile a full and incremental evaluation before raising resource limits                                                                                                                       | More shards or replicas do not divide that evaluation. The server's 100,000-row routing guard remains; warehouse-native evaluation and tenant-scoped server exports are not implemented. |
+
+Use the [distributed setup commands](DISTRIBUTED.md#kubernetes-profiles), including
+one scheduler release and explicit shared secret references. The base Helm chart's
+100m CPU / 256 MiB request and 1 CPU / 1 GiB limit are defaults, not a production
+sizing recommendation. Do not reuse them as evidence that a workload will fit.
+
+For each candidate configuration, measure p50/p95/p99 request latency, queue wait,
+full/incremental evaluation time, peak worker RSS, scratch high-water usage,
+PostgreSQL connections, and S3 latency/request volume. Include cold caches, uneven
+tenant sizes, simultaneous reads and writes, retries, and a restore exercise.
+Retain the commit, provider, hardware, dataset bounds and raw results. See
+[benchmark procedure](BENCHMARKS.md) and [runtime tuning](DISTRIBUTED.md#tuning-knobs-and-capacity-budget).
+No measured production tenant/event-per-second ceiling is established by these profiles.
+
+### Optional model configuration
+
+Control evaluation and the default agent harness need no LLM. Model selection is
+independent of filesystem/distributed mode and does not change control verdicts
+or human approval requirements.
+
+| Choice                 | Configuration                                                                                                                   | Tradeoff                                                                                                                                                                                    |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Deterministic only     | Leave `GRC_LAKE_AGENT_USE_MODEL` unset; provider defaults to `rules_only`                                                       | No inference service, GPU or model-call cost; deterministic facts and proposals remain available.                                                                                           |
+| Customer-run inference | `GRC_LAKE_AGENT_PROVIDER=ollama` or `openai_compatible`, explicit model and reachable base URL; enable model calls deliberately | Operator owns model memory/compute, endpoint security and availability. Container loopback refers to that container, not a separate model service. Size inference separately from GRC Lake. |
+| Cloud inference        | Supported provider, model and credential settings from [Agent Harness](AGENT_HARNESS.md#bring-your-own-cloud-model)             | Provider latency, quotas, cost and data residency apply. Role-redacted context is still data sent to that provider; approve the destination. Use workload identity where supported.         |
+
+Model calls default to a 20-second provider timeout (clamped to 1–120 seconds),
+12,000 context characters and 600 requested output tokens. Start with those
+[bounds](AGENT_HARNESS.md#budget-policy); measure output quality, timeout rate and
+cost before increasing them. Larger models and prompts do not increase evidence
+coverage or make control evaluation distributed.
+
 ## Shipped capabilities
 
-| Capability                                      | GRC Lake                                  |
-| ----------------------------------------------- | ----------------------------------------- |
-| Continuous control tests from live integrations | Yes (connectors + scheduler)              |
-| Executive dashboard + framework readiness       | Yes                                       |
-| Trust center / customer sharing                 | Yes (scoped tokens)                       |
-| Policy/policy-template library                  | MVP (8 bundled templates + adopt/publish) |
-| Auditor workflow / audit project management     | MVP (audit room + audit readiness API)    |
-| Vendor risk questionnaires                      | MVP (bundled questionnaire templates)     |
-| OSS + self-hosted                               | **Yes**                                   |
-| Customer-owned evidence lake                    | **Yes**                                   |
+| Capability                                  | GRC Lake                                                                                |
+| ------------------------------------------- | --------------------------------------------------------------------------------------- |
+| Continuous control tests from integrations  | Implemented connectors + scheduler; live qualification varies by source                 |
+| Executive dashboard + framework readiness   | Yes                                                                                     |
+| Trust center / customer sharing             | Yes (scoped tokens)                                                                     |
+| Policy/policy-template library              | MVP (8 bundled templates + adopt/publish)                                               |
+| Auditor workflow / audit project management | MVP (audit room + audit readiness API)                                                  |
+| Vendor risk questionnaires                  | MVP (bundled questionnaire templates)                                                   |
+| OSS + self-hosted                           | **Yes**                                                                                 |
+| Customer-owned evidence lake                | Supported read-only readers and mappings; see the compatibility matrix above            |
+| Distributed API and workers                 | Opt-in PostgreSQL/S3 mode; cross-tenant concurrency, with per-tenant evaluation limits  |
+| Governed control exceptions                 | Expiring, independently approved acceptance; does not turn a failed control into a pass |
 
 See [Release Readiness](RELEASE_READINESS.md) and [Product Walkthrough](PRODUCT_WALKTHROUGH.md)
 for shipped vs planned detail.

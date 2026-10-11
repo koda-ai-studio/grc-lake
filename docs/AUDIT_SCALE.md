@@ -1,19 +1,28 @@
 # Audit-scale ingestion, evaluation, and synthetic data
 
-GRC Lake evaluates evidence in the local Python process and can export the resulting generation to Snowflake, ClickHouse, or DuckDB. Configuring a sink does not provide warehouse-native evaluation or remove local memory limits. This document describes implementation limits and tools for bounded measurement; it does not establish million-event capacity.
+GRC Lake evaluates each tenant's evidence in a Python worker process. That process
+can run on-premises or in the cloud. Distributed PostgreSQL/S3 mode adds multiple
+API replicas and workers across tenants; it does not split one tenant evaluation
+across workers or eliminate per-process memory limits. Optional warehouse export
+also does not move evaluation into Snowflake, ClickHouse or DuckDB.
 
-## Audit findings (synthesis)
+## Current scale boundaries
 
-| Layer                   | POC behavior today                       | Million-finding risk              | Mitigation in this repo                                                                    |
-| ----------------------- | ---------------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------ |
-| **Raw JSONL**           | Full-file read on upsert/sync            | Single file grows without bound   | Streaming input helpers; full evaluation still materializes local rows                     |
-| **Pipeline**            | Full rebuild per `materialize=True` sync | Replays entire raw lake each tick | `manifest.json` `row_counts`; benchmark CLI to measure throughput                          |
-| **Silver → violations** | O(events × controls_per_event) in memory | Multi-million finding rows        | `build_violations(..., max_violations=N)` + `violation_summary` totals                     |
-| **Posture API**         | Embeds all open violations               | Payload size / latency            | Auto-cap at 10k violations when silver > 100k; framework rollups from gold control posture |
-| **Ingestion status**    | Loaded full silver for counts            | Status endpoint latency           | Manifest-backed counts + streaming field histograms                                        |
-| **Synthetic fixtures**  | Golden = 37 events                       | No load-test data                 | `fixtures synthesize-scale` CLI (millions, streaming write)                                |
+| Layer                | Current implementation                                                                                                          | Remaining limit                                                                                          |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| Raw evidence         | Streaming JSONL input helpers and fingerprint-based incremental normalization                                                   | Upserts and evaluation still retain row/index state; memory grows with the tenant dataset                |
+| Pipeline             | Incremental runs reuse unchanged bronze/silver rows, then rebuild gold and marts                                                | Full aggregate evaluation is not an incremental SQL warehouse workload                                   |
+| Findings and posture | Default inline violation cap of 10,000, full totals and truncation metadata; dashboard detail capped at 100 rows per collection | Bounded responses do not make full evaluation bounded in memory                                          |
+| Ingestion status     | Manifest-backed row counts and streaming field histograms                                                                       | Cold reads, old artifacts and large tenants still require work                                           |
+| Distributed API      | Multiple replicas and readers with private scratch and bounded revision caches                                                  | Cache misses hydrate tenant artifacts; PostgreSQL primary and object-store capacity remain shared limits |
+| Distributed workers  | Tenant shards, bounded concurrency, fenced publication and lease recovery                                                       | One tenant evaluation/write job at a time; one evaluation is not spread across workers                   |
+| Synthetic fixtures   | Streaming generator and benchmark commands for bounded experiments                                                              | Generating one million rows does not prove the application can assess them within deployment limits      |
 
-**Recommendation above ~100k events:** project findings with `benchmark plan`, generate synthetic lakes with `fixtures synthesize-scale`, measure pipeline with `benchmark pipeline`, and route auditor analytics to **Snowflake/ClickHouse** marts (`deploy/snowflake/schema.sql`, `deploy/clickhouse/schema.sql`) instead of expanding in-process JSONL.
+For larger datasets, project finding cardinality with `benchmark plan`, measure
+full and incremental runs, and set explicit disk, memory and duration limits.
+The 100,000-row policy below is a routing guard, not a measured capacity target.
+See [distributed qualification](DISTRIBUTED.md#container-deployment-qualification)
+and the [benchmark protocol](BENCHMARKS.md#4-volume-scale-and-performance).
 
 ## Synthetic data (audit-scale)
 
@@ -86,11 +95,21 @@ curl -X POST -H "Authorization: Bearer $TOKEN" \
 
 MCP tools: `get_ingestion_status`, `list_eval_runs`, `run_lake_eval`, `run_scheduler_tick`, `sync_connector`, `list_connector_runs`.
 
-### Export routing above 100k events
+### Evaluation routing at 100k events
 
-When silver/raw cardinality exceeds `100_000`, local full rebuild is blocked unless a
-Snowflake, ClickHouse, or DuckDB sink is configured. This threshold is a routing guard, not a capacity guarantee: evaluation still materializes local data before export. `local_result` and `export_result` distinguish a committed assessment from a failed export. Export always reads that committed generation. The active tier is recorded in
-`gold/lake_scale.json` and surfaced on `/api/v1/ingestion/status`.
+`run_lake_eval` enters the warehouse tier when the larger of raw and silver row
+counts is **at least 100,000**. Without an eligible sink, that path refuses the
+evaluation. An operator-owned filesystem run can configure Snowflake, ClickHouse
+or DuckDB, evaluate in Python, then export the committed generation. `local_result`
+and `export_result` distinguish assessment publication from export success.
+`gold/lake_scale.json` records the policy and `/api/v1/ingestion/status` exposes it.
+
+Server-mode evaluation deliberately excludes process-wide sink credentials. It
+therefore remains blocked at that threshold until tenant-scoped export destinations
+are implemented. Adding distributed workers or setting a sink environment variable
+on a server does not remove this guard. Direct pipeline/benchmark commands are a
+separate entry point; their ability to run a dataset is not proof that the server
+will accept it or that memory limits are safe.
 
 ### Streaming IO (`security_lakehouse.io`)
 
@@ -104,7 +123,7 @@ Snowflake, ClickHouse, or DuckDB sink is configured. This threshold is a routing
 
 - `build_violations(events=..., max_violations=N)` returns `(rows, summary)`
 - `violation_summary` carries `total_count`, `severity_counts`, and `truncated`
-- `write_current_posture` auto-applies `max_violations=10000` when silver > 100k
+- Posture payloads default to at most 10,000 inline violations; large-lake construction can also cap retained detail while preserving totals
 - Framework scores use gold `control_posture` aggregates when violations are truncated
 
 ### Manifest row counts (`manifest.json`)
