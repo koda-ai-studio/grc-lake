@@ -33,6 +33,7 @@ from pathlib import Path
 from typing import Any
 
 from security_lakehouse.catalog import load_control_catalog, load_framework_registry
+from security_lakehouse.ccf_contracts import REVIEW_BASIS_VERSION, mapping_identity, review_basis
 from security_lakehouse.io import canonical_sha256, read_jsonl, write_json
 from security_lakehouse.jsontypes import JsonObject
 from security_lakehouse.ledger import (
@@ -238,6 +239,7 @@ def record_decisions(
             records.append(
                 {
                     "decision_id": decision_id,
+                    "mapping_id": mapping_identity(key[0], str(member.get("framework_id")), key[1]),
                     "batch_id": batch_id,
                     "safeguard_id": key[0],
                     "control_id": key[1],
@@ -251,6 +253,8 @@ def record_decisions(
                     "evidence_ref": evidence,
                     "source_anchor": member_mapping_source(entry, member),
                     "shipped_review_status": member.get("review_status", "reviewed"),
+                    "review_basis_version": REVIEW_BASIS_VERSION,
+                    "review_basis_sha256": review_basis(entry, member, controls.get(key[1], {})),
                     "control_sha256": canonical_sha256(controls.get(key[1], {})),
                     "mapping_sha256": canonical_sha256(member),
                     "decided_at": decided_at,
@@ -472,13 +476,29 @@ def _effective_from_decisions(shipped, verified, decisions):
     for entry in effective.get("safeguards", []):
         for member in entry.get("satisfies", []):
             row = decisions.get((str(entry["safeguard_id"]), str(member.get("control_id"))))
-            if row and (
-                row.get("control_sha256") != canonical_sha256(controls.get(str(member.get("control_id")), {}))
-                or row.get("mapping_sha256") != canonical_sha256(member)
-            ):
-                row = None
-            member["effective_review_state"] = effective_review_state(member, str(row.get("decision")) if row else None)
-            member["org_review"] = _decision_summary(row) if row else None
+            basis_verified = bool(
+                row
+                and row.get("review_basis_version") == REVIEW_BASIS_VERSION
+                and row.get("review_basis_sha256")
+                == review_basis(entry, member, controls.get(str(member.get("control_id")), {}))
+            )
+            decision = str(row.get("decision")) if row else None
+            if decision == "approve" and not basis_verified:
+                # Preserve the decision as history, never infer approval of a changed basis.
+                member["effective_review_state"] = "proposed"
+            else:
+                # Adverse tenant decisions remain holds until explicitly superseded.
+                member["effective_review_state"] = effective_review_state(member, decision)
+            member["org_review"] = (
+                {
+                    **_decision_summary(row),
+                    "basis_verified": basis_verified,
+                    "review_basis_version": row.get("review_basis_version"),
+                    "review_basis_sha256": row.get("review_basis_sha256"),
+                }
+                if row
+                else None
+            )
     return effective
 
 

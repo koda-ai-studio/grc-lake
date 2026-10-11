@@ -52,3 +52,13 @@ not an audit opinion. Observed-population sampling does not establish inventory
 completeness, statistical confidence, or continuous effectiveness between
 observations. The plan and results carry canonical hashes and the generation
 identity so reviewers can reproduce the selection and inspect evidence lineage.
+
+## Evidence eligibility (output v2)
+
+Workpaper output `trustops.control_assurance.v2` requires available evidence for
+design support, assessment context and operating samples. An internal bronze
+reference remains valid; a public URL is not required. Explicitly unavailable
+references cannot satisfy a design requirement or period window. Eligible
+operating samples must also match the asset type, timing and pass/fail status
+contract; inventory-only `observed` events do not supply operating verdicts.
+Ineligible samples remain gaps rather than silently becoming passing results.

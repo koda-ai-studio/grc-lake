@@ -790,6 +790,90 @@
         "title": "CreateWorkpaper",
         "type": "object"
       },
+      "DecisionRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "evidence_event_ids": {
+            "items": {
+              "maxLength": 255,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "title": "Evidence Event Ids",
+            "type": "array"
+          },
+          "expires_at": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Expires At",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "risk_acceptance",
+              "by_design",
+              "not_applicable",
+              "inherited",
+              "compensating"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "rationale": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Rationale",
+            "type": "string"
+          },
+          "residual_risk": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Residual Risk",
+            "type": "string"
+          },
+          "risk_id": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Risk Id"
+          },
+          "scope": {
+            "$ref": "#/components/schemas/Scope"
+          },
+          "supersedes_id": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supersedes Id"
+          }
+        },
+        "required": [
+          "kind",
+          "rationale",
+          "residual_risk",
+          "scope",
+          "evidence_event_ids",
+          "expires_at"
+        ],
+        "title": "DecisionRequest",
+        "type": "object"
+      },
       "EscalateFreshnessRequest": {
         "additionalProperties": false,
         "properties": {
@@ -837,6 +921,72 @@
           }
         },
         "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "ImplementationRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "cadence_days": {
+            "maximum": 366.0,
+            "minimum": 1.0,
+            "title": "Cadence Days",
+            "type": "integer"
+          },
+          "evidence_event_ids": {
+            "items": {
+              "maxLength": 255,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "title": "Evidence Event Ids",
+            "type": "array"
+          },
+          "owner": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Owner",
+            "type": "string"
+          },
+          "safeguard_id": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Safeguard Id",
+            "type": "string"
+          },
+          "scope": {
+            "$ref": "#/components/schemas/Scope"
+          },
+          "supersedes_id": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supersedes Id"
+          },
+          "system": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "System",
+            "type": "string"
+          }
+        },
+        "required": [
+          "safeguard_id",
+          "owner",
+          "system",
+          "cadence_days",
+          "scope",
+          "evidence_event_ids"
+        ],
+        "title": "ImplementationRequest",
         "type": "object"
       },
       "MappingRef": {
@@ -962,6 +1112,30 @@
         "title": "ReviewDecisionRequest",
         "type": "object"
       },
+      "ReviewRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "content_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Content Sha256",
+            "type": "string"
+          },
+          "decision": {
+            "enum": ["approve", "reject", "revoke"],
+            "title": "Decision",
+            "type": "string"
+          },
+          "rationale": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Rationale",
+            "type": "string"
+          }
+        },
+        "required": ["decision", "rationale", "content_sha256"],
+        "title": "ReviewRequest",
+        "type": "object"
+      },
       "ReviewWorkpaper": {
         "additionalProperties": false,
         "properties": {
@@ -984,6 +1158,61 @@
         },
         "required": ["decision", "rationale", "content_sha256"],
         "title": "ReviewWorkpaper",
+        "type": "object"
+      },
+      "Scope": {
+        "additionalProperties": false,
+        "properties": {
+          "assets": {
+            "items": {
+              "$ref": "#/components/schemas/ScopedAsset"
+            },
+            "maxItems": 100,
+            "title": "Assets",
+            "type": "array"
+          },
+          "control_ids": {
+            "items": {
+              "maxLength": 255,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 100,
+            "title": "Control Ids",
+            "type": "array"
+          },
+          "safeguard_ids": {
+            "items": {
+              "maxLength": 255,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 100,
+            "title": "Safeguard Ids",
+            "type": "array"
+          }
+        },
+        "title": "Scope",
+        "type": "object"
+      },
+      "ScopedAsset": {
+        "additionalProperties": false,
+        "properties": {
+          "asset_id": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "source_account_id": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Source Account Id",
+            "type": "string"
+          }
+        },
+        "required": ["source_account_id", "asset_id"],
+        "title": "ScopedAsset",
         "type": "object"
       },
       "SessionFromKeyRequest": {
@@ -3428,6 +3657,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "in": "query",
+            "name": "include_evidence",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -3463,6 +3700,185 @@
         },
         "summary": "Get ccf.coverage",
         "tags": ["ccf"]
+      }
+    },
+    "/api/v1/ccf/evidence-links": {
+      "get": {
+        "description": "Requires scope: read.",
+        "operationId": "get_ccf_evidence_links",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "safeguard_id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "source_tenant_id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "asset_id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "kind",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V1Envelope"
+                }
+              }
+            },
+            "description": "v1 envelope"
+          }
+        },
+        "summary": "List ccf.evidence-links",
+        "tags": ["ccf"]
+      }
+    },
+    "/api/v1/ccf/implementations": {
+      "get": {
+        "operationId": "implementations_api_v1_ccf_implementations_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 25,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V1Envelope"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Implementations",
+        "tags": ["governance"]
+      },
+      "post": {
+        "operationId": "implementation_api_v1_ccf_implementations_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImplementationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V1Envelope"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Implementation",
+        "tags": ["governance"]
       }
     },
     "/api/v1/connector-runs": {
@@ -4744,6 +5160,162 @@
         ],
         "summary": "Sprs Score Route",
         "tags": ["gov-compliance"]
+      }
+    },
+    "/api/v1/governance/decisions": {
+      "get": {
+        "operationId": "decisions_api_v1_governance_decisions_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 25,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V1Envelope"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Decisions",
+        "tags": ["governance"]
+      },
+      "post": {
+        "operationId": "propose_api_v1_governance_decisions_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecisionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V1Envelope"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Propose",
+        "tags": ["governance"]
+      }
+    },
+    "/api/v1/governance/decisions/{decision_id}/reviews": {
+      "post": {
+        "operationId": "review_api_v1_governance_decisions__decision_id__reviews_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "decision_id",
+            "required": true,
+            "schema": {
+              "title": "Decision Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V1Envelope"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Review",
+        "tags": ["governance"]
       }
     },
     "/api/v1/graph": {

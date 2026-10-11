@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any
 
 from security_lakehouse.event_status import FAIL_STATUSES, PASS_STATUSES, normalize_event_status
+from security_lakehouse.evidence_eligibility import evidence_available
 from security_lakehouse.generations import generation_identity, generation_reader
 from security_lakehouse.io import canonical_sha256, read_json, read_jsonl
 from security_lakehouse.safeguards import effective_review_state
@@ -154,7 +155,7 @@ def assess_control_plan(
                 sid not in row["safeguard_ids"]
                 or not _valid_at(row, as_of)
                 or timestamp(row["event_time"]) < start - timedelta(days=366)
-                or not row.get("evidence_ref")
+                or not evidence_available(row)
                 for row in context_rows
             ):
                 raise ValueError("assessment context requires valid evidence bound to this safeguard and cutoff")
@@ -170,6 +171,7 @@ def assess_control_plan(
             and len(design) == len(control["design_event_ids"])
             and all(
                 sid in row["safeguard_ids"]
+                and evidence_available(row)
                 and _valid_at(row, as_of)
                 and start - timedelta(days=366) <= timestamp(row["event_time"]) <= start
                 and normalize_event_status(row["status"]) in PASS_STATUSES
@@ -211,7 +213,8 @@ def assess_control_plan(
         invalid = sorted(
             row["event_id"]
             for row in operating
-            if not _valid_at(row, as_of)
+            if not evidence_available(row)
+            or not _valid_at(row, as_of)
             or row["asset_type"] not in catalog[sid].get("asset_types", [])
             or normalize_event_status(row["status"]) not in PASS_STATUSES | FAIL_STATUSES
         )
@@ -220,7 +223,14 @@ def assess_control_plan(
         for account, asset in assets:
             for index, (begin, finish) in enumerate(windows):
                 rows = cells[(account, asset, index)]
-                eligible = [row for row in rows if _valid_at(row, as_of)]
+                eligible = [
+                    row
+                    for row in rows
+                    if evidence_available(row)
+                    and _valid_at(row, as_of)
+                    and row["asset_type"] in catalog[sid].get("asset_types", [])
+                    and normalize_event_status(row["status"]) in PASS_STATUSES | FAIL_STATUSES
+                ]
                 if len(eligible) < control["sample_per_window"]:
                     gaps.append(
                         {
@@ -269,7 +279,7 @@ def assess_control_plan(
             }
         )
     payload = {
-        "schema_version": "trustops.control_assurance.v1",
+        "schema_version": "trustops.control_assurance.v2",
         "tenant_id": plan["tenant_id"],
         "period_start": plan["period_start"],
         "period_end": plan["period_end"],

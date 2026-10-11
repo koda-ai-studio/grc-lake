@@ -71,3 +71,53 @@ retest. Publishing a failing control assessment reopens resolved tasks owned by
 that generation's platform tenant when the application database is available.
 Fixture generations can be assigned with `fixtures load --tenant-id <platform-tenant-id>`;
 source account IDs remain distinct from platform ownership.
+
+## Scoped implementations and governance decisions
+
+The following authenticated server APIs add versioned records alongside existing
+risks and exceptions. They do not automatically convert those older records,
+change control verdicts, populate workpapers or provide a dedicated console editor.
+
+| Endpoint                                         | Purpose and authority                                                                                                                              |
+| ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET/POST /api/v1/ccf/implementations`           | Read scope history; a human with `control_manage` creates an implementation revision.                                                              |
+| `GET/POST /api/v1/governance/decisions`          | Read decision history; `control_manage` proposes a disposition. Machine identities can propose but cannot approve.                                 |
+| `POST /api/v1/governance/decisions/{id}/reviews` | A human with `control_manage` approves, rejects or revokes the exact content hash. Approval/rejection requires a different user from the proposer. |
+
+GET collections use `limit` (default 25, maximum 100), `offset` and `has_more`.
+Reads and references are platform-tenant scoped. A cross-tenant record is not found.
+
+An implementation specifies `safeguard_id`, `owner`, `system`, `cadence_days`,
+`scope`, and `evidence_event_ids`. Scope contains `safeguard_ids`, `control_ids`
+and optional assets identified by `source_account_id` plus `asset_id`.
+Revisions set `supersedes_id` and retain the original safeguard. Saved content and
+its SHA-256 bind the declaration, tenant, creator, generation, evidence references
+and definition digests. Earlier revisions remain readable.
+
+A decision specifies `kind` (`risk_acceptance`, `by_design`, `not_applicable`,
+`inherited`, or `compensating`), rationale, residual risk, the same scope/evidence
+fields, and a future timezone-aware `expires_at`. An optional `risk_id` must belong
+to the same platform tenant. Evidence must be available, bound to the declared
+controls or safeguards and within any declared asset scope in an intact,
+tenant-owned generation. This establishes provenance, not scope completeness or
+correctness of the human conclusion.
+
+Review bodies contain `decision` (`approve`, `reject`, or `revoke`), `rationale`
+and the returned `content_sha256`. The server binds reviewer identity and time.
+Approval is active only while unexpired, unrevoked, unsuperseded and matched to the
+current safeguard and requirement definitions. `approved` records the historical
+action; `active` is the current applicability of that decision. Changed definitions
+set `basis_verified: false`; submit a new proposal for review. Content hashes detect
+accidental record modification; they are not signatures against a privileged
+database administrator.
+
+An extension is a new proposal with `supersedes_id`, the same kind, risk and scope,
+and a later expiry. It requires fresh evidence binding and independent approval.
+A pending extension leaves its predecessor unchanged; approving it supersedes the
+old decision without deleting its reviews. Competing approvals or repeated reviews
+return a conflict. Revocation is recorded separately and never deletes history.
+
+Migration `0030` adds these tables without modifying existing records. Back up the
+application database before migration and export the new histories before any
+downgrade, which removes the added tables. See the [data model](DATA_MODEL.md) for
+identity, generation and compatibility details.

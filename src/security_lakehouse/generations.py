@@ -216,7 +216,7 @@ def seal_generation(generation: Path, *, legacy: bool = False) -> None:
         generation / "generation.json",
         {
             "schema_version": "trustops.generation.v2",
-            "ccf_projection_version": None if legacy else 1,
+            "ccf_projection_version": None if legacy else 2,
             "legacy": legacy,
             "generation_id": generation.name,
             "artifacts": hashes,
@@ -246,7 +246,7 @@ def verify_generation(generation: Path) -> None:
         or not manifest.get("artifacts")
         or (
             manifest.get("schema_version") == "trustops.generation.v2"
-            and manifest.get("ccf_projection_version") != (None if manifest["legacy"] else 1)
+            and manifest.get("ccf_projection_version") not in ({None} if manifest["legacy"] else {1, 2})
         )
     ):
         raise ValueError("invalid generation manifest")

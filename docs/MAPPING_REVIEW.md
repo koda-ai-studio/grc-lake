@@ -226,3 +226,22 @@ carry `grc-lake-reviewed-by`, `grc-lake-reviewed-at`, and
   `source_reconciled_at` (articles). Proposed rows stay proposed. Readers accept
   the old `reviewed_*` fields on proposed rows as source provenance only; human
   reviewed rows continue to use `reviewed_*`.
+
+## Semantic review basis
+
+New organization decisions record `review_basis_version` and
+`review_basis_sha256`. The digest includes the safeguard's operating semantics,
+the mapping member and the requirement definition. Changing objective, rule,
+evidence or asset requirements, frequency, owner or mapping source invalidates a
+previous approval even when the requirement ID and version are unchanged. A
+cosmetic safeguard title change does not.
+
+An approval with a changed or absent basis becomes proposed; its historical
+review stays visible with `basis_verified: false`. Legacy decisions are not
+rewritten or automatically reapproved. Rejections and `needs_changes` remain holds
+until a reviewer supersedes them. The console identifies approvals needing review.
+
+Catalog publication validation also rejects duplicate mappings, mismatched
+frameworks, missing explicit review/version fields, invalid rules and malformed
+asset/evidence type lists. This stricter publication gate does not rewrite legacy
+reader defaults or claim that a mapping establishes operating effectiveness.

@@ -7,7 +7,7 @@ presence/coverage predicates. Aggregate event and evidence counts still include
 observations. Observation-only controls remain unevaluated; explicit unknown
 and unevaluated outcomes still prevent a pass. An empty dataset has a zero
 control pass rate. These changes affect newly evaluated generations; historical
-evidence is retained. Manifests record `trustops.control_evaluation.v8`; the
+evidence is retained. Manifests record `trustops.control_evaluation.v9`; the
 incremental dependency fingerprint forces re-evaluation of older generations even
 when raw inputs have not changed, while retaining the earlier generation.
 

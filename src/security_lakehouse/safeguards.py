@@ -30,6 +30,7 @@ from typing import Any
 
 from security_lakehouse.catalog import ROOT, load_control_catalog
 from security_lakehouse.jsontypes import JsonObject
+from security_lakehouse.policy import validate_rule
 
 DEFAULT_SAFEGUARDS = ROOT / "controls" / "safeguards.json"
 
@@ -197,25 +198,39 @@ def validate_safeguards(payload: JsonObject, *, catalog: dict[str, Any] | None =
     if payload.get("schema") != SCHEMA:
         problems.append(f"schema must be {SCHEMA!r}, got {payload.get('schema')!r}")
 
-    known = set(catalog if catalog is not None else load_control_catalog())
+    controls = catalog if catalog is not None else load_control_catalog()
+    known = set(controls)
     families = load_ccf_families()
     problems.extend(validate_ccf_taxonomy(_families_payload()))
     seen_ids: set[str] = set()
 
-    for entry in payload.get("safeguards", []):
+    entries = payload.get("safeguards")
+    if not isinstance(entries, list):
+        return [*problems, "safeguards must be a list"]
+    for entry in entries:
+        if not isinstance(entry, dict):
+            problems.append("each safeguard must be an object")
+            continue
         sid = entry.get("safeguard_id")
-        if not sid:
+        if not isinstance(sid, str) or not sid.strip():
             problems.append("a safeguard is missing safeguard_id")
             continue
         if sid in seen_ids:
             problems.append(f"{sid}: duplicate safeguard_id")
         seen_ids.add(sid)
-        if entry.get("risk_domain") not in families:
+        if not isinstance(entry.get("risk_domain"), str) or entry.get("risk_domain") not in families:
             problems.append(f"{sid}: unknown CCF family {entry.get('risk_domain')!r}")
 
-        if not entry.get("asset_types"):
+        if not isinstance(entry.get("asset_types"), list) or not entry.get("asset_types"):
             problems.append(f"{sid}: missing asset_types — a safeguard must say what it applies to")
 
+        for field in ("asset_types", "required_evidence_types"):
+            values = entry.get(field, [])
+            if not isinstance(values, list) or any(not isinstance(v, str) or not v.strip() for v in values):
+                problems.append(f"{sid}: {field} must be a list of nonempty identifiers")
+            elif len(set(values)) != len(values):
+                problems.append(f"{sid}: duplicate {field}")
+        problems.extend(f"{sid}: {error}" for error in validate_rule(entry.get("evaluation_rule")))
         for field in ("title", "risk_domain", "objective", "evidence_requirement", "evaluation_rule", "owner"):
             if not entry.get(field):
                 problems.append(f"{sid}: missing {field}")
@@ -228,19 +243,34 @@ def validate_safeguards(payload: JsonObject, *, catalog: dict[str, Any] | None =
             problems.append(f"{sid}: must satisfy at least one framework requirement")
             continue
 
-        primaries = [m for m in satisfies if m.get("role") == "primary"]
+        primaries = [m for m in satisfies if isinstance(m, dict) and m.get("role") == "primary"]
         if len(primaries) != 1:
             problems.append(f"{sid}: expected exactly one primary requirement, found {len(primaries)}")
 
+        seen_members = set()
         for member in satisfies:
+            if not isinstance(member, dict):
+                problems.append(f"{sid}: mapping must be an object")
+                continue
             control_id = member.get("control_id")
+            if not isinstance(control_id, str) or not control_id.strip():
+                problems.append(f"{sid}: mapping control_id must be a nonempty identifier")
+                continue
+            if control_id in seen_members:
+                problems.append(f"{sid}: duplicate mapping to {control_id!r}")
+            seen_members.add(control_id)
+            if control_id in controls and member.get("framework_id") != controls[control_id].get("framework_id"):
+                problems.append(f"{sid}: framework_id disagrees with {control_id!r}")
+            for field in ("review_status", "control_version"):
+                if not isinstance(member.get(field), str) or not member[field].strip():
+                    problems.append(f"{sid}: {control_id!r} requires explicit {field}")
             if control_id not in known:
                 problems.append(f"{sid}: unknown control_id {control_id!r}")
             role = member.get("role", "equivalent")
-            if role not in VALID_ROLES:
+            if not isinstance(role, str) or role not in VALID_ROLES:
                 problems.append(f"{sid}: invalid role {role!r} on {control_id!r}")
             review = member.get("review_status", "reviewed")
-            if review not in VALID_REVIEW_STATES:
+            if not isinstance(review, str) or review not in VALID_REVIEW_STATES:
                 problems.append(f"{sid}: invalid review_status {review!r} on {control_id!r}")
             if "mapping_source" in member:
                 problems.extend(_validate_mapping_source(member["mapping_source"], context=f"{sid}/{control_id}"))

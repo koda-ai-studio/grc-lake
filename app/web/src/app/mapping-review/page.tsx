@@ -866,6 +866,12 @@ function MappingReviewContent() {
                         {item.latest_decision ? (
                           <div className="mt-1 text-xs text-muted">
                             {item.latest_decision.reviewer}
+                            {item.latest_decision.basis_verified === false &&
+                            item.latest_decision.decision === "approve" ? (
+                              <div className="mt-1 text-warning-fg">
+                                Earlier approval needs a new review.
+                              </div>
+                            ) : null}
                           </div>
                         ) : null}
                       </td>

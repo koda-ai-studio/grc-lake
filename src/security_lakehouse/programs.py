@@ -11,6 +11,7 @@ from typing import Any
 from security_lakehouse.catalog import _data_root, load_control_catalog, load_framework_registry
 from security_lakehouse.connectors import load_connector_catalog
 from security_lakehouse.event_status import FAIL_STATUSES
+from security_lakehouse.evidence_eligibility import has_verdict
 from security_lakehouse.evidence_freshness import summarize_control_freshness
 from security_lakehouse.models import parse_event_time, utc_iso
 
@@ -114,7 +115,7 @@ def build_control_tests(
     for control in control_rows:
         control_id = str(control["control_id"])
         program, config = test_configs.get(control_id, ({}, {}))
-        evidence_events = events_by_control.get(control_id, [])
+        evidence_events = [event for event in events_by_control.get(control_id, []) if has_verdict(event)]
         failing_events = [event for event in evidence_events if event["status"] in FAIL_STATUSES]
         required_types = [
             str(item) for item in control_catalog.get(control_id, {}).get("required_evidence_types") or []

@@ -270,6 +270,8 @@ Control families by category:
 Missing, stale, blocked, or partial evidence cannot establish a passing control.
 Inventory observations establish presence, not the effectiveness of a control.
 Exceptions and compensating measures are review records, not automatic passes.
+Scoped risk decisions retain evidence, expiry and independent review; extensions
+require a new approval. See [governance](docs/GOVERNED_REMEDIATION.md).
 
 Local fixture tests, exported hashes, and screenshots do not establish live
 provider qualification, production capacity, certification, or customer
@@ -282,7 +284,7 @@ local history replacement. See [evidence recovery](docs/EVIDENCE_RECOVERY.md) an
 | Need                             | Start here                                                                                           |
 | -------------------------------- | ---------------------------------------------------------------------------------------------------- |
 | Try a complete workflow          | [5-minute tutorial](docs/TUTORIAL_5_MIN.md)                                                          |
-| Understand the design            | [Architecture](docs/ARCHITECTURE.md) · [All docs](docs/README.md)                                    |
+| Understand the design            | [Architecture](docs/ARCHITECTURE.md) · [Data model](docs/DATA_MODEL.md) · [All docs](docs/README.md) |
 | Deploy and authenticate          | [Deployment](deploy/README.md) · [Server auth](docs/SERVER_AUTH.md)                                  |
 | Understand storage and retention | [Data flow](docs/DATA_FLOW.md) · [Operations](docs/OPERATIONS_CONTRACTS.md)                          |
 | Integrate an agent               | [Headless GRC](docs/HEADLESS_GRC.md) · [Agent skills](docs/api/AGENT_SKILLS.md)                      |

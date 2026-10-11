@@ -15,6 +15,7 @@ from typing import Any
 from security_lakehouse.asset_names import asset_names_from_raw, entity_asset_id
 from security_lakehouse.control_verdict import evaluate_evidence_verdict
 from security_lakehouse.controls import expand_controls, load_control_map
+from security_lakehouse.evaluation_budget import bounded_raw_events
 from security_lakehouse.event_identity import event_identity
 from security_lakehouse.event_status import FAIL_STATUSES, normalize_event_status
 from security_lakehouse.evidence_freshness import (
@@ -33,7 +34,7 @@ from security_lakehouse.generations import (
 )
 from security_lakehouse.gold_io import write_gold_json as write_json
 from security_lakehouse.io import canonical_sha256 as _canonical_sha256
-from security_lakehouse.io import file_sha256, iter_jsonl, read_json, read_jsonl, write_jsonl
+from security_lakehouse.io import file_sha256, read_json, read_jsonl, write_jsonl
 from security_lakehouse.models import SEVERITY_SCORE, PipelineResult, parse_event_time, utc_iso
 from security_lakehouse.policy import RuleResult
 from security_lakehouse.programs import build_control_tests, with_program_requirements
@@ -44,8 +45,8 @@ DASHBOARD_DETAIL_CAP = 100
 
 RAW_EVENT_SCHEMA_VERSION = "trustops.raw_event.v1"
 NORMALIZED_EVENT_SCHEMA_VERSION = "trustops.normalized_event.v1"
-NORMALIZATION_TRANSFORM_VERSION = "trustops.normalization.v4"
-CONTROL_EVALUATION_VERSION = "trustops.control_evaluation.v8"
+NORMALIZATION_TRANSFORM_VERSION = "trustops.normalization.v5"
+CONTROL_EVALUATION_VERSION = "trustops.control_evaluation.v9"
 
 
 @serialized_publication
@@ -57,7 +58,7 @@ def run_pipeline(
     tenant_id: str | None = None,
 ) -> PipelineResult:
     tenant_id = evaluation_tenant_id(out_dir, tenant_id)
-    raw_rows = read_jsonl(raw_path)
+    raw_rows = list(bounded_raw_events(raw_path))
     errors = validate_raw_events(raw_rows)
     if errors:
         raise ValueError("raw evidence validation failed:\n" + "\n".join(errors))
@@ -440,7 +441,7 @@ def _evaluation_dependencies_sha256(*, lake: Path | None = None, ccf_payload: di
         {
             "normalization": NORMALIZATION_TRANSFORM_VERSION,
             "control_evaluation": CONTROL_EVALUATION_VERSION,
-            "ccf_projection_version": 1,
+            "ccf_projection_version": 2,
             "freshness": {key: row.get("freshness_slo_minutes") for key, row in load_connector_catalog().items()},
             "programs": load_program_catalog(),
             "safeguards": ccf_payload if ccf_payload is not None else effective_safeguards(lake),
@@ -475,7 +476,7 @@ def _compute_raw_delta(
 ) -> tuple[list[dict[str, Any]], set[str], dict[str, str]]:
     delta_rows: list[dict[str, Any]] = []
     new_index: dict[str, str] = {}
-    for index, row in enumerate(iter_jsonl(raw_path), start=1):
+    for index, row in enumerate(bounded_raw_events(raw_path), start=1):
         errors = validate_raw_event(row, index=index)
         if errors:
             raise ValueError("raw evidence validation failed: " + "; ".join(errors))
@@ -596,6 +597,7 @@ def _silver_row(row: dict[str, Any], raw_sha256: str) -> dict[str, Any]:
             else {}
         ),
         "tenant_id": str(row["tenant_id"]),
+        "source_account_id": str(row["tenant_id"]),
         "event_time": utc_iso(parse_event_time(str(row["event_time"]))),
         "source": str(row["source"]),
         "event_type": event_type,

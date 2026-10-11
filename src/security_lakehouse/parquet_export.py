@@ -45,12 +45,20 @@ _FIELDS = frozenset((*_STRING_FIELDS, *_LIST_FIELDS, "severity_score"))
 
 
 def _arrow_schema(
-    pa, identity, tenant_id, *, safeguard_bindings=False, connector_identity=False, evidence_availability=False
+    pa,
+    identity,
+    tenant_id,
+    *,
+    safeguard_bindings=False,
+    connector_identity=False,
+    evidence_availability=False,
+    source_account_identity=False,
 ):
     # Keep timestamp strings lossless: the normalized contract contains ISO text,
     # and evidence_collected_at is not guaranteed to have timestamp semantics.
     return pa.schema(
         [pa.field(name, pa.string(), nullable=False) for name in _STRING_FIELDS]
+        + ([pa.field("source_account_id", pa.string(), nullable=False)] if source_account_identity else [])
         + (
             [pa.field(name, pa.string(), nullable=True) for name in ("connector_id", "source_event_id")]
             if connector_identity
@@ -72,9 +80,21 @@ def _arrow_schema(
     )
 
 
-def _validate_row(row, tenant_id, *, safeguard_bindings=False, connector_identity=False, evidence_availability=False):
+def _validate_row(
+    row,
+    tenant_id,
+    *,
+    safeguard_bindings=False,
+    connector_identity=False,
+    evidence_availability=False,
+    source_account_identity=False,
+):
     list_fields = (*_LIST_FIELDS, *(("safeguard_ids",) if safeguard_bindings else ()))
     fields = _FIELDS | ({"safeguard_ids"} if safeguard_bindings else set())
+    if source_account_identity:
+        fields |= {"source_account_id"}
+        if not isinstance(row, dict) or row.get("source_account_id") != row.get("tenant_id"):
+            raise ValueError("source account identity aliases disagree")
     if evidence_availability:
         fields |= {"evidence_available"}
         if not isinstance(row, dict) or type(row.get("evidence_available")) is not bool:
@@ -165,15 +185,21 @@ def export_parquet(lake_dir: str | Path, output_dir: str | Path, *, tenant_id: s
             "trustops.normalization.v2",
             "trustops.normalization.v3",
             "trustops.normalization.v4",
+            "trustops.normalization.v5",
         }:
             raise ValueError("unsupported normalization transform version")
         safeguard_bindings = transform in {
             "trustops.normalization.v2",
             "trustops.normalization.v3",
             "trustops.normalization.v4",
+            "trustops.normalization.v5",
         }
-        connector_identity = transform in {"trustops.normalization.v3", "trustops.normalization.v4"}
-        evidence_availability = transform == "trustops.normalization.v4"
+        connector_identity = transform in {
+            "trustops.normalization.v3",
+            "trustops.normalization.v4",
+            "trustops.normalization.v5",
+        }
+        evidence_availability = transform in {"trustops.normalization.v4", "trustops.normalization.v5"}
         schema = _arrow_schema(
             pa,
             identity,
@@ -181,6 +207,7 @@ def export_parquet(lake_dir: str | Path, output_dir: str | Path, *, tenant_id: s
             safeguard_bindings=safeguard_bindings,
             connector_identity=connector_identity,
             evidence_availability=evidence_availability,
+            source_account_identity=transform == "trustops.normalization.v5",
         )
         source = generation / "silver/normalized_events.jsonl"
         source_digest = _sha256(source)
@@ -198,6 +225,7 @@ def export_parquet(lake_dir: str | Path, output_dir: str | Path, *, tenant_id: s
                         safeguard_bindings=safeguard_bindings,
                         connector_identity=connector_identity,
                         evidence_availability=evidence_availability,
+                        source_account_identity=transform == "trustops.normalization.v5",
                     )
                     batch.append(row)
                     count += 1

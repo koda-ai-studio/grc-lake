@@ -12,6 +12,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from security_lakehouse.connectors import load_connector_catalog
+from security_lakehouse.evidence_eligibility import has_verdict
 from security_lakehouse.models import instant_sort_key, parse_event_time, utc_iso
 
 STALE_STATUSES = {"stale", "expired", "missing"}
@@ -225,9 +226,11 @@ def _observation_time(row: dict[str, Any]) -> datetime:
     return parse_event_time(str(value)).astimezone(UTC) if value else datetime.min.replace(tzinfo=UTC)
 
 
-def _current_observations(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def _current_observations(records: list[dict[str, Any]], *, verdict_only: bool = False) -> list[dict[str, Any]]:
     latest: dict[tuple[str, str, str, str, str], dict[str, Any]] = {}
     for row in records:
+        if verdict_only and row.get("verdict_eligible") is False:
+            continue
         for evidence_type in _record_evidence_types(row) or [""]:
             key = (
                 str(row.get("tenant_id") or ""),
@@ -270,7 +273,7 @@ def stale_control_ids(records: list[dict[str, Any]], *, required_types: dict[str
 def current_evidence_is_stale(records: list[dict[str, Any]], *, required_types: list[str] | None = None) -> bool:
     """Check only the latest observation in each tenant/source/asset/type population."""
     required = set(required_types or [])
-    current = _current_observations(records)
+    current = _current_observations(records, verdict_only=True)
     relevant = [row for row in current if not required or required.intersection(_record_evidence_types(row))]
     observed = {kind for row in relevant for kind in _record_evidence_types(row)}
     return bool(required - observed) or any(row["status"] in STALE_STATUSES for row in relevant)
@@ -339,6 +342,7 @@ def _base_record(
 ) -> dict[str, Any]:
     return {
         "event_id": str(row.get("event_id") or ""),
+        "verdict_eligible": has_verdict(row),
         "tenant_id": str(row.get("tenant_id") or ""),
         "evidence_id": str(row.get("evidence_id") or row.get("event_id") or ""),
         "evidence_ref": str(row.get("evidence_ref") or ""),

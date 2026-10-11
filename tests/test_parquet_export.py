@@ -264,6 +264,7 @@ def test_legacy_normalized_rows_remain_exportable(tmp_path, monkeypatch, version
     def legacy(row, digest):
         result = normalize(row, digest)
         result.pop("evidence_available")
+        result.pop("source_account_id")
         if version == "v1":
             result.pop("safeguard_ids")
         return result

@@ -2424,6 +2424,10 @@ def create_app(lake_dir: str | Path, *, require_auth: bool = True) -> FastAPI:
     # --- risk register (GRC) ---
     app.include_router(build_risks_router())
 
+    from security_lakehouse.server_routes.routers.governance import build_governance_router
+
+    app.include_router(build_governance_router(lake_for=lake_for))
+
     # --- webhook subscriptions (outbound event push) ---
     app.include_router(build_webhooks_router())
 

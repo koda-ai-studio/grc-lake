@@ -1,121 +1,53 @@
-# Unified Data Model
+# Unified data model
 
-Single-page view of **lake zones** (compliance truth), **application state** (server DB), and how API surfaces read them.
+Logical relationships across a platform-owned lake and its application database.
+Catalog and evidence links are verified references, not SQL foreign keys.
 
 ```mermaid
 erDiagram
-  %% --- Lake: bronze / silver / gold (JSONL + marts) ---
-  RAW_EVENT {
-    string event_id PK
-    string tenant_id
-    string raw_sha256
-  }
-  SILVER_EVENT {
-    string event_id PK
-    string asset_id
-    string status
-    string severity
-    list control_ids
-  }
-  CONTROL_POSTURE {
-    string control_id PK
-    string framework
-    string status
-    int open_event_count
-  }
-  CONTROL_TEST {
-    string test_id PK
-    string control_id FK
-    string result
-  }
-  VIOLATION {
-    string violation_id PK
-    string control_id
-    string event_id
-    string severity
-  }
-  SNAPSHOT {
-    string assessment_hash PK
-    datetime evaluated_at
-  }
-
-  RAW_EVENT ||--o{ SILVER_EVENT : normalizes
-  SILVER_EVENT ||--o{ CONTROL_POSTURE : evaluates
-  SILVER_EVENT ||--o{ VIOLATION : fails
-  CONTROL_POSTURE ||--o{ CONTROL_TEST : programs
-  CONTROL_POSTURE ||--o{ SNAPSHOT : freezes
-
-  %% --- Application state (Postgres / SQLite) ---
-  TENANT {
-    string id PK
-    string slug
-    string name
-  }
-  USER {
-    string id PK
-    string tenant_id FK
-    string email
-    string role
-  }
-  TENANT_INVITE {
-    string id PK
-    string tenant_id FK
-    string email
-    string token_hash
-    string status
-  }
-  API_KEY {
-    string id PK
-    string user_id FK
-    string key_hash
-  }
-  REMEDIATION_TASK {
-    string id PK
-    string control_id
-    string violation_id
-  }
-  AGENT_RUN {
-    string id PK
-    string harness
-    string status
-  }
-
-  TENANT ||--o{ USER : members
-  TENANT ||--o{ TENANT_INVITE : invites
-  USER ||--o{ API_KEY : owns
-  TENANT ||--o{ REMEDIATION_TASK : tracks
-  TENANT ||--o{ AGENT_RUN : persists
-
-  %% --- Cross-layer links (logical, not FK) ---
-  REMEDIATION_TASK }o--|| VIOLATION : violation_id
-  REMEDIATION_TASK }o--|| CONTROL_POSTURE : control_id
-  AGENT_RUN }o..o{ CONTROL_POSTURE : reads_redacted
+  PLATFORM_TENANT ||--o{ GENERATION : owns
+  GENERATION ||--o{ EVIDENCE_EVENT : seals
+  GENERATION ||--o{ ASSET_SAFEGUARD_RESULT : freezes
+  SOURCE_ACCOUNT ||--o{ ASSET : namespaces
+  ASSET ||--o{ EVIDENCE_EVENT : observed_on
+  SAFEGUARD_DEFINITION ||--o{ REQUIREMENT_MAPPING : maps
+  REQUIREMENT ||--o{ REQUIREMENT_MAPPING : addressed_by
+  REQUIREMENT_MAPPING ||--o{ MAPPING_REVIEW : reviewed_against_basis
+  SAFEGUARD_DEFINITION ||--o{ ASSET_SAFEGUARD_RESULT : evaluates
+  ASSET ||--o{ ASSET_SAFEGUARD_RESULT : assessed
+  EVIDENCE_EVENT }o--o{ ASSET_SAFEGUARD_RESULT : supports
+  PLATFORM_TENANT ||--o{ SCOPED_IMPLEMENTATION : operates
+  SAFEGUARD_DEFINITION ||--o{ SCOPED_IMPLEMENTATION : versioned_basis
+  PLATFORM_TENANT ||--o{ GOVERNANCE_DECISION : proposes
+  GOVERNANCE_DECISION ||--o{ GOVERNANCE_REVIEW : records
+  GENERATION ||--o{ GOVERNANCE_DECISION : evidence_basis
+  GOVERNANCE_DECISION o|--o{ GOVERNANCE_DECISION : extends
+  SCOPED_IMPLEMENTATION o|--o| SCOPED_IMPLEMENTATION : revises
+  PLATFORM_TENANT ||--o{ REMEDIATION_TASK : tracks
+  REMEDIATION_TASK ||--o{ VERIFICATION_RECEIPT : retests
+  GENERATION ||--o{ VERIFICATION_RECEIPT : proves_at_time
 ```
 
-## Zone summary
+`ASSET` has the composite logical key `(source_account_id, asset_id)` within a
+platform tenant's lake. Evidence's legacy `tenant_id` means source account;
+application records and the generation manifest's `tenant_id` mean platform owner.
+One source account can supply evidence to separately authorized deployments; its
+identifier alone is never an authorization boundary.
 
-| Zone             | Storage                                | Writer                         | Primary consumers                  |
-| ---------------- | -------------------------------------- | ------------------------------ | ---------------------------------- |
-| **Raw / bronze** | `raw/`, `bronze/*.jsonl`               | Connector sync (single writer) | Pipeline replay                    |
-| **Silver**       | `silver/normalized_events.jsonl`       | Pipeline                       | Assessment, SOC harness            |
-| **Gold**         | `gold/*.jsonl`, `current_posture.json` | Pipeline + assessment          | Console, `/api/v1`, PDF export     |
-| **Snapshots**    | `gold/snapshots/`, ledger              | Assessment API                 | Audit, trust center point-in-time  |
-| **App DB**       | `server/app.db` or Postgres            | Server mode API                | Auth, remediation, agents, invites |
-| **Marts**        | `mart/*.sqlite`, `*.duckdb`            | Pipeline                       | Analytics CLI, optional BI         |
+| Layer                           | Storage                                                  | Authority                                                            |
+| ------------------------------- | -------------------------------------------------------- | -------------------------------------------------------------------- |
+| Evidence and assessment         | Sealed generation: bronze, silver, gold, pinned catalogs | Deterministic evaluation over observed scope                         |
+| Indexed reads                   | SQLite mart in the same generation                       | Derived projection, rebuilt from assessment                          |
+| Mapping decisions               | Tenant lake's verified review ledger                     | Attributable mapping review, not effectiveness                       |
+| Scoped operations and decisions | Tenant-scoped server SQLite/PostgreSQL                   | Human declarations and independent reviews, not verdict overrides    |
+| Auth and workflows              | Server database                                          | Tenant membership, keys, sessions, remediation, risk and agent state |
+| Snapshots                       | Snapshot artifacts and hash-chained ledger               | Point-in-time assessment history                                     |
 
-## Read paths
+A governance decision retains its content, scope, evidence references, catalog
+basis and reviewer history. Extensions create new proposals; only approval
+supersedes an earlier decision. Expiry, revocation or changed definitions make an
+approved decision inactive. None of these records convert a failing or unknown
+assessment to passing.
 
-```text
-Console / API / MCP
-  ├─ posture, controls, violations  → gold/ + silver/ (lake)
-  ├─ auth, keys, sessions             → app DB
-  ├─ remediation, evidence requests   → app DB (+ lake control_id refs)
-  └─ agent runs                       → app DB (sanitized state, no raw lake path)
-```
-
-## Related docs
-
-- [DATA_MODEL.md](../DATA_MODEL.md) — logical assessment entities
-- [diagrams/data-model.md](data-model.md) — analytics mart tables
-- [ARCHITECTURE.md](../ARCHITECTURE.md) — pipeline flow
-- [DATA_FLOW.md](../DATA_FLOW.md) — ingestion → evaluation
+See [data model](../DATA_MODEL.md), [architecture](../ARCHITECTURE.md),
+[CCF reads](../CCF_READS.md), and [governance](../GOVERNED_REMEDIATION.md).

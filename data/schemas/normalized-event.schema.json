@@ -26,7 +26,8 @@
       "type": "string"
     },
     "tenant_id": {
-      "type": "string"
+      "type": "string",
+      "description": "Legacy source account identity; not the platform tenant owning the generation."
     },
     "event_time": {
       "type": "string",
@@ -97,6 +98,10 @@
     "source_event_id": {
       "type": "string",
       "minLength": 1
+    },
+    "source_account_id": {
+      "type": "string",
+      "description": "Source account provenance; equal to the legacy tenant_id. Not a platform authorization identity."
     }
   }
 }

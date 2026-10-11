@@ -368,6 +368,38 @@ def _workflow_run_id_match(path: str) -> str | None:
 # decorators and their ``Depends(_require_*)`` defaults in ``server_app``.
 EXTENDED_RESOURCES: list[JsonObject] = [
     {
+        "resource": "ccf.evidence-links",
+        "path": "/api/v1/ccf/evidence-links",
+        "kind": "collection",
+        "methods": ["GET"],
+        "scopes": ["read"],
+        "query": ["safeguard_id", "source_tenant_id", "asset_id", "kind", "limit", "offset", "cursor"],
+    },
+    {
+        "resource": "ccf.implementations",
+        "path": "/api/v1/ccf/implementations",
+        "kind": "collection",
+        "methods": ["GET", "POST"],
+        "scopes": ["read", "control_manage"],
+        "query": ["limit", "offset"],
+    },
+    {
+        "resource": "governance.decisions",
+        "path": "/api/v1/governance/decisions",
+        "kind": "collection",
+        "methods": ["GET", "POST"],
+        "scopes": ["read", "control_manage"],
+        "query": ["limit", "offset"],
+    },
+    {
+        "resource": "governance.reviews",
+        "path": "/api/v1/governance/decisions/{decision_id}/reviews",
+        "kind": "singleton",
+        "methods": ["POST"],
+        "scopes": ["control_manage"],
+        "path_params": ["decision_id"],
+    },
+    {
         "resource": "mapping-reviews.report",
         "path": "/api/v1/mapping-reviews/report",
         "kind": "singleton",
@@ -1170,7 +1202,14 @@ def resource_catalog() -> list[JsonObject]:
                 "path": path,
                 "kind": "collection",
                 "methods": ["GET", *_WRITABLE.get(path, [])],
-                "query": ["limit", "offset", "cursor", "sort", "<field>=<value>"],
+                "query": [
+                    "limit",
+                    "offset",
+                    "cursor",
+                    "sort",
+                    "<field>=<value>",
+                    *(["include_evidence"] if path == "/api/v1/ccf/asset-results" else []),
+                ],
             }
         )
     catalog.extend(dict(entry) for entry in EXTENDED_RESOURCES)
@@ -1873,16 +1912,29 @@ def _handle_get(
                 resource="oscal.assessment-results",
             )
         return HTTPStatus.OK, envelope("oscal.assessment-results", data)
-    if path in {"/api/v1/ccf/assessment", "/api/v1/ccf/asset-results"}:
-        from security_lakehouse.ccf_queries import CcfReadError, read_page
+    if path in {"/api/v1/ccf/assessment", "/api/v1/ccf/asset-results", "/api/v1/ccf/evidence-links"}:
+        from security_lakehouse.ccf_queries import CcfReadError, read_links, read_page
 
         try:
             if path.endswith("/assessment"):
                 return HTTPStatus.OK, envelope("ccf.assessment", _ccf_assessment_summary(lake))
-            _, filters = filter_collection([], params)
-            _, sort = sort_collection([], params)
-            _, limit, offset = paginate_collection([], params)
-            indexed = read_page(lake, filters=filters, sort=sort, limit=limit, offset=offset)
+            include_evidence = first_param(params, "include_evidence") or "true"
+            if include_evidence not in {"true", "false"}:
+                raise ValueError("include_evidence must be true or false")
+            query = {key: value for key, value in params.items() if key != "include_evidence"}
+            _, filters = filter_collection([], query)
+            _, sort = sort_collection([], query)
+            _, limit, offset = paginate_collection([], query)
+            if path.endswith("/evidence-links"):
+                if sort:
+                    raise ValueError("evidence links use stable reference order")
+                rows, count = read_links(lake, filters=filters, limit=limit, offset=offset)
+                return HTTPStatus.OK, collection_page_response(
+                    "ccf.evidence-links", rows, count=count, limit=limit, offset=offset, sort=None, filters=filters
+                )
+            indexed = read_page(
+                lake, filters=filters, sort=sort, limit=limit, offset=offset, compact=include_evidence == "false"
+            )
             if indexed is not None:
                 rows, count = indexed
                 return HTTPStatus.OK, collection_page_response(

@@ -197,3 +197,22 @@ def test_asset_details_are_paginated_outside_the_summary(tmp_path):
     assert detail["data"][0]["asset_id"] == "asset-1"
     assert detail["data"][0]["event_ids"] == ["event-1"]
     assert detail["meta"]["generation"] == summary["meta"]["generation"]
+
+
+def test_global_ambiguity_is_independent_of_safeguard_applicability_and_order():
+    from security_lakehouse.ccf_evaluation import evaluate_safeguards
+
+    definitions = [
+        {
+            "safeguard_id": sid,
+            "title": sid,
+            "asset_types": [kind],
+            "evaluation_rule": "fail_when_open_violation",
+            "satisfies": [],
+        }
+        for sid, kind in [("SG-0", "iam_role"), ("SG-1", "data_store")]
+    ]
+    events = [normalized(bindings=[]), normalized(asset_type="repository", event_id="other", bindings=[])]
+    for order in [definitions, list(reversed(definitions)), []]:
+        result = evaluate_safeguards(events, {"safeguards": order}, {})
+        assert result["ambiguous_asset_count"] == 1

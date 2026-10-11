@@ -3,6 +3,13 @@
 All notable GRC Lake changes are summarized here. Versions follow semver for the
 Python package, Helm chart, and bundled web console.
 
+## Unreleased
+
+- Preserve evidence eligibility across freshness, control tests and workpapers: observed inventory cannot refresh a stale verdict, and unavailable evidence cannot supply design or sample credit. Correct order-dependent CCF ambiguity totals.
+- Bind organization mapping approvals to safeguard semantics, mapping and requirement definitions; preserve stale review history and adverse decisions. Tighten catalog publication validation.
+- Add versioned, tenant-scoped safeguard implementations and independently reviewed governance decisions, including expiring risk acceptance and extensions. These records never override assessment verdicts. Database migration 0030 adds their history tables; export them before a downgrade.
+- Add source-account identity to normalization v5, compact CCF pages and separately paged references in projection v2, plus input and relation admission budgets. Document deployment limits and model relationships.
+
 ## 0.3.3 - 2026-10-11
 
 - Gate container publication on dependency scans and authenticated runtime qualification for both AMD64 and ARM64, and make PyPI wait for the image job so a failed container check cannot leave an immutable Python release published first. Require the latest main-push CI run to pass; an older green run or a PR-only run no longer authorizes a tag.

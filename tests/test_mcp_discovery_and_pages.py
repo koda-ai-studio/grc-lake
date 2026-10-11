@@ -60,3 +60,30 @@ def test_core_only_entrypoint_explains_the_missing_extra(monkeypatch):
     monkeypatch.setattr(mcp_server, "build_server", missing)
     with pytest.raises(SystemExit, match="pip install.*mcp"):
         mcp_server.main()
+
+
+@pytest.mark.parametrize(
+    "name,params",
+    [
+        ("list_ccf_asset_summaries", {}),
+        (
+            "list_ccf_evidence_links",
+            {"safeguard_id": "SG-IDENTITY-001", "source_tenant_id": "fixture", "asset_id": "fixture"},
+        ),
+    ],
+)
+def test_compact_ccf_tools_retain_generation_and_pagination(tmp_path, name, params):
+    from security_lakehouse.io import write_jsonl
+    from security_lakehouse.pipeline import run_pipeline
+    from test_assurance_truth import event
+
+    raw = tmp_path / "raw.jsonl"
+    lake = tmp_path / "lake"
+    write_jsonl(raw, [{**event(), "safeguard_ids": ["SG-IDENTITY-001"]}])
+    run_pipeline(raw, lake)
+    result = call_tool(mcp_server.build_server(lake), name, limit=1, **params)
+    assert isinstance(result, dict)
+    assert result["meta"]["generation"]
+    assert result["meta"]["limit"] == 1
+    assert "count" in result["meta"]
+    assert isinstance(result["data"], list)

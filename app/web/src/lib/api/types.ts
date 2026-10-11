@@ -2010,6 +2010,9 @@ export interface MappingSourceAnchor {
 }
 
 export interface MappingReviewDecisionSummary {
+  basis_verified?: boolean;
+  review_basis_version?: number | null;
+  review_basis_sha256?: string | null;
   decision_id: string;
   decision: MappingReviewDecisionKind;
   rationale: string;
