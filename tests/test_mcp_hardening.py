@@ -107,6 +107,7 @@ READ_TOOLS = {
     "list_ccf_asset_results",
     "list_ccf_asset_summaries",
     "list_ccf_evidence_links",
+    "list_ccf_requirement_gaps",
     "list_connector_runs",
     "list_connectors",
     "list_control_tests",

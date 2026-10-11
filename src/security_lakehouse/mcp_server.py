@@ -794,6 +794,25 @@ def build_server(lake_dir: Path | None = None) -> FastMCP:
             offset=str(offset),
         )
 
+    @trustops_tool(title="CCF Requirement Gaps")
+    def list_ccf_requirement_gaps(
+        limit: int = 25,
+        offset: int = 0,
+        framework_id: str | None = None,
+        gap_code: str | None = None,
+        generation_id: str | None = None,
+    ) -> JsonObject:
+        """Explain frozen requirement blockers without approving mappings or changing verdicts.
+
+        Returns the full page envelope. Pass its generation ID to reject drift
+        across pages; missing population evidence remains explicitly unknown.
+        """
+        params = {"limit": str(limit), "offset": str(offset)}
+        for key, value in (("framework_id", framework_id), ("gap_codes", gap_code), ("generation_id", generation_id)):
+            if value is not None:
+                params[key] = value
+        return _get_envelope("/api/v1/ccf/requirement-gaps", lake, **params)
+
     @trustops_tool(title="Mapping Review Queue")
     def get_mapping_review_queue(
         framework_id: str | None = None, risk_domain: str | None = None, limit: int = 25, offset: int = 0

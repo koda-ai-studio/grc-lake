@@ -538,6 +538,24 @@ EXTENDED_RESOURCES: list[JsonObject] = [
         "path_params": ["event_id"],
     },
     {
+        "resource": "ccf.requirement-gaps",
+        "path": "/api/v1/ccf/requirement-gaps",
+        "kind": "collection",
+        "methods": ["GET"],
+        "scopes": ["read"],
+        "query": [
+            "limit",
+            "offset",
+            "cursor",
+            "sort",
+            "framework_id",
+            "control_id",
+            "status",
+            "gap_codes",
+            "generation_id",
+        ],
+    },
+    {
         "resource": "trust-shares",
         "path": "/api/v1/trust-shares",
         "kind": "collection",
@@ -1912,6 +1930,32 @@ def _handle_get(
                 resource="oscal.assessment-results",
             )
         return HTTPStatus.OK, envelope("oscal.assessment-results", data)
+    if path == "/api/v1/ccf/requirement-gaps":
+        from security_lakehouse.ccf_gaps import requirement_gaps
+        from security_lakehouse.ccf_queries import CcfReadError, read_summary
+
+        resource = "ccf.requirement-gaps"
+        try:
+            generation = generation_identity(lake)
+            expected = first_param(params, "generation_id")
+            if generation is None or (expected is not None and expected != generation["generation_id"]):
+                raise CcfReadError("sealed generation unavailable or changed")
+            summary = read_summary(lake)
+            if summary is None:
+                raise CcfReadError("assessment summary unavailable")
+            rows = requirement_gaps(summary)
+            query = {key: value for key, value in params.items() if key != "generation_id"}
+            body = collection_response(resource, rows, query)
+        except (CcfReadError, KeyError, TypeError):
+            return HTTPStatus.CONFLICT, error_envelope(
+                "assessment_unavailable", "CCF gap details are unavailable for this generation.", resource=resource
+            )
+        except ValueError:
+            return HTTPStatus.BAD_REQUEST, error_envelope(
+                "bad_request", "invalid request parameters", resource=resource
+            )
+        body["meta"].update({"scope": summary["scope"], "population_completeness": summary["population_completeness"]})
+        return HTTPStatus.OK, body
     if path in {"/api/v1/ccf/assessment", "/api/v1/ccf/asset-results", "/api/v1/ccf/evidence-links"}:
         from security_lakehouse.ccf_queries import CcfReadError, read_links, read_page
 
