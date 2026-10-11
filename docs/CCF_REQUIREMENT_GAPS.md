@@ -42,3 +42,20 @@ Human review or evidence changes after publication appear only after a new
 assessment. Use mapping-review and safeguard asset-result endpoints for their
 respective details; a pending mapping and missing operating evidence require
 different actions.
+
+## Console journey
+
+Open **Frameworks**, select a framework and expand a requirement. Choose
+**Explain assessment gaps** to read its frozen result, mapping-review blockers,
+stale or unassessed evidence, and relevant next actions. Blocking safeguard
+counts and the generation/manifest identity are available on demand.
+
+Opening the explanation makes one bounded request for that requirement. Closing
+it discards the result; reopening reads the latest assessment. A late response
+from a closed panel cannot replace the new result. Missing rows, unavailable
+assessments and mismatched generation metadata produce an explicit unavailable
+state, never inferred coverage. Retry reads the latest assessment.
+
+The explanation does not change verdicts, approve mappings or verify integrity
+again. Complete asset inventory remains unestablished; a recorded pass with no
+blockers is not a certification or an estate-wide coverage claim.

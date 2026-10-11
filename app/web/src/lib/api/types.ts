@@ -2127,3 +2127,29 @@ export interface CcfAssessment {
   }[];
   requirements: { control_id: string; status: string }[];
 }
+
+/** Frozen CCF explanations; a stored pass does not establish estate coverage. */
+export interface RequirementGap {
+  control_id: string;
+  framework_id: string;
+  status: string;
+  gap_codes: string[];
+  has_gaps: boolean;
+  reviewed_safeguard_count: number;
+  pending_mapping_count: number;
+  contextual_mapping_count: number;
+  blocking_safeguards: {
+    safeguard_id: string;
+    status: string;
+    unassessed_asset_count: number;
+    invalid_binding_count: number;
+  }[];
+  population_completeness: string;
+}
+export interface RequirementGapPage {
+  data: RequirementGap[];
+  meta: {
+    count: number;
+    generation: { generation_id: string; manifest_sha256: string };
+  };
+}

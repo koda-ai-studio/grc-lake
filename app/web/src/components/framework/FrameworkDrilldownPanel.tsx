@@ -17,6 +17,7 @@ import type {
   FrameworkControlDetail,
   FrameworkSourceRollup,
 } from "@/lib/api/types";
+import { RequirementGapPanel } from "@/components/framework/RequirementGapPanel";
 import { FrameworkEvidenceChain } from "@/components/framework/FrameworkEvidenceChain";
 import { cn } from "@/lib/utils";
 import { displayLabel } from "@/lib/display";
@@ -135,6 +136,11 @@ function ControlRow({
       {expanded && (
         <div className="space-y-3 border-t border-line px-3 pb-3 pt-2">
           <FrameworkEvidenceChain control={control} frameworkId={frameworkId} />
+          <RequirementGapPanel
+            key={`${frameworkId}:${control.control_id}`}
+            frameworkId={frameworkId}
+            controlId={control.control_id}
+          />
 
           <div className="grid gap-3 lg:grid-cols-2">
             <div className="rounded-lg bg-surfaceMuted p-3">
