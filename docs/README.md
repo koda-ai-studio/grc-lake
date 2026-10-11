@@ -46,6 +46,7 @@ Every guide in `docs/`, grouped by task. New here? Start with the
 | ----------------------------------------------------------------- | -------------------------------------------- |
 | [Evaluation contract](EVALUATION_CONTRACT.md)                     | What an evaluation guarantees                |
 | [Evidence evaluation semantics](EVIDENCE_EVALUATION_SEMANTICS.md) | How evidence states become results           |
+| [Evidence lineage](EVIDENCE_LINEAGE.md)                           | Source identity, hashes and result links     |
 | [Assessment generations](ASSESSMENT_GENERATIONS.md)               | Publication and failure contracts            |
 | [Collection completeness](COLLECTION_COMPLETENESS.md)             | Partial and blocked collection               |
 | [Population reconciliation](POPULATION_RECONCILIATION.md)         | Reconciling the evidence population          |

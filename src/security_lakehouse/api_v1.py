@@ -530,6 +530,15 @@ EXTENDED_RESOURCES: list[JsonObject] = [
         "path_params": ["violation_id"],
     },
     {
+        "resource": "evidence.lineage",
+        "path": "/api/v1/evidence/{event_id}/lineage",
+        "kind": "singleton",
+        "methods": ["GET"],
+        "scopes": ["read"],
+        "path_params": ["event_id"],
+        "query": ["limit", "offset", "generation_id"],
+    },
+    {
         "resource": "evidence.verify",
         "path": "/api/v1/evidence/{event_id}/verify",
         "kind": "singleton",
@@ -1771,6 +1780,33 @@ def _handle_get(
     lake = resolve_path(lake_dir)
     if path == "/api/v1":
         return HTTPStatus.OK, envelope("index", index_payload())
+    lineage_id = _suffix_match(path, "/api/v1/evidence/", "/lineage")
+    if lineage_id is not None:
+        from security_lakehouse.evidence_lineage import EventNotFound, LineageUnavailable, read_lineage
+
+        try:
+            if set(params) - {"limit", "offset", "generation_id"} or any(len(v) != 1 for v in params.values()):
+                raise ValueError("invalid parameters")
+            limit = int(first_param(params, "limit") or "25")
+            offset = int(first_param(params, "offset") or "0")
+            data, count = read_lineage(
+                lake, lineage_id, limit=limit, offset=offset, generation_id=first_param(params, "generation_id")
+            )
+        except LineageUnavailable:
+            return HTTPStatus.CONFLICT, error_envelope(
+                "lineage_unavailable",
+                "A consistent sealed evidence lineage is unavailable.",
+                resource="evidence.lineage",
+            )
+        except EventNotFound:
+            return HTTPStatus.NOT_FOUND, error_envelope("not_found", "unknown event", resource="evidence.lineage")
+        except ValueError:
+            return HTTPStatus.BAD_REQUEST, error_envelope(
+                "bad_request", "invalid request parameters", resource="evidence.lineage"
+            )
+        body = envelope("evidence.lineage", data)
+        body["meta"].update({"count": count, "limit": limit, "offset": offset, "returned": len(data["links"])})
+        return HTTPStatus.OK, body
     if path == "/api/v1/connectors":
         rows = build_catalog_view(lake)
         return HTTPStatus.OK, collection_response("connectors", rows, params)
