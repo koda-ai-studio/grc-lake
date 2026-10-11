@@ -1,7 +1,7 @@
 # Deployment
 
-GRC Lake is an **open-source trust operations platform** you can run locally or
-self-host in your cloud. The product goal is enterprise-grade continuous
+GRC Lake is an **open-source trust operations platform** you can run on-premises or
+in your cloud. The product goal is enterprise-grade continuous
 compliance — evidence ingestion, control tests, posture dashboards, trust-center
 sharing, and agent APIs — without locking evidence in a vendor silo.
 
@@ -10,16 +10,37 @@ to preserve volumes, release names, secrets and compatibility aliases.
 
 ## Deployment models
 
-| Model           | Who runs it                   | Best for                                                         |
-| --------------- | ----------------------------- | ---------------------------------------------------------------- |
-| **OSS local**   | You, on a laptop or CI runner | Contributors, evaluators, pipeline proofs                        |
-| **Self-hosted** | You, in your VPC / cluster    | Teams that need data residency, custom connectors, full control  |
-| **Hosted mode** | An operator you choose        | Teams that want a live URL without running Kubernetes themselves |
+| Model           | Who runs it                                  | Best for                                                         |
+| --------------- | -------------------------------------------- | ---------------------------------------------------------------- |
+| **OSS local**   | You, on a laptop or CI runner                | Contributors, evaluators, pipeline proofs                        |
+| **Self-hosted** | You, on-premises or in a cloud VPC / cluster | Teams that need data residency, custom connectors, full control  |
+| **Hosted mode** | An operator you choose                       | Teams that want a live URL without running Kubernetes themselves |
 
-Evidence stays in **your boundary** in every model: local files, customer-owned
-Snowflake/ClickHouse/DuckDB, a tenant-scoped `/lake` volume, or PostgreSQL/S3 in distributed mode.
-GRC Lake is not a hosted evidence warehouse that copies your cloud posture into
-an opaque SaaS database.
+Application state lives in storage you operate: a filesystem lake with SQLite or
+PostgreSQL in local mode, or PostgreSQL plus S3-compatible storage in distributed
+mode. Source lakes and optional warehouse exports are separate integrations;
+Snowflake or ClickHouse does not replace the application state store. Configured
+connectors, exports, model integrations and sharing determine data egress.
+
+## Deployment and lake compatibility
+
+Hosting location does not select the storage mode. Both filesystem and distributed
+modes can run on-premises or in the cloud; OSS includes both.
+
+| Choice                         | Supported implementation                                                                                    | Qualification boundary                                                                                                                                  |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Application hosting            | VM, container, or Kubernetes; Docker/Helm templates and EKS reference Terraform                             | Operator provisions infrastructure, TLS, identity and backups; AKS/GKE have no dedicated Terraform module here                                          |
+| Filesystem mode                | One writable application replica, filesystem evidence, SQLite or PostgreSQL operational state               | A cloud VM or PVC can hold the filesystem; shared disks do not make multi-writer operation safe                                                         |
+| Distributed mode               | Multiple API replicas and tenant workers, PostgreSQL primary, S3-compatible object storage, private scratch | Cross-tenant concurrency; one tenant evaluation still runs on one worker. See [qualification limits](DISTRIBUTED.md#container-deployment-qualification) |
+| Existing OSS/self-managed lake | ClickHouse tables or supported Iceberg/Parquet layouts; object-storage and SIEM evidence adapters           | Requires the matching reader, schema and credentials; an arbitrary SQL engine or object-store protocol is not automatically supported                   |
+| Existing cloud lake            | Snowflake, Databricks, BigQuery, supported Iceberg/Parquet and S3 evidence                                  | Databricks, BigQuery and Iceberg/Parquet readers are preview; mapped-table mode is experimental. See [reader status](BRING_YOUR_OWN_LAKE.md)            |
+| Optional exports               | Snowflake, ClickHouse and DuckDB sinks from an operator-owned filesystem run                                | Post-assessment projection; server-mode export needs tenant-scoped destination support and is currently rejected                                        |
+
+Readers copy the selected evidence into GRC Lake's assessment storage while
+preserving the source system. Source compatibility is separate from framework
+mapping coverage and does not certify live-provider accuracy or deployment scale.
+See [supported evidence lakes](HERO_DATA_LAKES.md) and the generated
+[framework coverage matrix](FRAMEWORK_COVERAGE.md).
 
 <p align="center">
   <img src="images/grc-lake-readonly-connections.svg" alt="Read-only connections vs vendor SaaS evidence boundary" width="92%">
@@ -106,16 +127,18 @@ Evaluator flow: [Shareable Demo](SHAREABLE_DEMO.md).
 
 ## Shipped capabilities
 
-| Capability                                      | GRC Lake                                  |
-| ----------------------------------------------- | ----------------------------------------- |
-| Continuous control tests from live integrations | Yes (connectors + scheduler)              |
-| Executive dashboard + framework readiness       | Yes                                       |
-| Trust center / customer sharing                 | Yes (scoped tokens)                       |
-| Policy/policy-template library                  | MVP (8 bundled templates + adopt/publish) |
-| Auditor workflow / audit project management     | MVP (audit room + audit readiness API)    |
-| Vendor risk questionnaires                      | MVP (bundled questionnaire templates)     |
-| OSS + self-hosted                               | **Yes**                                   |
-| Customer-owned evidence lake                    | **Yes**                                   |
+| Capability                                  | GRC Lake                                                                                |
+| ------------------------------------------- | --------------------------------------------------------------------------------------- |
+| Continuous control tests from integrations  | Implemented connectors + scheduler; live qualification varies by source                 |
+| Executive dashboard + framework readiness   | Yes                                                                                     |
+| Trust center / customer sharing             | Yes (scoped tokens)                                                                     |
+| Policy/policy-template library              | MVP (8 bundled templates + adopt/publish)                                               |
+| Auditor workflow / audit project management | MVP (audit room + audit readiness API)                                                  |
+| Vendor risk questionnaires                  | MVP (bundled questionnaire templates)                                                   |
+| OSS + self-hosted                           | **Yes**                                                                                 |
+| Customer-owned evidence lake                | Supported read-only readers and mappings; see the compatibility matrix above            |
+| Distributed API and workers                 | Opt-in PostgreSQL/S3 mode; cross-tenant concurrency, with per-tenant evaluation limits  |
+| Governed control exceptions                 | Expiring, independently approved acceptance; does not turn a failed control into a pass |
 
 See [Release Readiness](RELEASE_READINESS.md) and [Product Walkthrough](PRODUCT_WALKTHROUGH.md)
 for shipped vs planned detail.

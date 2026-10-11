@@ -18,8 +18,10 @@ discover scope → probe → enable → sync → eval
 
 This is the same agentless model as typical GRC SaaS — scoped tokens and
 read-only roles, not agents or broad cloud admin. GRC Lake keeps the assessment
-store in **your** boundary (`/lake` volume or self-hosted storage), not an opaque
-vendor database.
+store in storage you operate: a filesystem lake or PostgreSQL plus S3-compatible
+object storage in distributed mode. Hosting can be on-premises or in the cloud.
+The [deployment and lake compatibility matrix](DEPLOYMENT.md#deployment-and-lake-compatibility)
+separates application storage from source readers and optional exports.
 
 Headless setup (curl, CLI, MCP): [playbooks/HEADLESS_CONNECTOR_SETUP.md](playbooks/HEADLESS_CONNECTOR_SETUP.md).
 
@@ -34,7 +36,7 @@ Headless setup (curl, CLI, MCP): [playbooks/HEADLESS_CONNECTOR_SETUP.md](playboo
 Avoid broad cloud permissions. Connectors should not need admin, delete, owner,
 or unrestricted write access to evaluate posture.
 
-## Production Hero Paths
+## Example existing-lake readers
 
 | Store      | Role                                                | Connector                   |
 | ---------- | --------------------------------------------------- | --------------------------- |

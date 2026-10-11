@@ -6,6 +6,12 @@ S3-compatible storage holds immutable evidence objects. This mode is part of OSS
 and works for self-hosted or operator-hosted installations. Hosted billing and
 signup features do not enable distribution by themselves.
 
+Hosting can be on-premises or in a cloud VM/container/Kubernetes environment.
+S3-compatible storage is a protocol requirement, not a requirement to host on AWS.
+Compatibility with a particular object-store provider still needs qualification.
+Source lakes such as ClickHouse or Snowflake remain separate read-only inputs;
+see the [deployment and lake compatibility matrix](DEPLOYMENT.md#deployment-and-lake-compatibility).
+
 ## Deployment modes
 
 | Mode                      | Durable state                        | Application topology                                            |
@@ -193,6 +199,10 @@ your provider and tenant data before selecting production limits.
 - Evaluation still materializes rows in memory. More tenant shards increase
   concurrency across tenants; they do not make one evaluation distributed or
   bounded in memory. Worker concurrency is 1–16; isolated jobs have deadlines.
+- Server-mode `run_lake_eval` retains the 100,000-row routing guard and excludes
+  process-wide warehouse sink credentials. More replicas do not bypass that
+  policy; tenant-scoped export destinations remain unimplemented. See
+  [evaluation routing](AUDIT_SCALE.md#evaluation-routing-at-100k-events).
 - Reserve scratch for the cache, active readers/writers, temporary Parquet export
   and free-space headroom. Keep the filesystem's capacity limit above that working
   set and monitor disk pressure. Node-local scratch is disposable.

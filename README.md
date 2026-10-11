@@ -181,6 +181,8 @@ human session. Agents can collect, explain, and propose work.
 
 Use [Docker or Helm](deploy/README.md), configure [SSO and scoped credentials](docs/SERVER_AUTH.md),
 and choose the [storage and writer topology](docs/runbooks/HA_READ_REPLICAS.md).
+See the [deployment and lake compatibility matrix](docs/DEPLOYMENT.md#deployment-and-lake-compatibility)
+for hosting, storage, source-reader and export support.
 Evidence stays in storage you operate; data leaves through the connectors, sinks,
 and model integrations you configure.
 

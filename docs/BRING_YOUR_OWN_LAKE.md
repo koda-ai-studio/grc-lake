@@ -15,6 +15,12 @@ parameterized, read-only query and feed the rows into the normal pipeline
 > Snowflake, Databricks, and ClickHouse readers is tested with fixtures and fake
 > drivers only.
 
+The source lake can be self-managed or cloud-hosted, independently of where GRC
+Lake runs. Selected evidence is materialized into GRC Lake's configured filesystem
+or PostgreSQL/S3 assessment storage. Reading an existing lake does not make that
+lake the application's database or execute control tests inside the warehouse.
+See the [deployment and lake compatibility matrix](DEPLOYMENT.md#deployment-and-lake-compatibility).
+
 ## Modes
 
 | Mode                               | Readers                           | What you provide                                                                                  |
