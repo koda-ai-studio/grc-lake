@@ -141,10 +141,10 @@ helm upgrade --install grc-api deploy/helm/grc-lake \
   -f deploy/examples/distributed/api-values.yaml
 helm upgrade --install grc-workers deploy/helm/grc-lake \
   -f deploy/examples/distributed/api-values.yaml \
-  -f deploy/examples/distributed/worker-values.yaml
+  -f deploy/examples/distributed/worker-values.yaml --set scheduler.enabled=false
 helm upgrade --install grc-readers deploy/helm/grc-lake \
   -f deploy/examples/distributed/api-values.yaml \
-  -f deploy/examples/distributed/reader-values.yaml
+  -f deploy/examples/distributed/reader-values.yaml --set scheduler.enabled=false
 ```
 
 The profiles render two replicas, rolling updates, and bounded private `emptyDir`
@@ -211,6 +211,74 @@ your provider and tenant data before selecting production limits.
 - Historical manifests and immutable objects are retained. Do not apply bucket
   lifecycle deletion to referenced objects. Automatic object garbage collection
   and automatic time-based partition rotation are not implemented.
+
+### Queue fairness and backpressure
+
+Evaluation, connector sync, scheduler ticks and snapshots use the durable
+operation queue when submitted with `Prefer: respond-async` (as the console and
+remote MCP do). See [operation contracts](OPERATIONS_CONTRACTS.md#background-http-operations).
+
+- **Tenant turns:** select an eligible tenant whose last job started least
+  recently, then its oldest queued job. Distributed dispatch uses PostgreSQL time
+  and nonblocking per-tenant claim locks. A busy tenant is skipped rather than
+  holding the claim lock for unrelated tenants.
+- **One active job per tenant:** running and cancelling jobs exclude that tenant
+  across distributed workers. Additional slots serve other tenants. This preserves
+  same-tenant ordering and publication safety, at the cost of serial work for one tenant.
+- **Bounded admission:** each tenant may have at most 100 queued, running or
+  cancelling jobs. Excess new submissions return 409; a matching idempotent retry
+  returns the existing job. Hydrated HTTP work has a separate per-replica workspace
+  admission bound with 503/Retry-After. These are different limits.
+- **Failure handling:** queued jobs survive restarts. Running jobs renew a
+  90-second lease; bounded retries handle transient database writes. Interrupted
+  execution is recorded and is not automatically replayed because provider or
+  webhook effects may already have occurred. Supported cancellation and execution
+  deadlines release capacity; cancellation does not roll back completed external effects.
+
+This is fairness of **job starts**, not equal CPU time, weighted tenant priorities,
+reserved capacity or a guaranteed maximum queue wait. Long jobs are not preempted
+to give another tenant a turn; if all slots are busy, new tenants wait for a slot.
+Shard-restricted workers are fair only among their eligible tenants, and every
+active shard needs worker coverage. There is no global pending-job cap, weighted
+fair queue or automatic tenant placement service. Synchronous callers and other
+webhook producers do not acquire these asynchronous queue guarantees.
+
+Validate with one tenant submitting a backlog, another running a long job, and
+several occasional tenants. Measure queue-wait percentiles **per tenant**, oldest
+queued age, completion throughput, active slots, rejected admission and interruption
+counts. Verify small tenants continue to start work as slots free up, and repeat
+with worker termination and transient PostgreSQL failure. Existing regression tests
+cover turn rotation, admission races, long-job isolation, cross-replica claims,
+cancellation and lease fencing; target-infrastructure latency and fairness under
+sustained load remain separate qualification work.
+
+### Tuning knobs and capacity budget
+
+| Knob                                                             | Shipped value / scope                                                    | Cost of increasing it                                                                                                                                                                |
+| ---------------------------------------------------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `replicaCount`                                                   | Local: 1; distributed example: 2 per release                             | Each pod adds database connections, scratch and a separate cache. Local mode rejects multiple writable replicas.                                                                     |
+| `distributed.workerConcurrency` / `cluster worker --concurrency` | Worker overlay: 1; CLI/chart default: 2; allowed 1–16 per worker process | Concurrent tenant jobs multiply process memory and storage I/O; they do not parallelize one tenant evaluation.                                                                       |
+| `GRC_LAKE_WORKSPACE_CONCURRENCY`                                 | 4 per API/reader replica; allowed 1–64                                   | More simultaneous hydrated workspaces and private copies; excess admission returns 503 with Retry-After.                                                                             |
+| `distributed.workspaceBytes` / `GRC_LAKE_WORKSPACE_BYTES`        | Helm: 512 MiB per tenant; unconfigured runtime: 20 GiB                   | Hard artifact-byte bound, not RAM allocation. Increasing it permits larger materializations and evaluation memory. The separate 100,000-file bound and server row guard still apply. |
+| `GRC_LAKE_READ_CACHE_ENTRIES`                                    | 4 per replica; allowed 1–64                                              | More tenants may stay warm, subject to the byte bound. Useful only if repeated reads offset storage and copy costs.                                                                  |
+| `GRC_LAKE_READ_CACHE_BYTES`                                      | Defaults to workspace byte bound; must be at least that bound            | Total cached payload bytes, separate from active private copies. Four entries do not imply four full-sized tenants fit.                                                              |
+| `distributed.scratchSize`                                        | 20 GiB `emptyDir` in chart                                               | A volume bound, not a capacity reservation or memory guarantee. Size node ephemeral storage too.                                                                                     |
+| `distributed.virtualShards`                                      | 64; allowed 1–4096 at cluster creation                                   | Placement granularity only. Immutable cluster identity setting, not an online throughput knob.                                                                                       |
+| `rateLimit.redisUrl`                                             | Empty by default; budgets are then per replica                           | Shared Redis adds cluster-wide rate accounting and an operational dependency; it does not shard data or coordinate lake writes.                                                      |
+
+Budget scratch for the cache byte bound **plus** active workspace copies, in-flight
+publications/exports and safety headroom. Budget worker RAM from measured peak RSS
+per representative tenant job multiplied by concurrent jobs, plus parent/runtime
+and API overhead. Artifact bytes and input row count are not reliable substitutes
+for measured RSS. CPU throttling or out-of-memory kills can erase the benefit of
+higher concurrency.
+
+Change one limit at a time. If queue wait grows across many tenants while resources
+are idle, test another worker. If one tenant is slow, profile its evaluation and
+reduce the selected evidence scope where the assessment allows it; do not treat
+more shards as a fix. If cold reads dominate, measure object-store latency and
+cache hit rate before adding readers. Recheck latency, correctness, isolation and
+recovery after every topology change. See [deployment tradeoffs](DEPLOYMENT.md#configuration-and-scaling-tradeoffs).
 
 ## Recovery and validation
 

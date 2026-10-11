@@ -105,7 +105,8 @@ process (default 2, integer 1–16; other values stop startup). Each running job
 uses its own spawned process, so size the count to available memory and CPU. A
 process runs at most one job per tenant at a time and gives the next free slot to
 the tenant whose work started least recently, so one tenant's long job or backlog
-does not block other tenants. A single-tenant deployment therefore runs one job at
+does not monopolize newly available slots. With one worker slot, a long job still
+delays other tenants until it finishes or its deadline expires. A single-tenant deployment therefore runs one job at
 a time regardless of the count; set it to 1 to restore strictly serial execution.
 SQL conditional claims (an `UPDATE` that succeeds only while the job is still
 `queued`) prevent duplicate execution of the same job across threads, processes,
@@ -118,9 +119,13 @@ HTTP result must still be interpreted using its domain outcome (for example,
 blocked connectors or partially successful scheduler ticks). Responses over
 1 MiB require inspection through the domain history and become `interrupted`.
 
-Workers sharing an application database must use the same absolute lake-root
-mount path and shared lake storage. Keep clocks synchronized. Back up application
-state with the lake. Graceful shutdown signals every worker thread, stops their
+In filesystem mode, the writer and its operation processes use the same absolute
+lake-root path and shared lake storage; this does not enable multiple writable
+application replicas. Keep clocks synchronized and back up application state with
+the lake. Distributed mode instead uses replica-private scratch and shared
+PostgreSQL/S3; its queue enforces one active job per tenant across workers. See
+[queue fairness and backpressure](DISTRIBUTED.md#queue-fairness-and-backpressure)
+for admission limits and fairness boundaries. Graceful shutdown signals every worker thread, stops their
 operation processes, and waits up to 30 seconds in total for them;
 longer work or a forced stop requires interrupted-work reconciliation. The queue is for these
 bounded operation types, not a general-purpose execution service. Other webhook

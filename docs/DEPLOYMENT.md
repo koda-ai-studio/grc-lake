@@ -125,6 +125,52 @@ gated commercial features (invites, usage limits, SCIM 2.0, Stripe billing).
 
 Evaluator flow: [Shareable Demo](SHAREABLE_DEMO.md).
 
+## Configuration and scaling tradeoffs
+
+Select a deployment profile before sizing it. These are shipped configuration
+examples, not capacity promises or production sizing recommendations. Hosting in
+a cloud does not automatically select distributed mode.
+
+| Workload                                 | Starting profile and configuration                                                                                                                                                             | Tradeoff / when to change                                                                                                                                                                |
+| ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Evaluation or CI fixture                 | Loopback-only Docker Compose; filesystem and SQLite; no model required                                                                                                                         | Minimal setup. Bundled no-auth mode is for local evaluation, not a shared service.                                                                                                       |
+| Small authenticated deployment           | [Self-hosted values](../deploy/examples/self-hosted-values.yaml); one writable replica, persistent lake, OIDC/SAML, coordinated backups                                                        | Simplest operations. Vertical sizing only; `Recreate` updates have downtime. PostgreSQL alone does not remove the single-writer constraint.                                              |
+| Concurrent tenants                       | [Distributed API values](../deploy/examples/distributed/api-values.yaml); PostgreSQL + S3; two API replicas; 1 CPU / 2 GiB requested, 2 CPU / 4 GiB limit per API pod                          | More application availability and tenant concurrency; adds database/object-store operations, network I/O and private scratch. Provider failover still needs testing.                     |
+| Evaluation queue pressure across tenants | Add the [worker overlay](../deploy/examples/distributed/worker-values.yaml); two worker replicas inherited from API values, one job each; 2 CPU / 4 GiB requested, 4 CPU / 8 GiB limit per pod | Increase replicas or job concurrency only after measuring memory and database/storage pressure. One tenant still has one running job and one in-memory evaluation.                       |
+| Read-heavy console/API traffic           | Add the [reader overlay](../deploy/examples/distributed/reader-values.yaml); separate read Service, API-sized resources                                                                        | Isolates read traffic. Each replica has its own cache and hydration cost; readers still need the PostgreSQL primary for auth/audit writes.                                               |
+| One large tenant                         | Profile a full and incremental evaluation before raising resource limits                                                                                                                       | More shards or replicas do not divide that evaluation. The server's 100,000-row routing guard remains; warehouse-native evaluation and tenant-scoped server exports are not implemented. |
+
+Use the [distributed setup commands](DISTRIBUTED.md#kubernetes-profiles), including
+one scheduler release and explicit shared secret references. The base Helm chart's
+100m CPU / 256 MiB request and 1 CPU / 1 GiB limit are defaults, not a production
+sizing recommendation. Do not reuse them as evidence that a workload will fit.
+
+For each candidate configuration, measure p50/p95/p99 request latency, queue wait,
+full/incremental evaluation time, peak worker RSS, scratch high-water usage,
+PostgreSQL connections, and S3 latency/request volume. Include cold caches, uneven
+tenant sizes, simultaneous reads and writes, retries, and a restore exercise.
+Retain the commit, provider, hardware, dataset bounds and raw results. See
+[benchmark procedure](BENCHMARKS.md) and [runtime tuning](DISTRIBUTED.md#tuning-knobs-and-capacity-budget).
+No measured production tenant/event-per-second ceiling is established by these profiles.
+
+### Optional model configuration
+
+Control evaluation and the default agent harness need no LLM. Model selection is
+independent of filesystem/distributed mode and does not change control verdicts
+or human approval requirements.
+
+| Choice                 | Configuration                                                                                                                   | Tradeoff                                                                                                                                                                                    |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Deterministic only     | Leave `GRC_LAKE_AGENT_USE_MODEL` unset; provider defaults to `rules_only`                                                       | No inference service, GPU or model-call cost; deterministic facts and proposals remain available.                                                                                           |
+| Customer-run inference | `GRC_LAKE_AGENT_PROVIDER=ollama` or `openai_compatible`, explicit model and reachable base URL; enable model calls deliberately | Operator owns model memory/compute, endpoint security and availability. Container loopback refers to that container, not a separate model service. Size inference separately from GRC Lake. |
+| Cloud inference        | Supported provider, model and credential settings from [Agent Harness](AGENT_HARNESS.md#bring-your-own-cloud-model)             | Provider latency, quotas, cost and data residency apply. Role-redacted context is still data sent to that provider; approve the destination. Use workload identity where supported.         |
+
+Model calls default to a 20-second provider timeout (clamped to 1–120 seconds),
+12,000 context characters and 600 requested output tokens. Start with those
+[bounds](AGENT_HARNESS.md#budget-policy); measure output quality, timeout rate and
+cost before increasing them. Larger models and prompts do not increase evidence
+coverage or make control evaluation distributed.
+
 ## Shipped capabilities
 
 | Capability                                  | GRC Lake                                                                                |
