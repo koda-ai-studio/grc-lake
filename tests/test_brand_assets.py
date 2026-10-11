@@ -34,7 +34,7 @@ def test_human_tool_title() -> None:
     assert MCP_SERVER_NAME == "grc-lake"
 
 
-def test_distributed_marks_match_the_approved_identity() -> None:
+def test_distributed_marks_match_the_shared_identity() -> None:
     import base64
     from pathlib import Path
     from xml.etree import ElementTree
@@ -47,4 +47,4 @@ def test_distributed_marks_match_the_approved_identity() -> None:
         assert (root / file).read_text().strip() == approved
     nodes = ElementTree.fromstring(approved)
     assert nodes.find("{http://www.w3.org/2000/svg}title").text == "GRC Lake"
-    assert "evidence-lake waves" in nodes.find("{http://www.w3.org/2000/svg}desc").text
+    assert "collected evidence and traceable records" in nodes.find("{http://www.w3.org/2000/svg}desc").text

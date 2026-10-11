@@ -90,18 +90,28 @@ The PyPI package is `grc-lake`, the CLI is
   <img src="docs/images/grc-lake-demo-dashboard.png" alt="GRC Lake overview with framework coverage, priority actions, and evidence freshness" width="100%">
 </picture>
 
-_Screens show the bundled synthetic company, captured from main on 2026-10-10.
+_Screens show the bundled synthetic company, captured from the 0.3.3 candidate with updated branding on 2026-10-11.
 Main can include changes newer than the published package. These screens
 demonstrate workflows, not a customer deployment or an audit opinion._
 
 ## Architecture
+
+Deploy GRC Lake on your own infrastructure or in the cloud, using a VM,
+containers, or Kubernetes. Hosting location, application storage, and evidence
+sources are separate choices:
+
+- **Application storage:** filesystem mode uses one writable replica; distributed
+  mode uses PostgreSQL and S3-compatible object storage with multiple API replicas
+  and workers. Both can run on-premises or in the cloud.
+- **Evidence sources:** collect directly from supported systems or read existing
+  self-managed and cloud lakes through supported connectors and mappings.
 
 ```mermaid
 flowchart LR
   Sources["Sources<br/>cloud · identity · code · existing lakes"]
   Collect["Collect<br/>read-only · normalize · hash"]
   Evaluate["Evaluate<br/>deterministic, version-pinned control tests"]
-  Generations["Assessment generations<br/>hash-verified, published atomically"]
+  Generations["Assessment generations<br/>filesystem or PostgreSQL + S3<br/>hash-verified, published atomically"]
   Snapshots["Snapshots<br/>hash-chained ledger"]
   API["REST API"]
   Console["Console"]
@@ -111,16 +121,18 @@ flowchart LR
   Generations --> API
   API --> Console
   API --> MCP
-  Generations -. local lake .-> CLI
-  Generations -. local lake .-> MCP
+  Generations -. filesystem mode .-> CLI
+  Generations -. filesystem mode .-> MCP
 ```
 
 Connectors only read from source systems. Deterministic rules own every result;
 agents can propose changes but do not decide them. Each run publishes a new
 generation whose artifact hashes are verified before it becomes current, and
-each snapshot records its predecessor's hash. The CLI works on a local lake; the
-MCP server reads a local lake or calls the authenticated API. See
-[architecture](docs/ARCHITECTURE.md).
+each snapshot records its predecessor's hash. CLI assessment commands use a
+filesystem lake; `cluster` commands manage distributed operation. MCP reads a
+filesystem lake or calls the authenticated API; distributed deployments require
+API mode. See [architecture](docs/ARCHITECTURE.md) and
+[distributed deployment](docs/DISTRIBUTED.md).
 
 ## Evidence modes
 
@@ -134,9 +146,11 @@ Both modes feed the same evaluation engine, assessments, and review workflows.
 **Already have a lake?** Start with [bring your own lake](docs/BRING_YOUR_OWN_LAKE.md).
 **Collecting new evidence?** Start with [connector setup](docs/CONNECTOR_CREDENTIALS.md).
 Lake mappings are experimental; preview and live-provider qualification vary by
-reader. See the [connector catalog](docs/CONNECTORS.md) for status. Existing-lake
-readers preserve the source system and materialize assessment evidence into the
-GRC Lake lake; they do not move the GRC Lake application into your warehouse.
+reader. See the [connector catalog](docs/CONNECTORS.md) for status. Compatibility
+depends on the supported reader, schema mapping, and access configuration;
+arbitrary lake backends are not automatically supported. Existing-lake readers
+preserve the source system and materialize assessment evidence into GRC Lake's
+configured application storage. A source warehouse does not replace that storage.
 
 ## Product tour
 
