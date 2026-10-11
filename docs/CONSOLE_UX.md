@@ -61,6 +61,14 @@ The audit room composes multiple strips; each strip maps to a platform API:
 
 Open `/console/audit-room/` with the golden fixture and forward port 8787 to verify strips render without overlap at desktop and mobile widths.
 
+## Evidence investigation
+
+Open an evidence row to inspect its source and hash. **Trace frozen results**
+loads verified generation links on demand, five at a time, and pins subsequent
+pages to that generation. A changed generation or unavailable verification shows
+a retry action and no verified conclusion. Hash linkage does not establish
+source authenticity, sufficient evidence, or a passing control.
+
 ## Contributor notes
 
 - Prefer `/api/v1/*` for new hooks; legacy `/api/*` remains for graph and crosswalk.

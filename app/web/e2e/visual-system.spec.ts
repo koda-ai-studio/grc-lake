@@ -143,7 +143,14 @@ test("evidence paths name every lake reader from the connector catalog", async (
   );
   expect(lakes.length).toBeGreaterThan(2);
   await page.goto("/console/connectors/");
-  const panel = page.getByRole("region", { name: "Choose an evidence path" });
+  await expect(
+    page.getByRole("button", { name: "Copy normalize command" }),
+  ).toBeHidden();
+  await page.getByText("Existing lake or JSONL?", { exact: true }).click();
+  const panel = page.getByRole("region", { name: "Existing lake or JSONL?" });
+  await expect(
+    panel.getByRole("button", { name: "Copy normalize command" }),
+  ).toBeVisible();
   await expect(panel).toContainText(lakes[0].vendor || lakes[0].name);
   const text = (await panel.textContent()) ?? "";
   const preview = text.split("Preview:")[1]?.split(".")[0] ?? "";

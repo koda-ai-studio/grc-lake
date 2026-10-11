@@ -2,12 +2,22 @@
 
 Thanks for helping. Bug reports, docs fixes, connectors, framework packs, and
 console polish are all welcome. Issues labeled
-[`good first issue`](https://github.com/msaad00/grc-lake/labels/good%20first%20issue)
+[`good first issue`](https://github.com/koda-ai-studio/grc-lake/labels/good%20first%20issue)
 are scoped to be finished in one pull request.
 
 By taking part you agree to the [Code of Conduct](CODE_OF_CONDUCT.md). Report
 security problems privately, as described in [SECURITY.md](SECURITY.md), not in
 a public issue.
+
+## Find work
+
+Read [current state and coverage](docs/CURRENT_STATE.md), then choose a scoped
+[roadmap item](ROADMAP.md#choose-a-contribution). Check open PRs before starting.
+Comment on the linked issue with your intended slice, or open an issue for an
+untracked proposal. Each contribution should have a clear completion criterion
+and public, synthetic reproduction steps. Provider access is optional for most
+work; never share credentials or real evidence in an issue. For live integration
+work, see [connector test accounts](docs/CONNECTOR_TEST_ACCOUNTS.md).
 
 ## Set up
 
@@ -15,7 +25,7 @@ You need Python 3.11 or later, [uv](https://docs.astral.sh/uv/), Node 22 or
 later, and `make`.
 
 ```bash
-git clone https://github.com/msaad00/grc-lake.git
+git clone https://github.com/koda-ai-studio/grc-lake.git
 cd grc-lake
 make uv-sync               # uv sync --frozen --all-extras, same as CI
 make pre-commit-install    # pre-commit and commit-message hooks

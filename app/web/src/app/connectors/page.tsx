@@ -277,7 +277,7 @@ export default function ConnectorsPage() {
       )}
       <PageHeader
         title={ROUTE_LABELS["/connectors"]}
-        description="Connect a source, test access, then sync evidence. You can also read an existing lake, normalize evidence, then evaluate it."
+        description="Connect a source, test access, then sync evidence."
         actions={
           totals.unhealthy > 0 ? (
             <span className="rounded-full border border-danger/40 bg-danger-bg px-3 py-1.5 text-xs font-semibold text-danger-fg">
