@@ -1,6 +1,7 @@
 name: scorecard
 
 on:
+  workflow_dispatch:
   push:
     branches: [main]
   schedule:
