@@ -4,7 +4,13 @@ The system is intentionally modular. Ingestion, evidence modeling, control
 evaluation, snapshots, lake adapters, API, and UI are separate capabilities with
 clear contracts.
 
-## Local deployment
+Hosting location is independent of storage mode: filesystem and distributed
+modes can run on-premises or in the cloud. Source lakes are read-only evidence
+inputs; optional warehouse exports are post-assessment projections. Neither
+replaces the application's state store. See the
+[deployment and lake compatibility matrix](DEPLOYMENT.md#deployment-and-lake-compatibility).
+
+## Filesystem deployment mode
 
 ```mermaid
 flowchart TB
@@ -93,16 +99,16 @@ boundaries and recovery procedures.
 
 ## Module Boundaries
 
-| Module            | Owns                                          | Does not own         |
-| ----------------- | --------------------------------------------- | -------------------- |
-| Connectors        | reading evidence from systems                 | control decisions    |
-| Evidence model    | canonical facts, hashes, freshness            | UI state             |
-| Control catalog   | framework/control metadata                    | raw event parsing    |
-| Evaluation engine | pass/fail, scores, stale evidence, violations | storage-specific SQL |
-| Snapshot service  | point-in-time assessment exports              | live polling         |
-| Lake adapters     | Snowflake/ClickHouse/local persistence        | business rules       |
-| API               | JSON contracts for humans and agents          | rendering-only state |
-| UI                | interactive workflow                          | control truth        |
+| Module                          | Owns                                                     | Does not own                                     |
+| ------------------------------- | -------------------------------------------------------- | ------------------------------------------------ |
+| Connectors                      | reading evidence from systems                            | control decisions                                |
+| Evidence model                  | canonical facts, hashes, freshness                       | UI state                                         |
+| Control catalog                 | framework/control metadata                               | raw event parsing                                |
+| Evaluation engine               | pass/fail, scores, stale evidence, violations            | storage-specific SQL                             |
+| Snapshot service                | point-in-time assessment exports                         | live polling                                     |
+| Source readers and export sinks | Supported evidence reads and optional result projections | application state authority or control decisions |
+| API                             | JSON contracts for humans and agents                     | rendering-only state                             |
+| UI                              | interactive workflow                                     | control truth                                    |
 
 ## Design Rules
 

@@ -1,7 +1,10 @@
 # Data Flow
 
 The product is assessment-first. Data can arrive from an existing security data
-lake or from GRC Lake-managed connector outputs.
+lake or from GRC Lake-managed connector outputs. GRC Lake can run on-premises or
+in the cloud. Its application storage is a filesystem lake in local mode, or
+PostgreSQL plus S3-compatible object storage in distributed mode. This choice is
+independent of the source lake; see the [compatibility matrix](DEPLOYMENT.md#deployment-and-lake-compatibility).
 
 For the production operating loop that turns this data flow into continuous
 collection, evaluation, snapshots, and API access, see
@@ -48,18 +51,16 @@ flowchart LR
 
 ## Existing security data lake mode
 
-Use this when the company already has security evidence in Snowflake,
-ClickHouse, object storage, a SIEM, or scanner exports.
+Use this when evidence already exists in a supported Snowflake, ClickHouse,
+Databricks, BigQuery, Iceberg/Parquet, object-storage or SIEM source. Reader preview
+status and experimental mappings are documented in [bring your own lake](BRING_YOUR_OWN_LAKE.md).
 
-The tool should:
-
-1. connect read-only to existing tables, views, exports, or files
-2. map source fields into the normalized evidence schema
-3. evaluate controls without duplicating raw payloads where possible
-4. write assessment results, violations, and snapshots to the configured store
-
-This is the lowest-friction enterprise mode because the data stays where the
-company already governs it.
+The reader connects with read-only access, maps selected rows into the canonical
+evidence schema, and persists those observations in GRC Lake's assessment storage.
+The evaluation process produces normalized evidence, control results, findings
+and snapshots there. The source system remains unchanged; selected evidence is
+copied into the assessment store. Control evaluation does not execute inside the
+source warehouse.
 
 ## Managed Evidence Object Mode
 
@@ -73,7 +74,10 @@ The tool creates:
 - gold control posture, asset risk, current posture, and snapshots
 - optional Snowflake and ClickHouse tables/views
 
-The sample repo implements this locally from `data/raw/security_events.jsonl`.
+The bundled sample starts from `data/raw/security_events.jsonl`. Production
+connectors use the same evidence contract. Distributed workers publish their
+artifacts to S3 and commit the authoritative manifest in PostgreSQL; see
+[distributed publication](DISTRIBUTED.md#publication-and-failure-behavior).
 
 The normalization handoff is explicit and reusable for pre-landed canonical raw
 evidence:
@@ -152,7 +156,10 @@ Controls evaluate from:
 - freshness window
 - status/severity rules
 - owner and asset context
-- exceptions, once implemented
+
+[Governed exceptions](GOVERNED_REMEDIATION.md) record independently approved,
+time-limited risk acceptance alongside results. They do not change a failed
+control to `pass`, supply missing evidence, or remove the original finding.
 
 Outputs:
 

@@ -117,6 +117,18 @@ Verify counts, hashes, verdicts, and tenant boundaries under load. A fast run wi
 lost evidence is a failed run. A configured external sink alone does not prove
 warehouse execution or that local memory bottlenecks have been removed.
 
+Measure two different scaling questions separately: one tenant's evaluation size,
+and concurrent work across multiple tenants. Distributed mode supports the latter;
+adding shards does not divide one evaluation among workers. Include private scratch
+and cache-copy costs, queue fairness and publication fencing in distributed runs.
+The [server evaluation routing guard](AUDIT_SCALE.md#evaluation-routing-at-100k-events)
+also applies; a direct pipeline benchmark cannot establish server acceptance.
+
+The [container qualification](DISTRIBUTED.md#container-deployment-qualification)
+uses multiple application processes with PostgreSQL and a real S3 implementation
+on one host. It verifies the documented recovery and isolation behaviors, not
+multi-host network partitions, replicated-storage failover or production capacity.
+
 ## 5. Security and interoperability
 
 | Area                        | Required evidence                                                                                                                                                                                                                                                                    |
