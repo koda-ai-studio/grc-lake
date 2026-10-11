@@ -55,6 +55,7 @@ Every guide in `docs/`, grouped by task. New here? Start with the
 | [GRC automation](GRC_AUTOMATION.md)                               | The automated compliance loop and known gaps |
 | [Common control framework](COMMON_CONTROL_FRAMEWORK.md)           | Safeguards, families, and categories         |
 | [CCF assessment reads](CCF_READS.md)                              | Reading CCF results                          |
+| [CCF requirement gaps](CCF_REQUIREMENT_GAPS.md)                   | Mapping, safeguard and evidence gaps         |
 | [CCF risk monitoring](CCF_RISK_MONITORING.md)                     | Risk prioritization and ongoing monitoring   |
 | [CCF AI context](CCF_AI_CONTEXT.md)                               | AI inventory and deployment context          |
 | [Framework packs](FRAMEWORK_PACKS.md)                             | Pack contents, manifests, and gaps           |
