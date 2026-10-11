@@ -1,5 +1,7 @@
 "use client";
 
+import { PaginatedCollection } from "@/components/ui/paginated-collection";
+
 import { useState } from "react";
 import { ShieldAlert } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -265,7 +267,11 @@ export default function RisksPage() {
                 register.
               </EmptyState>
             ) : (
-              rows.map((risk) => <RiskRow key={risk.id} risk={risk} />)
+              <PaginatedCollection label="Risks">
+                {rows.map((risk) => (
+                  <RiskRow key={risk.id} risk={risk} />
+                ))}
+              </PaginatedCollection>
             )}
           </div>
         </QueryState>

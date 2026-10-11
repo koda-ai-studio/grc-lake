@@ -34,7 +34,7 @@ function harness({ staleComponent = false, staleHook = false } = {}) {
     "lucide-react": {},
     "./SidebarFooter": {},
     "@/lib/utils": { cn: () => "" },
-    "@/lib/nav": { NAV_GROUPS: ["Assess", "Manage"], NAV_ITEMS: [], isActiveRoute: () => false },
+    "@/lib/nav": { NAV_GROUPS: ["Collect", "Governance"], NAV_ITEMS: [], isActiveRoute: () => false },
   };
   function load(relative, transform = (s) => s) {
     const source = transform(readFileSync(new URL(relative, import.meta.url), "utf8"));
@@ -54,9 +54,15 @@ function harness({ staleComponent = false, staleHook = false } = {}) {
   }
   modules["@/lib/state/preferences"] = load("../src/lib/state/preferences.ts", (s) =>
     staleHook ? s.replace("next as (prev: T) => T)(prev)", "next as (prev: T) => T)(value)") : s);
-  const { NavLinks } = load("../src/components/shell/Sidebar.tsx", (s) =>
-    (staleComponent ? s.replace("setClosedGroups((prev) => ({ ...prev, [group]: !prev[group] }))",
-      "setClosedGroups({ ...closedGroups, [group]: !closedGroups[group] })") : s) + "\nexport { NavLinks };\n");
+  const { NavLinks } = load("../src/components/shell/Sidebar.tsx", (s) => {
+    if (staleComponent) {
+      const start=s.indexOf("setClosedGroups((prev) => (");
+      const end=s.indexOf("));", start)+3;
+      assert.ok(start>=0 && end>start, "Could not locate the state updater");
+      s=s.slice(0,start)+"setClosedGroups({ ...closedGroups, [group]: !(closedGroups[group] ?? defaultClosed(group)) });"+s.slice(end);
+    }
+    return s + "\nexport { NavLinks };\n";
+  });
   cursor = 0;
   const tree = NavLinks({ collapsed: false });
   const buttons = [];
@@ -77,19 +83,19 @@ function harness({ staleComponent = false, staleHook = false } = {}) {
 test("two sidebar groups toggled in one batch retain both updates in storage", () => {
   const { buttons, flush } = harness();
   buttons[0](); buttons[1]();
-  assert.deepEqual(flush(), { Assess: true, Manage: true });
+  assert.deepEqual(flush(), { Collect: false, Governance: false });
 });
 
 test("two toggles of the same group cancel in one batch", () => {
   const { buttons, flush } = harness();
   buttons[0](); buttons[0]();
-  assert.deepEqual(flush(), { Assess: false });
+  assert.deepEqual(flush(), { Collect: true });
 });
 
 test("regression harness detects stale component and hook mutations", () => {
   for (const options of [{ staleComponent: true }, { staleHook: true }]) {
     const { buttons, flush } = harness(options);
     buttons[0](); buttons[1]();
-    assert.notDeepEqual(flush(), { Assess: true, Manage: true });
+    assert.notDeepEqual(flush(), { Collect: false, Governance: false });
   }
 });

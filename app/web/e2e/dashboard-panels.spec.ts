@@ -8,8 +8,9 @@ test("dashboard panels switch independently, support keyboard tabs, and retain c
   const compliance = page.getByRole("tablist", {
     name: "Framework coverage views",
   });
-  const operations = page.getByRole("tablist", {
-    name: "Priority actions views",
+  const operations = page.getByRole("button", {
+    name: "Priority actions",
+    exact: true,
   });
   await expect(compliance).toBeVisible();
   const left = await compliance.boundingBox();
@@ -19,18 +20,22 @@ test("dashboard panels switch independently, support keyboard tabs, and retain c
     .getByRole("tab", { name: "Control families", exact: true })
     .click();
   await expect(
-    page.getByRole("tab", { name: "Findings", exact: true }),
-  ).toHaveAttribute("aria-selected", "true");
+    page.getByRole("region", { name: "Findings to triage", exact: true }),
+  ).toBeVisible();
   await page
     .getByRole("tab", { name: "Control families", exact: true })
     .press("ArrowRight");
   await expect(
     page.getByRole("tab", { name: "Test results", exact: true }),
   ).toHaveAttribute("aria-selected", "true");
-  await page.getByRole("tab", { name: "Sources", exact: true }).click();
+  await page
+    .getByRole("tab", { name: "Sources & operations", exact: true })
+    .click();
   await expect(
-    page.getByRole("tab", { name: "Sources", exact: true }),
+    page.getByRole("tab", { name: "Sources & operations", exact: true }),
   ).toHaveAttribute("aria-selected", "true");
+  await page.getByRole("tab", { name: "Assessment", exact: true }).click();
+  await page.getByRole("tab", { name: "Test results", exact: true }).click();
   // Export status lives once, in the header line; no duplicate Exports tab.
   await expect(page.getByRole("tab", { name: "Exports" })).toHaveCount(0);
   await page
@@ -61,8 +66,9 @@ test("dashboard panels stack on mobile without page overflow", async ({
   const compliance = page.getByRole("tablist", {
     name: "Framework coverage views",
   });
-  const operations = page.getByRole("tablist", {
-    name: "Priority actions views",
+  const operations = page.getByRole("button", {
+    name: "Priority actions",
+    exact: true,
   });
   await expect(operations).toBeVisible();
   expect((await operations.boundingBox())!.y).toBeGreaterThan(
@@ -71,7 +77,8 @@ test("dashboard panels stack on mobile without page overflow", async ({
   for (const label of [
     "Control families",
     "Test results",
-    "Sources",
+    "Sources & operations",
+    "Assessment",
     "Frameworks",
   ]) {
     await page.getByRole("tab", { name: label, exact: true }).click();

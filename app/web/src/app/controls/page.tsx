@@ -1,5 +1,7 @@
 "use client";
 
+import { PaginatedCollection } from "@/components/ui/paginated-collection";
+
 import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -405,16 +407,18 @@ function ControlsPageContent() {
                   No controls match the current filters.
                 </div>
               )}
-              {filtered.map((c) => (
-                <ControlRow
-                  key={c.control_id}
-                  control={c}
-                  onSelect={() => setSelected(c)}
-                  confidence={
-                    testsByControl.get(c.control_id)?.confidence_score
-                  }
-                />
-              ))}
+              <PaginatedCollection label="Controls">
+                {filtered.map((c) => (
+                  <ControlRow
+                    key={c.control_id}
+                    control={c}
+                    onSelect={() => setSelected(c)}
+                    confidence={
+                      testsByControl.get(c.control_id)?.confidence_score
+                    }
+                  />
+                ))}
+              </PaginatedCollection>
             </div>
           </Card>
         </QueryState>

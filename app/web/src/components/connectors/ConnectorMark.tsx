@@ -11,7 +11,7 @@ interface ConnectorMarkProps {
   connectorId: string;
   name?: string;
   category?: string;
-  size?: "sm" | "md" | "lg";
+  size?: "xs" | "sm" | "md" | "lg";
   showVendor?: boolean;
   className?: string;
 }
@@ -20,6 +20,7 @@ const SIZE: Record<
   NonNullable<ConnectorMarkProps["size"]>,
   { box: number; icon: number; mark: string; vendor: string }
 > = {
+  xs: { box: 28, icon: 18, mark: "text-[8px]", vendor: "text-[10px]" },
   sm: { box: 40, icon: 22, mark: "text-[9px]", vendor: "text-[10px]" },
   md: { box: 44, icon: 24, mark: "text-[10px]", vendor: "text-[11px]" },
   lg: { box: 52, icon: 28, mark: "text-[11px]", vendor: "text-xs" },
@@ -67,7 +68,11 @@ function BrandSvg({
         aria-hidden
       >
         <title>{brand.title}</title>
-        <path d={brand.path} fill={`#${brand.hex}`} />
+        <path
+          className={brand.title === "GitHub" ? "text-ink" : undefined}
+          d={brand.path}
+          fill={brand.title === "GitHub" ? "currentColor" : `#${brand.hex}`}
+        />
       </svg>
     );
   }

@@ -122,6 +122,7 @@ async function review(
   });
   await page.goto("/console/access-reviews/");
   await page.getByRole("button", { name: /Quarterly review/ }).click();
+  await page.getByRole("button", { name: /Other user/ }).click();
 }
 
 test("read-only review controls explain permission and cannot mutate", async ({
@@ -354,6 +355,36 @@ test("authorized human can review a pending item in an active campaign", async (
   ).toBeEnabled();
 });
 
+test("review rationale is submitted and retained when recording fails", async ({
+  page,
+}) => {
+  await review(page);
+  await page
+    .getByLabel("Decision rationale")
+    .fill("Manager confirmed this role is still required.");
+  const submitted = page.waitForRequest(
+    (r) => r.method() === "POST" && r.url().includes("access-reviews"),
+  );
+  await page.getByRole("button", { name: "certified", exact: true }).click();
+  expect((await submitted).postDataJSON()).toMatchObject({
+    decision: "certified",
+    note: "Manager confirmed this role is still required.",
+  });
+  await expect(
+    page
+      .getByRole("alert")
+      .filter({ hasText: "Campaign has pending decisions" }),
+  ).toBeVisible();
+  await expect(page.getByLabel("Decision rationale")).toHaveValue(
+    "Manager confirmed this role is still required.",
+  );
+  await expect(
+    page.getByText(
+      "Decisions are recorded here; provider access is not changed.",
+    ),
+  ).toBeVisible();
+});
+
 for (const synthetic of [true, false]) {
   test(`assessment labels synthetic provenance only when explicitly ${synthetic}`, async ({
     page,
@@ -376,3 +407,35 @@ for (const synthetic of [true, false]) {
     else await expect(notice).toHaveCount(0);
   });
 }
+
+test("activating a campaign immediately enables the human review queue", async ({
+  page,
+}) => {
+  await review(page, { status: "draft" });
+  await page.route("**/api/v1/access-reviews/review1", (r) =>
+    r.fulfill({
+      json: {
+        data: {
+          id: "review1",
+          name: "Quarterly review",
+          scope: "all",
+          status: "active",
+          progress: {
+            total: 1,
+            pending: 1,
+            certified: 0,
+            revoked: 0,
+            flagged: 0,
+          },
+        },
+      },
+    }),
+  );
+  await page.route("**/api/v1/access-reviews/review1/status", (r) =>
+    r.fulfill({ json: { data: { id: "review1", status: "active" } } }),
+  );
+  await page.getByRole("button", { name: "Mark active" }).click();
+  await expect(
+    page.getByRole("button", { name: "certified", exact: true }),
+  ).toBeEnabled({ timeout: 3000 });
+});

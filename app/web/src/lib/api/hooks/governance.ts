@@ -60,7 +60,8 @@ export function useSetAccessReviewStatusMutation() {
   return useMutation({
     mutationFn: (vars: { id: string; status: AccessReviewStatus }) =>
       api.setAccessReviewStatus(vars.id, vars.status),
-    onSuccess: () => {
+    onSuccess: (_data, vars) => {
+      qc.invalidateQueries({ queryKey: ["access-review", vars.id] });
       qc.invalidateQueries({ queryKey: ["access-reviews"] });
       qc.invalidateQueries({ queryKey: ["access-review-coverage"] });
     },

@@ -25,8 +25,15 @@ function NavLinks({
     Record<string, boolean>
   >("trustops:sidebar:closed-groups", {});
 
+  const defaultClosed = (group: NavGroup) =>
+    !NAV_ITEMS.some(
+      (item) => item.group === group && isActiveRoute(pathname, item.href),
+    );
   const toggleGroup = (group: NavGroup) => {
-    setClosedGroups((prev) => ({ ...prev, [group]: !prev[group] }));
+    setClosedGroups((prev) => ({
+      ...prev,
+      [group]: !(prev[group] ?? defaultClosed(group)),
+    }));
   };
 
   // Keep the current page in view, and fade whichever edge has more links
@@ -73,7 +80,8 @@ function NavLinks({
         className="h-full overflow-y-auto px-2 py-1.5"
       >
         {NAV_GROUPS.map((group) => {
-          const isClosed = Boolean(closedGroups[group]) && !collapsed;
+          const isClosed =
+            (closedGroups[group] ?? defaultClosed(group)) && !collapsed;
           const groupId = `nav-group-${group.replace(/\W+/g, "-").toLowerCase()}`;
           return (
             <div key={group} className="mb-1 last:mb-0">
@@ -84,7 +92,7 @@ function NavLinks({
                   aria-expanded={!isClosed}
                   aria-controls={groupId}
                   className={cn(
-                    "flex w-full items-center justify-between rounded-md px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-rail-heading hover:text-ink",
+                    "flex w-full items-center justify-between rounded-md px-2.5 py-2 text-[11px] font-semibold uppercase tracking-wide text-rail-heading hover:text-ink",
                     FOCUS_RING,
                   )}
                 >
@@ -115,7 +123,7 @@ function NavLinks({
                             aria-label={collapsed ? label : undefined}
                             title={collapsed ? label : undefined}
                             className={cn(
-                              "flex h-7 items-center gap-2.5 rounded-md px-2.5 text-[13px] font-medium transition-colors",
+                              "flex h-9 items-center gap-2.5 rounded-md px-2.5 text-[13px] font-medium transition-colors",
                               FOCUS_RING,
                               collapsed && "justify-center px-0",
                               active

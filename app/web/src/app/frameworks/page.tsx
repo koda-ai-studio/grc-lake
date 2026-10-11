@@ -23,6 +23,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  DetailTabs,
+  DetailTabList,
+  DetailTab,
+} from "@/components/ui/detail-tabs";
 import { Drawer } from "@/components/ui/drawer";
 import { PageHeader } from "@/components/PageHeader";
 import { TrustPipelineStrip } from "@/components/TrustPipelineStrip";
@@ -276,163 +281,181 @@ function Detail({
       width="lg"
     >
       {framework && (
-        <div className="grid gap-5 text-sm">
-          <div className="flex items-center gap-3">
-            <FrameworkBadge
-              frameworkId={framework.framework_id}
-              fallbackLabel={framework.name}
-              size={56}
-            />
-            <div>
-              <div className="font-semibold text-ink">{framework.name}</div>
-              <div className="text-xs text-muted">{framework.version}</div>
-            </div>
-          </div>
-          <section
-            className={[
-              "rounded-xl border p-3",
-              framework.freshness_state === "fresh"
-                ? "border-success/40 bg-success-bg text-success-fg"
-                : framework.freshness_state === "stale"
-                  ? "border-warning/40 bg-warning-bg text-warning-fg"
-                  : framework.freshness_state === "expired"
-                    ? "border-danger/40 bg-danger-bg text-danger-fg"
-                    : "border-line bg-surfaceMuted text-ink",
-            ].join(" ")}
-          >
-            <div className="flex items-center gap-2 font-semibold">
-              {framework.freshness_state === "fresh" ? (
-                <FileCheck2 className="h-4 w-4" />
-              ) : (
-                <ShieldAlert className="h-4 w-4" />
-              )}{" "}
-              {TONE_TEXT[framework.freshness_state]}
-            </div>
-            <p className="mt-1 text-xs">{framework.copyright_guardrail}</p>
-          </section>
-
-          {packState(framework) !== "seeded" &&
-          (framework.coverage_boundary ||
-            framework.evidence_focus?.length ||
-            framework.next_step) ? (
-            <section className="grid gap-2 rounded-xl border border-dashed border-line bg-surfaceMuted/50 p-3">
-              <div className="text-xs font-semibold text-muted">
-                {packState(framework) === "superseded"
-                  ? stubStatusLabel(framework)
-                  : "Planned boundary"}
+        <DetailTabs
+          key={framework.framework_id}
+          defaultValue={expandedControlId ? "controls" : "overview"}
+          className="text-sm"
+        >
+          <DetailTabList
+            label="Framework detail"
+            items={[
+              { value: "overview", label: "Overview" },
+              { value: "controls", label: "Controls" },
+              { value: "source", label: "Source & version" },
+            ]}
+          />
+          <DetailTab value="source">
+            <div className="flex items-center gap-3">
+              <FrameworkBadge
+                frameworkId={framework.framework_id}
+                fallbackLabel={framework.name}
+                size={56}
+              />
+              <div>
+                <div className="font-semibold text-ink">{framework.name}</div>
+                <div className="text-xs text-muted">{framework.version}</div>
               </div>
-              {framework.coverage_boundary ? (
-                <p className="text-xs text-ink">
-                  {framework.coverage_boundary}
-                </p>
-              ) : null}
-              {framework.evidence_focus?.length ? (
-                <ul className="grid gap-1 text-xs text-muted">
-                  {framework.evidence_focus.map((focus) => (
-                    <li key={focus}>• {focus}</li>
-                  ))}
-                </ul>
-              ) : null}
-              {framework.next_step ? (
-                <p className="text-xs font-semibold text-ink">
-                  Next step: {framework.next_step}
-                </p>
-              ) : null}
+            </div>
+            <section
+              className={[
+                "rounded-xl border p-3",
+                framework.freshness_state === "fresh"
+                  ? "border-success/40 bg-success-bg text-success-fg"
+                  : framework.freshness_state === "stale"
+                    ? "border-warning/40 bg-warning-bg text-warning-fg"
+                    : framework.freshness_state === "expired"
+                      ? "border-danger/40 bg-danger-bg text-danger-fg"
+                      : "border-line bg-surfaceMuted text-ink",
+              ].join(" ")}
+            >
+              <div className="flex items-center gap-2 font-semibold">
+                {framework.freshness_state === "fresh" ? (
+                  <FileCheck2 className="h-4 w-4" />
+                ) : (
+                  <ShieldAlert className="h-4 w-4" />
+                )}{" "}
+                {TONE_TEXT[framework.freshness_state]}
+              </div>
+              <p className="mt-1 text-xs">{framework.copyright_guardrail}</p>
             </section>
-          ) : null}
 
-          <dl className="grid grid-cols-[140px_1fr] gap-x-3 gap-y-1.5">
-            <dt className="text-muted">Source</dt>
-            <dd>
-              <a
-                href={framework.official_source_url}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1 break-all text-brand hover:underline"
-              >
-                {framework.official_source_name}{" "}
-                <ExternalLink className="h-3 w-3" />
-              </a>
-            </dd>
-            <dt className="text-muted">Effective date</dt>
-            <dd className="font-semibold">
-              <Calendar className="mr-1 inline h-3 w-3" />
-              {framework.effective_date ?? "—"}
-            </dd>
-            <dt className="text-muted">Last pulled</dt>
-            <dd className="font-semibold">
-              {framework.pulled_at ?? "Not yet synced"}
-            </dd>
-            <dt className="text-muted">Source sha256</dt>
-            <dd>
-              <code className="break-all text-xs text-ink">
-                {framework.source_sha256 ?? "—"}
-              </code>
-            </dd>
-            <dt className="text-muted">Next pull due</dt>
-            <dd className="font-semibold">
-              {formatDate(framework.next_pull_due)}
-            </dd>
-            <dt className="text-muted">Superseded by</dt>
-            <dd className="font-semibold">{framework.superseded_by ?? "—"}</dd>
-          </dl>
+            {packState(framework) !== "seeded" &&
+            (framework.coverage_boundary ||
+              framework.evidence_focus?.length ||
+              framework.next_step) ? (
+              <section className="grid gap-2 rounded-xl border border-dashed border-line bg-surfaceMuted/50 p-3">
+                <div className="text-xs font-semibold text-muted">
+                  {packState(framework) === "superseded"
+                    ? stubStatusLabel(framework)
+                    : "Planned boundary"}
+                </div>
+                {framework.coverage_boundary ? (
+                  <p className="text-xs text-ink">
+                    {framework.coverage_boundary}
+                  </p>
+                ) : null}
+                {framework.evidence_focus?.length ? (
+                  <ul className="grid gap-1 text-xs text-muted">
+                    {framework.evidence_focus.map((focus) => (
+                      <li key={focus}>• {focus}</li>
+                    ))}
+                  </ul>
+                ) : null}
+                {framework.next_step ? (
+                  <p className="text-xs font-semibold text-ink">
+                    Next step: {framework.next_step}
+                  </p>
+                ) : null}
+              </section>
+            ) : null}
 
-          <section className="rounded-xl border border-line p-3">
-            <div className="text-xs font-semibold uppercase tracking-wide text-muted">
-              Control results
-            </div>
-            {results ? (
-              <>
-                <div className="mt-2 text-base font-semibold text-ink">
-                  {results.pass} passing · {results.fail} failing ·{" "}
-                  {results.notEvaluated} not evaluated
-                </div>
-                <div className="text-xs text-muted">
-                  of {results.total}{" "}
-                  {results.total === 1 ? "control" : "controls"}
-                </div>
-                <div
-                  className="mt-2 flex h-2 overflow-hidden rounded-full bg-surfaceMuted"
-                  aria-hidden="true"
+            <dl className="grid grid-cols-[140px_1fr] gap-x-3 gap-y-1.5">
+              <dt className="text-muted">Source</dt>
+              <dd>
+                <a
+                  href={framework.official_source_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1 break-all text-brand hover:underline"
                 >
+                  {framework.official_source_name}{" "}
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              </dd>
+              <dt className="text-muted">Effective date</dt>
+              <dd className="font-semibold">
+                <Calendar className="mr-1 inline h-3 w-3" />
+                {framework.effective_date ?? "—"}
+              </dd>
+              <dt className="text-muted">Last pulled</dt>
+              <dd className="font-semibold">
+                {framework.pulled_at ?? "Not yet synced"}
+              </dd>
+              <dt className="text-muted">Source sha256</dt>
+              <dd>
+                <code className="break-all text-xs text-ink">
+                  {framework.source_sha256 ?? "—"}
+                </code>
+              </dd>
+              <dt className="text-muted">Next pull due</dt>
+              <dd className="font-semibold">
+                {formatDate(framework.next_pull_due)}
+              </dd>
+              <dt className="text-muted">Superseded by</dt>
+              <dd className="font-semibold">
+                {framework.superseded_by ?? "—"}
+              </dd>
+            </dl>
+          </DetailTab>
+          <DetailTab value="overview">
+            <section className="rounded-xl border border-line p-4">
+              <h3 className="text-base font-semibold text-ink">
+                Control results
+              </h3>
+              {results ? (
+                <>
+                  <div className="mt-2 text-base font-semibold text-ink">
+                    {results.pass} passing · {results.fail} failing ·{" "}
+                    {results.notEvaluated} not evaluated
+                  </div>
+                  <div className="text-xs text-muted">
+                    of {results.total}{" "}
+                    {results.total === 1 ? "control" : "controls"}
+                  </div>
                   <div
-                    className="h-full bg-success"
-                    style={{ width: `${share(results.pass)}%` }}
-                  />
-                  <div
-                    className="h-full bg-danger"
-                    style={{ width: `${share(results.fail)}%` }}
-                  />
-                </div>
-              </>
-            ) : (
-              <p className="mt-2 text-xs text-muted">
-                {detail.isError
-                  ? "Control results could not be loaded."
-                  : "Loading control results…"}
-              </p>
-            )}
-            <div className="mt-3 border-t border-line pt-2 text-xs text-muted">
-              <span className="font-semibold text-ink">
-                {coverage?.evaluatable_requirement_count ?? 0} of{" "}
-                {coverage?.seeded_control_count ?? framework.control_count}{" "}
-                controls mapped
-              </span>{" "}
-              to safeguards; {framework.implemented_control_count} cite their
-              official source ({framework.mapping_coverage_pct}%). Mapped means
-              a safeguard can evaluate it, not that it is implemented or
-              passing.
-            </div>
-          </section>
-
-          <section className="grid gap-2 rounded-xl border border-line p-3">
-            <FrameworkDrilldownPanel
-              frameworkId={framework.framework_id}
-              expandedControlId={expandedControlId}
-              onExpandedControlChange={onExpandedControlChange}
-            />
-          </section>
-        </div>
+                    className="mt-2 flex h-2 overflow-hidden rounded-full bg-surfaceMuted"
+                    aria-hidden="true"
+                  >
+                    <div
+                      className="h-full bg-success"
+                      style={{ width: `${share(results.pass)}%` }}
+                    />
+                    <div
+                      className="h-full bg-danger"
+                      style={{ width: `${share(results.fail)}%` }}
+                    />
+                  </div>
+                </>
+              ) : (
+                <p className="mt-2 text-xs text-muted">
+                  {detail.isError
+                    ? "Control results could not be loaded."
+                    : "Loading control results…"}
+                </p>
+              )}
+              <div className="mt-3 border-t border-line pt-2 text-xs text-muted">
+                <span className="font-semibold text-ink">
+                  {coverage?.evaluatable_requirement_count ?? 0} of{" "}
+                  {coverage?.seeded_control_count ?? framework.control_count}{" "}
+                  controls mapped
+                </span>{" "}
+                to safeguards; {framework.implemented_control_count} cite their
+                official source ({framework.mapping_coverage_pct}%). Mapped
+                means a safeguard can evaluate it, not that it is implemented or
+                passing.
+              </div>
+            </section>
+          </DetailTab>
+          <DetailTab value="controls">
+            <section className="grid gap-4">
+              <FrameworkDrilldownPanel
+                frameworkId={framework.framework_id}
+                expandedControlId={expandedControlId}
+                onExpandedControlChange={onExpandedControlChange}
+              />
+            </section>
+          </DetailTab>
+        </DetailTabs>
       )}
     </Drawer>
   );

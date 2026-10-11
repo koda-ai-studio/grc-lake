@@ -12,6 +12,12 @@ import {
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  DetailTabs,
+  DetailTabList,
+  DetailTab,
+} from "@/components/ui/detail-tabs";
+import { ListPagination } from "@/components/ui/list-pagination";
 import { Drawer } from "@/components/ui/drawer";
 import { EntityTagsEditor } from "@/components/EntityTagsEditor";
 import { RemediationGuidance } from "@/components/remediation/RemediationGuidance";
@@ -76,10 +82,14 @@ export function ViolationDrawer({ violation, onClose, onToast }: Props) {
   const [note, setNote] = useState("");
   const [dueAt, setDueAt] = useState("");
   const [saveError, setSaveError] = useState(false);
+  const [tab, setTab] = useState("overview");
+  const [historyPage, setHistoryPage] = useState(0);
 
   useEffect(() => {
     if (!violation) return;
     setSaveError(false);
+    setTab("overview");
+    setHistoryPage(0);
     stateTouched.current = false;
     setAssignee(violation.asset_owner ?? "");
     setNote("");
@@ -143,7 +153,8 @@ export function ViolationDrawer({ violation, onClose, onToast }: Props) {
       }
       width="lg"
       footer={
-        !auditor && (
+        !auditor &&
+        tab === "triage" && (
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span className="text-xs text-muted">
               Changes are recorded in triage history.
@@ -189,204 +200,246 @@ export function ViolationDrawer({ violation, onClose, onToast }: Props) {
             </div>
           </section>
 
-          <section aria-labelledby="finding-details" className="grid gap-2">
-            <h3 id="finding-details" className={SECTION_TITLE}>
-              Details
-            </h3>
-            <dl className="grid grid-cols-[7rem_minmax(0,1fr)] gap-x-3 gap-y-2 rounded-lg border border-line p-3 text-sm">
-              <dt className="text-muted">Asset</dt>
-              <dd className="min-w-0">
-                {violation.asset_name ? (
-                  <div className="font-medium text-ink">
-                    {violation.asset_name}
-                  </div>
-                ) : null}
-                <code className="text-xs text-muted">{violation.asset_id}</code>
-              </dd>
-              <dt className="text-muted">Owner</dt>
-              <dd className="text-ink">
-                {violation.asset_owner?.trim() || "Unassigned"}
-              </dd>
-              <dt className="text-muted">Environment</dt>
-              <dd className="text-ink">
-                {violation.environment?.trim() || "Unknown"}
-              </dd>
-              <dt className="text-muted">Source</dt>
-              <dd className="font-mono text-xs leading-5 text-ink">
-                {violation.source}
-              </dd>
-            </dl>
-          </section>
-
-          <section aria-labelledby="finding-remediation" className="grid gap-2">
-            <h3 id="finding-remediation" className={SECTION_TITLE}>
-              Remediation
-            </h3>
-            <RemediationGuidance controlId={violation.control_id} />
-            <div className="flex flex-wrap gap-2">
-              <Button asChild size="sm">
-                <Link
-                  href={taskFromFindingHref(
-                    violation,
-                    controlTitle ?? violation.event_type,
-                  )}
-                >
-                  <ListPlus aria-hidden="true" className="h-4 w-4" />
-                  Create task
-                </Link>
-              </Button>
-              <Button asChild size="sm">
-                <Link
-                  href={`/controls?id=${encodeURIComponent(violation.control_id)}`}
-                >
-                  <ShieldCheck aria-hidden="true" className="h-4 w-4" />
-                  Review control
-                </Link>
-              </Button>
-              <Button asChild size="sm">
-                <Link href={controlGraphFocusHref(violation.control_id)}>
-                  <Network aria-hidden="true" className="h-4 w-4" />
-                  Trace in graph
-                </Link>
-              </Button>
-            </div>
-          </section>
-
-          {saveError && (
-            <p
-              role="alert"
-              className="rounded-lg bg-danger-bg p-3 text-sm text-danger-fg"
+          <DetailTabs value={tab} onValueChange={setTab}>
+            <DetailTabList
+              label="Finding detail"
+              items={[
+                { value: "overview", label: "Overview" },
+                ...(!auditor ? [{ value: "triage", label: "Triage" }] : []),
+                { value: "evidence", label: "Evidence" },
+                { value: "history", label: "History" },
+              ]}
+            />
+            <DetailTab
+              value="overview"
+              className="[grid-template-columns:repeat(auto-fit,minmax(min(280px,100%),1fr))]"
             >
-              Unable to save triage. Your changes are still here. Try again.
-            </p>
-          )}
+              <section aria-labelledby="finding-details" className="grid gap-2">
+                <h3 id="finding-details" className={SECTION_TITLE}>
+                  Details
+                </h3>
+                <dl className="grid grid-cols-[7rem_minmax(0,1fr)] gap-x-3 gap-y-2 rounded-lg border border-line p-3 text-sm">
+                  <dt className="text-muted">Asset</dt>
+                  <dd className="min-w-0">
+                    {violation.asset_name ? (
+                      <div className="font-medium text-ink">
+                        {violation.asset_name}
+                      </div>
+                    ) : null}
+                    <code className="text-xs text-muted">
+                      {violation.asset_id}
+                    </code>
+                  </dd>
+                  <dt className="text-muted">Owner</dt>
+                  <dd className="text-ink">
+                    {violation.asset_owner?.trim() || "Unassigned"}
+                  </dd>
+                  <dt className="text-muted">Environment</dt>
+                  <dd className="text-ink">
+                    {violation.environment?.trim() || "Unknown"}
+                  </dd>
+                  <dt className="text-muted">Source</dt>
+                  <dd className="font-mono text-xs leading-5 text-ink">
+                    {violation.source}
+                  </dd>
+                </dl>
+              </section>
 
-          {!auditor && (
-            <fieldset className="grid gap-3">
-              <legend className={`${SECTION_TITLE} mb-2`}>Triage</legend>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <label className={FIELD_LABEL}>
-                  State
-                  <select
-                    value={state}
-                    onChange={(e) => {
-                      stateTouched.current = true;
-                      setState(e.target.value as TrackingState);
-                    }}
-                    className={FIELD}
-                  >
-                    {stateOptions}
-                  </select>
-                </label>
-                <label className={FIELD_LABEL}>
-                  Assignee
-                  <input
-                    value={assignee}
-                    onChange={(e) => setAssignee(e.target.value)}
-                    className={FIELD}
+              <section
+                aria-labelledby="finding-remediation"
+                className="grid gap-2"
+              >
+                <h3 id="finding-remediation" className={SECTION_TITLE}>
+                  Remediation
+                </h3>
+                <RemediationGuidance controlId={violation.control_id} />
+                <div className="flex flex-wrap gap-2">
+                  <Button asChild size="sm">
+                    <Link
+                      href={taskFromFindingHref(
+                        violation,
+                        controlTitle ?? violation.event_type,
+                      )}
+                    >
+                      <ListPlus aria-hidden="true" className="h-4 w-4" />
+                      Create task
+                    </Link>
+                  </Button>
+                  <Button asChild size="sm">
+                    <Link
+                      href={`/controls?id=${encodeURIComponent(violation.control_id)}`}
+                    >
+                      <ShieldCheck aria-hidden="true" className="h-4 w-4" />
+                      Review control
+                    </Link>
+                  </Button>
+                  <Button asChild size="sm">
+                    <Link href={controlGraphFocusHref(violation.control_id)}>
+                      <Network aria-hidden="true" className="h-4 w-4" />
+                      Trace in graph
+                    </Link>
+                  </Button>
+                </div>
+              </section>
+            </DetailTab>
+            <DetailTab value="triage">
+              {saveError && (
+                <p
+                  role="alert"
+                  className="rounded-lg bg-danger-bg p-3 text-sm text-danger-fg"
+                >
+                  Unable to save triage. Your changes are still here. Try again.
+                </p>
+              )}
+
+              {!auditor && (
+                <fieldset className="grid gap-3">
+                  <legend className={`${SECTION_TITLE} mb-2`}>Triage</legend>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <label className={FIELD_LABEL}>
+                      State
+                      <select
+                        value={state}
+                        onChange={(e) => {
+                          stateTouched.current = true;
+                          setState(e.target.value as TrackingState);
+                        }}
+                        className={FIELD}
+                      >
+                        {stateOptions}
+                      </select>
+                    </label>
+                    <label className={FIELD_LABEL}>
+                      Assignee
+                      <input
+                        value={assignee}
+                        onChange={(e) => setAssignee(e.target.value)}
+                        className={FIELD}
+                      />
+                    </label>
+                    <label className={FIELD_LABEL}>
+                      Due date
+                      <input
+                        value={dueAt}
+                        onChange={(e) => setDueAt(e.target.value)}
+                        type="datetime-local"
+                        className={DATE_FIELD}
+                      />
+                    </label>
+                    <div className={FIELD_LABEL}>
+                      <span id="triage-actor-label">Recorded as</span>
+                      <output
+                        aria-labelledby="triage-actor-label"
+                        className="flex h-10 min-w-0 items-center truncate rounded-md border border-line bg-surfaceMuted px-3 text-sm text-ink"
+                      >
+                        {actor}
+                      </output>
+                    </div>
+                  </div>
+                  <label className={FIELD_LABEL}>
+                    Note
+                    <textarea
+                      rows={3}
+                      value={note}
+                      onChange={(e) => setNote(e.target.value)}
+                      className={`${FIELD} h-auto min-h-[5rem]`}
+                    />
+                  </label>
+                </fieldset>
+              )}
+            </DetailTab>
+            <DetailTab value="evidence">
+              <details open className="rounded-lg border border-line p-3">
+                <summary className="cursor-pointer text-sm font-medium text-ink">
+                  Evidence & provenance
+                </summary>
+                <dl className="mt-3 grid grid-cols-[100px_minmax(0,1fr)] gap-2 text-xs">
+                  <dt className="text-muted">Finding ID</dt>
+                  <dd>{violation.violation_id}</dd>
+                  <dt className="text-muted">Evidence ref</dt>
+                  <dd>
+                    <code className="text-ink">{violation.evidence_ref}</code>
+                  </dd>
+                  <dt className="text-muted">Raw hash</dt>
+                  <dd>
+                    <code className="text-ink">
+                      {violation.raw_sha256.slice(0, 24)}…
+                    </code>
+                  </dd>
+                </dl>
+              </details>
+
+              <EntityTagsEditor
+                entityType="violation"
+                entityId={violation.violation_id}
+              />
+            </DetailTab>
+            <DetailTab value="history">
+              <div>
+                <h3 className={`${SECTION_TITLE} mb-2 flex items-center gap-2`}>
+                  <History
+                    aria-hidden="true"
+                    className="h-3.5 w-3.5 text-muted"
                   />
-                </label>
-                <label className={FIELD_LABEL}>
-                  Due date
-                  <input
-                    value={dueAt}
-                    onChange={(e) => setDueAt(e.target.value)}
-                    type="datetime-local"
-                    className={DATE_FIELD}
-                  />
-                </label>
-                <div className={FIELD_LABEL}>
-                  <span id="triage-actor-label">Recorded as</span>
-                  <output
-                    aria-labelledby="triage-actor-label"
-                    className="flex h-10 min-w-0 items-center truncate rounded-md border border-line bg-surfaceMuted px-3 text-sm text-ink"
-                  >
-                    {actor}
-                  </output>
+                  Triage history
+                  <span className="font-normal text-muted">
+                    {history.length}
+                  </span>
+                </h3>
+                <div className="grid gap-2">
+                  {history.length === 0 && (
+                    <div className="rounded-lg border border-dashed border-line p-3 text-xs text-muted">
+                      No triage events recorded yet.
+                    </div>
+                  )}
+                  {history
+                    .slice(historyPage * 8, (historyPage + 1) * 8)
+                    .map((event) => (
+                      <div
+                        key={event.tracking_id}
+                        className="rounded-lg border border-line p-3 text-xs"
+                      >
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <Badge tone={STATE_TONE[event.state] ?? "default"}>
+                            {displayLabel(event.state)}
+                          </Badge>
+                          <span className="text-muted">
+                            {event.occurred_at}
+                          </span>
+                        </div>
+                        <div className="mt-1 text-muted">
+                          actor{" "}
+                          <b className="font-medium text-ink">{event.actor}</b>
+                          {event.assignee && (
+                            <>
+                              {" "}
+                              · assignee{" "}
+                              <b className="text-ink">{event.assignee}</b>
+                            </>
+                          )}
+                          {event.due_at && (
+                            <>
+                              {" "}
+                              · due <b className="text-ink">{event.due_at}</b>
+                            </>
+                          )}
+                        </div>
+                        {event.note && (
+                          <div className="mt-1 text-ink">{event.note}</div>
+                        )}
+                      </div>
+                    ))}
                 </div>
               </div>
-              <label className={FIELD_LABEL}>
-                Note
-                <textarea
-                  rows={3}
-                  value={note}
-                  onChange={(e) => setNote(e.target.value)}
-                  className={`${FIELD} h-auto min-h-[5rem]`}
-                />
-              </label>
-            </fieldset>
-          )}
-
-          <details className="rounded-lg border border-line p-3">
-            <summary className="cursor-pointer text-sm font-medium text-ink">
-              Evidence & provenance
-            </summary>
-            <dl className="mt-3 grid grid-cols-[100px_minmax(0,1fr)] gap-2 text-xs">
-              <dt className="text-muted">Finding ID</dt>
-              <dd>{violation.violation_id}</dd>
-              <dt className="text-muted">Evidence ref</dt>
-              <dd>
-                <code className="text-ink">{violation.evidence_ref}</code>
-              </dd>
-              <dt className="text-muted">Raw hash</dt>
-              <dd>
-                <code className="text-ink">
-                  {violation.raw_sha256.slice(0, 24)}…
-                </code>
-              </dd>
-            </dl>
-          </details>
-
-          <EntityTagsEditor
-            entityType="violation"
-            entityId={violation.violation_id}
-          />
-
-          <div>
-            <h3 className={`${SECTION_TITLE} mb-2 flex items-center gap-2`}>
-              <History aria-hidden="true" className="h-3.5 w-3.5 text-muted" />
-              Triage history
-              <span className="font-normal text-muted">{history.length}</span>
-            </h3>
-            <div className="grid gap-2">
-              {history.length === 0 && (
-                <div className="rounded-lg border border-dashed border-line p-3 text-xs text-muted">
-                  No triage events recorded yet.
-                </div>
-              )}
-              {history.map((event) => (
-                <div
-                  key={event.tracking_id}
-                  className="rounded-lg border border-line p-3 text-xs"
-                >
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <Badge tone={STATE_TONE[event.state] ?? "default"}>
-                      {displayLabel(event.state)}
-                    </Badge>
-                    <span className="text-muted">{event.occurred_at}</span>
-                  </div>
-                  <div className="mt-1 text-muted">
-                    actor <b className="font-medium text-ink">{event.actor}</b>
-                    {event.assignee && (
-                      <>
-                        {" "}
-                        · assignee <b className="text-ink">{event.assignee}</b>
-                      </>
-                    )}
-                    {event.due_at && (
-                      <>
-                        {" "}
-                        · due <b className="text-ink">{event.due_at}</b>
-                      </>
-                    )}
-                  </div>
-                  {event.note && (
-                    <div className="mt-1 text-ink">{event.note}</div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
+              <ListPagination
+                label="History"
+                page={historyPage}
+                total={history.length}
+                pageSize={8}
+                onPage={setHistoryPage}
+              />
+            </DetailTab>
+          </DetailTabs>
         </div>
       )}
     </Drawer>

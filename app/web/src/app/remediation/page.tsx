@@ -1,5 +1,7 @@
 "use client";
 
+import { PaginatedCollection } from "@/components/ui/paginated-collection";
+
 import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ListChecks } from "lucide-react";
@@ -417,84 +419,86 @@ function TasksSection() {
                 finding.
               </EmptyState>
             ))}
-          {rows.map((task: RemediationTask) => (
-            <div
-              key={task.id}
-              data-testid={`task-${task.id}`}
-              className="flex flex-wrap items-center gap-3 px-5 py-3"
-            >
-              <div className="min-w-0 flex-1 basis-48">
-                <div className="text-sm font-semibold text-ink [overflow-wrap:anywhere]">
-                  {task.title}
+          <PaginatedCollection label="Tasks">
+            {rows.map((task: RemediationTask) => (
+              <div
+                key={task.id}
+                data-testid={`task-${task.id}`}
+                className="flex flex-wrap items-center gap-3 px-5 py-3"
+              >
+                <div className="min-w-0 flex-1 basis-48">
+                  <div className="text-sm font-semibold text-ink [overflow-wrap:anywhere]">
+                    {task.title}
+                  </div>
+                  <div className="text-xs leading-5 text-muted [overflow-wrap:anywhere]">
+                    {task.control_id ?? "no control"} ·{" "}
+                    {task.owner || "unassigned"} · due{" "}
+                    {fmtDate(task.due_at?.slice(0, 10))}
+                  </div>
+                  {task.violation_id && (
+                    <Link
+                      href={findingHref(task.violation_id)}
+                      className="text-xs font-semibold text-brand hover:underline [overflow-wrap:anywhere]"
+                    >
+                      From finding {task.violation_id} →
+                    </Link>
+                  )}
+                  {task.status === "resolved" &&
+                  task.verification_history?.length ? (
+                    <p className="text-xs text-muted">
+                      Verified against generation{" "}
+                      {
+                        task.verification_history[
+                          task.verification_history.length - 1
+                        ].generation.generation_id
+                      }
+                    </p>
+                  ) : null}
+                  {task.status === "resolved" && task.resolution_note && (
+                    <ResolutionNote note={task.resolution_note} />
+                  )}
                 </div>
-                <div className="text-xs leading-5 text-muted [overflow-wrap:anywhere]">
-                  {task.control_id ?? "no control"} ·{" "}
-                  {task.owner || "unassigned"} · due{" "}
-                  {fmtDate(task.due_at?.slice(0, 10))}
-                </div>
-                {task.violation_id && (
-                  <Link
-                    href={findingHref(task.violation_id)}
-                    className="text-xs font-semibold text-brand hover:underline [overflow-wrap:anywhere]"
-                  >
-                    From finding {task.violation_id} →
-                  </Link>
-                )}
-                {task.status === "resolved" &&
-                task.verification_history?.length ? (
-                  <p className="text-xs text-muted">
-                    Verified against generation{" "}
-                    {
-                      task.verification_history[
-                        task.verification_history.length - 1
-                      ].generation.generation_id
-                    }
-                  </p>
+                <Badge tone={PRIORITY_TONE[task.priority]}>
+                  {displayLabel(task.priority)}
+                </Badge>
+                {task.status !== "open" ? (
+                  <Badge tone={STATUS_TONE[task.status]}>
+                    {displayLabel(task.status)}
+                  </Badge>
                 ) : null}
-                {task.status === "resolved" && task.resolution_note && (
-                  <ResolutionNote note={task.resolution_note} />
+                {task.overdue && <Badge tone="critical">Overdue</Badge>}
+                {task.status !== "resolved" && task.status !== "dismissed" && (
+                  <div className="flex gap-1.5">
+                    <Button
+                      size="sm"
+                      disabled={!canWrite}
+                      onClick={() => {
+                        resolveMutation.reset();
+                        verifyMutation.reset();
+                        setResolving(task);
+                      }}
+                    >
+                      Resolve
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      disabled={!canWrite}
+                      className="font-medium text-muted hover:text-ink"
+                      onClick={() =>
+                        update.mutate({
+                          id: task.id,
+                          payload: { status: "dismissed" },
+                        })
+                      }
+                    >
+                      Dismiss
+                    </Button>
+                  </div>
                 )}
               </div>
-              <Badge tone={PRIORITY_TONE[task.priority]}>
-                {displayLabel(task.priority)}
-              </Badge>
-              {task.status !== "open" ? (
-                <Badge tone={STATUS_TONE[task.status]}>
-                  {displayLabel(task.status)}
-                </Badge>
-              ) : null}
-              {task.overdue && <Badge tone="critical">Overdue</Badge>}
-              {task.status !== "resolved" && task.status !== "dismissed" && (
-                <div className="flex gap-1.5">
-                  <Button
-                    size="sm"
-                    disabled={!canWrite}
-                    onClick={() => {
-                      resolveMutation.reset();
-                      verifyMutation.reset();
-                      setResolving(task);
-                    }}
-                  >
-                    Resolve
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    disabled={!canWrite}
-                    className="font-medium text-muted hover:text-ink"
-                    onClick={() =>
-                      update.mutate({
-                        id: task.id,
-                        payload: { status: "dismissed" },
-                      })
-                    }
-                  >
-                    Dismiss
-                  </Button>
-                </div>
-              )}
-            </div>
-          ))}
+            ))}
+          </PaginatedCollection>
         </div>
       </QueryState>
       <ResolveTaskModal
@@ -589,49 +593,51 @@ function EvidenceRequestsSection() {
               No evidence requests.
             </div>
           )}
-          {rows.map((req: EvidenceRequestItem) => (
-            <div
-              key={req.id}
-              className="flex flex-wrap items-center gap-3 px-5 py-3"
-            >
-              <div className="min-w-[12rem] flex-1">
-                <div className="text-sm font-semibold text-ink [overflow-wrap:anywhere]">
-                  {req.control_id}
+          <PaginatedCollection label="Requests">
+            {rows.map((req: EvidenceRequestItem) => (
+              <div
+                key={req.id}
+                className="flex flex-wrap items-center gap-3 px-5 py-3"
+              >
+                <div className="min-w-[12rem] flex-1">
+                  <div className="text-sm font-semibold text-ink [overflow-wrap:anywhere]">
+                    {req.control_id}
+                  </div>
+                  <div className="text-xs leading-5 text-muted">
+                    from {req.requested_from || "—"} · created{" "}
+                    {fmtDate(req.created_at)}
+                  </div>
                 </div>
-                <div className="text-xs leading-5 text-muted">
-                  from {req.requested_from || "—"} · created{" "}
-                  {fmtDate(req.created_at)}
-                </div>
+                <Badge tone={STATUS_TONE[req.status]}>
+                  {displayLabel(req.status)}
+                </Badge>
+                {req.status === "open" && (
+                  <div className="flex gap-1.5">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      disabled={!canWrite}
+                      onClick={() =>
+                        setStatus.mutate({ id: req.id, status: "fulfilled" })
+                      }
+                    >
+                      Fulfill
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      disabled={!canWrite}
+                      onClick={() =>
+                        setStatus.mutate({ id: req.id, status: "cancelled" })
+                      }
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                )}
               </div>
-              <Badge tone={STATUS_TONE[req.status]}>
-                {displayLabel(req.status)}
-              </Badge>
-              {req.status === "open" && (
-                <div className="flex gap-1.5">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    disabled={!canWrite}
-                    onClick={() =>
-                      setStatus.mutate({ id: req.id, status: "fulfilled" })
-                    }
-                  >
-                    Fulfill
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    disabled={!canWrite}
-                    onClick={() =>
-                      setStatus.mutate({ id: req.id, status: "cancelled" })
-                    }
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              )}
-            </div>
-          ))}
+            ))}
+          </PaginatedCollection>
         </div>
       </QueryState>
     </Card>
@@ -744,64 +750,66 @@ function ExceptionsSection() {
           {rows.length === 0 && (
             <div className="px-5 py-6 text-sm text-muted">No exceptions.</div>
           )}
-          {rows.map((exc: ControlExceptionItem) => (
-            <div
-              key={exc.id}
-              className="flex flex-wrap items-center gap-3 px-5 py-3"
-            >
-              <div className="min-w-[12rem] flex-1">
-                <div className="text-sm font-semibold text-ink [overflow-wrap:anywhere]">
-                  {exc.control_id}
+          <PaginatedCollection label="Exceptions">
+            {rows.map((exc: ControlExceptionItem) => (
+              <div
+                key={exc.id}
+                className="flex flex-wrap items-center gap-3 px-5 py-3"
+              >
+                <div className="min-w-[12rem] flex-1">
+                  <div className="text-sm font-semibold text-ink [overflow-wrap:anywhere]">
+                    {exc.control_id}
+                  </div>
+                  <div className="text-xs leading-5 text-muted">
+                    {exc.reason || "no reason"} · by {exc.approved_by || "—"} ·
+                    expires {fmtDate(exc.expires_at?.slice(0, 10))}
+                  </div>
                 </div>
-                <div className="text-xs leading-5 text-muted">
-                  {exc.reason || "no reason"} · by {exc.approved_by || "—"} ·
-                  expires {fmtDate(exc.expires_at?.slice(0, 10))}
-                </div>
-              </div>
-              <Badge tone={exc.active ? "ready" : STATUS_TONE[exc.status]}>
-                {exc.active ? "active" : exc.status}
-              </Badge>
-              {exc.status === "pending" && (
-                <Button
-                  size="sm"
-                  disabled={
-                    approve.isPending ||
-                    !humanReviewer ||
-                    exc.created_by.toLowerCase() ===
-                      identity.data?.email.toLowerCase()
-                  }
-                  title={
-                    !humanReviewer
-                      ? "An independent human SSO reviewer is required"
-                      : exc.created_by.toLowerCase() ===
-                          identity.data?.email.toLowerCase()
-                        ? "Another reviewer must approve your request"
-                        : "Approve this exception"
-                  }
-                  onClick={() => approve.mutate(exc.id)}
-                >
-                  Approve
-                </Button>
-              )}
-              {(exc.active || exc.status === "pending") && (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  disabled={!canWrite}
-                  onClick={() => {
-                    if (
-                      window.confirm(
-                        `Revoke the exception for ${exc.control_id}? Its approval history will be retained.`,
+                <Badge tone={exc.active ? "ready" : STATUS_TONE[exc.status]}>
+                  {exc.active ? "active" : exc.status}
+                </Badge>
+                {exc.status === "pending" && (
+                  <Button
+                    size="sm"
+                    disabled={
+                      approve.isPending ||
+                      !humanReviewer ||
+                      exc.created_by.toLowerCase() ===
+                        identity.data?.email.toLowerCase()
+                    }
+                    title={
+                      !humanReviewer
+                        ? "An independent human SSO reviewer is required"
+                        : exc.created_by.toLowerCase() ===
+                            identity.data?.email.toLowerCase()
+                          ? "Another reviewer must approve your request"
+                          : "Approve this exception"
+                    }
+                    onClick={() => approve.mutate(exc.id)}
+                  >
+                    Approve
+                  </Button>
+                )}
+                {(exc.active || exc.status === "pending") && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    disabled={!canWrite}
+                    onClick={() => {
+                      if (
+                        window.confirm(
+                          `Revoke the exception for ${exc.control_id}? Its approval history will be retained.`,
+                        )
                       )
-                    )
-                      revoke.mutate(exc.id);
-                  }}
-                >
-                  Revoke
-                </Button>
-              )}
-            </div>
-          ))}
+                        revoke.mutate(exc.id);
+                    }}
+                  >
+                    Revoke
+                  </Button>
+                )}
+              </div>
+            ))}
+          </PaginatedCollection>
         </div>
       </QueryState>
     </Card>

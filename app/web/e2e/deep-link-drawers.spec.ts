@@ -86,7 +86,7 @@ test.describe("record deep links", () => {
     );
     await page
       .getByRole("dialog")
-      .getByText("Evidence & provenance", { exact: true })
+      .getByRole("tab", { name: "Evidence", exact: true })
       .click();
     await expect(
       page

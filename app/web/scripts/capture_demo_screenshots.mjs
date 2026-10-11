@@ -43,6 +43,8 @@ const MOBILE = { width: 390, height: 1800 };
  * table stops on a row boundary instead of mid-row.
  */
 const shots = [
+  {file:"grc-lake-demo-sources.png",route:"/dashboard/",dark:true,setup:"source-workspace"},
+  {file:"grc-lake-demo-access-reviews.png",route:"/access-reviews/",dark:true},
   { file: "grc-lake-demo-dashboard.png", route: "/dashboard/", dark: true },
   {
     file: "grc-lake-demo-overview-mobile.png",
@@ -368,12 +370,14 @@ async function capture(shot, theme, frame) {
   });
   await waitForShell(page);
 
+  if (shot.setup === "source-workspace") await page.getByRole("tab",{name:"Sources & operations",exact:true}).click();
   if (shot.setup === "finding-drawer") {
     await page
       .getByRole("button", { name: /Review finding/ })
       .first()
       .click();
     await page.getByRole("dialog").waitFor();
+    await page.getByRole("dialog").getByRole("tab",{name:"Triage",exact:true}).click();
     await page.waitForTimeout(600);
   }
   if (shot.setup === "control-drawer") {
