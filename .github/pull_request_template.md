@@ -21,3 +21,8 @@
 - [ ] Docs, API contract, and console agree with the change.
 - [ ] No framework, connector, or control is described as covered or live-verified beyond what the catalog and tests support.
 - [ ] No secrets, tokens, or real customer evidence in code, fixtures, logs, or screenshots.
+
+## Human review
+
+<!-- Before merge, obtain an independent human approval of the latest changes.
+     CI and AI/bot reviews do not replace this approval. See CONTRIBUTING.md. -->

@@ -124,6 +124,21 @@ any confirmed crash before fixing its parser or verifier.
   covered or live-verified unless the catalog, tests, and docs back it.
 - The repository does not require a DCO sign-off.
 
+### Human review before merge
+
+Every pull request, including dependency updates and changes prepared with AI,
+needs approval from a human other than the author before merging. Review the
+latest changes, relevant tests, failure behavior, and security impact. Record
+approval with GitHub's **Approve** review; a comment, passing CI, or an AI/bot
+review does not substitute for that approval. After another push, obtain review
+of the updated change before merging.
+
+Keep required checks, stale-review dismissal, latest-push approval, and
+administrator enforcement enabled. If no independent reviewer is available,
+leave the pull request open. Do not use direct pushes or a protection bypass to
+work around the missing review. See [Scorecard evidence](docs/SCORECARD_REMEDIATION.md)
+for the distinction between current protection and historical review coverage.
+
 ## Add a connector
 
 Connectors are read-only evidence collectors. Start with

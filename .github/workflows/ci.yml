@@ -457,6 +457,21 @@ jobs:
           cache-to: type=gha,mode=max
       - name: Check installed runtime dependencies
         run: bash tools/check_image_dependencies.sh grc-lake:ci
+      # Keep findings without a vendor fix visible for vulnerability-age review.
+      # A passing fixable-only gate does not establish a clean image.
+      - name: Record all image vulnerabilities
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        env:
+          TRIVY_PLATFORM: linux/amd64
+        with:
+          image-ref: grc-lake:ci
+          version: v0.70.0
+          scanners: vuln
+          format: json
+          output: trivy-ci-amd64.json
+          severity: UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
+          ignore-unfixed: false
+          exit-code: "0"
       - name: Scan image (fixable MEDIUM/HIGH/CRITICAL fail the build)
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
@@ -465,6 +480,14 @@ jobs:
           severity: CRITICAL,HIGH,MEDIUM
           ignore-unfixed: true
           exit-code: "1"
+      - name: Retain full image vulnerability report
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: image-vulnerabilities
+          path: trivy-ci-amd64.json
+          if-no-files-found: warn
+          retention-days: 14
       - name: Exercise Compose quickstart against the built image
         run: python3 tools/compose_smoke.py --image grc-lake:ci
       - name: Exercise authenticated tenants against the built image

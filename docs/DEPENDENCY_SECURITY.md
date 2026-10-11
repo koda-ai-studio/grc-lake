@@ -31,6 +31,11 @@ distribution findings. No available vendor fix does not mean not affected, and
 passing this gate does not satisfy the Best Practices 60-day criterion. The
 published 0.3.2 image remains unchanged until a new release is built and published.
 
+CI and release qualification also retain full, unfiltered JSON vulnerability
+reports for 14 days, including when the fixable-only scan blocks the job. See
+[Scorecard evidence](SCORECARD_REMEDIATION.md#vulnerability-and-release-evidence)
+for artifact names and the separate Best Practices review requirements.
+
 ### Unfixed HIGH findings: applicability review
 
 The full 0.3.2 scans reported 44 HIGH package/advisory pairs representing eight
