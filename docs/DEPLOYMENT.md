@@ -164,9 +164,9 @@ repository.
 OSS local, self-hosted and operator-hosted deployments use the same application
 constraints. Hosted mode is an operating model, not a distributed storage mode.
 
-## Cookie-signing hardening (next release)
+## Cookie-signing hardening (0.3.3 candidate)
 
-The pending hardening change requires `GRC_LAKE_COOKIE_SIGNING_KEY` and, when
+Version 0.3.3 requires `GRC_LAKE_COOKIE_SIGNING_KEY` and, when
 OIDC is enabled, `GRC_LAKE_SESSION_SECRET` to contain at least 32 bytes after
 trimming whitespace. Generate independent random secrets with `openssl rand -hex 32`
 and keep them in your existing secret manager. Length validation cannot establish
@@ -178,4 +178,4 @@ users out and invalidates in-progress SSO handshakes: users must sign in again,
 and pending SSO attempts must restart. There is no legacy SHA-1 verification
 fallback. API keys, evidence hashes, database session-token digests, cookie
 expiry, SameSite, HttpOnly and Secure settings are unchanged. This change is
-prepared separately from the 0.3.2 release.
+not included in the published 0.3.2 release.

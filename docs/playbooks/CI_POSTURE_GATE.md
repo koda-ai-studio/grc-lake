@@ -35,7 +35,7 @@ Example step:
 
 ```yaml
 - name: GRC Lake posture gate
-  uses: koda-ai-studio/grc-lake/.github/actions/posture-gate@v0.3.2
+  uses: koda-ai-studio/grc-lake/.github/actions/posture-gate@v0.3.3
   with:
     grc-lake-url: ${{ secrets.GRC_LAKE_URL }}
     api-token: ${{ secrets.GRC_LAKE_API_TOKEN }}

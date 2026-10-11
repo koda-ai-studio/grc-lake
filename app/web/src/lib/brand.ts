@@ -21,7 +21,7 @@ export const BRAND = {
   packageName: "grc-lake",
   /** CLI command (operator surface, not product rename). */
   cliCommand: "grc-lake",
-  version: "0.3.2",
+  version: "0.3.3",
   colors: {
     blue: "#4f7cff",
     cyan: "#30c7d2",
