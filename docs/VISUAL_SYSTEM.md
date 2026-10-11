@@ -8,10 +8,9 @@ Product name, logo, taglines, and naming hierarchy: [BRAND.md](BRAND.md).
 
 ## GRC Lake mark
 
-- Blue-to-mint lake contour (`#4f7cff` → `#42dfcf`) with connected evidence
-  points representing a traceable record. Use `GrcLakeMark` /
-  `GrcLakeLogo` in the console and the generated SVG lockup in docs. Preserve the
-  same silhouette at all sizes; console marks at 40 px and below use a heavier stroke.
+- Blue-to-mint source symbols (`#4f7cff` → `#42dfcf`) above three lake waves.
+  Use `GrcLakeMark` / `GrcLakeLogo` in the console and the generated SVG lockup
+  in docs. Preserve the original geometry at every size.
 - Console chrome label: **GRC Lake Console** (sidebar subtitle), not
   "Workbench" or "Assessment Console".
 

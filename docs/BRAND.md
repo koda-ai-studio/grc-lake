@@ -55,9 +55,11 @@ not a claim that every context source or prioritization rule is implemented.
 
 ## Visual identity
 
-The mark uses an asymmetric lake contour and a connected pair of evidence points.
-The contour represents the evidence store; points on its shore represent traceable records. The same geometry
-is used at every size, with a slightly heavier stroke in the small console mark.
+The original evidence-lake mark places cloud, identity, AI-agent, and activity-log
+symbols above three lake waves. Preserve this geometry at every size; it is the
+product identity, including the README, app, favicon, and sharing images.
+The parent studio has its own dog-and-AI logo. Keep that organization identity
+separate from this product mark.
 The wordmark is **GRC Lake**.
 The logo, favicon, social card and embedded MCP icon are generated from the same
 canonical SVG in `brand_assets.py` using `tools/render_readme_header.py`.
@@ -73,7 +75,7 @@ canonical SVG in `brand_assets.py` using `tools/render_readme_header.py`.
 
 Primary assets:
 
-- `docs/images/grc-lake-mark.svg` — lake contour and evidence trace
+- `docs/images/grc-lake-mark.svg` — original evidence-lake mark
 - `docs/images/grc-lake-logo.svg` — documentation lockup
 - `app/web/src/app/icon.svg` — favicon
 - `src/security_lakehouse/static/grc-lake-mark.svg` — hosted icon

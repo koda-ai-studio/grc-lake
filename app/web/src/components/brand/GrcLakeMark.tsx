@@ -11,49 +11,37 @@ const SIZES = {
 
 type Size = keyof typeof SIZES;
 
-const LAKE_TRACE =
-  "M19 13C29 9 33 20 42 22C53 25 55 36 47 44C38 53 18 54 13 44C8 33 19 29 15 22C12 17 14 14 19 13ZM24 23C28 23 31 30 38 30C45 30 44 38 37 42C30 46 20 44 21 38C22 32 26 29 24 23Z";
-
-/** Keep the same silhouette at every size; small marks use a heavier stroke. */
-const SIMPLE_SIZES: ReadonlySet<Size> = new Set(["xs", "sm", "md", "lg"]);
-
 interface Props {
   size?: Size;
   className?: string;
   gradientId?: string;
-  /** `auto` uses a heavier stroke at 40px and below. */
-  variant?: "auto" | "full" | "simple";
 }
 
+/** The approved evidence-lake identity is consistent at every display size. */
 export function GrcLakeMark({
   size = "md",
   className,
   gradientId = "grc-lake-mark-gradient",
-  variant = "auto",
 }: Props) {
-  const simple =
-    variant === "simple" || (variant === "auto" && SIMPLE_SIZES.has(size));
   return (
     <svg
       viewBox="0 0 64 64"
       role="img"
       aria-label={BRAND.name}
-      data-variant={simple ? "simple" : "full"}
       className={cn("flex-none", SIZES[size], className)}
     >
       <title>{BRAND.name}</title>
       <desc>
-        A lake contour with connected points representing collected evidence and
-        traceable records.
+        Cloud, identities, AI agents, and activity logs above an evidence lake.
       </desc>
       <defs>
         <linearGradient
           id={gradientId}
           gradientUnits="userSpaceOnUse"
-          x1="13"
-          y1="14"
-          x2="51"
-          y2="52"
+          x1="4"
+          y1="7"
+          x2="55"
+          y2="58"
         >
           <stop stopColor="#4f7cff" />
           <stop offset="1" stopColor="#42dfcf" />
@@ -68,9 +56,28 @@ export function GrcLakeMark({
           strokeLinecap="round"
           strokeLinejoin="round"
         >
-          <path d={LAKE_TRACE} strokeWidth={simple ? "4" : "3.5"} />
-          <circle cx="19" cy="13" r="3.5" fill="#75b6ff" stroke="none" />
-          <circle cx="47" cy="44" r="3.5" fill="#42dfcf" stroke="none" />
+          <g strokeWidth="1.8">
+            <g transform="translate(4 10) scale(.66)">
+              <path d="M3 14h12a4 4 0 0 0 0-8 5.5 5.5 0 0 0-10.4-1.7A4.5 4.5 0 0 0 3 14Z" />
+            </g>
+            <g transform="translate(18.5 10) scale(.66)">
+              <circle cx="9" cy="4.5" r="3" />
+              <path d="M3 16v-2a6 6 0 0 1 12 0v2" />
+            </g>
+            <g transform="translate(33 10) scale(.66)">
+              <rect x="2" y="5" width="14" height="11" rx="3" />
+              <path d="M9 5V1M0 9v4M18 9v4" />
+              <circle cx="6" cy="10" r=".9" fill="currentColor" />
+              <circle cx="12" cy="10" r=".9" fill="currentColor" />
+            </g>
+            <g transform="translate(47.5 10) scale(.66)">
+              <rect x="3" y="1" width="12" height="16" rx="2" />
+              <path d="M6 5h6M6 9h6M6 13h4" />
+            </g>
+          </g>
+          <g strokeWidth="2.4">
+            <path d="M10 35c7-4.8 14-4.8 22 0s14 4.8 22 0M10 44c7-4.8 14-4.8 22 0s14 4.8 22 0M10 53c7-4.8 14-4.8 22 0s14 4.8 22 0" />
+          </g>
         </g>
       </g>
     </svg>
