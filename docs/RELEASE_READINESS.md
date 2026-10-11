@@ -1,18 +1,27 @@
 # Release readiness
 
-GRC Lake **0.3.2 is a source candidate, not a published release**. It prepares
-CCF mapping corrections, bounded gold/dashboard output, posture-read improvements,
-auth/API/interop fixes, deployment hardening, and parser/signature fuzzing listed
-in the [changelog](../CHANGELOG.md). Local deployment remains supported.
-Distributed mode remains opt-in and requires the [migration and recovery
-procedures](DISTRIBUTED.md); local timings do not establish distributed capacity.
+GRC Lake **0.3.3 is a source candidate, not a published release**. It prepares
+container dependency remediation, stronger cookie and SAML signature policies,
+dependency updates, a server-route refactor, and refreshed README guidance listed
+in the [changelog](../CHANGELOG.md).
 
-Version 0.3.1 is published. Changes merged after its release commit are not
-in those artifacts; qualify them as a subsequent version before tagging. A new
-source version remains a candidate until the publication gates below succeed. Existing `trustops-security-data-lake` releases remain available under
-their original PyPI name. New releases target `grc-lake`; use a fresh Python
-environment when moving between distributions because they own overlapping
-module files. Legacy CLI aliases and Python imports remain supported.
+Version **0.3.2 is published** on PyPI and as the public image
+`ghcr.io/koda-ai-studio/grc-lake:0.3.2`. It does not contain these later fixes.
+Use the v0.3.2 release templates for a published deployment until 0.3.3 is released;
+candidate image and action references become usable only after publication.
+A new source version remains a candidate until the publication gates below succeed.
+Existing `trustops-security-data-lake` releases remain available under their
+original PyPI name. Use a fresh Python environment when moving between distributions
+because they own overlapping module files. Legacy CLI aliases and Python imports
+remain supported.
+
+Local deployment remains supported. Distributed mode remains opt-in and requires
+the [migration and recovery procedures](DISTRIBUTED.md); local timings do not
+establish distributed capacity. Upgrading from 0.3.2 requires signing secrets of
+at least 32 bytes and, for SAML deployments, non-deprecated IdP signature and
+digest algorithms. Existing
+browser sessions must sign in again. See [deployment](DEPLOYMENT.md) and
+[server authentication](SERVER_AUTH.md).
 
 Source and CI qualification do not establish publication, live-provider accuracy,
 or a working customer deployment. The pinned build-tool replacement and its
@@ -69,9 +78,9 @@ moves only for a stable tag; a prerelease such as `v1.0.0-rc.1` never updates it
 
 Verify artifacts against the identity that signed that release. Releases through
 0.3.1 were published from `msaad00/grc-lake`; a repository redirect does not
-rewrite their signing certificates or move their GHCR package. For the next
-release from `koda-ai-studio/grc-lake`, use that repository and its published image
-digest after publication succeeds.
+rewrite their signing certificates or move their GHCR package. Version 0.3.2 was
+published from `koda-ai-studio/grc-lake`. Use that repository
+and the exact artifact digest when verifying 0.3.2 or a later release.
 
 ```bash
 # Historical 0.3.1 image: fetch the signed bundle directly from the registry.
@@ -113,11 +122,12 @@ All workflow actions are pinned to a full commit SHA with the release tag in a
 comment, and the Dockerfile pins its base images by digest. Dependabot's
 `github-actions` and `docker` ecosystems propose updates to both.
 
-## Next publication after the repository transfer
+## Publication from the current repository
 
-The `grc-lake` PyPI project already exists. A project owner must configure an
-[ordinary trusted publisher on that project](https://docs.pypi.org/trusted-publishers/adding-a-publisher/),
-not a pending publisher intended to create a new project:
+The `grc-lake` PyPI project exists, and 0.3.2 was published from the current
+repository. Preserve and verify its
+[ordinary trusted publisher](https://docs.pypi.org/trusted-publishers/adding-a-publisher/)
+configuration before the next release:
 
 | Field             | Value            |
 | ----------------- | ---------------- |
@@ -135,17 +145,17 @@ it does not show the project's current trusted-publisher settings.
 The release workflow derives its image destination from `github.repository_owner`,
 so the next release targets `ghcr.io/koda-ai-studio/grc-lake`. Before tagging:
 
-1. Confirm the organization permits package creation and that this repository's
-   Actions token has access to the intended package. The workflow already requests
-   `packages: write`; existing package grants and organization policy are separate.
+1. Confirm this repository's Actions token can update the existing public package.
+   The workflow already requests `packages: write`; package grants and organization
+   creation policy are separate. Publishing another version of the existing package
+   should not require broadening organization-wide public-package creation permissions.
 2. Preserve `ghcr.io/msaad00/grc-lake` for historical releases. GHCR uses granular
    permissions: a [repository transfer does not transfer package ownership](https://docs.github.com/en/packages/learn-github-packages/about-permissions-for-github-packages#about-repository-transfers)
    and can remove repository linkage and Actions access.
-3. The 0.3.2 candidate aligns Compose, Helm, Terraform and example image settings
-   to `ghcr.io/koda-ai-studio/grc-lake:0.3.2`. These references are not available
-   until publication succeeds. For a current published deployment, use the
-   v0.3.1 release templates and historical namespace; do not assume the old
-   version exists in the new namespace.
+3. The 0.3.3 candidate aligns Compose and the chart default to
+   `ghcr.io/koda-ai-studio/grc-lake:0.3.3`; Terraform inherits the chart default
+   when its image tag is empty. These references are unavailable until publication
+   succeeds. For a published deployment, use the v0.3.2 release templates.
 4. After user-authorized publication, verify anonymous pulls (if public delivery
    is intended), both architecture digests, signed provenance, and runtime smoke
    checks against the newly published bytes. Registry visibility may need explicit

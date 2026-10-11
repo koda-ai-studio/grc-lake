@@ -3,11 +3,17 @@
 All notable GRC Lake changes are summarized here. Versions follow semver for the
 Python package, Helm chart, and bundled web console.
 
-## Unreleased
+## 0.3.3 - 2026-10-11
 
 - Security: refresh the container's liblzma package for DSA-6549-1, remove pip and ensurepip from both runtime Python environments, remove the unused vulnerable infocmp executable, and remove setuid/setgid bits from system utilities. CI and release builds now reject fixable MEDIUM findings as well as HIGH and CRITICAL findings. Unfixed distribution findings remain tracked; this does not certify a vulnerability-free image.
 
 - Security: reject incoming SAML signatures and digests that use deprecated algorithms, including SHA-1. Previously, selecting SHA-256 for outgoing signatures did not reject SHA-1 assertions from the IdP. Configure the IdP to use RSA-SHA256 and SHA-256 or stronger before upgrading.
+
+- Security: sign browser-session, OIDC-state and SAML-correlation cookies with SHA-256 and require at least 32 bytes for signing secrets in authenticated deployments. Existing browser sessions must sign in again after upgrading; replace short secrets before starting the new server.
+
+- Split GRC workflow routes out of the server application factory while preserving route behavior. Update LangGraph, web dependencies, the Node build image and the pinned cache action.
+
+- Refresh README setup instructions and synthetic console screenshots. Correct package visibility and release-status guidance; the published 0.3.2 image remains available while 0.3.3 is qualified.
 
 ## 0.3.2 - 2026-10-10
 
