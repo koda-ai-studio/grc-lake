@@ -11,20 +11,17 @@ const SIZES = {
 
 type Size = keyof typeof SIZES;
 
-const WAVES =
-  "M12 40c6-3 12-3 20 0s14 3 20 0M12 47c6-3 12-3 20 0s14 3 20 0M12 54c6-3 12-3 20 0s14 3 20 0";
+const EVIDENCE_LAYERS =
+  "M32 14 51 24 32 34 13 24ZM13 33 32 43 51 33M13 42 32 52 51 42";
 
-/**
- * At 40px and below the monogram competes with the waves, so those sizes
- * draw the evidence-lake waves alone, centred and heavier.
- */
+/** Keep the same silhouette at every size; small marks use a heavier stroke. */
 const SIMPLE_SIZES: ReadonlySet<Size> = new Set(["xs", "sm", "md", "lg"]);
 
 interface Props {
   size?: Size;
   className?: string;
   gradientId?: string;
-  /** `auto` picks the waves-only mark at 40px and below. */
+  /** `auto` uses a heavier stroke at 40px and below. */
   variant?: "auto" | "full" | "simple";
 }
 
@@ -45,14 +42,18 @@ export function GrcLakeMark({
       className={cn("flex-none", SIZES[size], className)}
     >
       <title>{BRAND.name}</title>
+      <desc>
+        Three aligned layers representing collected evidence and traceable
+        records.
+      </desc>
       <defs>
         <linearGradient
           id={gradientId}
           gradientUnits="userSpaceOnUse"
-          x1="4"
-          y1="7"
-          x2="55"
-          y2="58"
+          x1="13"
+          y1="14"
+          x2="51"
+          y2="52"
         >
           <stop stopColor="#4f7cff" />
           <stop offset="1" stopColor="#42dfcf" />
@@ -67,18 +68,7 @@ export function GrcLakeMark({
           strokeLinecap="round"
           strokeLinejoin="round"
         >
-          {simple ? (
-            <g strokeWidth="3.6" transform="translate(0 -15)">
-              <path d={WAVES} />
-            </g>
-          ) : (
-            <>
-              <path d="M42 17a14 14 0 1 0 2 20V27H32" strokeWidth="4" />
-              <g strokeWidth="2.6">
-                <path d={WAVES} />
-              </g>
-            </>
-          )}
+          <path d={EVIDENCE_LAYERS} strokeWidth={simple ? "4" : "3.5"} />
         </g>
       </g>
     </svg>

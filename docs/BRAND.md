@@ -55,8 +55,10 @@ not a claim that every context source or prioritization rule is implemented.
 
 ## Visual identity
 
-The full mark combines an open G with three evidence-lake waves. At 40 px and
-below, the app uses the waves alone for legibility. The wordmark is **GRC Lake**.
+The mark uses three aligned layers to represent collected evidence and traceable
+records. Its open lower layers suggest a shared evidence store. The same geometry
+is used at every size, with a slightly heavier stroke in the small console mark.
+The wordmark is **GRC Lake**.
 The logo, favicon, social card and embedded MCP icon are generated from the same
 canonical SVG in `brand_assets.py` using `tools/render_readme_header.py`.
 
@@ -71,10 +73,10 @@ canonical SVG in `brand_assets.py` using `tools/render_readme_header.py`.
 
 Primary assets:
 
-- `docs/images/grc-lake-mark.svg` — full evidence-lake mark
+- `docs/images/grc-lake-mark.svg` — layered evidence mark
 - `docs/images/grc-lake-logo.svg` — documentation lockup
-- `app/web/src/app/icon.svg` — approved favicon
-- `src/security_lakehouse/static/grc-lake-mark.svg` — approved hosted icon
+- `app/web/src/app/icon.svg` — favicon
+- `src/security_lakehouse/static/grc-lake-mark.svg` — hosted icon
 - `src/security_lakehouse/brand_assets.py` — matching embedded MCP icon
 - `app/web/src/components/brand/GrcLakeMark.tsx` — UI mark
 - `app/web/src/components/brand/GrcLakeLogo.tsx` — UI lockup
