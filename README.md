@@ -90,7 +90,7 @@ The PyPI package is `grc-lake`, the CLI is
   <img src="docs/images/grc-lake-demo-dashboard.png" alt="GRC Lake overview with framework coverage, priority actions, and evidence freshness" width="100%">
 </picture>
 
-_Screens show the bundled synthetic company, captured from main on 2026-10-10.
+_Screens show the bundled synthetic company, captured from the 0.3.3 candidate with updated branding on 2026-10-11.
 Main can include changes newer than the published package. These screens
 demonstrate workflows, not a customer deployment or an audit opinion._
 

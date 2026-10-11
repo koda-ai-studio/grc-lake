@@ -16,7 +16,7 @@ test("the app shell shows the brand mark once, in the top bar", async ({
   await expect(page.locator('header svg[aria-label="GRC Lake"]')).toHaveCount(
     1,
   );
-  // At 32px the source glyphs blur into specks: the bar mark is waves only.
+  // The compact mark retains the same layered silhouette with a heavier stroke.
   const header = page.locator('header svg[aria-label="GRC Lake"]');
   await expect(header).toHaveAttribute("data-variant", "simple");
   expect(await header.locator("circle, rect[rx='3']").count()).toBe(0);
@@ -39,7 +39,9 @@ test("the app shell shows the brand mark once, in the top bar", async ({
   await expect(drawer).toBeHidden();
 });
 
-test("marks at 40px and below draw the waves only", async ({ page }) => {
+test("marks at 40px and below retain legible evidence layers", async ({
+  page,
+}) => {
   await page.goto("/console/agents/");
   const marks = page.locator('svg[aria-label="GRC Lake"]');
   await expect(marks.first()).toBeVisible({ timeout: 20_000 });
