@@ -153,6 +153,24 @@
     {
       "kind": "collection",
       "methods": ["GET"],
+      "path": "/api/v1/ccf/requirement-gaps",
+      "query": [
+        "limit",
+        "offset",
+        "cursor",
+        "sort",
+        "framework_id",
+        "control_id",
+        "status",
+        "gap_codes",
+        "generation_id"
+      ],
+      "resource": "ccf.requirement-gaps",
+      "scopes": ["read"]
+    },
+    {
+      "kind": "collection",
+      "methods": ["GET"],
       "path": "/api/v1/connector-runs",
       "query": ["limit", "offset", "cursor", "sort", "<field>=<value>"],
       "resource": "connector-runs"
