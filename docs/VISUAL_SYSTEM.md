@@ -8,8 +8,8 @@ Product name, logo, taglines, and naming hierarchy: [BRAND.md](BRAND.md).
 
 ## GRC Lake mark
 
-- Blue-to-mint layered evidence mark (`#4f7cff` → `#42dfcf`). Three aligned
-  layers represent collected evidence and traceable records. Use `GrcLakeMark` /
+- Blue-to-mint lake contour (`#4f7cff` → `#42dfcf`) with connected evidence
+  points representing a traceable record. Use `GrcLakeMark` /
   `GrcLakeLogo` in the console and the generated SVG lockup in docs. Preserve the
   same silhouette at all sizes; console marks at 40 px and below use a heavier stroke.
 - Console chrome label: **GRC Lake Console** (sidebar subtitle), not

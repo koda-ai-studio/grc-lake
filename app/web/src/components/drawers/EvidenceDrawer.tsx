@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { CheckCircle2, Loader2, ShieldAlert, ShieldCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Drawer } from "@/components/ui/drawer";
+import { EvidenceLineagePanel } from "@/components/evidence/EvidenceLineagePanel";
 import { EntityTagsEditor } from "@/components/EntityTagsEditor";
 import { useVerifyMutation } from "@/lib/api/hooks";
 import type {
@@ -40,16 +41,25 @@ export function EvidenceDrawer({
   onClose,
 }: Props) {
   const verify = useVerifyMutation();
-  const [result, setResult] = useState<VerifyResult | null>(null);
-
-  useEffect(() => {
-    setResult(null);
-  }, [evidence?.event_id]);
+  const [verification, setVerification] = useState<{
+    eventId: string;
+    result?: VerifyResult;
+    failed?: boolean;
+  } | null>(null);
+  const current =
+    verification?.eventId === evidence?.event_id ? verification : null;
+  const result = current?.result;
 
   const run = async () => {
     if (!evidence) return;
-    const r = await verify.mutateAsync(evidence.event_id);
-    setResult(r);
+    const eventId = evidence.event_id;
+    setVerification(null);
+    try {
+      const result = await verify.mutateAsync(eventId);
+      setVerification({ eventId, result });
+    } catch {
+      setVerification({ eventId, failed: true });
+    }
   };
 
   return (
@@ -79,7 +89,7 @@ export function EvidenceDrawer({
     >
       {evidence && (
         <div className="grid gap-5">
-          <dl className="grid grid-cols-[140px_1fr] gap-x-3 gap-y-1.5 text-sm">
+          <dl className="grid grid-cols-[100px_minmax(0,1fr)] sm:grid-cols-[140px_minmax(0,1fr)] [&_dd]:break-words gap-x-3 gap-y-1.5 text-sm">
             <dt className="text-muted">Time</dt>
             <dd>
               <code className="text-xs text-ink">{evidence.event_time}</code>
@@ -152,6 +162,19 @@ export function EvidenceDrawer({
             </dd>
           </dl>
 
+          {current?.failed && (
+            <p
+              role="alert"
+              className="rounded-xl border border-danger/40 bg-danger-bg p-3 text-sm text-danger-fg"
+            >
+              Hash verification could not be completed. Check access and retry;
+              no integrity conclusion is available.
+            </p>
+          )}
+          <EvidenceLineagePanel
+            key={evidence.event_id}
+            eventId={evidence.event_id}
+          />
           {result && (
             <div
               className={[

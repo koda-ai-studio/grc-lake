@@ -17,6 +17,8 @@ Every guide in `docs/`, grouped by task. New here? Start with the
 | [Shareable demo](SHAREABLE_DEMO.md)                       | Publishing a demo link for evaluators                              |
 | [Shareable POC hosting](SHAREABLE_POC_HOSTING.md)         | Hosting a proof of concept                                         |
 
+[Current state and coverage](CURRENT_STATE.md) · [Contributor roadmap](../ROADMAP.md) · [Contributing](../CONTRIBUTING.md)
+
 ## Operate
 
 [Upgrade from TrustOps to GRC Lake](REBRANDING.md) covers preserved data and integration identities.
@@ -68,6 +70,7 @@ Every guide in `docs/`, grouped by task. New here? Start with the
 ## Integrate
 
 [Data contracts](DATA_CONTRACTS.md) covers schemas, formats, and read/write boundaries.
+[Connector test accounts](CONNECTOR_TEST_ACCOUNTS.md) lists sandbox/trial options and qualification checks.
 
 | Guide                                                                | Covers                                                   |
 | -------------------------------------------------------------------- | -------------------------------------------------------- |

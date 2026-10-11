@@ -11,8 +11,8 @@ const SIZES = {
 
 type Size = keyof typeof SIZES;
 
-const EVIDENCE_LAYERS =
-  "M32 14 51 24 32 34 13 24ZM13 33 32 43 51 33M13 42 32 52 51 42";
+const LAKE_TRACE =
+  "M19 13C29 9 33 20 42 22C53 25 55 36 47 44C38 53 18 54 13 44C8 33 19 29 15 22C12 17 14 14 19 13ZM24 23C28 23 31 30 38 30C45 30 44 38 37 42C30 46 20 44 21 38C22 32 26 29 24 23Z";
 
 /** Keep the same silhouette at every size; small marks use a heavier stroke. */
 const SIMPLE_SIZES: ReadonlySet<Size> = new Set(["xs", "sm", "md", "lg"]);
@@ -43,8 +43,8 @@ export function GrcLakeMark({
     >
       <title>{BRAND.name}</title>
       <desc>
-        Three aligned layers representing collected evidence and traceable
-        records.
+        A lake contour with connected points representing collected evidence and
+        traceable records.
       </desc>
       <defs>
         <linearGradient
@@ -68,7 +68,9 @@ export function GrcLakeMark({
           strokeLinecap="round"
           strokeLinejoin="round"
         >
-          <path d={EVIDENCE_LAYERS} strokeWidth={simple ? "4" : "3.5"} />
+          <path d={LAKE_TRACE} strokeWidth={simple ? "4" : "3.5"} />
+          <circle cx="19" cy="13" r="3.5" fill="#75b6ff" stroke="none" />
+          <circle cx="47" cy="44" r="3.5" fill="#42dfcf" stroke="none" />
         </g>
       </g>
     </svg>

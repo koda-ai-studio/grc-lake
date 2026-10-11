@@ -1,73 +1,63 @@
-# GRC Lake Roadmap
+# GRC Lake roadmap
 
-Status as of v0.3.3 source preparation; v0.3.2 is published. Remaining gaps come first. Track work in GitHub issues.
+Status as of v0.3.3 source preparation, checked **2026-10-11**; **v0.3.2 is published**.
+Start with [current state and coverage](docs/CURRENT_STATE.md) for shipped paths
+and qualification boundaries. This roadmap describes remaining work, not promises
+of release dates.
 
-## Remaining gaps
+## Choose a contribution
 
-The linked epics are closed on GitHub; each row names what is still left.
+Check [open issues](https://github.com/koda-ai-studio/grc-lake/issues) and
+[open pull requests](https://github.com/koda-ai-studio/grc-lake/pulls) before starting.
+For a linked issue, comment with the slice you plan to tackle. For an untracked
+slice, open an issue with scope and acceptance criteria before substantial work.
+Maintainers confirm scope and review; an untracked row is not an assigned task.
+See [Contributing](CONTRIBUTING.md) for setup and checks. Never post credentials
+or real provider evidence in issues or pull requests.
 
-| Epic                                                          | Area           | What remains                                                                                                                                                                                                                                              |
-| ------------------------------------------------------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [#611](https://github.com/koda-ai-studio/grc-lake/issues/611) | Frameworks     | ISO 27701:2025 is a limited pack (10 of 78 Annex A controls); SOC 1 stays planned (no official catalog); NIST 800-171 Rev 3, NIS2, and DORA are new and proposed-only                                                                                     |
-| [#608](https://github.com/koda-ai-studio/grc-lake/issues/608) | Connectors     | CIS Azure/GCP benchmarks, ISO 27001 clauses 4–10; live-tenant runs for the Jamf, CrowdStrike, Kubernetes, KnowBe4 previews                                                                                                                                |
-| [#609](https://github.com/koda-ai-studio/grc-lake/issues/609) | Existing lakes | Databricks, Iceberg/Parquet, and BigQuery readers are preview and lake mappings are experimental; live verification pending                                                                                                                               |
-| [#610](https://github.com/koda-ai-studio/grc-lake/issues/610) | Platform       | Billing and SCIM shipped (gated commercial features); live Stripe + IdP verification pending                                                                                                                                                              |
-| —                                                             | Mapping review | Mapping review remains incomplete, including all NIST RMF, ISO 27701, NIST 800-171 Rev 3, NIS2, and DORA mappings. See the generated [coverage ledger](docs/FRAMEWORK_COVERAGE.md) for current counts. Proposed mappings are evaluated but not attestable |
+| Priority / slice                       | Start here                                                                                 | Complete when                                                                                                                                                         | Access / size                                 |
+| -------------------------------------- | ------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| Next: KnowBe4 pagination migration     | [#737](https://github.com/koda-ai-studio/grc-lake/issues/737), `connectors_knowbe4.py`     | Supported pagination handles empty/multiple pages, retries, repeated cursors and partial failures; fixtures and docs agree. Live verification is recorded separately. | Offline tests first; medium                   |
+| Next: Databricks reader qualification  | [#734](https://github.com/koda-ai-studio/grc-lake/issues/734), `connectors_databricks.py`  | Approved read-only workspace run verifies probe, paging, SQL/schema mapping, normalized identity and failure reporting; reviewer accepts sanitized results.           | Authorized workspace + reviewer; medium       |
+| Starter: branded not-found recovery    | [#768](https://github.com/koda-ai-studio/grc-lake/issues/768), `app/web/src/app/`          | Unknown console routes show a concise recovery action in the built Python-served app, with keyboard and mobile tests.                                                 | Synthetic demo; small                         |
+| Next: frozen CCF gaps in console       | `ccf_gaps.py`, `docs/CCF_REQUIREMENT_GAPS.md`, `app/web/src/app/frameworks/`               | One requirement shows missing mappings, review state and evidence gaps from its frozen generation; drift and unavailable data never appear as coverage.               | Untracked proposal; medium                    |
+| Next: one reviewed mapping slice       | [Coverage ledger](docs/FRAMEWORK_COVERAGE.md), [mapping review](docs/MAPPING_REVIEW.md)    | A named framework subset has source/version references and independent human review; stale reviews cannot count; generated coverage agrees.                           | Qualified domain reviewer; small per subset   |
+| Next: reproducible capacity baseline   | `tools/benchmark_assessment_pipeline.py`, `tools/benchmark_distributed.py`                 | Publish sanitized workload/configuration and measured latency, memory, disk and queue fairness; report saturation and failures without inferring production capacity. | Sufficient disk; medium                       |
+| Later: provider recovery qualification | [Backup/restore](docs/runbooks/BACKUP_RESTORE.md), [distributed mode](docs/DISTRIBUTED.md) | Real PostgreSQL/object-store restore and worker interruption drills preserve tenant isolation and generation identity, with measured recovery bounds.                 | Isolated deployment; large                    |
+| Later: remaining live adapter matrix   | [Connectors](docs/CONNECTORS.md), [live-cloud runbook](docs/LIVE_CLOUD_POC.md)             | Each adapter records tested scope, permission-denied behavior, pagination, replay and normalization; preview changes only with reviewed evidence.                     | Authorized vendor tenants; one adapter per PR |
+
+Code paths without a directory prefix above are in `src/security_lakehouse/`.
+Priorities are sequencing guidance; security and correctness regressions take
+precedence. No contributor should need production credentials to run fixture tests.
+
+## Coverage still incomplete
+
+ISO 27701:2025 is a limited pack (10 of 78 Annex A controls). SOC 1 is planned
+without an official catalog. NIST 800-171 Rev 3, NIS2 and DORA mappings are
+proposed-only; NIST RMF and ISO 27701 also need mapping review. CIS Azure/GCP
+benchmarks and ISO 27001 clauses 4–10 remain gaps.
 
 1,357 of 1,697 safeguard-to-requirement mapping rows are proposed, so 1,078 of the 1,417 mapped requirements have no reviewed mapping.
 
 Mapping counts are effective review states: a mapping marked reviewed against an
 older control version counts as proposed until it is re-reviewed.
 
-## Published in v0.3.0
+Existing-lake mappings remain experimental; provider and schema compatibility
+need separate qualification. Distributed mode does not include cross-database
+sharding or automatic shard placement. Live commercial billing/SCIM integration,
+provider HA and production capacity remain unqualified by this audit.
 
-- GRC Lake branding, commands and registry targets, with legacy command aliases.
-- Opt-in PostgreSQL/S3 distributed mode with independent API/reader replicas.
-- Stable virtual worker shards, tenant/source/date Parquet partitions and 32
-  physical PostgreSQL history partitions within one database cluster.
-- Parallel tenant admission, database-clock recovery and real S3 qualification.
-- Console/demo improvements and the security fixes in the changelog.
+## Release work
 
-Cross-database sharding, automated shard placement, provider HA/failover testing,
-and production capacity qualification remain future work. Storage replication,
-erasure coding and RAID belong to the selected infrastructure.
+v0.3.3 remains a candidate. Source changes include dependency remediation,
+authentication hardening, evidence eligibility, versioned CCF governance, exact
+lineage and frozen requirement-gap explanations. See the [changelog](CHANGELOG.md)
+for merged changes and [open PRs](https://github.com/koda-ai-studio/grc-lake/pulls)
+for work still in review.
 
-## Prepared for v0.3.3
-
-- Container dependency remediation and stricter fixable-vulnerability gates.
-- SHA-256 cookie signatures, minimum signing-secret lengths, and deprecated SAML algorithm rejection.
-- Refreshed README screenshots and accurate release/deployment guidance.
-
-This remains a candidate until final-main CI, publication and artifact verification pass.
-Unfixed distribution findings and live-provider verification remain open; see
-[dependency security](docs/DEPENDENCY_SECURITY.md) and the release gates.
-
-## Published in v0.3.2
-
-- CCF title/mapping accuracy, source-reconciliation attribution and coverage labels.
-- Streaming gold writes, bounded dashboard detail and faster cold posture reads.
-- Auth/API/interop corrections, deployment hardening and signature/parser fuzzing.
-- Release references aligned to the current repository namespace.
-
-## Published in v0.3.1
-
-- Generation-aware read caches and seek-based JSONL collection pages.
-- Bulk DuckDB mart loading and faster strict JSON decoding, preserving validation.
-- Refreshed README visuals and deployment guidance.
-
-Cache reuse across distributed request scratch directories remains limited.
-These changes do not establish a production capacity claim.
-
-## Recently shipped
-
-v0.2.24:
-
-- Opt-in scheduled retention through the existing scheduler and Helm CronJob.
-- Bounded, per-tenant-fair background job workers.
-- Capped MCP tool output, accurate tool annotations, and an untrusted-content envelope.
-- Cursor paging for graph and coverage routes and streamed evidence pages.
-- Copied trust-share revocation and catalog control-ID collision checks.
-
-The [changelog](CHANGELOG.md) has every release, and the
-[release gates](docs/RELEASE_READINESS.md) explain how a release is qualified
-and published.
+Before publication: finish final-main CI and the audit, then verify the package,
+provenance, both container architectures, scans and authenticated behavior.
+[Dependency findings](docs/DEPENDENCY_SECURITY.md) and
+[Scorecard evidence](docs/SCORECARD_REMEDIATION.md) have their own resolution
+criteria. Green CI does not by itself close them. Follow the
+[release gates](docs/RELEASE_READINESS.md).

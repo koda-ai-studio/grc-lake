@@ -16,10 +16,10 @@ test("the app shell shows the brand mark once, in the top bar", async ({
   await expect(page.locator('header svg[aria-label="GRC Lake"]')).toHaveCount(
     1,
   );
-  // The compact mark retains the same layered silhouette with a heavier stroke.
+  // The compact mark retains the same lake silhouette with a heavier stroke.
   const header = page.locator('header svg[aria-label="GRC Lake"]');
   await expect(header).toHaveAttribute("data-variant", "simple");
-  expect(await header.locator("circle, rect[rx='3']").count()).toBe(0);
+  expect(await header.locator("circle, rect[rx='3']").count()).toBe(2);
   expect(await header.locator("path").count()).toBe(1);
   await expect(
     page.getByRole("navigation", { name: "Breadcrumb" }),
@@ -39,7 +39,7 @@ test("the app shell shows the brand mark once, in the top bar", async ({
   await expect(drawer).toBeHidden();
 });
 
-test("marks at 40px and below retain legible evidence layers", async ({
+test("marks at 40px and below retain legible lake contour", async ({
   page,
 }) => {
   await page.goto("/console/agents/");
@@ -55,6 +55,6 @@ test("marks at 40px and below retain legible evidence layers", async ({
   expect(sizes.length).toBeGreaterThan(1);
   for (const mark of sizes.filter((m) => m.size > 0 && m.size <= 40)) {
     expect(mark.variant).toBe("simple");
-    expect(mark.glyphs).toBe(0);
+    expect(mark.glyphs).toBe(2);
   }
 });
