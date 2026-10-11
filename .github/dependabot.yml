@@ -107,6 +107,11 @@ updates:
     commit-message:
       prefix: "chore(docker)"
       include: "scope"
+    # Move Node majors deliberately with CI/release builds; odd pre-27 majors
+    # are not LTS, and automated major bumps can select an unsupported builder.
+    ignore:
+      - dependency-name: "node"
+        update-types: ["version-update:semver-major"]
     groups:
       containers-weekly:
         applies-to: version-updates

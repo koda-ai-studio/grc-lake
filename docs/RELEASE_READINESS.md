@@ -52,7 +52,8 @@ A branch merge alone does not publish a release. On a `v*` tag, the release
 workflow enforces these gates before anything is published:
 
 1. **Tested commit.** The tagged commit must be on `main`, and the `ci`
-   workflow must have concluded `success` for that exact SHA. A tag pushed while
+   workflow's latest main-push run must have concluded `success` for that exact SHA.
+   An older green run or a PR-only run does not satisfy this gate. A tag pushed while
    CI is still running waits for it (up to 40 minutes); a tag on an unmerged or
    failing commit stops the release.
 2. **Version.** The tag must equal the version in `pyproject.toml`,
@@ -60,9 +61,18 @@ workflow enforces these gates before anything is published:
    `app/web/package.json`, and `CHANGELOG.md` must have a `## <version>` section.
 3. **Build.** The console is built, then the wheel and sdist with `uv build`
    (uv pinned to the same version as the Dockerfile) and a bounded setuptools.
-   `tools/verify_wheel.py` checks the wheel.
-4. **Image scan.** The image is built and scanned with Trivy before it is
-   pushed; a fixable MEDIUM, HIGH or CRITICAL vulnerability blocks the release.
+   `tools/verify_wheel.py` checks the wheel. Docker and console CI use Node 22 LTS;
+   upgrade that major together after checking the [Node release schedule](https://nodejs.org/en/about/previous-releases).
+4. **Both image architectures.** AMD64 and ARM64 are built and loaded separately.
+   Installed dependency checks, Trivy scans and authenticated tenant-isolation /
+   persistence probes must pass before the multi-platform image is pushed. A
+   fixable MEDIUM, HIGH or CRITICAL vulnerability blocks publication. ARM64 runtime
+   qualification on the AMD64 runner uses emulation.
+5. **Publication order.** PyPI waits for the image job, including its checks and
+   provenance publication. An image failure cannot leave a new Python version
+   published first. Registry publication is not transactional: a later PyPI failure
+   can still leave the qualified container available. Verify the final published
+   digests and packages separately.
 
 What each release publishes:
 
