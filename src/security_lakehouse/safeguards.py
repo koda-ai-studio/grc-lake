@@ -631,21 +631,29 @@ def framework_mapping_coverage(
     attestable only through an org approval; ``proposed`` are evaluatable but not
     attestable. ``*_mappings`` counts are per safeguard->requirement link.
     ``rejected_requirements`` lost all evaluated coverage to org rejections.
+    Only catalog targets with a matching framework contribute to this ledger;
+    legacy mappings without a framework ID inherit the catalog identity.
     """
     controls = catalog if catalog is not None else load_control_catalog()
     data = payload or load_safeguards()
-    mapped = safeguards_by_requirement(data)
+    mapped: set[str] = set()
     states_by_control: dict[str, set[str]] = {}
     mapping_states: dict[str, dict[str, int]] = {}
     contextual_by_framework: dict[str, int] = {}
     for entry in data["safeguards"]:
         for member in entry.get("satisfies", []):
             control_id = str(member.get("control_id"))
-            framework = str(controls.get(control_id, {}).get("framework_id") or member.get("framework_id") or "unknown")
+            if control_id not in controls:
+                continue
+            framework = str(controls[control_id].get("framework_id") or "unknown")
+            if member.get("framework_id", framework) != framework:
+                continue
             if not contributes_to_coverage(member):
                 contextual_by_framework[framework] = contextual_by_framework.get(framework, 0) + 1
                 continue
             state = effective_review_state(member)
+            if state != "rejected":
+                mapped.add(control_id)
             states_by_control.setdefault(control_id, set()).add(state)
             counts = mapping_states.setdefault(framework, dict.fromkeys(REVIEW_STATE_LABELS, 0))
             counts[state] += 1
