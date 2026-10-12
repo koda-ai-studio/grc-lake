@@ -65,17 +65,19 @@ def build_framework_coverage(
     mappings_by_framework: dict[str, list[JsonObject]] = defaultdict(list)
     for control in controls.values():
         controls_by_framework[str(control.get("framework_id") or "")].append(control)
+    cited_control_ids: set[str] = set()
     for control_id, mapping in mappings.items():
         framework_id = str(mapping.get("framework_id") or "")
-        if control_id in controls and framework_id:
+        control = controls.get(control_id)
+        if control and framework_id == control.get("framework_id") and mapping.get("articles"):
             mappings_by_framework[framework_id].append(mapping)
+            cited_control_ids.add(control_id)
 
     # Attestable coverage: requirements backed by a *reviewed* safeguard mapping
     # (what attestation reads via reviewed_only=True), vs merely evaluatable
     # (touched by any safeguard, reviewed or proposed). Bucketed by the same
     # control catalog so the counts are relative to seeded requirements. This is
-    # the honest number — distinct from source-citation coverage above, which is
-    # always 100% because every seeded control carries an official source link.
+    # distinct from source-citation coverage above.
     if lake_dir is not None:
         from security_lakehouse.mapping_review import effective_safeguards
 
@@ -95,7 +97,7 @@ def build_framework_coverage(
         missing = sorted(
             str(control.get("control_id") or "")
             for control in seeded_controls
-            if str(control.get("control_id") or "") not in mappings
+            if str(control.get("control_id") or "") not in cited_control_ids
         )
         source = provenance.get(framework_id, {})
         shared = coverage["frameworks"].get(framework_id, {})
