@@ -106,6 +106,7 @@ Every guide in `docs/`, grouped by task. New here? Start with the
 | [Benchmarks](BENCHMARKS.md)                                  | Validation and benchmark plan             |
 | [Artifact hashing benchmark](benchmarks/ARTIFACT_HASHING.md) | Artifact hashing memory benchmark         |
 | [CCF pipeline benchmark](benchmarks/CCF_PIPELINE.md)         | Bounded CCF pipeline measurements         |
+| [Investigation graph benchmark](benchmarks/INVESTIGATION.md) | Bounded graph reads and failure receipts  |
 
 ## Reference
 
