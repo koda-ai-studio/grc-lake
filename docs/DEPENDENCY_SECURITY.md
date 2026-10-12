@@ -1,6 +1,6 @@
 # Dependency security scope
 
-Reviewed 2026-10-07. Dependency advisories change; rerun both production and full
+Reviewed 2026-10-12. Dependency advisories change; rerun both production and full
 build-tool audits when reviewing or upgrading the lockfiles.
 
 ## Container runtime findings
@@ -35,6 +35,16 @@ CI and release qualification also retain full, unfiltered JSON vulnerability
 reports for 14 days, including when the fixable-only scan blocks the job. See
 [Scorecard evidence](SCORECARD_REMEDIATION.md#vulnerability-and-release-evidence)
 for artifact names and the separate Best Practices review requirements.
+
+### Current candidate scan
+
+The AMD64 `grc-lake:ci` report from [main CI](https://github.com/koda-ai-studio/grc-lake/actions/runs/38201293263)
+on source `a006cca1` contains 102 medium-or-higher package findings (44 HIGH,
+58 MEDIUM), with no listed fixed versions. On 2026-10-12, 41 occurrences across
+21 advisory IDs were more than 60 days old. Those counts describe scanner
+matches, not individually confirmed exploitability. They do not establish the
+state of the published image or the ARM64 candidate. The unresolved age review
+still prevents claiming the Best Practices passing criteria are satisfied.
 
 ### Unfixed HIGH findings: applicability review
 

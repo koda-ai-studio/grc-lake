@@ -27,7 +27,7 @@ export const BRAND = {
     cyan: "#30c7d2",
     ink: "#101623",
   },
-  repoUrl: "https://github.com/msaad00/grc-lake",
+  repoUrl: "https://github.com/koda-ai-studio/grc-lake",
   mcpServerName: "grc-lake",
   mcpCommand: "grc-lake-mcp",
   /** Dashboard home eyebrow (feature area, not product name). */

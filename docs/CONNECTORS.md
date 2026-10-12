@@ -71,8 +71,9 @@ been verified against a live tenant (the console shows a Preview badge); absent 
 other value.
 
 Connection field definitions live in `app/web/src/lib/connector-forms.ts`; vendor
-marks use neutral text badges in `app/web/src/lib/connector-visuals.ts` (not
-official logos — see [THIRD_PARTY_ASSETS.md](THIRD_PARTY_ASSETS.md)).
+marks use registered assets in `app/web/src/lib/connector-brand-logos.ts` with
+text fallbacks in `connector-visuals.ts`. See
+[Third-Party Asset Policy](THIRD_PARTY_ASSETS.md) for sources and usage terms.
 
 For live Azure, AWS, or Snowflake trials, use the least-privilege runbook in
 [`docs/LIVE_CLOUD_POC.md`](LIVE_CLOUD_POC.md). It keeps first-run access

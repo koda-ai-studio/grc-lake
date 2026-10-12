@@ -4,23 +4,25 @@ This page is the product review index for the public repo.
 
 ## Product Experience
 
-| Artifact                       | Path                                           |
-| ------------------------------ | ---------------------------------------------- |
-| Next.js GRC Lake Console       | `app/web/src/app/`                             |
-| Local console/API server       | `src/security_lakehouse/server.py`             |
-| FastAPI server mode            | `src/security_lakehouse/server_app.py`         |
-| Continuous assessment engine   | `src/security_lakehouse/assessment.py`         |
-| CLI entry point                | `src/security_lakehouse/cli.py`                |
-| Vendor diligence use case      | `docs/USE_CASE_VENDOR_DILIGENCE.md`            |
-| Dashboard screenshot           | `docs/images/grc-lake-demo-dashboard.png`      |
-| Workflow canvas screenshot     | `docs/images/grc-lake-demo-workflows.png`      |
-| Graph workbench screenshot     | `docs/images/grc-lake-demo-graph.png`          |
-| Framework workbench screenshot | `docs/images/grc-lake-demo-frameworks.png`     |
-| Mapping review screenshot      | `docs/images/grc-lake-demo-mapping-review.png` |
-| Control drawer screenshot      | `docs/images/grc-lake-demo-control-drawer.png` |
-| Evidence room screenshot       | `docs/images/grc-lake-demo-evidence.png`       |
-| Connector workbench screenshot | `docs/images/grc-lake-demo-connectors.png`     |
-| Trust center screenshot        | `docs/images/grc-lake-demo-trust-center.png`   |
+| Artifact                       | Path                                                 |
+| ------------------------------ | ---------------------------------------------------- |
+| Next.js GRC Lake Console       | `app/web/src/app/`                                   |
+| Local console/API server       | `src/security_lakehouse/server.py`                   |
+| FastAPI server mode            | `src/security_lakehouse/server_app.py`               |
+| Continuous assessment engine   | `src/security_lakehouse/assessment.py`               |
+| CLI entry point                | `src/security_lakehouse/cli.py`                      |
+| Vendor diligence use case      | `docs/USE_CASE_VENDOR_DILIGENCE.md`                  |
+| Dashboard screenshot           | `docs/images/grc-lake-demo-dashboard.png`            |
+| Workflow canvas screenshot     | `docs/images/grc-lake-demo-workflows.png`            |
+| Graph workbench screenshot     | `docs/images/grc-lake-demo-graph.png`                |
+| Framework workbench screenshot | `docs/images/grc-lake-demo-frameworks.png`           |
+| Mapping review screenshot      | `docs/images/grc-lake-demo-mapping-review.png`       |
+| Control drawer screenshot      | `docs/images/grc-lake-demo-control-drawer.png`       |
+| Evidence room screenshot       | `docs/images/grc-lake-demo-evidence.png`             |
+| Connector workbench screenshot | `docs/images/grc-lake-demo-connectors.png`           |
+| AI governance worklist         | `docs/images/grc-lake-demo-ai-governance.png`        |
+| AI governance mobile           | `docs/images/grc-lake-demo-ai-governance-mobile.png` |
+| Trust center screenshot        | `docs/images/grc-lake-demo-trust-center.png`         |
 
 Run locally:
 
@@ -97,9 +99,9 @@ See [Human and Agent API](api/AGENT_API.md).
 Each framework-specific skill is guardrailed to use local evidence and official
 source references, and to avoid invented controls or certification claims.
 
-Framework support currently covers eight source-linked, readiness-gated
-frameworks: SOC 2, NIST AI RMF, ISO/IEC 27001, HIPAA Security Rule, PCI DSS,
-GDPR, EU AI Act, and ISO/IEC 42001. Framework visuals use exact official names,
-approved NIST framework artwork, and project-owned icons where marks are
+Framework breadth and reviewed mapping depth come from the generated
+[framework coverage matrix](FRAMEWORK_COVERAGE.md). A catalogued requirement
+is not automatically mapped, reviewed, or assessed. Framework visuals use exact
+official names, approved NIST artwork, and project-owned icons where marks are
 restricted or nonexistent. Certification seals are not bundled without terms
 and attribution documented under [Third-Party Asset Policy](THIRD_PARTY_ASSETS.md).

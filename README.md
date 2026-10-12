@@ -49,16 +49,17 @@ This local demo uses synthetic data and disables authentication. Use the
 <details>
 <summary>Docker, source development, or an agent connection</summary>
 
-With Docker Compose v2:
+With Docker Compose v2, use the published release templates:
 
 ```bash
-git clone https://github.com/koda-ai-studio/grc-lake.git
+git clone --branch v0.3.2 --depth 1 https://github.com/koda-ai-studio/grc-lake.git
 cd grc-lake
 docker compose up
 ```
 
 The container is public; no registry login is required. Compose binds the
-no-auth demo to loopback.
+no-auth demo to loopback. Main currently references the unpublished 0.3.3 image;
+use the source-development command below to try the candidate.
 
 From source, with [uv](https://docs.astral.sh/uv/) and Node 22+:
 
@@ -90,7 +91,7 @@ The PyPI package is `grc-lake`, the CLI is
   <img src="docs/images/grc-lake-demo-dashboard.png" alt="GRC Lake overview with framework coverage, priority actions, and evidence freshness" width="100%">
 </picture>
 
-_Screens show the bundled synthetic company, captured from the 0.3.3 candidate with grouped navigation, focused review workspaces, and the original product branding on 2026-10-11.
+_Screens show the bundled synthetic company, captured from the 0.3.3 candidate with evidence investigation, the AI model and agent worklist, and the original product branding on 2026-10-12.
 Main can include changes newer than the published package. These screens
 demonstrate workflows, not a customer deployment or an audit opinion._
 
@@ -205,7 +206,7 @@ human session. Agents can collect, explain, and propose work.
 </picture>
 
 <details>
-<summary>More screens: setup, graph, sources, access reviews, remediation, audit room, and mobile</summary>
+<summary>More screens: setup, graph, AI governance, sources, access reviews, remediation, audit room, and mobile</summary>
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/images/grc-lake-demo-connector-setup-dark.png">
@@ -215,6 +216,16 @@ human session. Agents can collect, explain, and propose work.
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/images/grc-lake-demo-graph-dark.png">
   <img src="docs/images/grc-lake-demo-graph.png" alt="Record-level evidence graph with large icons and a selected control inspector" width="100%" loading="lazy">
+</picture>
+
+AI governance lists recorded models and agents with owners, environments, signals,
+and next actions. Inspect an asset to follow its exact control links or open its
+filtered evidence. Observed controls and recorded lineage remain distinct from
+freshly evaluated controls and complete lineage.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/grc-lake-demo-ai-governance-dark.png">
+  <img src="docs/images/grc-lake-demo-ai-governance.png" alt="AI model and agent worklist with governance signals and next actions" width="100%" loading="lazy">
 </picture>
 
 ![Source operations with provider marks and paginated evidence sources](docs/images/grc-lake-demo-sources.png)
@@ -227,6 +238,7 @@ recorded review, not complete vendor coverage or certification.
 
 ![Remediation workspace](docs/images/grc-lake-demo-remediation.png)
 ![Audit room priorities and evaluated framework scope](docs/images/grc-lake-demo-audit-room.png)
+<img src="docs/images/grc-lake-demo-ai-governance-mobile.png" alt="AI governance worklist on a narrow screen" width="390" loading="lazy">
 <img src="docs/images/grc-lake-demo-overview-mobile.png" alt="GRC Lake overview on a narrow screen" width="390" loading="lazy">
 
 </details>

@@ -17,6 +17,10 @@ Python package, Helm chart, and bundled web console.
 
 ## 0.3.3 - 2026-10-11
 
+- Reuse shared framework marks in AI governance and mapping review, and shared control-family icons in the graph. Point console documentation links at the current repository.
+
+- Pin the Compose quick start to published release templates. Refresh the candidate tour, AI-governance and mobile screenshots, navigation map, and coverage-depth boundaries.
+
 - Gate container publication on dependency scans and authenticated runtime qualification for both AMD64 and ARM64, and make PyPI wait for the image job so a failed container check cannot leave an immutable Python release published first. Require the latest main-push CI run to pass; an older green run or a PR-only run no longer authorizes a tag.
 
 - Replace the G-and-waves logo with a shared layered-evidence mark across the console, favicon, MCP icon, README and social preview. Enlarge the README banner and regenerate the synthetic console screenshots.

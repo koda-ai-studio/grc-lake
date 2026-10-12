@@ -3,6 +3,7 @@
 import { Suspense, useDeferredValue, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { ExternalLink, History, Search } from "lucide-react";
+import { FrameworkMark } from "@/components/framework/FrameworkMark";
 import { PageHeader } from "@/components/PageHeader";
 import { QueryState } from "@/components/QueryState";
 import { Badge } from "@/components/ui/badge";
@@ -224,8 +225,13 @@ function ReviewProgress({
               aria-label={`Show ${summary.framework_names[row.framework_id] ?? row.framework_id} mappings`}
             >
               <span className="flex min-w-0 items-start justify-between gap-2">
+                <FrameworkMark
+                  frameworkId={row.framework_id}
+                  fallbackLabel={summary.framework_names[row.framework_id]}
+                  size={28}
+                />
                 <span
-                  className="line-clamp-2 min-w-0 text-sm font-semibold text-ink"
+                  className="line-clamp-2 min-w-0 flex-1 text-sm font-semibold text-ink"
                   title={
                     summary.framework_names[row.framework_id] ??
                     row.framework_id

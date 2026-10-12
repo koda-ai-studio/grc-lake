@@ -31,15 +31,15 @@ fails, then review and export.
 | Overview        | Insights       | Follow posture and findings trends over time.                                         |
 | Collect         | Connections    | Connect a read-only source: test, enable, sync.                                       |
 | Collect         | Evidence       | Inspect normalized evidence rows and verify each row's hash.                          |
-| Collect         | Access reviews | Run access certification campaigns.                                                   |
-| Collect         | Vendor risk    | Record vendor questionnaires and assessments.                                         |
+| Governance      | Access reviews | Run access certification campaigns.                                                   |
+| Governance      | Vendor risk    | Record vendor questionnaires and assessments.                                         |
 | Evaluate        | Controls       | See each control's result and the evidence behind it.                                 |
 | Evaluate        | Frameworks     | Check requirement coverage and readiness gates per framework pack.                    |
 | Evaluate        | Mapping review | Approve, reject, or send back safeguard-to-requirement mappings, with a logged trail. |
-| Evaluate        | Findings       | Triage failing checks: assign, set a due date, record a note.                         |
-| Evaluate        | Risk register  | Track risks with severity, owner, and status.                                         |
-| Evaluate        | Policies       | Publish policies from templates and collect acknowledgments.                          |
-| Evaluate        | AI governance  | Review AI assets and their governance controls.                                       |
+| Resolve         | Findings       | Triage failing checks: assign, set a due date, record a note.                         |
+| Governance      | Risk register  | Track risks with severity, owner, and status.                                         |
+| Governance      | Policies       | Publish policies from templates and collect acknowledgments.                          |
+| Governance      | AI governance  | Review AI assets and their governance controls.                                       |
 | Evaluate        | Crosswalk      | Compare how requirements line up across frameworks.                                   |
 | Evaluate        | Graph          | Trace framework → control → evidence → asset paths.                                   |
 | Resolve         | Remediation    | Work tasks, evidence requests, and exceptions.                                        |
@@ -50,6 +50,33 @@ fails, then review and export.
 | Review & export | Audit log      | Read the record of who did what.                                                      |
 | Settings        | Access & keys  | Manage users, invitations, and API keys.                                              |
 | Settings        | Deploy         | Deployment guidance for your environment.                                             |
+
+## Five-minute candidate tour
+
+These steps use the synthetic source demo, including deliberately failing checks.
+They describe the 0.3.3 candidate; use the release notes for an installed package.
+Framework marks and control-family icons retain the same identity across
+overviews, review workspaces and the graph. Provider marks identify recorded
+sources; none of these marks implies certification or vendor endorsement.
+
+1. **Overview → Sources & operations:** inspect a source's recorded outcome and
+   open its evidence. A successful access test is separate from a successful sync.
+2. **Findings → Inspect:** read impact, linked controls and evidence, then the
+   suggested next action. Triage does not change the underlying verdict.
+3. **Graph → Evidence investigation:** select a starting point, inspect an exact
+   record, then double-click or press Shift+Enter to explore. Try depth controls,
+   Expand graph workspace and Roll up. The graph shows recorded relationships.
+4. **AI governance → Inspect:** compare a model's owner, environment, signals
+   and next action. Follow its linked controls, open its filtered evidence and
+   clear the asset filter to return to the evidence list.
+5. **Access reviews → Audit room:** inspect pending review requirements, then
+   assessment freshness and gaps. Approval needs an eligible human session;
+   a no-auth synthetic demo cannot establish that authority. Export or share only
+   the intended assessment scope.
+
+[Current coverage](CURRENT_STATE.md) separates fixture tests, live qualification,
+reviewed mappings and measured capacity. Refresh screenshots with
+`make demo-screenshots` against the same built source and synthetic lake.
 
 ## Headless
 
