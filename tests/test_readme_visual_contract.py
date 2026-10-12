@@ -11,7 +11,6 @@ from tools.render_readme_header import (
     render_logo,
     render_open_graph,
     render_readme_glance,
-    render_readme_summary,
     render_social_preview,
 )
 
@@ -36,7 +35,7 @@ def test_readme_header_leads_with_the_product_and_live_build_status() -> None:
     assert "Quick start" in header
     assert "ci.yml?branch=main&amp;label=CI" in header
     opening_tags = readme.count("<details>") + readme.count("<details open>")
-    assert opening_tags == readme.count("</details>") >= 3
+    assert opening_tags == readme.count("</details>") >= 1
 
 
 def test_readme_hero_names_only_shipped_capabilities() -> None:
@@ -230,33 +229,17 @@ def test_operating_loop_uses_concrete_actions() -> None:
         assert action in section
 
 
-def test_product_preview_is_collapsible_and_uses_fixture_evidence() -> None:
+def test_product_preview_shows_two_distinct_workflows() -> None:
     readme = README.read_text(encoding="utf-8")
-    preview = readme
-    assert "bundled synthetic company" in preview
-    assert "<summary>More screens:" in preview
-    for image in ("dashboard", "frameworks", "evidence", "audit-room"):
-        assert f"grc-lake-demo-{image}.png" in preview
-
-
-def test_readme_ccf_summary_matches_the_generator_and_names_every_family() -> None:
-    readme = README.read_text(encoding="utf-8")
-    block = readme.split("<!-- BEGIN README CCF SUMMARY -->", maxsplit=1)[1].split(
-        "<!-- END README CCF SUMMARY -->", maxsplit=1
-    )[0]
-    assert block == f"\n\n{render_readme_summary()}\n\n"
-
-    taxonomy = json.loads((ROOT / "controls" / "families.json").read_text(encoding="utf-8"))
-    families = taxonomy["families"]
-    assert len(families) == 21
-    for family in families:
-        assert family["label"] in block
-    assert f"{len(families)} control families in {len(taxonomy['categories'])} categories" in block
-    for category in taxonomy["categories"]:
-        members = " · ".join(f["label"] for f in families if f["category"] == category["category_id"])
-        assert f"**{category['label']}:** {members}" in block
-    coverage = coverage_by_framework()
-    assert f"{coverage['controls']:,} catalogued requirements" in block
+    tour = readme.split("## Product tour", maxsplit=1)[1].split("## Quick start", maxsplit=1)[0]
+    assert "bundled synthetic company" in tour
+    assert "<details>" not in tour
+    assert tour.count("<picture>") == 2
+    for image in ("graph", "ai-governance"):
+        assert f"grc-lake-demo-{image}.png" in tour
+    assert "<!-- BEGIN README CCF SUMMARY -->" not in readme
+    assert "docs/FRAMEWORK_COVERAGE.md" in readme
+    assert "docs/COMMON_CONTROL_FRAMEWORK.md" in readme
 
 
 def test_readme_glance_matches_the_generator_and_the_catalogs() -> None:
@@ -297,4 +280,3 @@ def test_readme_counts_baseline_restatements_once() -> None:
     assert restated == len(fedramp)
     distinct = f"{len(catalog) - restated:,} distinct"
     assert distinct in render_readme_glance()
-    assert distinct in render_readme_summary()

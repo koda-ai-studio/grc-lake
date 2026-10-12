@@ -77,12 +77,11 @@ def test_graph_has_a_node_only_for_seeded_packs(tmp_path: Path) -> None:
     assert framework_ids == _seeded_framework_ids()
 
 
-def test_readme_summary_uses_the_shared_count() -> None:
+def test_readme_glance_uses_the_shared_count() -> None:
     import sys
 
     sys.path.insert(0, str(ROOT / "tools"))
     import render_readme_header
 
-    summary = render_readme_header.render_readme_summary()
-    assert summary.startswith(f"**{len(_seeded_framework_ids())} framework packs")
-    assert "planned or superseded" in summary
+    summary = render_readme_header.render_readme_glance()
+    assert summary.startswith(f"- **{len(_seeded_framework_ids())} framework packs")

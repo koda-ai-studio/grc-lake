@@ -25,8 +25,42 @@ export snapshots, workpapers, and OSCAL.
 
 <!-- END README AT A GLANCE -->
 
-[Quick start](#quick-start) · [Architecture](#architecture) · [Evidence modes](#evidence-modes) ·
-[Product tour](#product-tour) · [Self-host](#self-host) · [Frameworks](#frameworks) · [Documentation](#documentation) · [Current coverage](docs/CURRENT_STATE.md) · [Roadmap](ROADMAP.md)
+[Quick start](#quick-start) · [Product tour](#product-tour) · [Self-host](#self-host) ·
+[Coverage](docs/CURRENT_STATE.md) · [Documentation](docs/README.md)
+
+## Product tour
+
+**Collect → Evaluate → Resolve → Export.** Read source evidence, run version-pinned
+control tests, investigate findings, and export a scoped assessment.
+
+### Trace a finding through the evidence graph
+
+Follow exact records between controls, safeguards, evidence, repositories, and
+assets. Select a node to inspect it; drill into its connections or roll up to the
+previous view. Depth and layer controls keep the investigation focused.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/grc-lake-demo-graph-dark.png">
+  <img src="docs/images/grc-lake-demo-graph.png" alt="Evidence investigation graph connecting a SOC 2 control to evidence, a repository, an asset, and a safeguard, with a selected-node inspector" width="100%">
+</picture>
+
+### Review AI assets and their next actions
+
+The model and agent worklist brings owners, environments, governance signals,
+and next actions together. Open an asset's linked controls or filtered evidence;
+recorded lineage remains distinct from freshly evaluated controls.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/grc-lake-demo-ai-governance-dark.png">
+  <img src="docs/images/grc-lake-demo-ai-governance.png" alt="AI model and agent worklist showing owners, governance signals, and next actions" width="100%" loading="lazy">
+</picture>
+
+_Screens use the bundled synthetic company, captured for v0.3.3 from source
+`9e741ffb` on 2026-10-12. They show recorded relationships and demo workflows,
+not a customer deployment or an audit opinion._
+
+[Try the five-minute console tour](docs/PRODUCT_WALKTHROUGH.md#five-minute-tour) ·
+[How evidence investigation works](docs/INVESTIGATION_GRAPH.md)
 
 ## Quick start
 
@@ -37,19 +71,17 @@ python -m venv .venv
 source .venv/bin/activate
 pip install "grc-lake[server]"
 grc-lake fixtures load --company golden --out ./lake --rebase-times
-grc-lake assessment status --lake ./lake
 grc-lake serve --server --allow-insecure-no-auth --lake ./lake --host 127.0.0.1 --port 8787
 ```
 
 Open [localhost:8787/console/dashboard/](http://127.0.0.1:8787/console/dashboard/).
-This local demo uses synthetic data and disables authentication. Use the
-[production setup](#self-host) before connecting real evidence. Follow the
-[5-minute tutorial](docs/TUTORIAL_5_MIN.md) for the workflow.
+This loopback demo uses synthetic data and disables authentication.
+For a guided workflow, follow the [5-minute tutorial](docs/TUTORIAL_5_MIN.md).
 
 <details>
-<summary>Docker, source development, or an agent connection</summary>
+<summary>Docker, source development, or MCP</summary>
 
-With Docker Compose v2, use the published release templates:
+The public Docker image needs no registry login. Use the published templates:
 
 ```bash
 git clone --branch v0.3.3 --depth 1 https://github.com/koda-ai-studio/grc-lake.git
@@ -57,11 +89,7 @@ cd grc-lake
 docker compose up
 ```
 
-The container is public; no registry login is required. Compose binds the
-no-auth demo to loopback. The v0.3.3 templates pin the published image.
-Use the source-development command below to try changes newer than the release.
-
-From source, with [uv](https://docs.astral.sh/uv/) and Node 22+:
+For current source, with [uv](https://docs.astral.sh/uv/) and Node 22+:
 
 ```bash
 git clone https://github.com/koda-ai-studio/grc-lake.git
@@ -77,296 +105,79 @@ pip install 'grc-lake[mcp]'
 GRC_LAKE_LAKE=./lake grc-lake-mcp
 ```
 
-Read [headless GRC](docs/HEADLESS_GRC.md) for agent credentials and authority.
+See [headless GRC](docs/HEADLESS_GRC.md) for agent credentials and authority.
 
 </details>
-
-> Renamed from TrustOps. See the [upgrade guide](docs/REBRANDING.md) for command aliases, existing volumes and release availability.
-
-The PyPI package is `grc-lake`, the CLI is
-`grc-lake`, and the MCP server is `grc-lake-mcp`.
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/images/grc-lake-demo-dashboard-dark.png">
-  <img src="docs/images/grc-lake-demo-dashboard.png" alt="GRC Lake overview with framework coverage, priority actions, and evidence freshness" width="100%">
-</picture>
-
-_Screens show the bundled synthetic company, captured for version 0.3.3 from source `9e741ffb` on 2026-10-12, with evidence investigation, the AI model and agent worklist, and shared framework/control identities.
-Main can include changes newer than the published package. These screens
-demonstrate workflows, not a customer deployment or an audit opinion._
 
 ## Architecture
 
-Deploy GRC Lake on your own infrastructure or in the cloud, using a VM,
-containers, or Kubernetes. Hosting location, application storage, and evidence
-sources are separate choices:
-
-- **Application storage:** filesystem mode uses one writable replica; distributed
-  mode uses PostgreSQL and S3-compatible object storage with multiple API replicas
-  and workers. Both can run on-premises or in the cloud.
-- **Evidence sources:** collect directly from supported systems or read existing
-  self-managed and cloud lakes through supported connectors and mappings.
+Read-only collection feeds deterministic evaluation. Each published assessment
+retains verified artifact hashes; snapshots form a hash-chained ledger.
+Console, REST API, CLI, and MCP expose the same evidence and assessment model.
 
 ```mermaid
 flowchart LR
-  Sources["Sources<br/>cloud · identity · code · existing lakes"]
-  Collect["Collect<br/>read-only · normalize · hash"]
-  Evaluate["Evaluate<br/>deterministic, version-pinned control tests"]
-  Generations["Assessment generations<br/>filesystem or PostgreSQL + S3<br/>hash-verified, published atomically"]
-  Snapshots["Snapshots<br/>hash-chained ledger"]
-  API["REST API"]
-  Console["Console"]
-  MCP["MCP server"]
-  CLI["CLI"]
-  Sources --> Collect --> Evaluate --> Generations --> Snapshots
-  Generations --> API
-  API --> Console
-  API --> MCP
-  Generations -. filesystem mode .-> CLI
-  Generations -. filesystem mode .-> MCP
+  Sources["Cloud · identity · code · existing lakes"] --> Collect["Read-only collection"]
+  Collect --> Evaluate["Version-pinned control tests"]
+  Evaluate --> Assessments["Assessment generations"]
+  Assessments --> Review["Console · API · CLI · MCP"]
+  Assessments --> Export["Snapshots · workpapers · OSCAL"]
 ```
 
-Connectors only read from source systems. Deterministic rules own every result;
-agents can propose changes but do not decide them. Each run publishes a new
-generation whose artifact hashes are verified before it becomes current, and
-each snapshot records its predecessor's hash. CLI assessment commands use a
-filesystem lake; `cluster` commands manage distributed operation. MCP reads a
-filesystem lake or calls the authenticated API; distributed deployments require
-API mode. See [architecture](docs/ARCHITECTURE.md) and
-[distributed deployment](docs/DISTRIBUTED.md).
+Use [direct connectors](docs/CONNECTOR_CREDENTIALS.md) or
+[read an existing lake](docs/BRING_YOUR_OWN_LAKE.md). Both materialize assessment
+evidence into storage you operate. Reader compatibility, schema mapping, and
+live qualification vary; check the [connector catalog](connectors/catalog.json).
 
-Queued evaluations and snapshots retain tenant-scoped result receipts, allowing
-an authorized caller to inspect a committed result after a lost worker response.
-Operation lists support cursor pagination; queue admission, response storage and
-collector retries have explicit limits. See the
-[assessment application contract](docs/ASSESSMENT_APPLICATION_CONTRACT.md) for
-failure codes, retry guidance and the limits of local recovery.
-
-Distributed operators can inspect committed objects without trusting replica
-caches and follow the [backup and restore runbook](docs/runbooks/BACKUP_RESTORE.md).
-The built-image qualification restores PostgreSQL and S3 objects into fresh stores
-and checks evidence, snapshot chains, operation receipts and tenant isolation.
-This synthetic single-host drill does not establish production recovery times
-or storage failover.
-
-## Evidence modes
-
-Both modes feed the same evaluation engine, assessments, and review workflows.
-
-| Mode              | Start with                                                                        | How it works                                                                                                                                                                                                                                                                                                 |
-| ----------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Existing lake** | Logs, security events, and evidence already ingested into your lake or warehouse. | Read-only readers query existing tables; [lake mappings](docs/BRING_YOUR_OWN_LAKE.md) translate their fields into evidence. Snowflake, ClickHouse, Databricks, BigQuery, and Iceberg/Parquet readers include OCSF presets for Amazon Security Lake. S3 evidence and SIEM exports are also supported sources. |
-| **Ingest**        | Cloud, identity, code, endpoint, and SaaS systems; no existing lake required.     | Read-only connectors collect evidence into storage you own. Sources include AWS, Azure, GCP, GitHub, GitLab, Okta, Google Workspace, Jira, Intune, and HR systems.                                                                                                                                           |
-
-**Already have a lake?** Start with [bring your own lake](docs/BRING_YOUR_OWN_LAKE.md).
-**Collecting new evidence?** Start with [connector setup](docs/CONNECTOR_CREDENTIALS.md).
-Lake mappings are experimental; preview and live-provider qualification vary by
-reader. See the [connector catalog](docs/CONNECTORS.md) for status. Compatibility
-depends on the supported reader, schema mapping, and access configuration;
-arbitrary lake backends are not automatically supported. Existing-lake readers
-preserve the source system and materialize assessment evidence into GRC Lake's
-configured application storage. A source warehouse does not replace that storage.
-
-## Product tour
-
-| Workflow     | What you get                                                                     |
-| ------------ | -------------------------------------------------------------------------------- |
-| **Collect**  | Source evidence with identity, timestamps, hashes, and collection status.        |
-| **Evaluate** | Deterministic results pinned to a catalog and evidence generation.               |
-| **Resolve**  | Assigned findings, follow-up verification, and independently reviewed decisions. |
-| **Export**   | Snapshots, workpapers, OSCAL, and scoped, revocable auditor shares.              |
-
-The console groups navigation by workflow, with category icons and a top-mounted
-collapse control. The compact rail opens each category's pages on demand and remembers
-your preference. Findings and framework drawers resize
-and separate assessment, evidence, triage, and history into focused views.
-Lists use pagination; source operations have a focused dashboard view with
-clickable provider marks and source-specific evidence links. A compact vendor
-review summary leads to the dedicated Vendor risk workspace. Audit room leads
-with observed gaps and next actions; Trust center separates scoped sharing from
-active-link management. Framework identities, control-family icons, and provider marks
-appear inside the console as well as in this tour. The graph keeps selected-node
-details beside large icon-led nodes. [Evidence investigation](docs/INVESTIGATION_GRAPH.md)
-connects exact records to controls, CCF safeguards, environments, repository context,
-findings, and explicitly linked vendor assessments. Depth and layer controls keep
-local neighborhoods bounded. Expand the workspace for more room, drill into a selected
-node, and roll up to the preceding view; mapping review stays separate from assessment.
-
-Connector setup separates configuration, access testing, first sync, and result review.
-Cloud authorization separates provider preparation from target configuration. Required
-fields and permissions remain visible; advanced identity settings and schedules are
-progressively disclosed. Access reviews open on pending decisions and explain the next
-action without implying that recording a decision changes provider access.
-
-### Know what is covered
-
-Framework coverage separates assessed controls, missing evidence, and unreviewed
-mappings. A passing sample does not establish full framework compliance.
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/images/grc-lake-demo-frameworks-dark.png">
-  <img src="docs/images/grc-lake-demo-frameworks.png" alt="Framework roster showing evidence coverage and assessment results" width="100%" loading="lazy">
-</picture>
-
-### Follow evidence to a decision
-
-Inspect the source, freshness, and affected controls before assigning a finding.
-Closing a task requires fresh verification; approval actions require an eligible
-human session. Agents can collect, explain, and propose work.
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/images/grc-lake-demo-evidence-dark.png">
-  <img src="docs/images/grc-lake-demo-evidence.png" alt="Evidence workspace with freshness and source lineage" width="100%" loading="lazy">
-</picture>
-
-<details>
-<summary>More screens: setup, graph, AI governance, sources, access reviews, remediation, audit room, and mobile</summary>
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/images/grc-lake-demo-connector-setup-dark.png">
-  <img src="docs/images/grc-lake-demo-connector-setup.png" alt="Provider setup with required fields, permissions, and bounded steps" width="100%" loading="lazy">
-</picture>
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/images/grc-lake-demo-graph-dark.png">
-  <img src="docs/images/grc-lake-demo-graph.png" alt="Record-level evidence graph with large icons and a selected control inspector" width="100%" loading="lazy">
-</picture>
-
-AI governance lists recorded models and agents with owners, environments, signals,
-and next actions. Inspect an asset to follow its exact control links or open its
-filtered evidence. Observed controls and recorded lineage remain distinct from
-freshly evaluated controls and complete lineage.
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/images/grc-lake-demo-ai-governance-dark.png">
-  <img src="docs/images/grc-lake-demo-ai-governance.png" alt="AI model and agent worklist with governance signals and next actions" width="100%" loading="lazy">
-</picture>
-
-![Source operations with provider marks and paginated evidence sources](docs/images/grc-lake-demo-sources.png)
-![User access review workspace](docs/images/grc-lake-demo-access-reviews.png)
-
-Access reviews scope and seed campaigns from collected identity evidence. Human
-SSO reviewers record decisions and rationale; recording a revocation decision
-does not change access at the provider. Vendor assessment status describes the
-recorded review, not complete vendor coverage or certification.
-
-![Remediation workspace](docs/images/grc-lake-demo-remediation.png)
-![Audit room priorities and evaluated framework scope](docs/images/grc-lake-demo-audit-room.png)
-<img src="docs/images/grc-lake-demo-ai-governance-mobile.png" alt="AI governance worklist on a narrow screen" width="390" loading="lazy">
-<img src="docs/images/grc-lake-demo-overview-mobile.png" alt="GRC Lake overview on a narrow screen" width="390" loading="lazy">
-
-</details>
+Queued assessments retain tenant-scoped result receipts. Pagination, queue
+admission, response storage, and retries have explicit bounds. See the
+[assessment contract](docs/ASSESSMENT_APPLICATION_CONTRACT.md) and
+[architecture guide](docs/ARCHITECTURE.md) for recovery behavior and API limits.
 
 ## Self-host
 
-Use [Docker or Helm](deploy/README.md), configure [SSO and scoped credentials](docs/SERVER_AUTH.md),
-and choose the [storage and writer topology](docs/runbooks/HA_READ_REPLICAS.md).
-See the [deployment and lake compatibility matrix](docs/DEPLOYMENT.md#deployment-and-lake-compatibility)
-for hosting, storage, source-reader and export support.
-Evidence stays in storage you operate; data leaves through the connectors, sinks,
-and model integrations you configure.
+Deploy with [Docker or Helm](deploy/README.md) on your infrastructure:
 
-- **Local mode:** one writable replica with a local JSONL lake and SQLite or PostgreSQL.
-- **Distributed mode:** multiple API replicas and tenant workers share PostgreSQL
-  and S3-compatible object storage, with private scratch space and fenced publication.
-  Enable it explicitly using the [distributed deployment guide](docs/DISTRIBUTED.md).
-  A single tenant evaluation still runs on one worker; production capacity and
-  provider failover require deployment-specific qualification.
-- **Warehouse exports** have separate setup and qualification requirements.
-  See [data flow](docs/DATA_FLOW.md).
-- **Authentication is required for production.** The loopback demo is a separate
-  setup. Human approval, tenant isolation, and read-only auditor access are
-  enforced at the API boundary.
-- **Retain evidence deliberately.** Use the [operations guide](docs/OPERATIONS_CONTRACTS.md)
-  for generation archival, history costs, and external integrity checkpoints.
+- **Local:** one writable replica with a filesystem lake.
+- **Distributed:** API replicas and tenant workers share PostgreSQL and
+  S3-compatible storage. CLI assessments use a filesystem lake; MCP uses the
+  authenticated API for distributed deployments.
+- **Production:** configure [SSO and scoped credentials](docs/SERVER_AUTH.md),
+  [retention](docs/OPERATIONS_CONTRACTS.md), and [backup/restore](docs/runbooks/BACKUP_RESTORE.md).
 
-See the [connector catalog](connectors/catalog.json) for implementation and preview
-status, and [credential setup](docs/CONNECTOR_CREDENTIALS.md) for each source.
+See [deployment compatibility](docs/DEPLOYMENT.md#deployment-and-lake-compatibility)
+and the [distributed guide](docs/DISTRIBUTED.md). Production capacity and provider
+failover require deployment-specific qualification.
 
-### Verify a release
-
-Wheels and sdists carry SLSA build provenance, and each GitHub release attaches
-a CycloneDX SBOM of the locked runtime dependencies:
-
-```bash
-gh release download v0.3.3 -R koda-ai-studio/grc-lake -p '*.whl'
-gh attestation verify grc_lake-0.3.3-py3-none-any.whl -R koda-ai-studio/grc-lake
-```
+Release packages include signed provenance and an SBOM. Follow
+[artifact verification](docs/RELEASE_READINESS.md#release-gates).
+Upgrading from TrustOps? Read the [migration guide](docs/REBRANDING.md).
 
 ## Frameworks
 
-Common safeguards connect source evidence to framework requirements. Proposed
-crosswalks remain review work; reviewed mappings are version-pinned and still
-need applicable evidence. The legacy `fedramp-moderate` pack represents the
-NIST 800-53B Moderate foundation, not a complete FedRAMP authorization package.
+Catalog counts above are generated from source. Mapped, reviewed, and freshly
+assessed requirements are separate measures; proposed mappings are not attestable.
+Missing, stale, or partial evidence cannot establish a pass. Agents propose;
+eligible humans approve. Review decisions do not change access at a provider.
 
-<details>
-<summary>Generated catalog coverage and control families</summary>
+[Framework coverage](docs/FRAMEWORK_COVERAGE.md) ·
+[Common safeguards](docs/COMMON_CONTROL_FRAMEWORK.md) ·
+[Qualification and test coverage](docs/CURRENT_STATE.md)
 
-<!-- BEGIN README CCF SUMMARY -->
-
-**20 framework packs · 96 reusable safeguards · 21 control families in 10 categories · 2,252 catalogued requirements (1,965 distinct; FedRAMP Moderate's 287 rows restate NIST SP 800-53 controls).** 2 more registry entries are planned or superseded and hold no requirements.
-
-1,417 requirements have safeguard mappings; **339 have reviewed mappings**. Catalog coverage and evaluated customer posture are separate measures.
-
-Control families by category:
-
-- **Governance and risk:** Risk management · Governance
-- **Identity and access:** Identity and access
-- **Data protection and privacy:** Data protection · Privacy
-- **Secure engineering:** Change management · Secure development · Secure architecture
-- **Infrastructure security:** Configuration management · Vulnerability management · Network security
-- **Detection and response:** Detection · Audit logging · Incident response
-- **Resilience and integrity:** Availability and recovery · System maintenance · Processing integrity
-- **Third-party and supply chain:** Third-party risk
-- **People and physical:** People security · Physical security
-- **AI governance:** AI governance
-
-<!-- END README CCF SUMMARY -->
-
-</details>
-
-[Framework packs](docs/FRAMEWORK_PACKS.md) · [Coverage catalog](docs/FRAMEWORK_COVERAGE.md) ·
-[Common controls](docs/COMMON_CONTROL_FRAMEWORK.md) ·
-[Control families screen](docs/images/grc-lake-demo-control-families.png) ·
-[Crosswalk screen](docs/images/grc-lake-demo-crosswalk.png)
-
-## Evidence boundaries
-
-Missing, stale, blocked, or partial evidence cannot establish a passing control.
-Inventory observations establish presence, not the effectiveness of a control.
-Exceptions and compensating measures are review records, not automatic passes.
-Scoped risk decisions retain evidence, expiry and independent review; extensions
-require a new approval. See [governance](docs/GOVERNED_REMEDIATION.md).
-
-Local fixture tests, exported hashes, and screenshots do not establish live
-provider qualification, production capacity, certification, or customer
-adoption. An independently retained checkpoint is needed to detect a complete
-local history replacement. See [evidence recovery](docs/EVIDENCE_RECOVERY.md) and
-[audit readiness](docs/AUDIT_READINESS.md).
+Fixture tests and screenshots do not establish live-provider accuracy,
+production capacity, or certification. See [audit readiness](docs/AUDIT_READINESS.md)
+for qualification boundaries and [the roadmap](ROADMAP.md) for remaining gaps.
 
 ## Documentation
 
-| Need                             | Start here                                                                                           |
-| -------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| Try a complete workflow          | [5-minute tutorial](docs/TUTORIAL_5_MIN.md)                                                          |
-| Understand the design            | [Architecture](docs/ARCHITECTURE.md) · [Data model](docs/DATA_MODEL.md) · [All docs](docs/README.md) |
-| Deploy and authenticate          | [Deployment](deploy/README.md) · [Server auth](docs/SERVER_AUTH.md)                                  |
-| Understand storage and retention | [Data flow](docs/DATA_FLOW.md) · [Operations](docs/OPERATIONS_CONTRACTS.md)                          |
-| Integrate an agent               | [Headless GRC](docs/HEADLESS_GRC.md) · [Agent skills](docs/api/AGENT_SKILLS.md)                      |
-| Evaluate audit evidence          | [Audit readiness](docs/AUDIT_READINESS.md) · [Evidence recovery](docs/EVIDENCE_RECOVERY.md)          |
-| Contribute                       | [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md) · [Trust boundaries](docs/THREAT_MODEL.md) |
+| Task                 | Guide                                                                                            |
+| -------------------- | ------------------------------------------------------------------------------------------------ |
+| Try the console      | [Product walkthrough](docs/PRODUCT_WALKTHROUGH.md)                                               |
+| Connect evidence     | [Connector setup](docs/CONNECTOR_CREDENTIALS.md) · [Existing lakes](docs/BRING_YOUR_OWN_LAKE.md) |
+| Integrate an agent   | [Headless GRC](docs/HEADLESS_GRC.md) · [Agent API](docs/api/AGENT_API.md)                        |
+| Operate a deployment | [Deployment](docs/DEPLOYMENT.md) · [Operations](docs/OPERATIONS_CONTRACTS.md)                    |
+| Contribute           | [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md)                                        |
 
-## Develop
-
-```bash
-uv sync --frozen --extra dev --extra server --extra mcp
-uv run pytest -q
-uv run pre-commit run --all-files
-npm --prefix app/web ci
-npm --prefix app/web run build
-```
-
-Regenerate the header and catalog counts with `make readme-header`. Rebuild the
-synthetic demo and recapture its light, dark, and mobile screens with
-`make demo-screenshots-full` (requires Playwright Chromium). License: [Apache 2.0](LICENSE).
+[All documentation](docs/README.md). Regenerate the header and counts with
+`make readme-header`; capture demo screens with `make demo-screenshots-full`.
+License: [Apache 2.0](LICENSE).
