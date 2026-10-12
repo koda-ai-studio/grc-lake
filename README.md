@@ -33,6 +33,51 @@ export snapshots, workpapers, and OSCAL.
 **Collect → Evaluate → Resolve → Export.** Read source evidence, run version-pinned
 control tests, investigate findings, and export a scoped assessment.
 
+### Start with the assessment overview
+
+See assessed coverage, open findings, evidence freshness, and priority actions
+together. Framework posture distinguishes assessed results from requirements
+that still need evidence.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/grc-lake-demo-dashboard-dark.png">
+  <img src="docs/images/grc-lake-demo-dashboard.png" alt="Overview showing assessment coverage, findings, stale evidence, framework posture, and priority actions" width="100%">
+</picture>
+
+### Explore framework coverage
+
+Browse framework packs and their requirements, compare mapped and reviewed
+coverage, and open the controls or mappings that need attention. Catalogued,
+mapped, reviewed, and assessed requirements remain separate measures.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/grc-lake-demo-frameworks-dark.png">
+  <img src="docs/images/grc-lake-demo-frameworks.png" alt="Frameworks showing requirement coverage, mapping-review status, and the framework roster" width="100%" loading="lazy">
+</picture>
+
+### Inspect control results and evidence
+
+Filter the control worklist by result, owner, or framework. Open a control to
+inspect its evidence, findings, freshness, and test confidence.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/grc-lake-demo-controls-dark.png">
+  <img src="docs/images/grc-lake-demo-controls.png" alt="Controls worklist showing test results, evidence freshness, confidence, and owners" width="100%" loading="lazy">
+</picture>
+
+### Navigate control families and the CCF
+
+The Common Control Framework (CCF) organizes reusable safeguards into categories
+and control families. Explore their links to framework requirements and see
+reviewed and proposed mappings separately. Proposed mappings are not attestable.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/grc-lake-demo-control-families-dark.png">
+  <img src="docs/images/grc-lake-demo-control-families.png" alt="Control families grouped by CCF category, with safeguard counts and reviewed versus proposed requirement mappings" width="100%" loading="lazy">
+</picture>
+
+[How common safeguards work](docs/COMMON_CONTROL_FRAMEWORK.md).
+
 ### Trace a finding through the evidence graph
 
 Follow exact records between controls, safeguards, evidence, repositories, and
@@ -56,7 +101,7 @@ recorded lineage remains distinct from freshly evaluated controls.
 </picture>
 
 _Screens use the bundled synthetic company, captured for v0.3.3 from source
-`9e741ffb` on 2026-10-12. They show recorded relationships and demo workflows,
+`27b21b16` on 2026-10-12. They show recorded relationships and demo workflows,
 not a customer deployment or an audit opinion._
 
 [Try the five-minute console tour](docs/PRODUCT_WALKTHROUGH.md#five-minute-tour) ·
