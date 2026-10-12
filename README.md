@@ -52,14 +52,14 @@ This local demo uses synthetic data and disables authentication. Use the
 With Docker Compose v2, use the published release templates:
 
 ```bash
-git clone --branch v0.3.2 --depth 1 https://github.com/koda-ai-studio/grc-lake.git
+git clone --branch v0.3.3 --depth 1 https://github.com/koda-ai-studio/grc-lake.git
 cd grc-lake
 docker compose up
 ```
 
 The container is public; no registry login is required. Compose binds the
-no-auth demo to loopback. Main currently references the unpublished 0.3.3 image;
-use the source-development command below to try the candidate.
+no-auth demo to loopback. The v0.3.3 templates pin the published image.
+Use the source-development command below to try changes newer than the release.
 
 From source, with [uv](https://docs.astral.sh/uv/) and Node 22+:
 
@@ -91,7 +91,7 @@ The PyPI package is `grc-lake`, the CLI is
   <img src="docs/images/grc-lake-demo-dashboard.png" alt="GRC Lake overview with framework coverage, priority actions, and evidence freshness" width="100%">
 </picture>
 
-_Screens show the bundled synthetic company, captured from 0.3.3 candidate source `9e741ffb` on 2026-10-12, with evidence investigation, the AI model and agent worklist, and shared framework/control identities.
+_Screens show the bundled synthetic company, captured for version 0.3.3 from source `9e741ffb` on 2026-10-12, with evidence investigation, the AI model and agent worklist, and shared framework/control identities.
 Main can include changes newer than the published package. These screens
 demonstrate workflows, not a customer deployment or an audit opinion._
 
@@ -289,8 +289,8 @@ Wheels and sdists carry SLSA build provenance, and each GitHub release attaches
 a CycloneDX SBOM of the locked runtime dependencies:
 
 ```bash
-gh release download v0.3.2 -R koda-ai-studio/grc-lake -p '*.whl'
-gh attestation verify grc_lake-0.3.2-py3-none-any.whl -R koda-ai-studio/grc-lake
+gh release download v0.3.3 -R koda-ai-studio/grc-lake -p '*.whl'
+gh attestation verify grc_lake-0.3.3-py3-none-any.whl -R koda-ai-studio/grc-lake
 ```
 
 ## Frameworks

@@ -51,10 +51,10 @@ fails, then review and export.
 | Settings        | Access & keys  | Manage users, invitations, and API keys.                                              |
 | Settings        | Deploy         | Deployment guidance for your environment.                                             |
 
-## Five-minute candidate tour
+## Five-minute tour
 
 These steps use the synthetic source demo, including deliberately failing checks.
-They describe the 0.3.3 candidate; use the release notes for an installed package.
+They describe version 0.3.3; use the release notes for other installed versions.
 Framework marks and control-family icons retain the same identity across
 overviews, review workspaces and the graph. Provider marks identify recorded
 sources; none of these marks implies certification or vendor endorsement.

@@ -1,18 +1,20 @@
 # GRC Lake roadmap
 
-Status as of v0.3.3 source preparation, checked **2026-10-11**; **v0.3.2 is published**.
+Status as of v0.3.3, checked **2026-10-12**; **v0.3.3 is published**.
 Start with [current state and coverage](docs/CURRENT_STATE.md) for shipped paths
 and qualification boundaries. This roadmap describes remaining work, not promises
 of release dates.
 
-## Next milestone: audit and release
+## Next milestone: deepen qualification
 
-The investigation, connector-workflow and AI-worklist changes are merged.
-Audit the exact merged main and candidate artifacts using the release gates below. Additional provider or framework breadth is not a prerequisite for
-this milestone. Correctness, security, migration and supported-workflow regressions
-remain release blockers.
+Version 0.3.3 includes the investigation, connector-workflow and AI-worklist
+changes, shared assessment services and bounded recovery behavior. Exact-main CI,
+release qualification and published-artifact checks passed; see
+[release readiness](docs/RELEASE_READINESS.md). Provider depth, independent mapping
+review and measured capacity remain separate work below. Correctness, security,
+migration and supported-workflow regressions remain release blockers.
 
-After release, use operator and contributor reports to set priorities: installation,
+Use operator and contributor reports to set priorities: installation,
 first connection and sync, finding investigation, access review, and audit export.
 Useful reports include the installed version, deployment mode, sanitized reproduction,
 expected versus actual behavior, and relevant counts. Do not include credentials or
@@ -68,7 +70,7 @@ provider HA and production capacity remain unqualified by this audit.
 
 ## Release work
 
-v0.3.3 remains a candidate. Source changes include dependency remediation,
+v0.3.3 is published. Its changes include dependency remediation,
 authentication hardening, evidence eligibility, versioned CCF governance, exact
 lineage and frozen requirement-gap explanations. The console now exposes those
 gaps and record-level investigation, with bounded graph navigation and shared
@@ -76,11 +78,15 @@ connector setup. These are implemented source paths, not live-provider parity. S
 for merged changes and [open PRs](https://github.com/koda-ai-studio/grc-lake/pulls)
 for work still in review.
 
-Before publication: finish final-main CI and the audit, then verify the package,
+For each subsequent release, finish final-main CI and the audit, then verify the package,
 provenance, both container architectures, scans and authenticated behavior.
 [Dependency findings](docs/DEPENDENCY_SECURITY.md) and
 [Scorecard evidence](docs/SCORECARD_REMEDIATION.md) have their own resolution
 criteria. Green CI does not by itself close them. Follow the
 [release gates](docs/RELEASE_READINESS.md).
 
-Before publishing the audited release candidate, refresh the README, guides, generated screenshots, and demo against that exact revision. Reconcile feature coverage by implemented breadth, tested depth, live qualification, independent mapping review, and remaining limitations; link the existing qualification backlog instead of treating catalog presence as parity.
+The 0.3.3 refresh includes the README, guides, 39 generated screenshots and measured
+test coverage. Repeat this verification for future releases. Reconcile feature
+coverage by implemented breadth, tested depth, live qualification, independent
+mapping review and remaining limitations; link the existing qualification backlog
+instead of treating catalog presence as parity.

@@ -5,13 +5,13 @@ build-tool audits when reviewing or upgrading the lockfiles.
 
 ## Container runtime findings
 
-The published 0.3.2 Python SBOM covers the locked application dependencies. It
+The published Python SBOM covers the locked application dependencies. It
 does not include all packages inherited from the container base. A full image
-scan on 2026-10-10 found vulnerable copies of pip 25.0.1 in the base interpreter
+scan of 0.3.2 on 2026-10-10 found vulnerable copies of pip 25.0.1 in the base interpreter
 and application virtual environment, and a fixable liblzma advisory on both
 AMD64 and ARM64.
 
-The next image build creates the virtual environment without pip, removes the
+The 0.3.3 image creates the virtual environment without pip, removes the
 base interpreter's pip and ensurepip, and refreshes liblzma from Debian security
 for [DSA-6549-1](https://security-tracker.debian.org/tracker/DSA-6549-1).
 `tools/check_image_dependencies.sh` checks both installed interpreters, the
@@ -23,27 +23,27 @@ not patch or suppress unresolved util-linux, ACL or other distribution findings.
 The unused `infocmp` executable is removed for CVE-2025-69720; the image check
 verifies its absence while keeping the ncurses libraries available for Python.
 Install optional application dependencies in a derived image's build stage;
-the runtime image intentionally has no package installer.
+the runtime image intentionally has no Python package installer.
 
 CI and release scans reject fixable MEDIUM, HIGH and CRITICAL findings. Run a
 second scan without severity or fix-availability filters to retain unresolved
 distribution findings. No available vendor fix does not mean not affected, and
 passing this gate does not satisfy the Best Practices 60-day criterion. The
-published 0.3.2 image remains unchanged until a new release is built and published.
+published 0.3.2 digests remain unchanged; these remediations are in 0.3.3.
 
 CI and release qualification also retain full, unfiltered JSON vulnerability
 reports for 14 days, including when the fixable-only scan blocks the job. See
 [Scorecard evidence](SCORECARD_REMEDIATION.md#vulnerability-and-release-evidence)
 for artifact names and the separate Best Practices review requirements.
 
-### Current candidate scan
+### 0.3.3 release qualification scans
 
-The AMD64 `grc-lake:ci` report from [main CI](https://github.com/koda-ai-studio/grc-lake/actions/runs/38201293263)
-on source `a006cca1` contains 102 medium-or-higher package findings (44 HIGH,
-58 MEDIUM), with no listed fixed versions. On 2026-10-12, 41 occurrences across
+The AMD64 and ARM64 reports from the [0.3.3 release workflow](https://github.com/koda-ai-studio/grc-lake/actions/runs/38211832124)
+on source `fee5a7b8` each contain 102 medium-or-higher package findings (44 HIGH,
+58 MEDIUM; 37 distinct advisories), with no listed fixed versions. On 2026-10-12, 41 occurrences across
 21 advisory IDs were more than 60 days old. Those counts describe scanner
-matches, not individually confirmed exploitability. They do not establish the
-state of the published image or the ARM64 candidate. The unresolved age review
+matches, not individually confirmed exploitability. They describe the images
+scanned during release qualification, not a later deployment. The unresolved age review
 still prevents claiming the Best Practices passing criteria are satisfied.
 
 ### Unfixed HIGH findings: applicability review
@@ -58,7 +58,7 @@ These observations do not carry over automatically to another image or deploymen
 | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | util-linux | [CVE-2026-76642](https://security-tracker.debian.org/tracker/CVE-2026-76642), [78408](https://security-tracker.debian.org/tracker/CVE-2026-78408), [78409](https://security-tracker.debian.org/tracker/CVE-2026-78409), and [78410](https://security-tracker.debian.org/tracker/CVE-2026-78410) concern privileged mount or namespace operations. Debian trixie has no listed fixed package. Keep open; removing setuid/setgid bits is mitigation, not a vendor patch or proof for privileged deployments. |
 | libacl     | [CVE-2026-54369](https://security-tracker.debian.org/tracker/CVE-2026-54369) affects pathname-based ACL operations. The library remains installed. Keep open; non-root execution does not prove every caller is unreachable.                                                                                                                                                                                                                                                                               |
-| ncurses    | [CVE-2025-69720](https://security-tracker.debian.org/tracker/CVE-2025-69720) concerns `infocmp`, which is present in both published images. The next build removes that executable and tests its absence. Keep the published-image finding open; review applicability again against the replacement digest.                                                                                                                                                                                                |
+| ncurses    | [CVE-2025-69720](https://security-tracker.debian.org/tracker/CVE-2025-69720) concerns `infocmp`, which is present in both published images. The 0.3.3 build removes that executable and tests its absence. Keep the published-image finding open; review applicability again against the replacement digest.                                                                                                                                                                                               |
 | systemd    | [CVE-2026-16742](https://security-tracker.debian.org/tracker/CVE-2026-16742) concerns `systemd-homed`. Probes found neither `/usr/lib/systemd/systemd-homed` nor `/usr/libexec/systemd/systemd-homed` in either image. This supports component-absence triage of the libsystemd/libudev matches, subject to review before any VEX or suppression.                                                                                                                                                          |
 | Perl       | [CVE-2026-9538](https://security-tracker.debian.org/tracker/CVE-2026-9538) concerns `Archive::Tar`. `perl -MArchive::Tar` fails with the module missing in both images. This supports component-absence triage of the perl-base match, subject to review before any VEX or suppression.                                                                                                                                                                                                                    |
 

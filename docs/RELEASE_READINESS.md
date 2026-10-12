@@ -1,15 +1,14 @@
 # Release readiness
 
-GRC Lake **0.3.3 is a source candidate, not a published release**. It prepares
+GRC Lake **0.3.3 is published**. It includes
 container dependency remediation, stronger cookie and SAML signature policies,
 dependency updates, a server-route refactor, evidence investigation and governance
 changes, shared assessment services, durable operation outcomes, bounded API/retry
 behavior, and coordinated backup restoration listed in the [changelog](../CHANGELOG.md).
 
-Version **0.3.2 is published** on PyPI and as the public image
-`ghcr.io/koda-ai-studio/grc-lake:0.3.2`. It does not contain these later fixes.
-Use the v0.3.2 release templates for a published deployment until 0.3.3 is released;
-candidate image and action references become usable only after publication.
+Version **0.3.3 is available** on PyPI and as the public image
+`ghcr.io/koda-ai-studio/grc-lake:0.3.3`. Use the v0.3.3 release templates for
+a published deployment. Later commits on `main` may contain unreleased changes.
 A new source version remains a candidate until the publication gates below succeed.
 Existing `trustops-security-data-lake` releases remain available under their
 original PyPI name. Use a fresh Python environment when moving between distributions
@@ -27,6 +26,16 @@ browser sessions must sign in again. See [deployment](DEPLOYMENT.md) and
 Source and CI qualification do not establish publication, live-provider accuracy,
 or a working customer deployment. The pinned build-tool replacement and its
 verification limits are documented in [dependency security scope](DEPENDENCY_SECURITY.md).
+
+The [0.3.3 release workflow](https://github.com/koda-ai-studio/grc-lake/actions/runs/38211832124)
+passed on source `fee5a7b8`, after that exact main commit passed CI. Published
+wheel and sdist hashes match between GitHub and PyPI. Signed provenance for both
+packages and the multi-platform image verified against this repository, the
+release workflow, source commit and `v0.3.3` tag. A fresh hash-locked PyPI install
+passed catalog, console, health and integrity checks. An anonymous image pull and
+an authenticated ARM64 container probe passed, including tenant isolation, key
+revocation and persistence after recreation. AMD64 and ARM64 runtime qualification
+also passed in release CI. These are synthetic checks with the boundaries below.
 
 ## Assessment and recovery qualification
 
@@ -159,7 +168,7 @@ comment, and the Dockerfile pins its base images by digest. Dependabot's
 
 ## Publication from the current repository
 
-The `grc-lake` PyPI project exists, and 0.3.2 was published from the current
+The `grc-lake` PyPI project exists, and 0.3.3 was published from the current
 repository. Preserve and verify its
 [ordinary trusted publisher](https://docs.pypi.org/trusted-publishers/adding-a-publisher/)
 configuration before the next release:
@@ -187,10 +196,10 @@ so the next release targets `ghcr.io/koda-ai-studio/grc-lake`. Before tagging:
 2. Preserve `ghcr.io/msaad00/grc-lake` for historical releases. GHCR uses granular
    permissions: a [repository transfer does not transfer package ownership](https://docs.github.com/en/packages/learn-github-packages/about-permissions-for-github-packages#about-repository-transfers)
    and can remove repository linkage and Actions access.
-3. The 0.3.3 candidate aligns Compose and the chart default to
+3. The v0.3.3 release templates align Compose and the chart default to
    `ghcr.io/koda-ai-studio/grc-lake:0.3.3`; Terraform inherits the chart default
-   when its image tag is empty. These references are unavailable until publication
-   succeeds. For a published deployment, use the v0.3.2 release templates.
+   when its image tag is empty. For later releases, update these references
+   together and verify publication before recommending them.
 4. After user-authorized publication, verify anonymous pulls (if public delivery
    is intended), both architecture digests, signed provenance, and runtime smoke
    checks against the newly published bytes. Registry visibility may need explicit

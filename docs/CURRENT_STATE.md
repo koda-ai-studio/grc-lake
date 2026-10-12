@@ -1,8 +1,7 @@
 # Current state and coverage
 
-Source review: **2026-10-12**. Latest published release checked: **v0.3.2**.
-The source is preparing v0.3.3; features on `main` or in a pull request are not
-therefore available in the published package. Check the [releases](https://github.com/koda-ai-studio/grc-lake/releases)
+Source review: **2026-10-12**. Latest published release checked: **v0.3.3**.
+Changes on `main` or in a pull request can be newer than the published package. Check the [releases](https://github.com/koda-ai-studio/grc-lake/releases)
 and [changelog](../CHANGELOG.md) for the version you install.
 
 ## What you can use
@@ -42,13 +41,20 @@ Use these maintained contracts rather than a second hand-maintained feature coun
 | Which user journeys exist?                       | [Console UX](CONSOLE_UX.md), `app/web/e2e/`                                                                  | Synthetic browser tests plus authorized deployment checks; an accessible page alone is not a completed journey                                           |
 | How much Python code do tests exercise?          | [CI runs](https://github.com/koda-ai-studio/grc-lake/actions/workflows/ci.yml), `coverage-combined` artifact | The `coverage` job combines all four test shards into line-and-branch coverage for that exact revision; this is separate from framework mapping coverage |
 
-## Candidate coverage depth
+The [0.3.3 main CI run](https://github.com/koda-ai-studio/grc-lake/actions/runs/38210181098)
+at source `fee5a7b8` passed 5,355 Python tests, with 86 skipped. Its combined
+four-shard report measured 88.29% line coverage, 77.91% branch coverage and
+85.89% combined coverage. Separate PostgreSQL and built-image jobs add integration
+checks; their execution is not included in that coverage percentage.
+
+## Coverage depth
 
 The refreshed tour uses source `9e741ffb`, including shared assessment services,
 durable operation outcomes and bounded retry behavior alongside the existing
 console workflows. Coverage documents and the README summary were regenerated
 from this catalog; their counts are unchanged. This identifies the application
-source used for the screenshots, not a published 0.3.3 package or container.
+source used for the screenshots; published-package and container qualification
+remain separate checks in [release readiness](RELEASE_READINESS.md).
 
 | Area                | Implemented breadth                                                                                              | Evidence and remaining depth                                                                                                                                                                                         |
 | ------------------- | ---------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -69,7 +75,7 @@ browser tests passed, including shared artwork, mobile layout, provider setup,
 graph interactions and review restrictions. None of this refresh repeats the
 live-provider collections below.
 
-## Assessment and recovery candidate
+## Assessment and recovery
 
 Evaluation and snapshot transports now share application services. Authorized
 callers can inspect tenant-scoped operation receipts after a lost completion
