@@ -47,7 +47,22 @@ const shots = [
   {file:"grc-lake-demo-access-reviews.png",route:"/access-reviews/",dark:true},
   { file: "grc-lake-demo-dashboard.png", route: "/dashboard/", dark: true },
   {
+    file: "grc-lake-demo-ai-governance.png",
+    route: "/ai-governance/",
+    dark: true,
+    viewport: TALL,
+    endAt: (page) => page.getByRole("region", { name: "AI framework coverage" }),
+  },
+  {
+    file: "grc-lake-demo-ai-governance-mobile.png",
+    route: "/ai-governance/",
+    dark: true,
+    viewport: MOBILE,
+    endAt: (page) => page.getByRole("region", { name: "Models and agents" }),
+  },
+  {
     file: "grc-lake-demo-overview-mobile.png",
+    dark: true,
     route: "/dashboard/",
     viewport: MOBILE,
     endAt: (page) =>

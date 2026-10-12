@@ -7,9 +7,8 @@ of release dates.
 
 ## Next milestone: audit and release
 
-Finish the current investigation and connector-workflow changes, obtain independent
-review, then audit the exact merged main and candidate artifacts using the release
-gates below. Additional provider or framework breadth is not a prerequisite for
+The investigation, connector-workflow and AI-worklist changes are merged.
+Audit the exact merged main and candidate artifacts using the release gates below. Additional provider or framework breadth is not a prerequisite for
 this milestone. Correctness, security, migration and supported-workflow regressions
 remain release blockers.
 
@@ -39,6 +38,10 @@ or real provider evidence in issues or pull requests.
 | Next: reproducible capacity baseline   | [#910](https://github.com/koda-ai-studio/grc-lake/issues/910), `tools/benchmark_assessment_pipeline.py`, `tools/benchmark_distributed.py`              | Publish sanitized workload/configuration and measured latency, memory, disk and queue fairness; report saturation and failures without inferring production capacity. | Sufficient disk; medium                       |
 | Later: provider recovery qualification | [Backup/restore](docs/runbooks/BACKUP_RESTORE.md), [distributed mode](docs/DISTRIBUTED.md)                                                             | Real PostgreSQL/object-store restore and worker interruption drills preserve tenant isolation and generation identity, with measured recovery bounds.                 | Isolated deployment; large                    |
 | Next: existing adapter qualification   | [#908](https://github.com/koda-ai-studio/grc-lake/issues/908), [Connectors](docs/CONNECTORS.md), [live-cloud runbook](docs/LIVE_CLOUD_POC.md)          | Each adapter records tested scope, permission-denied behavior, pagination, replay and normalization; preview changes only with reviewed evidence.                     | Authorized vendor tenants; one adapter per PR |
+
+KnowBe4 #737 is due **before November 2026**. Cursor support and bounded legacy
+fallback exist in source; the replacement response contract and live behavior
+still need verification before the provider removes page-based pagination.
 
 Code paths without a directory prefix above are in `src/security_lakehouse/`.
 Priorities are sequencing guidance; security and correctness regressions take

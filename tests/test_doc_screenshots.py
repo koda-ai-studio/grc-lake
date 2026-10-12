@@ -31,7 +31,7 @@ def test_screenshots_exist() -> None:
 
 
 DRAWER_CROPS = {"grc-lake-demo-triage", "grc-lake-demo-control-drawer", "grc-lake-demo-connector-setup"}
-MOBILE_PAGES = {"grc-lake-demo-overview-mobile"}
+MOBILE_PAGES = {"grc-lake-demo-overview-mobile", "grc-lake-demo-ai-governance-mobile"}
 
 
 @pytest.mark.parametrize("path", SCREENSHOTS, ids=lambda path: path.name)

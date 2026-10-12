@@ -1,6 +1,6 @@
 # Current state and coverage
 
-Source review: **2026-10-11**. Latest published release checked: **v0.3.2**.
+Source review: **2026-10-12**. Latest published release checked: **v0.3.2**.
 The source is preparing v0.3.3; features on `main` or in a pull request are not
 therefore available in the published package. Check the [releases](https://github.com/koda-ai-studio/grc-lake/releases)
 and [changelog](../CHANGELOG.md) for the version you install.
@@ -41,7 +41,33 @@ Use these maintained contracts rather than a second hand-maintained feature coun
 | What scales, with which settings?                | [Distributed mode](DISTRIBUTED.md), [audit scale](AUDIT_SCALE.md), [benchmarks](BENCHMARKS.md)              | Record workload, storage, hardware, configuration, concurrency, latency and resource use                       |
 | Which user journeys exist?                       | [Console UX](CONSOLE_UX.md), `app/web/e2e/`                                                                 | Synthetic browser tests plus authorized deployment checks; an accessible page alone is not a completed journey |
 
-## Latest bounded qualification
+## Candidate coverage depth
+
+The refreshed tour uses source `6a9464a0`, based on the merge of #912 with shared
+framework/control identities and the canonical console repository link. Coverage documents
+and the README summary were regenerated from that catalog. This identifies the
+application source used for the screenshots; it does not qualify a published
+0.3.3 package or container.
+
+| Area                | Implemented breadth                                                                                              | Evidence and remaining depth                                                                                                                                                                                         |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Collection          | 28 catalog contracts: 25 executable adapters, including 7 preview; 3 configuration/access boundaries             | Shared console setup retains each provider's fields and permissions. Fixture behavior and access tests do not establish complete live collection; see [#908](https://github.com/koda-ai-studio/grc-lake/issues/908). |
+| Frameworks          | 20 populated packs; generated counts and effective review states in the [coverage matrix](FRAMEWORK_COVERAGE.md) | Source-cited, mapped, human-reviewed and freshly evaluated requirements are separate measures; deepen independent review in [#909](https://github.com/koda-ai-studio/grc-lake/issues/909).                           |
+| Investigation       | Exact records, source accounts, controls, CCF, repositories and explicit vendor asset links                      | Generation-bound reads and bounded navigation have contract tests. Server construction still scales with evidence volume; [#910](https://github.com/koda-ai-studio/grc-lake/issues/910) tracks measurement.          |
+| AI governance       | Model/agent worklist with owner, environment, signals, next actions and asset-filtered evidence                  | Recorded lineage is not automatically complete; observed controls are not fresh evaluations. No model safety or certification conclusion follows.                                                                    |
+| Repository evidence | Public GitHub audit CLI and authenticated GitHub/GitLab adapters                                                 | Public settings can be unobservable. Direct public-URL onboarding in the console remains [#911](https://github.com/koda-ai-studio/grc-lake/issues/911).                                                              |
+| Human decisions     | Pending access reviews, mapping review and scoped sharing                                                        | Independent human authority remains enforced. A recorded access-revocation decision does not revoke provider access.                                                                                                 |
+
+The base source build, catalog/schema validation and 175 focused graph, tenant/auth,
+access-review, lineage and release-contract tests passed locally. Sixteen
+PostgreSQL variants were skipped in that local run; PostgreSQL CI and the
+release image probes are separate qualification. The synthetic browser tour
+includes desktop light/dark and mobile views. After the identity fixes, 36 focused
+browser tests passed, including shared artwork, mobile layout, provider setup,
+graph interactions and review restrictions. None of this refresh repeats the
+live-provider collections below.
+
+## Earlier bounded provider qualification
 
 The 2026-10-11 audit used source based on `ccd9d9c3` (after #900), plus the
 console fixes described above. This is a dated check, not an evergreen support
