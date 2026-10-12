@@ -3,6 +3,7 @@ import { test, expect } from "@playwright/test";
 test("auditor view survives navigation and reload", async ({ page }) => {
   await page.goto("/console/dashboard/?role=auditor");
   await expect(page.getByText(/Auditor view/i).first()).toBeVisible();
+  await page.getByRole("button", { name: "Evaluate", exact: true }).click();
   await page
     .getByRole("link", { name: "Controls", exact: true })
     .first()
@@ -55,6 +56,7 @@ test("system dark theme and route titles are respected", async ({ page }) => {
   await page.goto("/console/dashboard/");
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await expect(page).toHaveTitle("Overview · GRC Lake");
+  await page.getByRole("button", { name: "Evaluate", exact: true }).click();
   await page
     .getByRole("link", { name: "Controls", exact: true })
     .first()

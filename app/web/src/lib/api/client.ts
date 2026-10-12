@@ -1,6 +1,7 @@
 import { isAuditorMode } from "@/lib/state/auditor";
 import { readAllGraphPages, type GraphPage } from "./graph-pages";
 import type {
+  RequirementGapPage,
   BillingStatus,
   CreatedScimToken,
   ScimToken,
@@ -754,6 +755,14 @@ export const api = {
     get<{ data: ReviewedCrosswalk }>("/v1/crosswalk/reviewed").then(
       (b) => b.data,
     ),
+  requirementGaps: (frameworkId: string, controlId: string) => {
+    const query = new URLSearchParams({
+      framework_id: frameworkId,
+      control_id: controlId,
+      limit: "2",
+    });
+    return get<RequirementGapPage>(`/v1/ccf/requirement-gaps?${query}`);
+  },
   ccfAssessment: () =>
     get<{ data: CcfAssessment }>("/v1/ccf/assessment").then((b) => b.data),
   ccfCoverage: () =>

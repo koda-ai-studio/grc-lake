@@ -38,7 +38,12 @@ test("evaluation polls a durable job before reporting completion", async ({
     });
   });
   await page.goto("/console/dashboard/");
-  await page.getByRole("tab", { name: "Sources", exact: true }).click();
+  await page
+    .getByRole("tab", { name: "Sources & operations", exact: true })
+    .click();
+  await page
+    .getByRole("tab", { name: "Evaluation & jobs", exact: true })
+    .click();
   await page
     .getByRole("button", { name: "Run control eval", exact: true })
     .click();
@@ -69,7 +74,12 @@ test("interrupted work asks for inspection instead of reporting success", async 
     }),
   );
   await page.goto("/console/dashboard/");
-  await page.getByRole("tab", { name: "Sources", exact: true }).click();
+  await page
+    .getByRole("tab", { name: "Sources & operations", exact: true })
+    .click();
+  await page
+    .getByRole("tab", { name: "Evaluation & jobs", exact: true })
+    .click();
   await page
     .getByRole("button", { name: "Run control eval", exact: true })
     .click();
@@ -126,7 +136,12 @@ test("failed work presents the server's safe reason", async ({ page }) => {
     }),
   );
   await page.goto("/console/dashboard/");
-  await page.getByRole("tab", { name: "Sources", exact: true }).click();
+  await page
+    .getByRole("tab", { name: "Sources & operations", exact: true })
+    .click();
+  await page
+    .getByRole("tab", { name: "Evaluation & jobs", exact: true })
+    .click();
   await page
     .getByRole("button", { name: "Run control eval", exact: true })
     .click();
@@ -164,7 +179,12 @@ test("an authorized queued job can be cancelled with confirmation", async ({
     return r.fulfill({ json: { data: { status: "cancelled" } } });
   });
   await page.goto("/console/dashboard/");
-  await page.getByRole("tab", { name: "Sources", exact: true }).click();
+  await page
+    .getByRole("tab", { name: "Sources & operations", exact: true })
+    .click();
+  await page
+    .getByRole("tab", { name: "Evaluation & jobs", exact: true })
+    .click();
   page.once("dialog", (dialog) => dialog.accept());
   await page.getByRole("button", { name: "Cancel job", exact: true }).click();
   await expect(

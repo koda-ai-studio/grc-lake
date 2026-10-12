@@ -90,7 +90,7 @@ The PyPI package is `grc-lake`, the CLI is
   <img src="docs/images/grc-lake-demo-dashboard.png" alt="GRC Lake overview with framework coverage, priority actions, and evidence freshness" width="100%">
 </picture>
 
-_Screens show the bundled synthetic company, captured from the 0.3.3 candidate with updated branding on 2026-10-11.
+_Screens show the bundled synthetic company, captured from the 0.3.3 candidate with grouped navigation, focused review workspaces, and the original product branding on 2026-10-11.
 Main can include changes newer than the published package. These screens
 demonstrate workflows, not a customer deployment or an audit opinion._
 
@@ -161,6 +161,12 @@ configured application storage. A source warehouse does not replace that storage
 | **Resolve**  | Assigned findings, follow-up verification, and independently reviewed decisions. |
 | **Export**   | Snapshots, workpapers, OSCAL, and scoped, revocable auditor shares.              |
 
+The console groups navigation by workflow. Findings and framework drawers resize
+and separate assessment, evidence, triage, and history into focused views.
+Lists use pagination; source operations and vendor assessments have their own
+dashboard views. Framework identities, control-family icons, and provider marks
+appear inside the console as well as in this tour.
+
 ### Know what is covered
 
 Framework coverage separates assessed controls, missing evidence, and unreviewed
@@ -183,7 +189,15 @@ human session. Agents can collect, explain, and propose work.
 </picture>
 
 <details>
-<summary>More screens: remediation, audit room, and mobile</summary>
+<summary>More screens: sources, access reviews, remediation, audit room, and mobile</summary>
+
+![Source operations with provider marks and paginated evidence sources](docs/images/grc-lake-demo-sources.png)
+![User access review workspace](docs/images/grc-lake-demo-access-reviews.png)
+
+Access reviews scope and seed campaigns from collected identity evidence. Human
+SSO reviewers record decisions and rationale; recording a revocation decision
+does not change access at the provider. Vendor assessment status describes the
+recorded review, not complete vendor coverage or certification.
 
 ![Remediation workspace](docs/images/grc-lake-demo-remediation.png)
 ![Audit room readiness and evidence freshness](docs/images/grc-lake-demo-audit-room.png)

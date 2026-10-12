@@ -100,7 +100,7 @@ test("triage drawer groups summary, details, remediation, and actions", async ({
   const drawer = page.getByRole("dialog");
   await expect(drawer).toBeVisible();
   await expect(drawer.getByRole("region", { name: "Summary" })).toBeVisible();
-  for (const heading of ["Details", "Remediation", "Triage history"]) {
+  for (const heading of ["Details", "Remediation"]) {
     await expect(
       drawer.getByRole("heading", {
         level: 3,
@@ -108,7 +108,13 @@ test("triage drawer groups summary, details, remediation, and actions", async ({
       }),
     ).toBeVisible();
   }
+  await drawer.getByRole("tab", { name: "History", exact: true }).click();
+  await expect(
+    drawer.getByRole("heading", { name: /Triage history/ }),
+  ).toBeVisible();
+  await drawer.getByRole("tab", { name: "Triage", exact: true }).click();
   await expect(drawer.getByRole("group", { name: "Triage" })).toBeVisible();
+  await drawer.getByRole("tab", { name: "Overview", exact: true }).click();
   // Actions render as buttons (bordered, padded), not bare inline text links.
   for (const name of ["Create task", "Review control", "Trace in graph"]) {
     const action = drawer.getByRole("link", { name, exact: true });
@@ -210,6 +216,7 @@ test("triage records the signed-in principal, not an editable actor", async ({
     .first()
     .click();
   const drawer = page.getByRole("dialog");
+  await drawer.getByRole("tab", { name: "Triage", exact: true }).click();
   await expect(drawer.getByText("Recorded as")).toBeVisible();
   await expect(drawer.getByRole("textbox", { name: "Actor" })).toHaveCount(0);
 });

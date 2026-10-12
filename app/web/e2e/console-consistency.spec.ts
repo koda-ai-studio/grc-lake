@@ -21,7 +21,7 @@ test.describe("rail navigation", () => {
     await expect(page.getByTestId("nav-fade-bottom")).toHaveCSS("opacity", "0");
   });
 
-  test("a short window scrolls the active link into view and fades the hidden edge", async ({
+  test("a short window keeps the active group visible without a long rail", async ({
     page,
   }) => {
     await page.setViewportSize({ width: 1440, height: 640 });
@@ -39,8 +39,8 @@ test.describe("rail navigation", () => {
         rail!.y + rail!.height + 1,
       );
     }).toPass({ timeout: 10_000 });
-    // Links remain above the fold, so the top edge carries the hint.
-    await expect(page.getByTestId("nav-fade-top")).toHaveCSS("opacity", "1");
+    // Collapsed secondary groups keep the navigation short.
+    await expect(page.getByTestId("nav-fade-top")).toHaveCSS("opacity", "0");
   });
 });
 

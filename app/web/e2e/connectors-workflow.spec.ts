@@ -183,9 +183,14 @@ test.describe("connectors workflow", () => {
       page.getByRole("tab", { name: "Frameworks", exact: true }),
     ).toHaveAttribute("aria-selected", "true");
 
-    await page.getByRole("tab", { name: "Sources", exact: true }).click();
+    await page
+      .getByRole("tab", { name: "Sources & operations", exact: true })
+      .click();
+    await page
+      .getByRole("tab", { name: "Evaluation & jobs", exact: true })
+      .click();
     await expect(
-      page.getByRole("tab", { name: "Sources", exact: true }),
+      page.getByRole("tab", { name: "Sources & operations", exact: true }),
     ).toHaveAttribute("aria-selected", "true");
     await page.getByRole("button", { name: "Run control eval" }).click();
     await expect(

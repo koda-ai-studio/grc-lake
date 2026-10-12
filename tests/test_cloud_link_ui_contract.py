@@ -13,8 +13,12 @@ def test_connected_cloud_drawer_stays_compact_at_narrow_widths() -> None:
     drawer = DRAWER.read_text(encoding="utf-8")
     shell = DRAWER_SHELL.read_text(encoding="utf-8")
 
-    assert '"w-[min(560px,calc(100vw-16px))]"' in shell
-    assert '"flex-1 overflow-auto px-4 py-5 sm:px-5"' in shell
+    # Drawers retain a compact default, but resizing is now bounded by the viewport.
+    # Browser coverage verifies actual narrow-screen geometry and keyboard resizing.
+    assert 'const baseWidth = width === "lg" ? 720 : 560' in shell
+    assert "`min(${currentWidth}px, 100vw)`" in shell
+    assert 'aria-label="Resize drawer"' in shell
+    assert '"min-h-0 flex-1 overflow-auto px-4 py-5 sm:px-6"' in shell
     # With a sticky footer the scroll area pads its end so the last field clears it.
     assert 'footer && "scroll-pb-24 pb-10"' in shell
     assert 'className="border-t border-line px-4 py-3 sm:px-5"' in shell

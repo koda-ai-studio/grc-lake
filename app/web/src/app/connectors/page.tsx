@@ -15,6 +15,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { QueryState } from "@/components/QueryState";
 import { ConnectorDrawer } from "@/components/drawers/ConnectorDrawer";
 import { ConnectorMark } from "@/components/connectors/ConnectorMark";
+import { ListPagination } from "@/components/ui/list-pagination";
 import { EvidencePathPanel } from "@/components/connectors/EvidencePathPanel";
 import { OnboardingGuideBanner } from "@/components/onboarding/OnboardingGuideBanner";
 import { connectorNotify } from "@/lib/connector-notify";
@@ -193,6 +194,8 @@ export default function ConnectorsPage() {
   const [connectId, setConnectId] = useState<string | null>(null);
   const [linkSessionId, setLinkSessionId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
+  const [page, setPage] = useState(0);
+  const pageSize = 6;
   const [viewFilter, setViewFilter] = useState<ViewFilter>("all");
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("all");
   const [selected, setSelected] = useState<ConnectorView | null>(null);
@@ -235,6 +238,11 @@ export default function ConnectorsPage() {
         return JSON.stringify(c).toLowerCase().includes(query.toLowerCase());
       }),
     [categoryFilter, data, query, viewFilter],
+  );
+
+  const currentPage = Math.min(
+    page,
+    Math.max(0, Math.ceil(filtered.length / pageSize) - 1),
   );
 
   const totals = {
@@ -295,7 +303,11 @@ export default function ConnectorsPage() {
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
             <input
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                setPage(0);
+              }}
+              aria-label="Search sources"
               placeholder="Search sources..."
               className="w-full rounded-lg border border-line bg-surface py-2.5 pl-10 pr-3 text-sm focus:outline-none focus:ring-1 focus:ring-brand"
             />
@@ -316,7 +328,10 @@ export default function ConnectorsPage() {
                     ? "bg-surface text-ink shadow-card ring-1 ring-line"
                     : "text-muted hover:bg-surface"
                 }`}
-                onClick={() => setViewFilter(tab.id)}
+                onClick={() => {
+                  setViewFilter(tab.id);
+                  setPage(0);
+                }}
               >
                 {tab.label}
               </button>
@@ -329,9 +344,10 @@ export default function ConnectorsPage() {
             id="connector-category-filter"
             aria-label="Category filter"
             value={categoryFilter}
-            onChange={(event) =>
-              setCategoryFilter(event.target.value as CategoryFilter)
-            }
+            onChange={(event) => {
+              setCategoryFilter(event.target.value as CategoryFilter);
+              setPage(0);
+            }}
             className="min-w-[150px] rounded-lg border border-line bg-panel px-3 py-2.5 text-xs font-semibold text-ink focus:outline-none focus:ring-1 focus:ring-brand"
           >
             {CATEGORY_OPTIONS.map((option) => (
@@ -370,13 +386,24 @@ export default function ConnectorsPage() {
                 )}
               </div>
             )}
-            {filtered.map((c) => (
-              <ConnectorRow
-                key={c.connector_id}
-                connector={c}
-                onSelect={() => setSelected(c)}
-              />
-            ))}
+            {filtered
+              .slice(currentPage * pageSize, (currentPage + 1) * pageSize)
+              .map((c) => (
+                <ConnectorRow
+                  key={c.connector_id}
+                  connector={c}
+                  onSelect={() => setSelected(c)}
+                />
+              ))}
+          </div>
+          <div className="px-4 pb-4">
+            <ListPagination
+              label="Sources"
+              page={currentPage}
+              total={filtered.length}
+              pageSize={pageSize}
+              onPage={setPage}
+            />
           </div>
         </Card>
       </QueryState>

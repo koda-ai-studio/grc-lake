@@ -31,6 +31,7 @@ export const NAV_GROUPS = [
   "Collect",
   "Evaluate",
   "Resolve",
+  "Governance",
   "Review & export",
   "Settings",
 ] as const;
@@ -73,13 +74,13 @@ export const NAV_ITEMS: NavItem[] = [
     href: "/access-reviews",
     label: ROUTE_LABELS["/access-reviews"],
     Icon: Users,
-    group: "Collect",
+    group: "Governance",
   },
   {
     href: "/vendor-risk",
     label: ROUTE_LABELS["/vendor-risk"],
     Icon: Handshake,
-    group: "Collect",
+    group: "Governance",
   },
   {
     href: "/controls",
@@ -103,25 +104,25 @@ export const NAV_ITEMS: NavItem[] = [
     href: "/violations",
     label: ROUTE_LABELS["/violations"],
     Icon: AlertOctagon,
-    group: "Evaluate",
+    group: "Resolve",
   },
   {
     href: "/risks",
     label: ROUTE_LABELS["/risks"],
     Icon: Scale,
-    group: "Evaluate",
+    group: "Governance",
   },
   {
     href: "/policies",
     label: ROUTE_LABELS["/policies"],
     Icon: ScrollText,
-    group: "Evaluate",
+    group: "Governance",
   },
   {
     href: "/ai-governance",
     label: ROUTE_LABELS["/ai-governance"],
     Icon: BrainCircuit,
-    group: "Evaluate",
+    group: "Governance",
   },
   {
     href: "/crosswalk",

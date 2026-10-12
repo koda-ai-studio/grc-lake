@@ -26,7 +26,7 @@ test.describe("console smoke", () => {
       page.getByRole("tab", { name: "Frameworks", exact: true }),
     ).toHaveAttribute("aria-selected", "true");
     await expect(
-      page.getByRole("tab", { name: "Sources", exact: true }),
+      page.getByRole("tab", { name: "Sources & operations", exact: true }),
     ).toBeVisible();
     await expect(page.getByRole("tab", { name: "Exports" })).toHaveCount(0);
     await expect(page.getByText("Scale tier")).toHaveCount(0);
@@ -242,11 +242,23 @@ test.describe("console smoke", () => {
     ).toHaveAttribute("href", "/console/violations/");
   });
 
-  test("default navigation exposes the full trust workflow", async ({
+  test("navigation groups expose the full trust workflow on demand", async ({
     page,
   }) => {
     await page.goto("/console/dashboard/");
     const sidebar = page.getByRole("complementary");
+    await expect(
+      sidebar.getByRole("link", { name: "Connections", exact: true }),
+    ).toBeHidden();
+    for (const group of [
+      "Collect",
+      "Evaluate",
+      "Resolve",
+      "Governance",
+      "Review & export",
+      "Settings",
+    ])
+      await sidebar.getByRole("button", { name: group, exact: true }).click();
 
     for (const label of [
       "Overview",

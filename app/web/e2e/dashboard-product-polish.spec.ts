@@ -30,7 +30,7 @@ test.describe("dashboard product polish", () => {
       page.getByRole("tablist", { name: "Framework coverage views" }),
     ).toBeVisible();
     await expect(
-      page.getByRole("tablist", { name: "Priority actions views" }),
+      page.getByRole("button", { name: "Priority actions", exact: true }),
     ).toBeVisible();
   });
 

@@ -160,6 +160,7 @@ test("failed triage keeps edits visible without a success notification", async (
     `/console/violations/?id=${encodeURIComponent(rows[0].violation_id)}`,
   );
   const drawer = page.getByRole("dialog");
+  await drawer.getByRole("tab", { name: "Triage", exact: true }).click();
   await drawer
     .getByRole("textbox", { name: "Assignee", exact: true })
     .fill("local-ui-reviewer");

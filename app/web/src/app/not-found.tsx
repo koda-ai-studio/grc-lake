@@ -1,8 +1,10 @@
 import Link from "next/link";
+import { GrcLakeMark } from "@/components/brand/GrcLakeMark";
 
 export default function NotFound() {
   return (
     <main className="mx-auto grid min-h-[60vh] max-w-xl content-center gap-4 px-6 py-16">
+      <GrcLakeMark size="xl" gradientId="not-found-product-mark" />
       <p className="text-xs font-semibold uppercase tracking-widest text-brand">
         GRC Lake · 404
       </p>
