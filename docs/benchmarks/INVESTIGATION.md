@@ -1,5 +1,8 @@
 # Bounded investigation graph measurements
 
+The direct-function workload below and the [authenticated HTTP workload](#authenticated-loopback-http)
+measure separate paths. Neither establishes production capacity or distributed fairness.
+
 These synthetic local measurements exercise the production graph function on
 normalized evidence files. They do not qualify HTTP admission, distributed job
 fairness, authenticated providers, or production capacity. See
@@ -78,3 +81,39 @@ data are used. No graph index/cache design or production budget is approved by
 these measurements. Further qualification needs HTTP-level concurrency and
 scheduler fairness, representative topology shapes and reviewed workload budgets;
 object-store failover and restore remain separate deployment exercises.
+
+## Authenticated loopback HTTP
+
+`--transport http` starts one Uvicorn server on an ephemeral loopback port inside
+the watchdog worker. It creates a disposable SQLite database and synthetic
+platform tenants with separate API keys. The production authentication,
+rate limiter, tenant binding, graph route, and JSON response path are exercised.
+Operator configuration is cleared inside that worker; no external databases or
+provider accounts are used. No evaluation jobs are submitted.
+
+Every measured request reads the first account's `asset-0` at depth 1 and checks
+the exact evidence-record binding, duplicate suppression, response bounds, and
+tenant/source-account isolation. Separate probes reject missing/invalid
+credentials, foreign tenant roots, and a stale version after publication.
+Each attempt measures a first request per tenant, a balanced burst, and a burst
+with four submissions for tenant 0 per submission for every other tenant.
+`--repeats 2` submits four requests per tenant in the balanced burst and
+16/four in the two-tenant skewed burst. Completion order, per-tenant latency,
+client executor delay, response-body bytes, CPU, and peak RSS are retained.
+HTTP errors and timeouts fail the attempt and retain preceding measurements.
+
+```bash
+uv run python tools/benchmark_investigation.py --transport http \
+  --sizes 1000 10000 --tenants 2 --concurrency 1 4 --repeats 2 \
+  --timeout 180 --max-rss-mib 2048 --out /tmp/graph-http-measurements.json
+```
+
+Client and server share a process and host; CPU/RSS include both. Client queue
+delay is not server scheduler delay, and finite bursts with a 4:1 submission
+mix do not prove starvation freedom or job-queue fairness. Default rate limits
+and thread-pool settings apply. The output records dependency versions and the
+query configuration. Small sample counts do not establish tail guarantees.
+Response-body bytes exclude HTTP headers. This workload does not qualify TLS,
+remote network behavior, distributed admission, live-provider recovery, or
+reviewer-approved production budgets. The parent watchdog kills the entire
+worker, including the server thread, and removes only its temporary scratch tree.
