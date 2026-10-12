@@ -21,7 +21,7 @@ plus the licensed-user count. The client paces requests to stay under the burst
 limit and retries 429/5xx through ``backoff.http_retry``; a 429 that outlasts
 that budget raises :class:`KnowBe4RateLimitedError` ("retry later").
 
-Paging (spec re-checked 2026-10-07): ``page`` is deprecated from November 2026
+Paging (spec re-checked 2026-10-12): ``page`` is deprecated from November 2026
 in favour of ``per_page`` (max 500) and ``cursor``; "set cursor=0 or
 cursor=true in your first request to begin pagination". The spec does not say
 where the next cursor comes back, so the client:
@@ -32,7 +32,9 @@ where the next cursor comes back, so the client:
 3. on a full page without a next cursor, restarts with legacy ``page`` paging,
    which works until the deprecation; once the server ignores ``page`` and
    repeats rows, raises :class:`KnowBe4PaginationError` instead of storing
-   duplicates. A repeated cursor raises the same error.
+   duplicates. Repeated record identities (including overlapping or reordered
+   pages), malformed identities, and repeated cursors fail closed. Cursor-only
+   qualification disables the legacy fallback.
 
 Every request goes through ``netguard.open_public`` to the configured regional
 host only; the key is never sent anywhere else.
@@ -130,6 +132,26 @@ def _link_cursor(headers: Any) -> str | None:
     return cursor or None
 
 
+def _checked_records(rows: list[Any], path: str, seen: set[str]) -> list[dict[str, Any]]:
+    key = {"/v1/users": "id", "/v1/training/enrollments": "enrollment_id", "/v1/phishing/security_tests": "pst_id"}[
+        path
+    ]
+    result = []
+    for row in rows:
+        identity = row.get(key) if isinstance(row, dict) else None
+        if isinstance(identity, bool) or not isinstance(identity, (int, str)) or not str(identity).strip():
+            raise KnowBe4PaginationError("KnowBe4 returned an invalid record identity; collection is incomplete.")
+        identity = str(identity)
+        if identity in seen:
+            raise KnowBe4PaginationError(
+                "KnowBe4 returned a repeated record during cursor or page pagination; collection is incomplete. "
+                "Retry the sync and confirm pagination behavior with KnowBe4 if it persists."
+            )
+        seen.add(identity)
+        result.append(row)
+    return result
+
+
 def region_host(region: str) -> str:
     key = str(region or "").strip().lower()
     if key not in KNOWBE4_REGIONS:
@@ -149,12 +171,16 @@ class KnowBe4Client:
         min_interval: float = MIN_REQUEST_INTERVAL_SECONDS,
         clock: Callable[[], float] = time.monotonic,
         sleep: Callable[[float], Any] | None = None,
+        allow_legacy_paging: bool = True,
+        max_pages: int = 1000,
     ) -> None:
         self.region = str(region).strip().lower()
         self.host = region_host(self.region)
         if not token:
             raise ValueError("KnowBe4 Reporting API key is required")
         self._token = token
+        self._allow_legacy_paging = allow_legacy_paging
+        self._max_pages = max_pages
         self.timeout = timeout
         self._min_interval = min_interval
         self._clock = clock
@@ -176,12 +202,18 @@ class KnowBe4Client:
         try:
             return self._list_by_cursor(path, params)
         except _NoNextCursorError:
+            if not self._allow_legacy_paging:
+                raise KnowBe4PaginationError(
+                    "KnowBe4 returned a full page with no next cursor; cursor-only collection cannot complete. "
+                    "Confirm the pagination response with KnowBe4 before retrying."
+                ) from None
             # A full page came back without a next cursor, so cursor mode cannot
             # continue. Restart from page 1 rather than splice two orderings.
             return self._list_by_page(path, params)
 
     def _list_by_cursor(self, path: str, params: dict[str, str]) -> list[dict[str, Any]]:
         seen: set[str] = set()
+        record_ids: set[str] = set()
 
         def fetch_page(cursor: str | None) -> tuple[list[Any], str | None]:
             current = cursor or START_CURSOR
@@ -190,7 +222,7 @@ class KnowBe4Client:
             return payload, _link_cursor(headers)
 
         def extract_items(page: tuple[list[Any], str | None]) -> list[dict[str, Any]]:
-            return [item for item in page[0] if isinstance(item, dict)]
+            return _checked_records(page[0], path, record_ids)
 
         def next_cursor(page: tuple[list[Any], str | None]) -> str | None:
             rows, cursor = page
@@ -205,33 +237,24 @@ class KnowBe4Client:
                 )
             return cursor
 
-        return list(paginate(fetch_page, extract_items, next_cursor))
+        return list(paginate(fetch_page, extract_items, next_cursor, max_pages=self._max_pages))
 
     def _list_by_page(self, path: str, params: dict[str, str]) -> list[dict[str, Any]]:
+        record_ids: set[str] = set()
+
         def fetch_page(page: int | None) -> tuple[int, list[Any]]:
             number = page or 1
             payload, _headers = self._fetch(path, {**params, "page": number, "per_page": PER_PAGE})
             return number, payload
 
         def extract_items(page: tuple[int, list[Any]]) -> list[dict[str, Any]]:
-            return [item for item in page[1] if isinstance(item, dict)]
-
-        previous: list[list[Any]] = []
+            return _checked_records(page[1], path, record_ids)
 
         def next_cursor(page: tuple[int, list[Any]]) -> int | None:
             number, rows = page
-            if previous and rows and rows == previous[0]:
-                # Once ``page`` is retired the server can ignore it and repeat the
-                # first rows; collecting them again would duplicate evidence.
-                raise KnowBe4PaginationError(
-                    "KnowBe4 Reporting API ignored page-based paging and returned no next cursor, "
-                    "so the collection cannot be completed. The connector needs an update for "
-                    "KnowBe4's cursor pagination response."
-                )
-            previous[:] = [rows]
             return number + 1 if len(rows) >= PER_PAGE else None
 
-        return list(paginate(fetch_page, extract_items, next_cursor))
+        return list(paginate(fetch_page, extract_items, next_cursor, max_pages=self._max_pages))
 
     def _fetch(self, path: str, query: dict[str, Any]) -> tuple[list[Any], Any]:
         url = f"https://{self.host}{path}?{urllib.parse.urlencode(query)}"

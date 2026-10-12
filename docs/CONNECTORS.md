@@ -846,7 +846,7 @@ and `GET /v1/phishing/security_tests`, paged 500 rows at a time.
 must use `per_page` or `cursor`, and the first request starts pagination with `cursor=0`
 ([Reporting API reference, Pagination](https://developer.knowbe4.com/rest/reporting);
 [API Change Log, 2026-02-03](https://support.knowbe4.com/hc/en-us/articles/37449905326995-API-Change-Log)).
-As of 2026-10-07, KnowBe4 does not document where the next cursor appears in the
+As of 2026-10-12, KnowBe4 does not document where the next cursor appears in the
 response. The connector therefore works as follows:
 
 - It requests `cursor=0&per_page=500`.
@@ -856,10 +856,31 @@ response. The connector therefore works as follows:
 - A short or empty page with no next cursor ends the collection.
 - A full page with no next cursor makes the connector restart from page 1 with `page`
   paging, which KnowBe4 still accepts until the deprecation date.
-- If KnowBe4 ignores `page` and returns the same rows again, or repeats a cursor, the
+- If KnowBe4 repeats a record identity (even in overlapping or reordered pages),
+  returns a malformed identity, or repeats a cursor, the
   sync fails with an explicit error instead of storing duplicates. Accounts with more
   than 500 users or enrollments need a connector update once KnowBe4 publishes the
   cursor response format.
+
+**Cursor qualification.** On an authorized account, obtain an independent count of
+more than 500 active users, non-archived enrollments, or phishing tests. With a
+Reporting API credential available through the named environment variable (or its
+`_FILE` secret reference), run:
+
+```bash
+uv run python tools/qualify_knowbe4.py --region us --collection users \
+  --expected-count 501 --credential-ref KNOWBE4_API_TOKEN \
+  --out /private/scratch/knowbe4-cursor-receipt.json
+```
+
+Replace 501 with the independently observed count. The command makes read-only
+requests, disables legacy paging, and retains only page counts, next-link presence,
+source revision and completion status. It never writes identities, emails, keys,
+response bodies or cursor values. A full page with no next cursor, page-budget
+exhaustion, or an unexpected count cannot qualify. This is one list's pagination
+check, not all-endpoint or complete live-provider qualification. Keep failed
+receipts and confirm the response contract with KnowBe4 when no next cursor is
+available; do not infer a response field from another API.
 
 | Event                      | Pass when                                                             | Controls                                                                                                                                |
 | -------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
