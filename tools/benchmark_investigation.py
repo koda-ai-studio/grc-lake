@@ -1,4 +1,4 @@
-"""Bounded synthetic graph reads on local files; not HTTP or production capacity."""
+"""Bounded synthetic direct or loopback HTTP graph reads; not production capacity."""
 
 from __future__ import annotations
 
@@ -240,6 +240,8 @@ def attempt(args, rows, concurrency):
                     sys.executable,
                     str(Path(__file__).resolve()),
                     "--worker",
+                    "--transport",
+                    getattr(args, "transport", "direct"),
                     "--sizes",
                     str(rows),
                     "--tenants",
@@ -311,6 +313,7 @@ def main():
     parser.add_argument("--scratch", type=Path)
     parser.add_argument("--out", type=Path)
     parser.add_argument("--worker", action="store_true", help=argparse.SUPPRESS)
+    parser.add_argument("--transport", choices=("direct", "http"), default="direct")
     args = parser.parse_args()
     if (
         not all(2 <= n <= 100000 for n in args.sizes)
@@ -326,7 +329,14 @@ def main():
         )
     if args.worker:
         try:
-            result = run_workload(
+            workload = run_workload
+            if args.transport == "http":
+                # Direct script execution puts tools/, not the repo root, on sys.path.
+                sys.path.insert(0, str(ROOT))
+                from tools.benchmark_investigation_http import run_http_workload
+
+                workload = run_http_workload
+            result = workload(
                 args.scratch,
                 rows=args.sizes[0],
                 tenants=args.tenants,
@@ -335,7 +345,11 @@ def main():
                 progress_path=args.scratch / "progress.json",
             )
         except Exception as exc:  # noqa: BLE001 — worker boundary retains a failed attempt, never success
-            print(json.dumps({"correctness_ok": False, "error_type": type(exc).__name__, "failed": str(exc)}))
+            progress = args.scratch / "progress.json"
+            partial = json.loads(progress.read_text()) if progress.is_file() else {}
+            print(
+                json.dumps({"correctness_ok": False, "error_type": type(exc).__name__, "failed": str(exc), **partial})
+            )
             return 1
         print(json.dumps(result))
         return 0
@@ -371,6 +385,7 @@ def main():
             "cache": "OS and shared catalog caches uncontrolled; first means first graph call per tenant",
         },
         "configuration": {
+            "transport": args.transport,
             "tenants": args.tenants,
             "repeats": args.repeats,
             "sizes": args.sizes,
@@ -389,6 +404,26 @@ def main():
         ],
         "attempts": [],
     }
+    if args.transport == "http":
+        from importlib.metadata import version
+
+        report["http_harness_sha256"] = file_sha256(ROOT / "tools/benchmark_investigation_http.py")
+        report["configuration"]["http"] = {
+            "server_processes": 1,
+            "client_timeout_seconds": 30,
+            "auth_role": "security_admin",
+            "database": "scratch SQLite",
+            "query": {"view": "environment", "root": "own account-a asset-0", "depth": 1, "limit": 150},
+            "dependencies": {name: version(name) for name in ("fastapi", "starlette", "anyio", "uvicorn", "httpx")},
+        }
+        report["limitations"] = [
+            "Authenticated loopback HTTP, one Uvicorn process with default thread-pool and rate limits",
+            "Balanced and 4:1 skewed client submissions; client queue delay is not server scheduler delay",
+            "Client and server share one process and host; RSS and CPU include both",
+            "Synthetic normalized records, SQLite state, no evaluation jobs or provider evidence",
+            "Response body bytes exclude HTTP headers; no production fairness, SLO or capacity budget",
+            "No object-store failover, crash recovery or distributed admission qualification",
+        ]
     args.out.parent.mkdir(parents=True, exist_ok=True)
     # Reserve the path before starting; retain intermediate completed attempts.
     args.out.touch(exist_ok=False)
