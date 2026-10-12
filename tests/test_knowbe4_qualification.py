@@ -46,3 +46,33 @@ def test_page_budget_exhaustion_is_retained_as_incomplete(monkeypatch):
     assert result["status"] == "incomplete"
     assert result["error_type"] == "IncompleteCollectionError"
     assert len(result["pages"]) == 2
+
+
+def test_unresolvable_secret_stops_before_any_provider_call(monkeypatch, tmp_path):
+    import pytest
+    from tools import qualify_knowbe4
+
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "qualify",
+            "--region",
+            "us",
+            "--collection",
+            "users",
+            "--expected-count",
+            "501",
+            "--out",
+            str(tmp_path / "receipt.json"),
+        ],
+    )
+
+    def rejected(*args, **kwargs):
+        raise ValueError("secret-location-must-not-be-printed")
+
+    monkeypatch.setattr(qualify_knowbe4, "resolve_secret_ref", rejected)
+    monkeypatch.setattr(qualify_knowbe4, "qualify", lambda *a, **k: pytest.fail("provider called after secret failure"))
+    with pytest.raises(SystemExit) as exc:
+        qualify_knowbe4.main()
+    assert exc.value.code == 2
+    assert not (tmp_path / "receipt.json").exists()

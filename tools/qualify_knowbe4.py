@@ -61,6 +61,7 @@ def main():
         parser.error("qualification requires an independent baseline of more than 500 records")
     if args.out.exists():
         parser.error("choose a new receipt path; prior attempts must be retained")
+    token = None
     try:
         token = resolve_secret_ref(args.credential_ref, dict(os.environ))
     except (OSError, ValueError, RuntimeError):
