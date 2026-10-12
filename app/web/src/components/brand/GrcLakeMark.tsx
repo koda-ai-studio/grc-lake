@@ -1,12 +1,13 @@
 import { cn } from "@/lib/utils";
 import { BRAND } from "@/lib/brand";
 
+// The SVG owns its corner radius. CSS rounding clips the approved artwork.
 const SIZES = {
-  xs: "h-5 w-5 rounded-[5px]",
-  sm: "h-6 w-6 rounded-md",
-  md: "h-8 w-8 rounded-lg",
-  lg: "h-10 w-10 rounded-xl",
-  xl: "h-12 w-12 rounded-xl",
+  xs: "h-5 w-5",
+  sm: "h-6 w-6",
+  md: "h-8 w-8",
+  lg: "h-10 w-10",
+  xl: "h-12 w-12",
 } as const;
 
 type Size = keyof typeof SIZES;
