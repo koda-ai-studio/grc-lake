@@ -220,7 +220,7 @@ function CampaignDetail({ campaignId }: { campaignId: string }) {
   const decide = useDecideAccessReviewItemMutation(campaignId);
   const progress = detail.data?.progress;
   const [query, setQuery] = useState("");
-  const [view, setView] = useState("all");
+  const [view, setView] = useState("pending");
   const [expanded, setExpanded] = useState<string | null>(null);
   const [note, setNote] = useState("");
   const visibleItems = (items.data ?? []).filter(
@@ -242,6 +242,24 @@ function CampaignDetail({ campaignId }: { campaignId: string }) {
 
   return (
     <Card className="p-5">
+      <div className="mb-3 rounded-lg bg-panel p-3 text-sm">
+        <b>Next action: </b>
+        {terminal
+          ? "Review the recorded decisions and follow up on removal requests in your provider."
+          : !active
+            ? "Seed the campaign from evidence, then activate it to begin review."
+            : progress?.pending
+              ? `Review ${progress.pending} pending subjects and record a rationale.`
+              : "Review flagged decisions before completing this campaign."}
+        {detail.data?.due_at && (
+          <span className="mt-1 block text-xs text-muted">
+            Due {fmtDate(detail.data.due_at)} ·{" "}
+            {new Date(detail.data.due_at).getTime() < Date.now() && !terminal
+              ? "Overdue"
+              : "Campaign deadline"}
+          </span>
+        )}
+      </div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <CardHeader className="p-0">
           <CardTitle>{detail.data?.name ?? "Campaign"}</CardTitle>
@@ -353,7 +371,7 @@ function CampaignDetail({ campaignId }: { campaignId: string }) {
                               </dd>
                             </dl>
                             <Link
-                              href="/evidence"
+                              href={`/evidence?source=${encodeURIComponent(item.source)}`}
                               className="text-sm font-medium text-brand"
                             >
                               Browse collected evidence →
@@ -421,7 +439,11 @@ function CampaignDetail({ campaignId }: { campaignId: string }) {
                                       });
                                   }}
                                 >
-                                  {d}
+                                  {d === "certified"
+                                    ? "Certify access"
+                                    : d === "revoked"
+                                      ? "Record removal decision"
+                                      : "Flag for follow-up"}
                                 </Button>
                               ))}
                             </div>

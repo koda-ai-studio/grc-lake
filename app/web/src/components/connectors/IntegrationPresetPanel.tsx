@@ -17,7 +17,7 @@ export function IntegrationPresetPanel({ connectorId }: Props) {
       <div className="flex flex-wrap items-center gap-1.5">
         <Link2 className="h-4 w-4 text-brand" />
         <span className="text-xs font-semibold uppercase tracking-wide text-muted">
-          Integration wizard
+          Provider preparation
         </span>
         <span className="text-sm font-semibold text-ink">{preset.title}</span>
         <Badge tone="ready">{preset.authLabel}</Badge>
@@ -29,8 +29,8 @@ export function IntegrationPresetPanel({ connectorId }: Props) {
           ))}
       </div>
       <p className="mt-1 text-xs leading-5 text-muted">{preset.summary}</p>
-      <div className="mt-2 grid gap-2 md:grid-cols-2">
-        <div className="rounded-lg border border-line bg-surface px-2.5 py-2">
+      <div className="mt-2 grid gap-3">
+        <div className="py-1">
           <div className="text-xs font-semibold uppercase tracking-wide text-muted">
             Provider setup
           </div>
@@ -38,7 +38,7 @@ export function IntegrationPresetPanel({ connectorId }: Props) {
             {preset.providerSetup}
           </p>
         </div>
-        <div className="rounded-lg border border-line bg-surface px-2.5 py-2">
+        <div className="py-1">
           <div className="text-xs font-semibold uppercase tracking-wide text-muted">
             GRC Lake needs
           </div>

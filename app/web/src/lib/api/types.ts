@@ -1304,6 +1304,14 @@ export interface AuditLogEntry {
 // --- Compliance graph -------------------------------------------------------
 
 export type GraphNodeKind =
+  | "ccf_category"
+  | "ccf_family"
+  | "safeguard"
+  | "environment"
+  | "account"
+  | "source"
+  | "vendor"
+  | "finding"
   | "framework"
   | "control"
   | "evidence_type"
@@ -1327,6 +1335,10 @@ export type GraphNodeKind =
   | "evidence";
 
 export type GraphEdgeKind =
+  | "maps_to"
+  | "produces"
+  | "has_finding"
+  | "vendor_uses_asset"
   | "framework_has_control"
   | "control_requires_evidence"
   | "evidence_covers_asset"
@@ -1338,6 +1350,12 @@ export type GraphEdgeKind =
   | "requires_status_check";
 
 export interface GraphNode {
+  source_account_id?: string;
+  observed_at?: string;
+  raw_sha256?: string;
+  status?: string;
+  basis?: string;
+  next_action?: string;
   id: string;
   kind: GraphNodeKind;
   label: string;
@@ -1359,6 +1377,7 @@ export interface GraphNode {
 }
 
 export interface GraphEdge {
+  review_state?: string;
   id: string;
   source: string;
   target: string;
@@ -1369,6 +1388,21 @@ export interface ComplianceGraph {
   nodes: GraphNode[];
   edges: GraphEdge[];
   counts: Record<GraphNodeKind, number>;
+}
+
+export interface InvestigationGraph extends ComplianceGraph {
+  version: string;
+  root: string | null;
+  root_missing: boolean;
+  roots: { id: string; label: string; kind: GraphNodeKind }[];
+  root_count: number;
+  root_offset: number;
+  next_root_offset: number | null;
+  depth: number;
+  limit: number;
+  truncated: boolean;
+  matching_nodes: number;
+  boundary: string;
 }
 
 export interface CrosswalkCell {
@@ -1936,6 +1970,7 @@ export interface VendorQuestionnaireTemplate extends VendorQuestionnaireTemplate
 }
 
 export interface VendorAssessment {
+  asset_refs: { source_account_id: string; asset_id: string }[];
   id: string;
   vendor_name: string;
   template_id: string;

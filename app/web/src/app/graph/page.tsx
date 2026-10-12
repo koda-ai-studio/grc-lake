@@ -50,6 +50,7 @@ import {
   type ImperativeRef,
   type LayoutDir,
 } from "@/components/graph/GraphCanvas";
+import { InvestigationExplorer } from "@/components/graph/InvestigationExplorer";
 import { GraphNodeDrawer } from "@/components/graph/GraphNodeDrawer";
 import { useComplianceGraph, useRepositoryGraph } from "@/lib/api/hooks";
 import type { GraphNode, GraphNodeKind } from "@/lib/api/types";
@@ -86,6 +87,15 @@ const REPO_KINDS: GraphNodeKind[] = [
 ];
 
 const KIND_LABEL: Record<GraphNodeKind, string> = {
+  ccf_category: "CCF categories",
+  ccf_family: "CCF families",
+  safeguard: "Safeguards",
+  environment: "Environments",
+  account: "Accounts / projects",
+  source: "Sources / tools",
+  vendor: "Assessed vendors",
+  finding: "Findings",
+
   framework: "Frameworks",
   control: "Controls",
   evidence_type: "Evidence types",
@@ -112,6 +122,15 @@ const KIND_LABEL: Record<GraphNodeKind, string> = {
 const KIND_SWATCH: Record<GraphNodeKind, string> = GRAPH_KIND_COLOR;
 
 const KIND_ICON: Record<GraphNodeKind, LucideIcon> = {
+  ccf_category: BookOpen,
+  ccf_family: FolderTree,
+  safeguard: ShieldCheck,
+  environment: Boxes,
+  account: Boxes,
+  source: Activity,
+  vendor: Users,
+  finding: AlertTriangle,
+
   framework: BookOpen,
   control: ShieldCheck,
   evidence_type: FileText,
@@ -169,13 +188,47 @@ const SEARCH_RESULT_LIMIT = 8;
 
 export default function GraphPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="px-4 py-5 text-sm text-muted">Loading graph…</div>
-      }
-    >
-      <GraphPageContent />
+    <Suspense fallback={<p>Loading graph…</p>}>
+      <GraphWorkspace />
     </Suspense>
+  );
+}
+
+function GraphWorkspace() {
+  const params = useSearchParams();
+  const [map, setMap] = useState(Boolean(params.get("focus")));
+  return (
+    <div>
+      <div
+        className="mb-3 flex gap-2"
+        role="group"
+        aria-label="Graph workspace"
+      >
+        <Button
+          variant={!map ? "primary" : "default"}
+          onClick={() => setMap(false)}
+        >
+          Evidence investigation
+        </Button>
+        <Button
+          variant={map ? "primary" : "default"}
+          onClick={() => setMap(true)}
+        >
+          Framework and repository maps
+        </Button>
+      </div>
+      {!map ? (
+        <InvestigationExplorer />
+      ) : (
+        <Suspense
+          fallback={
+            <div className="px-4 py-5 text-sm text-muted">Loading graph…</div>
+          }
+        >
+          <GraphPageContent />
+        </Suspense>
+      )}{" "}
+    </div>
   );
 }
 

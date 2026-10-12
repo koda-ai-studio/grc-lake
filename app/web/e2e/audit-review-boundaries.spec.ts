@@ -122,6 +122,8 @@ async function review(
   });
   await page.goto("/console/access-reviews/");
   await page.getByRole("button", { name: /Quarterly review/ }).click();
+  if (options.decision && options.decision != "pending")
+    await page.getByRole("tab", { name: "Recorded decisions" }).click();
   await page.getByRole("button", { name: /Other user/ }).click();
 }
 
@@ -139,7 +141,7 @@ test("read-only review controls explain permission and cannot mutate", async ({
     page.getByRole("button", { name: "Seed from evidence" }),
   ).toBeDisabled();
   await expect(
-    page.getByRole("button", { name: "certified", exact: true }),
+    page.getByRole("button", { name: "Certify access", exact: true }),
   ).toBeDisabled();
   await expect(
     page.getByText(/Your role can view access reviews/).first(),
@@ -150,7 +152,7 @@ for (const status of ["draft", "completed", "cancelled"]) {
   test(`${status} campaign cannot record a decision`, async ({ page }) => {
     await review(page, { status });
     await expect(
-      page.getByRole("button", { name: "certified", exact: true }),
+      page.getByRole("button", { name: "Certify access", exact: true }),
     ).toBeDisabled();
     if (status !== "draft")
       await expect(
@@ -167,7 +169,7 @@ for (const status of ["draft", "completed", "cancelled"]) {
 test("recorded review decisions cannot be changed", async ({ page }) => {
   await review(page, { decision: "certified" });
   await expect(
-    page.getByRole("button", { name: "flagged", exact: true }),
+    page.getByRole("button", { name: "Flag for follow-up", exact: true }),
   ).toBeDisabled();
   await expect(
     page.getByText("Recorded decisions cannot be changed."),
@@ -179,7 +181,7 @@ test("human review requirement is inline and write failures are visible", async 
 }) => {
   await review(page, { auth: "api_key" });
   await expect(
-    page.getByRole("button", { name: "certified", exact: true }),
+    page.getByRole("button", { name: "Certify access", exact: true }),
   ).toBeDisabled();
   await expect(page.getByText(/Sign in with OIDC or SAML/)).toBeVisible();
   await page.getByRole("button", { name: "Mark completed" }).click();
@@ -349,7 +351,7 @@ test("authorized human can review a pending item in an active campaign", async (
 }) => {
   await review(page);
   await expect(
-    page.getByRole("button", { name: "certified", exact: true }),
+    page.getByRole("button", { name: "Certify access", exact: true }),
   ).toBeEnabled();
   await expect(
     page.getByRole("button", { name: "Seed from evidence" }),
@@ -366,7 +368,9 @@ test("review rationale is submitted and retained when recording fails", async ({
   const submitted = page.waitForRequest(
     (r) => r.method() === "POST" && r.url().includes("access-reviews"),
   );
-  await page.getByRole("button", { name: "certified", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Certify access", exact: true })
+    .click();
   expect((await submitted).postDataJSON()).toMatchObject({
     decision: "certified",
     note: "Manager confirmed this role is still required.",
@@ -437,6 +441,6 @@ test("activating a campaign immediately enables the human review queue", async (
   );
   await page.getByRole("button", { name: "Mark active" }).click();
   await expect(
-    page.getByRole("button", { name: "certified", exact: true }),
+    page.getByRole("button", { name: "Certify access", exact: true }),
   ).toBeEnabled({ timeout: 3000 });
 });

@@ -5,6 +5,9 @@ test("selected evidence path keeps an adjacent inspector and restores context", 
 }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("/console/graph/");
+  await page
+    .getByRole("button", { name: "Framework and repository maps" })
+    .click();
   await page.getByRole("button", { name: "Show whole framework" }).click();
   const nodes = page.locator(".react-flow__node");
   await expect.poll(() => nodes.count()).toBeGreaterThan(60);
@@ -43,9 +46,10 @@ test("selected evidence path keeps an adjacent inspector and restores context", 
 
 test("canvas nodes open details by mouse and keyboard", async ({ page }) => {
   await page.goto("/console/graph/");
-  const node = page
-    .locator(".react-flow__node")
-    .filter({ hasText: "SOC2-CC6.1" });
+  await page
+    .getByRole("button", { name: "Framework and repository maps" })
+    .click();
+  const node = page.locator('.react-flow__node[data-id="control:SOC2-CC6.1"]');
   await expect(node).toHaveCount(1);
   // A straight vertical SVG path has a zero-width bounding box even when its stroke renders.
   const edge = page.locator(".react-flow__edge-path").first();

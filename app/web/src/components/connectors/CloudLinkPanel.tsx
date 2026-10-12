@@ -222,6 +222,7 @@ export function CloudLinkPanel({
 }: Props) {
   const start = useCloudLinkStartMutation();
   const complete = useCloudLinkCompleteMutation();
+  const [cloudStep, setCloudStep] = useState(0);
   const [session, setSession] = useState<CloudLinkSession | null>(null);
   const [roleArn, setRoleArn] = useState("");
   const [subscriptionId, setSubscriptionId] = useState("");
@@ -425,6 +426,7 @@ export function CloudLinkPanel({
   };
 
   const resetSetup = () => {
+    setCloudStep(0);
     setSession(null);
     setRoleArn("");
     setSubscriptionId("");
@@ -530,25 +532,23 @@ export function CloudLinkPanel({
           : (integrationPreset?.summary ??
             linkDescription(connector.connector_id, false))}
       </p>
-      {isAwsPosture && (
-        <div
-          className="mt-3 grid grid-cols-2 gap-1.5 sm:grid-cols-4"
-          aria-label="AWS setup progress"
-        >
-          {[
-            "1. Choose scope",
-            "2. Deploy access",
-            "3. Add targets",
-            "4. Verify",
-          ].map((label, index) => (
-            <div
-              key={label}
-              className={`min-w-0 rounded-md border px-2 py-1.5 text-[11px] font-semibold leading-4 ${(!session && index === 0) || (session && index === 1) ? "border-brand bg-surface text-brand" : "border-line bg-surfaceMuted text-muted"}`}
-            >
-              <span className="block break-words">{label}</span>
-            </div>
-          ))}
-        </div>
+      {session && (
+        <nav aria-label="Cloud setup steps" className="mt-3 flex gap-2">
+          <Button
+            size="sm"
+            variant={cloudStep === 0 ? "primary" : "default"}
+            onClick={() => setCloudStep(0)}
+          >
+            1. Prepare access
+          </Button>
+          <Button
+            size="sm"
+            variant={cloudStep === 1 ? "primary" : "default"}
+            onClick={() => setCloudStep(1)}
+          >
+            2. Configure target
+          </Button>
+        </nav>
       )}
       {!session ? (
         <Button
@@ -574,544 +574,592 @@ export function CloudLinkPanel({
               enter your account identifier below.
             </p>
           )}
-          {connector.connector_id === "aws-posture" &&
-            awsDeployOptions.length > 0 && (
-              <div className="grid gap-3">
-                <div>
-                  <div className="text-xs font-semibold uppercase tracking-wide text-muted">
-                    1. Choose scope
-                  </div>
-                  <div className="mt-2 grid gap-1.5 md:grid-cols-3">
-                    {[
-                      {
-                        value: "single" as const,
-                        label: "One AWS account",
-                        detail: "Best for getting started",
-                        icon: UserRound,
-                      },
-                      {
-                        value: "organization" as const,
-                        label: "AWS Organization",
-                        detail: "Deploy across OUs",
-                        icon: Building2,
-                      },
-                      {
-                        value: "selected" as const,
-                        label: "Selected accounts",
-                        detail: "Choose specific accounts",
-                        icon: Network,
-                      },
-                    ].map((option) => {
-                      const Icon = option.icon;
-                      const selected = awsAccountScope === option.value;
-                      return (
-                        <button
-                          key={option.value}
-                          type="button"
-                          aria-pressed={selected}
-                          onClick={() => setAwsAccountScope(option.value)}
-                          className={`relative min-h-24 rounded-lg border p-2.5 text-left transition ${selected ? "border-brand bg-brand/10 ring-1 ring-brand" : "border-line bg-surface hover:border-brand/50"}`}
-                        >
-                          {selected && (
-                            <Check className="absolute right-3 top-3 h-4 w-4 text-brand" />
-                          )}
-                          <Icon className="h-4 w-4 text-brand" />
-                          <div className="mt-1.5 pr-5 text-sm font-semibold leading-5 text-ink">
-                            {option.label}
-                          </div>
-                          <div className="mt-0.5 text-xs leading-4 text-muted">
-                            {option.detail}
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-                <div className="border-t border-line pt-2.5">
-                  <div className="text-xs font-semibold uppercase tracking-wide text-muted">
-                    2. Deploy read-only access
-                  </div>
-                  <p className="mt-0.5 text-xs leading-4 text-muted">
-                    {awsAccountScope === "organization"
-                      ? "Deploy the role with CloudFormation StackSets or Terraform workspaces to the organizational units you choose."
-                      : awsAccountScope === "selected"
-                        ? "Run the deployment in each selected account, or customize the script for your existing IaC workflow."
-                        : "Run this once in the AWS account you want GRC Lake to assess."}
-                  </p>
-                </div>
-                <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
-                  <label className="grid gap-1 text-xs font-semibold uppercase tracking-wide text-muted">
-                    Deployment method
-                    <select
-                      value={effectiveAwsDeployMode}
-                      onChange={(event) =>
-                        setAwsDeployMode(event.target.value as AwsDeployMode)
-                      }
-                      className="rounded-lg border border-line bg-surface px-3 py-2 text-sm normal-case tracking-normal text-ink focus:outline-none focus:ring-1 focus:ring-brand"
-                    >
-                      {awsDeployOptions.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  {effectiveAwsDeployMode === "console" && quickCreateUrl && (
-                    <Button
-                      type="button"
-                      variant="default"
-                      size="sm"
-                      className="sm:mb-0"
-                      onClick={() =>
-                        window.open(
-                          quickCreateUrl,
-                          "_blank",
-                          "noopener,noreferrer",
-                        )
-                      }
-                    >
-                      <ExternalLink className="h-4 w-4" />
-                      Open AWS guided deploy
-                    </Button>
-                  )}
-                </div>
-                {activeAwsDeployCommand && (
-                  <div className="flex flex-wrap items-center gap-2 rounded-lg border border-line bg-surface p-2">
-                    <details className="text-xs text-muted">
-                      <summary className="cursor-pointer list-none font-semibold text-brand">
-                        View script
-                      </summary>
-                      <code className="mt-2 block max-h-32 overflow-auto whitespace-pre-wrap break-all rounded-lg border border-line bg-surface px-2 py-1.5 text-[11px] font-medium text-ink">
-                        {activeAwsDeployCommand}
-                      </code>
-                    </details>
-                    <details className="text-xs text-muted">
-                      <summary className="cursor-pointer list-none font-semibold text-ink">
-                        Customize role
-                      </summary>
-                      <label className="mt-2 grid gap-1 font-semibold text-muted">
-                        IAM role name
-                        <input
-                          value={awsRoleName}
+          {cloudStep === 0 && (
+            <div className="grid max-w-3xl gap-3">
+              {connector.connector_id === "aws-posture" &&
+                awsDeployOptions.length > 0 && (
+                  <div className="grid gap-3">
+                    <div>
+                      <div className="text-xs font-semibold uppercase tracking-wide text-muted">
+                        1. Choose scope
+                      </div>
+                      <div className="mt-2 grid gap-1.5 md:grid-cols-3">
+                        {[
+                          {
+                            value: "single" as const,
+                            label: "One AWS account",
+                            detail: "Best for getting started",
+                            icon: UserRound,
+                          },
+                          {
+                            value: "organization" as const,
+                            label: "AWS Organization",
+                            detail: "Deploy across OUs",
+                            icon: Building2,
+                          },
+                          {
+                            value: "selected" as const,
+                            label: "Selected accounts",
+                            detail: "Choose specific accounts",
+                            icon: Network,
+                          },
+                        ].map((option) => {
+                          const Icon = option.icon;
+                          const selected = awsAccountScope === option.value;
+                          return (
+                            <button
+                              key={option.value}
+                              type="button"
+                              aria-pressed={selected}
+                              onClick={() => setAwsAccountScope(option.value)}
+                              className={`relative min-h-24 rounded-lg border p-2.5 text-left transition ${selected ? "border-brand bg-brand/10 ring-1 ring-brand" : "border-line bg-surface hover:border-brand/50"}`}
+                            >
+                              {selected && (
+                                <Check className="absolute right-3 top-3 h-4 w-4 text-brand" />
+                              )}
+                              <Icon className="h-4 w-4 text-brand" />
+                              <div className="mt-1.5 pr-5 text-sm font-semibold leading-5 text-ink">
+                                {option.label}
+                              </div>
+                              <div className="mt-0.5 text-xs leading-4 text-muted">
+                                {option.detail}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    <div className="border-t border-line pt-2.5">
+                      <div className="text-xs font-semibold uppercase tracking-wide text-muted">
+                        2. Deploy read-only access
+                      </div>
+                      <p className="mt-0.5 text-xs leading-4 text-muted">
+                        {awsAccountScope === "organization"
+                          ? "Deploy the role with CloudFormation StackSets or Terraform workspaces to the organizational units you choose."
+                          : awsAccountScope === "selected"
+                            ? "Run the deployment in each selected account, or customize the script for your existing IaC workflow."
+                            : "Run this once in the AWS account you want GRC Lake to assess."}
+                      </p>
+                    </div>
+                    <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+                      <label className="grid gap-1 text-xs font-semibold uppercase tracking-wide text-muted">
+                        Deployment method
+                        <select
+                          value={effectiveAwsDeployMode}
                           onChange={(event) =>
-                            setAwsRoleName(
-                              sanitizeAwsRoleName(event.target.value),
+                            setAwsDeployMode(
+                              event.target.value as AwsDeployMode,
                             )
                           }
-                          className="rounded-lg border border-line bg-surface px-3 py-2 text-sm font-medium text-ink"
-                        />
+                          className="rounded-lg border border-line bg-surface px-3 py-2 text-sm normal-case tracking-normal text-ink focus:outline-none focus:ring-1 focus:ring-brand"
+                        >
+                          {awsDeployOptions.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
                       </label>
-                    </details>
-                    <Button
-                      type="button"
-                      variant="default"
-                      size="sm"
-                      className="ml-auto shrink-0"
-                      onClick={() => copyDeployCommand(activeAwsDeployCommand)}
-                    >
-                      <Copy className="h-4 w-4" />
-                      {effectiveAwsDeployMode === "cloudformation"
-                        ? "Copy script"
-                        : "Copy command"}
-                    </Button>
+                      {effectiveAwsDeployMode === "console" &&
+                        quickCreateUrl && (
+                          <Button
+                            type="button"
+                            variant="default"
+                            size="sm"
+                            className="sm:mb-0"
+                            onClick={() =>
+                              window.open(
+                                quickCreateUrl,
+                                "_blank",
+                                "noopener,noreferrer",
+                              )
+                            }
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                            Open AWS guided deploy
+                          </Button>
+                        )}
+                    </div>
+                    {activeAwsDeployCommand && (
+                      <div className="flex flex-wrap items-center gap-2 rounded-lg border border-line bg-surface p-2">
+                        <details className="text-xs text-muted">
+                          <summary className="cursor-pointer list-none font-semibold text-brand">
+                            View script
+                          </summary>
+                          <code className="mt-2 block max-h-32 overflow-auto whitespace-pre-wrap break-all rounded-lg border border-line bg-surface px-2 py-1.5 text-[11px] font-medium text-ink">
+                            {activeAwsDeployCommand}
+                          </code>
+                        </details>
+                        <details className="text-xs text-muted">
+                          <summary className="cursor-pointer list-none font-semibold text-ink">
+                            Customize role
+                          </summary>
+                          <label className="mt-2 grid gap-1 font-semibold text-muted">
+                            IAM role name
+                            <input
+                              value={awsRoleName}
+                              onChange={(event) =>
+                                setAwsRoleName(
+                                  sanitizeAwsRoleName(event.target.value),
+                                )
+                              }
+                              className="rounded-lg border border-line bg-surface px-3 py-2 text-sm font-medium text-ink"
+                            />
+                          </label>
+                        </details>
+                        <Button
+                          type="button"
+                          variant="default"
+                          size="sm"
+                          className="ml-auto shrink-0"
+                          onClick={() =>
+                            copyDeployCommand(activeAwsDeployCommand)
+                          }
+                        >
+                          <Copy className="h-4 w-4" />
+                          {effectiveAwsDeployMode === "cloudformation"
+                            ? "Copy script"
+                            : "Copy command"}
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 )}
-              </div>
-            )}
-          {session.consent_url && (
-            <Button
-              type="button"
-              variant="default"
-              size="sm"
-              onClick={() =>
-                window.open(
-                  session.consent_url!,
-                  "_blank",
-                  "noopener,noreferrer",
-                )
-              }
-            >
-              <ExternalLink className="h-4 w-4" />
-              Grant Azure admin consent
-            </Button>
-          )}
-          {connector.connector_id === "azure-posture" && azureDeployCommand && (
-            <div className="rounded-lg border border-line bg-surface p-2">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="min-w-0">
-                  <div className="text-xs font-semibold uppercase tracking-wide text-muted">
-                    Deploy Azure access
-                  </div>
-                </div>
+              {session.consent_url && (
                 <Button
                   type="button"
                   variant="default"
                   size="sm"
-                  className="shrink-0"
-                  onClick={() => copyDeployCommand(azureDeployCommand)}
+                  onClick={() =>
+                    window.open(
+                      session.consent_url!,
+                      "_blank",
+                      "noopener,noreferrer",
+                    )
+                  }
                 >
-                  <Copy className="h-4 w-4" />
-                  Copy Cloud Shell setup
+                  <ExternalLink className="h-4 w-4" />
+                  Grant Azure admin consent
                 </Button>
-              </div>
-              <details className="mt-2 text-xs text-muted">
-                <summary className="cursor-pointer list-none font-semibold text-brand">
-                  View command
-                </summary>
-                <code className="mt-2 block max-h-28 overflow-auto whitespace-pre-wrap break-all rounded-lg border border-line bg-surface px-2 py-1.5 text-[11px] font-medium text-ink">
-                  {azureDeployCommand}
-                </code>
-              </details>
-              <details className="mt-2 text-xs text-muted">
-                <summary className="cursor-pointer list-none font-semibold text-ink">
-                  Scale and permissions
-                </summary>
-                <div className="mt-2 grid gap-1">
-                  <p>
-                    Use subscription scope for one account, or management-group
-                    scope to cover many subscriptions.
-                  </p>
-                  <p>
-                    Required reads: role assignments, role definitions,
-                    subscriptions, policy assignments, and resources.
-                  </p>
-                </div>
-              </details>
-            </div>
-          )}
-          {connector.connector_id === "gcp-posture" &&
-            session.template_url &&
-            !deployCommand && (
-              <div className="rounded-lg border border-line bg-surface p-2">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="min-w-0">
+              )}
+              {connector.connector_id === "azure-posture" &&
+                azureDeployCommand && (
+                  <div className="rounded-lg border border-line bg-surface p-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="min-w-0">
+                        <div className="text-xs font-semibold uppercase tracking-wide text-muted">
+                          Deploy Azure access
+                        </div>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="default"
+                        size="sm"
+                        className="shrink-0"
+                        onClick={() => copyDeployCommand(azureDeployCommand)}
+                      >
+                        <Copy className="h-4 w-4" />
+                        Copy Cloud Shell setup
+                      </Button>
+                    </div>
+                    <details className="mt-2 text-xs text-muted">
+                      <summary className="cursor-pointer list-none font-semibold text-brand">
+                        View command
+                      </summary>
+                      <code className="mt-2 block max-h-28 overflow-auto whitespace-pre-wrap break-all rounded-lg border border-line bg-surface px-2 py-1.5 text-[11px] font-medium text-ink">
+                        {azureDeployCommand}
+                      </code>
+                    </details>
+                    <details className="mt-2 text-xs text-muted">
+                      <summary className="cursor-pointer list-none font-semibold text-ink">
+                        Scale and permissions
+                      </summary>
+                      <div className="mt-2 grid gap-1">
+                        <p>
+                          Use subscription scope for one account, or
+                          management-group scope to cover many subscriptions.
+                        </p>
+                        <p>
+                          Required reads: role assignments, role definitions,
+                          subscriptions, policy assignments, and resources.
+                        </p>
+                      </div>
+                    </details>
+                  </div>
+                )}
+              {connector.connector_id === "gcp-posture" &&
+                session.template_url &&
+                !deployCommand && (
+                  <div className="rounded-lg border border-line bg-surface p-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="min-w-0">
+                        <div className="text-xs font-semibold uppercase tracking-wide text-muted">
+                          Deploy GCP access
+                        </div>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="default"
+                        size="sm"
+                        className="shrink-0"
+                        onClick={() =>
+                          window.open(
+                            session.template_url!,
+                            "_blank",
+                            "noopener,noreferrer",
+                          )
+                        }
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                        Open Terraform template
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              {deployCommand && connector.connector_id === "gcp-posture" && (
+                <div className="rounded-lg border border-line bg-surface p-2">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="text-xs font-semibold uppercase tracking-wide text-muted">
                       Deploy GCP access
                     </div>
+                    <Button
+                      type="button"
+                      variant="default"
+                      size="sm"
+                      className="shrink-0"
+                      onClick={() => copyDeployCommand(deployCommand)}
+                    >
+                      <Copy className="h-4 w-4" />
+                      Copy Terraform command
+                    </Button>
                   </div>
-                  <Button
-                    type="button"
-                    variant="default"
-                    size="sm"
-                    className="shrink-0"
-                    onClick={() =>
-                      window.open(
-                        session.template_url!,
-                        "_blank",
-                        "noopener,noreferrer",
-                      )
-                    }
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                    Open Terraform template
-                  </Button>
+                  <details className="mt-2 text-xs text-muted">
+                    <summary className="cursor-pointer list-none font-semibold text-brand">
+                      View command
+                    </summary>
+                    <code className="mt-2 block max-h-28 overflow-auto whitespace-pre-wrap break-all rounded-lg border border-line bg-surface px-2 py-1.5 text-[11px] font-medium text-ink">
+                      {deployCommand}
+                    </code>
+                  </details>
                 </div>
+              )}
+              {connector.connector_id === "gcp-posture" &&
+                !hosted &&
+                !session.workload_identity_member && (
+                  <p className="text-xs text-muted">
+                    Set <code>GRC_LAKE_GCP_WIF_MEMBER</code> to include Workload
+                    Identity in the deploy command. Manual template:{" "}
+                    <code>{session.manual_template_path}</code>
+                  </p>
+                )}
+              <div className="flex gap-2">
+                <Button size="sm" onClick={resetSetup}>
+                  Restart setup
+                </Button>
+                <Button
+                  size="sm"
+                  variant="primary"
+                  onClick={() => setCloudStep(1)}
+                >
+                  Next: configure target
+                </Button>
               </div>
-            )}
-          {deployCommand && connector.connector_id === "gcp-posture" && (
-            <div className="rounded-lg border border-line bg-surface p-2">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="text-xs font-semibold uppercase tracking-wide text-muted">
-                  Deploy GCP access
+            </div>
+          )}
+          {cloudStep === 1 && (
+            <div className="grid max-w-2xl gap-3">
+              {connector.connector_id === "aws-posture" && (
+                <div className="border-t border-line pt-2.5">
+                  <div className="text-xs font-semibold uppercase tracking-wide text-muted">
+                    3. Add account targets
+                  </div>
+                  <div className="mt-1.5 grid gap-2">
+                    {awsAccountTargets.map((target, index) => (
+                      <label
+                        key={index}
+                        className="grid gap-1 text-xs font-semibold text-muted"
+                      >
+                        {awsAccountScope === "organization"
+                          ? "Management account ID or Role ARN"
+                          : awsAccountScope === "single"
+                            ? "Account ID or Role ARN"
+                            : `Account ${index + 1}`}
+                        <input
+                          value={index === 0 ? roleArn : target}
+                          onChange={(event) => {
+                            const value = event.target.value;
+                            setAwsAccountTargets((current) =>
+                              current.map((item, itemIndex) =>
+                                itemIndex === index ? value : item,
+                              ),
+                            );
+                            if (index === 0) setRoleArn(value);
+                            setFieldError(null);
+                          }}
+                          onBlur={() => {
+                            if (index === 0) {
+                              setTouched(true);
+                              setFieldError(
+                                awsRoleIdentifierError(awsRoleIdentifier),
+                              );
+                            }
+                          }}
+                          autoComplete="off"
+                          aria-invalid={index === 0 && Boolean(showFieldError)}
+                          placeholder="AWS account ID or role ARN"
+                          className="rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink focus:outline-none focus:ring-1 focus:ring-brand"
+                        />
+                      </label>
+                    ))}
+                    {awsAccountScope !== "organization" && (
+                      <Button
+                        type="button"
+                        variant="default"
+                        size="sm"
+                        className="justify-self-start"
+                        onClick={() =>
+                          setAwsAccountTargets((current) => [...current, ""])
+                        }
+                      >
+                        <Plus className="h-4 w-4" /> Add another account
+                      </Button>
+                    )}
+                  </div>
                 </div>
+              )}
+              {connector.connector_id === "aws-posture" && (
+                <details className="text-xs text-muted">
+                  <summary className="cursor-pointer list-none font-semibold uppercase tracking-wide text-ink">
+                    View permissions
+                  </summary>
+                  <div className="mt-2 grid gap-2 border-t border-line pt-2">
+                    <div className="grid gap-1 text-xs font-semibold uppercase tracking-wide text-muted">
+                      Read-only IAM posture
+                      <span
+                        aria-label="IAM posture read-only"
+                        className="font-semibold normal-case tracking-normal text-ink"
+                        title="IAM posture read-only"
+                      >
+                        iam:ListUsers, iam:ListMFADevices, iam:ListAccessKeys,
+                        iam:GetLoginProfile, iam:GetAccountPasswordPolicy,
+                        iam:GetAccountSummary
+                      </span>
+                    </div>
+                    {session.external_id && (
+                      <label className="grid gap-1 font-semibold uppercase tracking-wide text-muted">
+                        External ID
+                        <code className="break-all rounded-lg border border-line bg-surface px-2 py-1.5 font-medium normal-case tracking-normal text-ink">
+                          {session.external_id}
+                        </code>
+                      </label>
+                    )}
+                  </div>
+                </details>
+              )}
+              {connector.connector_id === "azure-posture" && (
+                <label className="grid gap-1 text-xs font-semibold uppercase tracking-wide text-muted">
+                  Azure subscription ID
+                  <input
+                    value={subscriptionId}
+                    onChange={(e) => {
+                      setSubscriptionId(
+                        sanitizeAzureSubscriptionId(e.target.value),
+                      );
+                      setFieldError(null);
+                    }}
+                    onBlur={() => {
+                      setTouched(true);
+                      setFieldError(azureSubscriptionIdError(subscriptionId));
+                    }}
+                    autoComplete="off"
+                    aria-invalid={Boolean(showFieldError)}
+                    placeholder="00000000-0000-0000-0000-000000000000"
+                    className="rounded-lg border border-line bg-surface px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-brand"
+                  />
+                  <span className="font-medium normal-case tracking-normal text-muted">
+                    Paste the subscription ID printed by setup. No Azure
+                    password or client secret is stored in {BRAND.name}.
+                  </span>
+                </label>
+              )}
+              {connector.connector_id === "gcp-posture" && (
+                <label className="grid gap-1 text-xs font-semibold uppercase tracking-wide text-muted">
+                  GCP project ID
+                  <input
+                    value={projectId}
+                    onChange={(e) => {
+                      setProjectId(sanitizeGcpProjectId(e.target.value));
+                      setFieldError(null);
+                    }}
+                    onBlur={() => {
+                      setTouched(true);
+                      setFieldError(gcpProjectIdError(projectId));
+                    }}
+                    autoComplete="off"
+                    aria-invalid={Boolean(showFieldError)}
+                    placeholder="my-gcp-project"
+                    className="rounded-lg border border-line bg-surface px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-brand"
+                  />
+                </label>
+              )}
+              {hosted && connector.connector_id === "azure-posture" && (
+                <fieldset
+                  aria-describedby="hosted-delegation-rule"
+                  className="grid gap-2 rounded-lg border border-line bg-surface p-2.5"
+                >
+                  <legend className="px-1 text-xs font-semibold uppercase tracking-wide text-muted">
+                    Your Entra app registration
+                  </legend>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    <label className="grid min-w-0 gap-1 text-xs font-semibold text-muted">
+                      Entra tenant ID
+                      <input
+                        value={azureTenantId}
+                        onChange={(e) =>
+                          setAzureTenantId(e.target.value.trim())
+                        }
+                        onBlur={() => setDelegationTouched(true)}
+                        autoComplete="off"
+                        spellCheck={false}
+                        placeholder="00000000-0000-0000-0000-000000000000"
+                        className="min-w-0 rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink focus:outline-none focus:ring-1 focus:ring-brand"
+                      />
+                    </label>
+                    <label className="grid min-w-0 gap-1 text-xs font-semibold text-muted">
+                      Application (client) ID
+                      <input
+                        value={azureClientId}
+                        onChange={(e) =>
+                          setAzureClientId(e.target.value.trim())
+                        }
+                        onBlur={() => setDelegationTouched(true)}
+                        autoComplete="off"
+                        spellCheck={false}
+                        placeholder="00000000-0000-0000-0000-000000000000"
+                        className="min-w-0 rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink focus:outline-none focus:ring-1 focus:ring-brand"
+                      />
+                    </label>
+                  </div>
+                  <div className="grid gap-2 sm:grid-cols-[minmax(0,12rem)_minmax(0,1fr)]">
+                    <label className="grid min-w-0 gap-1 text-xs font-semibold text-muted">
+                      Credential type
+                      <select
+                        value={azureSecretKind}
+                        onChange={(e) =>
+                          setAzureSecretKind(e.target.value as AzureSecretKind)
+                        }
+                        className="min-w-0 rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink focus:outline-none focus:ring-1 focus:ring-brand"
+                      >
+                        {AZURE_SECRET_KINDS.map((kind) => (
+                          <option key={kind} value={kind}>
+                            {
+                              HOSTED_CLOUD_LINK_COPY.azureSecretKinds[kind]
+                                .label
+                            }
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="grid min-w-0 gap-1 text-xs font-semibold text-muted">
+                      Environment variable name
+                      <input
+                        value={azureSecretRef}
+                        onChange={(e) =>
+                          setAzureSecretRef(e.target.value.trim())
+                        }
+                        onBlur={() => setDelegationTouched(true)}
+                        autoComplete="off"
+                        spellCheck={false}
+                        placeholder={`${refPrefix}${HOSTED_CLOUD_LINK_COPY.azureSecretKinds[azureSecretKind].suffix}`}
+                        className="min-w-0 rounded-lg border border-line bg-surface px-3 py-2 font-mono text-xs text-ink focus:outline-none focus:ring-1 focus:ring-brand"
+                      />
+                    </label>
+                  </div>
+                  <p
+                    id="hosted-delegation-rule"
+                    className="break-words text-xs leading-5 text-muted"
+                  >
+                    {HOSTED_CLOUD_LINK_COPY.refRule} Names start with{" "}
+                    <code className="break-all rounded bg-surfaceMuted px-1 text-ink">
+                      {refPrefix}
+                    </code>
+                    .
+                  </p>
+                </fieldset>
+              )}
+              {hosted && connector.connector_id === "gcp-posture" && (
+                <label className="grid gap-1 text-xs font-semibold uppercase tracking-wide text-muted">
+                  Service account to impersonate
+                  <input
+                    value={gcpServiceAccount}
+                    onChange={(e) =>
+                      setGcpServiceAccount(e.target.value.trim())
+                    }
+                    onBlur={() => setDelegationTouched(true)}
+                    autoComplete="off"
+                    spellCheck={false}
+                    placeholder="grc-lake-reader@my-gcp-project.iam.gserviceaccount.com"
+                    className="rounded-lg border border-line bg-surface px-3 py-2 text-sm normal-case tracking-normal text-ink focus:outline-none focus:ring-1 focus:ring-brand"
+                  />
+                  <span className="font-medium normal-case tracking-normal text-muted">
+                    Grant the {BRAND.name} identity Service Account Token
+                    Creator on this account; it never reads your project as
+                    itself.
+                  </span>
+                </label>
+              )}
+              {delegationTouched && delegationError && (
+                <p
+                  role="alert"
+                  className="text-xs font-semibold text-danger-fg"
+                >
+                  {delegationError}
+                </p>
+              )}
+              {showFieldError && (
+                <p className="text-xs font-semibold text-danger-fg">
+                  {showFieldError}
+                </p>
+              )}
+              {!canComplete && (
+                <p role="status" className="text-xs text-muted">
+                  {validationError ||
+                    delegationError ||
+                    "Complete the target identity to verify access."}
+                </p>
+              )}
+              <div className="flex flex-wrap items-center gap-2">
+                {connector.connector_id === "aws-posture" && (
+                  <div className="w-full text-xs font-semibold uppercase tracking-wide text-muted">
+                    4. Verify and finish
+                  </div>
+                )}
                 <Button
                   type="button"
                   variant="default"
                   size="sm"
-                  className="shrink-0"
-                  onClick={() => copyDeployCommand(deployCommand)}
+                  onClick={() => setCloudStep(0)}
+                  disabled={complete.isPending}
                 >
-                  <Copy className="h-4 w-4" />
-                  Copy Terraform command
+                  Back
+                </Button>
+                <Button
+                  type="button"
+                  variant="primary"
+                  size="sm"
+                  onClick={finish}
+                  disabled={!canComplete}
+                >
+                  {complete.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Link2 className="h-4 w-4" />
+                  )}{" "}
+                  Next: verify access
                 </Button>
               </div>
-              <details className="mt-2 text-xs text-muted">
-                <summary className="cursor-pointer list-none font-semibold text-brand">
-                  View command
-                </summary>
-                <code className="mt-2 block max-h-28 overflow-auto whitespace-pre-wrap break-all rounded-lg border border-line bg-surface px-2 py-1.5 text-[11px] font-medium text-ink">
-                  {deployCommand}
-                </code>
-              </details>
             </div>
           )}
-          {connector.connector_id === "gcp-posture" &&
-            !hosted &&
-            !session.workload_identity_member && (
-              <p className="text-xs text-muted">
-                Set <code>GRC_LAKE_GCP_WIF_MEMBER</code> to include Workload
-                Identity in the deploy command. Manual template:{" "}
-                <code>{session.manual_template_path}</code>
-              </p>
-            )}
-          {connector.connector_id === "aws-posture" && (
-            <div className="border-t border-line pt-2.5">
-              <div className="text-xs font-semibold uppercase tracking-wide text-muted">
-                3. Add account targets
-              </div>
-              <div className="mt-1.5 grid gap-2">
-                {awsAccountTargets.map((target, index) => (
-                  <label
-                    key={index}
-                    className="grid gap-1 text-xs font-semibold text-muted"
-                  >
-                    {awsAccountScope === "organization"
-                      ? "Management account ID or Role ARN"
-                      : awsAccountScope === "single"
-                        ? "Account ID or Role ARN"
-                        : `Account ${index + 1}`}
-                    <input
-                      value={index === 0 ? roleArn : target}
-                      onChange={(event) => {
-                        const value = event.target.value;
-                        setAwsAccountTargets((current) =>
-                          current.map((item, itemIndex) =>
-                            itemIndex === index ? value : item,
-                          ),
-                        );
-                        if (index === 0) setRoleArn(value);
-                        setFieldError(null);
-                      }}
-                      onBlur={() => {
-                        if (index === 0) {
-                          setTouched(true);
-                          setFieldError(
-                            awsRoleIdentifierError(awsRoleIdentifier),
-                          );
-                        }
-                      }}
-                      autoComplete="off"
-                      aria-invalid={index === 0 && Boolean(showFieldError)}
-                      placeholder="AWS account ID or role ARN"
-                      className="rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink focus:outline-none focus:ring-1 focus:ring-brand"
-                    />
-                  </label>
-                ))}
-                {awsAccountScope !== "organization" && (
-                  <Button
-                    type="button"
-                    variant="default"
-                    size="sm"
-                    className="justify-self-start"
-                    onClick={() =>
-                      setAwsAccountTargets((current) => [...current, ""])
-                    }
-                  >
-                    <Plus className="h-4 w-4" /> Add another account
-                  </Button>
-                )}
-              </div>
-            </div>
-          )}
-          {connector.connector_id === "aws-posture" && (
-            <details className="text-xs text-muted">
-              <summary className="cursor-pointer list-none font-semibold uppercase tracking-wide text-ink">
-                View permissions
-              </summary>
-              <div className="mt-2 grid gap-2 border-t border-line pt-2">
-                <div className="grid gap-1 text-xs font-semibold uppercase tracking-wide text-muted">
-                  Read-only IAM posture
-                  <span
-                    aria-label="IAM posture read-only"
-                    className="font-semibold normal-case tracking-normal text-ink"
-                    title="IAM posture read-only"
-                  >
-                    iam:ListUsers, iam:ListMFADevices, iam:ListAccessKeys,
-                    iam:GetLoginProfile, iam:GetAccountPasswordPolicy,
-                    iam:GetAccountSummary
-                  </span>
-                </div>
-                {session.external_id && (
-                  <label className="grid gap-1 font-semibold uppercase tracking-wide text-muted">
-                    External ID
-                    <code className="break-all rounded-lg border border-line bg-surface px-2 py-1.5 font-medium normal-case tracking-normal text-ink">
-                      {session.external_id}
-                    </code>
-                  </label>
-                )}
-              </div>
-            </details>
-          )}
-          {connector.connector_id === "azure-posture" && (
-            <label className="grid gap-1 text-xs font-semibold uppercase tracking-wide text-muted">
-              Azure subscription ID
-              <input
-                value={subscriptionId}
-                onChange={(e) => {
-                  setSubscriptionId(
-                    sanitizeAzureSubscriptionId(e.target.value),
-                  );
-                  setFieldError(null);
-                }}
-                onBlur={() => {
-                  setTouched(true);
-                  setFieldError(azureSubscriptionIdError(subscriptionId));
-                }}
-                autoComplete="off"
-                aria-invalid={Boolean(showFieldError)}
-                placeholder="00000000-0000-0000-0000-000000000000"
-                className="rounded-lg border border-line bg-surface px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-brand"
-              />
-              <span className="font-medium normal-case tracking-normal text-muted">
-                Paste the subscription ID printed by setup. No Azure password or
-                client secret is stored in {BRAND.name}.
-              </span>
-            </label>
-          )}
-          {connector.connector_id === "gcp-posture" && (
-            <label className="grid gap-1 text-xs font-semibold uppercase tracking-wide text-muted">
-              GCP project ID
-              <input
-                value={projectId}
-                onChange={(e) => {
-                  setProjectId(sanitizeGcpProjectId(e.target.value));
-                  setFieldError(null);
-                }}
-                onBlur={() => {
-                  setTouched(true);
-                  setFieldError(gcpProjectIdError(projectId));
-                }}
-                autoComplete="off"
-                aria-invalid={Boolean(showFieldError)}
-                placeholder="my-gcp-project"
-                className="rounded-lg border border-line bg-surface px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-brand"
-              />
-            </label>
-          )}
-          {hosted && connector.connector_id === "azure-posture" && (
-            <fieldset
-              aria-describedby="hosted-delegation-rule"
-              className="grid gap-2 rounded-lg border border-line bg-surface p-2.5"
-            >
-              <legend className="px-1 text-xs font-semibold uppercase tracking-wide text-muted">
-                Your Entra app registration
-              </legend>
-              <div className="grid gap-2 sm:grid-cols-2">
-                <label className="grid min-w-0 gap-1 text-xs font-semibold text-muted">
-                  Entra tenant ID
-                  <input
-                    value={azureTenantId}
-                    onChange={(e) => setAzureTenantId(e.target.value.trim())}
-                    onBlur={() => setDelegationTouched(true)}
-                    autoComplete="off"
-                    spellCheck={false}
-                    placeholder="00000000-0000-0000-0000-000000000000"
-                    className="min-w-0 rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink focus:outline-none focus:ring-1 focus:ring-brand"
-                  />
-                </label>
-                <label className="grid min-w-0 gap-1 text-xs font-semibold text-muted">
-                  Application (client) ID
-                  <input
-                    value={azureClientId}
-                    onChange={(e) => setAzureClientId(e.target.value.trim())}
-                    onBlur={() => setDelegationTouched(true)}
-                    autoComplete="off"
-                    spellCheck={false}
-                    placeholder="00000000-0000-0000-0000-000000000000"
-                    className="min-w-0 rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink focus:outline-none focus:ring-1 focus:ring-brand"
-                  />
-                </label>
-              </div>
-              <div className="grid gap-2 sm:grid-cols-[minmax(0,12rem)_minmax(0,1fr)]">
-                <label className="grid min-w-0 gap-1 text-xs font-semibold text-muted">
-                  Credential type
-                  <select
-                    value={azureSecretKind}
-                    onChange={(e) =>
-                      setAzureSecretKind(e.target.value as AzureSecretKind)
-                    }
-                    className="min-w-0 rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink focus:outline-none focus:ring-1 focus:ring-brand"
-                  >
-                    {AZURE_SECRET_KINDS.map((kind) => (
-                      <option key={kind} value={kind}>
-                        {HOSTED_CLOUD_LINK_COPY.azureSecretKinds[kind].label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="grid min-w-0 gap-1 text-xs font-semibold text-muted">
-                  Environment variable name
-                  <input
-                    value={azureSecretRef}
-                    onChange={(e) => setAzureSecretRef(e.target.value.trim())}
-                    onBlur={() => setDelegationTouched(true)}
-                    autoComplete="off"
-                    spellCheck={false}
-                    placeholder={`${refPrefix}${HOSTED_CLOUD_LINK_COPY.azureSecretKinds[azureSecretKind].suffix}`}
-                    className="min-w-0 rounded-lg border border-line bg-surface px-3 py-2 font-mono text-xs text-ink focus:outline-none focus:ring-1 focus:ring-brand"
-                  />
-                </label>
-              </div>
-              <p
-                id="hosted-delegation-rule"
-                className="break-words text-xs leading-5 text-muted"
-              >
-                {HOSTED_CLOUD_LINK_COPY.refRule} Names start with{" "}
-                <code className="break-all rounded bg-surfaceMuted px-1 text-ink">
-                  {refPrefix}
-                </code>
-                .
-              </p>
-            </fieldset>
-          )}
-          {hosted && connector.connector_id === "gcp-posture" && (
-            <label className="grid gap-1 text-xs font-semibold uppercase tracking-wide text-muted">
-              Service account to impersonate
-              <input
-                value={gcpServiceAccount}
-                onChange={(e) => setGcpServiceAccount(e.target.value.trim())}
-                onBlur={() => setDelegationTouched(true)}
-                autoComplete="off"
-                spellCheck={false}
-                placeholder="grc-lake-reader@my-gcp-project.iam.gserviceaccount.com"
-                className="rounded-lg border border-line bg-surface px-3 py-2 text-sm normal-case tracking-normal text-ink focus:outline-none focus:ring-1 focus:ring-brand"
-              />
-              <span className="font-medium normal-case tracking-normal text-muted">
-                Grant the {BRAND.name} identity Service Account Token Creator on
-                this account; it never reads your project as itself.
-              </span>
-            </label>
-          )}
-          {delegationTouched && delegationError && (
-            <p role="alert" className="text-xs font-semibold text-danger-fg">
-              {delegationError}
-            </p>
-          )}
-          {showFieldError && (
-            <p className="text-xs font-semibold text-danger-fg">
-              {showFieldError}
-            </p>
-          )}
-          <div className="flex flex-wrap items-center gap-2">
-            {connector.connector_id === "aws-posture" && (
-              <div className="w-full text-xs font-semibold uppercase tracking-wide text-muted">
-                4. Verify and finish
-              </div>
-            )}
-            <Button
-              type="button"
-              variant="default"
-              size="sm"
-              onClick={resetSetup}
-              disabled={complete.isPending}
-            >
-              Back
-            </Button>
-            <Button
-              type="button"
-              variant="primary"
-              size="sm"
-              onClick={finish}
-              disabled={!canComplete}
-            >
-              {complete.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Link2 className="h-4 w-4" />
-              )}{" "}
-              Next: verify access
-            </Button>
-          </div>
         </div>
       )}
     </section>

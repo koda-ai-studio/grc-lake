@@ -99,6 +99,9 @@ test("the graph page follows next_cursor and renders every page", async ({
   });
 
   await page.goto("/console/graph/");
+  await page
+    .getByRole("button", { name: "Framework and repository maps" })
+    .click();
   await expect(page.getByText("5 nodes / 4 edges").first()).toBeVisible();
   expect(requests).toEqual([
     "?limit=1000",

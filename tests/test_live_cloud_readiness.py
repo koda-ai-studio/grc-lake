@@ -548,5 +548,5 @@ def test_console_run_log_shows_partial_sync_coverage_gaps() -> None:
     )
     assert "function RunCoverageGaps" in drawer
     assert "coverage_gaps" in drawer
-    # Rendered in both the setup-tab and connected-tab run logs.
-    assert drawer.count("<RunCoverageGaps run=") == 2
+    # Rendered in cloud setup, connected cloud, and shared provider result logs.
+    assert drawer.count("<RunCoverageGaps run=") == 3

@@ -41,7 +41,9 @@ import {
   Workflow,
   type LucideIcon,
 } from "lucide-react";
+import { SOURCE_CONNECTOR } from "@/lib/evidence-source-links";
 import { GRAPH_KIND_COLOR } from "@/lib/graph-palette";
+import { ConnectorMark } from "@/components/connectors/ConnectorMark";
 import { FrameworkBadge } from "@/components/framework/FrameworkBadge";
 import type {
   ComplianceGraph,
@@ -54,6 +56,7 @@ interface GraphNodeData extends Record<string, unknown> {
   subtitle: string;
   kind: GraphNodeKind;
   layout: LayoutDir;
+  provider?: string;
   framework_id?: string;
   owner?: string;
   risk_score?: number;
@@ -74,6 +77,15 @@ const KIND_STYLE: Partial<
 
 const KIND_ICON: Partial<Record<GraphNodeKind, LucideIcon>> = {
   framework: BookOpen,
+  ccf_category: BookOpen,
+  ccf_family: FolderTree,
+  safeguard: ShieldCheck,
+  environment: Boxes,
+  account: Boxes,
+  source: Activity,
+  vendor: Users,
+  finding: AlertTriangle,
+
   control: ShieldCheck,
   evidence_type: FileText,
   asset: Server,
@@ -121,12 +133,7 @@ function GraphNodeCard({ data, selected }: NodeProps<FlowGraphNode>) {
     <Tooltip.Root delayDuration={120}>
       <Tooltip.Trigger asChild>
         <div
-          style={{
-            borderColor: selected ? "var(--color-ink)" : tone.border,
-            background: `color-mix(in srgb, ${tone.border} 8%, var(--color-surface))`,
-            borderWidth: selected ? 2 : 1.5,
-          }}
-          className={`w-[144px] max-w-[144px] rounded-lg px-2 py-1.5 transition-all ${emphasisClass(data.emphasis)}`}
+          className={`flex h-[152px] w-[176px] flex-col items-center rounded-xl px-2 py-2 text-center transition-opacity ${emphasisClass(data.emphasis)}`}
         >
           <Handle
             type="target"
@@ -150,35 +157,40 @@ function GraphNodeCard({ data, selected }: NodeProps<FlowGraphNode>) {
             }
             className="!opacity-0"
           />
-          <div className="flex items-center justify-between gap-2">
-            <span
-              className="inline-flex min-w-0 items-center gap-1 rounded-full px-1.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide"
-              style={{
-                color: `color-mix(in srgb, ${tone.chip} 55%, var(--color-ink))`,
-                background: "var(--color-surface)",
-              }}
-            >
-              <Icon className="h-4 w-4 shrink-0" />
-              <span className="truncate">{data.kind.replace("_", " ")}</span>
-            </span>
-            {data.kind === "framework" && data.framework_id && (
+          <div
+            data-testid="graph-node-icon"
+            className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full border-2 shadow-sm"
+            style={{
+              borderColor: selected ? "var(--color-ink)" : tone.border,
+              background: `color-mix(in srgb, ${tone.border} 15%, var(--color-surface))`,
+              color: tone.border,
+            }}
+          >
+            {data.kind === "framework" && data.framework_id ? (
               <FrameworkBadge
                 frameworkId={data.framework_id}
                 fallbackLabel={data.label}
                 variant="mark-only"
-                size={24}
+                size={48}
               />
+            ) : data.kind === "source" && data.provider ? (
+              <ConnectorMark
+                connectorId={SOURCE_CONNECTOR[data.provider] ?? data.provider}
+                name={data.label}
+                size="lg"
+              />
+            ) : (
+              <Icon className="h-9 w-9" />
             )}
           </div>
-          <div className="mt-1 truncate text-xs font-semibold text-ink">
+          <div className="mt-2 line-clamp-2 w-full break-words text-sm font-semibold leading-4 text-ink">
             {data.label}
           </div>
-          <div className="truncate text-[10px] text-muted">{data.subtitle}</div>
-          {data.owner && (
-            <div className="mt-1 truncate text-[10px] text-muted">
-              owner {data.owner}
-            </div>
-          )}
+          <div className="mt-1 text-[11px] text-muted">
+            {data.kind === "evidence_type"
+              ? "Evidence record"
+              : data.kind.replaceAll("_", " ")}
+          </div>
         </div>
       </Tooltip.Trigger>
       <Tooltip.Portal>
@@ -230,7 +242,7 @@ function layoutGraph(
 ): { nodes: FlowGraphNode[]; edges: Edge[] } {
   const g = new dagre.graphlib.Graph();
   g.setDefaultEdgeLabel(() => ({}));
-  g.setGraph({ rankdir, nodesep: 10, ranksep: 26, marginx: 8, marginy: 8 });
+  g.setGraph({ rankdir, nodesep: 30, ranksep: 58, marginx: 8, marginy: 8 });
 
   rfNodes.forEach((node) =>
     g.setNode(node.id, { width: NODE_W, height: NODE_H }),
@@ -252,8 +264,8 @@ function layoutGraph(
   return { nodes: laidOut, edges: rfEdges };
 }
 
-const NODE_W = 144;
-const NODE_H = 84;
+const NODE_W = 176;
+const NODE_H = 152;
 
 /**
  * Dagre puts every node of a rank on one line, so a framework with dozens of
@@ -570,6 +582,7 @@ function InnerGraphCanvas({
           subtitle: n.subtitle ?? "",
           kind: n.kind,
           layout,
+          provider: n.provider,
           framework_id: n.framework_id,
           owner: n.owner,
           risk_score: n.risk_score,
@@ -593,6 +606,9 @@ function InnerGraphCanvas({
           id: e.id,
           source: e.source,
           target: e.target,
+          label: e.review_state?.replaceAll("_", " "),
+          labelStyle: { fill: "var(--color-ink)", fontSize: 11 },
+          labelBgStyle: { fill: "var(--color-surface)" },
           animated: e.kind === "evidence_covers_asset" || onPath,
           style: {
             stroke: onPath
@@ -601,6 +617,11 @@ function InnerGraphCanvas({
                 ? "var(--color-ink)"
                 : "var(--color-line-strong)",
             strokeWidth: onPath ? 2.5 : 1.5,
+            strokeDasharray:
+              e.review_state &&
+              !["maintainer_reviewed", "org_reviewed"].includes(e.review_state)
+                ? "5 4"
+                : undefined,
             opacity: dimmed && !onPath && !onHighlight ? 0.4 : 1,
           },
         };
@@ -632,8 +653,8 @@ function InnerGraphCanvas({
         setCenter(focusX + 73, focusY + 29, { zoom: 0.9, duration: 300 });
       } else {
         fitView({
-          maxZoom: scopeIds ? 1 : 0.78,
-          padding: scopeIds ? 0.15 : 0.22,
+          maxZoom: 1,
+          padding: 0.06,
           duration: 180,
         });
       }
@@ -661,7 +682,7 @@ function InnerGraphCanvas({
     const observer = new ResizeObserver(() => {
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() =>
-        fitView({ maxZoom: scopeIds ? 1 : 0.78, padding: 0.2 }),
+        fitView({ maxZoom: 1, padding: 0.06 }),
       );
     });
     observer.observe(wrapper);
@@ -730,7 +751,7 @@ function InnerGraphCanvas({
         nodesConnectable={false}
         edgesReconnectable={false}
         fitView
-        fitViewOptions={{ maxZoom: 0.78, padding: 0.22 }}
+        fitViewOptions={{ maxZoom: 1, padding: 0.06 }}
         minZoom={0.16}
         maxZoom={1.6}
         proOptions={{ hideAttribution: true }}

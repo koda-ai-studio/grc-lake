@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FrameworkBadge } from "@/components/framework/FrameworkBadge";
 import type { GraphNode, GraphNodeKind } from "@/lib/api/types";
+import { sourceDetailHref } from "@/lib/evidence-source-links";
 import { displayLabel } from "@/lib/display";
 
 const KIND_TONE: Record<
@@ -22,6 +23,15 @@ const KIND_TONE: Record<
   "info" | "ready" | "attention" | "critical"
 > = {
   framework: "info",
+  ccf_category: "info",
+  ccf_family: "info",
+  safeguard: "ready",
+  environment: "info",
+  account: "info",
+  source: "info",
+  vendor: "attention",
+  finding: "critical",
+
   control: "ready",
   evidence_type: "attention",
   asset: "critical",
@@ -46,12 +56,21 @@ const KIND_TONE: Record<
 
 interface Props {
   node: GraphNode | null;
-  graphMode: "compliance" | "repository";
+  graphMode: "compliance" | "repository" | "investigation";
   onClose: () => void;
   onFocusPath?: () => void;
 }
 
 function primaryHref(node: GraphNode): { href: string; label: string } | null {
+  if (node.kind === "finding")
+    return { href: "/violations", label: "Review finding and remediation" };
+  if (node.kind === "vendor")
+    return { href: "/vendor-risk", label: "Review vendor assessment" };
+  if (node.kind === "source")
+    return {
+      href: sourceDetailHref(node.provider ?? node.label),
+      label: "Review source connection",
+    };
   if (node.kind === "control") {
     return { href: "/controls", label: "Open controls workbench" };
   }
@@ -118,6 +137,12 @@ export function GraphNodeDrawer({
             {node.provider && <Badge>{node.provider}</Badge>}
           </div>
 
+          {node.basis && <p className="text-sm text-muted">{node.basis}</p>}
+          {node.next_action && (
+            <p className="text-sm">
+              <b>Next action:</b> {node.next_action}
+            </p>
+          )}
           {onFocusPath && (
             <Button onClick={onFocusPath}>Focus this evidence path</Button>
           )}
@@ -133,6 +158,22 @@ export function GraphNodeDrawer({
           )}
 
           <dl className="grid grid-cols-[120px_minmax(0,1fr)] gap-x-3 gap-y-1.5 text-sm">
+            {(
+              [
+                ["Status", node.status],
+                ["Severity", node.severity],
+                ["Source account", node.source_account_id],
+                ["Observed", node.observed_at],
+                ["Evidence hash", node.raw_sha256],
+              ] as const
+            )
+              .filter(([, value]) => value)
+              .map(([label, value]) => (
+                <div key={label} className="contents">
+                  <dt className="text-muted">{label}</dt>
+                  <dd className="break-all">{value}</dd>
+                </div>
+              ))}
             <dt className="text-muted">Node id</dt>
             <dd>
               <code className="break-all text-xs">{node.id}</code>

@@ -130,8 +130,10 @@ test.describe("graph opens readable", () => {
   }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/console/graph/");
-    const scope = page.getByTestId("graph-path-scope");
-    await expect(scope).toContainText("Showing the path through", {
+    const scope = page.getByText(
+      /Recorded relationships; not network reachability/,
+    );
+    await expect(scope).toContainText("relationships", {
       timeout: 20_000,
     });
     const nodes = page.locator(".react-flow__node");
@@ -139,15 +141,16 @@ test.describe("graph opens readable", () => {
     const count = await nodes.count();
     expect(count).toBeGreaterThan(2);
     expect(count).toBeLessThanOrEqual(25);
-    await expect(page.getByText("Controls in view")).toBeVisible();
-    await expect(page.getByText(/requirements in the catalog/)).toBeVisible();
-    await expect(page.getByText("catalog totals")).toBeVisible();
+    await expect(page.getByLabel("Graph depth")).toHaveValue("2");
+    await expect(page.getByTestId("graph-node-icon")).toHaveCount(count);
   });
 
   test("on a phone the canvas starts on the first screen", async ({ page }) => {
     await page.setViewportSize(PHONE);
     await page.goto("/console/graph/");
-    await expect(page.getByTestId("graph-summary-line")).toBeVisible({
+    await expect(
+      page.getByText(/Recorded relationships; not network reachability/),
+    ).toBeVisible({
       timeout: 20_000,
     });
     await expect(page.getByText("Controls in view")).toBeHidden();

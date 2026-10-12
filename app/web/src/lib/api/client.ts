@@ -1,6 +1,7 @@
 import { isAuditorMode } from "@/lib/state/auditor";
 import { readAllGraphPages, type GraphPage } from "./graph-pages";
 import type {
+  InvestigationGraph,
   RequirementGapPage,
   BillingStatus,
   CreatedScimToken,
@@ -736,6 +737,10 @@ export const api = {
       `/v1/trust-shares/${encodeURIComponent(share_id)}/revoke`,
       {},
     ).then((b) => ({ share: b.data })),
+  investigationGraph: (params: URLSearchParams) =>
+    get<{ data: InvestigationGraph }>(`/v1/graph/investigation?${params}`).then(
+      (b) => b.data,
+    ),
   graph: () =>
     readAllGraphPages((query) =>
       get<GraphPage<ComplianceGraph>>(`/v1/graph${query}`),
@@ -1018,6 +1023,7 @@ export const api = {
     id: string,
     payload: Partial<{
       vendor_name: string;
+      asset_refs: VendorAssessment["asset_refs"];
       owner: string;
       control_id: string | null;
       due_at: string | null;
