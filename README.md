@@ -161,11 +161,18 @@ configured application storage. A source warehouse does not replace that storage
 | **Resolve**  | Assigned findings, follow-up verification, and independently reviewed decisions. |
 | **Export**   | Snapshots, workpapers, OSCAL, and scoped, revocable auditor shares.              |
 
-The console groups navigation by workflow. Findings and framework drawers resize
+The console groups navigation by workflow, with category icons and a top-mounted
+collapse control. The compact rail opens each category's pages on demand and remembers
+your preference. Findings and framework drawers resize
 and separate assessment, evidence, triage, and history into focused views.
-Lists use pagination; source operations and vendor assessments have their own
-dashboard views. Framework identities, control-family icons, and provider marks
-appear inside the console as well as in this tour.
+Lists use pagination; source operations have a focused dashboard view with
+clickable provider marks and source-specific evidence links. A compact vendor
+review summary leads to the dedicated Vendor risk workspace. Audit room leads
+with observed gaps and next actions; Trust center separates scoped sharing from
+active-link management. Framework identities, control-family icons, and provider marks
+appear inside the console as well as in this tour. The graph keeps selected-node
+details beside the canvas, with a focused evidence path and an option to restore
+the surrounding framework.
 
 ### Know what is covered
 
@@ -200,7 +207,7 @@ does not change access at the provider. Vendor assessment status describes the
 recorded review, not complete vendor coverage or certification.
 
 ![Remediation workspace](docs/images/grc-lake-demo-remediation.png)
-![Audit room readiness and evidence freshness](docs/images/grc-lake-demo-audit-room.png)
+![Audit room priorities and evaluated framework scope](docs/images/grc-lake-demo-audit-room.png)
 <img src="docs/images/grc-lake-demo-overview-mobile.png" alt="GRC Lake overview on a narrow screen" width="390" loading="lazy">
 
 </details>

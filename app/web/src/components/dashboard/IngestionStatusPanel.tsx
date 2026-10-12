@@ -1,6 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import {
+  SOURCE_CONNECTOR,
+  sourceDetailHref,
+  sourceEvidenceHref,
+} from "@/lib/evidence-source-links";
 import { ConnectorMark } from "@/components/connectors/ConnectorMark";
 import {
   DetailTabs,
@@ -37,18 +42,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { displayLabel } from "@/lib/display";
-
-const SOURCE_CONNECTOR: Record<string, string> = {
-  aws_config: "aws-posture",
-  github: "github-security",
-  "github-public-repo": "github-security",
-  "github-repo-governance": "github-security",
-  okta: "okta-identity",
-  azure: "azure-posture",
-  gcp: "gcp-posture",
-  snowflake: "snowflake-evidence-lake",
-  clickhouse: "clickhouse-telemetry-lake",
-};
 
 function toneForState(state?: string): "ready" | "attention" | "critical" {
   if (state === "active") return "ready";
@@ -353,28 +346,43 @@ export function IngestionStatusPanel({
                   {(status?.sources ?? []).length > 0 ? (
                     <PaginatedCollection label="Evidence sources">
                       {status?.sources.map((source) => (
-                        <span
+                        <div
                           key={source.source}
-                          className="flex min-w-0 items-center justify-between gap-3 rounded-md [overflow-wrap:anywhere] border border-line bg-surface px-2.5 py-1 text-xs font-semibold text-muted"
+                          className="flex min-w-0 items-center gap-2 rounded-lg border border-line bg-surface p-2"
                         >
-                          <span className="flex min-w-0 items-center gap-2">
+                          <Link
+                            href={sourceDetailHref(source.source)}
+                            aria-label={`Open ${displayLabel(source.source)} source`}
+                            className="flex min-w-0 flex-1 items-center gap-3 rounded-md text-sm font-medium text-ink hover:text-brand focus-visible:ring-2 focus-visible:ring-brand"
+                          >
                             {SOURCE_CONNECTOR[source.source] ? (
                               <ConnectorMark
                                 connectorId={SOURCE_CONNECTOR[source.source]}
-                                size="xs"
+                                size="md"
                               />
                             ) : (
-                              <Database
-                                aria-hidden="true"
-                                className="m-1.5 h-4 w-4 shrink-0 text-muted"
-                              />
+                              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-surfaceMuted">
+                                <Database
+                                  aria-hidden="true"
+                                  className="h-6 w-6 text-muted"
+                                />
+                              </span>
                             )}
-                            <span>{displayLabel(source.source)}</span>
-                          </span>
-                          <strong className="text-ink">
-                            {source.evidence_count}
-                          </strong>
-                        </span>
+                            <span className="[overflow-wrap:anywhere]">
+                              {displayLabel(source.source)}
+                            </span>
+                          </Link>
+                          <Link
+                            href={sourceEvidenceHref(source.source)}
+                            aria-label={`View ${source.evidence_count} evidence records from ${displayLabel(source.source)}`}
+                            className="shrink-0 rounded-md px-2 py-2 text-right text-xs text-muted hover:bg-surfaceMuted focus-visible:ring-2 focus-visible:ring-brand"
+                          >
+                            <strong className="block text-sm text-ink">
+                              {source.evidence_count}
+                            </strong>
+                            records
+                          </Link>
+                        </div>
                       ))}
                     </PaginatedCollection>
                   ) : (

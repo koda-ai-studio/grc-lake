@@ -6,6 +6,8 @@ import dagre from "@dagrejs/dagre";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import {
   Background,
+  Handle,
+  Position,
   Controls,
   MiniMap,
   ReactFlow,
@@ -51,6 +53,7 @@ interface GraphNodeData extends Record<string, unknown> {
   label: string;
   subtitle: string;
   kind: GraphNodeKind;
+  layout: LayoutDir;
   framework_id?: string;
   owner?: string;
   risk_score?: number;
@@ -125,6 +128,28 @@ function GraphNodeCard({ data, selected }: NodeProps<FlowGraphNode>) {
           }}
           className={`w-[144px] max-w-[144px] rounded-lg px-2 py-1.5 transition-all ${emphasisClass(data.emphasis)}`}
         >
+          <Handle
+            type="target"
+            position={
+              data.layout === "LR"
+                ? Position.Left
+                : data.layout === "BT"
+                  ? Position.Bottom
+                  : Position.Top
+            }
+            className="!opacity-0"
+          />
+          <Handle
+            type="source"
+            position={
+              data.layout === "LR"
+                ? Position.Right
+                : data.layout === "BT"
+                  ? Position.Top
+                  : Position.Bottom
+            }
+            className="!opacity-0"
+          />
           <div className="flex items-center justify-between gap-2">
             <span
               className="inline-flex min-w-0 items-center gap-1 rounded-full px-1.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide"
@@ -133,7 +158,7 @@ function GraphNodeCard({ data, selected }: NodeProps<FlowGraphNode>) {
                 background: "var(--color-surface)",
               }}
             >
-              <Icon className="h-3 w-3 shrink-0" />
+              <Icon className="h-4 w-4 shrink-0" />
               <span className="truncate">{data.kind.replace("_", " ")}</span>
             </span>
             {data.kind === "framework" && data.framework_id && (
@@ -141,7 +166,7 @@ function GraphNodeCard({ data, selected }: NodeProps<FlowGraphNode>) {
                 frameworkId={data.framework_id}
                 fallbackLabel={data.label}
                 variant="mark-only"
-                size={20}
+                size={24}
               />
             )}
           </div>
@@ -529,7 +554,7 @@ function InnerGraphCanvas({
       let emphasis: GraphNodeData["emphasis"] = "active";
       if (matchSet) emphasis = matchSet.has(n.id) ? "match" : "dimmed";
       else if (pathSet) emphasis = pathSet.nodes.has(n.id) ? "path" : "dimmed";
-      else if (highlightSet)
+      else if (highlightSet && !scopeIds)
         emphasis = highlightSet.has(n.id) ? "highlight" : "dimmed";
       return {
         id: n.id,
@@ -538,11 +563,13 @@ function InnerGraphCanvas({
           n.id === focusId
             ? "focused rounded-xl ring-2 ring-brand ring-offset-2 ring-offset-surface"
             : undefined,
+        selected: n.id === selectedId,
         position: { x: 0, y: 0 },
         data: {
           label: n.label,
           subtitle: n.subtitle ?? "",
           kind: n.kind,
+          layout,
           framework_id: n.framework_id,
           owner: n.owner,
           risk_score: n.risk_score,
@@ -555,8 +582,9 @@ function InnerGraphCanvas({
       .map((e) => {
         const onPath = pathSet?.edges.has(e.id) ?? false;
         const onHighlight =
-          highlightSet &&
-          (highlightSet.has(e.source) || highlightSet.has(e.target));
+          Boolean(scopeIds) ||
+          (highlightSet &&
+            (highlightSet.has(e.source) || highlightSet.has(e.target)));
         const dimmed =
           (matchSet && !matchSet.has(e.source) && !matchSet.has(e.target)) ||
           (pathSet && !onPath) ||
@@ -587,7 +615,9 @@ function InnerGraphCanvas({
     matchSet,
     pathSet,
     highlightSet,
+    selectedId,
     focusId,
+    scopeIds,
   ]);
 
   const focusNode = focusId ? rfNodes.find((n) => n.id === focusId) : null;
@@ -622,6 +652,24 @@ function InnerGraphCanvas({
     searchQuery,
     scopeIds,
   ]);
+
+  // Opening the adjacent inspector changes canvas width without changing nodes.
+  useEffect(() => {
+    const wrapper = wrapperRef.current;
+    if (!wrapper) return;
+    let frame = 0;
+    const observer = new ResizeObserver(() => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() =>
+        fitView({ maxZoom: scopeIds ? 1 : 0.78, padding: 0.2 }),
+      );
+    });
+    observer.observe(wrapper);
+    return () => {
+      observer.disconnect();
+      cancelAnimationFrame(frame);
+    };
+  }, [fitView, scopeIds, hydrated]);
 
   // When the search has exactly one match, recentre the viewport on it so the
   // user sees the result immediately.
@@ -662,17 +710,6 @@ function InnerGraphCanvas({
     };
   }, [graph, canvasRef]);
 
-  const handleSelectionChange = useCallback(
-    ({ nodes: selected }: { nodes: Node[] }) => {
-      const first = selected[0];
-      setSelectedId(first?.id ?? null);
-      if (!first) return onSelectNode(null);
-      const original = graph?.nodes.find((n) => n.id === first.id) ?? null;
-      onSelectNode(original);
-    },
-    [graph, onSelectNode],
-  );
-
   if (!hydrated) {
     return (
       <div className="h-[clamp(400px,calc(100dvh-300px),650px)] min-h-[400px] rounded-xl border border-line bg-surface" />
@@ -697,7 +734,22 @@ function InnerGraphCanvas({
         minZoom={0.16}
         maxZoom={1.6}
         proOptions={{ hideAttribution: true }}
-        onSelectionChange={handleSelectionChange}
+        onNodeClick={(_, node) => {
+          setSelectedId(node.id);
+          onSelectNode(
+            graph?.nodes.find((item) => item.id === node.id) ?? null,
+          );
+        }}
+        onKeyDown={(event) => {
+          if (event.key !== "Enter" && event.key !== " ") return;
+          const nodeId = (event.target as HTMLElement).closest<HTMLElement>(
+            ".react-flow__node",
+          )?.dataset.id;
+          if (!nodeId) return;
+          event.preventDefault();
+          setSelectedId(nodeId);
+          onSelectNode(graph?.nodes.find((item) => item.id === nodeId) ?? null);
+        }}
       >
         <Background gap={20} color="var(--color-line)" />
         <MiniMap

@@ -12,6 +12,13 @@ import {
   XCircle,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import {
+  DetailTabs,
+  DetailTabList,
+  DetailTab,
+} from "@/components/ui/detail-tabs";
+import { PaginatedCollection } from "@/components/ui/paginated-collection";
+import { FrameworkMark } from "@/components/framework/FrameworkMark";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
 import {
@@ -161,7 +168,7 @@ export default function TrustCenterPage() {
       )}
       <PageHeader
         title={ROUTE_LABELS["/trust-center"]}
-        description="Share your evaluated posture with customers and auditors without exposing private evidence. Every link is read-only, expires automatically, and can be revoked."
+        description="Share a scoped assessment. Control who sees it and when access expires."
         actions={
           posture.data?.assessment_hash ? (
             <Badge
@@ -178,242 +185,277 @@ export default function TrustCenterPage() {
         }
       />
 
-      <Card className="overflow-hidden">
-        <CardHeader>
-          <CardTitle>Share posture with a reviewer</CardTitle>
-          <CardDescription>
-            Pick who the link is for. Private evidence, owners, and notes are
-            never shared.
-          </CardDescription>
-        </CardHeader>
-        <div className="grid gap-4 p-4 pt-0">
-          <div
-            role="group"
-            aria-label="Share audience"
-            className="grid gap-2 md:grid-cols-3"
-          >
-            {SHARE_AUDIENCES.map((item) => {
-              const selected = audience === item.id;
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  aria-pressed={selected}
-                  disabled={!canShare}
-                  onClick={() => setAudience(item.id)}
-                  className={cn(
-                    "grid min-w-0 content-start gap-1 rounded-xl border p-4 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-brand",
-                    selected
-                      ? "border-brand bg-brand/5 ring-1 ring-brand"
-                      : "border-line bg-surface hover:border-brand/40",
-                  )}
-                >
-                  <span className="flex items-center justify-between gap-2">
-                    <span className="text-base font-semibold text-ink">
-                      {item.label}
-                    </span>
-                    {selected && (
-                      <CheckCircle2 className="h-4 w-4 shrink-0 text-brand" />
-                    )}
-                  </span>
-                  <span className="text-sm leading-5 text-muted">
-                    {item.audience}
-                  </span>
-                  <span className="mt-2 rounded-lg border border-line bg-panel p-3 text-xs leading-5 text-muted">
-                    {item.visibility}
-                  </span>
-                </button>
-              );
-            })}
-            <div className="grid min-w-0 content-start gap-1 rounded-xl border border-dashed border-line bg-surface p-4">
-              <span className="text-base font-semibold text-ink">
-                Internal team
-              </span>
-              <span className="text-sm leading-5 text-muted">
-                Security, GRC, platform, and AI owners
-              </span>
-              <span className="mt-2 rounded-lg border border-line bg-panel p-3 text-xs leading-5 text-muted">
-                Teammates sign in to the console with their own role — no share
-                link needed.{" "}
-                <Link
-                  href="/auth/#users"
-                  className="font-semibold text-brand hover:underline"
-                >
-                  Manage users
-                </Link>
-              </span>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap items-end gap-3">
-            <label className="grid w-full gap-1 text-xs font-semibold uppercase tracking-wide text-muted sm:w-[180px]">
-              Expires in
-              <select
-                aria-label="Share expiry window"
-                value={expiresInHours}
-                onChange={(e) => setExpiresInHours(Number(e.target.value))}
-                className="h-10 rounded-lg border border-line bg-surface px-3 text-sm font-semibold normal-case tracking-normal text-ink focus:outline-none focus:ring-1 focus:ring-brand"
-                disabled={!canShare}
-              >
-                {HOURS_OPTIONS.map((h) => (
-                  <option key={h} value={h}>
-                    {expiryLabel(h)}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <Button
-              variant="primary"
-              className="h-10"
-              onClick={issue}
-              disabled={createShare.isPending || !canShare}
-            >
-              {createShare.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Share2 className="h-4 w-4" />
-              )}{" "}
-              Issue share
-            </Button>
-          </div>
-
-          {createdToken && createdUrl && (
-            <div className="grid min-w-0 gap-2 rounded-xl border border-success/40 bg-success-bg p-3 text-xs text-success-fg">
-              <div className="flex flex-wrap items-center justify-between gap-2 font-semibold">
-                <span>
-                  {audienceLabel(createdToken.sensitivity_ceiling)} link — shown
-                  once, copy it now
-                </span>
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    variant="default"
-                    size="sm"
-                    onClick={() => copy(createdUrl)}
-                  >
-                    <ClipboardCopy className="h-3 w-3" /> Copy link
-                  </Button>
-                  <Button asChild variant="default" size="sm">
-                    <a
-                      href={createdUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <ExternalLink className="h-3 w-3" /> Open preview
-                    </a>
-                  </Button>
-                </div>
-              </div>
-              <code className="block break-all rounded bg-surface p-2 font-mono text-[11px] text-ink">
-                {createdUrl}
-              </code>
-              <div>
-                Expires {formatRelative(createdToken.expires_at)} (
-                {formatDateTime(createdToken.expires_at)})
-              </div>
-            </div>
-          )}
-        </div>
-      </Card>
-
-      <Card className="overflow-hidden">
-        <CardHeader>
-          <CardTitle>Access and data boundaries</CardTitle>
-          <CardDescription>
-            Recommended default: require sign-in, keep each workspace separate,
-            gate actions by role, and share externally only through expiring
-            links.
-          </CardDescription>
-        </CardHeader>
-        <div className="grid gap-2 p-4 pt-0 md:grid-cols-5">
-          {ACCESS_DEFAULTS.map((item) => (
-            <div
-              key={item.label}
-              className="rounded-xl border border-line bg-surface p-3"
-            >
-              <div className="text-xs font-semibold uppercase tracking-wide text-muted">
-                {item.label}
-              </div>
-              <div className="mt-1 text-xs leading-relaxed text-muted">
-                {item.detail}
-              </div>
-            </div>
-          ))}
-        </div>
-      </Card>
-
-      <Card className="overflow-hidden">
-        <CardHeader>
-          <CardTitle>
-            {shares.isSuccess
-              ? plural(shares.data.length, "active share")
-              : "Active shares"}
-          </CardTitle>
-          <CardDescription>
-            Revoking a link stops it working immediately and removes it from
-            this list. The revocation stays in the audit log.
-          </CardDescription>
-        </CardHeader>
-        <QueryState queries={shares} label="trust shares">
-          <div className="grid gap-2 p-5 pt-0">
-            {(shares.data ?? []).length === 0 && (
-              <EmptyState icon={Share2}>
-                No active shares. Issue a link above to share this trust report.
-              </EmptyState>
-            )}
-            {(shares.data ?? []).map((share) => (
+      <DetailTabs defaultValue="share">
+        <DetailTabList
+          label="Trust center view"
+          items={[
+            { value: "share", label: "Share report" },
+            { value: "active", label: "Active shares" },
+          ]}
+        />
+        <DetailTab
+          value="share"
+          className="items-start lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]"
+        >
+          <Card className="overflow-hidden">
+            <CardHeader>
+              <CardTitle>Share posture with a reviewer</CardTitle>
+              <CardDescription>
+                Pick who the link is for. Private evidence, owners, and notes
+                are never shared.
+              </CardDescription>
+            </CardHeader>
+            <div className="grid gap-4 p-4 pt-0">
               <div
-                key={share.share_id}
-                className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 rounded-xl border border-line bg-surface p-3 text-sm"
+                role="group"
+                aria-label="Share audience"
+                className="grid gap-2 sm:grid-cols-2"
               >
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-semibold text-ink">
-                      {audienceLabel(share.sensitivity_ceiling)}
-                    </span>
-                    <Badge tone={share.expired ? "critical" : "ready"}>
-                      {share.expired ? "Expired" : "Active"}
-                    </Badge>
-                  </div>
-                  <div className="mt-1 text-xs text-muted">
-                    Created by <b className="text-ink">{share.created_by}</b>{" "}
-                    {formatDateTime(share.created_at)} ·{" "}
-                    {share.expired ? "expired" : "expires"}{" "}
-                    {formatRelative(share.expires_at)}
-                  </div>
-                  <div className="mt-1 text-[10px] text-muted [overflow-wrap:anywhere]">
-                    ID <code className="text-ink">{share.share_id}</code> ·
-                    token hash{" "}
-                    <code className="text-ink">
-                      {share.token_sha256.slice(0, 12)}…
-                    </code>
-                  </div>
-                </div>
+                {SHARE_AUDIENCES.map((item) => {
+                  const selected = audience === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      aria-pressed={selected}
+                      disabled={!canShare}
+                      onClick={() => setAudience(item.id)}
+                      className={cn(
+                        "grid min-w-0 content-start gap-1 rounded-xl border p-4 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-brand",
+                        selected
+                          ? "border-brand bg-brand/5 ring-1 ring-brand"
+                          : "border-line bg-surface hover:border-brand/40",
+                      )}
+                    >
+                      <span className="flex items-center justify-between gap-2">
+                        <span className="text-base font-semibold text-ink">
+                          {item.label}
+                        </span>
+                        {selected && (
+                          <CheckCircle2 className="h-4 w-4 shrink-0 text-brand" />
+                        )}
+                      </span>
+                      <span className="text-sm leading-5 text-muted">
+                        {item.audience}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="flex flex-wrap items-end gap-3">
+                <label className="grid w-full gap-1 text-xs font-semibold uppercase tracking-wide text-muted sm:w-[180px]">
+                  Expires in
+                  <select
+                    aria-label="Share expiry window"
+                    value={expiresInHours}
+                    onChange={(e) => setExpiresInHours(Number(e.target.value))}
+                    className="h-10 rounded-lg border border-line bg-surface px-3 text-sm font-semibold normal-case tracking-normal text-ink focus:outline-none focus:ring-1 focus:ring-brand"
+                    disabled={!canShare}
+                  >
+                    {HOURS_OPTIONS.map((h) => (
+                      <option key={h} value={h}>
+                        {expiryLabel(h)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
                 <Button
-                  variant="default"
-                  size="sm"
-                  disabled={!canShare || revoke.isPending}
-                  onClick={async () => {
-                    if (
-                      !window.confirm(
-                        "Revoke this share link? Anyone using it will lose access.",
-                      )
-                    )
-                      return;
-                    try {
-                      await revoke.mutateAsync(share.share_id);
-                      flash("Share link revoked.");
-                    } catch (err) {
-                      flash(`Revoke failed: ${(err as Error).message}`);
-                    }
-                  }}
+                  variant="primary"
+                  className="h-10"
+                  onClick={issue}
+                  disabled={createShare.isPending || !canShare}
                 >
-                  <XCircle className="h-3 w-3" /> Revoke
+                  {createShare.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Share2 className="h-4 w-4" />
+                  )}{" "}
+                  Issue share
                 </Button>
               </div>
-            ))}
-          </div>
-        </QueryState>
-      </Card>
+
+              {createdToken && createdUrl && (
+                <div className="grid min-w-0 gap-2 rounded-xl border border-success/40 bg-success-bg p-3 text-xs text-success-fg">
+                  <div className="flex flex-wrap items-center justify-between gap-2 font-semibold">
+                    <span>
+                      {audienceLabel(createdToken.sensitivity_ceiling)} link —
+                      shown once, copy it now
+                    </span>
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        variant="default"
+                        size="sm"
+                        onClick={() => copy(createdUrl)}
+                      >
+                        <ClipboardCopy className="h-3 w-3" /> Copy link
+                      </Button>
+                      <Button asChild variant="default" size="sm">
+                        <a
+                          href={createdUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <ExternalLink className="h-3 w-3" /> Open preview
+                        </a>
+                      </Button>
+                    </div>
+                  </div>
+                  <code className="block break-all rounded bg-surface p-2 font-mono text-[11px] text-ink">
+                    {createdUrl}
+                  </code>
+                  <div>
+                    Expires {formatRelative(createdToken.expires_at)} (
+                    {formatDateTime(createdToken.expires_at)})
+                  </div>
+                </div>
+              )}
+            </div>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Shared scope</CardTitle>
+              <CardDescription>
+                {
+                  SHARE_AUDIENCES.find((item) => item.id === audience)
+                    ?.visibility
+                }
+              </CardDescription>
+            </CardHeader>
+            <div className="grid gap-4 px-4 pb-4">
+              <div
+                className="max-h-48 overflow-y-auto grid gap-3"
+                aria-label="Report frameworks"
+              >
+                {(posture.data?.frameworks ?? []).map((row) => (
+                  <div
+                    key={row.framework}
+                    className="flex items-center gap-3 text-sm"
+                  >
+                    <FrameworkMark frameworkId={row.framework} size={28} />
+                    <span>{row.framework}</span>
+                  </div>
+                ))}
+                {!posture.data?.frameworks.length && (
+                  <p className="text-sm text-muted">
+                    No evaluated frameworks yet.
+                  </p>
+                )}
+              </div>
+              <p className="border-t border-line pt-3 text-xs leading-5 text-muted">
+                Every link is read-only and expires automatically. Private
+                evidence, owners, and notes are never shared. Assessment results
+                describe observed evidence, not certification.
+              </p>
+              <details className="text-sm">
+                <summary className="cursor-pointer font-medium">
+                  Internal access and roles
+                </summary>
+                <p className="my-3 text-xs text-muted">
+                  Internal teammates sign in with their own role.{" "}
+                  <Link
+                    href="/auth/#users"
+                    className="text-brand hover:underline"
+                  >
+                    Manage users
+                  </Link>
+                </p>
+                <dl className="grid gap-3">
+                  {ACCESS_DEFAULTS.map((item) => (
+                    <div key={item.label}>
+                      <dt className="text-xs font-semibold">{item.label}</dt>
+                      <dd className="mt-1 text-xs text-muted">{item.detail}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </details>
+            </div>
+          </Card>
+        </DetailTab>
+        <DetailTab value="active">
+          <Card className="overflow-hidden">
+            <CardHeader>
+              <CardTitle>
+                {shares.isSuccess
+                  ? plural(shares.data.length, "active share")
+                  : "Active shares"}
+              </CardTitle>
+              <CardDescription>
+                Revoking a link stops it working immediately and removes it from
+                this list. The revocation stays in the audit log.
+              </CardDescription>
+            </CardHeader>
+            <QueryState queries={shares} label="trust shares">
+              <div className="grid gap-2 p-5 pt-0">
+                {(shares.data ?? []).length === 0 && (
+                  <EmptyState icon={Share2}>
+                    No active shares. Use Share report to create a reviewer
+                    link.
+                  </EmptyState>
+                )}
+                <PaginatedCollection label="Active shares" pageSize={4}>
+                  {(shares.data ?? []).map((share) => (
+                    <div
+                      key={share.share_id}
+                      className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 rounded-xl border border-line bg-surface p-3 text-sm"
+                    >
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="font-semibold text-ink">
+                            {audienceLabel(share.sensitivity_ceiling)}
+                          </span>
+                          <Badge tone={share.expired ? "critical" : "ready"}>
+                            {share.expired ? "Expired" : "Active"}
+                          </Badge>
+                        </div>
+                        <div className="mt-1 text-xs text-muted">
+                          Created by{" "}
+                          <b className="text-ink">{share.created_by}</b>{" "}
+                          {formatDateTime(share.created_at)} ·{" "}
+                          {share.expired ? "expired" : "expires"}{" "}
+                          {formatRelative(share.expires_at)}
+                        </div>
+                        <details className="mt-2 text-xs text-muted [overflow-wrap:anywhere]">
+                          <summary className="cursor-pointer">
+                            Link details
+                          </summary>
+                          ID <code className="text-ink">{share.share_id}</code>{" "}
+                          · token hash{" "}
+                          <code className="text-ink">
+                            {share.token_sha256.slice(0, 12)}…
+                          </code>
+                        </details>
+                      </div>
+                      <Button
+                        variant="default"
+                        size="sm"
+                        disabled={!canShare || revoke.isPending}
+                        onClick={async () => {
+                          if (
+                            !window.confirm(
+                              "Revoke this share link? Anyone using it will lose access.",
+                            )
+                          )
+                            return;
+                          try {
+                            await revoke.mutateAsync(share.share_id);
+                            flash("Share link revoked.");
+                          } catch (err) {
+                            flash(`Revoke failed: ${(err as Error).message}`);
+                          }
+                        }}
+                      >
+                        <XCircle className="h-3 w-3" /> Revoke
+                      </Button>
+                    </div>
+                  ))}
+                </PaginatedCollection>
+              </div>
+            </QueryState>
+          </Card>
+        </DetailTab>
+      </DetailTabs>
     </div>
   );
 }

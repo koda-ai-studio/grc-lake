@@ -126,6 +126,14 @@ test.describe("console smoke", () => {
     await expect(
       page.getByRole("heading", { level: 1, name: "Audit room" }),
     ).toBeVisible();
+    await expect(
+      page.getByRole("tab", { name: "Priorities", exact: true }),
+    ).toHaveAttribute("aria-selected", "true");
+    await expect(
+      page.getByText("How these scores are calculated"),
+    ).not.toBeVisible();
+    await page.getByRole("tab", { name: "Coverage & scores" }).click();
+    await page.getByText("How these scores are calculated").click();
     // Each metric has a definition term and a separately labelled tile.
     await expect(
       page.getByText("Audit readiness index", { exact: true }),
@@ -152,7 +160,7 @@ test.describe("console smoke", () => {
       page.getByRole("tab", { name: "Snapshots", exact: true }),
     ).toBeVisible();
     await expect(
-      page.getByRole("tab", { name: "Gaps", exact: true }),
+      page.getByRole("tab", { name: "Priorities", exact: true }),
     ).toBeVisible();
   });
 

@@ -21,6 +21,8 @@ import { ListPagination } from "@/components/ui/list-pagination";
 import { Drawer } from "@/components/ui/drawer";
 import { EntityTagsEditor } from "@/components/EntityTagsEditor";
 import { RemediationGuidance } from "@/components/remediation/RemediationGuidance";
+import { FrameworkMark } from "@/components/framework/FrameworkMark";
+import { frameworkIdFromControlId } from "@/lib/framework-visuals";
 import { severityTone } from "@/lib/severity";
 import {
   useAuthWhoami,
@@ -179,6 +181,10 @@ export function ViolationDrawer({ violation, onClose, onToast }: Props) {
         <div className="grid min-w-0 gap-6 [overflow-wrap:anywhere]">
           <section aria-label="Summary" className="grid gap-2">
             <div className="flex flex-wrap items-center gap-2">
+              <FrameworkMark
+                frameworkId={frameworkIdFromControlId(violation.control_id)}
+                size={28}
+              />
               <Badge
                 tone={severityTone(violation.severity)}
                 className="capitalize"
@@ -212,13 +218,16 @@ export function ViolationDrawer({ violation, onClose, onToast }: Props) {
             />
             <DetailTab
               value="overview"
-              className="[grid-template-columns:repeat(auto-fit,minmax(min(280px,100%),1fr))]"
+              className="items-start [grid-template-columns:repeat(auto-fit,minmax(min(280px,100%),1fr))]"
             >
-              <section aria-labelledby="finding-details" className="grid gap-2">
+              <section
+                aria-labelledby="finding-details"
+                className="grid min-w-0 content-start gap-2"
+              >
                 <h3 id="finding-details" className={SECTION_TITLE}>
                   Details
                 </h3>
-                <dl className="grid grid-cols-[7rem_minmax(0,1fr)] gap-x-3 gap-y-2 rounded-lg border border-line p-3 text-sm">
+                <dl className="grid content-start grid-cols-[7rem_minmax(0,1fr)] gap-x-3 gap-y-2 rounded-lg border border-line p-3 text-sm">
                   <dt className="text-muted">Asset</dt>
                   <dd className="min-w-0">
                     {violation.asset_name ? (
@@ -247,12 +256,15 @@ export function ViolationDrawer({ violation, onClose, onToast }: Props) {
 
               <section
                 aria-labelledby="finding-remediation"
-                className="grid gap-2"
+                className="grid min-w-0 content-start gap-2"
               >
                 <h3 id="finding-remediation" className={SECTION_TITLE}>
                   Remediation
                 </h3>
-                <RemediationGuidance controlId={violation.control_id} />
+                <RemediationGuidance
+                  controlId={violation.control_id}
+                  collapsibleSteps
+                />
                 <div className="flex flex-wrap gap-2">
                   <Button asChild size="sm">
                     <Link

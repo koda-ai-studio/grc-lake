@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { PaginatedCollection } from "@/components/ui/paginated-collection";
 import { AlertTriangle, Clock, Loader2, RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,7 +22,6 @@ import { formatMinutes, plural } from "@/lib/format";
 import { notify } from "@/lib/toast";
 
 export function EvidenceFreshnessSlaPanel() {
-  const [expanded, setExpanded] = useState(false);
   const summary = useEvidenceFreshnessSummary();
   const sources = [...(summary.data?.sources ?? [])].sort(
     (a, b) =>
@@ -53,9 +52,8 @@ export function EvidenceFreshnessSlaPanel() {
             Evidence freshness SLA
           </CardTitle>
           <CardDescription>
-            Each source has a refresh target. Stale, expired, or missing
-            evidence is flagged — escalate breaches into owner tasks for audit
-            prep.
+            Refresh expired evidence or assign its breaches to remediation
+            owners.
           </CardDescription>
         </div>
         <Button
@@ -98,54 +96,46 @@ export function EvidenceFreshnessSlaPanel() {
                 </div>
               )}
 
-              <div className="grid gap-2">
-                {sources.slice(0, expanded ? sources.length : 6).map((row) => (
-                  <div
-                    key={row.source}
-                    className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-line bg-surface px-3 py-2"
-                  >
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-sm font-semibold text-ink">
-                          {row.source}
-                        </span>
-                        <Badge
-                          tone={
-                            row.state === "action_required"
-                              ? "attention"
-                              : "ready"
-                          }
-                        >
-                          {displayLabel(row.status)}
-                        </Badge>
+              <div className="grid gap-2 md:grid-cols-2">
+                <PaginatedCollection label="Evidence sources" pageSize={4}>
+                  {sources.map((row) => (
+                    <div
+                      key={row.source}
+                      className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-line bg-surface px-3 py-2"
+                    >
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="text-sm font-semibold text-ink">
+                            {row.source}
+                          </span>
+                          <Badge
+                            tone={
+                              row.state === "action_required"
+                                ? "attention"
+                                : "ready"
+                            }
+                          >
+                            {displayLabel(row.status)}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-muted">
+                          {plural(row.evidence_count, "record")} · refresh every{" "}
+                          {formatMinutes(row.freshness_slo_minutes)}
+                        </p>
                       </div>
-                      <p className="text-xs text-muted">
-                        {plural(row.evidence_count, "record")} · refresh every{" "}
-                        {formatMinutes(row.freshness_slo_minutes)}
-                      </p>
+                      <span className="text-xs font-semibold text-muted">
+                        {plural(
+                          row.stale_count +
+                            row.expired_count +
+                            row.missing_count,
+                          "breach",
+                          "breaches",
+                        )}
+                      </span>
                     </div>
-                    <span className="text-xs font-semibold text-muted">
-                      {plural(
-                        row.stale_count + row.expired_count + row.missing_count,
-                        "breach",
-                        "breaches",
-                      )}
-                    </span>
-                  </div>
-                ))}
+                  ))}
+                </PaginatedCollection>
               </div>
-              {sources.length > 6 && (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => setExpanded(!expanded)}
-                  aria-expanded={expanded}
-                >
-                  {expanded
-                    ? "Show highest priority sources"
-                    : `Show all ${sources.length} sources`}
-                </Button>
-              )}
             </>
           )}
         </QueryState>

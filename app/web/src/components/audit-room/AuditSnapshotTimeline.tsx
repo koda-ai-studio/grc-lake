@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { Camera, Download, FileJson, Loader2 } from "lucide-react";
+import { FrameworkMark } from "@/components/framework/FrameworkMark";
+import { ListPagination } from "@/components/ui/list-pagination";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -98,6 +100,7 @@ function SnapshotDetailDrawer({
               <div className="flex flex-wrap gap-1">
                 {(detail.data.frameworks ?? []).slice(0, 8).map((fw) => (
                   <Badge key={fw.framework ?? String(fw.score)} tone="default">
+                    <FrameworkMark frameworkId={fw.framework ?? ""} size={20} />{" "}
                     {fw.framework ?? "framework"}: {fw.score ?? "—"}%
                   </Badge>
                 ))}
@@ -135,6 +138,7 @@ function SnapshotDetailDrawer({
 
 export function AuditSnapshotTimeline() {
   const snapshots = useSnapshots();
+  const [page, setPage] = useState(0);
   const createSnapshot = useSnapshotMutation();
   const auditor = useAuditorMode();
   const takeSnapshot = async () => {
@@ -151,6 +155,10 @@ export function AuditSnapshotTimeline() {
       new Date(b.evaluated_at).getTime() - new Date(a.evaluated_at).getTime(),
   );
 
+  const currentPage = Math.min(
+    page,
+    Math.max(0, Math.ceil(rows.length / 8) - 1),
+  );
   return (
     <>
       <Card>
@@ -200,49 +208,61 @@ export function AuditSnapshotTimeline() {
                     </tr>
                   </thead>
                   <tbody>
-                    {rows.map((row) => (
-                      <tr
-                        key={row.snapshot_id}
-                        className="border-b border-line/60 hover:bg-surfaceMuted/50"
-                      >
-                        <td className="py-2 pr-3 whitespace-nowrap">
-                          {shortDate(row.evaluated_at)}
-                        </td>
-                        <td className="py-2 pr-3">{row.reason}</td>
-                        <td className="py-2 pr-3 font-semibold text-ink">
-                          {row.posture_score != null
-                            ? `${row.posture_score}%`
-                            : "—"}
-                        </td>
-                        <td className="py-2 pr-3">
-                          {row.open_violation_count ?? "—"}
-                        </td>
-                        <td className="max-w-[120px] truncate py-2 pr-3 font-mono text-xs">
-                          {row.assessment_hash?.slice(0, 12)}…
-                        </td>
-                        <td className="py-2">
-                          <div className="flex gap-1">
-                            <Button
-                              size="sm"
-                              variant="default"
-                              onClick={() => setSelectedId(row.snapshot_id)}
-                            >
-                              Detail
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => exportPdf(row.snapshot_id)}
-                            >
-                              <Download className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
+                    {rows
+                      .slice(currentPage * 8, (currentPage + 1) * 8)
+                      .map((row) => (
+                        <tr
+                          key={row.snapshot_id}
+                          className="border-b border-line/60 hover:bg-surfaceMuted/50"
+                        >
+                          <td className="py-2 pr-3 whitespace-nowrap">
+                            {shortDate(row.evaluated_at)}
+                          </td>
+                          <td className="py-2 pr-3">{row.reason}</td>
+                          <td className="py-2 pr-3 font-semibold text-ink">
+                            {row.posture_score != null
+                              ? `${row.posture_score}%`
+                              : "—"}
+                          </td>
+                          <td className="py-2 pr-3">
+                            {row.open_violation_count ?? "—"}
+                          </td>
+                          <td className="max-w-[120px] truncate py-2 pr-3 font-mono text-xs">
+                            {row.assessment_hash?.slice(0, 12)}…
+                          </td>
+                          <td className="py-2">
+                            <div className="flex gap-1">
+                              <Button
+                                size="sm"
+                                variant="default"
+                                onClick={() => setSelectedId(row.snapshot_id)}
+                              >
+                                Detail
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                aria-label={`Export snapshot ${row.snapshot_id} as PDF`}
+                                onClick={() => exportPdf(row.snapshot_id)}
+                              >
+                                <Download className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
                   </tbody>
                 </table>
               </div>
+            )}
+            {rows.length > 0 && (
+              <ListPagination
+                label="Snapshots"
+                page={currentPage}
+                total={rows.length}
+                pageSize={8}
+                onPage={setPage}
+              />
             )}
             {snapshots.isFetching && (
               <div className="mt-2 flex items-center gap-2 text-xs text-muted">

@@ -105,6 +105,7 @@ function EvidencePageContent() {
   ]);
   const searchParams = useSearchParams();
   const router = useRouter();
+  const sourceFilter = searchParams.get("source") ?? "";
   const controlFilter = searchParams.get("control") ?? "";
   const clearControlFilter = () => {
     const params = new URLSearchParams(searchParams.toString());
@@ -178,6 +179,7 @@ function EvidencePageContent() {
   const filtered = useMemo(() => {
     const freshnessFilter = filters.freshness ?? "all";
     return rows.filter((e) => {
+      if (sourceFilter && e.source !== sourceFilter) return false;
       if (activeTagId && !taggedIds.has(e.event_id)) return false;
       if (controlFilter && !e.control_ids.includes(controlFilter)) return false;
       if (filters.framework !== "all") {
@@ -192,7 +194,15 @@ function EvidencePageContent() {
         return false;
       return matchesQuery(e, filters.query);
     });
-  }, [rows, filters, controlFramework, activeTagId, taggedIds, controlFilter]);
+  }, [
+    rows,
+    filters,
+    controlFramework,
+    activeTagId,
+    taggedIds,
+    controlFilter,
+    sourceFilter,
+  ]);
 
   const activeFilters = [
     Boolean(activeTagId),
@@ -421,6 +431,26 @@ function EvidencePageContent() {
           showFreshness
         />
       </FilterDisclosure>
+      {sourceFilter && (
+        <div className="flex flex-wrap items-center gap-3 text-sm">
+          <span>
+            Source: <strong>{sourceFilter}</strong>
+          </span>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => {
+              const params = new URLSearchParams(searchParams.toString());
+              params.delete("source");
+              router.replace(`/evidence/${params.size ? `?${params}` : ""}`, {
+                scroll: false,
+              });
+            }}
+          >
+            Clear source filter
+          </Button>
+        </div>
+      )}
       {controlFilter && (
         <div className="flex flex-wrap items-center gap-2 text-xs">
           <span className="inline-flex max-w-full items-center gap-2 rounded-full border border-line bg-surfaceMuted px-3 py-1 text-ink">

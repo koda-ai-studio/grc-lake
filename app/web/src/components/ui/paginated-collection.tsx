@@ -12,9 +12,11 @@ import { ListPagination } from "./list-pagination";
 export function PaginatedCollection({
   children,
   label,
+  pageSize = 8,
 }: {
   children: ReactNode;
   label: string;
+  pageSize?: number;
 }) {
   const items = Children.toArray(children);
   const [page, setPage] = useState(0);
@@ -22,7 +24,6 @@ export function PaginatedCollection({
     .map((item, index) => (isValidElement(item) ? item.key : index))
     .join("|");
   useEffect(() => setPage(0), [order]);
-  const pageSize = 8;
   const current = Math.min(
     page,
     Math.max(0, Math.ceil(items.length / pageSize) - 1),
