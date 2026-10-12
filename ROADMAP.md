@@ -5,6 +5,21 @@ Start with [current state and coverage](docs/CURRENT_STATE.md) for shipped paths
 and qualification boundaries. This roadmap describes remaining work, not promises
 of release dates.
 
+## Next milestone: audit and release
+
+Finish the current investigation and connector-workflow changes, obtain independent
+review, then audit the exact merged main and candidate artifacts using the release
+gates below. Additional provider or framework breadth is not a prerequisite for
+this milestone. Correctness, security, migration and supported-workflow regressions
+remain release blockers.
+
+After release, use operator and contributor reports to set priorities: installation,
+first connection and sync, finding investigation, access review, and audit export.
+Useful reports include the installed version, deployment mode, sanitized reproduction,
+expected versus actual behavior, and relevant counts. Do not include credentials or
+customer evidence. Qualification depth and measured capacity come before unsupported
+parity or scale claims.
+
 ## Choose a contribution
 
 Check [open issues](https://github.com/koda-ai-studio/grc-lake/issues) and
@@ -15,20 +30,21 @@ Maintainers confirm scope and review; an untracked row is not an assigned task.
 See [Contributing](CONTRIBUTING.md) for setup and checks. Never post credentials
 or real provider evidence in issues or pull requests.
 
-| Priority / slice                       | Start here                                                                                 | Complete when                                                                                                                                                         | Access / size                                 |
-| -------------------------------------- | ------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
-| Next: KnowBe4 pagination migration     | [#737](https://github.com/koda-ai-studio/grc-lake/issues/737), `connectors_knowbe4.py`     | Supported pagination handles empty/multiple pages, retries, repeated cursors and partial failures; fixtures and docs agree. Live verification is recorded separately. | Offline tests first; medium                   |
-| Next: Databricks reader qualification  | [#734](https://github.com/koda-ai-studio/grc-lake/issues/734), `connectors_databricks.py`  | Approved read-only workspace run verifies probe, paging, SQL/schema mapping, normalized identity and failure reporting; reviewer accepts sanitized results.           | Authorized workspace + reviewer; medium       |
-| Starter: branded not-found recovery    | [#768](https://github.com/koda-ai-studio/grc-lake/issues/768), `app/web/src/app/`          | Unknown console routes show a concise recovery action in the built Python-served app, with keyboard and mobile tests.                                                 | Synthetic demo; small                         |
-| Next: frozen CCF gaps in console       | `ccf_gaps.py`, `docs/CCF_REQUIREMENT_GAPS.md`, `app/web/src/app/frameworks/`               | One requirement shows missing mappings, review state and evidence gaps from its frozen generation; drift and unavailable data never appear as coverage.               | Untracked proposal; medium                    |
-| Next: one reviewed mapping slice       | [Coverage ledger](docs/FRAMEWORK_COVERAGE.md), [mapping review](docs/MAPPING_REVIEW.md)    | A named framework subset has source/version references and independent human review; stale reviews cannot count; generated coverage agrees.                           | Qualified domain reviewer; small per subset   |
-| Next: reproducible capacity baseline   | `tools/benchmark_assessment_pipeline.py`, `tools/benchmark_distributed.py`                 | Publish sanitized workload/configuration and measured latency, memory, disk and queue fairness; report saturation and failures without inferring production capacity. | Sufficient disk; medium                       |
-| Later: provider recovery qualification | [Backup/restore](docs/runbooks/BACKUP_RESTORE.md), [distributed mode](docs/DISTRIBUTED.md) | Real PostgreSQL/object-store restore and worker interruption drills preserve tenant isolation and generation identity, with measured recovery bounds.                 | Isolated deployment; large                    |
-| Later: remaining live adapter matrix   | [Connectors](docs/CONNECTORS.md), [live-cloud runbook](docs/LIVE_CLOUD_POC.md)             | Each adapter records tested scope, permission-denied behavior, pagination, replay and normalization; preview changes only with reviewed evidence.                     | Authorized vendor tenants; one adapter per PR |
+| Priority / slice                       | Start here                                                                                                                                             | Complete when                                                                                                                                                         | Access / size                                 |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| Next: KnowBe4 pagination migration     | [#737](https://github.com/koda-ai-studio/grc-lake/issues/737), `connectors_knowbe4.py`                                                                 | Supported pagination handles empty/multiple pages, retries, repeated cursors and partial failures; fixtures and docs agree. Live verification is recorded separately. | Offline tests first; medium                   |
+| Next: Databricks reader qualification  | [#734](https://github.com/koda-ai-studio/grc-lake/issues/734), `connectors_databricks.py`                                                              | Approved read-only workspace run verifies probe, paging, SQL/schema mapping, normalized identity and failure reporting; reviewer accepts sanitized results.           | Authorized workspace + reviewer; medium       |
+| Starter: branded not-found recovery    | [#768](https://github.com/koda-ai-studio/grc-lake/issues/768), `app/web/src/app/`                                                                      | Unknown console routes show a concise recovery action in the built Python-served app, with keyboard and mobile tests.                                                 | Synthetic demo; small                         |
+| Next: one reviewed mapping slice       | [#909](https://github.com/koda-ai-studio/grc-lake/issues/909), [Coverage ledger](docs/FRAMEWORK_COVERAGE.md), [mapping review](docs/MAPPING_REVIEW.md) | A named framework subset has source/version references and independent human review; stale reviews cannot count; generated coverage agrees.                           | Qualified domain reviewer; small per subset   |
+| Next: reproducible capacity baseline   | [#910](https://github.com/koda-ai-studio/grc-lake/issues/910), `tools/benchmark_assessment_pipeline.py`, `tools/benchmark_distributed.py`              | Publish sanitized workload/configuration and measured latency, memory, disk and queue fairness; report saturation and failures without inferring production capacity. | Sufficient disk; medium                       |
+| Later: provider recovery qualification | [Backup/restore](docs/runbooks/BACKUP_RESTORE.md), [distributed mode](docs/DISTRIBUTED.md)                                                             | Real PostgreSQL/object-store restore and worker interruption drills preserve tenant isolation and generation identity, with measured recovery bounds.                 | Isolated deployment; large                    |
+| Next: existing adapter qualification   | [#908](https://github.com/koda-ai-studio/grc-lake/issues/908), [Connectors](docs/CONNECTORS.md), [live-cloud runbook](docs/LIVE_CLOUD_POC.md)          | Each adapter records tested scope, permission-denied behavior, pagination, replay and normalization; preview changes only with reviewed evidence.                     | Authorized vendor tenants; one adapter per PR |
 
 Code paths without a directory prefix above are in `src/security_lakehouse/`.
 Priorities are sequencing guidance; security and correctness regressions take
 precedence. No contributor should need production credentials to run fixture tests.
+
+Public repository URL onboarding is tracked in [#911](https://github.com/koda-ai-studio/grc-lake/issues/911), reusing the existing public audit pipeline before authenticated governance enrichment.
 
 ## Coverage still incomplete
 
@@ -51,7 +67,9 @@ provider HA and production capacity remain unqualified by this audit.
 
 v0.3.3 remains a candidate. Source changes include dependency remediation,
 authentication hardening, evidence eligibility, versioned CCF governance, exact
-lineage and frozen requirement-gap explanations. See the [changelog](CHANGELOG.md)
+lineage and frozen requirement-gap explanations. The console now exposes those
+gaps and record-level investigation, with bounded graph navigation and shared
+connector setup. These are implemented source paths, not live-provider parity. See the [changelog](CHANGELOG.md)
 for merged changes and [open PRs](https://github.com/koda-ai-studio/grc-lake/pulls)
 for work still in review.
 
@@ -61,3 +79,5 @@ provenance, both container architectures, scans and authenticated behavior.
 [Scorecard evidence](docs/SCORECARD_REMEDIATION.md) have their own resolution
 criteria. Green CI does not by itself close them. Follow the
 [release gates](docs/RELEASE_READINESS.md).
+
+Before publishing the audited release candidate, refresh the README, guides, generated screenshots, and demo against that exact revision. Reconcile feature coverage by implemented breadth, tested depth, live qualification, independent mapping review, and remaining limitations; link the existing qualification backlog instead of treating catalog presence as parity.

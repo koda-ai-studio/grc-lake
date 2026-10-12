@@ -174,7 +174,8 @@ appear inside the console as well as in this tour. The graph keeps selected-node
 details beside large icon-led nodes. [Evidence investigation](docs/INVESTIGATION_GRAPH.md)
 connects exact records to controls, CCF safeguards, environments, repository context,
 findings, and explicitly linked vendor assessments. Depth and layer controls keep
-local neighborhoods bounded; mapping review state stays separate from assessment.
+local neighborhoods bounded. Expand the workspace for more room, drill into a selected
+node, and roll up to the preceding view; mapping review stays separate from assessment.
 
 Connector setup separates configuration, access testing, first sync, and result review.
 Cloud authorization separates provider preparation from target configuration. Required
