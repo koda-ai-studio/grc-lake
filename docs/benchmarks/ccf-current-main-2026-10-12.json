@@ -1,0 +1,149 @@
+{
+  "revision": "a13593ecdedf051fb7eee3783d6c7e2421629623",
+  "tracked_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "untracked_sha256": {
+    "tests/test_graph_benchmark.py": "850a3b0fc3c9d91f980ef3f04c2397fc9e33b1875ec19cca4b573c4b21c564da",
+    "tools/benchmark_investigation.py": "7f7913fdbf82c86282b9033c34c988407fb84f392f1c7ff4aa2ac683229108ed"
+  },
+  "measured_at": "2026-10-12T15:59:21.760718+00:00",
+  "python": "3.13.5",
+  "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "machine": "arm64",
+  "cpu_count": 10,
+  "scope": "Synthetic, one platform tenant, sequential fresh processes; no concurrency or authenticated providers.",
+  "bounds": {
+    "max_events": 100000,
+    "timeout_seconds_per_attempt": 600,
+    "sampled_rss_limit_mib": 4096,
+    "disk_free_floor_bytes": 5368709120,
+    "sampling_interval_seconds": 0.25
+  },
+  "fixture": {
+    "seed": 42,
+    "controls_per_event": 3,
+    "base_time": "2026-10-12T16:00:00+00:00",
+    "workload": "ccf"
+  },
+  "attempts": [
+    {
+      "events": 1000,
+      "repeat": 1,
+      "seconds": 1.521,
+      "events_per_second": 657.6,
+      "peak_rss_mib": 149.0,
+      "silver_count": 1000,
+      "integrity_ok": true,
+      "ccf_labels_ok": true,
+      "ccf_asset_count": 1000,
+      "ccf_asset_result_count": 800,
+      "ccf_status_counts": {
+        "pass": 200,
+        "not_evaluated": 200,
+        "fail": 200,
+        "stale": 200
+      },
+      "raw_sha256": "37bf0ed80814d1dec4182b7db6bf4087bfbe5d9a93b357dd581ef42acd408de1",
+      "retained_bytes": 21619855
+    },
+    {
+      "events": 1000,
+      "repeat": 2,
+      "seconds": 1.218,
+      "events_per_second": 821.3,
+      "peak_rss_mib": 142.0,
+      "silver_count": 1000,
+      "integrity_ok": true,
+      "ccf_labels_ok": true,
+      "ccf_asset_count": 1000,
+      "ccf_asset_result_count": 800,
+      "ccf_status_counts": {
+        "pass": 200,
+        "not_evaluated": 200,
+        "fail": 200,
+        "stale": 200
+      },
+      "raw_sha256": "37bf0ed80814d1dec4182b7db6bf4087bfbe5d9a93b357dd581ef42acd408de1",
+      "retained_bytes": 21619855
+    },
+    {
+      "events": 1000,
+      "repeat": 3,
+      "seconds": 1.361,
+      "events_per_second": 734.7,
+      "peak_rss_mib": 146.5,
+      "silver_count": 1000,
+      "integrity_ok": true,
+      "ccf_labels_ok": true,
+      "ccf_asset_count": 1000,
+      "ccf_asset_result_count": 800,
+      "ccf_status_counts": {
+        "pass": 200,
+        "not_evaluated": 200,
+        "fail": 200,
+        "stale": 200
+      },
+      "raw_sha256": "37bf0ed80814d1dec4182b7db6bf4087bfbe5d9a93b357dd581ef42acd408de1",
+      "retained_bytes": 21619855
+    },
+    {
+      "events": 10000,
+      "repeat": 1,
+      "seconds": 4.771,
+      "events_per_second": 2095.9,
+      "peak_rss_mib": 263.7,
+      "silver_count": 10000,
+      "integrity_ok": true,
+      "ccf_labels_ok": true,
+      "ccf_asset_count": 10000,
+      "ccf_asset_result_count": 8000,
+      "ccf_status_counts": {
+        "pass": 2000,
+        "not_evaluated": 2000,
+        "fail": 2000,
+        "stale": 2000
+      },
+      "raw_sha256": "0fc33b42184012e020debe6d9b249aa901edf1eea11dbe087d60b7b92ca2ee3f",
+      "retained_bytes": 102548657
+    },
+    {
+      "events": 10000,
+      "repeat": 2,
+      "seconds": 4.512,
+      "events_per_second": 2216.3,
+      "peak_rss_mib": 264.5,
+      "silver_count": 10000,
+      "integrity_ok": true,
+      "ccf_labels_ok": true,
+      "ccf_asset_count": 10000,
+      "ccf_asset_result_count": 8000,
+      "ccf_status_counts": {
+        "pass": 2000,
+        "not_evaluated": 2000,
+        "fail": 2000,
+        "stale": 2000
+      },
+      "raw_sha256": "0fc33b42184012e020debe6d9b249aa901edf1eea11dbe087d60b7b92ca2ee3f",
+      "retained_bytes": 102548657
+    },
+    {
+      "events": 10000,
+      "repeat": 3,
+      "seconds": 4.69,
+      "events_per_second": 2132.0,
+      "peak_rss_mib": 264.0,
+      "silver_count": 10000,
+      "integrity_ok": true,
+      "ccf_labels_ok": true,
+      "ccf_asset_count": 10000,
+      "ccf_asset_result_count": 8000,
+      "ccf_status_counts": {
+        "pass": 2000,
+        "not_evaluated": 2000,
+        "fail": 2000,
+        "stale": 2000
+      },
+      "raw_sha256": "0fc33b42184012e020debe6d9b249aa901edf1eea11dbe087d60b7b92ca2ee3f",
+      "retained_bytes": 102548657
+    }
+  ]
+}

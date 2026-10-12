@@ -1,5 +1,8 @@
 # GRC Lake validation and benchmark plan
 
+The [investigation graph workload](benchmarks/INVESTIGATION.md) measures bounded
+local reads, source-account isolation, concurrency, and explicit safety stops.
+
 **Status: validation protocol.** This document defines reproducible
 methods for evaluating GRC Lake. Existing unit tests,
 synthetic fixtures, connector availability, and configured warehouse sinks do
