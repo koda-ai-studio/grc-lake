@@ -171,8 +171,16 @@ review summary leads to the dedicated Vendor risk workspace. Audit room leads
 with observed gaps and next actions; Trust center separates scoped sharing from
 active-link management. Framework identities, control-family icons, and provider marks
 appear inside the console as well as in this tour. The graph keeps selected-node
-details beside the canvas, with a focused evidence path and an option to restore
-the surrounding framework.
+details beside large icon-led nodes. [Evidence investigation](docs/INVESTIGATION_GRAPH.md)
+connects exact records to controls, CCF safeguards, environments, repository context,
+findings, and explicitly linked vendor assessments. Depth and layer controls keep
+local neighborhoods bounded; mapping review state stays separate from assessment.
+
+Connector setup separates configuration, access testing, first sync, and result review.
+Cloud authorization separates provider preparation from target configuration. Required
+fields and permissions remain visible; advanced identity settings and schedules are
+progressively disclosed. Access reviews open on pending decisions and explain the next
+action without implying that recording a decision changes provider access.
 
 ### Know what is covered
 
@@ -196,7 +204,17 @@ human session. Agents can collect, explain, and propose work.
 </picture>
 
 <details>
-<summary>More screens: sources, access reviews, remediation, audit room, and mobile</summary>
+<summary>More screens: setup, graph, sources, access reviews, remediation, audit room, and mobile</summary>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/grc-lake-demo-connector-setup-dark.png">
+  <img src="docs/images/grc-lake-demo-connector-setup.png" alt="Provider setup with required fields, permissions, and bounded steps" width="100%" loading="lazy">
+</picture>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/grc-lake-demo-graph-dark.png">
+  <img src="docs/images/grc-lake-demo-graph.png" alt="Record-level evidence graph with large icons and a selected control inspector" width="100%" loading="lazy">
+</picture>
 
 ![Source operations with provider marks and paginated evidence sources](docs/images/grc-lake-demo-sources.png)
 ![User access review workspace](docs/images/grc-lake-demo-access-reviews.png)

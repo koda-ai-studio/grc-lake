@@ -30,7 +30,7 @@ def test_screenshots_exist() -> None:
     assert len(FULL_WIDTH_PAGES) >= 10
 
 
-DRAWER_CROPS = {"grc-lake-demo-triage", "grc-lake-demo-control-drawer"}
+DRAWER_CROPS = {"grc-lake-demo-triage", "grc-lake-demo-control-drawer", "grc-lake-demo-connector-setup"}
 MOBILE_PAGES = {"grc-lake-demo-overview-mobile"}
 
 
