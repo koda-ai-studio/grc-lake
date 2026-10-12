@@ -75,6 +75,9 @@ for (const [observed, evaluated, total] of [
     );
     await page.goto("/console/ai-governance/");
     const strip = page.getByTestId("ai-governance-strip");
+    await strip
+      .getByText("Framework coverage and evidence metrics", { exact: true })
+      .click();
     await expect(
       strip.getByRole("button", {
         name: /About AI governance indicator: .*55% AI evidence signals.*45%/,

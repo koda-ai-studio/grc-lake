@@ -198,6 +198,9 @@ test("AI governance reports observed denominators and weighted score meaning", a
   await mockAi(page);
   await page.goto("/console/ai-governance/");
   const strip = page.getByTestId("ai-governance-strip");
+  await strip
+    .getByText("Framework coverage and evidence metrics", { exact: true })
+    .click();
   await expect(
     strip.getByText("AI governance indicator", { exact: true }),
   ).toBeVisible();
@@ -230,6 +233,9 @@ for (const [observed, catalogued] of [
     await mockAi(page, observed, catalogued);
     await page.goto("/console/ai-governance/");
     const strip = page.getByTestId("ai-governance-strip");
+    await strip
+      .getByText("Framework coverage and evidence metrics", { exact: true })
+      .click();
     await expect(
       strip.getByText(
         `${observed} of ${catalogued || "unknown"} controls assessed · ${observed} passing`,
