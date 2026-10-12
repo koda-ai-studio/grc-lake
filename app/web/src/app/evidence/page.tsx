@@ -107,6 +107,7 @@ function EvidencePageContent() {
   const router = useRouter();
   const sourceFilter = searchParams.get("source") ?? "";
   const controlFilter = searchParams.get("control") ?? "";
+  const assetFilter = searchParams.get("asset") ?? "";
   const clearControlFilter = () => {
     const params = new URLSearchParams(searchParams.toString());
     params.delete("control");
@@ -180,6 +181,7 @@ function EvidencePageContent() {
     const freshnessFilter = filters.freshness ?? "all";
     return rows.filter((e) => {
       if (sourceFilter && e.source !== sourceFilter) return false;
+      if (assetFilter && e.asset_id !== assetFilter) return false;
       if (activeTagId && !taggedIds.has(e.event_id)) return false;
       if (controlFilter && !e.control_ids.includes(controlFilter)) return false;
       if (filters.framework !== "all") {
@@ -202,6 +204,7 @@ function EvidencePageContent() {
     taggedIds,
     controlFilter,
     sourceFilter,
+    assetFilter,
   ]);
 
   const activeFilters = [
@@ -211,6 +214,7 @@ function EvidencePageContent() {
     (filters.freshness ?? "all") !== "all",
     Boolean(filters.query.trim()),
     Boolean(controlFilter),
+    Boolean(assetFilter),
   ].filter(Boolean).length;
 
   const columns: SortableColumnDefs<EvidenceRow> = [
@@ -431,6 +435,30 @@ function EvidencePageContent() {
           showFreshness
         />
       </FilterDisclosure>
+      {assetFilter && (
+        <div className="flex flex-wrap items-center gap-3 text-sm">
+          <span className="[overflow-wrap:anywhere]">
+            Asset:{" "}
+            <strong>
+              {rows.find((row) => row.asset_id === assetFilter)?.asset_name ||
+                assetFilter}
+            </strong>
+          </span>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => {
+              const params = new URLSearchParams(searchParams.toString());
+              params.delete("asset");
+              router.replace(`/evidence/${params.size ? `?${params}` : ""}`, {
+                scroll: false,
+              });
+            }}
+          >
+            Clear asset filter
+          </Button>
+        </div>
+      )}
       {sourceFilter && (
         <div className="flex flex-wrap items-center gap-3 text-sm">
           <span>

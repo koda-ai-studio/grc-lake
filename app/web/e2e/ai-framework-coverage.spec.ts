@@ -75,8 +75,13 @@ for (const [observed, evaluated, total] of [
     );
     await page.goto("/console/ai-governance/");
     const strip = page.getByTestId("ai-governance-strip");
+    await expect(
+      page
+        .getByRole("region", { name: "AI framework coverage" })
+        .getByText("Test AI framework", { exact: true }),
+    ).toBeVisible();
     await strip
-      .getByText("Framework coverage and evidence metrics", { exact: true })
+      .getByText("Scoring and coverage methodology", { exact: true })
       .click();
     await expect(
       strip.getByRole("button", {
@@ -86,7 +91,7 @@ for (const [observed, evaluated, total] of [
     // One summary line, worded like the Overview framework rows.
     await expect(
       strip.getByText(
-        `${observed} of ${total ?? "unknown"} controls assessed${
+        `${observed} of ${total ?? "unknown"} controls observed${
           evaluated && evaluated > 1 ? ` · ${evaluated - 1} failing` : ""
         } · 1 passing`,
         { exact: true },

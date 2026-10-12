@@ -7,7 +7,7 @@ Python package, Helm chart, and bundled web console.
 
 - Replace evidence-type graph fanout with exact, source-account-scoped record bindings. Add bounded CCF, environment, repository, finding, source and explicit vendor relationships, plus paginated roots and version-checked navigation. Evidence node IDs now identify records; old type-only links must be refreshed.
 - Add an expanded icon-led graph workspace with continuous directional connections, drill-down, parent roll-up, and readable adjacent details. Redesign shared connector setup around configuration, access testing, first sync and results; clarify findings and pending access-review decisions.
-- Show repository evidence outcomes and linked control impact, keep unobservable public settings distinct from failures, and lead AI governance with actionable gaps and expandable detail.
+- Show repository evidence outcomes and linked control impact, keep unobservable public settings distinct from failures, and show AI models, evidence gaps, linked controls and next steps alongside current framework coverage. Preserve the approved logo corners without CSS clipping.
 - Store explicit vendor asset references with migration 0031. Refresh the investigation guide, product screenshots, coverage boundaries and contribution roadmap.
 
 - Preserve evidence eligibility across freshness, control tests and workpapers: observed inventory cannot refresh a stale verdict, and unavailable evidence cannot supply design or sample credit. Correct order-dependent CCF ambiguity totals.

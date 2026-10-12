@@ -199,7 +199,7 @@ test("AI governance reports observed denominators and weighted score meaning", a
   await page.goto("/console/ai-governance/");
   const strip = page.getByTestId("ai-governance-strip");
   await strip
-    .getByText("Framework coverage and evidence metrics", { exact: true })
+    .getByText("Scoring and coverage methodology", { exact: true })
     .click();
   await expect(
     strip.getByText("AI governance indicator", { exact: true }),
@@ -209,7 +209,7 @@ test("AI governance reports observed denominators and weighted score meaning", a
       name: /About AI governance indicator: .*55% AI evidence signals.*45%/,
     }),
   ).toBeVisible();
-  await expect(strip.getByText(/controls assessed/).first()).toBeVisible();
+  await expect(strip.getByText(/controls observed/).first()).toBeVisible();
 });
 
 test("assessment wording distinguishes lake evaluation from live provider proof", async ({
@@ -234,11 +234,11 @@ for (const [observed, catalogued] of [
     await page.goto("/console/ai-governance/");
     const strip = page.getByTestId("ai-governance-strip");
     await strip
-      .getByText("Framework coverage and evidence metrics", { exact: true })
+      .getByText("Scoring and coverage methodology", { exact: true })
       .click();
     await expect(
       strip.getByText(
-        `${observed} of ${catalogued || "unknown"} controls assessed · ${observed} passing`,
+        `${observed} of ${catalogued || "unknown"} controls observed · ${observed} passing`,
         { exact: true },
       ),
     ).toBeVisible();
