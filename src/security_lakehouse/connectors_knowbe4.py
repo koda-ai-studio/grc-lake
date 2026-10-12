@@ -104,7 +104,7 @@ PHISHING_CONTROLS = ["FEDRAMP-AT-2", "CMMC-3.2.1", "ISO27001-A.6.3", "NIST-CSF-P
 
 
 class KnowBe4RateLimitedError(ConnectorAccessError):
-    """KnowBe4 kept answering 429 past the shared backoff budget; retry the sync later."""
+    """KnowBe4 rate limiting cannot be resolved within the retry budget."""
 
 
 class KnowBe4PaginationError(ConnectorAccessError):
@@ -240,7 +240,7 @@ class KnowBe4Client:
         except urllib.error.HTTPError as exc:
             if exc.code == 429:
                 raise KnowBe4RateLimitedError(
-                    "KnowBe4 Reporting API rate limit reached (HTTP 429) and retries were exhausted. "
+                    "KnowBe4 Reporting API rate limit reached (HTTP 429); cannot continue within the retry budget. "
                     "KnowBe4 burst lockouts last about five minutes and the daily quota resets about "
                     "24 hours after the first request; retry the sync later."
                 ) from None
