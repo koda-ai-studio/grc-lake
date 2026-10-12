@@ -74,3 +74,33 @@ def read_result(lake: Path, operation_id: str, tenant_id: str) -> dict[str, Any]
     ):
         raise ValueError("operation result failed integrity verification")
     return record
+
+
+def failure_response(operation_id: str, exc: Exception) -> tuple[int, dict[str, Any]]:
+    """Classify an uncertain execution without leaking exception text or replaying it."""
+    from sqlalchemy.exc import SQLAlchemyError
+
+    from security_lakehouse.distributed.catalog import Conflict
+    from security_lakehouse.distributed.objects import IntegrityError
+    from security_lakehouse.distributed.recovery import failure_code
+
+    code = failure_code(exc)
+    if isinstance(exc, Conflict):
+        code, status = "writer_conflict", 409
+    elif isinstance(exc, IntegrityError):
+        status = 409
+    elif isinstance(exc, (OSError, SQLAlchemyError)) or code == "missing_object":
+        status = 503
+    else:
+        code, status = "operation_failed", 500
+    return status, {
+        "data": None,
+        "errors": [
+            {"code": code, "detail": "operation failed; inspect result receipt or domain history before retrying"}
+        ],
+        "meta": {
+            "publication": "unknown",
+            "recovery": "inspect_receipt_or_history",
+            "result_url": f"/api/v1/operations/{operation_id}/result",
+        },
+    }

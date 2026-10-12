@@ -31,6 +31,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from security_lakehouse.auth.rbac import Identity
 from security_lakehouse.db.models import OperationJob
 from security_lakehouse.ledger import chain_lock
+from security_lakehouse.operation_receipts import failure_response
 from security_lakehouse.tenancy import root_key
 
 _LOG = logging.getLogger(__name__)
@@ -629,11 +630,9 @@ def _subprocess_entry(root: Path, row: OperationJob, execute, connection, timeou
             if not queue.owns_claim(row):
                 return
             connection.send(execute(root, row))
-    except Exception:  # noqa: BLE001 - isolated job boundary; logged and returned as 500
+    except Exception as exc:  # noqa: BLE001 - isolated job boundary; record uncertain outcome
         _LOG.exception("isolated operation %s failed", row.id)
-        connection.send(
-            (500, {"data": None, "errors": [{"detail": "operation failed; inspect operator logs"}], "meta": {}})
-        )
+        connection.send(failure_response(row.id, exc))
     finally:
         signal.setitimer(signal.ITIMER_REAL, 0)
         connection.close()
@@ -834,12 +833,9 @@ class JobWorker:
                     return
                 try:
                     code, response = self.execute(row)
-                except Exception:  # noqa: BLE001 - job execution boundary; logged and recorded as 500
+                except Exception as exc:  # noqa: BLE001 - job execution boundary; record uncertain outcome
                     _LOG.exception("operation %s failed", row.id)
-                    code, response = (
-                        500,
-                        {"data": None, "errors": [{"detail": "operation failed; inspect operator logs"}], "meta": {}},
-                    )
+                    code, response = failure_response(row.id, exc)
                 self.queue.finish(row, code, response)
         finally:
             done.set()

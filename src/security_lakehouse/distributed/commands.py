@@ -13,12 +13,16 @@ from pathlib import Path
 def register(subparsers):
     cluster = subparsers.add_parser("cluster", help="distributed PostgreSQL/S3 cluster operations")
     commands = cluster.add_subparsers(dest="cluster_command", required=True)
-    for name in ("init", "status", "import", "worker", "partitions"):
+    for name in ("init", "status", "inspect", "import", "worker", "partitions"):
         command = commands.add_parser(name)
         command.add_argument("--lake", default="/lake", help="replica-private scratch directory")
         command.set_defaults(func=run)
-        if name in {"status", "import", "partitions"}:
+        if name in {"status", "inspect", "import", "partitions"}:
             command.add_argument("--tenant-id", required=True)
+        if name == "inspect":
+            command.add_argument("--max-objects", type=int, default=10000)
+            command.add_argument("--max-bytes", type=int, default=1024**3)
+            command.add_argument("--max-seconds", type=float, default=120)
         if name == "import":
             command.add_argument("--source", required=True, help="verified single-tenant source lake")
         if name == "worker":
@@ -54,11 +58,13 @@ def run(args) -> int:
         raise ValueError("cluster commands require GRC_LAKE_DEPLOYMENT_MODE=distributed")
     root = Path(args.lake).resolve()
     root.mkdir(parents=True, exist_ok=True, mode=0o700)
-    upgrade(root)
+    if args.cluster_command != "inspect":
+        upgrade(root)
     engine = create_engine_for(root)
     try:
         catalog = Catalog(engine, config)
-        catalog.initialize()
+        if args.cluster_command != "inspect":
+            catalog.initialize()
         objects = ObjectStore(config)
         runtime = Runtime(catalog, objects, root / "distributed-scratch")
         factory = session_factory(engine)
@@ -66,6 +72,18 @@ def run(args) -> int:
             objects.client.head_bucket(Bucket=config.bucket)
             objects.verify_conditional_writes()
             result = {"cluster_id": config.cluster_id, "virtual_shards": config.shards, "ready": True}
+        elif args.cluster_command == "inspect":
+            from security_lakehouse.distributed.recovery import inspect_tenant
+
+            result = inspect_tenant(
+                runtime,
+                args.tenant_id,
+                max_objects=args.max_objects,
+                max_bytes=args.max_bytes,
+                max_seconds=args.max_seconds,
+            )
+            print(json.dumps(result, indent=2, sort_keys=True))
+            return 0 if result["recovery_ready"] else 1
         elif args.cluster_command == "status":
             head = catalog.head(args.tenant_id)
             result = {

@@ -23,10 +23,10 @@ from security_lakehouse.distributed.catalog import Conflict
 from security_lakehouse.distributed.context import binding
 
 
-def _error(detail, status_code, *, retry=False):
+def _error(detail, status_code, *, retry=False, error_code=None):
     return JSONResponse(
         api_contract.error_envelope(
-            "distributed_unavailable" if status_code == 503 else "distributed_rejected", detail
+            error_code or ("distributed_unavailable" if status_code == 503 else "distributed_rejected"), detail
         ),
         status_code=status_code,
         headers={"Retry-After": "1"} if retry else None,
@@ -227,9 +227,14 @@ class DistributedMiddleware:
                 raise
             code = 409 if isinstance(exc, Conflict) else 503
             await run_in_threadpool(self._audit, scope, code, independent=True)
-            await _error("distributed workspace unavailable; inspect operation status before retrying", code)(
-                scope, receive, send
-            )
+            from security_lakehouse.distributed.recovery import failure_code
+
+            error_code = "writer_conflict" if isinstance(exc, Conflict) else failure_code(exc)
+            await _error(
+                "distributed workspace unavailable; inspect operation status before retrying",
+                code,
+                error_code=error_code,
+            )(scope, receive, send)
         finally:
             if token is not None:
                 binding.reset(token)

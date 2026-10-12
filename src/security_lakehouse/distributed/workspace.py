@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import errno
 import hashlib
 import json
 import logging
@@ -94,14 +95,14 @@ class Runtime:
                 path = self._read_path(tenant_id)
                 needed = sum(p.stat().st_size for p in path.rglob("*") if p.is_file() and not p.is_symlink())
                 if shutil.disk_usage(self.scratch).free < needed + 256 * 1024**2:
-                    raise OSError("insufficient scratch space for private reader")
+                    raise OSError(errno.ENOSPC, "insufficient scratch space for private reader")
                 shutil.copytree(path, private, symlinks=True)
             yield WorkspaceBinding(tenant_id, private)
 
     def _headroom(self, manifest):
         needed = sum(entry["size"] for entry in manifest.get("files", {}).values())
         if shutil.disk_usage(self.scratch).free < needed + 256 * 1024**2:
-            raise OSError("insufficient scratch space to materialize tenant revision")
+            raise OSError(errno.ENOSPC, "insufficient scratch space to materialize tenant revision")
 
     @contextmanager
     def read(self, tenant_id: str):
@@ -153,6 +154,10 @@ class Runtime:
                 confirmed = attempted
                 interval = HEARTBEAT_SECONDS
 
+        def check_active():
+            if lost.is_set():
+                raise Conflict("writer lease renewal failed")
+
         heartbeat = threading.Thread(target=renew, name="grc-lake-writer-lease", daemon=True)
         heartbeat.start()
         try:
@@ -162,13 +167,14 @@ class Runtime:
                 path = Path(folder)
                 self.objects.restore(tenant_id, head.manifest, path)
                 with self.catalog.engine.begin() as connection:
-                    yield WorkspaceBinding(tenant_id, path, connection, lease.owner, lease.fence)
-                    if lost.is_set():
-                        raise Conflict("writer lease renewal failed")
+                    yield WorkspaceBinding(tenant_id, path, connection, lease.owner, lease.fence, check_active)
+                    check_active()
                     from security_lakehouse.distributed.partitioning import prepare
 
                     partitions = prepare(path, tenant_id)
+                    check_active()
                     manifest = self.objects.snapshot(tenant_id, path, previous=head.manifest)
+                    check_active()
                     if partitions is not None:
                         manifest["partitions"] = partitions
                     if manifest == head.manifest:
