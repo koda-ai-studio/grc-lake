@@ -39,7 +39,7 @@ def validate_response(result, tenant, limit):
 def fixture_rows(rows, tenant, *, changed=False):
     for index in range(rows):
         yield {
-            "event_id": f"event-{index}",
+            "event_id": f"event-{index // 2}",
             "tenant_id": f"{tenant}-account-{'a' if index % 2 == 0 else 'b'}",
             "asset_id": f"asset-{index // 2}",
             "asset_type": "iam_role",
@@ -106,16 +106,27 @@ def run_workload(root, *, rows, tenants, concurrency, repeats, progress_path=Non
     cpu = time.process_time()
     lakes = [root / f"tenant-{i}" for i in range(tenants)]
     hashes = []
+    input_bytes = []
     for lake in lakes:
         generation = make_generation(lake, rows, lake.name)
         hashes.append(file_sha256(generation / "silver/normalized_events.jsonl"))
+        input_bytes.append((generation / "silver/normalized_events.jsonl").stat().st_size)
         publish_generation(lake, generation)
     reads = []
 
     def retain_progress():
         if progress_path is not None:
             temporary = progress_path.with_suffix(".tmp")
-            temporary.write_text(json.dumps({"completed_reads": reads, "unique_records_per_tenant": rows}))
+            temporary.write_text(
+                json.dumps(
+                    {
+                        "completed_reads": reads,
+                        "unique_records_per_tenant": rows,
+                        "input_sha256": hashes,
+                        "input_bytes_per_tenant": input_bytes,
+                    }
+                )
+            )
             temporary.replace(progress_path)
 
     first = None
@@ -200,6 +211,7 @@ def run_workload(root, *, rows, tenants, concurrency, repeats, progress_path=Non
         "unique_records_per_tenant": rows,
         "input_rows_including_duplicates": rows + 1,
         "input_sha256": hashes,
+        "input_bytes_per_tenant": input_bytes,
         "model_counts": first["counts"],
         "retained_bytes": sum(p.stat().st_size for p in root.rglob("*") if p.is_file() and not p.is_symlink()),
         "wall_seconds": time.perf_counter() - started,
@@ -356,7 +368,7 @@ def main():
                 else os.sysconf("SC_PHYS_PAGES") * os.sysconf("SC_PAGE_SIZE")
             ),
             "storage": "local filesystem, synthetic legacy-compatible generations",
-            "cache": "OS caches uncontrolled; first means first graph call in process",
+            "cache": "OS and shared catalog caches uncontrolled; first means first graph call per tenant",
         },
         "configuration": {
             "tenants": args.tenants,
