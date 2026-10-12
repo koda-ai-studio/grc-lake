@@ -17,9 +17,9 @@ def test_contextual_review_is_not_counted_as_attestable_coverage():
 
 
 def test_readme_summary_uses_current_version_reviewed_coverage():
-    from tools.render_readme_header import render_readme_summary
+    from tools.render_readme_header import render_readme_glance
 
     from security_lakehouse.safeguards import coverage_by_framework
 
     count = coverage_by_framework()["reviewed"]
-    assert f"**{count:,} have reviewed mappings**" in render_readme_summary()
+    assert f"{count:,} have reviewed mappings" in render_readme_glance()

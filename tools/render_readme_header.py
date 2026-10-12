@@ -271,29 +271,6 @@ def render_open_graph() -> str:
     return _render_brand_template("open-graph")
 
 
-def render_readme_summary() -> str:
-    coverage = coverage_by_framework()
-    taxonomy = json.loads((ROOT / "controls" / "families.json").read_text(encoding="utf-8"))
-    families = taxonomy["families"]
-    categories = taxonomy["categories"]
-    safeguard_count, requirement_count, framework_count = _coverage_summary()
-    grouped = "\n".join(
-        f"- **{category['label']}:** "
-        + " · ".join(family["label"] for family in families if family["category"] == category["category_id"])
-        for category in categories
-    )
-    stubs = _pack_counts()["stub_framework_count"]
-    stub_note = f" {stubs} more registry entries are planned or superseded and hold no requirements." if stubs else ""
-    return (
-        f"**{framework_count} framework packs · {safeguard_count} reusable safeguards · "
-        f"{len(families)} control families in {len(categories)} categories · "
-        f"{_requirement_phrase(requirement_count)}.**{stub_note}\n\n"
-        f"{coverage['covered']:,} requirements have safeguard mappings; **{coverage['reviewed']:,} have reviewed mappings**. "
-        "Catalog coverage and evaluated customer posture are separate measures.\n\n"
-        f"Control families by category:\n\n{grouped}"
-    )
-
-
 def render_readme_glance() -> str:
     coverage = coverage_by_framework()
     safeguard_count, requirement_count, framework_count = _coverage_summary()
@@ -324,7 +301,6 @@ def update_readme_summary() -> None:
     readme = ROOT / "README.md"
     text = readme.read_text(encoding="utf-8")
     text = _replace_block(text, "AT A GLANCE", render_readme_glance())
-    text = _replace_block(text, "CCF SUMMARY", render_readme_summary())
     readme.write_text(text, encoding="utf-8")
 
 

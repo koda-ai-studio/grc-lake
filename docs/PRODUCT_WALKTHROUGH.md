@@ -78,6 +78,13 @@ sources; none of these marks implies certification or vendor endorsement.
 reviewed mappings and measured capacity. Refresh screenshots with
 `make demo-screenshots` against the same built source and synthetic lake.
 
+## Additional views
+
+Open the [control families](images/grc-lake-demo-control-families.png) and
+[crosswalk](images/grc-lake-demo-crosswalk.png) captures to inspect the taxonomy
+and mapping views. The [README](../README.md#product-tour) highlights evidence
+investigation and the AI asset worklist.
+
 ## Headless
 
 Every page reads the same `/api/v1` resources that agents and CI use:

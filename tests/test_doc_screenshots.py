@@ -53,11 +53,11 @@ def test_mapping_review_and_mobile_captures_exist() -> None:
     } <= names
 
 
-def test_control_families_and_crosswalk_captures_are_linked_from_the_readme() -> None:
-    readme = (IMAGES.parents[1] / "README.md").read_text(encoding="utf-8")
+def test_control_families_and_crosswalk_captures_are_linked_from_the_walkthrough() -> None:
+    walkthrough = (IMAGES.parent / "PRODUCT_WALKTHROUGH.md").read_text(encoding="utf-8")
     for name in ("grc-lake-demo-control-families.png", "grc-lake-demo-crosswalk.png"):
         assert (IMAGES / name).is_file(), name
-        assert f"docs/images/{name}" in readme, name
+        assert f"images/{name}" in walkthrough, name
 
 
 @pytest.mark.parametrize("dark", DARK, ids=lambda path: path.name)
