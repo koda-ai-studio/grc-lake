@@ -17,8 +17,19 @@ def test_dashboard_overview_is_source_aligned_and_tabbed() -> None:
 
     assert 'title="Framework coverage"' in dashboard
     assert 'title="Priority actions"' in dashboard
-    for label in ("Frameworks", "Control families", "Test results", "Findings", "Sources"):
+    for label in (
+        "Frameworks",
+        "Control families",
+        "Test results",
+        "Assessment",
+        "Sources & operations",
+        "Vendor assessments",
+    ):
         assert f'label: "{label}"' in dashboard
+    # Findings occupy one collapsible preview; source operations have their own full-width workspace.
+    assert 'label: "Findings"' not in dashboard
+    assert '<DetailTab value="sources">' in dashboard
+    assert "<FixNext embedded" in dashboard
     # Export status is shown once, in the header status line.
     assert 'label: "Exports"' not in dashboard
     assert "assessment={data}" in dashboard

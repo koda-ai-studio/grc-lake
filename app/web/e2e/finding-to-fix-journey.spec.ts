@@ -47,14 +47,15 @@ test("finding drawer says what is wrong and how to fix it", async ({
   await expect(drawer.getByText("Suggested remediation")).toBeVisible();
   await expect(drawer.getByText("Business impact")).toHaveCount(0);
   await expect(
-    drawer.getByRole("combobox", { name: "State", exact: true }),
-  ).toHaveValue(String(finding.state));
-  await expect(
     drawer.getByRole("link", { name: /Trace in graph/ }),
   ).toHaveAttribute(
     "href",
     `/console/graph/?focus=${encodeURIComponent(`control:${CONTROL_ID}`)}`,
   );
+  await drawer.getByRole("tab", { name: "Triage", exact: true }).click();
+  await expect(
+    drawer.getByRole("combobox", { name: "State", exact: true }),
+  ).toHaveValue(String(finding.state));
   await drawer.getByRole("button", { name: "Close", exact: true }).click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
 

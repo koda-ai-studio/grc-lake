@@ -144,6 +144,11 @@ test("late verification of a closed record cannot mark a different record verifi
     .getByRole("dialog")
     .getByRole("button", { name: "Close", exact: true })
     .click();
+  await expect(page).toHaveURL(/\/console\/evidence\/$/);
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await page
+    .getByPlaceholder("Search by source, asset, evidence ref, control…")
+    .fill("golden-002");
   await page
     .getByRole("button", { name: /^Open evidence golden-002 from / })
     .click();
@@ -166,6 +171,11 @@ test("reopening evidence keeps cached lineage behind the explicit trace action",
     drawer.getByText("Generation integrity verified", { exact: true }),
   ).toBeVisible();
   await drawer.getByRole("button", { name: "Close", exact: true }).click();
+  await expect(page).toHaveURL(/\/console\/evidence\/$/);
+  await expect(drawer).toHaveCount(0);
+  await page
+    .getByPlaceholder("Search by source, asset, evidence ref, control…")
+    .fill("golden-001");
   await page
     .getByRole("button", { name: /^Open evidence golden-001 from / })
     .click();

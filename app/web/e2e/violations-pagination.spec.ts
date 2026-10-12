@@ -1,8 +1,8 @@
 import { expect, test } from "@playwright/test";
 
 // The server caps a single page at 500 rows (MAX_PAGE_LIMIT). 600 total means
-// a correct client makes two requests; a client that reads one page renders
-// 500 and reports success, which is the regression this guards.
+// a correct client makes two requests. Display pagination must not hide a
+// truncated API read: even a record from the second API page must be searchable.
 const TOTAL = 600;
 const PAGE = 500;
 
@@ -59,10 +59,20 @@ test("the findings queue reads every page, not just the first", async ({
   await page.waitForSelector("table tbody tr");
 
   await expect(page.getByText(`${TOTAL} findings`)).toBeVisible();
-  await expect
-    .poll(async () => page.locator("table tbody tr").count())
-    .toBe(TOTAL);
+  await expect(page.locator("table tbody tr")).toHaveCount(8);
+  await expect(
+    page.getByRole("status").filter({ hasText: "1–8 of 600" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Next findings queue page" }).click();
+  await expect(
+    page.getByRole("status").filter({ hasText: "9–16 of 600" }),
+  ).toBeVisible();
 
   // Two requests, and the second one asked for the tail.
   expect(offsets).toEqual([0, PAGE]);
+  await page
+    .getByPlaceholder("Search findings, assets, sources, owners…")
+    .fill("asset-599");
+  await expect(page.locator("table tbody tr")).toHaveCount(1);
+  await expect(page.locator("table tbody")).toContainText("asset-599");
 });

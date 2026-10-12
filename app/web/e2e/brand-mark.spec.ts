@@ -33,6 +33,7 @@ test("the app shell shows the brand mark once, in the top bar", async ({
   const drawer = page.getByRole("dialog", { name: "Navigation" });
   await expect(drawer).toBeVisible();
   await expect(marks).toHaveCount(1);
+  await drawer.getByRole("button", { name: "Evaluate", exact: true }).click();
   await drawer.getByRole("link", { name: "Graph" }).click();
   await expect(page).toHaveURL(/\/console\/graph\/?/);
   await expect(drawer).toBeHidden();
