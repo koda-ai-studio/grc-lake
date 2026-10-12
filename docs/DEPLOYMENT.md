@@ -233,7 +233,7 @@ repository.
 OSS local, self-hosted and operator-hosted deployments use the same application
 constraints. Hosted mode is an operating model, not a distributed storage mode.
 
-## Cookie-signing hardening (0.3.3 candidate)
+## Cookie-signing hardening (0.3.3)
 
 Version 0.3.3 requires `GRC_LAKE_COOKIE_SIGNING_KEY` and, when
 OIDC is enabled, `GRC_LAKE_SESSION_SECRET` to contain at least 32 bytes after
