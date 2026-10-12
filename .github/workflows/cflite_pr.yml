@@ -34,6 +34,9 @@ jobs:
           language: python
           github-token: ${{ secrets.GITHUB_TOKEN }}
           sanitizer: address
+          # Exercise every target; do not require a remote coverage artifact
+          # merely to decide which already-built targets to discard.
+          keep-unaffected-fuzz-targets: true
       - name: Run fuzzers
         id: run
         uses: google/clusterfuzzlite/actions/run_fuzzers@884713a6c30a92e5e8544c39945cd7cb630abcd1 # v1
