@@ -1,11 +1,11 @@
-"""Build a framework → control → evidence → asset graph from the lake.
+"""Build framework → control → exact evidence → asset paths from the lake.
 
 The graph is the single source of truth the React /graph canvas renders.
 Every node carries its kind so the canvas can shape and colour them, and
 every edge carries the relationship name so the canvas can filter.
 
 Node kinds:
-    framework, control, evidence_type, asset
+    framework, control, evidence_type (one record), asset
 
 Edge kinds:
     framework_has_control, control_requires_evidence, evidence_covers_asset
@@ -25,8 +25,8 @@ from security_lakehouse.catalog import (
     framework_registry_view,
 )
 from security_lakehouse.framework_provenance import framework_pack_state
-from security_lakehouse.generations import generation_reader
-from security_lakehouse.io import file_version, read_jsonl
+from security_lakehouse.generations import generation_reader, pinned_path
+from security_lakehouse.io import canonical_sha256, file_version, read_json, read_jsonl
 from security_lakehouse.projected_reads import read_projection
 from security_lakehouse.read_cache import DerivedCache, input_versions, json_copy
 
@@ -44,11 +44,26 @@ def _escape_id_segment(value: str) -> str:
     return value.replace("\\", "\\\\").replace(":", "\\:")
 
 
+def _asset_graph_id(row: Mapping[str, Any]) -> str:
+    asset = _escape_id_segment(str(row.get("asset_id") or ""))
+    account = str(row.get("source_account_id") or row.get("tenant_id") or "")
+    return f"asset:{_escape_id_segment(account)}:{asset}" if account else f"asset:{asset}"
+
+
 def _gold_asset_rows(lake_dir: Path) -> list[dict[str, Any]]:
     path = lake_dir / "gold" / "asset_risk.jsonl"
     return read_projection(
         path,
-        ("asset_id", "asset_name", "asset_type", "asset_owner", "environment", "risk_score"),
+        (
+            "asset_id",
+            "asset_name",
+            "asset_type",
+            "asset_owner",
+            "environment",
+            "risk_score",
+            "tenant_id",
+            "source_account_id",
+        ),
         missing_ok=True,
         base_dir=lake_dir,
     )
@@ -58,7 +73,7 @@ def _silver_event_rows(lake_dir: Path) -> list[dict[str, Any]]:
     path = lake_dir / "silver" / "normalized_events.jsonl"
     return read_projection(
         path,
-        ("asset_id", "asset_name", "asset_type", "asset_owner", "environment", "event_type", "control_ids"),
+        None,
         missing_ok=True,
         base_dir=lake_dir,
     )
@@ -89,7 +104,7 @@ def _freshness_index(lake: Path) -> dict[str, dict[str, Any]]:
     return index
 
 
-_GRAPH_INPUTS = ("silver/normalized_events.jsonl", "gold/asset_risk.jsonl")
+_GRAPH_INPUTS = ("silver/normalized_events.jsonl", "gold/asset_risk.jsonl", "catalog/control_map.json")
 _GRAPHS: DerivedCache[dict[str, Any]] = DerivedCache(max_entries=16, per_root=2)
 
 
@@ -123,7 +138,12 @@ def coverage_view(lake_dir: str | Path) -> dict[str, Any]:
 
 def _build_compliance_graph(lake: Path) -> dict[str, Any]:
     frameworks = framework_registry_view()
-    controls = control_catalog_view()
+    frozen = lake / "catalog/control_map.json"
+    controls = (
+        {row["control_id"]: row for row in read_json(frozen, base_dir=lake)["controls"]}
+        if pinned_path(frozen).is_file()
+        else control_catalog_view()
+    )
     events = _silver_event_rows(lake)
     assets = _gold_asset_rows(lake)
 
@@ -176,75 +196,73 @@ def _build_compliance_graph(lake: Path) -> dict[str, Any]:
                 }
             )
 
-    # Evidence-type nodes + control→evidence edges (deduped by event_type)
-    evidence_count_by_type: Counter[str] = Counter()
-    type_to_controls: dict[str, set[str]] = {}
-    type_to_assets: dict[str, set[str]] = {}
+    # One node per exact record binding. A shared type is a label, never a join.
+    asset_rows = {_asset_graph_id(row): row for row in assets}
+    asset_scopes: dict[str, set[str]] = {}
     for event in events:
+        asset_scopes.setdefault(str(event.get("asset_id") or ""), set()).add(_asset_graph_id(event))
+    for event in sorted(events, key=canonical_sha256):
         event_type = str(event.get("event_type") or "unknown")
-        evidence_count_by_type[event_type] += 1
-        controls_for = type_to_controls.setdefault(event_type, set())
-        assets_for = type_to_assets.setdefault(event_type, set())
-        for cid in event.get("control_ids") or []:
-            controls_for.add(str(cid))
-        if asset_id := event.get("asset_id"):
-            assets_for.add(str(asset_id))
-
-    for event_type, count in evidence_count_by_type.items():
-        node_id = f"evidence:{_escape_id_segment(event_type)}"
+        node_id = "evidence:" + canonical_sha256(event)
+        if node_id in existing_ids:
+            continue
         _add_node(
             {
                 "id": node_id,
                 "kind": "evidence_type",
                 "label": event_type,
-                "subtitle": f"{count} records",
-                "event_count": count,
+                "subtitle": str(event.get("event_id") or "Recorded binding"),
+                "event_count": 1,
+                "event_type": event_type,
+                "evidence_id": event.get("event_id"),
+                "evidence_ref": event.get("evidence_ref"),
+                "provider": event.get("source"),
+                "observed_at": event.get("event_time"),
+                "raw_sha256": event.get("raw_sha256"),
+                "owner": event.get("asset_owner"),
+                "environment": event.get("environment"),
+                "control_ids": event.get("control_ids") or [],
             }
         )
-        for cid in sorted(type_to_controls.get(event_type, set())):
-            if f"control:{cid}" not in existing_ids:
-                continue
-            edges.append(
-                {
-                    "id": f"e:c{cid}-t{event_type}",
-                    "source": f"control:{cid}",
-                    "target": node_id,
-                    "kind": "control_requires_evidence",
-                }
-            )
-
-    # Asset nodes + evidence→asset edges
-    asset_rows = {str(row.get("asset_id") or ""): row for row in assets}
-    seen_assets: set[str] = set()
-    for event_type, asset_ids in type_to_assets.items():
-        for asset_id in sorted(asset_ids):
-            if not asset_id:
-                continue
-            asset_node_id = f"asset:{_escape_id_segment(asset_id)}"
-            evidence_node_id = f"evidence:{_escape_id_segment(event_type)}"
-            if asset_id not in seen_assets:
-                seen_assets.add(asset_id)
-                row = asset_rows.get(asset_id, {})
-                _add_node(
+        for cid in sorted(set(event.get("control_ids") or [])):
+            if f"control:{cid}" in existing_ids:
+                edges.append(
                     {
-                        "id": asset_node_id,
-                        "kind": "asset",
-                        "label": row.get("asset_name") or asset_id,
-                        "asset_id": asset_id,
-                        "subtitle": row.get("asset_type") or "asset",
-                        "owner": row.get("asset_owner"),
-                        "environment": row.get("environment"),
-                        "risk_score": row.get("risk_score"),
+                        "id": "e:" + canonical_sha256([cid, node_id]),
+                        "source": f"control:{cid}",
+                        "target": node_id,
+                        "kind": "control_requires_evidence",
                     }
                 )
-            edges.append(
+        asset_id = str(event.get("asset_id") or "")
+        if not asset_id:
+            continue
+        asset_node_id = _asset_graph_id(event)
+        if asset_node_id not in existing_ids:
+            summary = asset_rows.get(asset_node_id)
+            if summary is None and len(asset_scopes[asset_id]) == 1:
+                summary = asset_rows.get(f"asset:{_escape_id_segment(asset_id)}")
+            row = {**event, **(summary or {})}
+            _add_node(
                 {
-                    "id": f"e:t{event_type}-a{asset_id}",
-                    "source": evidence_node_id,
-                    "target": asset_node_id,
-                    "kind": "evidence_covers_asset",
+                    "id": asset_node_id,
+                    "kind": "asset",
+                    "label": row.get("asset_name") or asset_id,
+                    "asset_id": asset_id,
+                    "subtitle": row.get("asset_type") or "asset",
+                    "owner": row.get("asset_owner"),
+                    "environment": row.get("environment"),
+                    "risk_score": row.get("risk_score"),
                 }
             )
+        edges.append(
+            {
+                "id": "e:" + canonical_sha256([node_id, asset_node_id]),
+                "source": node_id,
+                "target": asset_node_id,
+                "kind": "evidence_covers_asset",
+            }
+        )
 
     counts = {
         "framework": sum(1 for n in nodes if n["kind"] == "framework"),
@@ -279,7 +297,7 @@ def _coverage_graph(lake_dir: str | Path) -> dict[str, Any]:
         raw_asset = str(event.get("asset_id") or "")
         if not raw_asset:
             continue
-        aid = f"asset:{_escape_id_segment(raw_asset)}"
+        aid = _asset_graph_id(event)
         nodes[aid] = {
             "id": aid,
             "kind": "asset",
@@ -338,7 +356,7 @@ def analyze_coverage(
         asset_id = str(row.get("asset_id") or "")
         if not asset_id:
             continue
-        node_id = f"asset:{_escape_id_segment(asset_id)}"
+        node_id = _asset_graph_id(row)
         if node_id in nodes_by_id:
             continue
         ghost = {

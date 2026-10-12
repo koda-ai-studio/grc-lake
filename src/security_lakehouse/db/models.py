@@ -745,6 +745,7 @@ class VendorAssessment(Base):
     status: Mapped[str] = mapped_column(String(32), nullable=False, default="draft")
     control_id: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
     owner: Mapped[str] = mapped_column(String(255), nullable=False, default="")
+    asset_refs_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]", server_default="[]")
     responses_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
     score: Mapped[float | None] = mapped_column(Float, nullable=True)
     risk_level: Mapped[str | None] = mapped_column(String(16), nullable=True)

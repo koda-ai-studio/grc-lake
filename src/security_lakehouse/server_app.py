@@ -2438,7 +2438,7 @@ def create_app(lake_dir: str | Path, *, require_auth: bool = True) -> FastAPI:
     app.include_router(build_access_reviews_router(lake_for=lake_for))
 
     # --- vendor risk questionnaires (GRC) ---
-    app.include_router(build_vendor_risk_router())
+    app.include_router(build_vendor_risk_router(lake_for=lake_for))
 
     # --- tags ---
     app.include_router(build_tags_router())

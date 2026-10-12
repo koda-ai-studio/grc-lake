@@ -120,3 +120,64 @@ def test_list_filters_by_status(env) -> None:
     assert [row["id"] for row in resp.json()["data"]] == [draft["id"]]
     in_review = client.get("/api/v1/vendor-assessments?status=in_review", headers=admin).json()["data"]
     assert [row["id"] for row in in_review] == [reviewing["id"]]
+
+
+def test_explicit_vendor_asset_references_are_bounded_and_tenant_scoped(env):
+    client, tokens = env
+    admin = _bearer(tokens["security_admin"])
+    response = client.post(
+        "/api/v1/vendor-assessments",
+        headers=admin,
+        json={"vendor_name": "Cloud vendor", "template_id": "soc2-vendor-standard"},
+    )
+    assessment_id = response.json()["data"]["id"]
+    refs = [{"source_account_id": "account-a", "asset_id": "repo"}]
+    response = client.patch(f"/api/v1/vendor-assessments/{assessment_id}", headers=admin, json={"asset_refs": refs})
+    assert response.status_code == 200
+    assert response.json()["data"]["asset_refs"] == refs
+    assert (
+        client.patch(
+            f"/api/v1/vendor-assessments/{assessment_id}", headers=_bearer(tokens["read_only"]), json={"asset_refs": []}
+        ).status_code
+        == 403
+    )
+    assert (
+        client.patch(
+            f"/api/v1/vendor-assessments/{assessment_id}", headers=admin, json={"asset_refs": [{"asset_id": "repo"}]}
+        ).status_code
+        == 422
+    )
+    assert client.get("/api/v1/graph/investigation").status_code == 401
+    result = client.get("/api/v1/graph/investigation", headers=admin, params={"root": "vendor:" + assessment_id})
+    assert result.status_code == 200
+    assert result.json()["data"]["nodes"][0]["kind"] == "vendor"
+    assert result.json()["data"]["edges"] == []  # unmatched ids never imply an asset
+
+
+def test_investigation_does_not_expose_another_tenants_vendor(env):
+    client, tokens = env
+    own = client.post(
+        "/api/v1/vendor-assessments",
+        headers=_bearer(tokens["security_admin"]),
+        json={"vendor_name": "Private vendor", "template_id": "soc2-vendor-standard"},
+    ).json()["data"]
+    with session_scope(client.app.state.sessionmaker) as session:
+        tenant = create_tenant(session, slug="other-investigation", name="Other")
+        user = create_user(session, tenant_id=tenant.id, email="reader@other.test", role="read_only")
+        _, token = create_api_key(session, tenant_id=tenant.id, user_id=user.id)
+    response = client.get("/api/v1/graph/investigation", headers=_bearer(token), params={"root": "vendor:" + own["id"]})
+    assert response.status_code == 200
+    assert response.json()["data"]["root_missing"]
+    assert response.json()["data"]["nodes"] == []
+    assert "Private vendor" not in response.text
+
+
+@pytest.mark.parametrize(
+    "params", [{"depth": 0}, {"depth": 4}, {"limit": 301}, {"root_offset": -1}, {"view": "invalid"}]
+)
+def test_investigation_rejects_invalid_bounds(env, params):
+    client, tokens = env
+    assert (
+        client.get("/api/v1/graph/investigation", headers=_bearer(tokens["read_only"]), params=params).status_code
+        == 400
+    )

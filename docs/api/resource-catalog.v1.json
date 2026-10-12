@@ -422,6 +422,23 @@
     {
       "kind": "singleton",
       "methods": ["GET"],
+      "path": "/api/v1/graph/investigation",
+      "query_params": [
+        "view",
+        "root",
+        "depth",
+        "limit",
+        "layers",
+        "search",
+        "version",
+        "root_offset"
+      ],
+      "resource": "graph.investigation",
+      "scopes": ["read"]
+    },
+    {
+      "kind": "singleton",
+      "methods": ["GET"],
       "path": "/api/v1/healthz",
       "resource": "healthz"
     },

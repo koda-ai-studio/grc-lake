@@ -31,6 +31,7 @@ def assessment_to_dict(row: VendorAssessment, *, template: dict[str, Any] | None
         "control_id": row.control_id,
         "owner": row.owner,
         "responses": _parse_responses(row.responses_json),
+        "asset_refs": json.loads(row.asset_refs_json or "[]"),
         "score": row.score,
         "risk_level": row.risk_level,
         "due_at": iso_offset(row.due_at),
@@ -113,6 +114,8 @@ def update_assessment(
         row.control_id = changes.get("control_id")
     if "due_at" in changes:
         row.due_at = changes.get("due_at")
+    if "asset_refs" in changes:
+        row.asset_refs_json = json.dumps(changes["asset_refs"], sort_keys=True)
     if "responses" in changes and isinstance(changes["responses"], dict):
         row.responses_json = json.dumps(changes["responses"], sort_keys=True)
     if "status" in changes:
