@@ -31,10 +31,11 @@ function harness({ staleComponent = false, staleHook = false } = {}) {
     "next/navigation": { usePathname: () => "/dashboard" },
     "next/link": { default: "a" },
     "@radix-ui/react-dialog": {},
+    "@radix-ui/react-dropdown-menu": {},
     "lucide-react": {},
     "./SidebarFooter": {},
     "@/lib/utils": { cn: () => "" },
-    "@/lib/nav": { NAV_GROUPS: ["Collect", "Governance"], NAV_ITEMS: [], isActiveRoute: () => false },
+    "@/lib/nav": { NAV_GROUPS: ["Collect", "Governance"], NAV_GROUP_ICONS: {}, NAV_ITEMS: [], isActiveRoute: () => false },
   };
   function load(relative, transform = (s) => s) {
     const source = transform(readFileSync(new URL(relative, import.meta.url), "utf8"));

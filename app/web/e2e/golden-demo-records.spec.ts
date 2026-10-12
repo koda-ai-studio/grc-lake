@@ -24,9 +24,23 @@ test("golden demo seeds a remediation queue linked to real findings", async ({
   for (const task of tasks.data) expect(open.has(task.violation_id)).toBe(true);
 
   await page.goto("/console/remediation/");
+  const seededTask = page
+    .getByText(tasks.data[0].title, { exact: true })
+    .first();
   await expect(
-    page.getByText(tasks.data[0].title, { exact: true }).first(),
-  ).toBeVisible({ timeout: 20_000 });
+    page.getByRole("navigation", { name: "Tasks pages" }),
+  ).toBeVisible();
+  // Repeated qualification runs add tasks; the seed is not necessarily on page one.
+  for (
+    let i = 0;
+    i < Math.ceil(body.data.length / 8) && !(await seededTask.isVisible());
+    i++
+  ) {
+    const next = page.getByRole("button", { name: "Next tasks page" });
+    if (!(await next.isEnabled())) break;
+    await next.click();
+  }
+  await expect(seededTask).toBeVisible();
   await expect(page.getByText("No tasks yet.")).toHaveCount(0);
 });
 
@@ -92,17 +106,19 @@ test("audit room names its in-scope frameworks", async ({ page, request }) => {
     };
   };
   await page.goto("/console/audit-room/");
+  for (const row of audit.data.frameworks) {
+    await expect(
+      page
+        .getByLabel("Evaluated framework scope")
+        .getByText(row.framework, { exact: true }),
+    ).toBeVisible();
+  }
+  await page.getByRole("tab", { name: "Coverage & scores" }).click();
   const { frameworks_ready, frameworks_total } = audit.data.posture;
   await expect(
     page.getByText(`${frameworks_ready} of ${frameworks_total}`, {
       exact: true,
     }),
-  ).toBeVisible({ timeout: 20_000 });
-  await expect(
-    page.getByText(
-      audit.data.frameworks.map((row) => row.framework).join(", "),
-      { exact: true },
-    ),
   ).toBeVisible();
 });
 

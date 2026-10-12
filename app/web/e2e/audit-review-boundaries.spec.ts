@@ -273,6 +273,7 @@ test("revoking a public share requires confirmation", async ({ page }) => {
     });
   });
   await page.goto("/console/trust-center/");
+  await page.getByRole("tab", { name: "Active shares", exact: true }).click();
   await page.evaluate(() => {
     window.confirm = () => false;
   });

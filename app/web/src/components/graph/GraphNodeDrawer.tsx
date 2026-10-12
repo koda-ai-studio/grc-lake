@@ -9,10 +9,11 @@ import {
   ListChecks,
   Plug,
   ShieldCheck,
+  X,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Drawer } from "@/components/ui/drawer";
+import { FrameworkBadge } from "@/components/framework/FrameworkBadge";
 import type { GraphNode, GraphNodeKind } from "@/lib/api/types";
 import { displayLabel } from "@/lib/display";
 
@@ -47,6 +48,7 @@ interface Props {
   node: GraphNode | null;
   graphMode: "compliance" | "repository";
   onClose: () => void;
+  onFocusPath?: () => void;
 }
 
 function primaryHref(node: GraphNode): { href: string; label: string } | null {
@@ -74,31 +76,51 @@ function primaryHref(node: GraphNode): { href: string; label: string } | null {
   return null;
 }
 
-export function GraphNodeDrawer({ node, graphMode, onClose }: Props) {
+export function GraphNodeDrawer({
+  node,
+  graphMode,
+  onClose,
+  onFocusPath,
+}: Props) {
   const action = node ? primaryHref(node) : null;
   const isPublicGap =
     node?.kind === "signal_gap" &&
     (node.label === "not_available_public_mode" ||
       node.subtitle?.includes("authenticated"));
 
+  if (!node) return null;
   return (
-    <Drawer
-      open={Boolean(node)}
-      onOpenChange={(open) => !open && onClose()}
-      title={node?.label ?? "Node detail"}
-      description={node?.subtitle}
-      width="lg"
+    <aside
+      aria-label="Selected graph node"
+      className="min-w-0 self-start rounded-xl border border-line bg-surface xl:max-h-[650px] xl:overflow-auto"
     >
+      <div className="sticky top-0 z-10 flex items-start gap-3 border-b border-line bg-surface p-4">
+        <div className="min-w-0 flex-1">
+          <p className="mb-1 text-xs font-semibold text-muted">Selected node</p>
+          <h2 className="break-words text-base font-semibold">{node.label}</h2>
+          {node.subtitle && (
+            <p className="mt-1 break-words text-sm text-muted">
+              {node.subtitle}
+            </p>
+          )}
+        </div>
+        <Button size="icon" aria-label="Close node details" onClick={onClose}>
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
       {node && (
-        <div className="grid gap-4">
+        <div className="grid gap-4 p-4">
           <div className="flex flex-wrap items-center gap-2">
             <Badge tone={KIND_TONE[node.kind]}>{displayLabel(node.kind)}</Badge>
             {node.framework_id && (
-              <Badge tone="info">{node.framework_id}</Badge>
+              <FrameworkBadge frameworkId={node.framework_id} />
             )}
             {node.provider && <Badge>{node.provider}</Badge>}
           </div>
 
+          {onFocusPath && (
+            <Button onClick={onFocusPath}>Focus this evidence path</Button>
+          )}
           {isPublicGap && (
             <div className="flex items-start gap-2 rounded-xl border border-warning/40 bg-warning-bg p-3 text-sm text-warning-fg">
               <AlertTriangle className="mt-0.5 h-4 w-4 flex-none" />
@@ -223,6 +245,6 @@ export function GraphNodeDrawer({ node, graphMode, onClose }: Props) {
           </div>
         </div>
       )}
-    </Drawer>
+    </aside>
   );
 }

@@ -23,10 +23,11 @@ def test_dashboard_overview_is_source_aligned_and_tabbed() -> None:
         "Test results",
         "Assessment",
         "Sources & operations",
-        "Vendor assessments",
     ):
         assert f'label: "{label}"' in dashboard
     # Findings occupy one collapsible preview; source operations have their own full-width workspace.
+    assert 'label: "Vendor assessments"' not in dashboard
+    assert "<VendorCoverage />" in dashboard
     assert 'label: "Findings"' not in dashboard
     assert '<DetailTab value="sources">' in dashboard
     assert "<FixNext embedded" in dashboard

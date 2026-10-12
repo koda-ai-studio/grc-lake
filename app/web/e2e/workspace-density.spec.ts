@@ -40,46 +40,63 @@ test("sources use the full workspace and keep long provider names inside their p
   ).toBe(true);
 });
 
-test("vendor assessment pagination preserves evidence boundaries and resets after search", async ({
+test("overview summarizes vendor decisions without duplicating the register", async ({
   page,
 }) => {
   await page.route("**/api/v1/vendor-assessments*", (r) =>
     r.fulfill({
       json: {
-        data: Array.from({ length: 11 }, (_, i) => ({
-          id: `v${i}`,
-          vendor_name: `Vendor ${i + 1}`,
-          status: i === 0 ? "completed" : "draft",
-          owner: "Review owner",
-          control_id: "SOC2-CC9.2",
-          completed_at: i === 0 ? "2026-10-10T12:00:00Z" : null,
-          due_at: null,
-        })),
+        data: [
+          {
+            id: "v1",
+            vendor_name: "Complete",
+            status: "completed",
+            due_at: "2020-01-01",
+            risk_level: "high",
+          },
+          {
+            id: "v2",
+            vendor_name: "Overdue",
+            status: "in_review",
+            due_at: "2020-01-01",
+            risk_level: "high",
+          },
+          {
+            id: "v3",
+            vendor_name: "New",
+            status: "draft",
+            due_at: null,
+            risk_level: null,
+          },
+          {
+            id: "v4",
+            vendor_name: "Rejected",
+            status: "rejected",
+            due_at: "2020-01-01",
+            risk_level: "critical",
+          },
+        ],
       },
     }),
   );
   await page.goto("/console/dashboard/");
-  await page
-    .getByRole("tab", { name: "Vendor assessments", exact: true })
-    .click();
   await expect(
-    page.getByText(/11 named vendors · 1 completed assessments/),
-  ).toBeVisible();
-  await expect(page.getByRole("article")).toHaveCount(8);
-  await page
-    .getByRole("button", { name: "Next vendor assessments page" })
-    .click();
-  await expect(page.getByRole("article")).toHaveCount(3);
-  await page.getByLabel("Search vendor assessments").fill("Vendor 2");
-  await expect(page.getByRole("article")).toHaveCount(1);
-  await expect(
-    page.getByRole("heading", { name: "Vendor 2", exact: true }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("button", { name: "Previous vendor assessments page" }),
+    page.getByRole("tab", { name: "Vendor assessments", exact: true }),
   ).toHaveCount(0);
+  const summary = page.getByRole("region", {
+    name: "Vendor review priorities",
+  });
+  await expect(summary).toContainText(
+    "2 awaiting review · 1 overdue · 1 high risk",
+  );
+  await expect(summary).toContainText("Counts cover recorded assessments only");
+  await expect(summary.getByRole("link")).toHaveAttribute(
+    "href",
+    "/console/vendor-risk/",
+  );
+  await summary.getByRole("link").click();
   await expect(
-    page.getByText(/do not establish a complete vendor inventory/),
+    page.getByRole("heading", { name: "Vendor risk", exact: true }),
   ).toBeVisible();
 });
 

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { readinessCoverage } from "@/lib/readiness-coverage";
 import { Lock, Loader2, ShieldAlert } from "lucide-react";
 import { GrcLakeLogo } from "@/components/brand/GrcLakeLogo";
+import { FrameworkMark } from "@/components/framework/FrameworkMark";
 import { Badge } from "@/components/ui/badge";
 import { formatDate, plural } from "@/lib/format";
 
@@ -260,7 +261,13 @@ export default function PublicTrustView() {
                     >
                       <div className="min-w-0 flex-1">
                         <p className="font-semibold [overflow-wrap:anywhere]">
-                          {row.framework ?? "—"}
+                          <span className="inline-flex items-center gap-2">
+                            <FrameworkMark
+                              frameworkId={row.framework ?? ""}
+                              size={28}
+                            />
+                            {row.framework ?? "—"}
+                          </span>
                         </p>
                         <p className="text-xs text-muted">
                           {detail.join(" · ")}

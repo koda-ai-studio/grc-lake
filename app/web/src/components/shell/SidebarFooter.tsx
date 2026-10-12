@@ -1,6 +1,5 @@
 "use client";
 
-import type { ReactNode } from "react";
 import { BookText, MessageCircleQuestion } from "lucide-react";
 import { BRAND } from "@/lib/brand";
 
@@ -11,10 +10,9 @@ const LINK_FOCUS =
 
 interface Props {
   collapsed: boolean;
-  toggle?: ReactNode;
 }
 
-export function SidebarFooter({ collapsed, toggle }: Props) {
+export function SidebarFooter({ collapsed }: Props) {
   return (
     <div className="mt-auto grid gap-1 border-t border-rail-line px-3 py-1.5 text-[11px] text-muted">
       {!collapsed ? (
@@ -43,7 +41,6 @@ export function SidebarFooter({ collapsed, toggle }: Props) {
           <span className="ml-auto pl-1 text-[10px] text-muted">
             v{VERSION}
           </span>
-          {toggle}
         </div>
       ) : (
         <div className="flex flex-col items-center gap-1">
@@ -58,7 +55,6 @@ export function SidebarFooter({ collapsed, toggle }: Props) {
             <BookText aria-hidden="true" className="h-3.5 w-3.5" />
           </a>
           <div className="text-[9px] text-muted">v{VERSION}</div>
-          {toggle}
         </div>
       )}
     </div>

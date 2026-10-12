@@ -18,6 +18,7 @@ import {
   Scale,
   ScrollText,
   Server,
+  Settings2,
   ShieldCheck,
   Users,
   Wrench,
@@ -37,6 +38,16 @@ export const NAV_GROUPS = [
 ] as const;
 
 export type NavGroup = (typeof NAV_GROUPS)[number];
+
+export const NAV_GROUP_ICONS: Record<NavGroup, LucideIcon> = {
+  Overview: LayoutDashboard,
+  Collect: Plug,
+  Evaluate: ShieldCheck,
+  Resolve: Wrench,
+  Governance: Scale,
+  "Review & export": ClipboardCheck,
+  Settings: Settings2,
+};
 
 export interface NavItem {
   href: RouteHref;

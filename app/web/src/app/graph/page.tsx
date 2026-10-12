@@ -595,8 +595,8 @@ function GraphPageContent() {
   // Intercept node selection when path-trace mode is armed, otherwise behave
   // as a normal selection.
   const handleSelect = (node: GraphNode | null) => {
-    setSelected(node);
     if (!node) return;
+    setSelected(node);
     if (node.id !== focusId) setFocusId(null);
     if (pathMode === "from") {
       setPathFrom(node.id);
@@ -620,6 +620,7 @@ function GraphPageContent() {
       setPathTo(node.id);
       setPathMode(null);
     }
+    setSelected(node);
     setFocusId(node.id);
     if (graphMode === "compliance") setPathRoot(node.id);
     setSearch("");
@@ -971,8 +972,12 @@ function GraphPageContent() {
           </div>
         )}
 
-        <div className="grid min-w-0 gap-3 xl:grid-cols-[220px_minmax(0,1fr)]">
-          <Card className="order-last max-h-[clamp(380px,calc(100dvh-260px),620px)] min-h-[340px] overflow-auto xl:order-none">
+        <div
+          className={`grid min-w-0 items-start gap-3 ${selected ? "xl:grid-cols-[minmax(0,1fr)_320px]" : "xl:grid-cols-[220px_minmax(0,1fr)]"}`}
+        >
+          <Card
+            className={`${selected ? "hidden" : ""} order-last max-h-[clamp(380px,calc(100dvh-260px),620px)] min-h-[340px] overflow-auto xl:order-none`}
+          >
             <CardHeader className="p-3 pb-2">
               <CardTitle className="flex items-center gap-2 text-base">
                 <Filter className="h-4 w-4 text-muted" /> Layers + facets
@@ -1276,6 +1281,20 @@ function GraphPageContent() {
               canvasRef={canvasRef}
             />
           </div>
+          <GraphNodeDrawer
+            node={selected}
+            graphMode={graphMode}
+            onClose={() => setSelected(null)}
+            onFocusPath={
+              graphMode === "compliance" && selected
+                ? () => {
+                    setPathRoot(selected.id);
+                    setFocusId(selected.id);
+                    clearPath();
+                  }
+                : undefined
+            }
+          />
         </div>
 
         {(graphMode === "compliance" || graphMode === "repository") && (
@@ -1381,12 +1400,6 @@ function GraphPageContent() {
           </Card>
         )}
       </QueryState>
-
-      <GraphNodeDrawer
-        node={selected}
-        graphMode={graphMode}
-        onClose={() => setSelected(null)}
-      />
     </div>
   );
 }

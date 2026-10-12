@@ -203,6 +203,12 @@ async function measureBottoms(page) {
       };
       let contentBottom = main ? main.getBoundingClientRect().top : 0;
       for (const element of main ? main.querySelectorAll("*") : []) {
+        const closedDetails = element.closest("details:not([open])");
+        if (
+          closedDetails &&
+          element !== closedDetails &&
+          !closedDetails.querySelector(":scope > summary")?.contains(element)
+        ) continue;
         const box = element.getBoundingClientRect();
         if (box.width <= 1 || box.height <= 1) continue;
         const style = getComputedStyle(element);
@@ -434,6 +440,10 @@ async function capture(shot, theme, frame) {
       content: ".react-flow__minimap { display: none !important; }",
     });
     await page.keyboard.press("Escape");
+    await page.locator(".react-flow__node.focused").click();
+    await page
+      .getByRole("complementary", { name: "Selected graph node" })
+      .waitFor({ state: "visible" });
     await page.getByRole("button", { name: /fit view/i }).click();
     await page.waitForTimeout(600);
   }

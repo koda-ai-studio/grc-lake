@@ -56,7 +56,6 @@ export default function DashboardPage() {
             items={[
               { value: "assessment", label: "Assessment" },
               { value: "sources", label: "Sources & operations" },
-              { value: "vendors", label: "Vendor assessments" },
             ]}
           />
           <DetailTab value="assessment">
@@ -108,6 +107,7 @@ export default function DashboardPage() {
                 contentClassName="p-0"
               >
                 <FixNext embedded violations={data?.violations ?? []} />
+                <VendorCoverage />
               </CollapsibleCard>
             </div>
           </DetailTab>
@@ -119,9 +119,6 @@ export default function DashboardPage() {
               </summary>
               <EvalRunsStrip embedded limit={4} />
             </details>
-          </DetailTab>
-          <DetailTab value="vendors">
-            <VendorCoverage />
           </DetailTab>
         </DetailTabs>
       </QueryState>
