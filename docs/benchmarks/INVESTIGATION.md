@@ -117,3 +117,18 @@ Response-body bytes exclude HTTP headers. This workload does not qualify TLS,
 remote network behavior, distributed admission, live-provider recovery, or
 reviewer-approved production budgets. The parent watchdog kills the entire
 worker, including the server thread, and removes only its temporary scratch tree.
+
+### HTTP results: October 12, 2026
+
+Clean harness revision `c6a6c22cf4e1ff348d4faab1e286f8a5b1ea4ef0`; application code is unchanged from main `96d6226a`. [Raw HTTP receipts](investigation-http-2026-10-12.json) retain all four attempts. The host is the same macOS ARM64 machine described above. No other task-owned benchmark or test suite ran during these measurements. Other applications and OS caches were uncontrolled.
+
+| Records per tenant | Clients | Balanced p95 seconds, tenants 0 / 1 | Skewed p95 seconds, tenants 0 / 1 | Combined peak RSS MiB |
+| -----------------: | ------: | ----------------------------------: | --------------------------------: | --------------------: |
+|              1,000 |       1 |                       0.321 / 0.261 |                     0.322 / 0.314 |                 202.3 |
+|              1,000 |       4 |                       1.088 / 1.083 |                     1.079 / 1.092 |                 233.2 |
+|             10,000 |       1 |                       1.254 / 1.258 |                     1.275 / 1.264 |                 339.6 |
+|             10,000 |       4 |                       5.423 / 5.193 |                     5.684 / 5.091 |                 519.9 |
+
+All 120 timed requests across the four attempts returned HTTP 200 and passed the binding/isolation checks. All authentication, foreign-root, and stale-version probes passed. The bursts completed four/four balanced and 16/four skewed requests per attempt; no saturation or timeout was observed at these sizes. Error/timeout retention is exercised separately by injected-failure tests.
+
+At 10k, four clients increased request latency and total attempt time: 41.8 seconds with one client and 42.9 seconds with four; these totals include setup, correctness probes, and shutdown. The four-sample tenant p95 values are sample maxima. Client queue distributions and completion timestamps are in the raw receipts. These observations do not set production budgets or demonstrate scheduler fairness.
