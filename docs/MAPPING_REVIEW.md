@@ -229,6 +229,13 @@ carry `grc-lake-reviewed-by`, `grc-lake-reviewed-at`, and
 
 ## Semantic review basis
 
+A decision requires a unique safeguard-to-control target whose framework matches
+the current control catalog. Duplicate targets, missing controls, and mismatched
+frameworks reject the whole batch before the decision log changes. Historical
+approvals for these invalid targets remain visible but cannot verify a review
+basis or contribute org-reviewed coverage. Rejections and requests for changes
+remain holds until explicitly superseded.
+
 New organization decisions record `review_basis_version` and
 `review_basis_sha256`. The digest includes the safeguard's operating semantics,
 the mapping member and the requirement definition. Changing objective, rule,
