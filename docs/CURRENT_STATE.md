@@ -16,10 +16,17 @@ and [changelog](../CHANGELOG.md) for the version you install.
 | Agent developer: integrate          | REST, CLI and MCP over the same assessment contracts                                  | Permissions and human-reserved decisions still apply; surfaces have different workflow affordances.                                                             |
 | Operator: self-host                 | Filesystem mode or opt-in PostgreSQL/S3 distributed mode; VM, container or Kubernetes | More workers admit different tenants concurrently. One tenant's evaluation still runs on one worker; production capacity/HA requires deployment-specific tests. |
 
-The console evidence drawer in this change adds an on-demand frozen-result trace,
-visible verification failures and retry. Connections keeps optional lake/JSONL
-setup behind a disclosure so source selection remains the main action. Frozen CCF requirement-gap explanations
-are available through the API/MCP; a dedicated console journey remains roadmap work.
+The console evidence drawer provides an on-demand frozen-result trace with visible
+verification failures and retry. Connections separates configuration, access testing,
+first sync and result review, while keeping optional lake/JSONL setup behind a disclosure.
+Frozen CCF requirement-gap explanations are available through the console, API and MCP.
+The [investigation graph](INVESTIGATION_GRAPH.md) follows exact recorded bindings and
+explicit vendor asset links, with depth controls, expanded workspace, drill-down and
+roll-up. Shared presentation does not establish equal provider qualification.
+
+Depth work is tracked in [provider parity #908](https://github.com/koda-ai-studio/grc-lake/issues/908),
+[reviewed mapping coverage #909](https://github.com/koda-ai-studio/grc-lake/issues/909),
+and [measured capacity #910](https://github.com/koda-ai-studio/grc-lake/issues/910).
 
 ## Coverage sources
 

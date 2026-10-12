@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
+from pathlib import Path
+
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
@@ -23,9 +26,33 @@ _require_control_manage = require_scope("control_manage")
 _require_read = require_scope("read")
 
 
-def build_vendor_risk_router() -> APIRouter:
+def build_vendor_risk_router(*, lake_for: Callable[[Identity], Path]) -> APIRouter:
     """Build the authenticated workflow routes."""
     router = APIRouter()
+
+    @router.get("/api/v1/graph/investigation")
+    def read_investigation(
+        request: Request, identity: Identity = Depends(_require_read), session: Session = Depends(get_session)
+    ) -> JSONResponse:
+        from security_lakehouse.investigation_graph import investigation_graph
+
+        params = request.query_params
+        try:
+            data = investigation_graph(
+                lake_for(identity),
+                root=params.get("root"),
+                view=params.get("view", "controls"),
+                depth=int(params.get("depth", "2")),
+                limit=int(params.get("limit", "150")),
+                search=params.get("search", "")[:200],
+                root_offset=int(params.get("root_offset", "0")),
+                layers=set(params["layers"].split(",")) if params.get("layers") else None,
+                expected_version=params.get("version"),
+                vendors=vendor_risk_services.list_assessments(session, identity.tenant_id),
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        return JSONResponse(api_v1.envelope("graph.investigation", _redact_payload(data, identity)))
 
     @router.get("/api/v1/vendor-questionnaires")
     def list_vendor_questionnaires(identity: Identity = Depends(_require_read)) -> JSONResponse:

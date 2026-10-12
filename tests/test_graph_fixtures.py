@@ -67,12 +67,12 @@ def test_build_compliance_graph_has_four_layers(tmp_path: Path) -> None:
     }.issubset(edge_kinds)
 
 
-def test_build_compliance_graph_dedupes_evidence_types(tmp_path: Path) -> None:
+def test_build_compliance_graph_keeps_record_level_bindings(tmp_path: Path) -> None:
     _bootstrap_lake(tmp_path)
     graph = build_compliance_graph(tmp_path)
     evidence_nodes = [n for n in graph["nodes"] if n["kind"] == "evidence_type"]
-    assert len(evidence_nodes) == 1
-    assert evidence_nodes[0]["event_count"] == 2
+    assert len(evidence_nodes) == 2
+    assert all(node["event_count"] == 1 for node in evidence_nodes)
 
 
 def _write_repo_bronze(lake: Path) -> None:
@@ -188,7 +188,7 @@ def _write_repo_bronze(lake: Path) -> None:
 
 
 def test_build_compliance_graph_ids_stable_for_delimiter_free_values(tmp_path: Path) -> None:
-    """Delimiter-free event types / asset ids keep byte-identical node ids."""
+    """Delimiter-free asset IDs stay stable; evidence IDs identify exact records."""
     (tmp_path / "silver").mkdir(parents=True, exist_ok=True)
     (tmp_path / "silver" / "normalized_events.jsonl").write_text(
         json.dumps(
@@ -205,7 +205,7 @@ def test_build_compliance_graph_ids_stable_for_delimiter_free_values(tmp_path: P
     )
     graph = build_compliance_graph(tmp_path)
     ids = {n["id"] for n in graph["nodes"]}
-    assert "evidence:cloud_config" in ids
+    assert len([n for n in graph["nodes"] if n.get("event_type") == "cloud_config"]) == 1
     assert "asset:svc-0" in ids
     edge_targets = {e["target"] for e in graph["edges"] if e["kind"] == "evidence_covers_asset"}
     assert "asset:svc-0" in edge_targets
@@ -238,9 +238,8 @@ def test_build_compliance_graph_escapes_delimiter_collisions(tmp_path: Path) -> 
     graph = build_compliance_graph(tmp_path)
     evidence_ids = {n["id"] for n in graph["nodes"] if n["kind"] == "evidence_type"}
     asset_ids = {n["id"] for n in graph["nodes"] if n["kind"] == "asset"}
-    # Without escaping, "evidence:a:b" and a hypothetical "evidence:a" + ":b"
-    # namespace would be ambiguous; escaping keeps the two event types distinct.
-    assert evidence_ids == {"evidence:a\\:b", "evidence:a"}
+    # Record hashes and escaped asset segments keep both identities distinct.
+    assert all(identity.startswith("evidence:") for identity in evidence_ids)
     assert asset_ids == {"asset:x\\:y", "asset:x"}
     assert len(evidence_ids) == 2
     assert len(asset_ids) == 2

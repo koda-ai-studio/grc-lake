@@ -218,6 +218,103 @@ function QuestionRow({
   );
 }
 
+function VendorAssetLinks({ assessment }: { assessment: VendorAssessment }) {
+  const update = useUpdateVendorAssessmentMutation(assessment.id);
+  const [account, setAccount] = useState("");
+  const [asset, setAsset] = useState("");
+  const refs = assessment.asset_refs ?? [];
+  return (
+    <details className="rounded-lg border border-line p-3">
+      <summary className="cursor-pointer text-sm font-semibold">
+        Linked services and assets · {refs.length}
+      </summary>
+      <p className="mt-2 text-xs text-muted">
+        Record exact source-account and asset IDs from evidence. Names alone
+        never link a provider to an assessed vendor. Unmatched IDs remain
+        unlinked in the graph.
+      </p>
+      <ul className="mt-3 grid gap-2">
+        {refs.map((ref, index) => (
+          <li
+            key={`${ref.source_account_id}:${ref.asset_id}`}
+            className="flex items-center justify-between gap-2 text-xs"
+          >
+            <span className="break-all">
+              {ref.source_account_id} · {ref.asset_id}
+            </span>
+            <Button
+              size="sm"
+              disabled={update.isPending}
+              onClick={() =>
+                update.mutate({
+                  asset_refs: refs.filter((_, i) => i !== index),
+                })
+              }
+            >
+              Remove link
+            </Button>
+          </li>
+        ))}
+      </ul>
+      <div className="mt-3 flex flex-wrap items-end gap-2">
+        <label className="grid gap-1 text-xs text-muted">
+          Source account ID
+          <input
+            className={inputClass}
+            value={account}
+            onChange={(e) => setAccount(e.target.value)}
+          />
+        </label>
+        <label className="grid gap-1 text-xs text-muted">
+          Asset ID
+          <input
+            className={inputClass}
+            value={asset}
+            onChange={(e) => setAsset(e.target.value)}
+          />
+        </label>
+        <Button
+          size="sm"
+          disabled={
+            update.isPending ||
+            !account.trim() ||
+            !asset.trim() ||
+            refs.length >= 100 ||
+            refs.some(
+              (r) =>
+                r.source_account_id === account.trim() &&
+                r.asset_id === asset.trim(),
+            )
+          }
+          onClick={() =>
+            update.mutate(
+              {
+                asset_refs: [
+                  ...refs,
+                  { source_account_id: account.trim(), asset_id: asset.trim() },
+                ],
+              },
+              {
+                onSuccess: () => {
+                  setAccount("");
+                  setAsset("");
+                },
+              },
+            )
+          }
+        >
+          Link asset
+        </Button>
+      </div>
+      {update.error && (
+        <p role="alert" className="mt-2 text-xs text-danger-fg">
+          {update.error.message}
+        </p>
+      )}
+    </details>
+  );
+}
+
 function AssessmentDetail({
   assessmentId,
   templateName,
@@ -278,6 +375,7 @@ function AssessmentDetail({
         {fmtDate(assessment.due_at)} · updated {fmtDate(assessment.updated_at)}
       </p>
 
+      <VendorAssetLinks key={assessment.id} assessment={assessment} />
       {questions.length ? (
         <div className="space-y-3">
           {questions.map((question) => (

@@ -236,6 +236,9 @@ test("control drawer links evidence, labels findings, and traces in graph", asyn
 test("graph search picks the trace start node", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("/console/graph/");
+  await page
+    .getByRole("button", { name: "Framework and repository maps", exact: true })
+    .click();
   await expect(page.locator(".react-flow__node").first()).toBeVisible();
   await page.getByRole("button", { name: "Trace path" }).click();
   await page.getByLabel("Search graph nodes").fill(CONTROL_ID);

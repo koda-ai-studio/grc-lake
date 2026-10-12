@@ -8,6 +8,7 @@ import {
   Background,
   Handle,
   Position,
+  MarkerType,
   Controls,
   MiniMap,
   ReactFlow,
@@ -41,7 +42,11 @@ import {
   Workflow,
   type LucideIcon,
 } from "lucide-react";
+import { graphEvidenceState, graphRecordLabel } from "@/lib/graph-evidence";
+import { displayLabel as statusLabel } from "@/lib/display";
+import { SOURCE_CONNECTOR } from "@/lib/evidence-source-links";
 import { GRAPH_KIND_COLOR } from "@/lib/graph-palette";
+import { ConnectorMark } from "@/components/connectors/ConnectorMark";
 import { FrameworkBadge } from "@/components/framework/FrameworkBadge";
 import type {
   ComplianceGraph,
@@ -52,8 +57,11 @@ import type {
 interface GraphNodeData extends Record<string, unknown> {
   label: string;
   subtitle: string;
+  status?: string;
+  severity?: string;
   kind: GraphNodeKind;
   layout: LayoutDir;
+  provider?: string;
   framework_id?: string;
   owner?: string;
   risk_score?: number;
@@ -74,6 +82,15 @@ const KIND_STYLE: Partial<
 
 const KIND_ICON: Partial<Record<GraphNodeKind, LucideIcon>> = {
   framework: BookOpen,
+  ccf_category: BookOpen,
+  ccf_family: FolderTree,
+  safeguard: ShieldCheck,
+  environment: Boxes,
+  account: Boxes,
+  source: Activity,
+  vendor: Users,
+  finding: AlertTriangle,
+
   control: ShieldCheck,
   evidence_type: FileText,
   asset: Server,
@@ -117,19 +134,28 @@ function GraphNodeCard({ data, selected }: NodeProps<FlowGraphNode>) {
     chip: "var(--color-muted)",
   };
   const Icon = KIND_ICON[data.kind] ?? Network;
+  const connectorId = data.provider
+    ? (SOURCE_CONNECTOR[data.provider] ?? data.provider)
+    : undefined;
+  const repositoryConnector =
+    data.kind === "repository" &&
+    ["github-security", "gitlab-security"].includes(connectorId ?? "")
+      ? connectorId
+      : undefined;
+  const displayLabel = graphRecordLabel(data);
+  const evidenceState = graphEvidenceState(data);
+  const isEvidence = ["evidence", "evidence_type", "signal_gap"].includes(
+    data.kind,
+  );
   return (
     <Tooltip.Root delayDuration={120}>
       <Tooltip.Trigger asChild>
         <div
-          style={{
-            borderColor: selected ? "var(--color-ink)" : tone.border,
-            background: `color-mix(in srgb, ${tone.border} 8%, var(--color-surface))`,
-            borderWidth: selected ? 2 : 1.5,
-          }}
-          className={`w-[144px] max-w-[144px] rounded-lg px-2 py-1.5 transition-all ${emphasisClass(data.emphasis)}`}
+          className={`flex h-[152px] w-[176px] flex-col items-center rounded-xl px-2 py-2 text-center transition-opacity ${emphasisClass(data.emphasis)}`}
         >
           <Handle
             type="target"
+            style={data.layout === "LR" ? { left: 51, top: 48 } : undefined}
             position={
               data.layout === "LR"
                 ? Position.Left
@@ -141,6 +167,7 @@ function GraphNodeCard({ data, selected }: NodeProps<FlowGraphNode>) {
           />
           <Handle
             type="source"
+            style={data.layout === "LR" ? { right: 51, top: 48 } : undefined}
             position={
               data.layout === "LR"
                 ? Position.Right
@@ -150,35 +177,72 @@ function GraphNodeCard({ data, selected }: NodeProps<FlowGraphNode>) {
             }
             className="!opacity-0"
           />
-          <div className="flex items-center justify-between gap-2">
-            <span
-              className="inline-flex min-w-0 items-center gap-1 rounded-full px-1.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide"
-              style={{
-                color: `color-mix(in srgb, ${tone.chip} 55%, var(--color-ink))`,
-                background: "var(--color-surface)",
-              }}
-            >
-              <Icon className="h-4 w-4 shrink-0" />
-              <span className="truncate">{data.kind.replace("_", " ")}</span>
-            </span>
-            {data.kind === "framework" && data.framework_id && (
+          <div
+            data-testid="graph-node-icon"
+            className="relative flex h-20 w-20 shrink-0 items-center justify-center rounded-full border-2 shadow-sm"
+            style={{
+              borderColor: selected ? "var(--color-brand)" : tone.border,
+              borderWidth: selected ? 3 : 2,
+              background: `color-mix(in srgb, ${tone.border} 15%, var(--color-surface))`,
+              color: tone.border,
+            }}
+          >
+            {data.kind === "framework" && data.framework_id ? (
               <FrameworkBadge
                 frameworkId={data.framework_id}
                 fallbackLabel={data.label}
                 variant="mark-only"
-                size={24}
+                size={48}
               />
+            ) : repositoryConnector ||
+              (data.kind === "source" && connectorId) ? (
+              <>
+                <ConnectorMark
+                  connectorId={repositoryConnector ?? connectorId!}
+                  name={data.label}
+                  size="lg"
+                  className="[&>span]:border-0 [&>span]:bg-transparent [&>span]:shadow-none"
+                />
+                {repositoryConnector && (
+                  <span
+                    className="absolute -bottom-1 -right-1 grid h-6 w-6 place-items-center rounded-full border border-line bg-surface"
+                    aria-hidden="true"
+                  >
+                    <GitBranch className="h-3.5 w-3.5" />
+                  </span>
+                )}
+              </>
+            ) : (
+              <Icon className="h-9 w-9" />
             )}
           </div>
-          <div className="mt-1 truncate text-xs font-semibold text-ink">
-            {data.label}
+          <div
+            data-testid="graph-node-label"
+            className="mt-2 line-clamp-2 w-full shrink-0 break-words text-sm font-semibold leading-4 text-ink"
+          >
+            {displayLabel}
           </div>
-          <div className="truncate text-[10px] text-muted">{data.subtitle}</div>
-          {data.owner && (
-            <div className="mt-1 truncate text-[10px] text-muted">
-              owner {data.owner}
-            </div>
-          )}
+          <div className="mt-1 shrink-0 text-[11px] leading-3 text-muted">
+            {isEvidence ? (
+              <span
+                className={
+                  evidenceState.tone === "critical"
+                    ? "text-danger-fg"
+                    : evidenceState.tone === "ready"
+                      ? "text-success-fg"
+                      : undefined
+                }
+              >
+                {evidenceState.label}
+              </span>
+            ) : data.kind === "finding" ? (
+              [statusLabel(data.severity), statusLabel(data.status)]
+                .filter(Boolean)
+                .join(" · ") || "Finding"
+            ) : (
+              data.kind.replaceAll("_", " ")
+            )}
+          </div>
         </div>
       </Tooltip.Trigger>
       <Tooltip.Portal>
@@ -230,7 +294,7 @@ function layoutGraph(
 ): { nodes: FlowGraphNode[]; edges: Edge[] } {
   const g = new dagre.graphlib.Graph();
   g.setDefaultEdgeLabel(() => ({}));
-  g.setGraph({ rankdir, nodesep: 10, ranksep: 26, marginx: 8, marginy: 8 });
+  g.setGraph({ rankdir, nodesep: 30, ranksep: 58, marginx: 8, marginy: 8 });
 
   rfNodes.forEach((node) =>
     g.setNode(node.id, { width: NODE_W, height: NODE_H }),
@@ -252,8 +316,8 @@ function layoutGraph(
   return { nodes: laidOut, edges: rfEdges };
 }
 
-const NODE_W = 144;
-const NODE_H = 84;
+const NODE_W = 176;
+const NODE_H = 152;
 
 /**
  * Dagre puts every node of a rank on one line, so a framework with dozens of
@@ -324,9 +388,12 @@ interface Props {
   scopeIds?: Set<string> | null;
   /** Most nodes per row before a rank wraps; narrow canvases pass fewer. */
   rankLimit?: number;
+  showEdgeLabels?: boolean;
+  heightClassName?: string;
   pathFrom: string | null;
   pathTo: string | null;
   onSelectNode: (node: GraphNode | null) => void;
+  onExploreNode?: (node: GraphNode) => void;
 }
 
 interface ImperativeRef {
@@ -360,9 +427,12 @@ function InnerGraphCanvas({
   focusId = null,
   scopeIds = null,
   rankLimit,
+  showEdgeLabels = true,
+  heightClassName = "h-[clamp(400px,calc(100dvh-300px),650px)] min-h-[400px]",
   pathFrom,
   pathTo,
   onSelectNode,
+  onExploreNode,
   canvasRef,
 }: Props & { canvasRef?: React.MutableRefObject<ImperativeRef | null> }) {
   const { resolved: resolvedTheme } = useTheme();
@@ -371,6 +441,13 @@ function InnerGraphCanvas({
   useEffect(() => setHydrated(true), []);
   const { fitView, setCenter } = useReactFlow();
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const pendingClick = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (pendingClick.current) clearTimeout(pendingClick.current);
+    },
+    [],
+  );
   useEffect(() => {
     if (focusId) setSelectedId(focusId);
   }, [focusId]);
@@ -559,10 +636,7 @@ function InnerGraphCanvas({
       return {
         id: n.id,
         type: "trustops-graph",
-        className:
-          n.id === focusId
-            ? "focused rounded-xl ring-2 ring-brand ring-offset-2 ring-offset-surface"
-            : undefined,
+        className: n.id === focusId ? "focused" : undefined,
         selected: n.id === selectedId,
         position: { x: 0, y: 0 },
         data: {
@@ -570,6 +644,9 @@ function InnerGraphCanvas({
           subtitle: n.subtitle ?? "",
           kind: n.kind,
           layout,
+          provider: n.provider,
+          status: n.status,
+          severity: n.severity,
           framework_id: n.framework_id,
           owner: n.owner,
           risk_score: n.risk_score,
@@ -593,7 +670,19 @@ function InnerGraphCanvas({
           id: e.id,
           source: e.source,
           target: e.target,
-          animated: e.kind === "evidence_covers_asset" || onPath,
+          label: showEdgeLabels
+            ? e.review_state?.replaceAll("_", " ")
+            : undefined,
+          ariaLabel: `${e.kind.replaceAll("_", " ")}${e.review_state ? `: ${e.review_state.replaceAll("_", " ")}` : ""}`,
+          labelStyle: { fill: "var(--color-ink)", fontSize: 11 },
+          labelBgStyle: { fill: "var(--color-surface)" },
+          animated: onPath,
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            width: 16,
+            height: 16,
+            color: onPath ? "var(--color-warning)" : "var(--color-ink)",
+          },
           style: {
             stroke: onPath
               ? "var(--color-warning)"
@@ -601,6 +690,11 @@ function InnerGraphCanvas({
                 ? "var(--color-ink)"
                 : "var(--color-line-strong)",
             strokeWidth: onPath ? 2.5 : 1.5,
+            strokeDasharray:
+              e.review_state &&
+              !["maintainer_reviewed", "org_reviewed"].includes(e.review_state)
+                ? "5 4"
+                : undefined,
             opacity: dimmed && !onPath && !onHighlight ? 0.4 : 1,
           },
         };
@@ -608,6 +702,7 @@ function InnerGraphCanvas({
     return layoutGraph(list, edges, layout, rankLimit);
   }, [
     rankLimit,
+    showEdgeLabels,
     graph,
     filteredNodes,
     allowedIds,
@@ -632,8 +727,8 @@ function InnerGraphCanvas({
         setCenter(focusX + 73, focusY + 29, { zoom: 0.9, duration: 300 });
       } else {
         fitView({
-          maxZoom: scopeIds ? 1 : 0.78,
-          padding: scopeIds ? 0.15 : 0.22,
+          maxZoom: 1,
+          padding: 0.06,
           duration: 180,
         });
       }
@@ -661,7 +756,7 @@ function InnerGraphCanvas({
     const observer = new ResizeObserver(() => {
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() =>
-        fitView({ maxZoom: scopeIds ? 1 : 0.78, padding: 0.2 }),
+        fitView({ maxZoom: 1, padding: 0.06 }),
       );
     });
     observer.observe(wrapper);
@@ -712,14 +807,16 @@ function InnerGraphCanvas({
 
   if (!hydrated) {
     return (
-      <div className="h-[clamp(400px,calc(100dvh-300px),650px)] min-h-[400px] rounded-xl border border-line bg-surface" />
+      <div
+        className={`${heightClassName} rounded-xl border border-line bg-surface`}
+      />
     );
   }
 
   return (
     <div
       ref={wrapperRef}
-      className="h-[clamp(400px,calc(100dvh-300px),650px)] min-h-[400px] overflow-hidden rounded-xl border border-line bg-surface"
+      className={`${heightClassName} overflow-hidden rounded-xl border border-line bg-surface`}
     >
       <ReactFlow
         colorMode={resolvedTheme}
@@ -730,15 +827,28 @@ function InnerGraphCanvas({
         nodesConnectable={false}
         edgesReconnectable={false}
         fitView
-        fitViewOptions={{ maxZoom: 0.78, padding: 0.22 }}
+        fitViewOptions={{ maxZoom: 1, padding: 0.06 }}
         minZoom={0.16}
         maxZoom={1.6}
         proOptions={{ hideAttribution: true }}
         onNodeClick={(_, node) => {
-          setSelectedId(node.id);
-          onSelectNode(
-            graph?.nodes.find((item) => item.id === node.id) ?? null,
-          );
+          if (pendingClick.current) clearTimeout(pendingClick.current);
+          const select = () => {
+            setSelectedId(node.id);
+            onSelectNode(
+              graph?.nodes.find((item) => item.id === node.id) ?? null,
+            );
+          };
+          // Keep the node still until a possible double-click resolves; opening
+          // the inspector immediately moves the second click off its target.
+          if (onExploreNode) pendingClick.current = setTimeout(select, 250);
+          else select();
+        }}
+        zoomOnDoubleClick={!onExploreNode}
+        onNodeDoubleClick={(_, node) => {
+          if (pendingClick.current) clearTimeout(pendingClick.current);
+          const target = graph?.nodes.find((item) => item.id === node.id);
+          if (target) onExploreNode?.(target);
         }}
         onKeyDown={(event) => {
           if (event.key !== "Enter" && event.key !== " ") return;
@@ -747,8 +857,18 @@ function InnerGraphCanvas({
           )?.dataset.id;
           if (!nodeId) return;
           event.preventDefault();
-          setSelectedId(nodeId);
-          onSelectNode(graph?.nodes.find((item) => item.id === nodeId) ?? null);
+          const target = graph?.nodes.find((item) => item.id === nodeId);
+          if (
+            event.key === "Enter" &&
+            event.shiftKey &&
+            target &&
+            onExploreNode
+          ) {
+            onExploreNode(target);
+          } else {
+            setSelectedId(nodeId);
+            onSelectNode(target ?? null);
+          }
         }}
       >
         <Background gap={20} color="var(--color-line)" />

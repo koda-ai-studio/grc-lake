@@ -9,16 +9,25 @@ async function fittedZoom(page: import("@playwright/test").Page) {
   );
 }
 
-test("wide framework graphs fit at a readable zoom", async ({ page }) => {
+test("wide framework graphs retain visible icons without overlapping nodes", async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("/console/graph/");
+  await page
+    .getByRole("button", { name: "Framework and repository maps" })
+    .click();
   await expect(page.locator(".react-flow__node").first()).toBeVisible();
   // The page opens on one control path; widen to the framework slice.
   await page.getByRole("button", { name: "Show whole framework" }).click();
   await expect
     .poll(() => page.locator(".react-flow__node").count())
     .toBeGreaterThan(60);
-  expect(await fittedZoom(page)).toBeGreaterThanOrEqual(0.35);
+  await fittedZoom(page);
+  // Exact records add nodes to the full map. Check the rendered icon size,
+  // not a zoom threshold calibrated to the previous smaller cards.
+  const icon = await page.getByTestId("graph-node-icon").first().boundingBox();
+  expect(icon!.height).toBeGreaterThanOrEqual(22);
   const boxes = await page
     .locator(".react-flow__node")
     .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().toJSON()));
@@ -37,6 +46,9 @@ test("wide framework graphs fit at a readable zoom", async ({ page }) => {
 
 test("choosing All frameworks keeps the wide map", async ({ page }) => {
   await page.goto("/console/graph/");
+  await page
+    .getByRole("button", { name: "Framework and repository maps" })
+    .click();
   const framework = page.getByRole("combobox", {
     name: "Filter graph by framework",
   });

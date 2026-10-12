@@ -92,6 +92,7 @@ const shots = [
   },
   { file: "grc-lake-demo-insights.png", route: "/insights/" },
   { file: "grc-lake-demo-connectors.png", route: "/connectors/" },
+  { file: "grc-lake-demo-connector-setup.png", route: "/connectors/?connect=kubernetes-cluster", dark: true, crop: (page) => [page.getByRole("dialog")] },
   {
     file: "grc-lake-demo-frameworks.png",
     route: "/frameworks/",
@@ -124,7 +125,8 @@ const shots = [
   { file: "grc-lake-demo-auth.png", route: "/auth/" },
   {
     file: "grc-lake-demo-graph.png",
-    route: "/graph/?focus=evidence:monitoring.detection",
+    viewport: { width: 1440, height: 1240 },
+    route: "/graph/",
     dark: true,
     setup: "graph-focus",
   },
@@ -433,14 +435,13 @@ async function capture(shot, theme, frame) {
     await page.waitForTimeout(400);
   }
   if (shot.setup === "graph-focus") {
-    // `?focus=` selects one evidence type and narrows the canvas to its
-    // framework slice; fit that slice so no node is cut at the canvas edge.
+    // Capture the bounded record-level investigation and its adjacent inspector.
     await page.waitForTimeout(1500);
     await page.addStyleTag({
       content: ".react-flow__minimap { display: none !important; }",
     });
     await page.keyboard.press("Escape");
-    await page.locator(".react-flow__node.focused").click();
+    await page.locator('.react-flow__node[data-id="control:SOC2-CC6.1"]').click();
     await page
       .getByRole("complementary", { name: "Selected graph node" })
       .waitFor({ state: "visible" });

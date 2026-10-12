@@ -19,6 +19,15 @@ export const GRAPH_LAYER = {
  */
 export const GRAPH_KIND_COLOR = {
   ...GRAPH_LAYER,
+  ccf_category: "var(--color-chart-1)",
+  ccf_family: "var(--color-chart-2)",
+  safeguard: "var(--color-success)",
+  environment: "var(--color-chart-3)",
+  account: "var(--color-chart-4)",
+  source: "var(--color-chart-5)",
+  vendor: "var(--color-chart-6)",
+  finding: "var(--color-danger)",
+
   repository: "var(--color-chart-1)",
   directory: "var(--color-line-strong)",
   language: "var(--color-chart-3)",

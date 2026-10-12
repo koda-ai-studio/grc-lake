@@ -166,6 +166,9 @@ test.describe("graph controls", () => {
         repoRequests.push(request.url());
     });
     await page.goto("/console/graph/");
+    await page
+      .getByRole("button", { name: "Framework and repository maps" })
+      .click();
     const group = page.getByRole("group", { name: "Graph mode" });
     const compliance = group.getByRole("button", { name: "Compliance" });
     const repository = group.getByRole("button", { name: "Repository" });
@@ -188,6 +191,9 @@ test.describe("graph controls", () => {
 
   test("node search follows the ARIA combobox pattern", async ({ page }) => {
     await page.goto("/console/graph/");
+    await page
+      .getByRole("button", { name: "Framework and repository maps" })
+      .click();
     const search = page.getByRole("combobox", { name: "Search graph nodes" });
     await expect(search).toBeVisible({ timeout: 45_000 });
     await expect(search).toHaveAttribute("aria-expanded", "false");
@@ -222,6 +228,9 @@ test.describe("graph controls", () => {
       route.fulfill({ status: 500, json: { detail: "boom" } }),
     );
     await page.goto("/console/graph/");
+    await page
+      .getByRole("button", { name: "Framework and repository maps" })
+      .click();
     await expect(page.getByRole("alert")).toBeVisible({ timeout: 20_000 });
     await expect(page.getByText("unavailable", { exact: true })).toBeVisible();
     // The mode toggle stays reachable so the other graph can still be opened.

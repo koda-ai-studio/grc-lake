@@ -204,6 +204,30 @@ export function ViolationDrawer({ violation, onClose, onToast }: Props) {
                 Detected {formatDateTime(violation.detected_at)}
               </span>
             </div>
+            <div className="mt-2 grid gap-3 rounded-lg bg-panel p-3 sm:grid-cols-2">
+              <div>
+                <p className="text-xs font-semibold text-muted">
+                  Observed impact
+                </p>
+                <p className="mt-1 text-sm">
+                  Failing evidence for {violation.control_id} on{" "}
+                  {violation.asset_name || violation.asset_id}.{" "}
+                  {violation.environment
+                    ? `Environment: ${violation.environment}.`
+                    : "Environment not recorded."}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-muted">Next action</p>
+                <p className="mt-1 text-sm">
+                  {currentState === "resolved" || currentState === "dismissed"
+                    ? "Review the decision history and verify fresh evidence."
+                    : violation.asset_owner
+                      ? `Review the evidence with ${violation.asset_owner}, then track remediation.`
+                      : "Assign an owner, review the evidence, and track remediation."}
+                </p>
+              </div>
+            </div>
           </section>
 
           <DetailTabs value={tab} onValueChange={setTab}>

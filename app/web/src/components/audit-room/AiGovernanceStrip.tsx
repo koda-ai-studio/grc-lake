@@ -89,7 +89,11 @@ export function aiFrameworkDetail(framework: AiGovernanceFramework): string {
   ].join(" ");
 }
 
-export function AiGovernanceStrip() {
+export function AiGovernanceStrip({
+  workspace = false,
+}: {
+  workspace?: boolean;
+}) {
   const governance = useAiGovernance();
   const inventory = useAiInventory(6);
   const sample = (inventory.data ?? []).filter(hasAiSignal);
@@ -105,7 +109,9 @@ export function AiGovernanceStrip() {
                 <div className="flex flex-wrap items-center gap-2">
                   <BrainCircuit className="h-4 w-4 text-brand" />
                   <span className="text-sm font-semibold text-ink">
-                    AI governance evidence
+                    {workspace
+                      ? "What needs attention"
+                      : "AI governance evidence"}
                   </span>
                   <Badge
                     tone={
@@ -117,17 +123,20 @@ export function AiGovernanceStrip() {
                   </Badge>
                 </div>
                 <p className="mt-1 text-xs leading-5 text-muted">
-                  Model inventory, lineage, model cards, and agent activity
-                  mapped to NIST AI RMF, ISO 42001, and the EU AI Act.
+                  {workspace
+                    ? `${governance.data.inventory.models} models · ${governance.data.inventory.agents} agents observed. Start with the evidence gaps below.`
+                    : "Model inventory, lineage, model cards, and agent activity mapped to NIST AI RMF, ISO 42001, and the EU AI Act."}
                 </p>
               </div>
-              <Link
-                href="/ai-governance"
-                className="inline-flex items-center gap-1 text-xs font-semibold text-brand hover:underline"
-              >
-                <Bot className="h-3.5 w-3.5" />
-                Full inventory
-              </Link>
+              {!workspace && (
+                <Link
+                  href="/ai-governance"
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-brand hover:underline"
+                >
+                  <Bot className="h-3.5 w-3.5" />
+                  Full inventory
+                </Link>
+              )}
             </div>
 
             {governance.data.coverage_sufficient === false ? (
@@ -137,108 +146,167 @@ export function AiGovernanceStrip() {
               </p>
             ) : null}
 
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-              <div className="relative min-w-0">
-                <KpiTile
-                  label={SCORE_COPY.aiGovernance.label}
-                  value={`${governance.data.governance_score}/100`}
-                  detail="AI-only sub-indicator"
-                  tone={
-                    governance.data.coverage_sufficient === false
-                      ? "attention"
-                      : governance.data.governance_score >= 85
-                        ? "ready"
-                        : governance.data.governance_score >= 60
-                          ? "attention"
-                          : "critical"
-                  }
-                  className="h-full pr-8"
-                />
-                <InfoHint
-                  label={SCORE_COPY.aiGovernance.label}
-                  text={SCORE_COPY.aiGovernance.definition}
-                  className="absolute right-2 top-2"
-                />
-              </div>
-              <KpiTile
-                label="Models in inventory"
-                value={String(governance.data.inventory.models)}
-                detail={`${governance.data.inventory.with_model_card} with model card`}
-                tone={
-                  governance.data.inventory.models > 0 ? "default" : "attention"
-                }
-              />
-              <KpiTile
-                label="AI agents"
-                value={String(governance.data.inventory.agents)}
-                detail={plural(
-                  governance.data.events.agent_runtime,
-                  "runtime event",
-                )}
-                tone={
-                  governance.data.inventory.agents > 0 ? "default" : "attention"
-                }
-              />
-              <KpiTile
-                label="Lineage signals"
-                value={String(governance.data.events.model_lineage)}
-                detail={`${plural(governance.data.inventory.with_lineage, "asset")} with full lineage`}
-                tone={loopTone(governance.data.evidence_loops.lineage_events)}
-              />
-              <KpiTile
-                label="Model cards / repo artifacts"
-                value={String(governance.data.artifacts.model_cards)}
-                detail={plural(
-                  governance.data.events.repo_artifacts,
-                  "AI repo artifact",
-                )}
-                tone={loopTone(governance.data.evidence_loops.model_cards)}
-              />
-            </div>
-
-            <div className="grid gap-3 md:grid-cols-3">
-              {governance.data.frameworks.map((framework) => (
-                <div
-                  key={framework.framework_id}
-                  className="rounded-lg border border-line bg-surface px-3 py-2"
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-xs font-semibold text-ink">
-                      {framework.label}
+            {workspace && governance.data.gaps.length > 0 && (
+              <div
+                className="grid gap-3"
+                aria-label="AI governance next actions"
+              >
+                {governance.data.gaps.map((gap) => (
+                  <Link
+                    key={gap.id}
+                    href={gap.href.replace(/^\/console/, "")}
+                    className="flex items-start justify-between gap-4 rounded-lg border border-line p-4 hover:border-brand"
+                  >
+                    <div className="min-w-0">
+                      <h2 className="text-sm font-semibold">
+                        {GAP_COPY[gap.id] ?? gap.label}
+                      </h2>
+                      <p className="mt-1 text-xs leading-5 text-muted">
+                        {(
+                          {
+                            model_inventory:
+                              "Without inventory, model ownership and scope cannot be established. Review the connected AI sources.",
+                            model_lineage:
+                              "Missing lineage limits traceability between models and their inputs. Review the available lineage evidence.",
+                            model_cards:
+                              "Model purpose and limitations are not documented in the observed evidence. Review model-card evidence and collect the missing artifacts.",
+                            agent_governance:
+                              "Agent tool use cannot be assessed without runtime evidence. Review the applicable controls and connect an agent activity source if agents are in scope.",
+                          } as Record<string, string>
+                        )[gap.id] ??
+                          "Review the supporting evidence and resolve this gap."}
+                      </p>
+                    </div>
+                    <span className="shrink-0 text-xs font-semibold text-brand">
+                      Review →
                     </span>
-                    {framework.coverage_sufficient === false ||
-                    !readinessCoverage(
-                      framework.evaluated_control_count,
-                      framework.catalog_control_count,
-                    ).sufficient ? (
-                      <Badge tone="default">Insufficient coverage</Badge>
-                    ) : framework.score === null ? (
-                      <Badge tone="default">Not evaluated</Badge>
-                    ) : (
-                      <Badge
-                        tone={framework.score >= 85 ? "ready" : "attention"}
-                      >
-                        {framework.score}% passing
-                      </Badge>
-                    )}
-                  </div>
-                  <p className="mt-1 flex items-start justify-between gap-1 text-xs text-muted">
-                    <span>{aiFrameworkSummary(framework)}</span>
-                    <InfoHint
-                      label={`${framework.label} coverage`}
-                      text={aiFrameworkDetail(framework)}
-                      className="-mt-0.5"
+                  </Link>
+                ))}
+              </div>
+            )}
+            <details
+              open={!workspace}
+              className={
+                workspace ? "rounded-lg border border-line p-3" : undefined
+              }
+            >
+              <summary
+                className={
+                  workspace ? "cursor-pointer text-sm font-semibold" : "hidden"
+                }
+              >
+                Framework coverage and evidence metrics
+              </summary>
+              <div className="mt-3 grid gap-4">
+                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+                  <div className="relative min-w-0">
+                    <KpiTile
+                      label={SCORE_COPY.aiGovernance.label}
+                      value={`${governance.data.governance_score}/100`}
+                      detail="AI-only sub-indicator"
+                      tone={
+                        governance.data.coverage_sufficient === false
+                          ? "attention"
+                          : governance.data.governance_score >= 85
+                            ? "ready"
+                            : governance.data.governance_score >= 60
+                              ? "attention"
+                              : "critical"
+                      }
+                      className="h-full pr-8"
                     />
-                  </p>
-                  <p className="mt-1 text-xs text-muted">
-                    {framework.mapped_requirements} of {framework.requirements}{" "}
-                    requirements mapped
-                  </p>
+                    <InfoHint
+                      label={SCORE_COPY.aiGovernance.label}
+                      text={SCORE_COPY.aiGovernance.definition}
+                      className="absolute right-2 top-2"
+                    />
+                  </div>
+                  <KpiTile
+                    label="Models in inventory"
+                    value={String(governance.data.inventory.models)}
+                    detail={`${governance.data.inventory.with_model_card} with model card`}
+                    tone={
+                      governance.data.inventory.models > 0
+                        ? "default"
+                        : "attention"
+                    }
+                  />
+                  <KpiTile
+                    label="AI agents"
+                    value={String(governance.data.inventory.agents)}
+                    detail={plural(
+                      governance.data.events.agent_runtime,
+                      "runtime event",
+                    )}
+                    tone={
+                      governance.data.inventory.agents > 0
+                        ? "default"
+                        : "attention"
+                    }
+                  />
+                  <KpiTile
+                    label="Lineage signals"
+                    value={String(governance.data.events.model_lineage)}
+                    detail={`${plural(governance.data.inventory.with_lineage, "asset")} with full lineage`}
+                    tone={loopTone(
+                      governance.data.evidence_loops.lineage_events,
+                    )}
+                  />
+                  <KpiTile
+                    label="Model cards / repo artifacts"
+                    value={String(governance.data.artifacts.model_cards)}
+                    detail={plural(
+                      governance.data.events.repo_artifacts,
+                      "AI repo artifact",
+                    )}
+                    tone={loopTone(governance.data.evidence_loops.model_cards)}
+                  />
                 </div>
-              ))}
-            </div>
 
-            {sample.length > 0 ? (
+                <div className="grid gap-3 md:grid-cols-3">
+                  {governance.data.frameworks.map((framework) => (
+                    <div
+                      key={framework.framework_id}
+                      className="rounded-lg border border-line bg-surface px-3 py-2"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-xs font-semibold text-ink">
+                          {framework.label}
+                        </span>
+                        {framework.coverage_sufficient === false ||
+                        !readinessCoverage(
+                          framework.evaluated_control_count,
+                          framework.catalog_control_count,
+                        ).sufficient ? (
+                          <Badge tone="default">Insufficient coverage</Badge>
+                        ) : framework.score === null ? (
+                          <Badge tone="default">Not evaluated</Badge>
+                        ) : (
+                          <Badge
+                            tone={framework.score >= 85 ? "ready" : "attention"}
+                          >
+                            {framework.score}% passing
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="mt-1 flex items-start justify-between gap-1 text-xs text-muted">
+                        <span>{aiFrameworkSummary(framework)}</span>
+                        <InfoHint
+                          label={`${framework.label} coverage`}
+                          text={aiFrameworkDetail(framework)}
+                          className="-mt-0.5"
+                        />
+                      </p>
+                      <p className="mt-1 text-xs text-muted">
+                        {framework.mapped_requirements} of{" "}
+                        {framework.requirements} requirements mapped
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </details>
+            {!workspace && sample.length > 0 ? (
               <div className="grid gap-2">
                 <span className="text-xs font-semibold uppercase tracking-wide text-muted">
                   Inventory sample
@@ -276,7 +344,7 @@ export function AiGovernanceStrip() {
               </div>
             ) : null}
 
-            {unverified > 0 ? (
+            {!workspace && unverified > 0 ? (
               <p className="text-xs text-muted">
                 {plural(unverified, "asset")} typed as AI{" "}
                 {unverified === 1 ? "has" : "have"} no AI inventory signals yet
@@ -284,32 +352,33 @@ export function AiGovernanceStrip() {
               </p>
             ) : null}
 
-            {governance.data.gaps.length > 0 ? (
-              <div className="grid gap-2">
-                {governance.data.gaps.map((gap) => (
-                  <Link
-                    key={gap.id}
-                    href={
-                      gap.href.startsWith("/console")
-                        ? gap.href.replace(/^\/console/, "")
-                        : gap.href
-                    }
-                    className="flex items-center gap-2 rounded-lg border border-line bg-surface px-3 py-2 text-xs hover:bg-surfaceMuted"
-                  >
-                    <CircleAlert className="h-3.5 w-3.5 shrink-0 text-serious-fg" />
-                    <span className="font-semibold text-ink">
-                      {GAP_COPY[gap.id] ?? gap.label}
-                    </span>
-                  </Link>
-                ))}
-              </div>
-            ) : (
-              <div className="flex items-center gap-2 text-xs text-muted">
-                <CheckCircle2 className="h-4 w-4 text-brand" />
-                Inventory, lineage, model-card, and agent governance evidence
-                loops are active.
-              </div>
-            )}
+            {!workspace &&
+              (governance.data.gaps.length > 0 ? (
+                <div className="grid gap-2">
+                  {governance.data.gaps.map((gap) => (
+                    <Link
+                      key={gap.id}
+                      href={
+                        gap.href.startsWith("/console")
+                          ? gap.href.replace(/^\/console/, "")
+                          : gap.href
+                      }
+                      className="flex items-center gap-2 rounded-lg border border-line bg-surface px-3 py-2 text-xs hover:bg-surfaceMuted"
+                    >
+                      <CircleAlert className="h-3.5 w-3.5 shrink-0 text-serious-fg" />
+                      <span className="font-semibold text-ink">
+                        {GAP_COPY[gap.id] ?? gap.label}
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 text-xs text-muted">
+                  <CheckCircle2 className="h-4 w-4 text-brand" />
+                  Inventory, lineage, model-card, and agent governance evidence
+                  loops are active.
+                </div>
+              ))}
           </CardContent>
         </Card>
       )}

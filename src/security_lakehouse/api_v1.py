@@ -831,6 +831,14 @@ EXTENDED_RESOURCES: list[JsonObject] = [
         "path_params": ["template_id"],
     },
     {
+        "resource": "graph.investigation",
+        "path": "/api/v1/graph/investigation",
+        "kind": "singleton",
+        "methods": ["GET"],
+        "scopes": ["read"],
+        "query_params": ["view", "root", "depth", "limit", "layers", "search", "version", "root_offset"],
+    },
+    {
         "resource": "vendor-assessments",
         "path": "/api/v1/vendor-assessments",
         "kind": "collection",

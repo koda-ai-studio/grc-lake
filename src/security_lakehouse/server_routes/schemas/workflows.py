@@ -144,7 +144,13 @@ class CreateVendorAssessmentRequest(_StrictModel):
     due_at: TokenStr | None = None
 
 
+class VendorAssetReference(_StrictModel):
+    source_account_id: IdStr
+    asset_id: IdStr
+
+
 class UpdateVendorAssessmentRequest(_StrictModel):
+    asset_refs: list[VendorAssetReference] = Field(default_factory=list, max_length=100)
     vendor_name: NameStr | None = None
     owner: NameStr | None = None
     control_id: IdStr | None = None

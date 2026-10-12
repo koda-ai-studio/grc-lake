@@ -32,14 +32,17 @@ test.describe("hosted cloud link", () => {
     await dialog
       .getByRole("button", { name: "Connect cloud account" })
       .click({ timeout: 15_000 });
+    await expect(
+      dialog.getByText(/never reads Azure as its own/),
+    ).toBeVisible();
+    await dialog
+      .getByRole("button", { name: "Next: configure target" })
+      .click();
 
     const registration = dialog.getByRole("group", {
       name: "Your Entra app registration",
     });
     await expect(registration).toBeVisible();
-    await expect(
-      dialog.getByText(/never reads Azure as its own/),
-    ).toBeVisible();
     await expect(
       dialog.getByRole("button", { name: "Grant Azure admin consent" }),
     ).toHaveCount(0);
@@ -117,6 +120,9 @@ test.describe("hosted cloud link", () => {
     await dialog
       .getByRole("button", { name: "Connect cloud account" })
       .click({ timeout: 15_000 });
+    await dialog
+      .getByRole("button", { name: "Next: configure target" })
+      .click();
 
     await expect(dialog.getByText(/GRC_LAKE_GCP_WIF_MEMBER/)).toHaveCount(0);
     await dialog.getByLabel("GCP project ID").fill("customer-proj");
@@ -153,6 +159,9 @@ test.describe("hosted cloud link", () => {
     await dialog
       .getByRole("button", { name: "Connect cloud account" })
       .click({ timeout: 15_000 });
+    await dialog
+      .getByRole("button", { name: "Next: configure target" })
+      .click();
     const registration = dialog.getByRole("group", {
       name: "Your Entra app registration",
     });
@@ -174,6 +183,10 @@ test.describe("hosted cloud link", () => {
     page,
   }) => {
     await page.goto("/console/connectors/?connect=github-security");
+    await page
+      .getByRole("dialog")
+      .getByText("Advanced identity and scope", { exact: true })
+      .click();
     const field = page
       .getByRole("dialog")
       .getByLabel(/GitHub App installation token env/i);

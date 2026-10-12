@@ -1692,6 +1692,14 @@
       "UpdateVendorAssessmentRequest": {
         "additionalProperties": false,
         "properties": {
+          "asset_refs": {
+            "items": {
+              "$ref": "#/components/schemas/VendorAssetReference"
+            },
+            "maxItems": 100,
+            "title": "Asset Refs",
+            "type": "array"
+          },
           "control_id": {
             "anyOf": [
               {
@@ -1936,6 +1944,24 @@
         },
         "required": ["loc", "msg", "type"],
         "title": "ValidationError",
+        "type": "object"
+      },
+      "VendorAssetReference": {
+        "additionalProperties": false,
+        "properties": {
+          "asset_id": {
+            "maxLength": 200,
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "source_account_id": {
+            "maxLength": 200,
+            "title": "Source Account Id",
+            "type": "string"
+          }
+        },
+        "required": ["source_account_id", "asset_id"],
+        "title": "VendorAssetReference",
         "type": "object"
       },
       "VerifyTaskRequest": {
@@ -5555,6 +5581,29 @@
         },
         "summary": "Get graph.coverage",
         "tags": ["graph"]
+      }
+    },
+    "/api/v1/graph/investigation": {
+      "get": {
+        "operationId": "read_investigation_api_v1_graph_investigation_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V1Envelope"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Investigation"
       }
     },
     "/api/v1/healthz": {

@@ -106,7 +106,7 @@ def test_aws_onboarding_is_a_guided_multi_account_wizard() -> None:
     assert "3. Add account targets" in panel
     assert "4. Verify and finish" in panel
     assert "Snowflake runs a live probe" not in drawer
-    assert "GRC Lake will call AWS STS AssumeRole" in drawer
+    assert "Every probe, sync, and scheduled run creates a fresh AWS STS" in " ".join(drawer.split())
 
 
 def test_aws_linking_accepts_account_id_or_role_arn() -> None:
@@ -142,7 +142,7 @@ def test_azure_linking_is_provider_identity_first() -> None:
     assert "Set GRC_LAKE_AZURE_APP_ID or GRC_LAKE_AZURE_PRINCIPAL_OBJECT_ID" in panel
     assert "--role Reader" in panel
     assert "management-group" in panel
-    assert "No Azure password or" in panel
+    assert "No Azure password or" in " ".join(panel.split())
     assert "client secret is stored" in panel
     assert "Next: verify access" in panel
     assert "Save cloud connection" not in panel
@@ -192,7 +192,7 @@ def test_enabled_cloud_connector_hides_onboarding_and_duplicate_credentials() ->
     assert "!isEnabled || (isEnabled && editCloudSetup)" in drawer
     assert "(isEnabled && editCloudSetup)" in drawer
     assert "<CloudLinkPanel" in drawer
-    assert "!usesManagedCloudLink && (" in drawer
+    assert "(!usesManagedCloudLink || showManagedCloudConfiguration)" in drawer
     assert "Edit setup" in drawer
     assert "Hide setup" in drawer
 
@@ -248,7 +248,7 @@ def test_integration_wizard_has_provider_presets_for_cloud_data_and_sso() -> Non
     ):
         assert connector_id in presets
 
-    assert "Integration wizard" in panel
+    assert "Provider preparation" in panel
     assert "Provider setup" in panel
     assert "GRC Lake needs" in panel
     assert "Advanced provider details" in panel
@@ -283,13 +283,13 @@ def test_onboarding_cloud_connector_reopens_setup_even_with_staged_target() -> N
 def test_aws_drawer_has_one_linear_setup_flow_and_no_duplicate_sync_action() -> None:
     drawer = DRAWER.read_text(encoding="utf-8")
 
-    labels = [drawer.index(f'label: "{label}"') for label in ("Authorize", "Verify", "Scope", "Sync")]
-    assert labels == sorted(labels)
+    assert '["Configure", "Test access", "First sync", "Results"]' in drawer
+    assert 'aria-label="Connection setup steps"' in drawer
     assert 'label: "Access"' not in drawer
     assert 'label: "Validate"' not in drawer
     assert drawer.count("Sync evidence") == 1
     assert "const showDiscoveryAction = !usesManagedCloudLink && needsDiscovery;" in drawer
-    assert "{showDiscoveryAction ? (" in drawer
+    assert "showDiscoveryAction ? (" in drawer
 
 
 def test_disabled_cloud_drawer_separates_setup_runs_and_events() -> None:
@@ -315,8 +315,8 @@ def test_managed_cloud_drawer_uses_progressive_disclosure() -> None:
     assert "!showInlineCloudSetup && (" in drawer
     assert "<CloudLinkPanel" in drawer
     assert "(!usesManagedCloudLink || showManagedCloudConfiguration)" in drawer
-    assert '<summary className="ui-label cursor-pointer list-none">' in drawer
-    assert "Scope & automation" in drawer
+    assert "Advanced identity and scope" in drawer
+    assert "Optional sync schedule" in drawer
     assert 'className="mt-3 grid items-start gap-2 2xl:grid-cols-[minmax(0,1fr)_minmax(18rem,0.72fr)]"' in drawer
     assert 'setupTab === "Events"' in drawer
     assert 'setupTab === "Setup"' in drawer
@@ -360,7 +360,7 @@ def test_connected_cloud_drawer_is_compact_and_non_redundant() -> None:
     assert "controls, pass/fail metrics, and proof exports." in drawer
     assert "showConnectedCloudSummary ? (" in drawer
     assert "max-h-80 overflow-auto" in drawer
-    assert "open={!usesManagedCloudLink && !showConnectedCloudSummary}" in drawer
+    assert "setupStage === 3" in drawer
     assert "Run history" in drawer
     assert "see history" not in drawer
 

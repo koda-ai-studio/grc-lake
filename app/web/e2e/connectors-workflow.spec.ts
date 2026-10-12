@@ -105,6 +105,7 @@ test.describe("connectors workflow", () => {
       dialog.getByRole("button", { name: "Enable connector" }),
     ).toHaveCount(0);
 
+    await dialog.getByRole("button", { name: "Next: test access" }).click();
     await dialog.getByRole("button", { name: "Test connection" }).click();
     const enableBtn = dialog.getByRole("button", {
       name: "Enable connector",
