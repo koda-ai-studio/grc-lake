@@ -68,8 +68,8 @@ def build_framework_coverage(
     cited_control_ids: set[str] = set()
     for control_id, mapping in mappings.items():
         framework_id = str(mapping.get("framework_id") or "")
-        control = controls.get(control_id)
-        if control and framework_id == control.get("framework_id") and mapping.get("articles"):
+        target_control = controls.get(control_id)
+        if target_control and framework_id == target_control.get("framework_id") and mapping.get("articles"):
             mappings_by_framework[framework_id].append(mapping)
             cited_control_ids.add(control_id)
 
