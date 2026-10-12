@@ -74,7 +74,15 @@ const shots = [
   {
     file: "grc-lake-demo-control-families.png",
     route: "/dashboard/",
+    dark: true,
     setup: "control-families-tab",
+  },
+  {
+    file: "grc-lake-demo-controls.png",
+    route: "/controls/",
+    dark: true,
+    viewport: TALL,
+    endAt: (page) => page.locator("main table tbody tr").nth(5),
   },
   {
     file: "grc-lake-demo-crosswalk.png",
