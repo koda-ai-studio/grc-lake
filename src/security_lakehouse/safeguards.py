@@ -75,7 +75,11 @@ def _families_payload(path: str | Path | None = None) -> JsonObject:
 
 def load_ccf_families(path: str | Path | None = None) -> dict[str, JsonObject]:
     """Return the canonical CCF control families keyed by ``family_id``."""
-    return {str(row["family_id"]): row for row in _families_payload(path)["families"]}
+    payload = _families_payload(path)
+    problems = validate_ccf_taxonomy(payload)
+    if problems:
+        raise ValueError("invalid CCF taxonomy: " + "; ".join(problems))
+    return {row["family_id"]: row for row in payload["families"]}
 
 
 def load_ccf_categories(path: str | Path | None = None) -> list[JsonObject]:
@@ -84,31 +88,58 @@ def load_ccf_categories(path: str | Path | None = None) -> list[JsonObject]:
     A category groups control families for navigation and roll-up. Each family
     names exactly one category; see :func:`validate_ccf_taxonomy`.
     """
-    return list(_families_payload(path).get("categories", []))
+    payload = _families_payload(path)
+    problems = validate_ccf_taxonomy(payload)
+    if problems:
+        raise ValueError("invalid CCF taxonomy: " + "; ".join(problems))
+    return list(payload["categories"])
 
 
-def validate_ccf_taxonomy(payload: JsonObject) -> list[str]:
+def validate_ccf_taxonomy(payload: Any) -> list[str]:
     """Return problems with the category -> family taxonomy; empty means consistent."""
+    if not isinstance(payload, dict):
+        return ["CCF taxonomy must be an object"]
     problems: list[str] = []
-    category_ids: list[str] = [str(row.get("category_id") or "") for row in payload.get("categories", [])]
+    for field in ("categories", "families"):
+        if not isinstance(payload.get(field), list):
+            problems.append(f"{field} must be a list")
+    if problems:
+        return problems
+
     seen: set[str] = set()
-    for category_id in category_ids:
-        if not category_id:
-            problems.append("a category is missing category_id")
-        elif category_id in seen:
+    for row in payload["categories"]:
+        if not isinstance(row, dict):
+            problems.append("each category must be an object")
+            continue
+        category_id = row.get("category_id")
+        if not isinstance(category_id, str) or not category_id.strip():
+            problems.append("a category is missing category_id (must be a non-empty string)")
+            continue
+        if category_id in seen:
             problems.append(f"duplicate category {category_id!r}")
         seen.add(category_id)
+
+    seen_families: set[str] = set()
     used: set[str] = set()
-    for family in payload.get("families", []):
+    for family in payload["families"]:
+        if not isinstance(family, dict):
+            problems.append("each family must be an object")
+            continue
         family_id = family.get("family_id")
+        if not isinstance(family_id, str) or not family_id.strip():
+            problems.append("a family is missing family_id (must be a non-empty string)")
+        elif family_id in seen_families:
+            problems.append(f"duplicate family {family_id!r}")
+        else:
+            seen_families.add(family_id)
         category = family.get("category")
-        if not category:
-            problems.append(f"family {family_id!r} is missing category")
+        if not isinstance(category, str) or not category.strip():
+            problems.append(f"family {family_id!r} is missing category (must be a non-empty string)")
         elif category not in seen:
             problems.append(f"family {family_id!r} names unknown category {category!r}")
         else:
-            used.add(str(category))
-    for category_id in sorted(seen - used - {""}):
+            used.add(category)
+    for category_id in sorted(seen - used):
         problems.append(f"category {category_id!r} has no families")
     return problems
 
@@ -200,8 +231,11 @@ def validate_safeguards(payload: JsonObject, *, catalog: dict[str, Any] | None =
 
     controls = catalog if catalog is not None else load_control_catalog()
     known = set(controls)
-    families = load_ccf_families()
-    problems.extend(validate_ccf_taxonomy(_families_payload()))
+    taxonomy = _families_payload()
+    taxonomy_problems = validate_ccf_taxonomy(taxonomy)
+    if taxonomy_problems:
+        return [*problems, *taxonomy_problems]
+    families = {row["family_id"]: row for row in taxonomy["families"]}
     seen_ids: set[str] = set()
 
     entries = payload.get("safeguards")
