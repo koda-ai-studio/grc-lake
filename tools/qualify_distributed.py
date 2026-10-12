@@ -22,6 +22,21 @@ ROOT = Path(__file__).resolve().parents[1]
 COMPOSE = ROOT / "deploy/examples/distributed/qualification/compose.yaml"
 
 
+def wait_for_restore_database(command: list[str], env: dict[str, str]) -> None:
+    # The image bootstrap server accepts Unix sockets before initialization finishes.
+    # TCP opens only after that temporary server shuts down and the final one starts.
+    deadline = time.monotonic() + 90
+    while subprocess.run(
+        [*command, "exec", "-T", "postgres", "pg_isready", "-h", "127.0.0.1", "-U", "grc", "-d", "grc"],
+        env=env,
+        capture_output=True,
+        timeout=10,
+    ).returncode:
+        if time.monotonic() >= deadline:
+            raise RuntimeError("restore database readiness deadline exceeded")
+        time.sleep(1)
+
+
 def qualify(image: str, output: Path) -> None:
     output = output.resolve()
     output.mkdir(parents=True, exist_ok=False, mode=0o700)
@@ -57,8 +72,10 @@ def qualify(image: str, output: Path) -> None:
     config.chmod(0o644)
     command = ["docker", "compose", "--project-name", project, "-f", str(COMPOSE)]
 
-    def compose(*args, timeout=180):
-        result = subprocess.run([*command, *args], env=env, capture_output=True, text=True, timeout=timeout)
+    def compose(*args, timeout=180, stdin=None):
+        result = subprocess.run(
+            [*command, *args], env=env, stdin=stdin, capture_output=True, text=True, timeout=timeout
+        )
         if result.returncode:
             state = subprocess.run(
                 [*command, "ps", "--all", "--format", "json"], env=env, capture_output=True, text=True, timeout=30
@@ -161,26 +178,22 @@ def qualify(image: str, output: Path) -> None:
         # and every scratch volume. Recovery cannot consult original storage.
         compose("down", "--volumes", "--remove-orphans", timeout=90)
         compose("up", "-d", "postgres", "s3")
-        deadline = time.monotonic() + 90
-        while subprocess.run(
-            [*command, "exec", "-T", "postgres", "pg_isready", "-U", "grc", "-d", "grc"],
-            env=env,
-            capture_output=True,
-            timeout=10,
-        ).returncode:
-            if time.monotonic() >= deadline:
-                raise RuntimeError("restore database readiness deadline exceeded")
-            time.sleep(1)
+        wait_for_restore_database(command, env)
         with archive.open("rb") as stream:
             if hashlib.file_digest(stream, "sha256").hexdigest() != database_sha256:
                 raise RuntimeError("database backup digest mismatch")
             stream.seek(0)
-            subprocess.run(
-                [*command, "exec", "-T", "postgres", "pg_restore", "-U", "grc", "-d", "grc", "--exit-on-error"],
-                env=env,
+            compose(
+                "exec",
+                "-T",
+                "postgres",
+                "pg_restore",
+                "-U",
+                "grc",
+                "-d",
+                "grc",
+                "--exit-on-error",
                 stdin=stream,
-                capture_output=True,
-                check=True,
                 timeout=120,
             )
         probe("backup-restore")
