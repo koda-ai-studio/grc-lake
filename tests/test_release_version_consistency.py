@@ -9,7 +9,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 RELEASE_VERSION = "0.3.3"
-RELEASE_DATE = "2026-10-11"
+RELEASE_DATE = "2026-10-12"
 
 
 def test_release_version_is_consistent_across_package_chart_and_console() -> None:

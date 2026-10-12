@@ -3,7 +3,13 @@
 All notable GRC Lake changes are summarized here. Versions follow semver for the
 Python package, Helm chart, and bundled web console.
 
-## Unreleased
+## 0.3.3 - 2026-10-12
+
+- Route evaluation and snapshot execution through shared assessment services. Persist versioned, tenant-scoped operation receipts so authorized callers can inspect a committed result after a lost worker response. Large responses preserve their execution status; generation conflicts and uncertain outcomes remain explicit.
+
+- Bound operation pagination, queue admission, retained results and collector retries. Detect repeated provider cursors, honor Retry-After without retrying early, use Redis server time for shared rate limits, and return sanitized errors when admission or storage is unavailable.
+
+- Add bounded, read-only distributed recovery inspection and cooperative write-lease checks. Qualify coordinated PostgreSQL/object backup restoration into fresh stores, including corruption rejection, snapshot chains, retained operation receipts and tenant isolation. This synthetic single-host drill does not establish production RPO/RTO, failover or capacity.
 
 - Replace evidence-type graph fanout with exact, source-account-scoped record bindings. Add bounded CCF, environment, repository, finding, source and explicit vendor relationships, plus paginated roots and version-checked navigation. Evidence node IDs now identify records; old type-only links must be refreshed.
 - Add an expanded icon-led graph workspace with continuous directional connections, drill-down, parent roll-up, and readable adjacent details. Redesign shared connector setup around configuration, access testing, first sync and results; clarify findings and pending access-review decisions.
@@ -14,8 +20,6 @@ Python package, Helm chart, and bundled web console.
 - Bind organization mapping approvals to safeguard semantics, mapping and requirement definitions; preserve stale review history and adverse decisions. Tighten catalog publication validation.
 - Add versioned, tenant-scoped safeguard implementations and independently reviewed governance decisions, including expiring risk acceptance and extensions. These records never override assessment verdicts. Database migration 0030 adds their history tables; export them before a downgrade.
 - Add source-account identity to normalization v5, compact CCF pages and separately paged references in projection v2, plus input and relation admission budgets. Document deployment limits and model relationships.
-
-## 0.3.3 - 2026-10-11
 
 - Reuse shared framework marks in AI governance and mapping review, and shared control-family icons in the graph. Point console documentation links at the current repository.
 

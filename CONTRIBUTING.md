@@ -143,8 +143,11 @@ approval with GitHub's **Approve** review; a comment, passing CI, or an AI/bot
 review does not substitute for that approval. After another push, obtain review
 of the updated change before merging.
 
-Keep required checks, stale-review dismissal, latest-push approval, and
-administrator enforcement enabled. If no independent reviewer is available,
+Keep one required human approval, required checks, stale-review dismissal, and
+administrator enforcement enabled. The separate last-push approval rule is
+disabled so a two-person team can collaborate on a branch and still review each
+other's pull requests; authors cannot approve their own pull requests.
+If no independent reviewer is available,
 leave the pull request open. Do not use direct pushes or a protection bypass to
 work around the missing review. See [Scorecard evidence](docs/SCORECARD_REMEDIATION.md)
 for the distinction between current protection and historical review coverage.
