@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api/client";
 import type { GraphNode, GraphNodeKind } from "@/lib/api/types";
@@ -23,6 +23,59 @@ const optional: GraphNodeKind[] = [
 ];
 
 export function InvestigationExplorer() {
+  const workspace = useRef<HTMLElement>(null);
+  const [expanded, setExpanded] = useState(false);
+  const [inlineExpanded, setInlineExpanded] = useState(false);
+  const expandButton = useRef<HTMLButtonElement>(null);
+  const [trail, setTrail] = useState<{ id: string; label: string }[]>([]);
+  useEffect(() => {
+    const update = () =>
+      setExpanded(document.fullscreenElement === workspace.current);
+    document.addEventListener("fullscreenchange", update);
+    return () => document.removeEventListener("fullscreenchange", update);
+  }, []);
+  useEffect(() => {
+    if (!inlineExpanded) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const keyboard = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setInlineExpanded(false);
+        setExpanded(false);
+        expandButton.current?.focus();
+      }
+      if (event.key === "Tab") {
+        const focusable = Array.from(
+          workspace.current?.querySelectorAll<HTMLElement>(
+            'button:not(:disabled), a[href], select:not(:disabled), input:not(:disabled), summary, [tabindex="0"]',
+          ) ?? [],
+        ).filter((element) => element.getClientRects().length > 0);
+        const first = focusable[0];
+        const last = focusable.at(-1);
+        if (
+          event.shiftKey &&
+          (document.activeElement === first ||
+            !workspace.current?.contains(document.activeElement))
+        ) {
+          event.preventDefault();
+          last?.focus();
+        } else if (
+          !event.shiftKey &&
+          (document.activeElement === last ||
+            !workspace.current?.contains(document.activeElement))
+        ) {
+          event.preventDefault();
+          first?.focus();
+        }
+      }
+    };
+    document.addEventListener("keydown", keyboard);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", keyboard);
+    };
+  }, [inlineExpanded]);
   const [rootOffset, setRootOffset] = useState(0);
   const [view, setView] = useState("controls");
   const [root, setRoot] = useState("");
@@ -44,11 +97,41 @@ export function InvestigationExplorer() {
   const query = useQuery({
     queryKey: ["investigation-graph", params.toString()],
     queryFn: () => api.investigationGraph(params),
+    placeholderData: (previous) => previous,
   });
   const data = query.data;
   const currentRoot = root || data?.root || "";
+  const scopeIds = useMemo(() => new Set(data?.nodes.map((n) => n.id)), [data]);
+  const mappingStates = [
+    ...new Set(
+      data?.edges.flatMap((e) => (e.review_state ? [e.review_state] : [])),
+    ),
+  ];
   const selectedNode = data?.nodes.find((n) => n.id === selected?.id) ?? null;
+  const recordedParent = data?.edges.find(
+    (e) =>
+      e.target === currentRoot &&
+      ["contains", "framework_has_control"].includes(e.kind),
+  );
+  const rollupTarget = trail.at(-1)?.id ?? recordedParent?.source;
+  const exploreNode = (target: GraphNode) => {
+    if (target.id !== currentRoot) {
+      setTrail((current) => [
+        ...current,
+        {
+          id: currentRoot,
+          label:
+            data?.nodes.find((node) => node.id === currentRoot)?.label ??
+            currentRoot,
+        },
+      ]);
+      setRoot(target.id);
+      setSelected(null);
+    }
+    setVersion(data?.version ?? "");
+  };
   const reset = () => {
+    setTrail([]);
     setRootOffset(0);
     setRoot("");
     setVersion("");
@@ -104,6 +187,7 @@ export function InvestigationExplorer() {
               className="ui-input min-w-0"
               value={currentRoot}
               onChange={(e) => {
+                setTrail([]);
                 setRoot(e.target.value);
                 setVersion(data?.version ?? "");
                 setSelected(null);
@@ -216,48 +300,137 @@ export function InvestigationExplorer() {
                 explicit source-account and asset IDs.
               </div>
             ) : (
-              <div
-                className={`grid items-start gap-3 ${selectedNode ? "xl:grid-cols-[minmax(0,1fr)_320px]" : ""}`}
+              <section
+                ref={workspace}
+                aria-label="Graph workspace"
+                className={`space-y-3 ${expanded ? "h-screen overflow-auto bg-surface p-4" : ""} ${inlineExpanded ? "fixed inset-0 z-50" : ""}`}
               >
-                <div className="h-[620px] min-w-0 rounded-xl border border-line bg-surface">
-                  <GraphCanvas
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button
+                    size="sm"
+                    disabled={!rollupTarget}
+                    onClick={() => {
+                      if (!rollupTarget) return;
+                      setRoot(rollupTarget);
+                      setTrail(trail.slice(0, -1));
+                      setSelected(null);
+                      setVersion(data.version);
+                    }}
+                  >
+                    Roll up
+                  </Button>
+                  <p
+                    aria-label="Current graph path"
+                    className="min-w-0 flex-1 truncate text-sm font-medium"
+                    title={[
+                      ...trail.map((n) => n.label),
+                      data.nodes.find((n) => n.id === currentRoot)?.label ??
+                        currentRoot,
+                    ].join(" → ")}
+                  >
+                    {trail.length > 0
+                      ? `${trail.length} level${trail.length === 1 ? "" : "s"} deeper · `
+                      : ""}
+                    {data.nodes.find((n) => n.id === currentRoot)?.label ??
+                      "Evidence neighborhood"}
+                  </p>
+                  {expanded && (
+                    <label className="flex items-center gap-2 text-xs text-muted">
+                      Depth
+                      <select
+                        aria-label="Workspace graph depth"
+                        className="ui-input"
+                        value={depth}
+                        onChange={(e) => setDepth(Number(e.target.value))}
+                      >
+                        {[1, 2, 3].map((n) => (
+                          <option key={n} value={n}>
+                            {n} {n === 1 ? "hop" : "hops"}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  )}
+                  <Button
+                    ref={expandButton}
+                    size="sm"
+                    onClick={async () => {
+                      if (inlineExpanded) {
+                        setInlineExpanded(false);
+                        setExpanded(false);
+                        return;
+                      }
+                      try {
+                        if (expanded) await document.exitFullscreen();
+                        else await workspace.current?.requestFullscreen();
+                      } catch {
+                        setInlineExpanded(true);
+                        setExpanded(true);
+                      }
+                    }}
+                  >
+                    {expanded
+                      ? "Exit expanded workspace"
+                      : "Expand graph workspace"}
+                  </Button>
+                </div>
+                <p className="text-xs text-muted">
+                  Click a node for details. Double-click or press Shift+Enter to
+                  explore its connections.
+                </p>
+                {mappingStates.length > 0 && (
+                  <p
+                    aria-label="Mapping review states"
+                    className="text-xs text-muted"
+                  >
+                    Mapping review:{" "}
+                    {mappingStates
+                      .map((state) => state.replaceAll("_", " "))
+                      .join(" · ")}
+                    . Details below.
+                  </p>
+                )}
+                <div
+                  className={`grid items-start gap-3 ${selectedNode ? "xl:grid-cols-[minmax(0,1fr)_300px]" : ""}`}
+                >
+                  <div className="min-w-0">
+                    <GraphCanvas
+                      graph={data}
+                      scopeIds={scopeIds}
+                      showEdgeLabels={false}
+                      heightClassName={
+                        expanded
+                          ? "h-[calc(100dvh-180px)] min-h-[400px]"
+                          : undefined
+                      }
+                      visibleKinds={visible}
+                      layout="LR"
+                      filterOwner=""
+                      filterEnvironment=""
+                      filterFramework=""
+                      filterControl=""
+                      filterWorkflow=""
+                      filterStaleOnly={false}
+                      searchQuery=""
+                      pathFrom={null}
+                      pathTo={null}
+                      rankLimit={4}
+                      focusId={selectedNode?.id}
+                      onSelectNode={setSelected}
+                      onExploreNode={exploreNode}
+                    />
+                  </div>
+                  <GraphNodeDrawer
+                    node={selectedNode}
+                    graphMode="investigation"
                     graph={data}
-                    visibleKinds={visible}
-                    layout="LR"
-                    filterOwner=""
-                    filterEnvironment=""
-                    filterFramework=""
-                    filterControl=""
-                    filterWorkflow=""
-                    filterStaleOnly={false}
-                    searchQuery=""
-                    pathFrom={null}
-                    pathTo={null}
-                    rankLimit={4}
-                    focusId={selectedNode?.id}
-                    onSelectNode={setSelected}
+                    onInspectNode={setSelected}
+                    onClose={() => setSelected(null)}
+                    onFocusPath={
+                      selectedNode ? () => exploreNode(selectedNode) : undefined
+                    }
                   />
                 </div>
-                <GraphNodeDrawer
-                  node={selectedNode}
-                  graphMode="investigation"
-                  onClose={() => setSelected(null)}
-                  onFocusPath={
-                    selectedNode
-                      ? () => {
-                          setRoot(selectedNode.id);
-                          setVersion(data.version);
-                        }
-                      : undefined
-                  }
-                />
-              </div>
-            )}
-            {selectedNode &&
-              data.edges.some(
-                (e) =>
-                  e.source === selectedNode.id || e.target === selectedNode.id,
-              ) && (
                 <details className="rounded-xl border border-line p-3">
                   <summary className="cursor-pointer text-sm font-semibold">
                     Selected relationships and mapping review state
@@ -266,8 +439,8 @@ export function InvestigationExplorer() {
                     {data.edges
                       .filter(
                         (e) =>
-                          e.source === selectedNode.id ||
-                          e.target === selectedNode.id,
+                          e.source === (selectedNode?.id ?? currentRoot) ||
+                          e.target === (selectedNode?.id ?? currentRoot),
                       )
                       .map((e) => (
                         <li key={e.id}>
@@ -281,7 +454,8 @@ export function InvestigationExplorer() {
                       ))}
                   </ul>
                 </details>
-              )}
+              </section>
+            )}
           </>
         )}
       </QueryState>

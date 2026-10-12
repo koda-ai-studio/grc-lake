@@ -3,6 +3,8 @@ export const SOURCE_CONNECTOR: Record<string, string> = {
   github: "github-security",
   "github-public-repo": "github-security",
   "github-repo-governance": "github-security",
+  gitlab: "gitlab-security",
+  "gitlab-repo-governance": "gitlab-security",
   okta: "okta-identity",
   azure: "azure-posture",
   gcp: "gcp-posture",

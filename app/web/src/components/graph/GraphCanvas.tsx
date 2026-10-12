@@ -8,6 +8,7 @@ import {
   Background,
   Handle,
   Position,
+  MarkerType,
   Controls,
   MiniMap,
   ReactFlow,
@@ -41,6 +42,8 @@ import {
   Workflow,
   type LucideIcon,
 } from "lucide-react";
+import { graphEvidenceState, graphRecordLabel } from "@/lib/graph-evidence";
+import { displayLabel as statusLabel } from "@/lib/display";
 import { SOURCE_CONNECTOR } from "@/lib/evidence-source-links";
 import { GRAPH_KIND_COLOR } from "@/lib/graph-palette";
 import { ConnectorMark } from "@/components/connectors/ConnectorMark";
@@ -54,6 +57,8 @@ import type {
 interface GraphNodeData extends Record<string, unknown> {
   label: string;
   subtitle: string;
+  status?: string;
+  severity?: string;
   kind: GraphNodeKind;
   layout: LayoutDir;
   provider?: string;
@@ -129,6 +134,19 @@ function GraphNodeCard({ data, selected }: NodeProps<FlowGraphNode>) {
     chip: "var(--color-muted)",
   };
   const Icon = KIND_ICON[data.kind] ?? Network;
+  const connectorId = data.provider
+    ? (SOURCE_CONNECTOR[data.provider] ?? data.provider)
+    : undefined;
+  const repositoryConnector =
+    data.kind === "repository" &&
+    ["github-security", "gitlab-security"].includes(connectorId ?? "")
+      ? connectorId
+      : undefined;
+  const displayLabel = graphRecordLabel(data);
+  const evidenceState = graphEvidenceState(data);
+  const isEvidence = ["evidence", "evidence_type", "signal_gap"].includes(
+    data.kind,
+  );
   return (
     <Tooltip.Root delayDuration={120}>
       <Tooltip.Trigger asChild>
@@ -137,6 +155,7 @@ function GraphNodeCard({ data, selected }: NodeProps<FlowGraphNode>) {
         >
           <Handle
             type="target"
+            style={data.layout === "LR" ? { left: 51, top: 48 } : undefined}
             position={
               data.layout === "LR"
                 ? Position.Left
@@ -148,6 +167,7 @@ function GraphNodeCard({ data, selected }: NodeProps<FlowGraphNode>) {
           />
           <Handle
             type="source"
+            style={data.layout === "LR" ? { right: 51, top: 48 } : undefined}
             position={
               data.layout === "LR"
                 ? Position.Right
@@ -159,9 +179,10 @@ function GraphNodeCard({ data, selected }: NodeProps<FlowGraphNode>) {
           />
           <div
             data-testid="graph-node-icon"
-            className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full border-2 shadow-sm"
+            className="relative flex h-20 w-20 shrink-0 items-center justify-center rounded-full border-2 shadow-sm"
             style={{
-              borderColor: selected ? "var(--color-ink)" : tone.border,
+              borderColor: selected ? "var(--color-brand)" : tone.border,
+              borderWidth: selected ? 3 : 2,
               background: `color-mix(in srgb, ${tone.border} 15%, var(--color-surface))`,
               color: tone.border,
             }}
@@ -173,23 +194,54 @@ function GraphNodeCard({ data, selected }: NodeProps<FlowGraphNode>) {
                 variant="mark-only"
                 size={48}
               />
-            ) : data.kind === "source" && data.provider ? (
-              <ConnectorMark
-                connectorId={SOURCE_CONNECTOR[data.provider] ?? data.provider}
-                name={data.label}
-                size="lg"
-              />
+            ) : repositoryConnector ||
+              (data.kind === "source" && connectorId) ? (
+              <>
+                <ConnectorMark
+                  connectorId={repositoryConnector ?? connectorId!}
+                  name={data.label}
+                  size="lg"
+                  className="[&>span]:border-0 [&>span]:bg-transparent [&>span]:shadow-none"
+                />
+                {repositoryConnector && (
+                  <span
+                    className="absolute -bottom-1 -right-1 grid h-6 w-6 place-items-center rounded-full border border-line bg-surface"
+                    aria-hidden="true"
+                  >
+                    <GitBranch className="h-3.5 w-3.5" />
+                  </span>
+                )}
+              </>
             ) : (
               <Icon className="h-9 w-9" />
             )}
           </div>
-          <div className="mt-2 line-clamp-2 w-full break-words text-sm font-semibold leading-4 text-ink">
-            {data.label}
+          <div
+            data-testid="graph-node-label"
+            className="mt-2 line-clamp-2 w-full shrink-0 break-words text-sm font-semibold leading-4 text-ink"
+          >
+            {displayLabel}
           </div>
-          <div className="mt-1 text-[11px] text-muted">
-            {data.kind === "evidence_type"
-              ? "Evidence record"
-              : data.kind.replaceAll("_", " ")}
+          <div className="mt-1 shrink-0 text-[11px] leading-3 text-muted">
+            {isEvidence ? (
+              <span
+                className={
+                  evidenceState.tone === "critical"
+                    ? "text-danger-fg"
+                    : evidenceState.tone === "ready"
+                      ? "text-success-fg"
+                      : undefined
+                }
+              >
+                {evidenceState.label}
+              </span>
+            ) : data.kind === "finding" ? (
+              [statusLabel(data.severity), statusLabel(data.status)]
+                .filter(Boolean)
+                .join(" · ") || "Finding"
+            ) : (
+              data.kind.replaceAll("_", " ")
+            )}
           </div>
         </div>
       </Tooltip.Trigger>
@@ -336,9 +388,12 @@ interface Props {
   scopeIds?: Set<string> | null;
   /** Most nodes per row before a rank wraps; narrow canvases pass fewer. */
   rankLimit?: number;
+  showEdgeLabels?: boolean;
+  heightClassName?: string;
   pathFrom: string | null;
   pathTo: string | null;
   onSelectNode: (node: GraphNode | null) => void;
+  onExploreNode?: (node: GraphNode) => void;
 }
 
 interface ImperativeRef {
@@ -372,9 +427,12 @@ function InnerGraphCanvas({
   focusId = null,
   scopeIds = null,
   rankLimit,
+  showEdgeLabels = true,
+  heightClassName = "h-[clamp(400px,calc(100dvh-300px),650px)] min-h-[400px]",
   pathFrom,
   pathTo,
   onSelectNode,
+  onExploreNode,
   canvasRef,
 }: Props & { canvasRef?: React.MutableRefObject<ImperativeRef | null> }) {
   const { resolved: resolvedTheme } = useTheme();
@@ -383,6 +441,13 @@ function InnerGraphCanvas({
   useEffect(() => setHydrated(true), []);
   const { fitView, setCenter } = useReactFlow();
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const pendingClick = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (pendingClick.current) clearTimeout(pendingClick.current);
+    },
+    [],
+  );
   useEffect(() => {
     if (focusId) setSelectedId(focusId);
   }, [focusId]);
@@ -571,10 +636,7 @@ function InnerGraphCanvas({
       return {
         id: n.id,
         type: "trustops-graph",
-        className:
-          n.id === focusId
-            ? "focused rounded-xl ring-2 ring-brand ring-offset-2 ring-offset-surface"
-            : undefined,
+        className: n.id === focusId ? "focused" : undefined,
         selected: n.id === selectedId,
         position: { x: 0, y: 0 },
         data: {
@@ -583,6 +645,8 @@ function InnerGraphCanvas({
           kind: n.kind,
           layout,
           provider: n.provider,
+          status: n.status,
+          severity: n.severity,
           framework_id: n.framework_id,
           owner: n.owner,
           risk_score: n.risk_score,
@@ -606,10 +670,19 @@ function InnerGraphCanvas({
           id: e.id,
           source: e.source,
           target: e.target,
-          label: e.review_state?.replaceAll("_", " "),
+          label: showEdgeLabels
+            ? e.review_state?.replaceAll("_", " ")
+            : undefined,
+          ariaLabel: `${e.kind.replaceAll("_", " ")}${e.review_state ? `: ${e.review_state.replaceAll("_", " ")}` : ""}`,
           labelStyle: { fill: "var(--color-ink)", fontSize: 11 },
           labelBgStyle: { fill: "var(--color-surface)" },
-          animated: e.kind === "evidence_covers_asset" || onPath,
+          animated: onPath,
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            width: 16,
+            height: 16,
+            color: onPath ? "var(--color-warning)" : "var(--color-ink)",
+          },
           style: {
             stroke: onPath
               ? "var(--color-warning)"
@@ -629,6 +702,7 @@ function InnerGraphCanvas({
     return layoutGraph(list, edges, layout, rankLimit);
   }, [
     rankLimit,
+    showEdgeLabels,
     graph,
     filteredNodes,
     allowedIds,
@@ -733,14 +807,16 @@ function InnerGraphCanvas({
 
   if (!hydrated) {
     return (
-      <div className="h-[clamp(400px,calc(100dvh-300px),650px)] min-h-[400px] rounded-xl border border-line bg-surface" />
+      <div
+        className={`${heightClassName} rounded-xl border border-line bg-surface`}
+      />
     );
   }
 
   return (
     <div
       ref={wrapperRef}
-      className="h-[clamp(400px,calc(100dvh-300px),650px)] min-h-[400px] overflow-hidden rounded-xl border border-line bg-surface"
+      className={`${heightClassName} overflow-hidden rounded-xl border border-line bg-surface`}
     >
       <ReactFlow
         colorMode={resolvedTheme}
@@ -756,10 +832,23 @@ function InnerGraphCanvas({
         maxZoom={1.6}
         proOptions={{ hideAttribution: true }}
         onNodeClick={(_, node) => {
-          setSelectedId(node.id);
-          onSelectNode(
-            graph?.nodes.find((item) => item.id === node.id) ?? null,
-          );
+          if (pendingClick.current) clearTimeout(pendingClick.current);
+          const select = () => {
+            setSelectedId(node.id);
+            onSelectNode(
+              graph?.nodes.find((item) => item.id === node.id) ?? null,
+            );
+          };
+          // Keep the node still until a possible double-click resolves; opening
+          // the inspector immediately moves the second click off its target.
+          if (onExploreNode) pendingClick.current = setTimeout(select, 250);
+          else select();
+        }}
+        zoomOnDoubleClick={!onExploreNode}
+        onNodeDoubleClick={(_, node) => {
+          if (pendingClick.current) clearTimeout(pendingClick.current);
+          const target = graph?.nodes.find((item) => item.id === node.id);
+          if (target) onExploreNode?.(target);
         }}
         onKeyDown={(event) => {
           if (event.key !== "Enter" && event.key !== " ") return;
@@ -768,8 +857,18 @@ function InnerGraphCanvas({
           )?.dataset.id;
           if (!nodeId) return;
           event.preventDefault();
-          setSelectedId(nodeId);
-          onSelectNode(graph?.nodes.find((item) => item.id === nodeId) ?? null);
+          const target = graph?.nodes.find((item) => item.id === nodeId);
+          if (
+            event.key === "Enter" &&
+            event.shiftKey &&
+            target &&
+            onExploreNode
+          ) {
+            onExploreNode(target);
+          } else {
+            setSelectedId(nodeId);
+            onSelectNode(target ?? null);
+          }
         }}
       >
         <Background gap={20} color="var(--color-line)" />

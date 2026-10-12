@@ -1,6 +1,6 @@
 # Evidence investigation
 
-Open **Graph → Evidence investigation** to inspect a bounded neighborhood of recorded relationships. Controls & CCF, Environment, and Findings, sources & vendors use the same model. Choose a starting point, search the server-side list, and select a depth of one, two, or three hops. Select a node to see its evidence, owner, severity, observation time, and next action; focus it to expand another neighborhood.
+Open **Graph → Evidence investigation** to inspect a bounded neighborhood of recorded relationships. Controls & CCF, Environment, and Findings, sources & vendors use the same model. Choose a starting point, search the server-side list, and select a depth of one, two, or three hops. Select a node to see its evidence, owner, severity, observation time, and next action; focus it to drill into another neighborhood. **Roll up** returns to the previous starting point, or to a recorded containing framework, family, environment, or account when there is no navigation history. **Expand graph workspace** gives the graph the full browser screen, with depth and zoom controls still available; exit with its button or Escape.
 
 The console requests at most 150 nodes per neighborhood. The API allows 1–300 and reports truncation and the matching node count. Starting points are paginated in groups of 50; search narrows that list. Optional layers remove nodes before traversal. A missing starting point produces an explicit empty result. The full framework and repository maps remain available separately.
 
@@ -36,3 +36,7 @@ The API builds the server-side model before selecting the bounded response. Its 
 Vendor asset references are stored in the vendor assessment by migration `0031_vendor_asset_refs`. `PATCH /api/v1/vendor-assessments/{assessment_id}` accepts up to 100 `asset_refs`, each containing `source_account_id` and `asset_id`, and requires `control_manage` scope.
 
 The existing `/api/v1/graph` retains the `evidence_type` node kind for compatibility, but each such node now represents one exact record. Evidence node IDs are content-derived; old type-only deep links must be replaced with a current node ID.
+
+Repository nodes show the recorded GitHub or GitLab provider with a repository badge; unknown hosts retain the generic icon. Click to inspect, double-click or press Shift+Enter to explore recorded connections, and use Roll up to return. Expanded workspace falls back to an in-page view when browser fullscreen is unavailable.
+
+The repository inspector lists evidence and findings present in the bounded view. Evidence outcomes distinguish passing, failing, observed but not evaluated, and settings that are not observable with the collection access. Selected records expose their exact linked controls and review guidance. Missing records do not prove a missing configuration; mappings and source outcomes do not establish whole-framework compliance.

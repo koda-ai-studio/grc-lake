@@ -570,7 +570,6 @@ export function ConnectorDrawer({
   const latestSyncOk =
     connector.last_successful_sync?.result === "ok" ||
     connector.last_sync?.result === "ok";
-  const scopeReady = scopeFields.length === 0 || missingScope.length === 0;
   const needsDiscovery =
     usesDiscoveredReadScope &&
     !isEnabled &&

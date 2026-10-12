@@ -238,3 +238,29 @@ def test_repository_context_preserves_explicit_source_account_identity(tmp_path:
     result = investigation_graph(tmp_path, view="environment", depth=1)
     repo = next(n for n in result["nodes"] if n["kind"] == "repository")
     assert repo["source_account_id"] == "account-a"
+
+
+def test_investigation_findings_keep_the_exact_affected_control(tmp_path: Path):
+    from security_lakehouse.investigation_graph import investigation_graph
+
+    _write_jsonl(
+        tmp_path / "silver/normalized_events.jsonl",
+        [
+            {
+                "event_id": "branch-rule",
+                "tenant_id": "account-a",
+                "source": "github-repo-governance",
+                "event_type": "repository.governance.branch_protection",
+                "asset_id": "repo",
+                "asset_type": "repository",
+                "control_ids": ["SOC2-CC6.1"],
+                "status": "failed",
+                "severity": "high",
+            }
+        ],
+    )
+    result = investigation_graph(tmp_path, view="environment", depth=3, limit=100)
+    finding = next(node for node in result["nodes"] if node["kind"] == "finding")
+    evidence = next(node for node in result["nodes"] if node["kind"] == "evidence_type")
+    assert finding["control_ids"] == evidence["control_ids"] == ["SOC2-CC6.1"]
+    assert finding["event_type"] == evidence["event_type"] == "repository.governance.branch_protection"

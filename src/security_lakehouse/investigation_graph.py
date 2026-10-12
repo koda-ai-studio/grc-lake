@@ -134,6 +134,8 @@ def investigation_graph(
             eid,
             event.get("event_type") or "Evidence",
             **observed,
+            event_type=event.get("event_type"),
+            control_ids=sorted(set(event.get("control_ids") or [])),
             evidence_id=event.get("event_id"),
             evidence_ref=event.get("evidence_ref"),
             raw_sha256=event.get("raw_sha256"),
@@ -183,7 +185,9 @@ def investigation_graph(
                     severity=event.get("severity"),
                     status=decision.get("state", "open"),
                     evidence_id=event.get("event_id"),
-                    basis="Observed failing evidence",
+                    event_type=event.get("event_type"),
+                    control_ids=[cid],
+                    basis="Observed failing evidence; review the linked control and affected asset",
                     next_action="Review evidence and assign remediation in Findings",
                 )
                 edge(aid, finding, "has_finding")
