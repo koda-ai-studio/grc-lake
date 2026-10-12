@@ -13,6 +13,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { InfoHint } from "@/components/ui/info-hint";
+import { FrameworkMark } from "@/components/framework/FrameworkMark";
 import { QueryState } from "@/components/QueryState";
 import { useAiGovernance, useAiInventory } from "@/lib/api/hooks";
 import type { AiInventoryItem } from "@/lib/api/types";
@@ -371,9 +372,14 @@ export function AiGovernanceWorkspace() {
                       <div className="flex items-start justify-between gap-2">
                         <Link
                           href={`/controls/?framework=${encodeURIComponent(framework.framework_id)}`}
-                          className="text-sm font-semibold hover:text-brand hover:underline"
+                          className="flex min-w-0 items-center gap-2 text-sm font-semibold hover:text-brand hover:underline"
                         >
-                          {framework.label}
+                          <FrameworkMark
+                            frameworkId={framework.framework_id}
+                            fallbackLabel={framework.label}
+                            size={28}
+                          />
+                          <span>{framework.label}</span>
                         </Link>
                         <InfoHint
                           label={`${framework.label} coverage`}

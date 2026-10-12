@@ -47,6 +47,7 @@ import { displayLabel as statusLabel } from "@/lib/display";
 import { SOURCE_CONNECTOR } from "@/lib/evidence-source-links";
 import { GRAPH_KIND_COLOR } from "@/lib/graph-palette";
 import { ConnectorMark } from "@/components/connectors/ConnectorMark";
+import { controlFamily } from "@/components/framework/ControlFamilyIcon";
 import { FrameworkBadge } from "@/components/framework/FrameworkBadge";
 import type {
   ComplianceGraph,
@@ -63,6 +64,7 @@ interface GraphNodeData extends Record<string, unknown> {
   layout: LayoutDir;
   provider?: string;
   framework_id?: string;
+  family_id?: string;
   owner?: string;
   risk_score?: number;
   /** Render emphasis driven by search / select / path-trace. */
@@ -133,7 +135,10 @@ function GraphNodeCard({ data, selected }: NodeProps<FlowGraphNode>) {
     border: "var(--color-line-strong)",
     chip: "var(--color-muted)",
   };
-  const Icon = KIND_ICON[data.kind] ?? Network;
+  const Icon =
+    data.kind === "ccf_family" && data.family_id
+      ? controlFamily(data.family_id).icon
+      : (KIND_ICON[data.kind] ?? Network);
   const connectorId = data.provider
     ? (SOURCE_CONNECTOR[data.provider] ?? data.provider)
     : undefined;
@@ -648,6 +653,8 @@ function InnerGraphCanvas({
           status: n.status,
           severity: n.severity,
           framework_id: n.framework_id,
+          family_id:
+            n.kind === "ccf_family" ? n.id.replace(/^family:/, "") : undefined,
           owner: n.owner,
           risk_score: n.risk_score,
           emphasis,
