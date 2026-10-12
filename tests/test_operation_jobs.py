@@ -4,6 +4,7 @@ from fastapi.testclient import TestClient
 
 from security_lakehouse import api_v1
 from security_lakehouse.server_app import create_app
+from security_lakehouse.services import assessments
 
 
 def test_revoked_browser_session_cannot_execute_queued_work(tmp_path, monkeypatch):
@@ -186,7 +187,7 @@ def test_worker_failure_does_not_expose_exception(tmp_path, monkeypatch, caplog)
     client = TestClient(app)
     response = client.post("/api/v1/ingestion/eval", json={}, headers={"Prefer": "respond-async"})
     monkeypatch.setattr(
-        api_v1, "handle_post", lambda *a, **kw: (_ for _ in ()).throw(RuntimeError("private-path-detail"))
+        assessments, "evaluate", lambda *a, **kw: (_ for _ in ()).throw(RuntimeError("private-path-detail"))
     )
     app.state.operation_worker.run_once()
     result = client.get(response.headers["Location"])
@@ -205,9 +206,9 @@ def test_lifespan_worker_completes_without_holding_request(tmp_path, monkeypatch
     def run(*args, **kwargs):
         entered.set()
         assert gate.wait(4)
-        return 201, api_v1.envelope("ingestion.eval", {"result": "ok"})
+        return assessments.AssessmentResult({"result": "ok"}, {})
 
-    monkeypatch.setattr(api_v1, "handle_post", run)
+    monkeypatch.setattr(assessments, "evaluate", run)
     app = create_app(tmp_path, require_auth=False)
     # This unit test exercises mocked in-process dispatch; process isolation has real smoke coverage.
     app.state.operation_worker.subprocess_execute = None
@@ -230,7 +231,7 @@ def test_lifespan_worker_completes_without_holding_request(tmp_path, monkeypatch
 def test_reentered_lifespan_can_process_new_jobs(tmp_path, monkeypatch):
     import time
 
-    monkeypatch.setattr(api_v1, "handle_post", lambda *a, **kw: (201, api_v1.envelope("ingestion.eval", {})))
+    monkeypatch.setattr(assessments, "evaluate", lambda *a, **kw: assessments.AssessmentResult({}, {}))
     app = create_app(tmp_path, require_auth=False)
     # This unit test exercises mocked in-process dispatch; process isolation has real smoke coverage.
     app.state.operation_worker.subprocess_execute = None

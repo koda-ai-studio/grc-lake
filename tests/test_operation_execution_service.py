@@ -5,6 +5,7 @@ from fastapi.testclient import TestClient
 
 from security_lakehouse import api_v1, server_app
 from security_lakehouse.db import migrate, repository
+from security_lakehouse.services import assessments
 from security_lakehouse.services import webhooks as webhook_services
 
 
@@ -20,14 +21,15 @@ def test_spawned_executor_does_not_bootstrap_http_or_migrate(tmp_path, monkeypat
 
     monkeypatch.setattr(server_app, "create_app", unexpected)
     monkeypatch.setattr(migrate, "upgrade", unexpected)
+    monkeypatch.setattr(api_v1, "handle_post", unexpected)
     calls = []
     monkeypatch.setattr(
-        api_v1, "handle_post", lambda *args, **kwargs: (calls.append(args), (200, api_v1.envelope("eval", {})))[1]
+        assessments, "evaluate", lambda *args, **kwargs: (calls.append(args), assessments.AssessmentResult({}, {}))[1]
     )
     code, _ = app.state.operation_worker.subprocess_execute(tmp_path, row)
-    assert code == 200
+    assert code == 201
     assert len(calls) == 1
-    assert calls[0][2] == tmp_path / "tenants" / "insecure"
+    assert calls[0][0] == tmp_path / "tenants" / "insecure"
 
 
 def test_spawned_executor_retains_tenant_binding_and_snapshot_hook(tmp_path, monkeypatch):
@@ -50,13 +52,13 @@ def test_spawned_executor_retains_tenant_binding_and_snapshot_hook(tmp_path, mon
         calls.append((tenant_id, kwargs["snapshot_path"]))
         repository.create_user(session, tenant_id=tenant_id, email="hook@example.test", role="read_only")
 
-    def handle(path, payload, lake, *, on_snapshot_written):
+    def handle(lake, command, context, *, on_snapshot_written):
         assert lake == tmp_path / "tenants" / tenant_id
         on_snapshot_written(lake / "snapshot.json", {}, [], [])
-        return 201, api_v1.envelope("snapshot", {})
+        return assessments.AssessmentResult({}, {})
 
     monkeypatch.setattr(webhook_services, "dispatch_snapshot_events", dispatch)
-    monkeypatch.setattr(api_v1, "handle_post", handle)
+    monkeypatch.setattr(assessments, "snapshot", handle)
     code, _ = app.state.operation_worker.subprocess_execute(tmp_path, row)
     assert code == 201
     assert calls == [(tenant_id, tmp_path / "tenants" / tenant_id / "snapshot.json")]

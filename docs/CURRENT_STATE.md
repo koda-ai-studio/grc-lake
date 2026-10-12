@@ -32,22 +32,23 @@ and [measured capacity #910](https://github.com/koda-ai-studio/grc-lake/issues/9
 
 Use these maintained contracts rather than a second hand-maintained feature count.
 
-| Coverage question                                | Source of truth                                                                                             | How to check                                                                                                   |
-| ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| Which connectors execute, and which are preview? | [Connector catalog](CONNECTORS.md), `connectors/catalog.json`                                               | `grc-lake connectors validate`; runner and catalog tests under `tests/`                                        |
-| Which requirements have reviewed mappings?       | Generated [framework coverage](FRAMEWORK_COVERAGE.md)                                                       | `make coverage-doc`; review the generated diff and effective mapping versions                                  |
-| Which lakes and deployment modes work?           | [Deployment compatibility](DEPLOYMENT.md#deployment-and-lake-compatibility), [BYOL](BRING_YOUR_OWN_LAKE.md) | Qualify reader, schema mapping, application storage and export separately                                      |
-| What goes in and comes out?                      | [Data model](DATA_MODEL.md), [data flow](DATA_FLOW.md), [API contract](api/AGENT_API.md)                    | Schema validation, replay/identity tests, export round trips and generation verification                       |
-| What scales, with which settings?                | [Distributed mode](DISTRIBUTED.md), [audit scale](AUDIT_SCALE.md), [benchmarks](BENCHMARKS.md)              | Record workload, storage, hardware, configuration, concurrency, latency and resource use                       |
-| Which user journeys exist?                       | [Console UX](CONSOLE_UX.md), `app/web/e2e/`                                                                 | Synthetic browser tests plus authorized deployment checks; an accessible page alone is not a completed journey |
+| Coverage question                                | Source of truth                                                                                              | How to check                                                                                                                                             |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Which connectors execute, and which are preview? | [Connector catalog](CONNECTORS.md), `connectors/catalog.json`                                                | `grc-lake connectors validate`; runner and catalog tests under `tests/`                                                                                  |
+| Which requirements have reviewed mappings?       | Generated [framework coverage](FRAMEWORK_COVERAGE.md)                                                        | `make coverage-doc`; review the generated diff and effective mapping versions                                                                            |
+| Which lakes and deployment modes work?           | [Deployment compatibility](DEPLOYMENT.md#deployment-and-lake-compatibility), [BYOL](BRING_YOUR_OWN_LAKE.md)  | Qualify reader, schema mapping, application storage and export separately                                                                                |
+| What goes in and comes out?                      | [Data model](DATA_MODEL.md), [data flow](DATA_FLOW.md), [API contract](api/AGENT_API.md)                     | Schema validation, replay/identity tests, export round trips and generation verification                                                                 |
+| What scales, with which settings?                | [Distributed mode](DISTRIBUTED.md), [audit scale](AUDIT_SCALE.md), [benchmarks](BENCHMARKS.md)               | Record workload, storage, hardware, configuration, concurrency, latency and resource use                                                                 |
+| Which user journeys exist?                       | [Console UX](CONSOLE_UX.md), `app/web/e2e/`                                                                  | Synthetic browser tests plus authorized deployment checks; an accessible page alone is not a completed journey                                           |
+| How much Python code do tests exercise?          | [CI runs](https://github.com/koda-ai-studio/grc-lake/actions/workflows/ci.yml), `coverage-combined` artifact | The `coverage` job combines all four test shards into line-and-branch coverage for that exact revision; this is separate from framework mapping coverage |
 
 ## Candidate coverage depth
 
-The refreshed tour uses source `6a9464a0`, based on the merge of #912 with shared
-framework/control identities and the canonical console repository link. Coverage documents
-and the README summary were regenerated from that catalog. This identifies the
-application source used for the screenshots; it does not qualify a published
-0.3.3 package or container.
+The refreshed tour uses source `9e741ffb`, including shared assessment services,
+durable operation outcomes and bounded retry behavior alongside the existing
+console workflows. Coverage documents and the README summary were regenerated
+from this catalog; their counts are unchanged. This identifies the application
+source used for the screenshots, not a published 0.3.3 package or container.
 
 | Area                | Implemented breadth                                                                                              | Evidence and remaining depth                                                                                                                                                                                         |
 | ------------------- | ---------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -58,14 +59,34 @@ application source used for the screenshots; it does not qualify a published
 | Repository evidence | Public GitHub audit CLI and authenticated GitHub/GitLab adapters                                                 | Public settings can be unobservable. Direct public-URL onboarding in the console remains [#911](https://github.com/koda-ai-studio/grc-lake/issues/911).                                                              |
 | Human decisions     | Pending access reviews, mapping review and scoped sharing                                                        | Independent human authority remains enforced. A recorded access-revocation decision does not revoke provider access.                                                                                                 |
 
-The base source build, catalog/schema validation and 175 focused graph, tenant/auth,
-access-review, lineage and release-contract tests passed locally. Sixteen
+Earlier console qualification at source `6a9464a0` passed the build,
+catalog/schema validation and 175 focused graph, tenant/auth,
+access-review, lineage and release-contract tests locally. Sixteen
 PostgreSQL variants were skipped in that local run; PostgreSQL CI and the
 release image probes are separate qualification. The synthetic browser tour
 includes desktop light/dark and mobile views. After the identity fixes, 36 focused
 browser tests passed, including shared artwork, mobile layout, provider setup,
 graph interactions and review restrictions. None of this refresh repeats the
 live-provider collections below.
+
+## Assessment and recovery candidate
+
+Evaluation and snapshot transports now share application services. Authorized
+callers can inspect tenant-scoped operation receipts after a lost completion
+response; oversized responses preserve execution status. Queue admission,
+cursor pagination, response retention, collector retries and recovery inspection
+have explicit budgets and errors. Failed integrity checks still consume the
+inspection download allowance. See the
+[assessment application contract](ASSESSMENT_APPLICATION_CONTRACT.md).
+
+The built-image CI drill restores coordinated PostgreSQL and S3 backups after
+removing its original disposable storage. It checks retained revisions, evidence
+hashes, snapshot chains, operation receipts, corrupt-backup rejection and tenant
+isolation. The PostgreSQL CI job also exercises receipt retrieval across replicas
+after deliberately omitting job completion. Local receipt persistence still
+follows publication, so a crash in that gap remains uncertain. No automatic
+replay, production RPO/RTO, provider failover or capacity guarantee follows from
+these tests; inspect the exact candidate's CI reports before rollout.
 
 ## Earlier bounded provider qualification
 

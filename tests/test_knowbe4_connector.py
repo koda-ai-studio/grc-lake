@@ -377,18 +377,24 @@ def test_live_client_retries_429_honoring_retry_after(monkeypatch: pytest.Monkey
     assert [_query(r)["cursor"] for r in seen] == [["0"], ["0"]]
 
 
-def test_live_client_reports_a_rate_limit_lockout_as_retry_later(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr("time.sleep", lambda _seconds: None)
-    seen = _fake_api(monkeypatch, lambda request: _http_error(request.full_url, 429, {"Retry-After": "300"}))
+@pytest.mark.parametrize(("retry_after", "attempts"), [("300", 1), ("0", 5)])
+def test_live_client_reports_a_rate_limit_lockout_as_retry_later(
+    monkeypatch: pytest.MonkeyPatch, retry_after: str, attempts: int
+) -> None:
+    sleeps: list[float] = []
+    monkeypatch.setattr("time.sleep", sleeps.append)
+    seen = _fake_api(monkeypatch, lambda request: _http_error(request.full_url, 429, {"Retry-After": retry_after}))
 
     with pytest.raises(KnowBe4RateLimitedError) as excinfo:
         _client().users()
     message = str(excinfo.value)
     assert "rate limit" in message and "retry" in message.lower()
+    assert "retry budget" in message
     assert isinstance(excinfo.value, ConnectorOperatorError)
     assert _safe_run_error(excinfo.value) == " ".join(message.split())
     assert TOKEN not in message
-    assert len(seen) == 5  # first try + the shared backoff's 4 retries
+    assert len(seen) == attempts
+    assert sleeps == [0.0] * (attempts - 1)
 
 
 def test_live_client_paces_requests_under_the_burst_limit(monkeypatch: pytest.MonkeyPatch) -> None:

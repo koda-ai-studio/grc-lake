@@ -341,8 +341,8 @@ The required Docker CI job runs this qualification against its built image and
 retains a sanitized report. The report identifies the application image digest.
 This single-host stack qualifies application processes and the tested S3 protocol
 behavior. It does not certify PostgreSQL primary failover, replicated SeaweedFS
-storage, network partitions between physical machines, backup restoration or
-production capacity. Operators must exercise those properties in their target
+storage, network partitions between physical machines, production backup recovery
+objectives or production capacity. Operators must exercise those properties in their target
 infrastructure before rollout.
 
 The driver removes only its uniquely named project and volumes, including after
@@ -387,3 +387,51 @@ adapter's `BadDigest` handling matches that documented error code; this source
 check is not a live AWS fault-injection result. See the official
 [S3 error responses](https://docs.aws.amazon.com/AmazonS3/latest/API/ErrorResponses.html)
 and [PutObject checksum contract](https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutObject.html).
+
+## Read-only recovery inspection
+
+`grc-lake cluster inspect --tenant-id TENANT --lake /private/scratch` reads the
+committed catalog and checks object bytes directly, bypassing replica caches.
+It does not migrate the database, initialize cluster records, publish, repair or
+delete evidence. Only disposable local download files are written.
+
+The versioned JSON report identifies the catalog revision and manifest hash,
+missing objects, integrity failures, storage/resource errors and unresolved jobs.
+An available verified job receipt helps inspection; no job is replayed or marked
+complete by this command. `ok` means the bounded object check passed;
+`recovery_ready` additionally requires no unresolved running/interrupted jobs.
+Neither field establishes control compliance or source authenticity.
+
+Default limits are 10,000 objects, 1 GiB of attempted downloads, a 120-second
+scheduling deadline and 100 detailed issues/jobs. Override with `--max-objects`,
+`--max-bytes` and `--max-seconds`. Exhausted budgets explicitly report incomplete
+inspection and return a nonzero exit code. An in-flight S3 request remains subject
+to its configured socket timeout/retry budget. Each object's declared size is
+reserved before download, including failed integrity checks; verified bytes are
+reported separately. Inspection reserves 256 MiB of
+scratch headroom and does not silently substitute a cached or older revision.
+
+Writer lease loss is checked before assessment pointer publication, object uploads,
+each multipart chunk, and final manifest publication. These cooperative checks
+reduce wasted work; the PostgreSQL owner/fence/expiry check remains authoritative.
+Unsupported explicit manifest schema versions fail before restoration writes.
+Distributed HTTP failures distinguish writer conflicts, missing objects, integrity
+failures, resource exhaustion and unavailable storage without exposing provider
+exception text. Uncertain execution still requires result/history inspection.
+
+## Qualification backup restoration
+
+The existing `tools/qualify_distributed.py` built-image gate now also seeds
+snapshots and durable operation receipts, stops API/reader/worker writers, captures
+PostgreSQL plus every object referenced by retained catalog revisions, and removes
+only its uniquely named qualification project's original volumes. It recreates
+fresh stores, restores the coordinated backup and verifies revision identities,
+evidence hashes, snapshot chains, operation receipts and cross-tenant denial.
+A deliberately corrupt backup must fail validation before object restoration.
+
+The report records the application image digest, quiesced checkpoint and measured
+recovery seconds. It qualifies this single-host synthetic drill, not automatic
+primary failover, production RPO/RTO, replicated storage or capacity. The host
+retains sanitized reports; temporary database/object backups and credentials are
+removed by the driver and its explicit cleanup command. Backup hashes establish
+integrity relative to the recorded checkpoint, not independent authenticity.

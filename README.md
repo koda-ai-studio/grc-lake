@@ -91,7 +91,7 @@ The PyPI package is `grc-lake`, the CLI is
   <img src="docs/images/grc-lake-demo-dashboard.png" alt="GRC Lake overview with framework coverage, priority actions, and evidence freshness" width="100%">
 </picture>
 
-_Screens show the bundled synthetic company, captured from the 0.3.3 candidate with evidence investigation, the AI model and agent worklist, and the original product branding on 2026-10-12.
+_Screens show the bundled synthetic company, captured from 0.3.3 candidate source `9e741ffb` on 2026-10-12, with evidence investigation, the AI model and agent worklist, and shared framework/control identities.
 Main can include changes newer than the published package. These screens
 demonstrate workflows, not a customer deployment or an audit opinion._
 
@@ -134,6 +134,20 @@ filesystem lake; `cluster` commands manage distributed operation. MCP reads a
 filesystem lake or calls the authenticated API; distributed deployments require
 API mode. See [architecture](docs/ARCHITECTURE.md) and
 [distributed deployment](docs/DISTRIBUTED.md).
+
+Queued evaluations and snapshots retain tenant-scoped result receipts, allowing
+an authorized caller to inspect a committed result after a lost worker response.
+Operation lists support cursor pagination; queue admission, response storage and
+collector retries have explicit limits. See the
+[assessment application contract](docs/ASSESSMENT_APPLICATION_CONTRACT.md) for
+failure codes, retry guidance and the limits of local recovery.
+
+Distributed operators can inspect committed objects without trusting replica
+caches and follow the [backup and restore runbook](docs/runbooks/BACKUP_RESTORE.md).
+The built-image qualification restores PostgreSQL and S3 objects into fresh stores
+and checks evidence, snapshot chains, operation receipts and tenant isolation.
+This synthetic single-host drill does not establish production recovery times
+or storage failover.
 
 ## Evidence modes
 

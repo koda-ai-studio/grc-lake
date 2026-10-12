@@ -283,6 +283,9 @@ def _switch_pointer(lake: Path, generation: Path) -> None:
 
 def publish_generation(lake: Path, generation: Path) -> None:
     """Migrate aliases without changing the old view, then switch one pointer."""
+    from security_lakehouse.distributed.context import check_write_lease
+
+    check_write_lease()
     lake = lake.resolve()
     verify_generation(generation)
     if active_generation(lake) is None:

@@ -2,8 +2,9 @@
 
 GRC Lake **0.3.3 is a source candidate, not a published release**. It prepares
 container dependency remediation, stronger cookie and SAML signature policies,
-dependency updates, a server-route refactor, and refreshed README guidance listed
-in the [changelog](../CHANGELOG.md).
+dependency updates, a server-route refactor, evidence investigation and governance
+changes, shared assessment services, durable operation outcomes, bounded API/retry
+behavior, and coordinated backup restoration listed in the [changelog](../CHANGELOG.md).
 
 Version **0.3.2 is published** on PyPI and as the public image
 `ghcr.io/koda-ai-studio/grc-lake:0.3.2`. It does not contain these later fixes.
@@ -26,6 +27,30 @@ browser sessions must sign in again. See [deployment](DEPLOYMENT.md) and
 Source and CI qualification do not establish publication, live-provider accuracy,
 or a working customer deployment. The pinned build-tool replacement and its
 verification limits are documented in [dependency security scope](DEPENDENCY_SECURITY.md).
+
+## Assessment and recovery qualification
+
+The assessment contract separates execution, publication, control verdicts and
+exports. Queued evaluations and snapshots call shared application services and
+retain authorized result receipts. A lost completion response remains recoverable
+when its receipt was committed; no receipt authorizes automatic replay. Local
+publication and receipt persistence have a documented crash gap. See the
+[assessment application contract](ASSESSMENT_APPLICATION_CONTRACT.md).
+
+The required built-image Docker gate exercises coordinated backup recovery with
+PostgreSQL and SeaweedFS S3. It stops writers, captures the database and all retained
+object references, removes its original disposable stores and scratch volumes,
+then restores into fresh stores. The report verifies revision identities, evidence
+hashes, snapshot chains, operation receipts, corrupt-backup rejection and tenant
+isolation. Match the retained report's application image digest to the intended
+candidate; an older successful run is not evidence for a newer image.
+
+Read-only inspection enforces object, attempted-byte and scheduling budgets;
+failed integrity checks consume the download allowance. Lease loss stops pending
+upload/publication work, with database fencing remaining authoritative. These
+checks qualify the tested single-host synthetic scenario, not production RPO/RTO,
+replicated storage, automatic failover or live-provider accuracy. See
+[distributed qualification](DISTRIBUTED.md#qualification-backup-restoration).
 
 ## Release gates
 
