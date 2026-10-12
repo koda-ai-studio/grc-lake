@@ -21,6 +21,7 @@ The in-process limiter remains the default when that URL is unset.
 
 from __future__ import annotations
 
+import math
 import threading
 import time
 from collections import OrderedDict
@@ -80,6 +81,8 @@ class RateLimitConfig:
             burst = int(env.get(ENV_BURST, DEFAULT_BURST))
         except ValueError:
             burst = DEFAULT_BURST
+        if not math.isfinite(rps):
+            raise ValueError("rate limit must be finite")
         enabled = rps > 0 and burst > 0
         return cls(rps=rps, burst=max(1, burst), enabled=enabled)
 

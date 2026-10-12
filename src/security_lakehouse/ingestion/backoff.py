@@ -85,6 +85,8 @@ def retry(
     base: float = 0.5,
     cap: float = 30.0,
     sleep: Callable[[float], Any] | None = None,
+    max_elapsed: float = 120.0,
+    clock: Callable[[], float] = time.monotonic,
 ) -> T:
     """Call ``fn`` with retry on classified-transient exceptions.
 
@@ -93,7 +95,12 @@ def retry(
     Raises the last exception once ``max_retries`` is exhausted. ``sleep``
     defaults to :func:`time.sleep`, resolved at call time so tests can patch it.
     """
+    if type(max_retries) is not int or not 0 <= max_retries <= 20:
+        raise ValueError("max_retries must be between 0 and 20")
+    if any(not math.isfinite(value) or value < 0 for value in (base, cap, max_elapsed)) or max_elapsed == 0:
+        raise ValueError("retry bounds must be finite and nonnegative with a positive deadline")
     _sleep = sleep or time.sleep
+    deadline = clock() + max_elapsed
     attempt = 0
     while True:
         try:
@@ -101,7 +108,17 @@ def retry(
         except Exception as exc:
             if attempt >= max_retries or not is_retryable(exc):
                 raise
-            _sleep(next_delay(attempt, base=base, cap=cap, retry_after=retry_after(exc)))
+            advised = retry_after(exc)
+            # Never shorten a provider's requested wait to our local budget.
+            # Give control back to the caller instead of retrying too early.
+            if advised is not None and (not math.isfinite(advised) or advised > cap):
+                raise
+            delay = next_delay(attempt, base=base, cap=cap, retry_after=advised)
+            if clock() + delay >= deadline:
+                raise
+            _sleep(delay)
+            if clock() >= deadline:
+                raise
             attempt += 1
 
 

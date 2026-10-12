@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import time
 from typing import Protocol
 
 from security_lakehouse.auth.rate_limit import RateLimitConfig
@@ -12,9 +11,11 @@ from security_lakehouse.runtime_environment import runtime_env
 _TOKEN_BUCKET_LUA = """
 local tokens_key = KEYS[1]
 local last_key = KEYS[2]
-local now = tonumber(ARGV[1])
-local rps = tonumber(ARGV[2])
-local burst = tonumber(ARGV[3])
+local clock = redis.call('TIME')
+local now = tonumber(clock[1]) + tonumber(clock[2]) / 1000000
+local rps = tonumber(ARGV[1])
+local burst = tonumber(ARGV[2])
+local ttl = math.max(1000, math.ceil(burst / rps * 2000))
 
 local tokens = tonumber(redis.call('GET', tokens_key))
 if tokens == nil then
@@ -32,13 +33,17 @@ if tokens >= 1 then
   tokens = tokens - 1
   redis.call('SET', tokens_key, tokens)
   redis.call('SET', last_key, now)
-  return {1, 0}
+  redis.call('PEXPIRE', tokens_key, ttl)
+  redis.call('PEXPIRE', last_key, ttl)
+  return {1, '0'}
 end
 
 local retry_after = (1 - tokens) / rps
 redis.call('SET', tokens_key, tokens)
 redis.call('SET', last_key, now)
-return {0, retry_after}
+redis.call('PEXPIRE', tokens_key, ttl)
+redis.call('PEXPIRE', last_key, ttl)
+return {0, tostring(retry_after)}
 """
 
 
@@ -62,16 +67,20 @@ class RedisRateLimiter:
         config: RateLimitConfig,
         redis_url: str,
         *,
-        clock=time.monotonic,
         key_prefix: str = "trustops:rate:",
         client=None,
     ) -> None:
         import redis
 
         self._config = config
-        self._clock = clock
         self._prefix = key_prefix
-        self._client = client if client is not None else redis.Redis.from_url(redis_url, decode_responses=False)
+        self._client = (
+            client
+            if client is not None
+            else redis.Redis.from_url(
+                redis_url, decode_responses=False, socket_connect_timeout=1, socket_timeout=1, retry_on_timeout=False
+            )
+        )
 
     @property
     def enabled(self) -> bool:
@@ -84,7 +93,6 @@ class RedisRateLimiter:
     def check(self, key: str) -> tuple[bool, float]:
         if not self._config.enabled:
             return True, 0.0
-        now = self._clock()
         tokens_key = f"{self._prefix}{key}:tokens"
         last_key = f"{self._prefix}{key}:last"
         allowed_raw, retry_raw = self._client.eval(
@@ -92,7 +100,6 @@ class RedisRateLimiter:
             2,
             tokens_key,
             last_key,
-            now,
             self._config.rps,
             self._config.burst,
         )

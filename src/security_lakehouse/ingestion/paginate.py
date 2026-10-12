@@ -22,8 +22,8 @@ class IncompleteCollectionError(RuntimeError):
     interpolated in the error message because provider cursors may be sensitive.
     """
 
-    def __init__(self, *, cursor: Any, pages_fetched: int) -> None:
-        super().__init__(f"collection incomplete: page budget exhausted after {pages_fetched} pages")
+    def __init__(self, *, cursor: Any, pages_fetched: int, reason: str = "page budget exhausted") -> None:
+        super().__init__(f"collection incomplete: {reason} after {pages_fetched} pages")
         self.cursor = cursor
         self.pages_fetched = pages_fetched
 
@@ -57,11 +57,15 @@ def paginate(
     if type(max_pages) is not int or max_pages < 1:
         raise ValueError("max_pages must be a positive integer")
     cursor = start_cursor
-    for _ in range(max_pages):
+    seen = [start_cursor] if start_cursor is not None else []
+    for index in range(max_pages):
         page = fetch_page(cursor)
         yield from extract_items(page)
         cursor = next_cursor(page)
         if cursor is None:
             return
+        if cursor in seen:
+            raise IncompleteCollectionError(cursor=cursor, pages_fetched=index + 1, reason="repeated pagination cursor")
+        seen.append(cursor)
 
     raise IncompleteCollectionError(cursor=cursor, pages_fetched=max_pages)

@@ -6271,9 +6271,27 @@
             "required": false,
             "schema": {
               "default": 0,
+              "maximum": 100000,
               "minimum": 0,
               "title": "Offset",
               "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 1024,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
             }
           }
         ],
@@ -6395,6 +6413,51 @@
           }
         ],
         "summary": "Operation Cancel",
+        "tags": ["platform"]
+      }
+    },
+    "/api/v1/operations/{job_id}/result": {
+      "get": {
+        "operationId": "operation_result_api_v1_operations__job_id__result_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V1Envelope"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Operation Result",
         "tags": ["platform"]
       }
     },

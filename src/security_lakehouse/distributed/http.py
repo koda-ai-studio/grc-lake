@@ -142,7 +142,9 @@ class DistributedMiddleware:
         mutation = scope["method"] not in {"GET", "HEAD", "OPTIONS"}
         from security_lakehouse.operation_jobs import supported
 
-        queue_only = scope["path"] == "/api/v1/operations" or scope["path"].startswith("/api/v1/operations/")
+        queue_only = (
+            scope["path"] == "/api/v1/operations" or scope["path"].startswith("/api/v1/operations/")
+        ) and not scope["path"].endswith("/result")
         async_admission = (
             scope["method"] == "POST"
             and supported(scope["path"])

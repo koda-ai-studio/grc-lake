@@ -6,6 +6,8 @@ effects may have completed before the worker stopped. Queued work survives resta
 
 from __future__ import annotations
 
+import base64
+import builtins
 import hashlib
 import json
 import logging
@@ -22,7 +24,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from sqlalchemy import case, func, select, update
+from sqlalchemy import and_, case, func, or_, select, update
 from sqlalchemy.exc import IntegrityError, OperationalError
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -89,12 +91,20 @@ def serialize(row: OperationJob, *, include_result: bool = True) -> dict[str, An
         "finished_at": stamp(row.finished_at),
         "status_url": f"/api/v1/operations/{row.id}",
         "http_status": row.http_status,
-        **({"response": None if archived else result} if include_result else {}),
+        **(
+            {"response": None if archived else result, "result_url": f"/api/v1/operations/{row.id}/result"}
+            if include_result
+            else {}
+        ),
     }
 
 
 class JobConflict(ValueError):
     """A repeated key refers to different work."""
+
+
+class JobQueueFull(JobConflict):
+    """Admission rejected before execution; retry the same key later."""
 
 
 class JobQueue:
@@ -128,6 +138,8 @@ class JobQueue:
             raise ValueError("Idempotency-Key must contain 1 to 200 characters")
         # These operations only accept selectors, never credentials or local paths.
         allowed = {"actor", "idempotency_key"}
+        if path in {"/api/v1/snapshots", "/api/v1/ingestion/eval"}:
+            allowed.add("expected_generation")
         if path == "/api/v1/snapshots":
             allowed.add("reason")
         elif path.endswith("/sync"):
@@ -136,6 +148,11 @@ class JobQueue:
             raise ValueError("unsupported asynchronous operation fields")
         if "materialize" in payload and not isinstance(payload["materialize"], bool):
             raise ValueError("materialize must be a boolean")
+        if "expected_generation" in payload and (
+            not isinstance(payload["expected_generation"], str)
+            or not re.fullmatch(r"[0-9a-f]{32}", payload["expected_generation"])
+        ):
+            raise ValueError("expected_generation must be a generation identifier")
         raw = json.dumps(payload, sort_keys=True, separators=(",", ":"), allow_nan=False)
         if len(raw.encode()) > 8192:
             raise ValueError("operation payload exceeds 8 KiB")
@@ -170,7 +187,7 @@ class JobQueue:
                     )
                 )
                 if pending and pending >= 100:
-                    raise JobConflict("too many pending operations; wait for existing work")
+                    raise JobQueueFull("too many pending operations; wait for existing work")
                 existing = OperationJob(
                     root_key=self.root_key,
                     tenant_id=identity.tenant_id,
@@ -275,6 +292,67 @@ class JobQueue:
                 }
                 for row in rows
             ]
+
+    def page(
+        self,
+        tenant_id: str,
+        *,
+        limit: int = 50,
+        offset: int = 0,
+        cursor: str | None = None,
+        viewer: Identity | None = None,
+    ) -> tuple[builtins.list[dict[str, Any]], dict[str, Any]]:
+        if not 1 <= limit <= 500 or not 0 <= offset <= 100000 or (cursor and offset):
+            raise ValueError("invalid operation pagination")
+        conditions = [OperationJob.root_key == self.root_key, OperationJob.tenant_id == tenant_id]
+        if cursor:
+            try:
+                if len(cursor) > 1024:
+                    raise ValueError()
+                stamp, job_id, owner = json.loads(base64.b64decode(cursor, altchars=b"-_", validate=True))
+                if (
+                    owner != tenant_id
+                    or type(stamp) not in (float, int)
+                    or not 0 <= stamp <= 253402300799
+                    or not isinstance(job_id, str)
+                ):
+                    raise ValueError()
+                uuid.UUID(job_id)
+            except (ValueError, TypeError, UnicodeError) as exc:
+                raise ValueError("invalid operation cursor") from exc
+            conditions.append(
+                or_(OperationJob.created_at < stamp, and_(OperationJob.created_at == stamp, OperationJob.id < job_id))
+            )
+        with self.factory() as session:
+            rows = list(
+                session.scalars(
+                    select(OperationJob)
+                    .where(*conditions)
+                    .order_by(OperationJob.created_at.desc(), OperationJob.id.desc())
+                    .offset(offset)
+                    .limit(limit + 1)
+                )
+            )
+            more = len(rows) > limit
+            rows = rows[:limit]
+            next_cursor = None
+            if more:
+                last = rows[-1]
+                next_cursor = base64.urlsafe_b64encode(
+                    json.dumps([last.created_at, last.id, tenant_id]).encode()
+                ).decode()
+            return (
+                [
+                    {
+                        **serialize(row, include_result=False),
+                        "can_cancel": viewer is not None
+                        and row.status in {"queued", "running"}
+                        and self.can_manage(row, viewer),
+                    }
+                    for row in rows
+                ],
+                {"limit": limit, "offset": offset, "has_more": more, "next_cursor": next_cursor},
+            )
 
     def execution_lock(self, row: OperationJob):
         if self.cluster is not None:
@@ -484,8 +562,19 @@ class JobQueue:
         raw = json.dumps(response, allow_nan=False)
         state = "succeeded" if code < 400 else "failed"
         if len(raw.encode()) > RESULT_LIMIT:
-            raw = "null"
-            state = "interrupted"  # Work completed; inspect its domain history rather than replaying it.
+            # Result size is a delivery property, not an execution outcome.
+            raw = json.dumps(
+                {
+                    "data": None,
+                    "meta": {
+                        "result_truncated": True,
+                        "result_url": response.get("meta", {}).get("result_url"),
+                        "outcome": response.get("meta", {}).get("outcome"),
+                    },
+                    "errors": [],
+                },
+                allow_nan=False,
+            )
         finished_at = time.time()
 
         def write(session: Session) -> None:

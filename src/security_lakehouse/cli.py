@@ -980,11 +980,11 @@ def _run_pipeline(args: argparse.Namespace) -> int:
 
 
 def _pipeline_eval(args: argparse.Namespace) -> int:
-    from security_lakehouse.lake_eval import run_lake_eval
+    from security_lakehouse.services.assessments import AssessmentContext, EvaluationCommand, evaluate
 
-    result = run_lake_eval(args.lake, actor=args.actor)
-    print(json.dumps(result.to_dict(), indent=2, sort_keys=True))
-    return 0 if result.result == "ok" else 1
+    result = evaluate(args.lake, EvaluationCommand(), AssessmentContext(actor=args.actor))
+    print(json.dumps(result.data, indent=2, sort_keys=True))
+    return 0 if result.succeeded else 1
 
 
 def _verify_pipeline_integrity(args: argparse.Namespace) -> int:
@@ -1884,12 +1884,16 @@ def _assessment_status(args: argparse.Namespace) -> int:
 
 
 def _assessment_snapshot(args: argparse.Namespace) -> int:
-    from security_lakehouse.assessment import write_assessment_snapshot
+    from security_lakehouse.services.assessments import AssessmentContext, SnapshotCommand, snapshot
 
     if not Path(args.lake).is_dir():
         raise ValueError("assessment lake directory does not exist")
-    path = write_assessment_snapshot(args.lake, output=args.out, freshness_days=args.freshness_days, reason=args.reason)
-    print(f"wrote assessment snapshot: {path}")
+    result = snapshot(
+        args.lake,
+        SnapshotCommand(reason=args.reason, output=args.out, freshness_days=args.freshness_days),
+        AssessmentContext(actor="cli"),
+    )
+    print(f"wrote assessment snapshot: {result.data['snapshot_path']}")
     return 0
 
 

@@ -40,7 +40,6 @@ from security_lakehouse.assessment import (
     load_snapshot,
     posture_as_of,
     verify_snapshot_chain,
-    write_assessment_snapshot,
 )
 from security_lakehouse.asset_names import load_asset_names, with_asset_names
 from security_lakehouse.connector_runner import ConnectorSyncError, run_connector_sync
@@ -80,7 +79,7 @@ from security_lakehouse.io import (
     resolve_path,
 )
 from security_lakehouse.jsontypes import JsonObject
-from security_lakehouse.lake_eval import list_eval_runs, run_lake_eval
+from security_lakehouse.lake_eval import list_eval_runs
 from security_lakehouse.lake_scale import connector_materialize_on_sync
 from security_lakehouse.mapping_review import (
     MappingReviewError,
@@ -2268,8 +2267,27 @@ def handle_post(
         )
     if path == "/api/v1/snapshots":
         reason = str(payload.get("reason") or "api_request")
-        snapshot_path = write_assessment_snapshot(lake, reason=reason, on_snapshot_written=on_snapshot_written)
-        return HTTPStatus.CREATED, envelope("snapshots", {"snapshot_path": str(snapshot_path), "reason": reason})
+        from security_lakehouse.services.assessments import (
+            AssessmentContext,
+            GenerationConflict,
+            SnapshotCommand,
+            snapshot,
+        )
+
+        try:
+            assessment_result = snapshot(
+                lake,
+                SnapshotCommand(reason=reason),
+                AssessmentContext(
+                    actor=str(payload.get("actor") or "console"), expected_generation=payload.get("expected_generation")
+                ),
+                on_snapshot_written=on_snapshot_written,
+            )
+        except GenerationConflict as exc:
+            return HTTPStatus.CONFLICT, error_envelope("generation_conflict", str(exc))
+        return HTTPStatus.CREATED, envelope(
+            "snapshots", assessment_result.data, meta={"outcome": assessment_result.outcome}
+        )
     triage = _suffix_match(path, "/api/v1/violations/", "/triage")
     if triage is not None:
         state = str(payload.get("state") or "").lower()
@@ -2525,13 +2543,26 @@ def handle_post(
             },
         )
     if path == "/api/v1/ingestion/eval":
-        eval_result = run_lake_eval(lake, actor=str(payload.get("actor") or "console"))
+        from security_lakehouse.services.assessments import (
+            AssessmentContext,
+            EvaluationCommand,
+            GenerationConflict,
+            evaluate,
+        )
+
+        try:
+            assessment_result = evaluate(
+                lake,
+                EvaluationCommand(),
+                AssessmentContext(
+                    actor=str(payload.get("actor") or "console"), expected_generation=payload.get("expected_generation")
+                ),
+            )
+        except GenerationConflict as exc:
+            return HTTPStatus.CONFLICT, error_envelope("generation_conflict", str(exc))
         return (
-            HTTPStatus.CREATED if eval_result.result == "ok" else HTTPStatus.INTERNAL_SERVER_ERROR,
-            envelope(
-                "ingestion.eval",
-                eval_result.to_dict(),
-            ),
+            HTTPStatus.CREATED if assessment_result.succeeded else HTTPStatus.INTERNAL_SERVER_ERROR,
+            envelope("ingestion.eval", assessment_result.data, meta={"outcome": assessment_result.outcome}),
         )
     if path == "/api/v1/scheduler/tick":
         from security_lakehouse.scheduler import tick

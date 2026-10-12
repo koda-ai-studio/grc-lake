@@ -95,7 +95,14 @@ from security_lakehouse.execution_mode import run_in_server_mode, server_executi
 from security_lakehouse.ingestion_status import build_ingestion_status
 from security_lakehouse.io import resolve_path
 from security_lakehouse.operation_execution import execute_operation, execute_stored_operation
-from security_lakehouse.operation_jobs import DEFAULT_WORKERS, MAX_WORKERS, JobConflict, JobQueue, JobWorker
+from security_lakehouse.operation_jobs import (
+    DEFAULT_WORKERS,
+    MAX_WORKERS,
+    JobConflict,
+    JobQueue,
+    JobQueueFull,
+    JobWorker,
+)
 from security_lakehouse.public_url import normalize_public_url
 from security_lakehouse.runtime_environment import runtime_env
 from security_lakehouse.server_routes.payloads import (
@@ -1228,7 +1235,14 @@ def create_app(lake_dir: str | Path, *, require_auth: bool = True) -> FastAPI:
         known: _KnownCredentials = app.state.rate_limit_known_credentials
         path = request.url.path
         if limiter.enabled and path.startswith("/api/") and path not in _RATE_LIMIT_EXEMPT:
-            allowed, retry_after = limiter.check(_rate_limit_key(request, known))
+            try:
+                allowed, retry_after = await run_in_threadpool(limiter.check, _rate_limit_key(request, known))
+            except Exception:  # noqa: BLE001 - deny admission if the shared limiter is unavailable
+                return JSONResponse(
+                    api_v1.error_envelope("rate_limit_unavailable", "request admission unavailable; retry later"),
+                    status_code=503,
+                    headers={"Retry-After": "1"},
+                )
             if not allowed:
                 response = JSONResponse(
                     api_v1.error_envelope("rate_limited", "rate limit exceeded; slow down and retry"),
@@ -2020,11 +2034,19 @@ def create_app(lake_dir: str | Path, *, require_auth: bool = True) -> FastAPI:
     @app.get("/api/v1/operations", tags=["platform"])
     def operation_list(
         limit: int = Query(50, ge=1, le=500),
-        offset: int = Query(0, ge=0),
+        offset: int = Query(0, ge=0, le=100000),
+        cursor: str | None = Query(None, max_length=1024),
         identity: Identity = Depends(_require_read),
     ) -> JSONResponse:
-        rows = app.state.operation_queue.list(identity.tenant_id, limit, offset, viewer=identity)
-        return JSONResponse(_redact_payload(api_v1.envelope("operations", rows), identity))
+        try:
+            rows, pagination = app.state.operation_queue.page(
+                identity.tenant_id, limit=limit, offset=offset, cursor=cursor, viewer=identity
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        return JSONResponse(
+            _redact_payload(api_v1.envelope("operations", rows, meta={"pagination": pagination}), identity)
+        )
 
     @app.get("/api/v1/operations/{job_id}", tags=["platform"])
     def operation_status(job_id: str, identity: Identity = Depends(_require_read)) -> JSONResponse:
@@ -2032,6 +2054,33 @@ def create_app(lake_dir: str | Path, *, require_auth: bool = True) -> FastAPI:
         if row is None:
             raise HTTPException(status_code=404, detail="operation not found")
         return JSONResponse(_redact_payload(api_v1.envelope("operations", row), identity))
+
+    @app.get("/api/v1/operations/{job_id}/result", tags=["platform"])
+    def operation_result(job_id: str, identity: Identity = Depends(_require_read)) -> JSONResponse:
+        from security_lakehouse.operation_receipts import read_result
+
+        row = app.state.operation_queue.get(identity.tenant_id, job_id, viewer=identity)
+        if row is None:
+            raise HTTPException(status_code=404, detail="operation not found")
+        if "response" not in row:
+            raise HTTPException(
+                status_code=403,
+                detail="requires operation ownership or administrator authority and current write scope",
+            )
+        try:
+            result = read_result(lake_for(identity), job_id, identity.tenant_id)
+        except ValueError:
+            return JSONResponse(
+                api_v1.error_envelope("integrity_failure", "operation result failed verification"), status_code=409
+            )
+        if result is None:
+            return JSONResponse(
+                api_v1.error_envelope(
+                    "outcome_unknown", "no committed result receipt; inspect domain history before retrying"
+                ),
+                status_code=409,
+            )
+        return JSONResponse(_redact_payload(api_v1.envelope("operation.result", result), identity))
 
     @app.post("/api/v1/operations/{job_id}/cancel", tags=["platform"])
     def operation_cancel(job_id: str, identity: Identity = Depends(_require_read)) -> JSONResponse:
@@ -2647,6 +2696,12 @@ def create_app(lake_dir: str | Path, *, require_auth: bool = True) -> FastAPI:
             key = request.headers.get("Idempotency-Key") or str(uuid.uuid4())
             try:
                 job = app.state.operation_queue.enqueue(identity, v1_path, body, key)
+            except JobQueueFull:
+                return JSONResponse(
+                    api_v1.error_envelope("queue_full", "tenant operation queue is full; retry the same key later"),
+                    status_code=429,
+                    headers={"Retry-After": "5"},
+                )
             except JobConflict as exc:
                 raise HTTPException(status_code=409, detail=str(exc)) from exc
             except ValueError as exc:
