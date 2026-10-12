@@ -229,14 +229,21 @@ def test_operating_loop_uses_concrete_actions() -> None:
         assert action in section
 
 
-def test_product_preview_shows_two_distinct_workflows() -> None:
+def test_product_preview_shows_overview_coverage_controls_families_and_investigation() -> None:
     readme = README.read_text(encoding="utf-8")
     tour = readme.split("## Product tour", maxsplit=1)[1].split("## Quick start", maxsplit=1)[0]
     assert "bundled synthetic company" in tour
     assert "<details>" not in tour
-    assert tour.count("<picture>") == 2
-    for image in ("graph", "ai-governance"):
-        assert f"grc-lake-demo-{image}.png" in tour
+    views = ("dashboard", "frameworks", "controls", "control-families", "graph", "ai-governance")
+    assert tour.count("<picture>") == len(views)
+    positions = []
+    for view in views:
+        for theme in ("", "-dark"):
+            image = f"docs/images/grc-lake-demo-{view}{theme}.png"
+            assert image in tour
+            assert (ROOT / image).is_file()
+        positions.append(tour.index(f"grc-lake-demo-{view}.png"))
+    assert positions == sorted(positions)
     assert "<!-- BEGIN README CCF SUMMARY -->" not in readme
     assert "docs/FRAMEWORK_COVERAGE.md" in readme
     assert "docs/COMMON_CONTROL_FRAMEWORK.md" in readme
