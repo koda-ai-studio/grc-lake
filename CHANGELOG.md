@@ -3,6 +3,10 @@
 All notable GRC Lake changes are summarized here. Versions follow semver for the
 Python package, Helm chart, and bundled web console.
 
+## Unreleased
+
+- Reject overlapping or malformed KnowBe4 pagination records instead of treating a partial list as evidence. Add a cursor-only, data-minimized qualification command; live next-cursor verification remains required before the November page-parameter retirement.
+
 ## 0.3.3 - 2026-10-12
 
 - Route evaluation and snapshot execution through shared assessment services. Persist versioned, tenant-scoped operation receipts so authorized callers can inspect a committed result after a lost worker response. Large responses preserve their execution status; generation conflicts and uncertain outcomes remain explicit.
