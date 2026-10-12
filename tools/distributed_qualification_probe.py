@@ -328,6 +328,130 @@ def crash_recovery():
     rt.catalog.engine.dispose()
 
 
+def backup_prepare():
+    ready()
+    jobs = []
+    for credential in load("credentials"):
+        response = request(
+            "api-a",
+            "POST",
+            "/api/v1/snapshots",
+            credential,
+            headers={"Prefer": "respond-async", "Idempotency-Key": "recovery-snapshot"},
+            json={"reason": "recovery qualification"},
+        )
+        assert response.status_code == 202
+        job = response.json()["data"]
+        deadline = time.monotonic() + 120
+        while True:
+            response = request("api-b", "GET", job["status_url"], credential)
+            assert response.status_code == 200
+            state = response.json()["data"]["status"]
+            if state == "succeeded":
+                break
+            assert state in {"queued", "running"}
+            assert time.monotonic() < deadline
+            time.sleep(0.5)
+        receipt = request("api-b", "GET", job["status_url"] + "/result", credential)
+        assert receipt.status_code == 200
+        jobs.append({"status_url": job["status_url"], "receipt_sha256": receipt.json()["data"]["sha256"]})
+    save("backup-jobs", jobs)
+
+
+def backup_capture():
+    from security_lakehouse.distributed.recovery import capture_objects
+
+    rt, _ = runtime()
+    try:
+        result = capture_objects(rt, WORK / "object-backup")
+        baseline = load("baseline")
+        baseline["versions"] = result["heads"]
+        save("baseline", baseline)
+        save("backup-capture", result)
+    finally:
+        rt.catalog.engine.dispose()
+
+
+def backup_restore():
+    from security_lakehouse.distributed.objects import IntegrityError
+    from security_lakehouse.distributed.recovery import restore_objects, validate_backup
+
+    rt, _ = runtime()
+    try:
+        root = WORK / "object-backup"
+        index = validate_backup(root, rt.catalog.config)
+        # Reject corruption before uploading anything; restore the test bytes.
+        sample = root / index["objects"][0]["path"]
+        original = sample.read_bytes()
+        try:
+            sample.write_bytes(b"deliberately corrupt qualification backup")
+            try:
+                validate_backup(root, rt.catalog.config)
+            except IntegrityError:
+                pass
+            else:
+                raise AssertionError("corrupt backup accepted")
+        finally:
+            sample.write_bytes(original)
+        deadline = time.monotonic() + 60
+        while True:
+            try:
+                rt.objects.client.list_buckets()
+                break
+            except Exception:
+                if time.monotonic() >= deadline:
+                    raise
+                time.sleep(1)
+        rt.objects.client.create_bucket(Bucket=rt.catalog.config.bucket)
+        started = time.monotonic()
+        restored = restore_objects(rt.objects, root)
+        for tenant, version in restored["heads"].items():
+            assert rt.catalog.head(tenant).version == version
+        save(
+            "backup-restore",
+            {
+                "objects": restored["objects"],
+                "corrupt_backup_rejected": True,
+                "object_restore_seconds": time.monotonic() - started,
+            },
+        )
+    finally:
+        rt.catalog.engine.dispose()
+
+
+def backup_verify():
+    from security_lakehouse.distributed.recovery import inspect_tenant
+
+    stable("backup-recovered")
+    rt, _ = runtime()
+    try:
+        reports = []
+        credentials = load("credentials")
+        jobs = load("backup-jobs")
+        for credential, job in zip(credentials, jobs, strict=True):
+            report = inspect_tenant(rt, credential["tenant"])
+            assert report["recovery_ready"], report
+            integrity = request("api-a", "GET", "/api/v1/snapshots/integrity", credential)
+            assert integrity.status_code == 200 and integrity.json()["data"]["ok"]
+            assert integrity.json()["data"]["length"] >= 1
+            receipt = request("api-b", "GET", job["status_url"] + "/result", credential)
+            assert receipt.status_code == 200
+            assert receipt.json()["data"]["sha256"] == job["receipt_sha256"]
+            reports.append(report)
+        assert request("api-b", "GET", jobs[0]["status_url"] + "/result", credentials[1]).status_code == 404
+        save(
+            "backup-verify",
+            {
+                "tenant_isolation": True,
+                "snapshot_chains_verified": len(reports),
+                "operation_receipts_preserved": len(reports),
+                "reports": reports,
+            },
+        )
+    finally:
+        rt.catalog.engine.dispose()
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -343,11 +467,22 @@ def main():
             "database-recovered",
             "hold-writer",
             "crash-recovery",
+            "backup-prepare",
+            "backup-capture",
+            "backup-restore",
+            "backup-verify",
         ],
     )
     phase = parser.parse_args().phase
     try:
-        if phase == "prepare":
+        if phase.startswith("backup-"):
+            {
+                "backup-prepare": backup_prepare,
+                "backup-capture": backup_capture,
+                "backup-restore": backup_restore,
+                "backup-verify": backup_verify,
+            }[phase]()
+        elif phase == "prepare":
             prepare()
         elif phase == "enqueue":
             enqueue()

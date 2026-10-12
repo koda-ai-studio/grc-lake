@@ -7,10 +7,12 @@ uniquely named Compose project and volumes. Reports never contain credentials.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import re
 import secrets
+import shutil
 import subprocess
 import time
 import uuid
@@ -118,6 +120,81 @@ def qualify(image: str, output: Path) -> None:
         compose("up", "-d", "worker-a")
         probe("enqueue")
         probe("verify")
+        probe("backup-prepare", timeout=600)
+        # Stop every SQL/file writer, including read replicas' auth/audit writes.
+        compose("stop", "api-a", "api-b", "reader", "worker-a", "worker-b")
+        probe("backup-capture")
+        archive = output / "database.dump"
+        with archive.open("wb") as stream:
+            subprocess.run(
+                [*command, "exec", "-T", "postgres", "pg_dump", "-U", "grc", "-d", "grc", "-Fc"],
+                env=env,
+                stdout=stream,
+                stderr=subprocess.PIPE,
+                check=True,
+                timeout=120,
+            )
+        archive.chmod(0o600)
+        with archive.open("rb") as stream:
+            database_sha256 = hashlib.file_digest(stream, "sha256").hexdigest()
+        checkpoint = {
+            "database_sha256": database_sha256,
+            "application_image_id": image_id,
+            "schema_revision": compose(
+                "exec",
+                "-T",
+                "postgres",
+                "psql",
+                "-U",
+                "grc",
+                "-d",
+                "grc",
+                "-Atc",
+                "SELECT version_num FROM alembic_version",
+            ),
+            "object_backup_sha256": json.loads((output / "object-backup/index.json").read_text())["sha256"],
+            "heads": json.loads((output / "backup-capture.json").read_text())["heads"],
+        }
+        (output / "backup-checkpoint.json").write_text(json.dumps(checkpoint, indent=2, sort_keys=True))
+        recovery_started = time.monotonic()
+        # Remove only this fresh qualification project's original durable stores
+        # and every scratch volume. Recovery cannot consult original storage.
+        compose("down", "--volumes", "--remove-orphans", timeout=90)
+        compose("up", "-d", "postgres", "s3")
+        deadline = time.monotonic() + 90
+        while subprocess.run(
+            [*command, "exec", "-T", "postgres", "pg_isready", "-U", "grc", "-d", "grc"],
+            env=env,
+            capture_output=True,
+            timeout=10,
+        ).returncode:
+            if time.monotonic() >= deadline:
+                raise RuntimeError("restore database readiness deadline exceeded")
+            time.sleep(1)
+        with archive.open("rb") as stream:
+            if hashlib.file_digest(stream, "sha256").hexdigest() != database_sha256:
+                raise RuntimeError("database backup digest mismatch")
+            stream.seek(0)
+            subprocess.run(
+                [*command, "exec", "-T", "postgres", "pg_restore", "-U", "grc", "-d", "grc", "--exit-on-error"],
+                env=env,
+                stdin=stream,
+                capture_output=True,
+                check=True,
+                timeout=120,
+            )
+        probe("backup-restore")
+        compose("up", "-d", "api-a", "api-b", "reader")
+        probe("backup-verify")
+        (output / "recovery-time.json").write_text(
+            json.dumps(
+                {
+                    "seconds": time.monotonic() - recovery_started,
+                    "checkpoint": "quiesced catalog and all retained object references",
+                    "original_storage_removed": True,
+                }
+            )
+        )
         report = {
             "passed": True,
             "application_image": image,
@@ -143,6 +220,8 @@ def qualify(image: str, output: Path) -> None:
         finally:
             config.unlink(missing_ok=True)
             (output / "credentials.json").unlink(missing_ok=True)
+            (output / "database.dump").unlink(missing_ok=True)
+            shutil.rmtree(output / "object-backup", ignore_errors=True)
 
 
 def cleanup(output: Path) -> None:
@@ -168,6 +247,8 @@ def cleanup(output: Path) -> None:
     )
     (output / "s3.json").unlink(missing_ok=True)
     (output / "credentials.json").unlink(missing_ok=True)
+    (output / "database.dump").unlink(missing_ok=True)
+    shutil.rmtree(output / "object-backup", ignore_errors=True)
 
 
 def main() -> int:

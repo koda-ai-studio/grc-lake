@@ -137,3 +137,19 @@ drill. Configuration checks do not establish an RPO, RTO or production backup.
 See [deployment topology](HA_READ_REPLICAS.md),
 [shareable hosting](../SHAREABLE_POC_HOSTING.md), and
 [release readiness](../RELEASE_READINESS.md).
+
+## Verify a distributed restore against its checkpoint
+
+Before admitting traffic, run `grc-lake cluster inspect --tenant-id TENANT`
+against each restored tenant and compare its revision/manifest identity with the
+backup checkpoint. Address missing/corrupt objects and incomplete inspection;
+review unresolved jobs and their authorized `/api/v1/operations/{id}/result`
+receipts before deciding whether new work is safe. A healthy process alone is
+not evidence that the matching history was recovered. The command does not
+change job state or perform repairs.
+
+For a reproducible synthetic drill, run `tools/qualify_distributed.py` as described
+in [distributed qualification](../DISTRIBUTED.md#qualification-backup-restoration).
+It restores a real PostgreSQL dump and referenced S3 objects into fresh disposable
+stores after deleting the original qualification volumes. Production backup/PITR,
+secret restoration and traffic cutover remain operator-managed procedures.

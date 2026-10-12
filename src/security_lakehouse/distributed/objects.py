@@ -16,6 +16,7 @@ from itertools import islice
 from pathlib import Path, PurePosixPath
 
 from security_lakehouse.distributed.config import ClusterConfig
+from security_lakehouse.distributed.context import check_write_lease
 from security_lakehouse.io import file_sha256
 
 
@@ -63,6 +64,7 @@ class ObjectStore:
     def put(self, tenant_id: str, path: Path) -> dict:
         from botocore.exceptions import ClientError  # type: ignore[import-untyped]
 
+        check_write_lease()
         digest = file_sha256(path)
         size = path.stat().st_size
         key = self.key(tenant_id, digest)
@@ -70,6 +72,7 @@ class ObjectStore:
             if size <= 32 * 1024**2:
                 with path.open("rb") as source:
                     data = source.read(size + 1)
+                check_write_lease()
                 # Send only bytes that hash to the key: a conditional write makes
                 # whatever lands under it permanent. The checksum lets S3 reject
                 # a body corrupted in transit as well.
@@ -107,6 +110,7 @@ class ObjectStore:
             whole = hashlib.sha256()
             with path.open("rb") as source:
                 for number, data in enumerate(iter(lambda: source.read(8 * 1024**2), b""), 1):
+                    check_write_lease()
                     whole.update(data)
                     checksum = _checksum(hashlib.sha256(data).digest())
                     result = self.client.upload_part(
@@ -122,6 +126,7 @@ class ObjectStore:
             # whole object: compare the bytes actually sent before completing.
             if whole.hexdigest() != digest:
                 raise IntegrityError("artifact changed during upload")
+            check_write_lease()
             self.client.complete_multipart_upload(
                 Bucket=self.config.bucket, Key=key, UploadId=upload, MultipartUpload={"Parts": parts}, IfNoneMatch="*"
             )
@@ -189,6 +194,7 @@ class ObjectStore:
             elif not path.is_dir():
                 raise IntegrityError("workspace contains a special file")
         for relative in files:
+            check_write_lease()
             path = root / relative
             entry = {"sha256": file_sha256(path), "size": path.stat().st_size}
             old = (previous or {}).get("files", {}).get(relative)
@@ -204,6 +210,8 @@ class ObjectStore:
         return {"schema": 1, "tenant_id": tenant_id, "files": files, "links": links, "shares": sorted(shares)}
 
     def restore(self, tenant_id: str, manifest: dict, root: Path) -> None:
+        if not isinstance(manifest, dict) or manifest.get("schema", 1) != 1:
+            raise IntegrityError("unsupported artifact manifest schema")
         if manifest.get("tenant_id", tenant_id) != tenant_id:
             raise IntegrityError("manifest belongs to another tenant")
         files, links = manifest.get("files", {}), manifest.get("links", {})
