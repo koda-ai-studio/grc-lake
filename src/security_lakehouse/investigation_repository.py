@@ -3,6 +3,7 @@
 from pathlib import Path
 
 from security_lakehouse.domain_identity import source_asset_key
+from security_lakehouse.event_identity import event_identity
 from security_lakehouse.graph import _add_embedded_code_graph, _add_governance_signal, _add_repository_signal_paths
 from security_lakehouse.io import canonical_sha256, read_jsonl
 
@@ -38,7 +39,7 @@ def add_repository_context(lake: Path, node, edge, identity, evidence_by_event) 
             )
             edge(env, aid, "contains")
         evidence = event.get("evidence") or {}
-        matching = evidence_by_event.get((account, event.get("event_id"), repo), [])
+        matching = evidence_by_event.get((account, event_identity(event), repo), [])
         if not matching:
             eid = node(
                 "evidence",

@@ -65,6 +65,7 @@ interface GraphNodeData extends Record<string, unknown> {
   layout: LayoutDir;
   provider?: string;
   bank?: "left" | "right";
+  relationshipLabel?: string;
   neighborhoodRoot?: boolean;
   framework_id?: string;
   family_id?: string;
@@ -162,12 +163,12 @@ function GraphNodeCard({ id, data, selected }: NodeProps<FlowGraphNode>) {
   if (data.bank) {
     const inward = data.bank === "left" ? Position.Right : Position.Left;
     const handleStyle =
-      data.bank === "left" ? { right: 8, top: 36 } : { left: 8, top: 36 };
+      data.bank === "left" ? { right: 8, top: 44 } : { left: 8, top: 44 };
     return (
       <Tooltip.Root delayDuration={120}>
         <Tooltip.Trigger asChild>
           <div
-            className={`flex h-[72px] w-[224px] items-center gap-3 rounded-xl px-2 ${data.bank === "left" ? "flex-row-reverse text-right" : "text-left"} ${emphasisClass(data.emphasis)}`}
+            className={`flex h-[88px] w-[224px] items-center gap-3 rounded-xl px-2 ${data.bank === "left" ? "flex-row-reverse text-right" : "text-left"} ${emphasisClass(data.emphasis)}`}
           >
             <Handle
               type="target"
@@ -198,6 +199,9 @@ function GraphNodeCard({ id, data, selected }: NodeProps<FlowGraphNode>) {
                 className="line-clamp-2 break-words text-xs font-semibold leading-4 text-ink"
               >
                 {displayLabel}
+              </div>
+              <div className="mt-1 text-[10px] leading-3 text-muted">
+                {data.relationshipLabel}
               </div>
               <div className="mt-1 text-[11px] leading-4 text-muted">
                 {isEvidence
@@ -384,40 +388,67 @@ function layoutGraph(
   neighborhoodRoot?: string,
 ): { nodes: FlowGraphNode[]; edges: Edge[] } {
   if (neighborhoodRoot) {
-    // Place leaf icons on the inside of two banks. Labels remain outside the
-    // routing corridors, so fan-in edges cannot run through other records.
+    // Direction determines the lane. Sorting only orders records within a
+    // lane; it must never imply a parent/child or upstream/downstream link.
+    const incomingIds = new Set(
+      rfEdges
+        .filter((edge) => edge.target === neighborhoodRoot)
+        .map((edge) => edge.source),
+    );
     const leaves = rfNodes
       .filter((node) => node.id !== neighborhoodRoot)
-      .sort((a, b) => a.data.label.localeCompare(b.data.label));
-    const split = Math.ceil(leaves.length / 2);
-    const banks = new Map(
-      leaves.map((node, index) => [
-        node.id,
-        index < split ? ("left" as const) : ("right" as const),
-      ]),
-    );
-    const positions = new Map(
-      leaves.map((node, index) => [
-        node.id,
-        {
-          x: index < split ? 0 : 704,
-          y: (index < split ? index : index - split) * 96,
-        },
-      ]),
-    );
+      .sort(
+        (a, b) =>
+          a.data.label.localeCompare(b.data.label) || a.id.localeCompare(b.id),
+      );
+    const incoming = leaves.filter((node) => incomingIds.has(node.id));
+    const outgoing = leaves.filter((node) => !incomingIds.has(node.id));
+    const rows = Math.max(incoming.length, outgoing.length, 1);
+    const banks = new Map<string, "left" | "right">();
+    const positions = new Map<string, { x: number; y: number }>();
+    for (const [bank, lane] of [
+      ["left", incoming],
+      ["right", outgoing],
+    ] as const) {
+      lane.forEach((node, index) => {
+        banks.set(node.id, bank);
+        positions.set(node.id, {
+          x: bank === "left" ? 0 : 704,
+          y: (index + (rows - lane.length) / 2) * 112,
+        });
+      });
+    }
     const nodes = rfNodes.map((node) =>
       node.id === neighborhoodRoot
         ? {
             ...node,
-            position: { x: 376, y: Math.max(0, split - 1) * 48 - 12 },
+            position: { x: 376, y: (rows - 1) * 56 - 4 },
             data: { ...node.data, neighborhoodRoot: true },
           }
         : {
             ...node,
             width: 224,
-            height: 72,
+            height: 88,
             position: positions.get(node.id)!,
-            data: { ...node.data, bank: banks.get(node.id) },
+            data: {
+              ...node.data,
+              bank: banks.get(node.id),
+              relationshipLabel: [
+                ...new Set(
+                  rfEdges
+                    .filter(
+                      (edge) =>
+                        edge.source === node.id || edge.target === node.id,
+                    )
+                    .map((edge) =>
+                      String(edge.data?.relationshipKind ?? "").replaceAll(
+                        "_",
+                        " ",
+                      ),
+                    ),
+                ),
+              ].join(" · "),
+            },
           },
     );
     const edges = rfEdges.map((edge) => ({
@@ -813,6 +844,7 @@ function InnerGraphCanvas({
           (highlightSet && !onHighlight);
         return {
           id: e.id,
+          data: { relationshipKind: e.kind },
           source: e.source,
           target: e.target,
           label: showEdgeLabels

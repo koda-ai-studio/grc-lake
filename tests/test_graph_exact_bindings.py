@@ -264,3 +264,42 @@ def test_investigation_findings_keep_the_exact_affected_control(tmp_path: Path):
     evidence = next(node for node in result["nodes"] if node["kind"] == "evidence_type")
     assert finding["control_ids"] == evidence["control_ids"] == ["SOC2-CC6.1"]
     assert finding["event_type"] == evidence["event_type"] == "repository.governance.branch_protection"
+
+
+def test_connector_namespaced_repository_records_reuse_exact_normalized_binding(tmp_path: Path) -> None:
+    from security_lakehouse.event_identity import event_identity
+    from security_lakehouse.investigation_graph import _id, investigation_graph
+
+    repo = "github:repo:acme/service"
+    rows = [
+        {
+            "event_id": "same-provider-id",
+            "connector_id": connector,
+            "tenant_id": "github:acme",
+            "source": "github-public-repo",
+            "event_type": "repository.metadata",
+            "entity": {"asset_id": repo, "asset_type": "repository"},
+        }
+        for connector in ("collected", "not-normalized")
+    ]
+    _write_jsonl(tmp_path / "bronze/raw_events.jsonl", [{"raw": row} for row in rows])
+    _write_jsonl(
+        tmp_path / "silver/normalized_events.jsonl",
+        [
+            {
+                "event_id": event_identity(rows[0]),
+                "connector_id": "collected",
+                "source_event_id": "same-provider-id",
+                "tenant_id": "github:acme",
+                "source": "github-public-repo",
+                "event_type": "repository.metadata",
+                "asset_id": repo,
+                "asset_type": "repository",
+                "control_ids": [],
+            }
+        ],
+    )
+    graph = investigation_graph(tmp_path, view="investigation", root=_id("asset", "github:acme", repo))
+    assert len([node for node in graph["nodes"] if node["kind"] == "evidence_type"]) == 1
+    # Only the other connector's unnormalized record needs a bronze-only node.
+    assert len([node for node in graph["nodes"] if node["kind"] == "evidence"]) == 1
