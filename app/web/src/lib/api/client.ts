@@ -151,6 +151,7 @@ async function get<T>(path: string): Promise<T> {
 
 async function post<T>(path: string, body: unknown): Promise<T> {
   const deferred =
+    path === "/v1/repositories/public-audit" ||
     path === "/v1/ingestion/eval" ||
     path === "/v1/scheduler/tick" ||
     path === "/v1/snapshots" ||
@@ -288,7 +289,25 @@ async function mutate<T>(
   return (await res.json()) as T;
 }
 
+export interface PublicRepoAuditResult {
+  repo: string;
+  provider: "github";
+  source_account_id: string;
+  source_commit: string;
+  source_ref: string;
+  observation_id: string;
+  observed_at: string;
+  synthetic: boolean;
+  evidence_count: number;
+  graph_root: string;
+  investigate_href: string;
+}
+
 export const api = {
+  auditPublicRepo: (repo: string) =>
+    post<{ data: PublicRepoAuditResult }>("/v1/repositories/public-audit", {
+      repo,
+    }).then((body) => body.data),
   health: () => get<{ data: Health }>("/v1/healthz").then((body) => body.data),
   authMethods: () =>
     get<{ data: AuthMethods }>("/v1/auth/methods").then((body) => body.data),

@@ -218,7 +218,11 @@ function GraphWorkspace() {
         </Button>
       </div>
       {!map ? (
-        <InvestigationExplorer />
+        <Suspense
+          fallback={<p className="text-muted">Loading investigation…</p>}
+        >
+          <InvestigationExplorer />
+        </Suspense>
       ) : (
         <Suspense
           fallback={

@@ -746,6 +746,13 @@
       "resource": "repo-graph"
     },
     {
+      "kind": "action",
+      "methods": ["POST"],
+      "path": "/api/v1/repositories/public-audit",
+      "resource": "repositories.public-audit",
+      "scopes": ["connector_manage"]
+    },
+    {
       "kind": "collection",
       "methods": ["GET", "POST"],
       "path": "/api/v1/risks",

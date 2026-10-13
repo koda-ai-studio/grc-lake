@@ -97,6 +97,8 @@ def required_post_scope(path: str) -> str:
         return "workflow_manage"
     if path == "/api/v1/mapping-reviews/decisions":
         return "mapping_review"
+    if path == "/api/v1/repositories/public-audit":
+        return "connector_manage"
     if path == "/api/v1/ingestion/eval":
         return "connector_manage"
     if path == "/api/v1/scheduler/tick":

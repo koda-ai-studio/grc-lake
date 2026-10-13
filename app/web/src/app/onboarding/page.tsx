@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/PageHeader";
 import { OnboardingProgressHero } from "@/components/onboarding/OnboardingProgressHero";
 import { OnboardingQuickConnect } from "@/components/onboarding/OnboardingQuickConnect";
+import { PublicRepoAudit } from "@/components/onboarding/PublicRepoAudit";
 import { OnboardingEvidencePaths } from "@/components/onboarding/OnboardingEvidencePaths";
 import { usePocReadiness } from "@/lib/api/hooks";
 import type { PocReadinessStep } from "@/lib/api/types";
@@ -30,13 +31,22 @@ export default function OnboardingPage() {
   const current = data?.next_step ?? null;
 
   return (
-    <div className="page-shell grid gap-3">
+    <div className="page-shell mx-auto grid max-w-5xl gap-6">
       <PageHeader
         title={ROUTE_LABELS["/onboarding"]}
-        description="Connect sources, prove sync, reach a shareable workspace."
+        description="Start with a public repository or connect your own sources."
       />
 
-      <OnboardingEvidencePaths />
+      <PublicRepoAudit />
+      <details className="group rounded-xl border border-line">
+        <summary className="cursor-pointer px-5 py-4 text-sm font-medium text-ink">
+          Connect cloud, identity or an existing lake
+        </summary>
+        <div className="grid gap-4 border-t border-line p-4">
+          <OnboardingEvidencePaths />
+          <OnboardingQuickConnect />
+        </div>
+      </details>
 
       {readiness.isLoading && (
         <Card>
@@ -65,59 +75,66 @@ export default function OnboardingPage() {
             currentHref={current ? stepHref(current) : null}
           />
 
-          <OnboardingQuickConnect />
-
-          <Card>
-            <CardHeader className="p-3 pb-2">
-              <CardTitle className="ui-section-title">Checklist</CardTitle>
-            </CardHeader>
-            <CardContent className="grid gap-1.5 p-3 pt-0">
-              {onboarding.steps.map((step) => {
-                const ready = step.status === "ready";
-                const skipped = step.status === "skipped";
-                const href = stepHref(step);
-                return (
-                  <div
-                    key={step.id}
-                    className="flex items-start gap-2 rounded-md border border-line bg-surface px-2.5 py-2"
-                  >
-                    {ready || skipped ? (
-                      <CheckCircle2
-                        className={`mt-0.5 h-4 w-4 shrink-0 ${ready ? "text-success-fg" : "text-muted"}`}
-                      />
-                    ) : (
-                      <CircleAlert className="mt-0.5 h-4 w-4 shrink-0 text-warning-fg" />
-                    )}
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        <span className="text-sm font-medium text-ink">
-                          {step.label}
-                        </span>
-                        <Badge
-                          tone={
-                            ready ? "ready" : skipped ? "default" : "attention"
-                          }
-                        >
-                          {ready ? "done" : skipped ? "skipped" : "todo"}
-                        </Badge>
-                        {!step.blocking ? (
-                          <Badge tone="info">optional</Badge>
-                        ) : null}
+          <details>
+            <summary className="cursor-pointer text-sm font-medium text-muted">
+              View setup checklist
+            </summary>
+            <Card className="mt-3">
+              <CardHeader className="p-3 pb-2">
+                <CardTitle className="ui-section-title">Checklist</CardTitle>
+              </CardHeader>
+              <CardContent className="grid gap-1.5 p-3 pt-0">
+                {onboarding.steps.map((step) => {
+                  const ready = step.status === "ready";
+                  const skipped = step.status === "skipped";
+                  const href = stepHref(step);
+                  return (
+                    <div
+                      key={step.id}
+                      className="flex items-start gap-2 rounded-md border border-line bg-surface px-2.5 py-2"
+                    >
+                      {ready || skipped ? (
+                        <CheckCircle2
+                          className={`mt-0.5 h-4 w-4 shrink-0 ${ready ? "text-success-fg" : "text-muted"}`}
+                        />
+                      ) : (
+                        <CircleAlert className="mt-0.5 h-4 w-4 shrink-0 text-warning-fg" />
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <span className="text-sm font-medium text-ink">
+                            {step.label}
+                          </span>
+                          <Badge
+                            tone={
+                              ready
+                                ? "ready"
+                                : skipped
+                                  ? "default"
+                                  : "attention"
+                            }
+                          >
+                            {ready ? "done" : skipped ? "skipped" : "todo"}
+                          </Badge>
+                          {!step.blocking ? (
+                            <Badge tone="info">optional</Badge>
+                          ) : null}
+                        </div>
+                        <p className="mt-0.5 text-xs leading-4 text-muted">
+                          {step.detail}
+                        </p>
                       </div>
-                      <p className="mt-0.5 text-xs leading-4 text-muted">
-                        {step.detail}
-                      </p>
+                      {href && !ready ? (
+                        <Button asChild variant="default" size="sm">
+                          <Link href={href}>Open</Link>
+                        </Button>
+                      ) : null}
                     </div>
-                    {href && !ready ? (
-                      <Button asChild variant="default" size="sm">
-                        <Link href={href}>Open</Link>
-                      </Button>
-                    ) : null}
-                  </div>
-                );
-              })}
-            </CardContent>
-          </Card>
+                  );
+                })}
+              </CardContent>
+            </Card>
+          </details>
 
           <div className="flex flex-wrap gap-2">
             <Button asChild variant="default" size="sm">

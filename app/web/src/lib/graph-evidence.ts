@@ -58,7 +58,16 @@ export function graphEvidenceState(node: Pick<GraphNode, "kind" | "status">) {
 }
 
 export function graphRecordLabel(node: Pick<GraphNode, "kind" | "label">) {
+  if (node.kind === "repository")
+    return node.label.replace(/^(github|gitlab):repo:/, "");
   if (!["evidence", "evidence_type"].includes(node.kind)) return node.label;
+  const names: Record<string, string> = {
+    "repository.authenticated_signal_gap": "Private governance",
+    "repository.ci_workflow": "CI workflows",
+    "repository.iac": "Infrastructure as code",
+    "repository.codeowners": "Code owners",
+  };
+  if (names[node.label]) return names[node.label];
   const value = node.label.split(".").at(-1)!.replaceAll("_", " ");
   return value.charAt(0).toUpperCase() + value.slice(1);
 }

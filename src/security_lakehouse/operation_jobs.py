@@ -66,9 +66,12 @@ def _write_with_retry(factory: sessionmaker, write: Callable[[Session], object],
 
 
 def supported(path: str) -> bool:
-    return path in {"/api/v1/ingestion/eval", "/api/v1/scheduler/tick", "/api/v1/snapshots"} or bool(
-        re.fullmatch(r"/api/v1/connectors/[A-Za-z0-9_-]+/sync", path)
-    )
+    return path in {
+        "/api/v1/repositories/public-audit",
+        "/api/v1/ingestion/eval",
+        "/api/v1/scheduler/tick",
+        "/api/v1/snapshots",
+    } or bool(re.fullmatch(r"/api/v1/connectors/[A-Za-z0-9_-]+/sync", path))
 
 
 def serialize(row: OperationJob, *, include_result: bool = True) -> dict[str, Any]:
@@ -82,6 +85,7 @@ def serialize(row: OperationJob, *, include_result: bool = True) -> dict[str, An
         "id": row.id,
         "kind": "operation",
         "label": {
+            "/api/v1/repositories/public-audit": "Public GitHub repository audit",
             "/api/v1/ingestion/eval": "Lake evaluation",
             "/api/v1/scheduler/tick": "Scheduled collections",
             "/api/v1/snapshots": "Assessment snapshot",
@@ -139,6 +143,11 @@ class JobQueue:
             raise ValueError("Idempotency-Key must contain 1 to 200 characters")
         # These operations only accept selectors, never credentials or local paths.
         allowed = {"actor", "idempotency_key"}
+        if path == "/api/v1/repositories/public-audit":
+            from security_lakehouse.services.public_repositories import validate_request
+
+            payload = {**payload, "repo": validate_request(payload)}
+            allowed.add("repo")
         if path in {"/api/v1/snapshots", "/api/v1/ingestion/eval"}:
             allowed.add("expected_generation")
         if path == "/api/v1/snapshots":

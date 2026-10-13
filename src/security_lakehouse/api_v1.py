@@ -1102,6 +1102,13 @@ def resource_catalog() -> list[JsonObject]:
                 "path_params": ["connector_id"],
             },
             {
+                "resource": "repositories.public-audit",
+                "path": "/api/v1/repositories/public-audit",
+                "kind": "action",
+                "methods": ["POST"],
+                "scopes": ["connector_manage"],
+            },
+            {
                 "resource": "connector.sync",
                 "path": "/api/v1/connectors/{connector_id}/sync",
                 "kind": "action",
@@ -1376,6 +1383,29 @@ def openapi_paths() -> JsonObject:
                     }
                 },
             }
+            if path == "/api/v1/repositories/public-audit" and method == "POST":
+                operation["requestBody"] = {
+                    "required": True,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": False,
+                                "required": ["repo"],
+                                "properties": {"repo": {"type": "string", "maxLength": 220}},
+                            }
+                        }
+                    },
+                }
+                operation["responses"]["201"] = operation["responses"].pop("200")
+                for code, description in {
+                    "400": "Unsupported input",
+                    "403": "Scope or provider access denied",
+                    "404": "Public source unavailable",
+                    "429": "Provider or queue rate limit",
+                    "502": "Incomplete collection or publication",
+                }.items():
+                    operation["responses"][code] = {"description": description}
             if path == "/api/v1/scheduler/tick" and method == "POST":
                 operation["responses"]["201"] = operation["responses"].pop("200")
                 operation["responses"]["503"] = {
@@ -1419,6 +1449,7 @@ def merge_openapi(spec: JsonObject) -> JsonObject:
         "/api/v1/scheduler/tick",
         "/api/v1/snapshots",
         "/api/v1/connectors/{connector_id}/sync",
+        "/api/v1/repositories/public-audit",
     ):
         operation = paths.get(path, {}).get("post")
         if operation is None:
@@ -2248,6 +2279,43 @@ def handle_post(
             raise ValueError("body must be a JSON object")
     except (ValueError, TypeError):
         return HTTPStatus.BAD_REQUEST, error_envelope("bad_request", "invalid JSON body")
+    if path == "/api/v1/repositories/public-audit":
+        from urllib.error import HTTPError, URLError
+
+        from security_lakehouse.services.public_repositories import collect, validate_request
+
+        try:
+            repo = validate_request(payload)
+        except ValueError as exc:
+            return HTTPStatus.BAD_REQUEST, error_envelope("bad_request", str(exc))
+        try:
+            public_result, public_outcome, public_succeeded = collect(
+                lake, repo, actor=str(payload.get("actor") or "console")
+            )
+        except HTTPError as exc:
+            code, detail = {
+                429: (
+                    HTTPStatus.TOO_MANY_REQUESTS,
+                    "GitHub public API rate limit reached; retry after the limit resets.",
+                ),
+                403: (
+                    HTTPStatus.FORBIDDEN,
+                    "GitHub denied public access or rate-limited this server; retry later or use an authenticated connector.",
+                ),
+                404: (
+                    HTTPStatus.NOT_FOUND,
+                    "Repository or pinned source is not publicly available; check the URL and visibility.",
+                ),
+            }.get(exc.code, (HTTPStatus.BAD_GATEWAY, "GitHub collection failed; retry later."))
+            return code, error_envelope("public_collection_failed", detail)
+        except (ValueError, OSError, URLError):
+            return HTTPStatus.BAD_GATEWAY, error_envelope(
+                "public_collection_incomplete",
+                "Public collection or publication could not complete. Check repository visibility, size and availability; inspect recent jobs before retrying.",
+            )
+        return (HTTPStatus.CREATED if public_succeeded else HTTPStatus.INTERNAL_SERVER_ERROR), envelope(
+            "repositories.public-audit", public_result, meta={"outcome": public_outcome}
+        )
     if path == MAPPING_REVIEW_DECISIONS_PATH:
         # Local mode has no authenticated principal, so the reviewer is named in
         # the body and the record says it was unauthenticated. Server mode serves

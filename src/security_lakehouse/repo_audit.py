@@ -10,17 +10,28 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+import time
 import urllib.error
+import urllib.parse
 import urllib.request
+import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from security_lakehouse import netguard
 from security_lakehouse.io import read_json, write_jsonl
 from security_lakehouse.models import utc_iso
 
-GITHUB_RE = re.compile(r"^(?:https://github\.com/)?(?P<owner>[\w.-]+)/(?P<repo>[\w.-]+?)(?:\.git)?/?$")
+GITHUB_RE = re.compile(
+    r"(?:https://github\.com/)?(?P<owner>[A-Za-z0-9-]{1,39})/(?P<repo>[A-Za-z0-9_.-]{1,100}?)(?:\.git)?/?"
+)
+MAX_JSON_BYTES = 6 * 1024 * 1024
+MAX_FILE_BYTES = 200_000
+MAX_REQUESTS = 32
+MAX_SECONDS = 120
+SHA_RE = re.compile(r"[0-9a-f]{40}")
 
 CONTROL_MAP = {
     "codeowners": ["SOC2-CC6.1", "ISO27001-A.5.15"],
@@ -79,7 +90,9 @@ class RepoSpec:
 
 class PublicGitHubClient:
     def __init__(self, owner: str, repo: str) -> None:
-        self.spec = RepoSpec(owner=owner, repo=repo)
+        self.spec = parse_repo_spec(f"{owner}/{repo}")
+        self._requests = 0
+        self._deadline = time.monotonic() + MAX_SECONDS
 
     def repo(self) -> dict[str, Any]:
         return self._json(f"https://api.github.com/repos/{self.spec.slug}")
@@ -87,29 +100,62 @@ class PublicGitHubClient:
     def languages(self) -> dict[str, Any]:
         return self._json(f"https://api.github.com/repos/{self.spec.slug}/languages")
 
-    def tree(self, branch: str) -> dict[str, Any]:
-        return self._json(f"https://api.github.com/repos/{self.spec.slug}/git/trees/{branch}?recursive=1")
+    def commit(self, branch: str) -> dict[str, Any]:
+        return self._json(
+            f"https://api.github.com/repos/{self.spec.slug}/commits/{urllib.parse.quote(branch, safe='')}"
+        )
 
-    def file_text(self, branch: str, path: str) -> str | None:
-        url = f"https://raw.githubusercontent.com/{self.spec.slug}/{branch}/{path}"
-        request = urllib.request.Request(url, headers={"user-agent": "grc-lake"})
-        try:
-            with urllib.request.urlopen(request, timeout=20) as resp:  # noqa: S310
-                return resp.read(200_000).decode("utf-8", errors="replace")
-        except urllib.error.HTTPError as exc:
-            if exc.code == 404:
-                return None
-            raise
+    def tree(self, revision: str) -> dict[str, Any]:
+        return self._json(f"https://api.github.com/repos/{self.spec.slug}/git/trees/{revision}?recursive=1")
 
-    @staticmethod
-    def _json(url: str) -> dict[str, Any]:
+    def file_text(self, revision: str, path: str) -> str | None:
+        _checked_path(path)
+        url = f"https://raw.githubusercontent.com/{self.spec.slug}/{revision}/{urllib.parse.quote(path, safe='/')}"
+        return self._read(url, MAX_FILE_BYTES, sample=True).decode("utf-8", errors="replace")
+
+    def _validate_url(self, url: str) -> None:
+        parsed = urllib.parse.urlsplit(url)
+        prefix = f"/repos/{self.spec.slug}" if parsed.hostname == "api.github.com" else f"/{self.spec.slug}"
+        if (
+            parsed.scheme != "https"
+            or parsed.hostname not in {"api.github.com", "raw.githubusercontent.com"}
+            or parsed.port not in {None, 443}
+            or parsed.username is not None
+            or parsed.password is not None
+            or parsed.fragment
+            or not (parsed.path == prefix or parsed.path.startswith(prefix + "/"))
+        ):
+            raise ValueError("public repository request or redirect is outside the selected GitHub repository")
+        for part in urllib.parse.unquote(parsed.path).split("/"):
+            if part in {".", ".."}:
+                raise ValueError("public repository request contains an invalid path")
+
+    def _read(self, url: str, limit: int, *, sample: bool = False) -> bytes:
+        if self._requests >= MAX_REQUESTS or time.monotonic() >= self._deadline:
+            raise ValueError("public repository collection exceeded its request or time budget")
+        self._requests += 1
         request = urllib.request.Request(
             url, headers={"accept": "application/vnd.github+json", "user-agent": "grc-lake"}
         )
-        with urllib.request.urlopen(request, timeout=20) as resp:  # noqa: S310
-            payload = json.loads(resp.read().decode("utf-8"))
+        # The validator runs on every redirect. The shared transport pins public
+        # DNS addresses; credentials and repository code are never loaded.
+        with netguard.open_guarded(
+            request,
+            timeout=min(20, self._deadline - time.monotonic()),
+            validate=self._validate_url,
+            label="public GitHub repository",
+        ) as resp:
+            content = resp.read(limit + 1)
+        if len(content) > limit and not sample:
+            raise ValueError("public repository response exceeds the content limit; collection is incomplete")
+        if time.monotonic() > self._deadline:
+            raise ValueError("public repository collection exceeded its time budget")
+        return content[:limit]
+
+    def _json(self, url: str) -> dict[str, Any]:
+        payload = json.loads(self._read(url, MAX_JSON_BYTES).decode("utf-8"))
         if not isinstance(payload, dict):
-            raise ValueError(f"GitHub returned non-object JSON for {url}")
+            raise ValueError("GitHub returned non-object JSON")
         return payload
 
 
@@ -124,6 +170,9 @@ class FixtureRepoClient:
         path = self.fixture / "languages.json"
         return read_json(path) if path.exists() else {}
 
+    def commit(self, _branch: str) -> dict[str, Any]:
+        return read_json(self.fixture / "commit.json")
+
     def tree(self, _branch: str) -> dict[str, Any]:
         return read_json(self.fixture / "tree.json")
 
@@ -137,10 +186,10 @@ class FixtureRepoClient:
 
 
 def parse_repo_spec(value: str) -> RepoSpec:
-    match = GITHUB_RE.match(value.strip())
-    if not match:
-        raise ValueError("repo must be a GitHub URL or OWNER/REPO")
-    return RepoSpec(owner=match.group("owner"), repo=match.group("repo"))
+    match = GITHUB_RE.fullmatch(value.strip())
+    if not match or match.group("repo") in {".", ".."}:
+        raise ValueError("repo must be a public GitHub URL or OWNER/REPO")
+    return RepoSpec(owner=match.group("owner").lower(), repo=match.group("repo").lower())
 
 
 def audit_public_repo(
@@ -155,7 +204,39 @@ def audit_public_repo(
     client = FixtureRepoClient(fixture_dir) if fixture_dir else PublicGitHubClient(spec.owner, spec.repo)
     now = collected_at or datetime.now(UTC)
     repo_data = client.repo()
-    rows = _build_events(spec, repo_data, client.languages(), client.tree(_default_branch(repo_data)), client, now)
+    if repo_data.get("private") is not False or parse_repo_spec(str(repo_data.get("full_name", ""))) != spec:
+        raise ValueError("public repository identity or visibility does not match the requested repository")
+    branch = _default_branch(repo_data)
+    commit = client.commit(branch)
+    revision = commit.get("sha")
+    tree_sha = ((commit.get("commit") or {}).get("tree") or {}).get("sha")
+    if (
+        not isinstance(revision, str)
+        or not SHA_RE.fullmatch(revision)
+        or not isinstance(tree_sha, str)
+        or not SHA_RE.fullmatch(tree_sha)
+    ):
+        raise ValueError("repository commit identity is unavailable")
+    tree = client.tree(tree_sha)
+    if tree.get("sha") != tree_sha:
+        raise ValueError("repository tree identity does not match the pinned commit")
+    rows = _build_events(spec, repo_data, client.languages(), tree, client, now, revision=revision)
+    observation = str(uuid.uuid4())
+    for row in rows:
+        row["attributes"].update(
+            source_commit=revision,
+            source_ref=branch,
+            source_tree=tree_sha,
+            observation_id=observation,
+            synthetic=bool(fixture_dir),
+        )
+        row["evidence"]["raw_sha256"] = _sha(
+            {
+                "event_type": row["event_type"],
+                "evidence_ref": row["evidence"]["evidence_ref"],
+                "attributes": row["attributes"],
+            }
+        )
     if out:
         write_jsonl(out, rows)
     return rows
@@ -168,6 +249,8 @@ def _build_events(
     tree_payload: dict[str, Any],
     client: PublicGitHubClient | FixtureRepoClient,
     collected_at: datetime,
+    *,
+    revision: str,
 ) -> list[dict[str, Any]]:
     branch = _default_branch(repo)
     paths = _tree_paths(tree_payload)
@@ -200,7 +283,7 @@ def _build_events(
             signal="code_graph",
             event_type="repository.code_graph",
             controls=[],
-            evidence_ref=f"https://api.github.com/repos/{spec.slug}/git/trees/{branch}?recursive=1",
+            evidence_ref=f"https://api.github.com/repos/{spec.slug}/git/trees/{revision}?recursive=1",
             attributes=graph,
         ),
         _event(
@@ -228,7 +311,7 @@ def _build_events(
     for signal, signal_paths in signals.items():
         if not signal_paths:
             continue
-        sample_text = _sample_file_text(client, branch, signal_paths)
+        sample_text = _sample_file_text(client, revision, signal_paths)
         events.append(
             _event(
                 spec,
@@ -236,11 +319,13 @@ def _build_events(
                 signal=signal,
                 event_type=f"repository.{signal}",
                 controls=CONTROL_MAP.get(signal, []),
-                evidence_ref=f"https://github.com/{spec.slug}/tree/{branch}",
+                evidence_ref=f"https://github.com/{spec.slug}/tree/{revision}",
                 attributes={
                     "paths": signal_paths[:INTERESTING_FILE_LIMIT],
                     "path_count": len(signal_paths),
                     "sample_sha256": _sha(sample_text) if sample_text else None,
+                    "sample_hash_scope": "decoded UTF-8 prefix; not a full-file digest",
+                    "sample_byte_limit": MAX_FILE_BYTES,
                     # Arbitrary source text can contain credentials that pattern
                     # redaction misses. Keep the field for compatibility, but
                     # persist only its sample hash, never the source excerpt.
@@ -266,7 +351,7 @@ def _event(
     evidence_body = {"event_type": event_type, "evidence_ref": evidence_ref, "attributes": attributes}
     return {
         "event_id": f"repo-audit-{stable}",
-        "tenant_id": "public",
+        "tenant_id": f"github:{spec.owner}",
         "event_time": utc_iso(collected_at),
         "source": "github-public-repo",
         "event_type": event_type,
@@ -294,6 +379,17 @@ def _default_branch(repo: dict[str, Any]) -> str:
     return str(repo.get("default_branch") or "main")
 
 
+def _checked_path(path: str) -> None:
+    if (
+        not path
+        or path.startswith("/")
+        or "\\" in path
+        or any(part in {".", "..", ""} for part in path.split("/"))
+        or any(ord(ch) < 32 for ch in path)
+    ):
+        raise ValueError("repository tree contains an invalid path")
+
+
 def _tree_paths(tree_payload: dict[str, Any]) -> list[str]:
     if tree_payload.get("truncated") is not False:
         raise ValueError("repository tree is incomplete or completeness is unknown; retained evidence was not replaced")
@@ -306,6 +402,8 @@ def _tree_paths(tree_payload: dict[str, Any]) -> list[str]:
         for item in tree
     ):
         raise ValueError("repository tree is malformed; retained evidence was not replaced")
+    for item in tree:
+        _checked_path(item["path"])
     return sorted(
         str(item.get("path"))
         for item in tree
