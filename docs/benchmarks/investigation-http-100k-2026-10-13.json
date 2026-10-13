@@ -1,0 +1,105 @@
+{
+  "untracked_source_sha256": {},
+  "schema_version": "grc.investigation_benchmark.v2",
+  "revision": "f7c935275b8333dd6d77626313c9211f9a919811",
+  "tracked_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "harness_sha256": "a9d453e976e37918124b37c4a537e879fb59b1910e5eb92b6c3dcc54c487f889",
+  "measured_at": "2026-10-13T22:39:37.721348+00:00",
+  "environment": {
+    "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "python": "3.13.5",
+    "cpu_count": 10,
+    "machine": "arm64",
+    "physical_memory_bytes": 17179869184,
+    "storage": "local filesystem, synthetic legacy-compatible generations",
+    "cache": "OS and shared catalog caches uncontrolled; first means first graph call per tenant"
+  },
+  "configuration": {
+    "transport": "http",
+    "tenants": 2,
+    "repeats": 1,
+    "sizes": [100000],
+    "concurrency": [1, 4],
+    "timeout_seconds": 2400.0,
+    "sampled_rss_limit_mib": 4096,
+    "min_free_gib": 5,
+    "sample_seconds": 0.25,
+    "seed": 910,
+    "fixture": "seeded mixed controls/outcomes/asset types; every tenant shares source account shared-account-a",
+    "http": {
+      "server_processes": 1,
+      "client_timeout_seconds": 30,
+      "auth_role": "security_admin",
+      "database": "scratch SQLite",
+      "query": {
+        "view": "environment",
+        "root": "own account-a asset-0",
+        "depth": 1,
+        "limit": 150
+      },
+      "dependencies": {
+        "fastapi": "0.141.1",
+        "starlette": "1.6.0",
+        "anyio": "4.14.2",
+        "uvicorn": "0.48.0",
+        "httpx": "0.28.1"
+      }
+    }
+  },
+  "limitations": [
+    "Authenticated loopback HTTP, one Uvicorn process with default thread-pool and rate limits",
+    "Balanced and 4:1 skewed client submissions; client queue delay is not server scheduler delay",
+    "Client and server share one process and host; RSS and CPU include both",
+    "Synthetic normalized records, SQLite state, no evaluation jobs or provider evidence",
+    "Response body bytes exclude HTTP headers; no production fairness, SLO or capacity budget",
+    "No object-store failover, crash recovery or distributed admission qualification"
+  ],
+  "attempts": [
+    {
+      "rows": 100000,
+      "concurrency": 1,
+      "correctness_ok": false,
+      "error_type": "ValueError",
+      "failed": "HTTP first read failed",
+      "completed_reads": [
+        {
+          "tenant": "tenant-0",
+          "query": "first",
+          "submission_ordinal": 0,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 17.48047900001984,
+          "client_queue_seconds": 5.420297384262085e-7,
+          "completion_seconds": 27.634997000102885,
+          "response_body_bytes": 8744,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-1",
+          "query": "first",
+          "submission_ordinal": 1,
+          "http_status": null,
+          "error_type": "ReadTimeout",
+          "seconds": 30.048125125002116,
+          "client_queue_seconds": 5.00003807246685e-7,
+          "completion_seconds": 57.68349191604648,
+          "response_body_bytes": 0
+        }
+      ],
+      "checks": {
+        "unauthenticated_rejected": true,
+        "invalid_credential_rejected": true
+      },
+      "unique_records_per_tenant": 100000,
+      "input_sha256": [
+        "878b66cdb6d59a1fd606c6dc8d83f0ffff9db06b747f782e1a3d4a6555f97cc1",
+        "ec64d8dfd5fde46618280bd2ebce7c98ae159ccf94e238eb9f248c9f39e7211f"
+      ],
+      "input_bytes_per_tenant": [38621080, 38621080],
+      "load_average_before": [20.16064453125, 27.83251953125, 28.6005859375],
+      "load_average_after": [22.6318359375, 26.79150390625, 28.1318359375]
+    }
+  ],
+  "http_harness_sha256": "a90811feb34064c7a7ffd04a2a6413a78f807f8e85739128322b73149333d75e"
+}
