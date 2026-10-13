@@ -1,5 +1,6 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api/client";
@@ -77,12 +78,16 @@ export function InvestigationExplorer() {
     };
   }, [inlineExpanded]);
   const [rootOffset, setRootOffset] = useState(0);
-  const [view, setView] = useState("controls");
-  const [root, setRoot] = useState("");
+  const searchParams = useSearchParams();
+  const [view, setView] = useState(
+    searchParams.get("root") ? "investigation" : "controls",
+  );
+  const [root, setRoot] = useState(searchParams.get("root") ?? "");
   const [depth, setDepth] = useState(2);
   const [search, setSearch] = useState("");
   const [version, setVersion] = useState("");
   const [visible, setVisible] = useState(new Set(layers));
+  const [repositoryView, setRepositoryView] = useState("evidence");
   const [selected, setSelected] = useState<GraphNode | null>(null);
   const params = new URLSearchParams({
     view,
@@ -101,7 +106,62 @@ export function InvestigationExplorer() {
   });
   const data = query.data;
   const currentRoot = root || data?.root || "";
-  const scopeIds = useMemo(() => new Set(data?.nodes.map((n) => n.id)), [data]);
+  const repositoryRoot =
+    data?.nodes.find((node) => node.id === currentRoot)?.kind === "repository";
+  const evidenceScope = useMemo(() => {
+    const hasEvaluatedRecords = data?.nodes.some(
+      (node) => node.kind === "evidence_type",
+    );
+    const kinds = new Set([
+      "evidence_type",
+      "signal_gap",
+      "governance_signal",
+      "finding",
+    ]);
+    if (!hasEvaluatedRecords) kinds.add("evidence");
+    const direct = new Set(
+      data?.edges.flatMap((edge) =>
+        edge.source === currentRoot
+          ? [edge.target]
+          : edge.target === currentRoot
+            ? [edge.source]
+            : [],
+      ),
+    );
+    return new Set(
+      data?.nodes
+        .filter(
+          (node) =>
+            node.id === currentRoot ||
+            (direct.has(node.id) && kinds.has(node.kind)),
+        )
+        .map((node) => node.id),
+    );
+  }, [data, currentRoot]);
+  const scopeIds = useMemo(
+    () =>
+      repositoryRoot && repositoryView === "evidence"
+        ? evidenceScope
+        : new Set(data?.nodes.map((node) => node.id)),
+    [data, evidenceScope, repositoryRoot, repositoryView],
+  );
+  const canvasGraph = useMemo(
+    () =>
+      repositoryRoot && repositoryView === "evidence" && data
+        ? {
+            ...data,
+            edges: data.edges.filter(
+              (edge) =>
+                edge.source === currentRoot || edge.target === currentRoot,
+            ),
+          }
+        : data,
+    [data, currentRoot, repositoryRoot, repositoryView],
+  );
+  const shownEdges =
+    canvasGraph?.edges.filter(
+      (edge) => scopeIds.has(edge.source) && scopeIds.has(edge.target),
+    ).length ?? 0;
   const mappingStates = [
     ...new Set(
       data?.edges.flatMap((e) => (e.review_state ? [e.review_state] : [])),
@@ -126,6 +186,7 @@ export function InvestigationExplorer() {
         },
       ]);
       setRoot(target.id);
+      setRepositoryView("evidence");
       setSelected(null);
     }
     setVersion(data?.version ?? "");
@@ -134,6 +195,7 @@ export function InvestigationExplorer() {
     setTrail([]);
     setRootOffset(0);
     setRoot("");
+    setRepositoryView("evidence");
     setVersion("");
     setSelected(null);
   };
@@ -189,6 +251,7 @@ export function InvestigationExplorer() {
               onChange={(e) => {
                 setTrail([]);
                 setRoot(e.target.value);
+                setRepositoryView("evidence");
                 setVersion(data?.version ?? "");
                 setSelected(null);
               }}
@@ -284,8 +347,10 @@ export function InvestigationExplorer() {
         {data && (
           <>
             <p role="status" className="text-xs text-muted">
-              {data.nodes.length} nodes · {data.edges.length} relationships ·{" "}
-              {data.boundary}.{" "}
+              {scopeIds.size === data.nodes.length
+                ? `${data.nodes.length} nodes · ${data.edges.length} relationships`
+                : `${scopeIds.size} of ${data.nodes.length} loaded nodes · ${shownEdges} of ${data.edges.length} relationships`}{" "}
+              · {data.boundary}.{" "}
               {data.truncated
                 ? `${data.matching_nodes} nodes match; showing a bounded subset. Reduce depth or expand a selected node.`
                 : ""}{" "}
@@ -312,6 +377,7 @@ export function InvestigationExplorer() {
                     onClick={() => {
                       if (!rollupTarget) return;
                       setRoot(rollupTarget);
+                      setRepositoryView("evidence");
                       setTrail(trail.slice(0, -1));
                       setSelected(null);
                       setVersion(data.version);
@@ -374,6 +440,39 @@ export function InvestigationExplorer() {
                       : "Expand graph workspace"}
                   </Button>
                 </div>
+                {repositoryRoot && (
+                  <div
+                    role="group"
+                    aria-label="Repository graph detail"
+                    className="flex flex-wrap items-center gap-2"
+                  >
+                    <Button
+                      size="sm"
+                      variant={
+                        repositoryView === "evidence" ? "primary" : "default"
+                      }
+                      aria-pressed={repositoryView === "evidence"}
+                      onClick={() => {
+                        setRepositoryView("evidence");
+                        setSelected(null);
+                      }}
+                    >
+                      Evidence focus ({evidenceScope.size})
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={repositoryView === "all" ? "primary" : "default"}
+                      aria-pressed={repositoryView === "all"}
+                      onClick={() => setRepositoryView("all")}
+                    >
+                      All relationships ({data.nodes.length})
+                    </Button>
+                    <span className="text-xs text-muted">
+                      Files and code structure are available in all
+                      relationships.
+                    </span>
+                  </div>
+                )}
                 <p className="text-xs text-muted">
                   Click a node for details. Double-click or press Shift+Enter to
                   explore its connections.
@@ -395,9 +494,14 @@ export function InvestigationExplorer() {
                 >
                   <div className="min-w-0">
                     <GraphCanvas
-                      graph={data}
+                      graph={canvasGraph}
                       scopeIds={scopeIds}
                       showEdgeLabels={false}
+                      neighborhoodRoot={
+                        repositoryRoot && repositoryView === "evidence"
+                          ? currentRoot
+                          : undefined
+                      }
                       heightClassName={
                         expanded
                           ? "h-[calc(100dvh-180px)] min-h-[400px]"
@@ -414,7 +518,9 @@ export function InvestigationExplorer() {
                       searchQuery=""
                       pathFrom={null}
                       pathTo={null}
-                      rankLimit={4}
+                      rankLimit={
+                        repositoryRoot && repositoryView === "all" ? 8 : 4
+                      }
                       focusId={selectedNode?.id}
                       onSelectNode={setSelected}
                       onExploreNode={exploreNode}
@@ -424,7 +530,11 @@ export function InvestigationExplorer() {
                     node={selectedNode}
                     graphMode="investigation"
                     graph={data}
-                    onInspectNode={setSelected}
+                    onInspectNode={(node) => {
+                      if (node && !scopeIds.has(node.id))
+                        setRepositoryView("all");
+                      setSelected(node);
+                    }}
                     onClose={() => setSelected(null)}
                     onFocusPath={
                       selectedNode ? () => exploreNode(selectedNode) : undefined

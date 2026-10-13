@@ -57,7 +57,6 @@ def _guarded_request(request: urllib.request.Request, *, timeout: int, label: st
     return _guarded_page(request, timeout=timeout, label=label)[0]
 
 
-GITHUB_RE = re.compile(r"^(?:https://github\.com/)?(?P<owner>[\w.-]+)/(?P<repo>[\w.-]+?)(?:\.git)?/?$")
 GITLAB_RE = re.compile(
     r"^(?:https?://(?:[\w.-]+\.)?gitlab\.com/)?(?P<path>[\w./-]+?)(?:\.git)?/?$",
 )
@@ -142,10 +141,10 @@ def parse_governance_repo_spec(value: str, *, provider: str | None = None) -> Go
         if len(parts) < 2:
             raise ValueError("GitLab repo must include namespace and project")
         return GovernanceRepoSpec(provider="gitlab", owner="/".join(parts[:-1]), repo=parts[-1])
-    match = GITHUB_RE.match(raw)
-    if not match:
-        raise ValueError("repo must be a GitHub URL or OWNER/REPO")
-    return GovernanceRepoSpec(provider="github", owner=match.group("owner"), repo=match.group("repo"))
+    from security_lakehouse.repo_audit import parse_repo_spec
+
+    spec = parse_repo_spec(raw)
+    return GovernanceRepoSpec(provider="github", owner=spec.owner, repo=spec.repo)
 
 
 class GitHubGovernanceClient:
@@ -643,7 +642,7 @@ def _event(
     source = "gitlab-repo-governance" if spec.provider == "gitlab" else "github-repo-governance"
     return {
         "event_id": f"repo-governance-{stable}",
-        "tenant_id": "customer-managed",
+        "tenant_id": f"github:{spec.owner}" if spec.provider == "github" else "customer-managed",
         "workspace_id": "default",
         "event_time": utc_iso(collected_at),
         "source": source,

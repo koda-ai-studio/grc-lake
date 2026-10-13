@@ -14,6 +14,7 @@ import {
   ReactFlow,
   ReactFlowProvider,
   useReactFlow,
+  useUpdateNodeInternals,
   type Edge,
   type Node,
   type NodeProps,
@@ -63,6 +64,8 @@ interface GraphNodeData extends Record<string, unknown> {
   kind: GraphNodeKind;
   layout: LayoutDir;
   provider?: string;
+  bank?: "left" | "right";
+  neighborhoodRoot?: boolean;
   framework_id?: string;
   family_id?: string;
   owner?: string;
@@ -130,7 +133,11 @@ function emphasisClass(emphasis: GraphNodeData["emphasis"]): string {
   }
 }
 
-function GraphNodeCard({ data, selected }: NodeProps<FlowGraphNode>) {
+function GraphNodeCard({ id, data, selected }: NodeProps<FlowGraphNode>) {
+  const updateNodeInternals = useUpdateNodeInternals();
+  useEffect(() => {
+    updateNodeInternals(id);
+  }, [id, data.bank, data.neighborhoodRoot, updateNodeInternals]);
   const tone = KIND_STYLE[data.kind] ?? {
     border: "var(--color-line-strong)",
     chip: "var(--color-muted)",
@@ -152,6 +159,66 @@ function GraphNodeCard({ data, selected }: NodeProps<FlowGraphNode>) {
   const isEvidence = ["evidence", "evidence_type", "signal_gap"].includes(
     data.kind,
   );
+  if (data.bank) {
+    const inward = data.bank === "left" ? Position.Right : Position.Left;
+    const handleStyle =
+      data.bank === "left" ? { right: 8, top: 36 } : { left: 8, top: 36 };
+    return (
+      <Tooltip.Root delayDuration={120}>
+        <Tooltip.Trigger asChild>
+          <div
+            className={`flex h-[72px] w-[224px] items-center gap-3 rounded-xl px-2 ${data.bank === "left" ? "flex-row-reverse text-right" : "text-left"} ${emphasisClass(data.emphasis)}`}
+          >
+            <Handle
+              type="target"
+              position={inward}
+              style={handleStyle}
+              className="!opacity-0"
+            />
+            <Handle
+              type="source"
+              position={inward}
+              style={handleStyle}
+              className="!opacity-0"
+            />
+            <div
+              data-testid="graph-node-icon"
+              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2"
+              style={{
+                borderColor: selected ? "var(--color-brand)" : tone.border,
+                color: tone.border,
+                background: `color-mix(in srgb, ${tone.border} 15%, var(--color-surface))`,
+              }}
+            >
+              <Icon className="h-5 w-5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div
+                data-testid="graph-node-label"
+                className="line-clamp-2 break-words text-xs font-semibold leading-4 text-ink"
+              >
+                {displayLabel}
+              </div>
+              <div className="mt-1 text-[11px] leading-4 text-muted">
+                {isEvidence
+                  ? evidenceState.label
+                  : data.kind.replaceAll("_", " ")}
+              </div>
+            </div>
+          </div>
+        </Tooltip.Trigger>
+        <Tooltip.Portal>
+          <Tooltip.Content
+            className="z-[80] max-w-xs rounded-lg border border-line bg-surface p-3 text-xs text-ink shadow-hero"
+            side="top"
+          >
+            {data.label}
+            <Tooltip.Arrow className="fill-surface" />
+          </Tooltip.Content>
+        </Tooltip.Portal>
+      </Tooltip.Root>
+    );
+  }
   return (
     <Tooltip.Root delayDuration={120}>
       <Tooltip.Trigger asChild>
@@ -182,6 +249,24 @@ function GraphNodeCard({ data, selected }: NodeProps<FlowGraphNode>) {
             }
             className="!opacity-0"
           />
+          {data.neighborhoodRoot && (
+            <>
+              <Handle
+                id="right"
+                type="target"
+                position={Position.Right}
+                style={{ right: 51, top: 48 }}
+                className="!opacity-0"
+              />
+              <Handle
+                id="left"
+                type="source"
+                position={Position.Left}
+                style={{ left: 51, top: 48 }}
+                className="!opacity-0"
+              />
+            </>
+          )}
           <div
             data-testid="graph-node-icon"
             className="relative flex h-20 w-20 shrink-0 items-center justify-center rounded-full border-2 shadow-sm"
@@ -296,7 +381,58 @@ function layoutGraph(
   rfEdges: Edge[],
   rankdir: LayoutDir,
   rankLimit?: number,
+  neighborhoodRoot?: string,
 ): { nodes: FlowGraphNode[]; edges: Edge[] } {
+  if (neighborhoodRoot) {
+    // Place leaf icons on the inside of two banks. Labels remain outside the
+    // routing corridors, so fan-in edges cannot run through other records.
+    const leaves = rfNodes
+      .filter((node) => node.id !== neighborhoodRoot)
+      .sort((a, b) => a.data.label.localeCompare(b.data.label));
+    const split = Math.ceil(leaves.length / 2);
+    const banks = new Map(
+      leaves.map((node, index) => [
+        node.id,
+        index < split ? ("left" as const) : ("right" as const),
+      ]),
+    );
+    const positions = new Map(
+      leaves.map((node, index) => [
+        node.id,
+        {
+          x: index < split ? 0 : 704,
+          y: (index < split ? index : index - split) * 96,
+        },
+      ]),
+    );
+    const nodes = rfNodes.map((node) =>
+      node.id === neighborhoodRoot
+        ? {
+            ...node,
+            position: { x: 376, y: Math.max(0, split - 1) * 48 - 12 },
+            data: { ...node.data, neighborhoodRoot: true },
+          }
+        : {
+            ...node,
+            width: 224,
+            height: 72,
+            position: positions.get(node.id)!,
+            data: { ...node.data, bank: banks.get(node.id) },
+          },
+    );
+    const edges = rfEdges.map((edge) => ({
+      ...edge,
+      sourceHandle:
+        edge.source === neighborhoodRoot && banks.get(edge.target) === "left"
+          ? "left"
+          : undefined,
+      targetHandle:
+        edge.target === neighborhoodRoot && banks.get(edge.source) === "right"
+          ? "right"
+          : undefined,
+    }));
+    return { nodes, edges };
+  }
   const g = new dagre.graphlib.Graph();
   g.setDefaultEdgeLabel(() => ({}));
   g.setGraph({ rankdir, nodesep: 30, ranksep: 58, marginx: 8, marginy: 8 });
@@ -393,6 +529,7 @@ interface Props {
   scopeIds?: Set<string> | null;
   /** Most nodes per row before a rank wraps; narrow canvases pass fewer. */
   rankLimit?: number;
+  neighborhoodRoot?: string;
   showEdgeLabels?: boolean;
   heightClassName?: string;
   pathFrom: string | null;
@@ -432,6 +569,7 @@ function InnerGraphCanvas({
   focusId = null,
   scopeIds = null,
   rankLimit,
+  neighborhoodRoot,
   showEdgeLabels = true,
   heightClassName = "h-[clamp(400px,calc(100dvh-300px),650px)] min-h-[400px]",
   pathFrom,
@@ -706,8 +844,9 @@ function InnerGraphCanvas({
           },
         };
       });
-    return layoutGraph(list, edges, layout, rankLimit);
+    return layoutGraph(list, edges, layout, rankLimit, neighborhoodRoot);
   }, [
+    neighborhoodRoot,
     rankLimit,
     showEdgeLabels,
     graph,

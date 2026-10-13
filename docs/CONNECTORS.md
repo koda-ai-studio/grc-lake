@@ -453,6 +453,39 @@ grc-lake repo audit https://github.com/OWNER/REPO --out build/repo-audit.jsonl
 GRC_LAKE_GITHUB_APP_INSTALLATION_TOKEN=... grc-lake repo governance-sync OWNER/REPO --out build/repo-governance.jsonl
 ```
 
+In the console, **Onboarding → Start with a public repository** accepts a public
+GitHub.com URL. Collection requires `connector_manage` permission, runs as a durable
+operation, and publishes through the same assessment pipeline. The result shows
+its commit, ref, observation ID and time, with a direct link to the scoped evidence
+investigation. Public observations do not establish branch protection, private
+alerts or organization policy; authenticated governance remains a separate setup.
+
+The shared CLI/console collector resolves the default branch once to a commit SHA
+and reads its tree and file samples at that revision. Metadata and language totals
+are observations at collection time, not historical facts pinned by the commit.
+Requests use the shared public-address transport with GitHub host and repository
+checks on redirects. Reads are limited to 32 top-level requests, a 120-second
+collection budget (20 seconds per request), 6 MiB per JSON response, and 200,000
+bytes per file sample. Redirects also retain the transport's bounded hop count.
+An oversized/truncated tree fails collection; a large source file contributes only
+a labelled prefix hash, never its contents or a purported full-file hash. No clone,
+package installation or repository code execution occurs.
+
+The API is `POST /api/v1/repositories/public-audit` with `{"repo":"https://github.com/OWNER/REPO"}`.
+Use `Prefer: respond-async` and an `Idempotency-Key` for durable acceptance/replay;
+provider rate limits and unavailable sources return explicit failures. The console
+uses this asynchronous path. It does not accept tokens, tenant IDs or local fixture
+paths. Fixture-backed CLI observations are marked synthetic and require a
+`commit.json` containing the commit SHA and `commit.tree.sha`, plus the matching
+`sha` in `tree.json`.
+
+New GitHub observations normalize owner/repository case and use `github:<owner>`
+as their source-account identity in both public audit and governance collection.
+This is separate from the authenticated platform tenant. Existing retained
+observations keep their original `public` or `customer-managed` identity; no
+historical provenance or record bindings are rewritten. Recollect both paths to
+use the canonical identity for new observations.
+
 The public audit path requires no credentials. The governance sync path uses a
 GitHub App installation token or fixture bundle for private branch rules,
 collaborators, teams, workflow permissions, and security-setting summaries.

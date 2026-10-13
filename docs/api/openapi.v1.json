@@ -7855,6 +7855,102 @@
         "tags": ["repo-graph"]
       }
     },
+    "/api/v1/repositories/public-audit": {
+      "post": {
+        "description": "Requires scope: connector_manage.",
+        "operationId": "post_repositories_public_audit",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Prefer",
+            "required": false,
+            "schema": {
+              "enum": ["respond-async"],
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "repo": {
+                    "maxLength": 220,
+                    "type": "string"
+                  }
+                },
+                "required": ["repo"],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V1Envelope"
+                }
+              }
+            },
+            "description": "v1 envelope"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V1Envelope"
+                }
+              }
+            },
+            "description": "Durable operation accepted. Poll Location; acceptance does not establish completion.",
+            "headers": {
+              "Location": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Unsupported input"
+          },
+          "403": {
+            "description": "Scope or provider access denied"
+          },
+          "404": {
+            "description": "Public source unavailable"
+          },
+          "429": {
+            "description": "Provider or queue rate limit"
+          },
+          "502": {
+            "description": "Incomplete collection or publication"
+          }
+        },
+        "summary": "Post repositories.public-audit",
+        "tags": ["repositories"]
+      }
+    },
     "/api/v1/risks": {
       "get": {
         "operationId": "list_risks_api_v1_risks_get",

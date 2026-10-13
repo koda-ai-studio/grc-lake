@@ -38,6 +38,7 @@ def _fixture(tmp_path: Path) -> Path:
             "visibility": "public",
         },
     )
+    _write_json(fixture / "commit.json", {"sha": "a" * 40, "commit": {"tree": {"sha": "b" * 40}}})
     _write_json(fixture / "languages.json", {"Python": 1200, "TypeScript": 8800})
     paths = [
         ".github/CODEOWNERS",
@@ -50,7 +51,10 @@ def _fixture(tmp_path: Path) -> Path:
         "models/model-card.md",
         "src/index.ts",
     ]
-    _write_json(fixture / "tree.json", {"truncated": False, "tree": [{"path": path, "type": "blob"} for path in paths]})
+    _write_json(
+        fixture / "tree.json",
+        {"sha": "b" * 40, "truncated": False, "tree": [{"path": path, "type": "blob"} for path in paths]},
+    )
     (fixture / "files" / ".github").mkdir(parents=True)
     (fixture / "files" / ".github" / "CODEOWNERS").write_text("* @acme/security\n", encoding="utf-8")
     (fixture / "files" / "SECURITY.md").write_text("Report issues. token=super-secret-value\n", encoding="utf-8")
@@ -142,14 +146,14 @@ def test_source_text_is_not_retained_in_repository_evidence(tmp_path):
         {"tree": []},
         {"truncated": "false", "tree": []},
         {"truncated": False},
-        {"truncated": False, "tree": {}},
-        {"truncated": False, "tree": [None]},
-        {"truncated": False, "tree": [{"type": "blob", "path": None}]},
+        {"sha": "b" * 40, "truncated": False, "tree": {}},
+        {"sha": "b" * 40, "truncated": False, "tree": [None]},
+        {"sha": "b" * 40, "truncated": False, "tree": [{"type": "blob", "path": None}]},
     ],
 )
 def test_unknown_or_malformed_tree_does_not_publish(tmp_path, payload):
     fixture = _fixture(tmp_path)
-    _write_json(fixture / "tree.json", payload)
+    _write_json(fixture / "tree.json", {"sha": "b" * 40, **payload})
     out = tmp_path / "evidence.jsonl"
     with pytest.raises(ValueError, match="repository tree"):
         audit_public_repo("acme/agent-api", fixture_dir=fixture, out=out)
@@ -158,7 +162,7 @@ def test_unknown_or_malformed_tree_does_not_publish(tmp_path, payload):
 
 def test_explicitly_complete_empty_tree_is_valid(tmp_path):
     fixture = _fixture(tmp_path)
-    _write_json(fixture / "tree.json", {"truncated": False, "tree": []})
+    _write_json(fixture / "tree.json", {"sha": "b" * 40, "truncated": False, "tree": []})
     rows = audit_public_repo("acme/agent-api", fixture_dir=fixture)
     graph = next(row for row in rows if row["event_type"] == "repository.code_graph")
     assert graph["attributes"]["counts"]["files"] == 0
