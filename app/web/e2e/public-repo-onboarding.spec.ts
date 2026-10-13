@@ -132,9 +132,10 @@ test("repository investigations start readable and retain the complete neighborh
   ];
   const edges = nodes.slice(1).map((node, i) => ({
     id: `edge:${i}`,
-    source: root,
-    target: node.id,
-    kind: "has_signal",
+    source: node.kind === "evidence_type" ? node.id : root,
+    target: node.kind === "evidence_type" ? root : node.id,
+    kind:
+      node.kind === "evidence_type" ? "evidence_covers_asset" : "has_signal",
   }));
   await page.route("**/api/v1/graph/investigation?*", (route) =>
     route.fulfill({
@@ -159,9 +160,9 @@ test("repository investigations start readable and retain the complete neighborh
   );
   await page.setViewportSize({ width: 1440, height: 1100 });
   await page.goto(`/console/graph/?root=${encodeURIComponent(root)}`);
-  await expect(page.locator(".react-flow__node")).toHaveCount(12);
+  await expect(page.locator(".react-flow__node")).toHaveCount(7);
   await expect(
-    page.getByText("12 of 92 loaded nodes", { exact: false }),
+    page.getByText("7 of 92 loaded nodes", { exact: false }),
   ).toBeVisible();
   await expect(
     page
@@ -223,10 +224,78 @@ test("repository investigations start readable and retain the complete neighborh
       }),
     )
     .toBe(0);
+  // Verify the rendered arrow ends at the recorded target, not just that
+  // nodes occupy the expected columns.
+  await expect
+    .poll(() =>
+      page.evaluate((recordedEdges) => {
+        const nodes = new Map(
+          Array.from(document.querySelectorAll(".react-flow__node")).map(
+            (node) => [node.getAttribute("data-id"), node],
+          ),
+        );
+        const rendered = new Map(
+          Array.from(document.querySelectorAll(".react-flow__edge")).map(
+            (edge) => [edge.getAttribute("data-id"), edge],
+          ),
+        );
+        return recordedEdges
+          .filter((edge) => nodes.has(edge.source) && nodes.has(edge.target))
+          .filter((edge) => {
+            const path = rendered
+              .get(edge.id)
+              ?.querySelector<SVGPathElement>(".react-flow__edge-path");
+            if (!path || !path.getAttribute("marker-end")) return true;
+            return [edge.source, edge.target].some((id, index) => {
+              const icon = nodes
+                .get(id)!
+                .querySelector('[data-testid="graph-node-icon"]')!
+                .getBoundingClientRect();
+              const point = path
+                .getPointAtLength(index === 0 ? 0 : path.getTotalLength())
+                .matrixTransform(path.getScreenCTM()!);
+              return (
+                point.x < icon.left - 8 ||
+                point.x > icon.right + 8 ||
+                point.y < icon.top - 8 ||
+                point.y > icon.bottom + 8
+              );
+            });
+          })
+          .map((edge) => edge.id);
+      }, edges),
+    )
+    .toEqual([]);
+  const repository = page.locator(`[data-id="${root}"].react-flow__node`);
+  const repoBox = (await repository.boundingBox())!;
+  for (const node of await page
+    .locator('.react-flow__node[data-id^="evidence:"]')
+    .all()) {
+    const box = (await node.boundingBox())!;
+    expect(box.x + box.width).toBeLessThan(repoBox.x);
+    await expect(
+      node.getByText("evidence covers asset", { exact: true }),
+    ).toBeVisible();
+  }
+  expect(
+    (await page.locator('.react-flow__node[data-id="gap"]').boundingBox())!.x,
+  ).toBeGreaterThan(repoBox.x + repoBox.width);
+  const firstPageIds = await page
+    .locator('.react-flow__node[data-id^="evidence:"]')
+    .evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-id")));
+  await page.getByRole("button", { name: "Next evidence records" }).click();
+  await expect(page.getByText("Page 2 of 2", { exact: false })).toBeVisible();
+  const secondPageIds = await page
+    .locator('.react-flow__node[data-id^="evidence:"]')
+    .evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-id")));
+  expect(new Set([...firstPageIds, ...secondPageIds]).size).toBe(10);
+  await expect(
+    page.getByRole("button", { name: "Next evidence records" }),
+  ).toBeDisabled();
   await page.getByRole("button", { name: "All relationships (92)" }).click();
   await expect(page.locator(".react-flow__node")).toHaveCount(92);
   await expect(page.locator(".react-flow__edge-path")).toHaveCount(91);
   await page.getByRole("button", { name: "Evidence focus (12)" }).click();
-  await expect(page.locator(".react-flow__node")).toHaveCount(12);
-  await expect(page.locator(".react-flow__edge-path")).toHaveCount(11);
+  await expect(page.locator(".react-flow__node")).toHaveCount(7);
+  await expect(page.locator(".react-flow__edge-path")).toHaveCount(6);
 });

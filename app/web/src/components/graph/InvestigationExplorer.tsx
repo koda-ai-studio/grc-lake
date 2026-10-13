@@ -88,6 +88,7 @@ export function InvestigationExplorer() {
   const [version, setVersion] = useState("");
   const [visible, setVisible] = useState(new Set(layers));
   const [repositoryView, setRepositoryView] = useState("evidence");
+  const [evidencePage, setEvidencePage] = useState(0);
   const [selected, setSelected] = useState<GraphNode | null>(null);
   const params = new URLSearchParams({
     view,
@@ -138,12 +139,46 @@ export function InvestigationExplorer() {
         .map((node) => node.id),
     );
   }, [data, currentRoot]);
+  const evidencePages = useMemo(() => {
+    const incomingIds = new Set(
+      data?.edges
+        .filter((edge) => edge.target === currentRoot)
+        .map((edge) => edge.source),
+    );
+    const nodes = (data?.nodes ?? [])
+      .filter((node) => node.id !== currentRoot && evidenceScope.has(node.id))
+      .sort(
+        (a, b) => a.label.localeCompare(b.label) || a.id.localeCompare(b.id),
+      );
+    const incoming = nodes.filter((node) => incomingIds.has(node.id));
+    const outgoing = nodes.filter((node) => !incomingIds.has(node.id));
+    const pageCount = Math.max(
+      1,
+      Math.ceil(Math.max(incoming.length, outgoing.length) / 5),
+    );
+    const page = Math.min(evidencePage, pageCount - 1);
+    // Keep a small lane visible while paging the larger lane. Every shown edge
+    // retains its recorded endpoints; pagination never synthesizes a link.
+    const slice = (rows: GraphNode[]) =>
+      rows.length <= 5 ? rows : rows.slice(page * 5, (page + 1) * 5);
+    return {
+      page,
+      pageCount,
+      incoming: incoming.length,
+      outgoing: outgoing.length,
+      ids: new Set([
+        currentRoot,
+        ...slice(incoming).map((node) => node.id),
+        ...slice(outgoing).map((node) => node.id),
+      ]),
+    };
+  }, [data, currentRoot, evidenceScope, evidencePage]);
   const scopeIds = useMemo(
     () =>
       repositoryRoot && repositoryView === "evidence"
-        ? evidenceScope
+        ? evidencePages.ids
         : new Set(data?.nodes.map((node) => node.id)),
-    [data, evidenceScope, repositoryRoot, repositoryView],
+    [data, evidencePages, repositoryRoot, repositoryView],
   );
   const canvasGraph = useMemo(
     () =>
@@ -187,6 +222,7 @@ export function InvestigationExplorer() {
       ]);
       setRoot(target.id);
       setRepositoryView("evidence");
+      setEvidencePage(0);
       setSelected(null);
     }
     setVersion(data?.version ?? "");
@@ -196,6 +232,7 @@ export function InvestigationExplorer() {
     setRootOffset(0);
     setRoot("");
     setRepositoryView("evidence");
+    setEvidencePage(0);
     setVersion("");
     setSelected(null);
   };
@@ -252,6 +289,7 @@ export function InvestigationExplorer() {
                 setTrail([]);
                 setRoot(e.target.value);
                 setRepositoryView("evidence");
+                setEvidencePage(0);
                 setVersion(data?.version ?? "");
                 setSelected(null);
               }}
@@ -378,6 +416,7 @@ export function InvestigationExplorer() {
                       if (!rollupTarget) return;
                       setRoot(rollupTarget);
                       setRepositoryView("evidence");
+                      setEvidencePage(0);
                       setTrail(trail.slice(0, -1));
                       setSelected(null);
                       setVersion(data.version);
@@ -454,6 +493,7 @@ export function InvestigationExplorer() {
                       aria-pressed={repositoryView === "evidence"}
                       onClick={() => {
                         setRepositoryView("evidence");
+                        setEvidencePage(0);
                         setSelected(null);
                       }}
                     >
@@ -471,6 +511,48 @@ export function InvestigationExplorer() {
                       Files and code structure are available in all
                       relationships.
                     </span>
+                  </div>
+                )}
+                {repositoryRoot && repositoryView === "evidence" && (
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-muted">
+                    <span>
+                      Incoming relationships → Repository → Outgoing
+                      relationships. Arrows follow recorded links, not execution
+                      order.
+                    </span>
+                    {evidencePages.pageCount > 1 && (
+                      <>
+                        <span>
+                          Page {evidencePages.page + 1} of{" "}
+                          {evidencePages.pageCount} · {evidencePages.incoming}{" "}
+                          incoming, {evidencePages.outgoing} outgoing records
+                        </span>
+                        <Button
+                          size="sm"
+                          aria-label="Previous evidence records"
+                          disabled={evidencePages.page === 0}
+                          onClick={() => {
+                            setEvidencePage(evidencePages.page - 1);
+                            setSelected(null);
+                          }}
+                        >
+                          Previous
+                        </Button>
+                        <Button
+                          size="sm"
+                          aria-label="Next evidence records"
+                          disabled={
+                            evidencePages.page + 1 >= evidencePages.pageCount
+                          }
+                          onClick={() => {
+                            setEvidencePage(evidencePages.page + 1);
+                            setSelected(null);
+                          }}
+                        >
+                          Next
+                        </Button>
+                      </>
+                    )}
                   </div>
                 )}
                 <p className="text-xs text-muted">

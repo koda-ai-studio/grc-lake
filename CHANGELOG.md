@@ -5,6 +5,8 @@ Python package, Helm chart, and bundled web console.
 
 ## Unreleased
 
+- Add authorized, durable public GitHub URL onboarding with bounded, commit-pinned collection and scoped investigation links. Simplify setup, show repository evidence in paged directional lanes with explicit relationship types, and preserve exact normalized record bindings without duplicating connector-scoped evidence. Public observations remain distinct from authenticated governance and compliance verdicts.
+
 - Reject incomplete connector collections: paginate GitHub and GitLab access lists and S3 bucket inventory; bound Kubernetes continuation; reject repeated pages/cursors, malformed list rows, and premature empty pages in affected adapters. Repository sync fails after exhausted transient HTTP errors instead of recording a permission gap. Add a generated built-in connector qualification matrix with test pointers, historical scope, catalog permissions and explicit ownership gaps; fixture coverage does not assert current-release live parity.
 
 - Add a reproducible synthetic access/change qualification matrix with explicit expected outcomes, retained draft workpapers, input hashes, tenant rejection, replay and tamper checks. CI retains reports and review bundles; passing this matrix does not establish live-provider qualification or mapping approval.

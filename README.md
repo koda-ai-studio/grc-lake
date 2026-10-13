@@ -204,10 +204,8 @@ Upgrading from TrustOps? Read the [migration guide](docs/REBRANDING.md).
 
 <!-- END README AT A GLANCE -->
 
-Catalog counts above are generated from source. Mapped, reviewed, and freshly
-assessed requirements are separate measures; proposed mappings are not attestable.
-Missing, stale, or partial evidence cannot establish a pass. Agents propose;
-eligible humans approve. Review decisions do not change access at a provider.
+Catalog counts above are generated from source. Mapping-review decisions do not
+change access at a provider.
 
 [Framework coverage](docs/FRAMEWORK_COVERAGE.md) ·
 [Common safeguards](docs/COMMON_CONTROL_FRAMEWORK.md) ·
