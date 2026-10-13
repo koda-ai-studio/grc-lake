@@ -11,6 +11,10 @@ Python package, Helm chart, and bundled web console.
 
 - Group safeguard mappings by framework with complete counts and five-control pages. Keep curved links clear of labels, highlight connected paths on hover or selection, preserve dragged positions within the current view, and prevent overlapping cards. Collapse starting-point options, provide live search, disable wheel zoom, and clarify investigation versus catalog/repository map purposes.
 
+- Reject duplicate safeguard and mapping identities, empty or non-string identifiers, and in-scope framework mismatches before CCF assessment. A rejected run keeps the previous active generation. Catalog mappings and review approvals are unchanged.
+
+- Reject duplicate and malformed source mapping records, and validate each target against the catalog. The coverage ledger, crosswalk and framework detail share one target-and-citation check, so a wrong-framework citation earns no credit in any view. Catalog totals are unchanged.
+
 ## 0.3.4 - 2026-10-13
 
 - Add authorized, durable public GitHub URL onboarding with bounded, commit-pinned collection and scoped investigation links. Simplify setup, show repository evidence in paged directional lanes with explicit relationship types, and preserve exact normalized record bindings without duplicating connector-scoped evidence. Public observations remain distinct from authenticated governance and compliance verdicts.
