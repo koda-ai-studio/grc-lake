@@ -317,40 +317,6 @@ def test_live_client_pins_the_regional_host_whatever_the_next_link_says(monkeypa
     assert _query(seen[1])["cursor"] == ["c1"]
 
 
-def test_live_client_falls_back_to_page_paging_when_no_next_cursor_is_returned(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    users = _users(PER_PAGE + 2)
-
-    def responder(request: Any) -> Any:
-        query = _query(request)
-        if "cursor" in query:
-            return users[:PER_PAGE]
-        page = int(query["page"][0])
-        return users[(page - 1) * PER_PAGE : page * PER_PAGE]
-
-    seen = _fake_api(monkeypatch, responder)
-
-    # The cursor-mode first page is discarded and the walk restarts at page 1,
-    # so nothing is duplicated or skipped.
-    assert [u["id"] for u in _client().users()] == [u["id"] for u in users]
-    assert [_query(r).get("cursor") for r in seen] == [["0"], None, None]
-    assert [_query(r).get("page") for r in seen] == [None, ["1"], ["2"]]
-
-
-def test_live_client_fails_closed_once_page_paging_is_ignored(monkeypatch: pytest.MonkeyPatch) -> None:
-    # After the deprecation the server may ignore ``page`` and keep returning the
-    # first rows; that must be an explicit error, never duplicated evidence.
-    first_rows = _users(PER_PAGE)
-    seen = _fake_api(monkeypatch, lambda request: first_rows)
-
-    with pytest.raises(KnowBe4PaginationError, match="cursor") as excinfo:
-        _client().users()
-    assert isinstance(excinfo.value, ConnectorOperatorError)
-    assert "/" not in str(excinfo.value)
-    assert len(seen) == 3
-
-
 def test_live_client_fails_closed_on_a_repeated_cursor(monkeypatch: pytest.MonkeyPatch) -> None:
     seen = _fake_api(monkeypatch, lambda request: (_users(PER_PAGE), _next_link("same")))
 

@@ -21,7 +21,9 @@ def qualify(region, token, collection, *, expected_count, min_interval=1.25, max
     class Client(KnowBe4Client):
         def _fetch(self, path, query):
             payload, headers = super()._fetch(path, query)
-            pages.append({"rows": len(payload), "link_next_cursor_present": _link_cursor(headers) is not None})
+            page = {"rows": len(payload), "link_next_cursor_present": False}
+            pages.append(page)
+            page["link_next_cursor_present"] = _link_cursor(headers) is not None
             return payload, headers
 
     result = {
@@ -36,7 +38,7 @@ def qualify(region, token, collection, *, expected_count, min_interval=1.25, max
         "scope": "One list and one observation; expected count must come from an independent account baseline.",
     }
     try:
-        client = Client(region, token=token, min_interval=min_interval, allow_legacy_paging=False, max_pages=max_pages)
+        client = Client(region, token=token, min_interval=min_interval, max_pages=max_pages)
         rows = getattr(client, COLLECTIONS[collection])()
         result["rows"] = len(rows)
         result["status"] = (

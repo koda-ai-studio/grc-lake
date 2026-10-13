@@ -21,7 +21,7 @@ plus the licensed-user count. The client paces requests to stay under the burst
 limit and retries 429/5xx through ``backoff.http_retry``; a 429 that outlasts
 that budget raises :class:`KnowBe4RateLimitedError` ("retry later").
 
-Paging (spec re-checked 2026-10-12): ``page`` is deprecated from November 2026
+Paging (spec re-checked 2026-10-13): ``page`` is deprecated from November 2026
 in favour of ``per_page`` (max 500) and ``cursor``; "set cursor=0 or
 cursor=true in your first request to begin pagination". The spec does not say
 where the next cursor comes back, so the client:
@@ -29,12 +29,13 @@ where the next cursor comes back, so the client:
 1. starts with ``cursor=0&per_page=500`` and, while a ``Link: rel="next"``
    header carries a ``cursor``, follows it (cursor value only, host pinned);
 2. treats a short or empty page without a next cursor as the last page;
-3. on a full page without a next cursor, restarts with legacy ``page`` paging,
-   which works until the deprecation; once the server ignores ``page`` and
-   repeats rows, raises :class:`KnowBe4PaginationError` instead of storing
-   duplicates. Repeated record identities (including overlapping or reordered
-   pages), malformed identities, and repeated cursors fail closed. Cursor-only
-   qualification disables the legacy fallback.
+3. rejects a full page without a next cursor, or a next link without one usable
+   cursor, with :class:`KnowBe4PaginationError`. It never sends deprecated
+   ``page`` requests. Repeated record identities (including overlapping or
+   reordered pages), malformed identities, and repeated cursors fail closed.
+
+The Link response contract still requires live qualification against a list of
+more than 500 rows; cursor-only requests alone do not prove migration complete.
 
 Every request goes through ``netguard.open_public`` to the configured regional
 host only; the key is never sent anywhere else.
@@ -113,10 +114,6 @@ class KnowBe4PaginationError(ConnectorAccessError):
     """The Reporting API's paging cannot be completed safely; nothing partial is returned."""
 
 
-class _NoNextCursorError(Exception):
-    """A full cursor-mode page carried no next cursor."""
-
-
 def _link_cursor(headers: Any) -> str | None:
     """The ``cursor`` query value of a ``Link: rel="next"`` target, if the response sends one.
 
@@ -127,9 +124,16 @@ def _link_cursor(headers: Any) -> str | None:
     url = next_link_url(link)
     if not url:
         return None
-    values = urllib.parse.parse_qs(urllib.parse.urlsplit(url).query).get("cursor") or []
-    cursor = values[0].strip() if values else ""
-    return cursor or None
+    try:
+        values = urllib.parse.parse_qs(urllib.parse.urlsplit(url).query, keep_blank_values=True).get("cursor", [])
+    except ValueError:
+        values = []
+    if len(values) != 1 or not values[0].strip():
+        raise KnowBe4PaginationError(
+            "KnowBe4 returned a next link without one usable cursor; collection is incomplete. "
+            "Confirm the pagination response with KnowBe4 before retrying."
+        )
+    return values[0]
 
 
 def _checked_records(rows: list[Any], path: str, seen: set[str]) -> list[dict[str, Any]]:
@@ -144,7 +148,7 @@ def _checked_records(rows: list[Any], path: str, seen: set[str]) -> list[dict[st
         identity = str(identity)
         if identity in seen:
             raise KnowBe4PaginationError(
-                "KnowBe4 returned a repeated record during cursor or page pagination; collection is incomplete. "
+                "KnowBe4 returned a repeated record during cursor pagination; collection is incomplete. "
                 "Retry the sync and confirm pagination behavior with KnowBe4 if it persists."
             )
         seen.add(identity)
@@ -171,7 +175,6 @@ class KnowBe4Client:
         min_interval: float = MIN_REQUEST_INTERVAL_SECONDS,
         clock: Callable[[], float] = time.monotonic,
         sleep: Callable[[float], Any] | None = None,
-        allow_legacy_paging: bool = True,
         max_pages: int = 1000,
     ) -> None:
         self.region = str(region).strip().lower()
@@ -179,7 +182,6 @@ class KnowBe4Client:
         if not token:
             raise ValueError("KnowBe4 Reporting API key is required")
         self._token = token
-        self._allow_legacy_paging = allow_legacy_paging
         self._max_pages = max_pages
         self.timeout = timeout
         self._min_interval = min_interval
@@ -199,19 +201,6 @@ class KnowBe4Client:
         return self._list("/v1/phishing/security_tests", {})
 
     def _list(self, path: str, params: dict[str, str]) -> list[dict[str, Any]]:
-        try:
-            return self._list_by_cursor(path, params)
-        except _NoNextCursorError:
-            if not self._allow_legacy_paging:
-                raise KnowBe4PaginationError(
-                    "KnowBe4 returned a full page with no next cursor; cursor-only collection cannot complete. "
-                    "Confirm the pagination response with KnowBe4 before retrying."
-                ) from None
-            # A full page came back without a next cursor, so cursor mode cannot
-            # continue. Restart from page 1 rather than splice two orderings.
-            return self._list_by_page(path, params)
-
-    def _list_by_cursor(self, path: str, params: dict[str, str]) -> list[dict[str, Any]]:
         seen: set[str] = set()
         record_ids: set[str] = set()
 
@@ -228,7 +217,11 @@ class KnowBe4Client:
             rows, cursor = page
             if cursor is None:
                 if len(rows) >= PER_PAGE:
-                    raise _NoNextCursorError
+                    raise KnowBe4PaginationError(
+                        "KnowBe4 returned a full page with no next cursor; collection is incomplete. "
+                        "Deprecated page pagination is disabled. Confirm the pagination response "
+                        "with KnowBe4 before retrying."
+                    )
                 return None
             if cursor in seen:
                 raise KnowBe4PaginationError(
@@ -236,23 +229,6 @@ class KnowBe4Client:
                     "Retry the sync, and report it to KnowBe4 support if it persists."
                 )
             return cursor
-
-        return list(paginate(fetch_page, extract_items, next_cursor, max_pages=self._max_pages))
-
-    def _list_by_page(self, path: str, params: dict[str, str]) -> list[dict[str, Any]]:
-        record_ids: set[str] = set()
-
-        def fetch_page(page: int | None) -> tuple[int, list[Any]]:
-            number = page or 1
-            payload, _headers = self._fetch(path, {**params, "page": number, "per_page": PER_PAGE})
-            return number, payload
-
-        def extract_items(page: tuple[int, list[Any]]) -> list[dict[str, Any]]:
-            return _checked_records(page[1], path, record_ids)
-
-        def next_cursor(page: tuple[int, list[Any]]) -> int | None:
-            number, rows = page
-            return number + 1 if len(rows) >= PER_PAGE else None
 
         return list(paginate(fetch_page, extract_items, next_cursor, max_pages=self._max_pages))
 

@@ -76,3 +76,16 @@ def test_unresolvable_secret_stops_before_any_provider_call(monkeypatch, tmp_pat
         qualify_knowbe4.main()
     assert exc.value.code == 2
     assert not (tmp_path / "receipt.json").exists()
+
+
+def test_unusable_next_link_retains_page_count_without_provider_values(monkeypatch):
+    _fake_api(
+        monkeypatch,
+        lambda _: (_users(1), {"Link": '<https://eu.api.knowbe4.com/v1/users?page=private-value>; rel="next"'}),
+    )
+    result = qualify("eu", TOKEN, "users", expected_count=501, min_interval=0)
+    assert result["status"] == "incomplete"
+    assert result["error_type"] == "KnowBe4PaginationError"
+    assert result["pages"] == [{"rows": 1, "link_next_cursor_present": False}]
+    serialized = json.dumps(result)
+    assert TOKEN not in serialized and "private-value" not in serialized and "example.com" not in serialized

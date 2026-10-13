@@ -852,7 +852,7 @@ and `GET /v1/phishing/security_tests`, paged 500 rows at a time.
 must use `per_page` or `cursor`, and the first request starts pagination with `cursor=0`
 ([Reporting API reference, Pagination](https://developer.knowbe4.com/rest/reporting);
 [API Change Log, 2026-02-03](https://support.knowbe4.com/hc/en-us/articles/37449905326995-API-Change-Log)).
-As of 2026-10-12, KnowBe4 does not document where the next cursor appears in the
+As of 2026-10-13, KnowBe4 does not document where the next cursor appears in the
 response. The connector therefore works as follows:
 
 - It requests `cursor=0&per_page=500`.
@@ -860,13 +860,19 @@ response. The connector therefore works as follows:
   cursor. It uses only the cursor value and always sends the next request to the
   configured regional host.
 - A short or empty page with no next cursor ends the collection.
-- A full page with no next cursor makes the connector restart from page 1 with `page`
-  paging, which KnowBe4 still accepts until the deprecation date.
+- A full page with no next cursor fails with an explicit incomplete-collection
+  error. A next link without exactly one nonblank cursor also fails, even on a
+  short page. The connector never falls back to deprecated `page` requests.
 - If KnowBe4 repeats a record identity (even in overlapping or reordered pages),
-  returns a malformed identity, or repeats a cursor, the
-  sync fails with an explicit error instead of storing duplicates. Accounts with more
-  than 500 users or enrollments need a connector update once KnowBe4 publishes the
-  cursor response format.
+  returns a malformed identity, or repeats a cursor, the sync fails without
+  replacing existing evidence or advancing its watermark.
+
+**Migration limitation:** removing `page` requests does not verify the undocumented
+next-cursor response. A full terminal page (including exactly 500 rows) without a
+next cursor is also ambiguous and fails closed. Accounts that previously needed
+legacy paging now receive an error until their cursor response is supported.
+[Issue #737](https://github.com/koda-ai-studio/grc-lake/issues/737) stays open until
+an authorized live run with more than 500 rows confirms the response contract.
 
 **Cursor qualification.** On an authorized account, obtain an independent count of
 more than 500 active users, non-archived enrollments, or phishing tests. With a
@@ -880,7 +886,7 @@ uv run python tools/qualify_knowbe4.py --region us --collection users \
 ```
 
 Replace 501 with the independently observed count. The command makes read-only
-requests, disables legacy paging, and retains only page counts, next-link presence,
+requests through the same cursor-only client as normal syncs and retains only page counts, next-link presence,
 source revision and completion status. It never writes identities, emails, keys,
 response bodies or cursor values. A full page with no next cursor, page-budget
 exhaustion, or an unexpected count cannot qualify. This is one list's pagination
@@ -905,7 +911,11 @@ benchmark.
 open **Account Settings → Account Integrations → API** generates it there: they turn on
 **Enable Report API Access**, then select **Reporting API → Create New API Token**
 ([Reporting API Overview](https://support.knowbe4.com/hc/en-us/articles/115016090908-Reporting-API-Overview)).
-KnowBe4 does not name a narrower admin role for this, so treat it as an account-admin task.
+Use an account administrator to provision the key. The
+[Security Roles Guide](https://support.knowbe4.com/hc/en-us/articles/115015389767-Security-Roles-Guide)
+also documents an **Account Settings: Read/Write** permission for custom security
+roles, but neither guide explicitly confirms that this permission alone can create
+Reporting API tokens. A narrower provisioning role remains unverified.
 Tokens expire after at most five years. The key is read-only
 reporting for the whole account — KnowBe4 offers no finer scope — and is not the User
 Event API key. Store it as a secret and reference it with `credential_ref` (default
