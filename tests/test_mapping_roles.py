@@ -77,6 +77,11 @@ def test_context_never_changes_a_reviewed_implementation_result(contextual):
     primary = entry["satisfies"][0]
     cid = primary["control_id"]
     member["control_id"] = cid
+    # Context for the same requirement belongs to a separate safeguard; two
+    # links to one target inside a safeguard are an ambiguous mapping identity.
+    context = {**deepcopy(entry), "safeguard_id": "SG-CONTEXT", "satisfies": [member]}
+    entry["satisfies"] = [primary]
+    payload["safeguards"].append(context)
     events = [normalized(asset_type=entry["asset_types"][0], bindings=[entry["safeguard_id"]])]
     result = evaluate_safeguards(events, payload, {cid: {"framework_id": "soc2"}})
     assert result["requirements"][0]["status"] == "pass"

@@ -32,7 +32,30 @@ def evaluate_safeguards(
     *,
     now: datetime | None = None,
 ) -> JsonObject:
-    definitions = {str(row["safeguard_id"]): row for row in payload["safeguards"]}
+    # Validate before a dict can hide duplicate definitions or a mapping can
+    # transfer a passing safeguard to a different framework's requirement.
+    # ``controls`` is the assessment scope; mappings outside it are not assessed.
+    definitions: dict[str, JsonObject] = {}
+    for row in payload["safeguards"]:
+        safeguard_id = row["safeguard_id"]
+        if not isinstance(safeguard_id, str) or not safeguard_id.strip():
+            raise ValueError("CCF safeguard_id must be a nonempty identifier")
+        if safeguard_id in definitions:
+            raise ValueError(f"CCF duplicate safeguard identity: {safeguard_id}")
+        seen: set[str] = set()
+        for member in row["satisfies"]:
+            control_id = member["control_id"]
+            if not isinstance(control_id, str) or not control_id.strip():
+                raise ValueError("CCF mapping control_id must be a nonempty identifier")
+            if control_id in seen:
+                raise ValueError(f"CCF duplicate mapping target: {safeguard_id}/{control_id}")
+            seen.add(control_id)
+            control = controls.get(control_id)
+            if control is not None and member.get("framework_id", control.get("framework_id")) != control.get(
+                "framework_id"
+            ):
+                raise ValueError(f"CCF mapping framework disagrees with target: {safeguard_id}/{control_id}")
+        definitions[safeguard_id] = row
     assets: dict[tuple[str, str], set[str]] = defaultdict(set)
     bound: dict[str, dict[tuple[str, str], list[JsonObject]]] = defaultdict(lambda: defaultdict(list))
     freshness = {(row["tenant_id"], row["event_id"]): row for row in build_evidence_freshness(events, now=now)}
