@@ -3,7 +3,7 @@
 All notable GRC Lake changes are summarized here. Versions follow semver for the
 Python package, Helm chart, and bundled web console.
 
-## Unreleased
+## 0.3.4 - 2026-10-13
 
 - Add authorized, durable public GitHub URL onboarding with bounded, commit-pinned collection and scoped investigation links. Simplify setup, show repository evidence in paged directional lanes with explicit relationship types, and preserve exact normalized record bindings without duplicating connector-scoped evidence. Public observations remain distinct from authenticated governance and compliance verdicts.
 
@@ -13,7 +13,11 @@ Python package, Helm chart, and bundled web console.
 
 - Put installation before the README product tour, clarify the sample evidence-to-export workflow, separate human mapping review from demo inspection, and align package and tutorial repository links with the current organization.
 
-- Reject overlapping or malformed KnowBe4 pagination records instead of treating a partial list as evidence. Add a cursor-only, data-minimized qualification command; live next-cursor verification remains required before the November page-parameter retirement.
+- Remove KnowBe4 fallback to deprecated page parameters. Reject missing, repeated or malformed continuation and overlapping records instead of returning incomplete evidence. Add a cursor-only, data-minimized qualification command; live next-cursor verification with more than 500 records remains outstanding.
+
+- Require unique, catalog-backed mapping review targets. Reject ambiguous family identities, bind coverage source citations to catalog identities, and exclude invalid targets from mapping coverage.
+
+- Consolidate dependency updates and qualify installed packages on Python 3.14. Add bounded graph and authenticated HTTP capacity probes with retained failure receipts; synthetic measurements do not establish production capacity.
 
 ## 0.3.3 - 2026-10-12
 
