@@ -110,6 +110,18 @@ def test_foreign_evidence_under_a_colliding_account_fails_measurement():
         validate_response({"nodes": [node], "edges": []}, "tenant-0", 150, evidence_ids=own)
 
 
+def test_control_paging_root_is_found_when_evidence_exceeds_the_response_cap(tmp_path):
+    from tools.benchmark_investigation import control_page_query, make_generation
+
+    from security_lakehouse.generations import publish_generation
+
+    lake = tmp_path / "tenant-0"
+    # 400 records put far more than 150 evidence nodes next to SOC2-CC6.1.
+    publish_generation(lake, make_generation(lake, 400, "tenant-0"))
+    query = control_page_query(lake)
+    assert query["root"].startswith("safeguard:") and query["framework"]
+
+
 def test_seeded_workload_measures_pagination_search_and_throughput(tmp_path):
     report = run_workload(tmp_path, rows=12, tenants=2, concurrency=2, repeats=1, seed=3)
     assert report["seed"] == 3

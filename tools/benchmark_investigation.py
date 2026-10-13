@@ -129,7 +129,8 @@ def distribution(values):
 
 def control_page_query(lake):
     """Find a safeguard root whose mapped controls span more than one page."""
-    anchor = investigation_graph(lake, root="control:SOC2-CC6.1", depth=1)
+    # Restrict layers so evidence records cannot crowd safeguards out of the cap.
+    anchor = investigation_graph(lake, root="control:SOC2-CC6.1", depth=1, layers={"control", "safeguard"})
     for safeguard in sorted(n["id"] for n in anchor["nodes"] if n["kind"] == "safeguard"):
         groups = investigation_graph(lake, root=safeguard)["framework_groups"]
         paged = [g["framework_id"] for g in groups if g["control_count"] > 5]
