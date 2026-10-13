@@ -95,7 +95,7 @@ class OktaClient:
                 break
             target = urllib.parse.urlsplit(next_url)
             if (target.scheme, target.netloc) != (origin.scheme, origin.netloc):
-                raise ValueError("Okta collection incomplete: foreign pagination origin")
+                raise ValueError("SSRF blocked: Okta collection incomplete (foreign pagination origin)")
             if next_url in seen_urls:
                 raise ValueError("Okta collection incomplete: repeated pagination cursor")
             seen_urls.add(next_url)
