@@ -1,8 +1,14 @@
 # Release readiness
 
-GRC Lake **0.3.4 is published**. It adds public repository onboarding,
-direction-preserving evidence graphs, collection completeness checks, and
-mapping-identity fixes listed in the [changelog](../CHANGELOG.md).
+GRC Lake **0.3.5 is a release candidate, not a published release**. It includes
+graph outcome accuracy, evidence-type alignment, and readable, interactive
+safeguard mapping pages listed in the [changelog](../CHANGELOG.md).
+Package, console, chart, Compose defaults and CI examples target 0.3.5; those
+versioned references become usable only after publication gates succeed.
+
+GRC Lake **0.3.4 remains the latest verified published release**. It includes
+public repository onboarding, directional evidence graphs, collection completeness
+checks, and mapping-identity fixes.
 
 Version **0.3.4 is available** on PyPI and as the public image
 `ghcr.io/koda-ai-studio/grc-lake:0.3.4`. Use the v0.3.4 release templates for

@@ -1,5 +1,8 @@
 # CI posture gate
 
+Versioned examples below target the 0.3.5 candidate and become usable after
+publication. For a published deployment, use the v0.3.4 versions of these guides.
+
 The posture gate is a GitHub Action that asks a GRC Lake deployment for its
 current posture and failing control tests, and fails the job when they cross
 the thresholds you set. Use it to stop a merge or a deploy when compliance
@@ -56,7 +59,7 @@ jobs:
     steps:
       - name: Evaluate GRC Lake posture
         id: gate
-        uses: koda-ai-studio/grc-lake/.github/actions/posture-gate@v0.3.4
+        uses: koda-ai-studio/grc-lake/.github/actions/posture-gate@v0.3.5
         with:
           grc-lake-url: ${{ secrets.GRC_LAKE_URL }}
           api-token: ${{ secrets.GRC_LAKE_API_TOKEN }}

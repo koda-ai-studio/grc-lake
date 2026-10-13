@@ -3,6 +3,14 @@
 All notable GRC Lake changes are summarized here. Versions follow semver for the
 Python package, Helm chart, and bundled web console.
 
+## 0.3.5 - 2026-10-13
+
+- Preserve evaluated control status and risk in graph projections and cache invalidation. Share evidence outcome labels across both graph views and the inspector; unevaluated safeguards remain neutral. Clarify linked-record counts versus records with outcomes and distinguish catalog mapping lists from visible paths.
+
+- Align access-review, detection-alert and dependency-finding evidence names with control requirements. Add explicit synthetic golden-demo records for distinct missing requirements, while preserving deliberate stale timestamps and adverse outcomes. Verify required evidence types against each control's records and the evaluated pipeline.
+
+- Group safeguard mappings by framework with complete counts and five-control pages. Keep curved links clear of labels, highlight connected paths on hover or selection, preserve dragged positions within the current view, and prevent overlapping cards. Collapse starting-point options, provide live search, disable wheel zoom, and clarify investigation versus catalog/repository map purposes.
+
 ## 0.3.4 - 2026-10-13
 
 - Add authorized, durable public GitHub URL onboarding with bounded, commit-pinned collection and scoped investigation links. Simplify setup, show repository evidence in paged directional lanes with explicit relationship types, and preserve exact normalized record bindings without duplicating connector-scoped evidence. Public observations remain distinct from authenticated governance and compliance verdicts.
