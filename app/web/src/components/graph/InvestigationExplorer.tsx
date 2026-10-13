@@ -670,7 +670,7 @@ export function InvestigationExplorer() {
                       pathFrom={null}
                       pathTo={null}
                       rankLimit={
-                        repositoryRoot && repositoryView === "all" ? 8 : 4
+                        repositoryRoot && repositoryView === "all" ? 8 : 5
                       }
                       focusId={selectedNode?.id}
                       onSelectNode={setSelected}
@@ -728,8 +728,8 @@ export function InvestigationExplorer() {
                     : ""}
                 </p>
                 <p className="text-xs text-muted">
-                  Click a node for details. Double-click or press Shift+Enter to
-                  explore its connections.
+                  Hover to follow links. Drag to arrange. Click for details.
+                  Double-click or press Shift+Enter to explore its connections.
                 </p>
                 {mappingStates.length > 0 && (
                   <p

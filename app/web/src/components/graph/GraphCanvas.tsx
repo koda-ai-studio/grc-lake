@@ -247,7 +247,7 @@ function GraphNodeCard({ id, data, selected }: NodeProps<FlowGraphNode>) {
     <Tooltip.Root delayDuration={120}>
       <Tooltip.Trigger asChild>
         <div
-          className={`flex h-[152px] w-[176px] flex-col items-center rounded-xl px-2 py-2 text-center transition-opacity ${emphasisClass(data.emphasis)}`}
+          className={`flex h-[152px] w-[176px] flex-col items-center rounded-xl px-2 py-2 text-center transition-opacity duration-150 motion-reduce:transition-none ${emphasisClass(data.emphasis)}`}
         >
           <Handle
             type="target"
@@ -486,7 +486,13 @@ function layoutGraph(
   }
   const g = new dagre.graphlib.Graph();
   g.setDefaultEdgeLabel(() => ({}));
-  g.setGraph({ rankdir, nodesep: 30, ranksep: 58, marginx: 8, marginy: 8 });
+  g.setGraph({
+    rankdir,
+    nodesep: 32,
+    ranksep: rankdir === "LR" ? 140 : 58,
+    marginx: 8,
+    marginy: 8,
+  });
 
   rfNodes.forEach((node) =>
     g.setNode(node.id, { width: NODE_W, height: NODE_H }),
@@ -635,6 +641,12 @@ function InnerGraphCanvas({
   useEffect(() => setHydrated(true), []);
   const { fitView, setCenter } = useReactFlow();
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const activeId = hoveredId ?? selectedId;
+  const [dragged, setDragged] = useState<{
+    key: string;
+    positions: Record<string, { x: number; y: number }>;
+  }>({ key: "", positions: {} });
   const pendingClick = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(
     () => () => {
@@ -643,7 +655,7 @@ function InnerGraphCanvas({
     [],
   );
   useEffect(() => {
-    if (focusId) setSelectedId(focusId);
+    setSelectedId(focusId);
   }, [focusId]);
 
   const frameworkScopeIds = useMemo(() => {
@@ -768,11 +780,11 @@ function InnerGraphCanvas({
   }, [graph, allowedIds]);
 
   const highlightSet = useMemo<Set<string> | null>(() => {
-    if (!selectedId) return null;
-    const out = new Set<string>([selectedId]);
-    for (const n of adjacency.get(selectedId) ?? []) out.add(n);
+    if (!activeId || !allowedIds.has(activeId)) return null;
+    const out = new Set<string>([activeId]);
+    for (const n of adjacency.get(activeId) ?? []) out.add(n);
     return out;
-  }, [selectedId, adjacency]);
+  }, [activeId, adjacency, allowedIds]);
 
   // Two-click path trace via BFS over the filtered subgraph.
   const pathSet = useMemo<{
@@ -825,7 +837,7 @@ function InnerGraphCanvas({
       let emphasis: GraphNodeData["emphasis"] = "active";
       if (matchSet) emphasis = matchSet.has(n.id) ? "match" : "dimmed";
       else if (pathSet) emphasis = pathSet.nodes.has(n.id) ? "path" : "dimmed";
-      else if (highlightSet && !scopeIds)
+      else if (highlightSet)
         emphasis = highlightSet.has(n.id) ? "highlight" : "dimmed";
       return {
         id: n.id,
@@ -854,10 +866,9 @@ function InnerGraphCanvas({
       .filter((e) => allowedIds.has(e.source) && allowedIds.has(e.target))
       .map((e) => {
         const onPath = pathSet?.edges.has(e.id) ?? false;
-        const onHighlight =
-          Boolean(scopeIds) ||
-          (highlightSet &&
-            (highlightSet.has(e.source) || highlightSet.has(e.target)));
+        const onHighlight = highlightSet
+          ? e.source === activeId || e.target === activeId
+          : Boolean(scopeIds);
         const dimmed =
           (matchSet && !matchSet.has(e.source) && !matchSet.has(e.target)) ||
           (pathSet && !onPath) ||
@@ -908,10 +919,25 @@ function InnerGraphCanvas({
     matchSet,
     pathSet,
     highlightSet,
+    activeId,
     selectedId,
     focusId,
     scopeIds,
   ]);
+
+  // Keep manual placement through hover and selection, but reset it when the
+  // node set or automatic layout changes (including framework/page changes).
+  const placementKey = rfNodes
+    .map((n) => `${n.id}:${n.position.x}:${n.position.y}`)
+    .join("|");
+  const placedNodes =
+    dragged.key === placementKey
+      ? rfNodes.map((n) =>
+          dragged.positions[n.id]
+            ? { ...n, position: dragged.positions[n.id] }
+            : n,
+        )
+      : rfNodes;
 
   const focusNode = focusId ? rfNodes.find((n) => n.id === focusId) : null;
   const focusX = focusNode ? focusNode.position.x : null;
@@ -1018,7 +1044,48 @@ function InnerGraphCanvas({
     >
       <ReactFlow
         colorMode={resolvedTheme}
-        nodes={rfNodes}
+        nodes={placedNodes}
+        onNodesChange={(changes) => {
+          const moves = changes.filter(
+            (change) => change.type === "position" && change.position,
+          );
+          if (!moves.length) return;
+          setDragged((current) => {
+            const positions =
+              current.key === placementKey ? { ...current.positions } : {};
+            for (const move of moves) {
+              if (move.type !== "position" || !move.position) continue;
+              const node = rfNodes.find((item) => item.id === move.id);
+              if (!node) continue;
+              const { x, y } = move.position;
+              // Stop at another card rather than allowing labels to overlap.
+              const blocked = rfNodes.some((other) => {
+                if (other.id === move.id) return false;
+                const at = positions[other.id] ?? other.position;
+                return (
+                  x < at.x + (other.width ?? NODE_W) + 12 &&
+                  x + (node.width ?? NODE_W) + 12 > at.x &&
+                  y < at.y + (other.height ?? NODE_H) + 12 &&
+                  y + (node.height ?? NODE_H) + 12 > at.y
+                );
+              });
+              if (!blocked) positions[move.id] = move.position;
+            }
+            return { key: placementKey, positions };
+          });
+        }}
+        onNodeMouseEnter={(_, node) => setHoveredId(node.id)}
+        onNodeMouseLeave={() => setHoveredId(null)}
+        onNodeDragStart={() => {
+          if (pendingClick.current) clearTimeout(pendingClick.current);
+          setHoveredId(null);
+        }}
+        onNodeDragStop={(_, node) => setHoveredId(node.id)}
+        onPaneClick={() => {
+          setSelectedId(null);
+          setHoveredId(null);
+          onSelectNode(null);
+        }}
         edges={rfEdges}
         nodeTypes={nodeTypes}
         nodesDraggable
