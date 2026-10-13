@@ -14,11 +14,19 @@ def test_http_workload_uses_auth_and_preserves_tenant_bindings(tmp_path, monkeyp
     # A benchmark must never migrate an operator's configured database.
     monkeypatch.setenv("TRUSTOPS_DATABASE_URL", "postgresql://must-not-connect.invalid/private")
     monkeypatch.setenv("GRC_LAKE_ALLOW_INSECURE", "1")
-    report = run_http_workload(tmp_path, rows=12, tenants=2, concurrency=2, repeats=1)
+    report = run_http_workload(tmp_path, rows=12, tenants=2, concurrency=2, repeats=1, seed=5)
     assert report["correctness_ok"]
+    assert report["seed"] == 5
     assert all(report["checks"].values())
     assert report["checks"]["unauthenticated_rejected"]
     assert report["checks"]["foreign_root_rejected"]
+    # Both tenants request the identical root ID and each gets only its own record.
+    assert report["checks"]["account_collision_isolation"]
+    assert report["retained_bytes"] > 0
+    for scenario in ("balanced", "skewed"):
+        burst = report["scenarios"][scenario]
+        assert burst["wall_seconds"] > 0
+        assert burst["reads_per_second"] == pytest.approx(burst["reads"] / burst["wall_seconds"])
     assert report["checks"]["exact_bindings"]
     assert report["checks"]["stale_version_rejected"]
     for scenario in ("balanced", "skewed"):
@@ -27,6 +35,32 @@ def test_http_workload_uses_auth_and_preserves_tenant_bindings(tmp_path, monkeyp
     assert all(r["http_status"] == 200 and r["response_body_bytes"] > 0 for r in report["reads"])
     assert "must-not-connect" not in json.dumps(report)
     assert not list(tmp_path.rglob("credentials*"))
+
+
+def test_busy_server_shutdown_does_not_mask_the_request_failure():
+    import time
+
+    from fastapi import FastAPI
+    from tools.benchmark_investigation_http import loopback_server
+
+    app = FastAPI()
+
+    @app.get("/slow")
+    def slow():
+        time.sleep(2)
+        return {}
+
+    # A client timeout leaves the server computing the abandoned request.
+    with pytest.raises(ValueError, match="first read failed"), loopback_server(app, shutdown_timeout=0.1) as url:
+        with pytest.raises(httpx.ReadTimeout):
+            httpx.get(url + "/slow", timeout=0.2, trust_env=False)
+        raise ValueError("first read failed")
+    with (
+        pytest.raises(RuntimeError, match="shutdown failed"),
+        loopback_server(app, shutdown_timeout=0.1) as url,
+        pytest.raises(httpx.ReadTimeout),
+    ):
+        httpx.get(url + "/slow", timeout=0.2, trust_env=False)
 
 
 def test_http_validation_rejects_an_empty_or_wrong_binding():

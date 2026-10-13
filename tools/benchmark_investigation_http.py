@@ -15,7 +15,14 @@ from contextlib import contextmanager
 
 import httpx
 import uvicorn
-from tools.benchmark_investigation import distribution, fixture_rows, make_generation, validate_response
+from tools.benchmark_investigation import (
+    COLLIDING_ACCOUNT,
+    distribution,
+    expected_evidence_ids,
+    fixture_rows,
+    make_generation,
+    validate_response,
+)
 
 from security_lakehouse.generations import publish_generation
 from security_lakehouse.investigation_graph import _id
@@ -41,7 +48,7 @@ def local_configuration():
 
 
 @contextmanager
-def loopback_server(app):
+def loopback_server(app, shutdown_timeout=10):
     # Server and clients live in the watchdog's worker process. Killing it also
     # closes the listening socket; no detached server process can survive it.
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
@@ -49,6 +56,7 @@ def loopback_server(app):
         server = uvicorn.Server(uvicorn.Config(app, host="127.0.0.1", port=0, log_level="critical", access_log=False))
         thread = threading.Thread(target=server.run, kwargs={"sockets": [sock]}, daemon=True)
         thread.start()
+        failed = False
         try:
             deadline = time.monotonic() + 15
             while not server.started:
@@ -56,26 +64,31 @@ def loopback_server(app):
                     raise RuntimeError("loopback server startup failed")
                 time.sleep(0.01)
             yield f"http://127.0.0.1:{sock.getsockname()[1]}"
+        except BaseException:
+            failed = True
+            raise
         finally:
             server.should_exit = True
-            thread.join(timeout=10)
-            if thread.is_alive():
+            thread.join(timeout=shutdown_timeout)
+            # A server still computing an abandoned request must not replace
+            # the request failure that caused it; the worker exit reaps it.
+            if thread.is_alive() and not failed:
                 raise RuntimeError("loopback server shutdown failed")
 
 
-def validate_http_graph(result, tenant, rows):
-    validate_response(result, tenant, 150)
-    expected = "evidence:" + canonical_sha256(next(fixture_rows(rows, tenant)))
+def validate_http_graph(result, tenant, rows, *, seed=None, evidence_ids=None):
+    validate_response(result, tenant, 150, evidence_ids=evidence_ids)
+    expected = "evidence:" + canonical_sha256(next(fixture_rows(rows, tenant, seed=seed)))
     evidence = [n["id"] for n in result["nodes"] if n["kind"] == "evidence_type"]
     if evidence != [expected]:
         raise ValueError("exact record binding failed")
     if result["counts"]["evidence_type"] != rows:
         raise ValueError("duplicate record produced another node")
-    if any(n.get("source_account_id") not in (None, tenant + "-account-a") for n in result["nodes"]):
+    if any(n.get("source_account_id") not in (None, COLLIDING_ACCOUNT) for n in result["nodes"]):
         raise ValueError("source account isolation failed")
 
 
-def run_http_workload(root, *, rows, tenants, concurrency, repeats, progress_path=None):
+def run_http_workload(root, *, rows, tenants, concurrency, repeats, progress_path=None, seed=None):
     with local_configuration():
         return _run_http_workload(
             root,
@@ -84,10 +97,11 @@ def run_http_workload(root, *, rows, tenants, concurrency, repeats, progress_pat
             concurrency=concurrency,
             repeats=repeats,
             progress_path=progress_path,
+            seed=seed,
         )
 
 
-def _run_http_workload(root, *, rows, tenants, concurrency, repeats, progress_path):
+def _run_http_workload(root, *, rows, tenants, concurrency, repeats, progress_path, seed):
     from security_lakehouse.db.models import Tenant
     from security_lakehouse.db.repository import create_api_key, create_user
     from security_lakehouse.server_app import create_app
@@ -98,11 +112,13 @@ def _run_http_workload(root, *, rows, tenants, concurrency, repeats, progress_pa
     # No evaluation jobs are submitted by this read-only workload.
     app.state.job_worker_enabled = False
     credentials = {}
+    evidence = {}
     hashes, input_bytes = [], []
     for index in range(tenants):
         tenant = f"tenant-{index}"
         lake = root / "tenants" / tenant
-        generation = make_generation(lake, rows, tenant)
+        evidence[tenant] = expected_evidence_ids(rows, tenant, seed=seed)
+        generation = make_generation(lake, rows, tenant, seed=seed)
         hashes.append(file_sha256(generation / "silver/normalized_events.jsonl"))
         input_bytes.append((generation / "silver/normalized_events.jsonl").stat().st_size)
         publish_generation(lake, generation)
@@ -149,7 +165,8 @@ def _run_http_workload(root, *, rows, tenants, concurrency, repeats, progress_pa
                         headers={"Authorization": "Bearer " + credentials[tenant]},
                         params={
                             "view": "environment",
-                            "root": _id("asset", tenant + "-account-a", "asset-0"),
+                            # Identical for every tenant: the source account collides.
+                            "root": _id("asset", COLLIDING_ACCOUNT, "asset-0"),
                             "depth": 1,
                             "limit": 150,
                         },
@@ -171,7 +188,7 @@ def _run_http_workload(root, *, rows, tenants, concurrency, repeats, progress_pa
                 if response is None or response.status_code != 200:
                     return receipt, None
                 result = response.json()["data"]
-                validate_http_graph(result, tenant, rows)
+                validate_http_graph(result, tenant, rows, seed=seed, evidence_ids=evidence[tenant])
                 receipt.update(response_nodes=len(result["nodes"]), response_edges=len(result["edges"]))
                 return receipt, result
 
@@ -184,12 +201,21 @@ def _run_http_workload(root, *, rows, tenants, concurrency, repeats, progress_pa
                     raise ValueError("HTTP first read failed")
                 first[tenant] = result
             checks.update(exact_bindings=True, duplicate_records=True, source_account_isolation=True)
+            if len(first) > 1:
+                # Same root ID string, yet each tenant received only its own record.
+                if len({r["root"] for r in first.values()}) != 1:
+                    raise ValueError("colliding root was not shared")
+                bound = [n["id"] for r in first.values() for n in r["nodes"] if n["kind"] == "evidence_type"]
+                if len(set(bound)) != len(first):
+                    raise ValueError("colliding source account shared an evidence record across tenants")
+                checks["account_collision_isolation"] = True
             for tenant in credentials:
                 foreign = next((other for other in credentials if other != tenant), "tenant-missing")
                 response = client.get(
                     ROUTE,
                     headers={"Authorization": "Bearer " + credentials[tenant]},
-                    params={"view": "environment", "root": _id("asset", foreign + "-account-a", "asset-0")},
+                    # The non-colliding account exists only in the other tenant.
+                    params={"view": "environment", "root": _id("asset", foreign + "-account-b", "asset-0")},
                 )
                 if response.status_code != 200:
                     raise ValueError("foreign-root probe failed")
@@ -204,6 +230,7 @@ def _run_http_workload(root, *, rows, tenants, concurrency, repeats, progress_pa
                 for _ in range(repeats * 2):
                     for tenant in credentials:
                         batch.extend([tenant] * (4 if scenario == "skewed" and tenant == "tenant-0" else 1))
+                burst_started = time.perf_counter()
                 with ThreadPoolExecutor(max_workers=concurrency) as pool:
                     futures = [
                         pool.submit(request, tenant, scenario, time.perf_counter(), i) for i, tenant in enumerate(batch)
@@ -212,10 +239,15 @@ def _run_http_workload(root, *, rows, tenants, concurrency, repeats, progress_pa
                         receipt, _ = future.result()
                         reads.append(receipt)
                         retain()
+                burst_seconds = time.perf_counter() - burst_started
                 samples = [r for r in reads if r["query"] == scenario]
                 if any(r["http_status"] != 200 for r in samples):
                     raise ValueError("HTTP concurrent read failed")
                 scenarios[scenario] = {
+                    "reads": len(samples),
+                    "clients": concurrency,
+                    "wall_seconds": burst_seconds,
+                    "reads_per_second": len(samples) / burst_seconds,
                     "per_tenant": {
                         tenant: {
                             "submitted": batch.count(tenant),
@@ -226,12 +258,12 @@ def _run_http_workload(root, *, rows, tenants, concurrency, repeats, progress_pa
                             ),
                         }
                         for tenant in credentials
-                    }
+                    },
                 }
             checks["all_submitted_reads_completed"] = True
             tenant = "tenant-0"
             lake = root / "tenants" / tenant
-            publish_generation(lake, make_generation(lake, rows, tenant, changed=True))
+            publish_generation(lake, make_generation(lake, rows, tenant, changed=True, seed=seed))
             response = client.get(
                 ROUTE,
                 headers={"Authorization": "Bearer " + credentials[tenant]},
@@ -249,6 +281,8 @@ def _run_http_workload(root, *, rows, tenants, concurrency, repeats, progress_pa
         "checks": checks,
         "scenarios": scenarios,
         "transport": "http",
+        "seed": seed,
+        "retained_bytes": sum(p.stat().st_size for p in root.rglob("*") if p.is_file() and not p.is_symlink()),
         "unique_records_per_tenant": rows,
         "input_rows_including_duplicates": rows + 1,
         "input_sha256": hashes,
