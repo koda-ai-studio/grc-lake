@@ -196,7 +196,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         report = qualify(args.out)
     except ValueError:
-        parser.error("run locally with repository catalogs; unset hosted mode and data-directory overrides")
+        return parser.error("run locally with repository catalogs; unset hosted mode and data-directory overrides")
     else:
         print(
             json.dumps(
