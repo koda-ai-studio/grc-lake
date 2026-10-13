@@ -17,7 +17,7 @@ from security_lakehouse.framework_provenance import build_framework_view
 from security_lakehouse.generations import generation_reader
 from security_lakehouse.io import read_jsonl
 from security_lakehouse.jsontypes import JsonObject
-from security_lakehouse.mappings import load_control_article_mappings
+from security_lakehouse.mappings import load_control_article_mappings, source_mapping_matches_control
 
 
 def _latest(values: list[str | None]) -> str | None:
@@ -93,7 +93,7 @@ def build_framework_detail(framework_id: str, lake_dir: str | Path) -> JsonObjec
         control_evidence = evidence_by_control.get(control_id, [])
         control_freshness = freshness_by_control.get(control_id, [])
         mapping = mappings.get(control_id, {})
-        articles = mapping.get("articles") or []
+        articles = mapping["articles"] if source_mapping_matches_control(mapping, control) else []
         article_ids = [str(article.get("article_id") or "") for article in articles]
         connector_hints = resolve_connector_hints(
             framework_id=framework_id,
