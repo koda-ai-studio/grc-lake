@@ -63,6 +63,18 @@ def test_cli_returns_nonzero_for_failed_qualification(tmp_path, monkeypatch):
     assert qualification.main(["--out", str(tmp_path / "report")]) == 1
 
 
+def test_cli_rejects_hosted_environment_without_reporting_success(tmp_path, monkeypatch, capsys):
+    monkeypatch.setenv("GRC_LAKE_COMMERCIAL_HOSTED", "1")
+    output = tmp_path / "report"
+    with pytest.raises(SystemExit) as exc:
+        qualification.main(["--out", str(output)])
+    assert exc.value.code == 2
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert "unset hosted mode and data-directory overrides" in captured.err
+    assert not output.exists()
+
+
 @pytest.mark.parametrize("name", ["GRC_LAKE_COMMERCIAL_HOSTED", "TRUSTOPS_COMMERCIAL_HOSTED", "GRC_LAKE_DATA_DIR"])
 def test_operator_environment_cannot_redirect_qualification(tmp_path, monkeypatch, name):
     monkeypatch.setenv(name, "1")

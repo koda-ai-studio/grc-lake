@@ -197,10 +197,13 @@ def main(argv: list[str] | None = None) -> int:
         report = qualify(args.out)
     except ValueError:
         parser.error("run locally with repository catalogs; unset hosted mode and data-directory overrides")
-    print(
-        json.dumps({"status": report["status"], "cases": len(report["cases"]), "report": str(args.out / "report.json")})
-    )
-    return 0 if report["status"] == "passed" else 1
+    else:
+        print(
+            json.dumps(
+                {"status": report["status"], "cases": len(report["cases"]), "report": str(args.out / "report.json")}
+            )
+        )
+        return 0 if report["status"] == "passed" else 1
 
 
 if __name__ == "__main__":
