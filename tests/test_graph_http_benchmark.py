@@ -14,11 +14,19 @@ def test_http_workload_uses_auth_and_preserves_tenant_bindings(tmp_path, monkeyp
     # A benchmark must never migrate an operator's configured database.
     monkeypatch.setenv("TRUSTOPS_DATABASE_URL", "postgresql://must-not-connect.invalid/private")
     monkeypatch.setenv("GRC_LAKE_ALLOW_INSECURE", "1")
-    report = run_http_workload(tmp_path, rows=12, tenants=2, concurrency=2, repeats=1)
+    report = run_http_workload(tmp_path, rows=12, tenants=2, concurrency=2, repeats=1, seed=5)
     assert report["correctness_ok"]
+    assert report["seed"] == 5
     assert all(report["checks"].values())
     assert report["checks"]["unauthenticated_rejected"]
     assert report["checks"]["foreign_root_rejected"]
+    # Both tenants request the identical root ID and each gets only its own record.
+    assert report["checks"]["account_collision_isolation"]
+    assert report["retained_bytes"] > 0
+    for scenario in ("balanced", "skewed"):
+        burst = report["scenarios"][scenario]
+        assert burst["wall_seconds"] > 0
+        assert burst["reads_per_second"] == pytest.approx(burst["reads"] / burst["wall_seconds"])
     assert report["checks"]["exact_bindings"]
     assert report["checks"]["stale_version_rejected"]
     for scenario in ("balanced", "skewed"):

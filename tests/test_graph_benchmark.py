@@ -24,6 +24,8 @@ def test_small_workload_checks_generation_isolation_and_records_all_queries(tmp_
         "stale_version_rejected": True,
         "overlay_version_rejected": True,
         "root_pagination": True,
+        "account_collision_isolation": True,
+        "control_pagination": True,
     }
     assert {r["query"] for r in report["reads"]} >= {
         "first",
@@ -50,6 +52,9 @@ def test_watchdog_retains_stop_and_removes_worker_scratch(tmp_path):
     result = attempt(args, 1000, 1)
     assert result["stopped"] == "timeout"
     assert not list(tmp_path.iterdir())
+    # Host contention is retained with every attempt, including stopped ones.
+    assert len(result["load_average_before"]) == 3
+    assert len(result["load_average_after"]) == 3
 
 
 def test_disk_floor_refuses_start(tmp_path):
@@ -60,3 +65,61 @@ def test_disk_floor_refuses_start(tmp_path):
     args = SimpleNamespace(scratch=tmp_path, min_free_gib=10**9)
     assert attempt(args, 1000, 1)["stopped"] == "disk_floor_before_start"
     assert not list(tmp_path.iterdir())
+
+
+def test_seeded_fixture_is_deterministic_and_uses_catalog_controls():
+    from tools.benchmark_investigation import fixture_rows
+
+    from security_lakehouse.catalog import control_catalog_view
+
+    first = list(fixture_rows(200, "tenant-0", seed=7))
+    assert first == list(fixture_rows(200, "tenant-0", seed=7))
+    assert first != list(fixture_rows(200, "tenant-0", seed=8))
+    # The seed fixes topology; tenants differ only in record identity.
+    other = list(fixture_rows(200, "tenant-1", seed=7))
+    assert [r["control_ids"] for r in first] == [r["control_ids"] for r in other]
+    assert {r["raw_sha256"] for r in first}.isdisjoint(r["raw_sha256"] for r in other)
+    catalog = control_catalog_view()
+    used = {c for r in first for c in r["control_ids"]}
+    assert len(used) > 2 and used <= set(catalog)
+    assert len({r["asset_type"] for r in first}) > 1
+    # No seed keeps the original uniform shape for comparison with old receipts.
+    legacy = list(fixture_rows(4, "tenant-0"))
+    assert [r["control_ids"] for r in legacy] == [["SOC2-CC6.1"], ["SOC2-CC7.2"]] * 2
+
+
+def test_platform_tenants_share_a_colliding_source_account():
+    from tools.benchmark_investigation import COLLIDING_ACCOUNT, fixture_rows
+
+    zero = list(fixture_rows(4, "tenant-0"))
+    one = list(fixture_rows(4, "tenant-1"))
+    assert zero[0]["tenant_id"] == one[0]["tenant_id"] == COLLIDING_ACCOUNT
+    assert zero[0]["asset_id"] == one[0]["asset_id"]
+    assert zero[1]["tenant_id"] == "tenant-0-account-b" != one[1]["tenant_id"]
+
+
+def test_foreign_evidence_under_a_colliding_account_fails_measurement():
+    from tools.benchmark_investigation import COLLIDING_ACCOUNT, expected_evidence_ids
+
+    own = expected_evidence_ids(4, "tenant-0")
+    foreign = sorted(expected_evidence_ids(4, "tenant-1"))[0]
+    node = {"id": foreign, "kind": "evidence_type", "source_account_id": COLLIDING_ACCOUNT}
+    # The account ID alone cannot tell the tenants apart; record identity does.
+    validate_response({"nodes": [{**node, "id": sorted(own)[0]}], "edges": []}, "tenant-0", 150, evidence_ids=own)
+    with pytest.raises(ValueError, match="tenant isolation"):
+        validate_response({"nodes": [node], "edges": []}, "tenant-0", 150, evidence_ids=own)
+
+
+def test_seeded_workload_measures_pagination_search_and_throughput(tmp_path):
+    report = run_workload(tmp_path, rows=12, tenants=2, concurrency=2, repeats=1, seed=3)
+    assert report["seed"] == 3
+    assert report["checks"]["account_collision_isolation"]
+    assert report["checks"]["control_pagination"]
+    queries = {r["query"] for r in report["reads"]}
+    assert {"search_miss", "controls_page1", "controls_page2"} <= queries
+    miss = next(r for r in report["reads"] if r["query"] == "search_miss")
+    assert miss["matching_nodes"] == 0
+    burst = report["concurrent_burst"]
+    assert burst["reads"] == 4 and burst["wall_seconds"] > 0
+    assert burst["reads_per_second"] == pytest.approx(4 / burst["wall_seconds"])
+    assert report["retained_bytes"] > 0
