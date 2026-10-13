@@ -3,6 +3,10 @@
 All notable GRC Lake changes are summarized here. Versions follow semver for the
 Python package, Helm chart, and bundled web console.
 
+## Unreleased
+
+- Bound concurrent investigation graph builds per server process (`GRC_LAKE_GRAPH_BUILD_CONCURRENCY`, default 4). Excess requests return 503 with Retry-After instead of queueing. Builds stop at the next checkpoint after a client disconnect or a configurable deadline (`GRC_LAKE_GRAPH_BUILD_TIMEOUT_SECONDS`, default 60) and never return a partial graph; the slot is released once the build thread stops.
+
 ## 0.3.5 - 2026-10-13
 
 - Preserve evaluated control status and risk in graph projections and cache invalidation. Share evidence outcome labels across both graph views and the inspector; unevaluated safeguards remain neutral. Clarify linked-record counts versus records with outcomes and distinguish catalog mapping lists from visible paths.
