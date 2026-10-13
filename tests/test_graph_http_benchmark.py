@@ -54,7 +54,7 @@ def test_busy_server_shutdown_does_not_mask_the_request_failure():
     with pytest.raises(ValueError, match="first read failed"), loopback_server(app, shutdown_timeout=0.1) as url:
         with pytest.raises(httpx.ReadTimeout):
             httpx.get(url + "/slow", timeout=0.2, trust_env=False)
-        raise ValueError("HTTP first read failed")
+        raise ValueError("first read failed")
     with (
         pytest.raises(RuntimeError, match="shutdown failed"),
         loopback_server(app, shutdown_timeout=0.1) as url,
