@@ -48,7 +48,7 @@ def local_configuration():
 
 
 @contextmanager
-def loopback_server(app):
+def loopback_server(app, shutdown_timeout=10):
     # Server and clients live in the watchdog's worker process. Killing it also
     # closes the listening socket; no detached server process can survive it.
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
@@ -56,6 +56,7 @@ def loopback_server(app):
         server = uvicorn.Server(uvicorn.Config(app, host="127.0.0.1", port=0, log_level="critical", access_log=False))
         thread = threading.Thread(target=server.run, kwargs={"sockets": [sock]}, daemon=True)
         thread.start()
+        failed = False
         try:
             deadline = time.monotonic() + 15
             while not server.started:
@@ -63,10 +64,15 @@ def loopback_server(app):
                     raise RuntimeError("loopback server startup failed")
                 time.sleep(0.01)
             yield f"http://127.0.0.1:{sock.getsockname()[1]}"
+        except BaseException:
+            failed = True
+            raise
         finally:
             server.should_exit = True
-            thread.join(timeout=10)
-            if thread.is_alive():
+            thread.join(timeout=shutdown_timeout)
+            # A server still computing an abandoned request must not replace
+            # the request failure that caused it; the worker exit reaps it.
+            if thread.is_alive() and not failed:
                 raise RuntimeError("loopback server shutdown failed")
 
 

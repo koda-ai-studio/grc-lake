@@ -37,6 +37,32 @@ def test_http_workload_uses_auth_and_preserves_tenant_bindings(tmp_path, monkeyp
     assert not list(tmp_path.rglob("credentials*"))
 
 
+def test_busy_server_shutdown_does_not_mask_the_request_failure():
+    import time
+
+    from fastapi import FastAPI
+    from tools.benchmark_investigation_http import loopback_server
+
+    app = FastAPI()
+
+    @app.get("/slow")
+    def slow():
+        time.sleep(2)
+        return {}
+
+    # A client timeout leaves the server computing the abandoned request.
+    with pytest.raises(ValueError, match="first read failed"), loopback_server(app, shutdown_timeout=0.1) as url:
+        with pytest.raises(httpx.ReadTimeout):
+            httpx.get(url + "/slow", timeout=0.2, trust_env=False)
+        raise ValueError("HTTP first read failed")
+    with (
+        pytest.raises(RuntimeError, match="shutdown failed"),
+        loopback_server(app, shutdown_timeout=0.1) as url,
+        pytest.raises(httpx.ReadTimeout),
+    ):
+        httpx.get(url + "/slow", timeout=0.2, trust_env=False)
+
+
 def test_http_validation_rejects_an_empty_or_wrong_binding():
     from tools.benchmark_investigation_http import validate_http_graph
 
