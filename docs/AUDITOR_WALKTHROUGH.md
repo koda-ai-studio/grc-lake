@@ -22,6 +22,9 @@ no external scripts or fonts, and a manifest of file hashes. A missing manifest
 or mismatching file fails verification. Hash consistency detects changes relative
 to the manifest; it is not an independently authenticated signature.
 
+For a repeatable access/change failure matrix with retained JSON results and
+draft workpapers, run the [scoped workflow qualification](CONTROL_WORKFLOW_QUALIFICATION.md).
+
 ## What to inspect
 
 1. **Access and encryption:** documented design and passing observations, with

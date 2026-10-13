@@ -4,10 +4,10 @@
 # Override with PYTHON=python to use the active interpreter instead.
 PYTHON ?= uv run --frozen python
 
-.PHONY: help demo-screenshots demo-screenshots-full demo-local framework-packs coverage-doc release-build compile lint format-check typecheck diff-check test validate validate-json validate-generated validate-brand validate-doc-images pipeline dashboard api-smoke smoke ci web-install web-dev web-typecheck web-build web-clean web-ci docker-build helm-lint helm-template terraform-fmt terraform-validate terraform-test deploy-check uv-sync uv-lock pre-commit-install pre-commit-run pip-audit npm-audit security openapi-export readme-header
+.PHONY: qualify-control-workflow help demo-screenshots demo-screenshots-full demo-local framework-packs coverage-doc release-build compile lint format-check typecheck diff-check test validate validate-json validate-generated validate-brand validate-doc-images pipeline dashboard api-smoke smoke ci web-install web-dev web-typecheck web-build web-clean web-ci docker-build helm-lint helm-template terraform-fmt terraform-validate terraform-test deploy-check uv-sync uv-lock pre-commit-install pre-commit-run pip-audit npm-audit security openapi-export readme-header
 
 help: ## List available commands without running builds or tests.
-	@awk -F ':.*## ' 'BEGIN { printf "Usage: make <target>\n\n" } /^[a-zA-Z][a-zA-Z0-9_-]*:.*## / { printf "  %-24s %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
+	@awk -F ':.*## ' 'BEGIN { printf "Usage: make <target>\n\n" } /^[a-zA-Z][a-zA-Z0-9_-]*:.*## / { printf "  %-24s  %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
 
 test: ## Run the Python test suite.
 	PYTHONPATH=src $(PYTHON) -m pytest -q
@@ -167,3 +167,7 @@ coverage-doc: ## Regenerate the framework coverage document.
 
 readme-header: ## Regenerate the README header graphic.
 	uv run python tools/render_readme_header.py
+
+QUALIFICATION_OUT ?= build/control-workflow-qualification
+qualify-control-workflow: ## Retain synthetic access/change qualification reports and draft workpapers.
+	PYTHONPATH=src $(PYTHON) tools/qualify_control_workflow.py --out "$(QUALIFICATION_OUT)"

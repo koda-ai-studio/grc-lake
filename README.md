@@ -11,22 +11,64 @@
   <a href="https://scorecard.dev/viewer/?uri=github.com/koda-ai-studio/grc-lake"><img src="https://api.scorecard.dev/projects/github.com/koda-ai-studio/grc-lake/badge" alt="OpenSSF Scorecard"></a>
 </p>
 
-**Open-source trust operations, on your evidence lake.** Self-hosted GRC
-engineering: collect read-only evidence from cloud, identity, code, and existing
-security lakes; evaluate it with deterministic, version-pinned control tests;
-export snapshots, workpapers, and OSCAL.
-
-<!-- BEGIN README AT A GLANCE -->
-
-- **20 framework packs, 2,252 catalogued requirements (1,965 distinct; FedRAMP Moderate's 287 rows restate NIST SP 800-53 controls),** linked through 96 common safeguards. 1,417 requirements have safeguard mappings; 339 have reviewed mappings and the other 1,078 are proposed.
-- **25 read-only source adapters (7 in preview)**, plus OCSF presets for existing security lakes.
-- **Fails closed:** missing, stale, or partial evidence never produces a pass, and proposed mappings are not attestable.
-- **One engine, four surfaces:** console, REST API, CLI, and MCP server. Agents propose; humans approve.
-
-<!-- END README AT A GLANCE -->
+**Turn security evidence into traceable control assessments and reviewable audit workpapers.**
+GRC Lake is open-source and self-hosted, running in infrastructure you control.
+Read evidence from existing systems and security lakes, evaluate versioned rules,
+and preserve the evidence and review decisions behind each result.
 
 [Quick start](#quick-start) · [Product tour](#product-tour) · [Self-host](#self-host) ·
 [Coverage](docs/CURRENT_STATE.md) · [Documentation](docs/README.md)
+
+## Quick start
+
+Published v0.3.3, with Python 3.11+ on macOS or Linux:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install "grc-lake[server]==0.3.3"
+grc-lake fixtures load --company golden --out ./lake --rebase-times
+grc-lake serve --server --allow-insecure-no-auth --lake ./lake --host 127.0.0.1 --port 8787
+```
+
+Open [localhost:8787/console/dashboard/](http://127.0.0.1:8787/console/dashboard/).
+This loopback demo uses synthetic data and disables authentication.
+**First task:** find a failing control, inspect its evidence and mapping, then
+export the frozen result. Follow the [sample-data tutorial](docs/TUTORIAL_5_MIN.md);
+continue with the [synthetic workpaper example](docs/AUDITOR_WALKTHROUGH.md)
+to inspect a scoped test plan, population gaps, and a verified export.
+Installation time depends on your machine and connection.
+
+<details>
+<summary>Docker, source development, or MCP</summary>
+
+The public Docker image needs no registry login. Use the published templates:
+
+```bash
+git clone --branch v0.3.3 --depth 1 https://github.com/koda-ai-studio/grc-lake.git
+cd grc-lake
+docker compose up
+```
+
+For current source, with [uv](https://docs.astral.sh/uv/) and Node 22+:
+
+```bash
+git clone https://github.com/koda-ai-studio/grc-lake.git
+cd grc-lake
+uv sync --frozen --extra dev --extra server
+make demo-local
+```
+
+For MCP over stdio:
+
+```bash
+pip install 'grc-lake[mcp]'
+GRC_LAKE_LAKE=./lake grc-lake-mcp
+```
+
+See [headless GRC](docs/HEADLESS_GRC.md) for agent credentials and authority.
+
+</details>
 
 ## Product tour
 
@@ -107,53 +149,6 @@ not a customer deployment or an audit opinion._
 [Try the five-minute console tour](docs/PRODUCT_WALKTHROUGH.md#five-minute-tour) ·
 [How evidence investigation works](docs/INVESTIGATION_GRAPH.md)
 
-## Quick start
-
-Python 3.11+ on macOS or Linux:
-
-```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install "grc-lake[server]"
-grc-lake fixtures load --company golden --out ./lake --rebase-times
-grc-lake serve --server --allow-insecure-no-auth --lake ./lake --host 127.0.0.1 --port 8787
-```
-
-Open [localhost:8787/console/dashboard/](http://127.0.0.1:8787/console/dashboard/).
-This loopback demo uses synthetic data and disables authentication.
-For a guided workflow, follow the [5-minute tutorial](docs/TUTORIAL_5_MIN.md).
-
-<details>
-<summary>Docker, source development, or MCP</summary>
-
-The public Docker image needs no registry login. Use the published templates:
-
-```bash
-git clone --branch v0.3.3 --depth 1 https://github.com/koda-ai-studio/grc-lake.git
-cd grc-lake
-docker compose up
-```
-
-For current source, with [uv](https://docs.astral.sh/uv/) and Node 22+:
-
-```bash
-git clone https://github.com/koda-ai-studio/grc-lake.git
-cd grc-lake
-uv sync --frozen --extra dev --extra server
-make demo-local
-```
-
-For MCP over stdio:
-
-```bash
-pip install 'grc-lake[mcp]'
-GRC_LAKE_LAKE=./lake grc-lake-mcp
-```
-
-See [headless GRC](docs/HEADLESS_GRC.md) for agent credentials and authority.
-
-</details>
-
 ## Architecture
 
 Read-only collection feeds deterministic evaluation. Each published assessment
@@ -199,6 +194,15 @@ Release packages include signed provenance and an SBOM. Follow
 Upgrading from TrustOps? Read the [migration guide](docs/REBRANDING.md).
 
 ## Frameworks
+
+<!-- BEGIN README AT A GLANCE -->
+
+- **20 framework packs, 2,252 catalogued requirements (1,965 distinct; FedRAMP Moderate's 287 rows restate NIST SP 800-53 controls),** linked through 96 common safeguards. 1,417 requirements have safeguard mappings; 339 have reviewed mappings and the other 1,078 are proposed.
+- **25 read-only source adapters (7 in preview)**, plus OCSF presets for existing security lakes.
+- **Fails closed:** missing, stale, or partial evidence never produces a pass, and proposed mappings are not attestable.
+- **One engine, four surfaces:** console, REST API, CLI, and MCP server. Agents propose; humans approve.
+
+<!-- END README AT A GLANCE -->
 
 Catalog counts above are generated from source. Mapped, reviewed, and freshly
 assessed requirements are separate measures; proposed mappings are not attestable.
