@@ -3,7 +3,7 @@
 These artifacts do not embed wall-clock time or lake paths, so their bytes are
 a pure function of the golden fixture, the shipped catalog, and evaluation
 logic. Refactors must leave them unchanged. When an evaluation or catalog
-change is intended, update the digests from the failure message.
+change is intended, regenerate the digests with ``--write``.
 """
 
 from __future__ import annotations
@@ -18,11 +18,11 @@ from security_lakehouse.golden_fixture import GOLDEN_COMPANY
 from security_lakehouse.pipeline import run_pipeline
 
 EXPECTED_SHA256 = {
-    "gold/asset_risk.jsonl": "dba5fdaf83c3738723bf2b68e2c513ef843841e5c54615953b0faa3060a4f3fd",
-    "gold/ccf_assessment.json": "f230793793c8695af41f3dc3f3900c7e48e08c886629e5f13748900c46c18c6b",
-    "gold/control_posture.jsonl": "bd0c637382c3f538139cc3379fa3794f363b99a69e3196b99c53c1f7c0bab9f0",
-    "gold/metrics.json": "21f2d664c4bf18b8fb204932b9519fa54ad4d3b30e9fee0dbf0005ed0bd86176",
-    "silver/normalized_events.jsonl": "bb29d647bf507ec1ea6afef586195ab1124f5caca18f5e9d300b2df56345eca3",
+    "gold/asset_risk.jsonl": "8169c0b42982e106eb9a446dda5f83242e9501617767452943339e43a8c791b7",
+    "gold/ccf_assessment.json": "c0d116afc05903a73ffb8d186eb3826f02facb13729f5129cabfbe645a2e2566",
+    "gold/control_posture.jsonl": "45ebfddf597bf80304d4801ecb4bd4c121461ec8145c70606d007ac16d32c196",
+    "gold/metrics.json": "ec2fe66d18cefe0eb4e43bef657be37e75eb3096ef517d38abaed6c017b5b4a9",
+    "silver/normalized_events.jsonl": "d1dfc24759f4bcf9cb9c8ad7fce34d8e96188bf95953cd5a6ccfce3188189efd",
 }
 
 
@@ -64,3 +64,29 @@ def test_golden_pipeline_artifacts_are_byte_identical(tmp_path: Path) -> None:
     write_assessment_snapshot(lake, reason="stability-2")
     chain = verify_snapshot_chain(lake)
     assert chain["ok"] is True, chain
+
+
+if __name__ == "__main__":
+    import argparse
+    import re
+    from tempfile import TemporaryDirectory
+
+    parser = argparse.ArgumentParser(description="Regenerate golden pipeline stability digests")
+    parser.add_argument("--write", action="store_true", required=True)
+    parser.parse_args()
+    fixture = find_fixture(GOLDEN_COMPANY)
+    assert fixture is not None
+    with TemporaryDirectory() as directory:
+        lake = Path(directory) / "lake"
+        run_pipeline(fixture.raw_path, lake)
+        hashes = {rel: hashlib.sha256((lake / rel).read_bytes()).hexdigest() for rel in EXPECTED_SHA256}
+    path = Path(__file__)
+    path.write_text(
+        re.sub(
+            r"EXPECTED_SHA256 = \{.*?\n\}",
+            "EXPECTED_SHA256 = " + json.dumps(hashes, indent=4, sort_keys=True),
+            path.read_text(),
+            count=1,
+            flags=re.S,
+        )
+    )

@@ -139,10 +139,26 @@ function GraphNodeCard({ id, data, selected }: NodeProps<FlowGraphNode>) {
   useEffect(() => {
     updateNodeInternals(id);
   }, [id, data.bank, data.neighborhoodRoot, updateNodeInternals]);
-  const tone = KIND_STYLE[data.kind] ?? {
-    border: "var(--color-line-strong)",
-    chip: "var(--color-muted)",
-  };
+  const state = graphEvidenceState(data);
+  const hasOutcome = [
+    "control",
+    "safeguard",
+    "evidence",
+    "evidence_type",
+    "signal_gap",
+  ].includes(data.kind);
+  const stateColor = {
+    critical: "var(--color-danger)",
+    ready: "var(--color-success)",
+    attention: "var(--color-warning)",
+    default: "var(--color-muted)",
+  }[state.tone];
+  const tone = hasOutcome
+    ? { border: stateColor, chip: stateColor }
+    : (KIND_STYLE[data.kind] ?? {
+        border: "var(--color-line-strong)",
+        chip: "var(--color-muted)",
+      });
   const Icon =
     data.kind === "ccf_family" && data.family_id
       ? controlFamily(data.family_id).icon
@@ -157,9 +173,13 @@ function GraphNodeCard({ id, data, selected }: NodeProps<FlowGraphNode>) {
       : undefined;
   const displayLabel = graphRecordLabel(data);
   const evidenceState = graphEvidenceState(data);
-  const isEvidence = ["evidence", "evidence_type", "signal_gap"].includes(
-    data.kind,
-  );
+  const isEvidence = [
+    "control",
+    "safeguard",
+    "evidence",
+    "evidence_type",
+    "signal_gap",
+  ].includes(data.kind);
   if (data.bank) {
     const inward = data.bank === "left" ? Position.Right : Position.Left;
     const handleStyle =
@@ -1022,6 +1042,8 @@ function InnerGraphCanvas({
           if (onExploreNode) pendingClick.current = setTimeout(select, 250);
           else select();
         }}
+        zoomOnScroll={false}
+        preventScrolling={false}
         zoomOnDoubleClick={!onExploreNode}
         onNodeDoubleClick={(_, node) => {
           if (pendingClick.current) clearTimeout(pendingClick.current);

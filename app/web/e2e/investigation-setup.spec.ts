@@ -14,6 +14,9 @@ test("bounded investigation expands exact relationships with visible icons", asy
   ).toBeVisible();
   await expect(page.getByTestId("graph-node-icon").first()).toBeVisible();
   expect(responseNodes).toBeLessThanOrEqual(150);
+  await page
+    .getByText("Search and change starting point", { exact: true })
+    .click();
   await page.getByLabel("Graph depth").selectOption("1");
   await page.locator(".react-flow__node").first().click();
   const inspector = page.getByRole("complementary", {

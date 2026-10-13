@@ -431,7 +431,9 @@
         "layers",
         "search",
         "version",
-        "root_offset"
+        "root_offset",
+        "framework",
+        "control_offset"
       ],
       "resource": "graph.investigation",
       "scopes": ["read"]

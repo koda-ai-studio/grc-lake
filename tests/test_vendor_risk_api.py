@@ -173,7 +173,16 @@ def test_investigation_does_not_expose_another_tenants_vendor(env):
 
 
 @pytest.mark.parametrize(
-    "params", [{"depth": 0}, {"depth": 4}, {"limit": 301}, {"root_offset": -1}, {"view": "invalid"}]
+    "params",
+    [
+        {"depth": 0},
+        {"depth": 4},
+        {"limit": 301},
+        {"root_offset": -1},
+        {"control_offset": -1},
+        {"control_offset": "bad"},
+        {"view": "invalid"},
+    ],
 )
 def test_investigation_rejects_invalid_bounds(env, params):
     client, tokens = env

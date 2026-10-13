@@ -35,10 +35,12 @@ def investigation_graph(
     layers: set[str] | None = None,
     search: str = "",
     root_offset: int = 0,
+    framework: str = "",
+    control_offset: int = 0,
     vendors: list[dict[str, Any]] | None = None,
     expected_version: str | None = None,
 ) -> dict[str, Any]:
-    if root_offset < 0:
+    if root_offset < 0 or control_offset < 0:
         raise ValueError("invalid root offset")
     if depth not in (1, 2, 3) or not 1 <= limit <= 300 or view not in ("controls", "environment", "investigation"):
         raise ValueError("invalid graph bounds or view")
@@ -65,6 +67,9 @@ def investigation_graph(
     assessment_path = lake / "gold/ccf_assessment.json"
     assessment = read_json(assessment_path, base_dir=lake) if pinned_path(assessment_path).is_file() else {}
     assessed = {row["safeguard_id"]: row for row in assessment.get("safeguards", [])}
+    posture = {
+        r["control_id"]: r for r in read_jsonl(lake / "gold/control_posture.jsonl", missing_ok=True, base_dir=lake)
+    }
     frameworks = framework_registry_view()
     for cid, row in controls.items():
         fid = str(row.get("framework_id") or "")
@@ -76,6 +81,8 @@ def investigation_graph(
             subtitle=row.get("title"),
             framework_id=fid,
             owner=row.get("owner"),
+            status=posture.get(cid, {}).get("status", "not_evaluated"),
+            risk_score=posture.get(cid, {}).get("risk_score"),
             basis="Catalog requirement; evidence links are recorded bindings",
         )
         edge("framework:" + fid, "control:" + cid, "framework_has_control")
@@ -282,6 +289,33 @@ def investigation_graph(
             ordered.extend(sorted(following - selected))
             selected.update(following)
             frontier = following
+    framework_groups = []
+    grouped_controls: dict[str, list[str]] = defaultdict(list)
+    selected_framework = ""
+    control_count = 0
+    if root in nodes and nodes[root]["kind"] == "safeguard":
+        # Count the full direct mapping set before the response cap. Return only
+        # one framework page, keeping original nodes and recorded edge endpoints.
+        for key in sorted(incoming[root]):
+            if nodes[key]["kind"] == "control":
+                grouped_controls[nodes[key]["framework_id"]].append(key)
+        framework_groups = [
+            {"framework_id": fid, "label": frameworks.get(fid, {}).get("name", fid), "control_count": len(keys)}
+            for fid, keys in sorted(grouped_controls.items())
+        ]
+        selected_framework = framework or next(iter(sorted(grouped_controls)), "")
+        page_controls = grouped_controls.get(selected_framework, [])
+        control_count = len(page_controls)
+        page_ids = {root, *page_controls[control_offset : control_offset + 5]}
+        # Only framework context for this page; taxonomy and other frameworks
+        # remain available by selecting another starting point.
+        page_ids.add("framework:" + selected_framework)
+        # Keep recorded evidence and its assets available alongside mappings.
+        page_ids.update(
+            key for key in ordered if nodes[key]["kind"] not in {"control", "framework", "ccf_family", "ccf_category"}
+        )
+        ordered = [key for key in ordered if key in page_ids]
+        selected = set(ordered)
     kept = set(ordered[:limit])
     return {
         "nodes": [nodes[k] for k in ordered[:limit]],
@@ -296,6 +330,11 @@ def investigation_graph(
         "root_count": len(choices),
         "root_offset": root_offset,
         "next_root_offset": root_offset + 50 if root_offset + 50 < len(choices) else None,
+        "framework_groups": framework_groups,
+        "selected_framework": selected_framework,
+        "control_count": control_count,
+        "control_offset": control_offset,
+        "next_control_offset": control_offset + 5 if control_offset + 5 < control_count else None,
         "depth": depth,
         "limit": limit,
         "truncated": len(selected) > limit,

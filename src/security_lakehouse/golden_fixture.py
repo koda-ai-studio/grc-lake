@@ -3,7 +3,8 @@
 Ships one canonical mockup company (``golden``) whose raw evidence covers all
 33 SOC 2 common-criteria controls plus four representative NIST AI RMF
 subcategories — 37 controls total on the workbench dashboard without live
-connectors — plus a handful of repository-governance events for one public repo.
+connectors — plus explicit supplemental program evidence and a handful of
+repository-governance events for one public repo.
 
 ``mockup_companies/golden/raw/security_events.jsonl`` is generated from this
 module (``grc-lake fixtures write-golden``); a test keeps the two
@@ -279,9 +280,69 @@ def build_golden_events(
     return rows
 
 
+# Explicit supplemental records model distinct requirements, not aliases for
+# unrelated observations. Keep this list independent of the program catalog so
+# a newly required evidence type fails the fixture coverage contract.
+_SUPPLEMENTAL_TYPES = {
+    "SOC2-CC6.1": ("cloud.config", "compliance.evidence_bundle", "secret.finding"),
+    "SOC2-CC7.2": (
+        "audit.chain",
+        "compliance.evidence_bundle",
+        "detection.alert",
+        "remediation.ticket",
+        "runtime.tool_call",
+        "vulnerability.finding",
+    ),
+    "NIST-AI-RMF-MAP-1.5": ("ai.model_inventory", "cloud.config"),
+    "NIST-AI-RMF-MEASURE-2.7": ("detection.alert", "remediation.ticket", "runtime.tool_call", "vulnerability.finding"),
+}
+_SUPPLEMENTAL_SOURCES = {
+    "cloud.config": ("aws_config", "data_store"),
+    "compliance.evidence_bundle": ("snowflake", "audit_trail"),
+    "secret.finding": ("github", "repository"),
+    "audit.chain": ("audit_log", "audit_trail"),
+    "detection.alert": ("siem", "audit_trail"),
+    "remediation.ticket": ("jira", "application"),
+    "runtime.tool_call": ("runtime_gateway", "application"),
+    "vulnerability.finding": ("github", "repository"),
+    "ai.model_inventory": ("model_registry", "model"),
+}
+
+
+def _supplemental_events(primary: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Preserve the demo outcomes and dates while supplying named evidence."""
+    rows = []
+    for original in primary:
+        cid = original["controls"][0]
+        for event_type in _SUPPLEMENTAL_TYPES.get(cid, ()):
+            source, asset_type = _SUPPLEMENTAL_SOURCES[event_type]
+            event_id = f"{original['event_id']}-{event_type.replace('.', '-')}"
+            rows.append(
+                {
+                    **original,
+                    "event_id": event_id,
+                    "event_type": event_type,
+                    "source": source,
+                    "entity": {
+                        **original["entity"],
+                        "asset_id": f"golden:supplement:{event_id}",
+                        "asset_name": f"{cid} {event_type.replace('.', ' ').replace('_', ' ')}",
+                        "asset_type": asset_type,
+                    },
+                    "evidence": {
+                        **original["evidence"],
+                        "evidence_id": f"ev-{event_id}",
+                        "uri": f"s3://acme-golden-evidence/{cid}/{event_id}.json",
+                    },
+                }
+            )
+    return rows
+
+
 def build_golden_fixture_rows(*, tenant_id: str = GOLDEN_TENANT_ID) -> list[dict[str, Any]]:
     """Every row of the committed golden fixture: control events, then repository events."""
-    rows = build_golden_events(tenant_id=tenant_id) + _repository_events(tenant_id)
+    primary = build_golden_events(tenant_id=tenant_id)
+    rows = primary + _supplemental_events(primary) + _repository_events(tenant_id)
     errors = validate_raw_events(rows)
     if errors:
         raise ValueError("; ".join(errors))

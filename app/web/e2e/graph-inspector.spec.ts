@@ -45,7 +45,7 @@ test("selected evidence path keeps an adjacent inspector and restores context", 
 });
 
 test("canvas nodes open details by mouse and keyboard", async ({ page }) => {
-  await page.goto("/console/graph/");
+  await page.goto("/console/graph/?focus=control%3ASOC2-CC6.1");
   await page
     .getByRole("button", { name: "Framework and repository maps" })
     .click();

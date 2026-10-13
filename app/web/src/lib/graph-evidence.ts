@@ -3,6 +3,15 @@ import type { GraphNode } from "@/lib/api/types";
 /** Describe the source outcome without turning an observation into a verdict. */
 export function graphEvidenceState(node: Pick<GraphNode, "kind" | "status">) {
   const status = (node.status ?? "").toLowerCase();
+  const assessment = ["control", "safeguard"].includes(node.kind);
+  const subject = assessment ? node.kind : "evidence";
+  if (status === "stale")
+    return {
+      label: assessment ? "Stale assessment" : "Stale evidence",
+      tone: "attention" as const,
+      action:
+        "Refresh the supporting evidence and re-evaluate the applicable control.",
+    };
   if (
     node.kind === "signal_gap" ||
     ["requires_authenticated_connector", "not_available_public_mode"].includes(
@@ -27,7 +36,7 @@ export function graphEvidenceState(node: Pick<GraphNode, "kind" | "status">) {
     ].includes(status)
   )
     return {
-      label: "Failing evidence",
+      label: `Failing ${subject}`,
       tone: "critical" as const,
       action:
         "Review the failing record, confirm the affected configuration, assign remediation, and collect fresh evidence after the change.",
@@ -44,7 +53,7 @@ export function graphEvidenceState(node: Pick<GraphNode, "kind" | "status">) {
     ].includes(status)
   )
     return {
-      label: "Passing evidence",
+      label: `Passing ${subject}`,
       tone: "ready" as const,
       action:
         "Keep this evidence current and re-evaluate after repository settings change. This record alone does not establish framework compliance.",
