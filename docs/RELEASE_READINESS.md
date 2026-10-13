@@ -1,6 +1,13 @@
 # Release readiness
 
-GRC Lake **0.3.3 is published**. It includes
+GRC Lake **0.3.4 is a release candidate; it is not published**. It adds public
+repository onboarding, direction-preserving evidence graphs, collection
+completeness checks, and mapping-identity fixes. Candidate Compose/chart and CI
+examples target 0.3.4 and require publication before use. The final main commit
+must pass CI, both image architectures must qualify, and published artifacts
+must be verified before this status changes.
+
+GRC Lake **0.3.3 is the latest published release**. It includes
 container dependency remediation, stronger cookie and SAML signature policies,
 dependency updates, a server-route refactor, evidence investigation and governance
 changes, shared assessment services, durable operation outcomes, bounded API/retry
