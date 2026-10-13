@@ -33,6 +33,14 @@ Generated evidence and frozen requirement/safeguard catalogs are read within one
 
 The API builds the server-side model before selecting the bounded response. Its processing cost still grows with evidence volume; the response bound is not a claim of constant-memory indexing or production-scale qualification.
 
+### Build admission and cancellation
+
+Each server process runs at most `GRC_LAKE_GRAPH_BUILD_CONCURRENCY` graph builds at once (default `4`, integer `1`–`64`; other values stop startup). A request beyond that bound is not queued: it returns `503` with `Retry-After: 1` and error code `graph_build_capacity`. Invalid parameters return `400` without taking a slot.
+
+A running build stops at its next checkpoint when the client disconnects or when it exceeds `GRC_LAKE_GRAPH_BUILD_TIMEOUT_SECONDS` (default `60`; `0` disables the deadline). Checkpoints sit between build phases and inside per-record loops; a single file read or the final version hash is not interrupted. A deadline abort returns `503` with `Retry-After: 5` and code `graph_build_timeout`. An aborted build returns no partial graph, and its slot is released only after the build thread has stopped.
+
+The bound is per process, shared by all tenants of that process, and is not a reviewed capacity budget; see the [investigation benchmarks](benchmarks/INVESTIGATION.md) for measured memory and latency. Multiply by worker processes and replicas when sizing memory.
+
 Vendor asset references are stored in the vendor assessment by migration `0031_vendor_asset_refs`. `PATCH /api/v1/vendor-assessments/{assessment_id}` accepts up to 100 `asset_refs`, each containing `source_account_id` and `asset_id`, and requires `control_manage` scope.
 
 The existing `/api/v1/graph` retains the `evidence_type` node kind for compatibility, but each such node now represents one exact record. Evidence node IDs are content-derived; old type-only deep links must be replaced with a current node ID.

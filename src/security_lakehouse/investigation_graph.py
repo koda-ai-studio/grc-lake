@@ -5,6 +5,7 @@ The browser receives a bounded slice; hidden neighbors stay explicitly counted.
 """
 
 from collections import Counter, defaultdict
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
@@ -24,6 +25,16 @@ def _id(kind: str, *parts: str) -> str:
     return kind + ":" + canonical_sha256(parts)
 
 
+def validate_bounds(
+    *, view: str = "controls", depth: int = 2, limit: int = 150, root_offset: int = 0, control_offset: int = 0, **_: Any
+) -> None:
+    """Reject out-of-range request bounds before any build work starts."""
+    if root_offset < 0 or control_offset < 0:
+        raise ValueError("invalid root offset")
+    if depth not in (1, 2, 3) or not 1 <= limit <= 300 or view not in ("controls", "environment", "investigation"):
+        raise ValueError("invalid graph bounds or view")
+
+
 @generation_reader
 def investigation_graph(
     lake: Path,
@@ -39,11 +50,12 @@ def investigation_graph(
     control_offset: int = 0,
     vendors: list[dict[str, Any]] | None = None,
     expected_version: str | None = None,
+    checkpoint: Callable[[], None] | None = None,
 ) -> dict[str, Any]:
-    if root_offset < 0 or control_offset < 0:
-        raise ValueError("invalid root offset")
-    if depth not in (1, 2, 3) or not 1 <= limit <= 300 or view not in ("controls", "environment", "investigation"):
-        raise ValueError("invalid graph bounds or view")
+    """Build one bounded slice; ``checkpoint`` may raise to abort before any result exists."""
+    validate_bounds(view=view, depth=depth, limit=limit, root_offset=root_offset, control_offset=control_offset)
+    check = checkpoint or (lambda: None)
+    check()
     nodes: dict[str, dict[str, Any]] = {}
     edges: dict[str, dict[str, Any]] = {}
 
@@ -72,6 +84,7 @@ def investigation_graph(
     }
     frameworks = framework_registry_view()
     for cid, row in controls.items():
+        check()
         fid = str(row.get("framework_id") or "")
         node("framework", "framework:" + fid, frameworks.get(fid, {}).get("name", fid), framework_id=fid)
         node(
@@ -92,6 +105,7 @@ def investigation_graph(
         node("ccf_family", "family:" + fid, row["label"], basis="Catalog taxonomy")
         edge("category:" + row["category"], "family:" + fid, "contains")
     for row in safeguards["safeguards"]:
+        check()
         sid = "safeguard:" + row["safeguard_id"]
         node(
             "safeguard",
@@ -105,6 +119,7 @@ def investigation_graph(
         for member in row.get("satisfies", []):
             edge("control:" + member["control_id"], sid, "maps_to", review_state=effective_review_state(member))
 
+    check()
     freshness = {
         (r.get("tenant_id", ""), r.get("event_id")): r
         for r in read_jsonl(lake / "gold/evidence_freshness.jsonl", missing_ok=True, base_dir=lake)
@@ -119,10 +134,13 @@ def investigation_graph(
     }
     asset_scopes = defaultdict(set)
     for event in events:
+        check()
         account, asset = source_asset_key({**event, "asset_id": event.get("asset_id") or ""})
         asset_scopes[asset].add(account)
     evidence_by_event = defaultdict(list)
+    check()
     for event in sorted(events, key=canonical_sha256):
+        check()
         account, asset = source_asset_key({**event, "asset_id": event.get("asset_id") or ""})
         provider = str(event.get("source") or "")
         observed = dict(
@@ -202,9 +220,12 @@ def investigation_graph(
         for sid in set(event.get("safeguard_ids") or []):
             edge("safeguard:" + sid, eid, "has_evidence")
 
+    check()
     add_repository_context(lake, node, edge, _id, evidence_by_event)
+    check()
 
     for vendor in vendors or []:
+        check()
         vid = node(
             "vendor",
             "vendor:" + vendor["id"],
@@ -226,6 +247,7 @@ def investigation_graph(
             else "Review the vendor assessment and its explicitly recorded asset links."
         )
 
+    check()
     version = canonical_sha256([list(nodes.values()), list(edges.values())])
     if expected_version and version != expected_version:
         raise ValueError("graph version changed; refresh before expanding")
@@ -233,6 +255,7 @@ def investigation_graph(
     adjacency: dict[str, set[str]] = defaultdict(set)
     outgoing: dict[str, set[str]] = defaultdict(set)
     incoming: dict[str, set[str]] = defaultdict(set)
+    check()
     for e in edges.values():
         if e["source"] in eligible and e["target"] in eligible:
             outgoing[e["source"]].add(e["target"])
@@ -281,6 +304,7 @@ def investigation_graph(
         visited = set(frontier)
         for _ in range(depth):
             following = set()
+            check()
             for key in frontier:
                 if view != "controls" and key != root and nodes[key]["kind"] in {"framework", "control", "safeguard"}:
                     continue
@@ -316,6 +340,7 @@ def investigation_graph(
         )
         ordered = [key for key in ordered if key in page_ids]
         selected = set(ordered)
+    check()
     kept = set(ordered[:limit])
     return {
         "nodes": [nodes[k] for k in ordered[:limit]],

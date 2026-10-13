@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import asyncio
 from collections.abc import Callable
 from pathlib import Path
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
@@ -13,6 +16,7 @@ from security_lakehouse import api_v1, remediation_guidance
 from security_lakehouse.auth.dependencies import get_session, require_scope
 from security_lakehouse.auth.rbac import Identity
 from security_lakehouse.catalog import load_control_catalog
+from security_lakehouse.graph_admission import BuildToken, GraphBuildAborted, GraphBuildSlots
 from security_lakehouse.server_routes.deps import parse_dt as _parse_dt
 from security_lakehouse.server_routes.payloads import _page_meta, _pagination, _params, _redact_payload
 from security_lakehouse.server_routes.schemas.workflows import (
@@ -26,35 +30,78 @@ _require_control_manage = require_scope("control_manage")
 _require_read = require_scope("read")
 
 
-def build_vendor_risk_router(*, lake_for: Callable[[Identity], Path]) -> APIRouter:
+async def _cancel_on_disconnect(request: Request, token: BuildToken) -> None:
+    # A GET has no body left to read, so the next receive blocks until the
+    # client disconnects (or the response completes and this task is cancelled).
+    while (await request.receive())["type"] != "http.disconnect":
+        pass
+    token.cancel()
+
+
+def _unavailable(code: str, detail: str, *, retry_after: int) -> JSONResponse:
+    return JSONResponse(
+        api_v1.error_envelope(code, detail),
+        status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+        headers={"Retry-After": str(retry_after)},
+    )
+
+
+def build_vendor_risk_router(
+    *,
+    lake_for: Callable[[Identity], Path],
+    graph_slots: GraphBuildSlots,
+    graph_timeout: float | None,
+) -> APIRouter:
     """Build the authenticated workflow routes."""
     router = APIRouter()
 
     @router.get("/api/v1/graph/investigation")
-    def read_investigation(
+    async def read_investigation(
         request: Request, identity: Identity = Depends(_require_read), session: Session = Depends(get_session)
     ) -> JSONResponse:
-        from security_lakehouse.investigation_graph import investigation_graph
+        from security_lakehouse import investigation_graph as graph
 
         params = request.query_params
         try:
-            data = investigation_graph(
-                lake_for(identity),
-                root=params.get("root"),
-                view=params.get("view", "controls"),
-                depth=int(params.get("depth", "2")),
-                limit=int(params.get("limit", "150")),
-                search=params.get("search", "")[:200],
-                root_offset=int(params.get("root_offset", "0")),
-                framework=params.get("framework", ""),
-                control_offset=int(params.get("control_offset", "0")),
-                layers=set(params["layers"].split(",")) if params.get("layers") else None,
-                expected_version=params.get("version"),
-                vendors=vendor_risk_services.list_assessments(session, identity.tenant_id),
-            )
+            bounds: dict[str, Any] = {
+                "root": params.get("root"),
+                "view": params.get("view", "controls"),
+                "depth": int(params.get("depth", "2")),
+                "limit": int(params.get("limit", "150")),
+                "search": params.get("search", "")[:200],
+                "root_offset": int(params.get("root_offset", "0")),
+                "framework": params.get("framework", ""),
+                "control_offset": int(params.get("control_offset", "0")),
+                "layers": set(params["layers"].split(",")) if params.get("layers") else None,
+                "expected_version": params.get("version"),
+            }
+            graph.validate_bounds(**bounds)
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
-        return JSONResponse(api_v1.envelope("graph.investigation", _redact_payload(data, identity)))
+        if not graph_slots.try_acquire():
+            return _unavailable("graph_build_capacity", "graph build capacity reached; retry shortly", retry_after=1)
+        token = BuildToken(graph_timeout)
+
+        def build() -> dict[str, Any]:
+            vendors = vendor_risk_services.list_assessments(session, identity.tenant_id)
+            data = graph.investigation_graph(lake_for(identity), vendors=vendors, checkpoint=token.check, **bounds)
+            return api_v1.envelope("graph.investigation", _redact_payload(data, identity))
+
+        watcher = asyncio.create_task(_cancel_on_disconnect(request, token))
+        try:
+            # The default worker-thread call defers cancellation until the build
+            # returns, so the slot is released only once the thread has stopped.
+            payload = await run_in_threadpool(build)
+        except GraphBuildAborted as exc:
+            if exc.reason == "deadline":
+                return _unavailable("graph_build_timeout", "graph build exceeded its time budget", retry_after=5)
+            return _unavailable("graph_build_cancelled", "graph build cancelled after client disconnect", retry_after=1)
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        finally:
+            watcher.cancel()
+            graph_slots.release()
+        return JSONResponse(payload)
 
     @router.get("/api/v1/vendor-questionnaires")
     def list_vendor_questionnaires(identity: Identity = Depends(_require_read)) -> JSONResponse:
