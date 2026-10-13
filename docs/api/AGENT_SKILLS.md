@@ -1,8 +1,5 @@
 # Agent Skill Catalog
 
-The version-pinned examples below target the **0.3.4 release candidate**. Until
-publication, use these examples from the published v0.3.3 tag.
-
 Composable **skills** for coding agents, CI jobs, and MCP clients. Each skill maps
 intent → `/api/v1` routes → MCP tools → example payloads.
 

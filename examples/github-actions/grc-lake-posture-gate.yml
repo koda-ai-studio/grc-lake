@@ -1,4 +1,3 @@
-# Release candidate: requires v0.3.4 publication; use the v0.3.3 templates until then.
 # Example: block merges when GRC Lake posture regresses.
 # Copy into .github/workflows/ and set repository secrets:
 #   GRC_LAKE_URL, GRC_LAKE_API_TOKEN (read-scoped API key)

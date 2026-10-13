@@ -1,8 +1,5 @@
 # CI posture gate playbook
 
-The version-pinned examples below target the **0.3.4 release candidate**. Until
-publication, use these examples from the published v0.3.3 tag.
-
 Block merges and deployments when GRC Lake posture regresses. Platform engineers should
 wire this **before** the human console — same `/api/v1` routes agents and MCP use.
 
