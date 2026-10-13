@@ -1,0 +1,2750 @@
+{
+  "untracked_source_sha256": {},
+  "schema_version": "grc.investigation_benchmark.v2",
+  "revision": "8112cd640286c9f737788667508d895e2c194096",
+  "tracked_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "harness_sha256": "a9d453e976e37918124b37c4a537e879fb59b1910e5eb92b6c3dcc54c487f889",
+  "measured_at": "2026-10-13T22:25:31.941207+00:00",
+  "environment": {
+    "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "python": "3.13.5",
+    "cpu_count": 10,
+    "machine": "arm64",
+    "physical_memory_bytes": 17179869184,
+    "storage": "local filesystem, synthetic legacy-compatible generations",
+    "cache": "OS and shared catalog caches uncontrolled; first means first graph call per tenant"
+  },
+  "configuration": {
+    "transport": "http",
+    "tenants": 2,
+    "repeats": 2,
+    "sizes": [1000, 10000],
+    "concurrency": [1, 4, 8],
+    "timeout_seconds": 900.0,
+    "sampled_rss_limit_mib": 4096,
+    "min_free_gib": 5,
+    "sample_seconds": 0.25,
+    "seed": 910,
+    "fixture": "seeded mixed controls/outcomes/asset types; every tenant shares source account shared-account-a",
+    "http": {
+      "server_processes": 1,
+      "client_timeout_seconds": 30,
+      "auth_role": "security_admin",
+      "database": "scratch SQLite",
+      "query": {
+        "view": "environment",
+        "root": "own account-a asset-0",
+        "depth": 1,
+        "limit": 150
+      },
+      "dependencies": {
+        "fastapi": "0.141.1",
+        "starlette": "1.6.0",
+        "anyio": "4.14.2",
+        "uvicorn": "0.48.0",
+        "httpx": "0.28.1"
+      }
+    }
+  },
+  "limitations": [
+    "Authenticated loopback HTTP, one Uvicorn process with default thread-pool and rate limits",
+    "Balanced and 4:1 skewed client submissions; client queue delay is not server scheduler delay",
+    "Client and server share one process and host; RSS and CPU include both",
+    "Synthetic normalized records, SQLite state, no evaluation jobs or provider evidence",
+    "Response body bytes exclude HTTP headers; no production fairness, SLO or capacity budget",
+    "No object-store failover, crash recovery or distributed admission qualification"
+  ],
+  "attempts": [
+    {
+      "rows": 1000,
+      "concurrency": 1,
+      "correctness_ok": true,
+      "checks": {
+        "unauthenticated_rejected": true,
+        "invalid_credential_rejected": true,
+        "exact_bindings": true,
+        "duplicate_records": true,
+        "source_account_isolation": true,
+        "account_collision_isolation": true,
+        "foreign_root_rejected": true,
+        "all_submitted_reads_completed": true,
+        "stale_version_rejected": true
+      },
+      "scenarios": {
+        "balanced": {
+          "reads": 8,
+          "clients": 1,
+          "wall_seconds": 11.826411583926529,
+          "reads_per_second": 0.6764520195519774,
+          "per_tenant": {
+            "tenant-0": {
+              "submitted": 4,
+              "completed": 4,
+              "latency_seconds": {
+                "p50": 1.233515957952477,
+                "p95": 2.819033542065881,
+                "p99": 2.819033542065881
+              },
+              "client_queue_seconds": {
+                "p50": 2.6099969999631867,
+                "p95": 7.536908500012942,
+                "p99": 7.536908500012942
+              }
+            },
+            "tenant-1": {
+              "submitted": 4,
+              "completed": 4,
+              "latency_seconds": {
+                "p50": 1.0883151250891387,
+                "p95": 1.5345165829639882,
+                "p99": 1.5345165829639882
+              },
+              "client_queue_seconds": {
+                "p50": 3.76548208296299,
+                "p95": 10.356124500045553,
+                "p99": 10.356124500045553
+              }
+            }
+          }
+        },
+        "skewed": {
+          "reads": 20,
+          "clients": 1,
+          "wall_seconds": 32.572803125018254,
+          "reads_per_second": 0.6140091757911545,
+          "per_tenant": {
+            "tenant-0": {
+              "submitted": 16,
+              "completed": 16,
+              "latency_seconds": {
+                "p50": 1.5604737079702318,
+                "p95": 2.205269416910596,
+                "p99": 2.205269416910596
+              },
+              "client_queue_seconds": {
+                "p50": 13.509873708011582,
+                "p95": 29.84610587498173,
+                "p99": 29.84610587498173
+              }
+            },
+            "tenant-1": {
+              "submitted": 4,
+              "completed": 4,
+              "latency_seconds": {
+                "p50": 1.6309335000114515,
+                "p95": 2.1256846669130027,
+                "p99": 2.1256846669130027
+              },
+              "client_queue_seconds": {
+                "p50": 15.164450125070289,
+                "p95": 30.939955957932398,
+                "p99": 30.939955957932398
+              }
+            }
+          }
+        }
+      },
+      "transport": "http",
+      "seed": 910,
+      "retained_bytes": 1924736,
+      "unique_records_per_tenant": 1000,
+      "input_rows_including_duplicates": 1001,
+      "input_sha256": [
+        "ef007260da43638d25d3c2199f49ba2361a8e4f6cf2b34a8f3a3b60daaac374e",
+        "16ecf93d4460077699c410c515d549d570b89211523bbff172760b523240ef78"
+      ],
+      "input_bytes_per_tenant": [382114, 382114],
+      "model_counts": {
+        "framework": 20,
+        "control": 2252,
+        "ccf_category": 10,
+        "ccf_family": 21,
+        "safeguard": 96,
+        "evidence_type": 1000,
+        "asset": 1000,
+        "environment": 2,
+        "account": 2,
+        "source": 2,
+        "finding": 364
+      },
+      "wall_seconds": 54.64643600001,
+      "cpu_seconds": 10.329314,
+      "peak_rss_mib": 230.046875,
+      "reads": [
+        {
+          "tenant": "tenant-0",
+          "query": "first",
+          "submission_ordinal": 0,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 1.7490508750779554,
+          "client_queue_seconds": 5.419133231043816e-7,
+          "completion_seconds": 4.052145041991025,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-1",
+          "query": "first",
+          "submission_ordinal": 1,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 1.3842899999581277,
+          "client_queue_seconds": 1.125037670135498e-6,
+          "completion_seconds": 5.437371708918363,
+          "response_body_bytes": 8648,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "balanced",
+          "submission_ordinal": 0,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 1.5219363749492913,
+          "client_queue_seconds": 0.001160541083663702,
+          "completion_seconds": 9.689765624934807,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-1",
+          "query": "balanced",
+          "submission_ordinal": 1,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 1.0883151250891387,
+          "client_queue_seconds": 1.5215220409445465,
+          "completion_seconds": 10.778172624995932,
+          "response_body_bytes": 8648,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "balanced",
+          "submission_ordinal": 2,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 1.1554043339565396,
+          "client_queue_seconds": 2.6099969999631867,
+          "completion_seconds": 11.933753083925694,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-1",
+          "query": "balanced",
+          "submission_ordinal": 3,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 1.0029740000609308,
+          "client_queue_seconds": 3.76548208296299,
+          "completion_seconds": 12.936814249958843,
+          "response_body_bytes": 8648,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "balanced",
+          "submission_ordinal": 4,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 1.233515957952477,
+          "client_queue_seconds": 4.768609042046592,
+          "completion_seconds": 14.170488041942008,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-1",
+          "query": "balanced",
+          "submission_ordinal": 5,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 1.5345165829639882,
+          "client_queue_seconds": 6.002215499989688,
+          "completion_seconds": 15.705099624930881,
+          "response_body_bytes": 8648,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "balanced",
+          "submission_ordinal": 6,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 2.819033542065881,
+          "client_queue_seconds": 7.536908500012942,
+          "completion_seconds": 18.524314083973877,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-1",
+          "query": "balanced",
+          "submission_ordinal": 7,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 1.4669554169522598,
+          "client_queue_seconds": 10.356124500045553,
+          "completion_seconds": 19.99145608395338,
+          "response_body_bytes": 8648,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 0,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 1.5852645420236513,
+          "client_queue_seconds": 9.462505113333464e-5,
+          "completion_seconds": 21.57848704198841,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 1,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 1.3703139999415725,
+          "client_queue_seconds": 1.584938250016421,
+          "completion_seconds": 22.948894499917515,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 2,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 1.5078370000701398,
+          "client_queue_seconds": 2.9553297499660403,
+          "completion_seconds": 24.456820958992466,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 3,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 2.205269416910596,
+          "client_queue_seconds": 4.463253541034646,
+          "completion_seconds": 26.66218304191716,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-1",
+          "query": "skewed",
+          "submission_ordinal": 4,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 1.6711717919679359,
+          "client_queue_seconds": 6.668611750006676,
+          "completion_seconds": 28.33344858395867,
+          "response_body_bytes": 8648,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 5,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 1.8251595830079168,
+          "client_queue_seconds": 8.33989029203076,
+          "completion_seconds": 30.158720041974448,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 6,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 1.4947727910475805,
+          "client_queue_seconds": 10.165147833991796,
+          "completion_seconds": 31.653595124953426,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 7,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 1.84977466694545,
+          "client_queue_seconds": 11.660012625041418,
+          "completion_seconds": 33.50346616690513,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 8,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 1.6544766670558602,
+          "client_queue_seconds": 13.509873708011582,
+          "completion_seconds": 35.158034041989595,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-1",
+          "query": "skewed",
+          "submission_ordinal": 9,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 2.1256846669130027,
+          "client_queue_seconds": 15.164450125070289,
+          "completion_seconds": 37.28382283390965,
+          "response_body_bytes": 8648,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 10,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 1.519852041034028,
+          "client_queue_seconds": 17.29026091704145,
+          "completion_seconds": 38.8038057499798,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 11,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 1.6336792079964653,
+          "client_queue_seconds": 18.810207792092115,
+          "completion_seconds": 40.437583666993305,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 12,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 1.5604737079702318,
+          "client_queue_seconds": 20.444061500020325,
+          "completion_seconds": 41.998235749895684,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 13,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 1.5880071659339592,
+          "client_queue_seconds": 22.00462908402551,
+          "completion_seconds": 43.586340999929234,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-1",
+          "query": "skewed",
+          "submission_ordinal": 14,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 1.218824749928899,
+          "client_queue_seconds": 23.592810166999698,
+          "completion_seconds": 44.80534366692882,
+          "response_body_bytes": 8648,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 15,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 1.985903749940917,
+          "client_queue_seconds": 24.811728792032227,
+          "completion_seconds": 46.791345416917466,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 16,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 1.5038737499853596,
+          "client_queue_seconds": 26.79771987500135,
+          "completion_seconds": 48.29531049996149,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 17,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 1.5442320839501917,
+          "client_queue_seconds": 28.30178633297328,
+          "completion_seconds": 49.839739583898336,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 18,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 1.0937380829127505,
+          "client_queue_seconds": 29.84610587498173,
+          "completion_seconds": 50.93356954189949,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-1",
+          "query": "skewed",
+          "submission_ordinal": 19,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 1.6309335000114515,
+          "client_queue_seconds": 30.939955957932398,
+          "completion_seconds": 52.56461891694926,
+          "response_body_bytes": 8648,
+          "response_nodes": 4,
+          "response_edges": 3
+        }
+      ],
+      "load_average_before": [30.1240234375, 30.52099609375, 25.8779296875],
+      "load_average_after": [36.74609375, 32.4228515625, 26.90771484375]
+    },
+    {
+      "rows": 1000,
+      "concurrency": 4,
+      "correctness_ok": true,
+      "checks": {
+        "unauthenticated_rejected": true,
+        "invalid_credential_rejected": true,
+        "exact_bindings": true,
+        "duplicate_records": true,
+        "source_account_isolation": true,
+        "account_collision_isolation": true,
+        "foreign_root_rejected": true,
+        "all_submitted_reads_completed": true,
+        "stale_version_rejected": true
+      },
+      "scenarios": {
+        "balanced": {
+          "reads": 8,
+          "clients": 4,
+          "wall_seconds": 5.085394042078406,
+          "reads_per_second": 1.5731327668623278,
+          "per_tenant": {
+            "tenant-0": {
+              "submitted": 4,
+              "completed": 4,
+              "latency_seconds": {
+                "p50": 2.2945812499383464,
+                "p95": 2.5757986250100657,
+                "p99": 2.5757986250100657
+              },
+              "client_queue_seconds": {
+                "p50": 0.0009307080181315541,
+                "p95": 2.3013405409874395,
+                "p99": 2.3013405409874395
+              }
+            },
+            "tenant-1": {
+              "submitted": 4,
+              "completed": 4,
+              "latency_seconds": {
+                "p50": 2.305905875051394,
+                "p95": 2.777535208966583,
+                "p99": 2.777535208966583
+              },
+              "client_queue_seconds": {
+                "p50": 0.00023733300622552633,
+                "p95": 2.3035834999755025,
+                "p99": 2.3035834999755025
+              }
+            }
+          }
+        },
+        "skewed": {
+          "reads": 20,
+          "clients": 4,
+          "wall_seconds": 13.05694466701243,
+          "reads_per_second": 1.53175191517268,
+          "per_tenant": {
+            "tenant-0": {
+              "submitted": 16,
+              "completed": 16,
+              "latency_seconds": {
+                "p50": 2.4872344590257853,
+                "p95": 2.8437554999254644,
+                "p99": 2.8437554999254644
+              },
+              "client_queue_seconds": {
+                "p50": 4.53596991696395,
+                "p95": 9.741714707924984,
+                "p99": 9.741714707924984
+              }
+            },
+            "tenant-1": {
+              "submitted": 4,
+              "completed": 4,
+              "latency_seconds": {
+                "p50": 2.5523925840388983,
+                "p95": 2.7170360840391368,
+                "p99": 2.7170360840391368
+              },
+              "client_queue_seconds": {
+                "p50": 4.626889457926154,
+                "p95": 10.334712708019651,
+                "p99": 10.334712708019651
+              }
+            }
+          }
+        }
+      },
+      "transport": "http",
+      "seed": 910,
+      "retained_bytes": 1924754,
+      "unique_records_per_tenant": 1000,
+      "input_rows_including_duplicates": 1001,
+      "input_sha256": [
+        "ef007260da43638d25d3c2199f49ba2361a8e4f6cf2b34a8f3a3b60daaac374e",
+        "16ecf93d4460077699c410c515d549d570b89211523bbff172760b523240ef78"
+      ],
+      "input_bytes_per_tenant": [382114, 382114],
+      "model_counts": {
+        "framework": 20,
+        "control": 2252,
+        "ccf_category": 10,
+        "ccf_family": 21,
+        "safeguard": 96,
+        "evidence_type": 1000,
+        "asset": 1000,
+        "environment": 2,
+        "account": 2,
+        "source": 2,
+        "finding": 364
+      },
+      "wall_seconds": 28.26174633402843,
+      "cpu_seconds": 10.983303,
+      "peak_rss_mib": 257.65625,
+      "reads": [
+        {
+          "tenant": "tenant-0",
+          "query": "first",
+          "submission_ordinal": 0,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 1.3424790418939665,
+          "client_queue_seconds": 3.7509016692638397e-7,
+          "completion_seconds": 4.543120083981194,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-1",
+          "query": "first",
+          "submission_ordinal": 1,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 1.1447449160041288,
+          "client_queue_seconds": 7.919734343886375e-7,
+          "completion_seconds": 5.688703750027344,
+          "response_body_bytes": 8648,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "balanced",
+          "submission_ordinal": 0,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 2.2940828329883516,
+          "client_queue_seconds": 0.00019479193724691868,
+          "completion_seconds": 10.832303249975666,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "balanced",
+          "submission_ordinal": 2,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 2.2945812499383464,
+          "client_queue_seconds": 0.0009307080181315541,
+          "completion_seconds": 10.834750375011936,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-1",
+          "query": "balanced",
+          "submission_ordinal": 3,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 2.301471082959324,
+          "client_queue_seconds": 8.737493772059679e-5,
+          "completion_seconds": 10.842646999983117,
+          "response_body_bytes": 8648,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-1",
+          "query": "balanced",
+          "submission_ordinal": 1,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 2.305905875051394,
+          "client_queue_seconds": 0.00023733300622552633,
+          "completion_seconds": 10.844790667062625,
+          "response_body_bytes": 8648,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "balanced",
+          "submission_ordinal": 4,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 2.570708916056901,
+          "client_queue_seconds": 2.291079666931182,
+          "completion_seconds": 13.403156500076875,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-1",
+          "query": "balanced",
+          "submission_ordinal": 5,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 2.582347707939334,
+          "client_queue_seconds": 2.293450874974951,
+          "completion_seconds": 13.417172666988336,
+          "response_body_bytes": 8648,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "balanced",
+          "submission_ordinal": 6,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 2.5757986250100657,
+          "client_queue_seconds": 2.3013405409874395,
+          "completion_seconds": 13.418516125064343,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-1",
+          "query": "balanced",
+          "submission_ordinal": 7,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 2.777535208966583,
+          "client_queue_seconds": 2.3035834999755025,
+          "completion_seconds": 13.622497709002346,
+          "response_body_bytes": 8648,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 3,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 2.4088208749890327,
+          "client_queue_seconds": 0.0001545000122860074,
+          "completion_seconds": 16.03433649998624,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 2,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 2.411472041043453,
+          "client_queue_seconds": 0.00043579202610999346,
+          "completion_seconds": 16.036186875076964,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 0,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 2.415100167039782,
+          "client_queue_seconds": 8.008291479200125e-5,
+          "completion_seconds": 16.03862820903305,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 1,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 2.417286125011742,
+          "client_queue_seconds": 0.0001432910794392228,
+          "completion_seconds": 16.04130837507546,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-1",
+          "query": "skewed",
+          "submission_ordinal": 4,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 2.1273874159669504,
+          "client_queue_seconds": 2.4081267920555547,
+          "completion_seconds": 18.161810750025325,
+          "response_body_bytes": 8648,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 7,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 2.2115976670756936,
+          "client_queue_seconds": 2.415058415965177,
+          "completion_seconds": 18.25297779205721,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 6,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 2.277518792077899,
+          "client_queue_seconds": 2.4124907079385594,
+          "completion_seconds": 18.316326167085208,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 5,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 2.4872344590257853,
+          "client_queue_seconds": 2.409952500020154,
+          "completion_seconds": 18.523497709073126,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 8,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 2.614402291015722,
+          "client_queue_seconds": 4.53596991696395,
+          "completion_seconds": 20.7766985000344,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 11,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 2.2546807089820504,
+          "client_queue_seconds": 4.897277000010945,
+          "completion_seconds": 20.778297209064476,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-1",
+          "query": "skewed",
+          "submission_ordinal": 9,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 2.5523925840388983,
+          "client_queue_seconds": 4.626889457926154,
+          "completion_seconds": 20.805612834054045,
+          "response_body_bytes": 8648,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 10,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 2.8437554999254644,
+          "client_queue_seconds": 4.690177750075236,
+          "completion_seconds": 21.16026845900342,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-1",
+          "query": "skewed",
+          "submission_ordinal": 14,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 2.556269417051226,
+          "client_queue_seconds": 7.179458583006635,
+          "completion_seconds": 23.362081584054977,
+          "response_body_bytes": 8648,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 12,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 2.5868802500190213,
+          "client_queue_seconds": 7.150536583038047,
+          "completion_seconds": 23.363760750042275,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 13,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 2.5895232500042766,
+          "client_queue_seconds": 7.1520339999115095,
+          "completion_seconds": 23.3679065000033,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 15,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 2.800488792010583,
+          "client_queue_seconds": 7.534129166975617,
+          "completion_seconds": 23.96097620902583,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 16,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 2.4882577089592814,
+          "client_queue_seconds": 9.73592470807489,
+          "completion_seconds": 25.850545209017582,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 17,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 2.4993329159915447,
+          "client_queue_seconds": 9.737486124970019,
+          "completion_seconds": 25.863186500035226,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 18,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 2.789022667100653,
+          "client_queue_seconds": 9.741714707924984,
+          "completion_seconds": 26.15710916707758,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-1",
+          "query": "skewed",
+          "submission_ordinal": 19,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 2.7170360840391368,
+          "client_queue_seconds": 10.334712708019651,
+          "completion_seconds": 26.67812533408869,
+          "response_body_bytes": 8648,
+          "response_nodes": 4,
+          "response_edges": 3
+        }
+      ],
+      "load_average_before": [36.74609375, 32.4228515625, 26.90771484375],
+      "load_average_after": [37.81640625, 33.16552734375, 27.39892578125]
+    },
+    {
+      "rows": 1000,
+      "concurrency": 8,
+      "correctness_ok": true,
+      "checks": {
+        "unauthenticated_rejected": true,
+        "invalid_credential_rejected": true,
+        "exact_bindings": true,
+        "duplicate_records": true,
+        "source_account_isolation": true,
+        "account_collision_isolation": true,
+        "foreign_root_rejected": true,
+        "all_submitted_reads_completed": true,
+        "stale_version_rejected": true
+      },
+      "scenarios": {
+        "balanced": {
+          "reads": 8,
+          "clients": 8,
+          "wall_seconds": 3.9072706250008196,
+          "reads_per_second": 2.0474650383343542,
+          "per_tenant": {
+            "tenant-0": {
+              "submitted": 4,
+              "completed": 4,
+              "latency_seconds": {
+                "p50": 3.5879433340160176,
+                "p95": 3.875516499974765,
+                "p99": 3.875516499974765
+              },
+              "client_queue_seconds": {
+                "p50": 6.970798131078482e-5,
+                "p95": 0.0004100420046597719,
+                "p99": 0.0004100420046597719
+              }
+            },
+            "tenant-1": {
+              "submitted": 4,
+              "completed": 4,
+              "latency_seconds": {
+                "p50": 3.6349276659311727,
+                "p95": 3.906054791994393,
+                "p99": 3.906054791994393
+              },
+              "client_queue_seconds": {
+                "p50": 0.0002227500081062317,
+                "p95": 0.000268207979388535,
+                "p99": 0.000268207979388535
+              }
+            }
+          }
+        },
+        "skewed": {
+          "reads": 20,
+          "clients": 8,
+          "wall_seconds": 10.125518624903634,
+          "reads_per_second": 1.9752074674782738,
+          "per_tenant": {
+            "tenant-0": {
+              "submitted": 16,
+              "completed": 16,
+              "latency_seconds": {
+                "p50": 3.447073583956808,
+                "p95": 4.155816792044789,
+                "p99": 4.155816792044789
+              },
+              "client_queue_seconds": {
+                "p50": 3.131790459039621,
+                "p95": 7.313230250030756,
+                "p99": 7.313230250030756
+              }
+            },
+            "tenant-1": {
+              "submitted": 4,
+              "completed": 4,
+              "latency_seconds": {
+                "p50": 3.3246902499813586,
+                "p95": 4.1353826250415295,
+                "p99": 4.1353826250415295
+              },
+              "client_queue_seconds": {
+                "p50": 3.179628707934171,
+                "p95": 7.315152333001606,
+                "p99": 7.315152333001606
+              }
+            }
+          }
+        }
+      },
+      "transport": "http",
+      "seed": 910,
+      "retained_bytes": 1924782,
+      "unique_records_per_tenant": 1000,
+      "input_rows_including_duplicates": 1001,
+      "input_sha256": [
+        "ef007260da43638d25d3c2199f49ba2361a8e4f6cf2b34a8f3a3b60daaac374e",
+        "16ecf93d4460077699c410c515d549d570b89211523bbff172760b523240ef78"
+      ],
+      "input_bytes_per_tenant": [382114, 382114],
+      "model_counts": {
+        "framework": 20,
+        "control": 2252,
+        "ccf_category": 10,
+        "ccf_family": 21,
+        "safeguard": 96,
+        "evidence_type": 1000,
+        "asset": 1000,
+        "environment": 2,
+        "account": 2,
+        "source": 2,
+        "finding": 364
+      },
+      "wall_seconds": 24.60315720899962,
+      "cpu_seconds": 10.866957000000001,
+      "peak_rss_mib": 307.59375,
+      "reads": [
+        {
+          "tenant": "tenant-0",
+          "query": "first",
+          "submission_ordinal": 0,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 1.5782616670476273,
+          "client_queue_seconds": 6.669433787465096e-7,
+          "completion_seconds": 5.002268334035762,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-1",
+          "query": "first",
+          "submission_ordinal": 1,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 1.1553735829656944,
+          "client_queue_seconds": 5.00003807246685e-7,
+          "completion_seconds": 6.158124041976407,
+          "response_body_bytes": 8648,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "balanced",
+          "submission_ordinal": 2,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 2.305156624992378,
+          "client_queue_seconds": 0.0004100420046597719,
+          "completion_seconds": 11.233359417063184,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "balanced",
+          "submission_ordinal": 0,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 3.5879433340160176,
+          "client_queue_seconds": 6.970798131078482e-5,
+          "completion_seconds": 12.514913959079422,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-1",
+          "query": "balanced",
+          "submission_ordinal": 7,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 3.625413083937019,
+          "client_queue_seconds": 0.0002227500081062317,
+          "completion_seconds": 12.557193959015422,
+          "response_body_bytes": 8648,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-1",
+          "query": "balanced",
+          "submission_ordinal": 3,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 3.6349276659311727,
+          "client_queue_seconds": 0.00010695902165025473,
+          "completion_seconds": 12.564158749999478,
+          "response_body_bytes": 8648,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "balanced",
+          "submission_ordinal": 6,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 3.870477541931905,
+          "client_queue_seconds": 7.641699630767107e-5,
+          "completion_seconds": 12.801689459010959,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "balanced",
+          "submission_ordinal": 4,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 3.875516499974765,
+          "client_queue_seconds": 3.1374976970255375e-5,
+          "completion_seconds": 12.805106209008954,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-1",
+          "query": "balanced",
+          "submission_ordinal": 5,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 3.9004184999503195,
+          "client_queue_seconds": 0.000268207979388535,
+          "completion_seconds": 12.830679874983616,
+          "response_body_bytes": 8648,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-1",
+          "query": "balanced",
+          "submission_ordinal": 1,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 3.906054791994393,
+          "client_queue_seconds": 0.00023537501692771912,
+          "completion_seconds": 12.833422792027704,
+          "response_body_bytes": 8648,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 5,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 3.132935250061564,
+          "client_queue_seconds": 8.520903065800667e-5,
+          "completion_seconds": 15.968700334080495,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 0,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 3.1822806251002476,
+          "client_queue_seconds": 8.254195563495159e-5,
+          "completion_seconds": 16.016561084077694,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 6,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 3.189255499979481,
+          "client_queue_seconds": 0.000288125011138618,
+          "completion_seconds": 16.025569583987817,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 3,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 3.43802762508858,
+          "client_queue_seconds": 3.0499999411404133e-5,
+          "completion_seconds": 16.273217417066917,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 1,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 3.447073583956808,
+          "client_queue_seconds": 5.3582945838570595e-5,
+          "completion_seconds": 16.281746083986945,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 2,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 3.616488291998394,
+          "client_queue_seconds": 0.00010329100769013166,
+          "completion_seconds": 16.451558917062357,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-1",
+          "query": "skewed",
+          "submission_ordinal": 4,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 4.096474708989263,
+          "client_queue_seconds": 3.825000021606684e-5,
+          "completion_seconds": 16.931787583976984,
+          "response_body_bytes": 8648,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 7,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 4.155816792044789,
+          "client_queue_seconds": 9.224994573742151e-5,
+          "completion_seconds": 16.992680542054586,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 8,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 3.775840040994808,
+          "client_queue_seconds": 3.131790459039621,
+          "completion_seconds": 19.74471600004472,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 11,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 3.616653500008397,
+          "client_queue_seconds": 3.4363162079825997,
+          "completion_seconds": 19.89006587502081,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 10,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 4.12431258300785,
+          "client_queue_seconds": 3.1885702090803534,
+          "completion_seconds": 20.149976917076856,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-1",
+          "query": "skewed",
+          "submission_ordinal": 9,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 4.1353826250415295,
+          "client_queue_seconds": 3.179628707934171,
+          "completion_seconds": 20.152102750027552,
+          "response_body_bytes": 8648,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-1",
+          "query": "skewed",
+          "submission_ordinal": 14,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 3.3246902499813586,
+          "client_queue_seconds": 4.094792166026309,
+          "completion_seconds": 20.256584124988876,
+          "response_body_bytes": 8648,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 12,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 3.978077083011158,
+          "client_queue_seconds": 3.444747917004861,
+          "completion_seconds": 20.259923000005074,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 13,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 3.812831124989316,
+          "client_queue_seconds": 3.6145563749596477,
+          "completion_seconds": 20.264487292035483,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 15,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 3.537573792040348,
+          "client_queue_seconds": 4.155749041005038,
+          "completion_seconds": 20.53042616706807,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 16,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 2.789431207929738,
+          "client_queue_seconds": 6.907802166999318,
+          "completion_seconds": 22.534338416997343,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 17,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 3.0472348749171942,
+          "client_queue_seconds": 7.053149792016484,
+          "completion_seconds": 22.93749216699507,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-1",
+          "query": "skewed",
+          "submission_ordinal": 19,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 2.791392417042516,
+          "client_queue_seconds": 7.315152333001606,
+          "completion_seconds": 22.943657667026855,
+          "response_body_bytes": 8648,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 18,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 2.8042238330235705,
+          "client_queue_seconds": 7.313230250030756,
+          "completion_seconds": 22.95456504204776,
+          "response_body_bytes": 8646,
+          "response_nodes": 4,
+          "response_edges": 3
+        }
+      ],
+      "load_average_before": [37.81640625, 33.16552734375, 27.39892578125],
+      "load_average_after": [37.68359375, 33.5908203125, 27.75244140625]
+    },
+    {
+      "rows": 10000,
+      "concurrency": 1,
+      "correctness_ok": true,
+      "checks": {
+        "unauthenticated_rejected": true,
+        "invalid_credential_rejected": true,
+        "exact_bindings": true,
+        "duplicate_records": true,
+        "source_account_isolation": true,
+        "account_collision_isolation": true,
+        "foreign_root_rejected": true,
+        "all_submitted_reads_completed": true,
+        "stale_version_rejected": true
+      },
+      "scenarios": {
+        "balanced": {
+          "reads": 8,
+          "clients": 1,
+          "wall_seconds": 63.75403658405412,
+          "reads_per_second": 0.12548225067212332,
+          "per_tenant": {
+            "tenant-0": {
+              "submitted": 4,
+              "completed": 4,
+              "latency_seconds": {
+                "p50": 7.506544583011419,
+                "p95": 9.956176500068977,
+                "p99": 9.956176500068977
+              },
+              "client_queue_seconds": {
+                "p50": 17.778944958001375,
+                "p95": 48.50724883400835,
+                "p99": 48.50724883400835
+              }
+            },
+            "tenant-1": {
+              "submitted": 4,
+              "completed": 4,
+              "latency_seconds": {
+                "p50": 7.737387708970346,
+                "p95": 7.980012792046182,
+                "p99": 7.980012792046182
+              },
+              "client_queue_seconds": {
+                "p50": 25.026652749977075,
+                "p95": 56.01439920801204,
+                "p99": 56.01439920801204
+              }
+            }
+          }
+        },
+        "skewed": {
+          "reads": 20,
+          "clients": 1,
+          "wall_seconds": 146.6716866249917,
+          "reads_per_second": 0.13635896920675455,
+          "per_tenant": {
+            "tenant-0": {
+              "submitted": 16,
+              "completed": 16,
+              "latency_seconds": {
+                "p50": 7.288833583006635,
+                "p95": 7.91962674993556,
+                "p99": 7.91962674993556
+              },
+              "client_queue_seconds": {
+                "p50": 58.02581520797685,
+                "p95": 130.5237765420461,
+                "p99": 130.5237765420461
+              }
+            },
+            "tenant-1": {
+              "submitted": 4,
+              "completed": 4,
+              "latency_seconds": {
+                "p50": 7.039756082929671,
+                "p95": 8.83071741706226,
+                "p99": 8.83071741706226
+              },
+              "client_queue_seconds": {
+                "p50": 65.24548820895143,
+                "p95": 137.83935220795684,
+                "p99": 137.83935220795684
+              }
+            }
+          }
+        }
+      },
+      "transport": "http",
+      "seed": 910,
+      "retained_bytes": 12303881,
+      "unique_records_per_tenant": 10000,
+      "input_rows_including_duplicates": 10001,
+      "input_sha256": [
+        "76acd0d053e069c8ae67792f771b672f036101196b23f5809c3b0d2161e63ee8",
+        "0dcbfb1a8695d80479d7525399f6acd7fe00e14839d28fb6d39649defd4e302e"
+      ],
+      "input_bytes_per_tenant": [3841837, 3841837],
+      "model_counts": {
+        "framework": 20,
+        "control": 2252,
+        "ccf_category": 10,
+        "ccf_family": 21,
+        "safeguard": 96,
+        "evidence_type": 10000,
+        "asset": 10000,
+        "environment": 2,
+        "account": 2,
+        "source": 2,
+        "finding": 3935
+      },
+      "wall_seconds": 260.2278307080269,
+      "cpu_seconds": 53.214277,
+      "peak_rss_mib": 358.828125,
+      "reads": [
+        {
+          "tenant": "tenant-0",
+          "query": "first",
+          "submission_ordinal": 0,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 7.65543683397118,
+          "client_queue_seconds": 7.910421118140221e-7,
+          "completion_seconds": 13.212701917043887,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-1",
+          "query": "first",
+          "submission_ordinal": 1,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 8.67705025000032,
+          "client_queue_seconds": 8.330680429935455e-7,
+          "completion_seconds": 21.8904259580886,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "balanced",
+          "submission_ordinal": 0,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 9.956176500068977,
+          "client_queue_seconds": 0.0007096659392118454,
+          "completion_seconds": 51.56372820807155,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-1",
+          "query": "balanced",
+          "submission_ordinal": 1,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 7.8226856659166515,
+          "client_queue_seconds": 9.956089584040456,
+          "completion_seconds": 59.38651308300905,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "balanced",
+          "submission_ordinal": 2,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 7.24764395901002,
+          "client_queue_seconds": 17.778944958001375,
+          "completion_seconds": 66.63435304199811,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-1",
+          "query": "balanced",
+          "submission_ordinal": 3,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 7.380382500006817,
+          "client_queue_seconds": 25.026652749977075,
+          "completion_seconds": 74.01484408299439,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "balanced",
+          "submission_ordinal": 4,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 8.119659791933373,
+          "client_queue_seconds": 32.40719641605392,
+          "completion_seconds": 82.13467900000978,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-1",
+          "query": "balanced",
+          "submission_ordinal": 5,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 7.980012792046182,
+          "client_queue_seconds": 40.527063290937804,
+          "completion_seconds": 90.11490575002972,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "balanced",
+          "submission_ordinal": 6,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 7.506544583011419,
+          "client_queue_seconds": 48.50724883400835,
+          "completion_seconds": 97.62162812508177,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-1",
+          "query": "balanced",
+          "submission_ordinal": 7,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 7.737387708970346,
+          "client_queue_seconds": 56.01439920801204,
+          "completion_seconds": 105.35962916701101,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 0,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 6.99294537503738,
+          "client_queue_seconds": 4.958303179591894e-5,
+          "completion_seconds": 112.3538950830698,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 1,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 7.142727541970089,
+          "client_queue_seconds": 6.9927262080600485,
+          "completion_seconds": 119.49672654201277,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 2,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 7.364386249915697,
+          "client_queue_seconds": 14.135617209016345,
+          "completion_seconds": 126.86129416699987,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 3,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 7.036213582963683,
+          "client_queue_seconds": 21.500179375056177,
+          "completion_seconds": 133.89769008301664,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-1",
+          "query": "skewed",
+          "submission_ordinal": 4,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 7.039756082929671,
+          "client_queue_seconds": 28.536558833089657,
+          "completion_seconds": 140.9376173330238,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 5,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 7.591455708025023,
+          "client_queue_seconds": 35.576483791926876,
+          "completion_seconds": 148.52924670802895,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 6,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 7.366637625033036,
+          "client_queue_seconds": 43.16824741696473,
+          "completion_seconds": 155.8961967920186,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 7,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 7.490600249962881,
+          "client_queue_seconds": 50.535038957954384,
+          "completion_seconds": 163.38696074998006,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 8,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 7.219504000036977,
+          "client_queue_seconds": 58.02581520797685,
+          "completion_seconds": 170.606647000066,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-1",
+          "query": "skewed",
+          "submission_ordinal": 9,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 7.127776125096716,
+          "client_queue_seconds": 65.24548820895143,
+          "completion_seconds": 177.73459654208273,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 10,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 6.990438124979846,
+          "client_queue_seconds": 72.37335274997167,
+          "completion_seconds": 184.72512800002005,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 11,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 7.185476208920591,
+          "client_queue_seconds": 79.36388858302962,
+          "completion_seconds": 191.91070766700432,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 12,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 6.5994413329754025,
+          "client_queue_seconds": 86.54954512498807,
+          "completion_seconds": 198.5103337080218,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 13,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 7.640323166036978,
+          "client_queue_seconds": 93.14918025000952,
+          "completion_seconds": 206.15085633308627,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-1",
+          "query": "skewed",
+          "submission_ordinal": 14,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 6.99306745803915,
+          "client_queue_seconds": 100.7896874169819,
+          "completion_seconds": 213.14411362505052,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 15,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 7.532023875042796,
+          "client_queue_seconds": 107.78293591702823,
+          "completion_seconds": 220.67632279207464,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 16,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 7.288833583006635,
+          "client_queue_seconds": 115.31513866700698,
+          "completion_seconds": 227.96534083306324,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 17,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 7.91962674993556,
+          "client_queue_seconds": 122.60406250006054,
+          "completion_seconds": 235.88506345800124,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 18,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 7.315268999896944,
+          "client_queue_seconds": 130.5237765420461,
+          "completion_seconds": 243.20042416697834,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-1",
+          "query": "skewed",
+          "submission_ordinal": 19,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 8.83071741706226,
+          "client_queue_seconds": 137.83935220795684,
+          "completion_seconds": 252.03145412507,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        }
+      ],
+      "load_average_before": [37.68359375, 33.5908203125, 27.75244140625],
+      "load_average_after": [34.68505859375, 34.01611328125, 29.48876953125]
+    },
+    {
+      "rows": 10000,
+      "concurrency": 4,
+      "correctness_ok": true,
+      "checks": {
+        "unauthenticated_rejected": true,
+        "invalid_credential_rejected": true,
+        "exact_bindings": true,
+        "duplicate_records": true,
+        "source_account_isolation": true,
+        "account_collision_isolation": true,
+        "foreign_root_rejected": true,
+        "all_submitted_reads_completed": true,
+        "stale_version_rejected": true
+      },
+      "scenarios": {
+        "balanced": {
+          "reads": 8,
+          "clients": 4,
+          "wall_seconds": 28.82190450001508,
+          "reads_per_second": 0.27756666808731584,
+          "per_tenant": {
+            "tenant-0": {
+              "submitted": 4,
+              "completed": 4,
+              "latency_seconds": {
+                "p50": 14.468337540980428,
+                "p95": 15.354807875002734,
+                "p99": 15.354807875002734
+              },
+              "client_queue_seconds": {
+                "p50": 0.000569417024962604,
+                "p95": 13.328293790924363,
+                "p99": 13.328293790924363
+              }
+            },
+            "tenant-1": {
+              "submitted": 4,
+              "completed": 4,
+              "latency_seconds": {
+                "p50": 13.328923041000962,
+                "p95": 15.255672167055309,
+                "p99": 15.255672167055309
+              },
+              "client_queue_seconds": {
+                "p50": 0.0003102079499512911,
+                "p95": 14.465257375035435,
+                "p99": 14.465257375035435
+              }
+            }
+          }
+        },
+        "skewed": {
+          "reads": 20,
+          "clients": 4,
+          "wall_seconds": 71.19997970794793,
+          "reads_per_second": 0.2808989564609024,
+          "per_tenant": {
+            "tenant-0": {
+              "submitted": 16,
+              "completed": 16,
+              "latency_seconds": {
+                "p50": 14.342457958031446,
+                "p95": 15.355851166066714,
+                "p99": 15.355851166066714
+              },
+              "client_queue_seconds": {
+                "p50": 28.00849441695027,
+                "p95": 57.49984245793894,
+                "p99": 57.49984245793894
+              }
+            },
+            "tenant-1": {
+              "submitted": 4,
+              "completed": 4,
+              "latency_seconds": {
+                "p50": 14.12399487500079,
+                "p95": 14.4210186250275,
+                "p99": 14.4210186250275
+              },
+              "client_queue_seconds": {
+                "p50": 28.94484258396551,
+                "p95": 57.5888459169073,
+                "p99": 57.5888459169073
+              }
+            }
+          }
+        }
+      },
+      "transport": "http",
+      "seed": 910,
+      "retained_bytes": 12303927,
+      "unique_records_per_tenant": 10000,
+      "input_rows_including_duplicates": 10001,
+      "input_sha256": [
+        "76acd0d053e069c8ae67792f771b672f036101196b23f5809c3b0d2161e63ee8",
+        "0dcbfb1a8695d80479d7525399f6acd7fe00e14839d28fb6d39649defd4e302e"
+      ],
+      "input_bytes_per_tenant": [3841837, 3841837],
+      "model_counts": {
+        "framework": 20,
+        "control": 2252,
+        "ccf_category": 10,
+        "ccf_family": 21,
+        "safeguard": 96,
+        "evidence_type": 10000,
+        "asset": 10000,
+        "environment": 2,
+        "account": 2,
+        "source": 2,
+        "finding": 3935
+      },
+      "wall_seconds": 143.08632454206236,
+      "cpu_seconds": 55.823676999999996,
+      "peak_rss_mib": 572.25,
+      "reads": [
+        {
+          "tenant": "tenant-0",
+          "query": "first",
+          "submission_ordinal": 0,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 8.970744249993004,
+          "client_queue_seconds": 7.079215720295906e-7,
+          "completion_seconds": 14.175702332984656,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-1",
+          "query": "first",
+          "submission_ordinal": 1,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 8.308190124924295,
+          "client_queue_seconds": 5.00003807246685e-7,
+          "completion_seconds": 22.4846142079914,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "balanced",
+          "submission_ordinal": 2,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 13.218713707989082,
+          "client_queue_seconds": 0.00012729200534522533,
+          "completion_seconds": 50.297153374995105,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-1",
+          "query": "balanced",
+          "submission_ordinal": 1,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 13.316543332999572,
+          "client_queue_seconds": 0.0003102079499512911,
+          "completion_seconds": 50.39401520800311,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-1",
+          "query": "balanced",
+          "submission_ordinal": 3,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 13.328923041000962,
+          "client_queue_seconds": 0.0002389169530943036,
+          "completion_seconds": 50.40803758299444,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "balanced",
+          "submission_ordinal": 0,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 14.468337540980428,
+          "client_queue_seconds": 0.000569417024962604,
+          "completion_seconds": 51.54500645806547,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-1",
+          "query": "balanced",
+          "submission_ordinal": 5,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 15.255672167055309,
+          "client_queue_seconds": 13.314314957940951,
+          "completion_seconds": 65.64981662505306,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "balanced",
+          "submission_ordinal": 4,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 15.354807875002734,
+          "client_queue_seconds": 13.217572542023845,
+          "completion_seconds": 65.65219316701405,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "balanced",
+          "submission_ordinal": 6,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 15.246766334050335,
+          "client_queue_seconds": 13.328293790924363,
+          "completion_seconds": 65.65489591704682,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-1",
+          "query": "balanced",
+          "submission_ordinal": 7,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 14.352109667030163,
+          "client_queue_seconds": 14.465257375035435,
+          "completion_seconds": 65.89720787503757,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 1,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 14.589539041975513,
+          "client_queue_seconds": 0.00023212505038827658,
+          "completion_seconds": 80.4881375420373,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 3,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 14.590733791934326,
+          "client_queue_seconds": 0.00016537506598979235,
+          "completion_seconds": 80.49021149997134,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 2,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 14.592071208055131,
+          "client_queue_seconds": 6.129196844995022e-5,
+          "completion_seconds": 80.4911748750601,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 0,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 14.603816792019643,
+          "client_queue_seconds": 3.766606096178293e-5,
+          "completion_seconds": 80.50188762508333,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 5,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 13.417804749915376,
+          "client_queue_seconds": 14.590518500073813,
+          "completion_seconds": 93.90810237498954,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 7,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 14.342457958031446,
+          "client_queue_seconds": 14.602191832964309,
+          "completion_seconds": 94.84443433303386,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 6,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 14.359705124981701,
+          "client_queue_seconds": 14.591554415994324,
+          "completion_seconds": 94.8510415829951,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-1",
+          "query": "skewed",
+          "submission_ordinal": 4,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 14.365884791943245,
+          "client_queue_seconds": 14.588567583006807,
+          "completion_seconds": 94.85422479198314,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 11,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 14.40302483306732,
+          "client_queue_seconds": 28.954504958936013,
+          "completion_seconds": 109.25733100005891,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 8,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 15.355851166066714,
+          "client_queue_seconds": 28.00849441695027,
+          "completion_seconds": 109.2641325830482,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-1",
+          "query": "skewed",
+          "submission_ordinal": 9,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 14.4210186250275,
+          "client_queue_seconds": 28.94484258396551,
+          "completion_seconds": 109.26565791701432,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 10,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 14.681883624987677,
+          "client_queue_seconds": 28.951345290988684,
+          "completion_seconds": 109.5330278329784,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-1",
+          "query": "skewed",
+          "submission_ordinal": 14,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 14.12399487500079,
+          "client_queue_seconds": 43.365943250013515,
+          "completion_seconds": 123.38974550005514,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 15,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 13.858089457964525,
+          "client_queue_seconds": 43.63341983407736,
+          "completion_seconds": 123.3913183750119,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 12,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 14.142183708027005,
+          "client_queue_seconds": 43.35767758404836,
+          "completion_seconds": 123.39966462505981,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 13,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 14.224277916946448,
+          "client_queue_seconds": 43.36454974999651,
+          "completion_seconds": 123.48863329202868,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 17,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 13.49492662504781,
+          "client_queue_seconds": 57.491594124934636,
+          "completion_seconds": 136.88641833304428,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 18,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 13.495842167059891,
+          "client_queue_seconds": 57.49984245793894,
+          "completion_seconds": 136.89559275005013,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 16,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 13.506352583994158,
+          "client_queue_seconds": 57.49013883306179,
+          "completion_seconds": 136.89630241703708,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-1",
+          "query": "skewed",
+          "submission_ordinal": 19,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 13.607921125018038,
+          "client_queue_seconds": 57.5888459169073,
+          "completion_seconds": 137.09668154199608,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        }
+      ],
+      "load_average_before": [34.68505859375, 34.01611328125, 29.48876953125],
+      "load_average_after": [30.845703125, 32.7041015625, 29.68115234375]
+    },
+    {
+      "rows": 10000,
+      "concurrency": 8,
+      "correctness_ok": false,
+      "error_type": "ValueError",
+      "failed": "HTTP concurrent read failed",
+      "completed_reads": [
+        {
+          "tenant": "tenant-0",
+          "query": "first",
+          "submission_ordinal": 0,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 6.9945577080361545,
+          "client_queue_seconds": 6.25033862888813e-7,
+          "completion_seconds": 12.659198875073344,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-1",
+          "query": "first",
+          "submission_ordinal": 1,
+          "http_status": 200,
+          "error_type": null,
+          "seconds": 7.296535999979824,
+          "client_queue_seconds": 4.580942913889885e-7,
+          "completion_seconds": 19.956364750047214,
+          "response_body_bytes": 8702,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "balanced",
+          "submission_ordinal": 6,
+          "http_status": null,
+          "error_type": "ReadTimeout",
+          "seconds": 30.010862334049307,
+          "client_queue_seconds": 0.0004243749426677823,
+          "completion_seconds": 64.66633133403957,
+          "response_body_bytes": 0
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "balanced",
+          "submission_ordinal": 4,
+          "http_status": null,
+          "error_type": "ReadTimeout",
+          "seconds": 30.014045333024114,
+          "client_queue_seconds": 0.0004887499380856752,
+          "completion_seconds": 64.66733841702808,
+          "response_body_bytes": 0
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "balanced",
+          "submission_ordinal": 2,
+          "http_status": null,
+          "error_type": "ReadTimeout",
+          "seconds": 30.016059042070992,
+          "client_queue_seconds": 0.00014633301179856062,
+          "completion_seconds": 64.66746441705618,
+          "response_body_bytes": 0
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "balanced",
+          "submission_ordinal": 0,
+          "http_status": null,
+          "error_type": "ReadTimeout",
+          "seconds": 30.040901542059146,
+          "client_queue_seconds": 0.0011804999085143209,
+          "completion_seconds": 64.691316209035,
+          "response_body_bytes": 0
+        },
+        {
+          "tenant": "tenant-1",
+          "query": "balanced",
+          "submission_ordinal": 1,
+          "http_status": null,
+          "error_type": "ReadTimeout",
+          "seconds": 30.04065229103435,
+          "client_queue_seconds": 9.816698729991913e-5,
+          "completion_seconds": 64.6915322500281,
+          "response_body_bytes": 0
+        },
+        {
+          "tenant": "tenant-1",
+          "query": "balanced",
+          "submission_ordinal": 7,
+          "http_status": null,
+          "error_type": "ReadTimeout",
+          "seconds": 30.0721669170307,
+          "client_queue_seconds": 5.64999645575881e-5,
+          "completion_seconds": 64.7283167920541,
+          "response_body_bytes": 0
+        },
+        {
+          "tenant": "tenant-1",
+          "query": "balanced",
+          "submission_ordinal": 3,
+          "http_status": null,
+          "error_type": "ReadTimeout",
+          "seconds": 30.083647417020984,
+          "client_queue_seconds": 0.0002484159776940942,
+          "completion_seconds": 64.73587979201693,
+          "response_body_bytes": 0
+        },
+        {
+          "tenant": "tenant-1",
+          "query": "balanced",
+          "submission_ordinal": 5,
+          "http_status": null,
+          "error_type": "ReadTimeout",
+          "seconds": 30.081576625001617,
+          "client_queue_seconds": 0.0007306250045076013,
+          "completion_seconds": 64.73605716705788,
+          "response_body_bytes": 0
+        }
+      ],
+      "checks": {
+        "unauthenticated_rejected": true,
+        "invalid_credential_rejected": true,
+        "exact_bindings": true,
+        "duplicate_records": true,
+        "source_account_isolation": true,
+        "account_collision_isolation": true,
+        "foreign_root_rejected": true
+      },
+      "unique_records_per_tenant": 10000,
+      "input_sha256": [
+        "76acd0d053e069c8ae67792f771b672f036101196b23f5809c3b0d2161e63ee8",
+        "0dcbfb1a8695d80479d7525399f6acd7fe00e14839d28fb6d39649defd4e302e"
+      ],
+      "input_bytes_per_tenant": [3841837, 3841837],
+      "load_average_before": [30.845703125, 32.7041015625, 29.68115234375],
+      "load_average_after": [30.5537109375, 32.25048828125, 29.74755859375]
+    }
+  ],
+  "http_harness_sha256": "0b5564e9e586821bdcc617d02f4c18b038b957704f168b1674f6dc1ce75f1649"
+}
