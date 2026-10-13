@@ -1,5 +1,8 @@
 # Agent Skill Catalog
 
+Versioned examples below target the 0.3.5 candidate and become usable after
+publication. For a published deployment, use the v0.3.4 versions of these guides.
+
 Composable **skills** for coding agents, CI jobs, and MCP clients. Each skill maps
 intent → `/api/v1` routes → MCP tools → example payloads.
 
@@ -257,7 +260,7 @@ Console: `/console/agents/` — same routes with curl builder.
 **GitHub Action:**
 
 ```yaml
-- uses: koda-ai-studio/grc-lake/.github/actions/posture-gate@v0.3.4
+- uses: koda-ai-studio/grc-lake/.github/actions/posture-gate@v0.3.5
   with:
     grc-lake-url: ${{ secrets.GRC_LAKE_URL }}
     api-token: ${{ secrets.GRC_LAKE_API_TOKEN }}
