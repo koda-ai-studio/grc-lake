@@ -242,6 +242,23 @@ jobs:
           GRC_LAKE_COOKIE_SIGNING_KEY: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
         run: uv run python tools/api_smoke.py
 
+      - name: Qualify synthetic access and change workpapers
+        run: uv run python tools/qualify_control_workflow.py --out build/control-workflow-qualification
+      - name: Retain control workflow qualification evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: control-workflow-qualification
+          path: |
+            build/control-workflow-qualification/report.json
+            build/control-workflow-qualification/**/result.json
+            build/control-workflow-qualification/**/events.jsonl
+            build/control-workflow-qualification/**/plan.json
+            build/control-workflow-qualification/**/baseline.json
+            build/control-workflow-qualification/**/workpaper/*
+          if-no-files-found: warn
+          retention-days: 14
+
   python-tests:
     runs-on: ubuntu-latest
     # A passing shard can take ~20 minutes with coverage; retain time for uploads.

@@ -5,6 +5,8 @@ Python package, Helm chart, and bundled web console.
 
 ## Unreleased
 
+- Add a reproducible synthetic access/change qualification matrix with explicit expected outcomes, retained draft workpapers, input hashes, tenant rejection, replay and tamper checks. CI retains reports and review bundles; passing this matrix does not establish live-provider qualification or mapping approval.
+
 - Put installation before the README product tour, clarify the sample evidence-to-export workflow, separate human mapping review from demo inspection, and align package and tutorial repository links with the current organization.
 
 - Reject overlapping or malformed KnowBe4 pagination records instead of treating a partial list as evidence. Add a cursor-only, data-minimized qualification command; live next-cursor verification remains required before the November page-parameter retirement.
