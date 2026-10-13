@@ -4,7 +4,13 @@ test("sources use the full workspace and keep long provider names inside their p
   page,
 }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
+  const ingestionResponse = page.waitForResponse(
+    (response) => response.url().includes("/ingestion/status") && response.ok(),
+  );
   await page.goto("/console/dashboard/");
+  const sourceCount = (await (await ingestionResponse).json()).data.sources
+    .length;
+  expect(sourceCount).toBeGreaterThan(8);
   await page
     .getByRole("tab", { name: "Sources & operations", exact: true })
     .click();
@@ -26,7 +32,16 @@ test("sources use the full workspace and keep long provider names inside their p
     page
       .getByRole("navigation", { name: "Evidence sources pages" })
       .getByRole("status"),
-  ).toHaveText("9–9 of 9");
+  ).toHaveText(`9–${Math.min(16, sourceCount)} of ${sourceCount}`);
+  await expect(
+    panel.getByRole("link", { name: /^Open .+ source$/ }),
+  ).toHaveCount(Math.min(8, sourceCount - 8));
+  await page
+    .getByRole("button", { name: "Previous evidence sources page" })
+    .click();
+  await expect(
+    panel.getByRole("link", { name: /^Open .+ source$/ }),
+  ).toHaveCount(8);
   await page
     .getByRole("tab", { name: "Health & freshness", exact: true })
     .click();
