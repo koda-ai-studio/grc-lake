@@ -37,7 +37,7 @@ from security_lakehouse.connector_errors import ConnectorConfigError
 from security_lakehouse.connector_ids import stable_id_slug
 from security_lakehouse.execution_mode import in_server_mode
 from security_lakehouse.ingestion import backoff
-from security_lakehouse.ingestion.paginate import paginate
+from security_lakehouse.ingestion.paginate import object_rows, paginate
 from security_lakehouse.io import read_json
 from security_lakehouse.models import utc_iso
 
@@ -98,7 +98,7 @@ class IntuneClient:
             return payload
 
         def extract_items(page: dict[str, Any]) -> list[dict[str, Any]]:
-            return [item for item in page.get("value", []) if isinstance(item, dict)]
+            return object_rows(page.get("value", []), label="Intune")
 
         def next_cursor(page: dict[str, Any]) -> str | None:
             next_link = str(page.get("@odata.nextLink") or "")

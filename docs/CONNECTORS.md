@@ -218,9 +218,15 @@ The minimum GitHub App repository permissions are:
 | Secret scanning alerts: read | Aggregate secret-scanning counts by state; alert details are not persisted |
 | Dependabot alerts: read      | Aggregate dependency-alert counts by state and severity                    |
 
-GRC Lake follows GitHub list pagination for these alert APIs, capped at 1,000
-records per category per sync. It persists aggregate counts only; alert payloads,
-secret material, and tokens are not copied into evidence.
+GRC Lake paginates collaborators, teams and each alert category at 100 records
+per page. It fails the sync if a list does not end within 1,000 pages, repeats a
+page, or contains malformed items. Exhausted transient HTTP failures also fail
+the sync. A 401/403/404 remains an explicitly unavailable signal; inspect those
+gaps before using the evidence. Alert evidence contains aggregate counts only;
+alert details, secret material and tokens are not persisted. The GitHub probe
+validates configuration, not live API access or collection completeness.
+See the [GitHub qualification contract](GITHUB_QUALIFICATION.md) and
+[catalog-wide qualification matrix](CONNECTOR_QUALIFICATION.md).
 
 ```bash
 grc-lake connectors probe \

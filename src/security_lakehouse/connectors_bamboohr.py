@@ -26,7 +26,7 @@ from typing import Any
 from security_lakehouse import netguard
 from security_lakehouse.hris import EmploymentRecord, clean_hr_date, employment_event
 from security_lakehouse.ingestion import backoff
-from security_lakehouse.ingestion.paginate import paginate
+from security_lakehouse.ingestion.paginate import object_rows, paginate
 from security_lakehouse.io import read_json
 
 DATASET_FIELDS = (
@@ -77,7 +77,7 @@ class BambooHRClient:
             return payload
 
         def extract_items(page: dict[str, Any]) -> list[dict[str, Any]]:
-            return [row for row in page.get("data", []) if isinstance(row, dict)]
+            return object_rows(page.get("data", []), label="BambooHR")
 
         def next_cursor(page: dict[str, Any]) -> int | None:
             raw_meta = page.get("meta")

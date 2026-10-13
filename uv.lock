@@ -1454,7 +1454,7 @@ requires-dist = [
     { name = "azure-identity", marker = "extra == 'cloud'", specifier = ">=1.17" },
     { name = "azure-mgmt-authorization", marker = "extra == 'cloud'", specifier = ">=4.0" },
     { name = "azure-mgmt-resource", marker = "extra == 'cloud'", specifier = ">=23.0,<24" },
-    { name = "boto3", marker = "extra == 'cloud'", specifier = ">=1.34" },
+    { name = "boto3", marker = "extra == 'cloud'", specifier = ">=1.35.7" },
     { name = "clickhouse-connect", marker = "extra == 'cloud'", specifier = ">=0.7" },
     { name = "commitizen", marker = "extra == 'dev'", specifier = ">=3.27" },
     { name = "duckdb", marker = "extra == 'analytics'", specifier = ">=1.0" },

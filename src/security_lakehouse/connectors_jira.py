@@ -36,6 +36,7 @@ from typing import Any
 from security_lakehouse import netguard
 from security_lakehouse.connector_ids import stable_id_slug
 from security_lakehouse.ingestion import backoff
+from security_lakehouse.ingestion.paginate import object_rows
 from security_lakehouse.io import read_json
 from security_lakehouse.models import utc_iso
 
@@ -89,6 +90,7 @@ class JiraClient:
         # backlogs collect complete evidence instead of a truncated first page.
         out: list[dict[str, Any]] = []
         start = 0
+        seen_pages: set[str] = set()
         for _ in range(MAX_PAGES):
             query = urllib.parse.urlencode(
                 {
@@ -102,7 +104,12 @@ class JiraClient:
             issues = payload.get("issues")
             if not isinstance(issues, list):
                 raise ValueError("Jira returned no issues array for the search query")
-            out.extend(item for item in issues if isinstance(item, dict))
+            rows = object_rows(issues, label="Jira")
+            fingerprint = json.dumps(rows, sort_keys=True)
+            if rows and fingerprint in seen_pages:
+                raise ValueError("Jira collection incomplete: repeated page")
+            seen_pages.add(fingerprint)
+            out.extend(rows)
             total = payload.get("total")
             start += len(issues)
             if not isinstance(total, int) or isinstance(total, bool) or total < 0:
@@ -118,6 +125,7 @@ class JiraClient:
     def projects(self) -> list[dict[str, Any]]:
         out: list[dict[str, Any]] = []
         start = 0
+        seen_pages: set[str] = set()
         for _ in range(MAX_PAGES):
             payload = self._json(
                 f"{self.base_url}/rest/api/3/project/search?startAt={start}&maxResults={SEARCH_PAGE_LIMIT}"
@@ -125,7 +133,12 @@ class JiraClient:
             values = payload.get("values")
             if not isinstance(values, list):
                 raise ValueError("Jira returned no project values for the project search")
-            out.extend(item for item in values if isinstance(item, dict))
+            rows = object_rows(values, label="Jira")
+            fingerprint = json.dumps(rows, sort_keys=True)
+            if rows and fingerprint in seen_pages:
+                raise ValueError("Jira collection incomplete: repeated page")
+            seen_pages.add(fingerprint)
+            out.extend(rows)
             start += len(values)
             total = payload.get("total")
             if payload.get("isLast") is True or (isinstance(total, int) and start >= total):

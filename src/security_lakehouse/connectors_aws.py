@@ -224,7 +224,12 @@ class AWSClient:
                             rows.append({"id": instance_id, "state": (item.get("State") or {}).get("Name")})
             return rows
         if service == "s3":
-            return [{"id": str(row.get("Name"))} for row in client.list_buckets().get("Buckets", []) if row.get("Name")]
+            return [
+                {"id": str(row["Name"])}
+                for page in client.get_paginator("list_buckets").paginate(PaginationConfig={"PageSize": 1000})
+                for row in page.get("Buckets", [])
+                if row.get("Name")
+            ]
         if service == "rds":
             return [
                 {

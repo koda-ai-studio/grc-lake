@@ -22,6 +22,7 @@ from typing import Any, Protocol
 
 from security_lakehouse import netguard
 from security_lakehouse.ingestion import backoff
+from security_lakehouse.ingestion.paginate import next_link_url, object_rows, paginate
 from security_lakehouse.io import read_json, write_jsonl
 from security_lakehouse.models import utc_iso
 from security_lakehouse.runtime_environment import runtime_env
@@ -33,7 +34,7 @@ from security_lakehouse.vocabulary import SEVERITY_ORDER, EventStatus, Severity
 _MAX_PAGES = 1000
 
 
-def _guarded_request(request: urllib.request.Request, *, timeout: int, label: str) -> object:
+def _guarded_page(request: urllib.request.Request, *, timeout: int, label: str) -> tuple[object, str]:
     """Perform a read-only GET through the SSRF guard, with transient-error retry.
 
     Routes through ``netguard.open_public`` — same as every other HTTP connector —
@@ -43,13 +44,17 @@ def _guarded_request(request: urllib.request.Request, *, timeout: int, label: st
     ``204`` keeps its ``{"enabled": True}`` contract.
     """
 
-    def _fetch() -> object:
+    def _fetch() -> tuple[object, str]:
         with netguard.open_public(request, timeout=timeout, label=label) as resp:
             if getattr(resp, "status", None) == 204:
-                return {"enabled": True}
-            return json.loads(resp.read().decode("utf-8"))
+                return {"enabled": True}, ""
+            return json.loads(resp.read().decode("utf-8")), getattr(resp, "headers", {}).get("Link", "")
 
     return backoff.http_retry(_fetch)
+
+
+def _guarded_request(request: urllib.request.Request, *, timeout: int, label: str) -> object:
+    return _guarded_page(request, timeout=timeout, label=label)[0]
 
 
 GITHUB_RE = re.compile(r"^(?:https://github\.com/)?(?P<owner>[\w.-]+)/(?P<repo>[\w.-]+?)(?:\.git)?/?$")
@@ -155,10 +160,10 @@ class GitHubGovernanceClient:
         return self._json(f"https://api.github.com/repos/{self.spec.slug}/branches/{branch}/protection")
 
     def collaborators(self) -> list[dict[str, Any]]:
-        return self._json_list(f"https://api.github.com/repos/{self.spec.slug}/collaborators?per_page=100")
+        return self._json_list_paginated(f"https://api.github.com/repos/{self.spec.slug}/collaborators")
 
     def teams(self) -> list[dict[str, Any]]:
-        return self._json_list(f"https://api.github.com/repos/{self.spec.slug}/teams?per_page=100")
+        return self._json_list_paginated(f"https://api.github.com/repos/{self.spec.slug}/teams")
 
     def workflow_permissions(self) -> dict[str, Any]:
         return self._json(f"https://api.github.com/repos/{self.spec.slug}/actions/permissions/workflow")
@@ -180,12 +185,6 @@ class GitHubGovernanceClient:
             return payload
         raise ValueError(f"GitHub returned non-object JSON for {url}")
 
-    def _json_list(self, url: str) -> list[dict[str, Any]]:
-        payload = self._request(url)
-        if isinstance(payload, list):
-            return [item for item in payload if isinstance(item, dict)]
-        raise ValueError(f"GitHub returned non-list JSON for {url}")
-
     def _json_list_paginated(self, url: str, *, max_pages: int = _MAX_PAGES) -> list[dict[str, Any]]:
         """Read a paginated GitHub list endpoint without silently truncating.
 
@@ -193,16 +192,22 @@ class GitHubGovernanceClient:
         shared paginator so a repo with thousands of alerts is not dropped at 1000.
         """
         rows: list[dict[str, Any]] = []
+        seen_pages: set[str] = set()
         separator = "&" if "?" in url else "?"
         for page in range(1, max_pages + 1):
             payload = self._request(f"{url}{separator}per_page=100&page={page}")
             if not isinstance(payload, list):
                 raise ValueError(f"GitHub returned non-list JSON for {url}")
-            page_rows = [item for item in payload if isinstance(item, dict)]
-            rows.extend(page_rows)
+            if any(not isinstance(item, dict) for item in payload):
+                raise ValueError("GitHub list contains a non-object item")
+            fingerprint = _sha(payload)
+            if payload and fingerprint in seen_pages:
+                raise ValueError("GitHub returned a repeated page; collection is incomplete")
+            seen_pages.add(fingerprint)
+            rows.extend(payload)
             if len(payload) < 100:
-                break
-        return rows
+                return rows
+        raise ValueError("GitHub page limit reached; collection is incomplete")
 
     def _request(self, url: str) -> object:
         request = urllib.request.Request(
@@ -298,13 +303,44 @@ class GitLabGovernanceClient:
             return payload
         raise ValueError(f"GitLab returned non-object JSON for {url}")
 
-    def _json_list(self, url: str) -> list[dict[str, Any]]:
-        payload = self._request(url)
-        if isinstance(payload, list):
-            return [item for item in payload if isinstance(item, dict)]
-        raise ValueError(f"GitLab returned non-list JSON for {url}")
+    def _json_list(self, url: str, *, max_pages: int = _MAX_PAGES) -> list[dict[str, Any]]:
+        origin = urllib.parse.urlsplit(url)
+        first_url = f"{url}{'&' if '?' in url else '?'}per_page=100"
+        seen_pages: set[str] = set()
+
+        def fetch(cursor: str | None) -> tuple[list[dict[str, Any]], str, str]:
+            current = cursor or first_url
+            target = urllib.parse.urlsplit(current)
+            if (target.scheme, target.netloc, target.path) != (origin.scheme, origin.netloc, origin.path):
+                raise ValueError("GitLab collection incomplete: unexpected pagination endpoint")
+            payload, link = self._request_page(current)
+            rows = object_rows(payload, label="GitLab")
+            fingerprint = _sha(rows)
+            if rows and fingerprint in seen_pages:
+                raise ValueError("GitLab collection incomplete: repeated page")
+            seen_pages.add(fingerprint)
+            return rows, link, current
+
+        def next_cursor(page: tuple[list[dict[str, Any]], str, str]) -> str | None:
+            rows, link, current = page
+            next_url = next_link_url(link)
+            if next_url:
+                return urllib.parse.urljoin(current, next_url)
+            if len(rows) < 100:
+                return None
+            # GitLab may omit pagination headers. A full page still needs a
+            # subsequent read before completeness can be established.
+            parts = urllib.parse.urlsplit(current)
+            query = urllib.parse.parse_qs(parts.query)
+            query["page"] = [str(int(query.get("page", ["1"])[0]) + 1)]
+            return urllib.parse.urlunsplit(parts._replace(query=urllib.parse.urlencode(query, doseq=True)))
+
+        return list(paginate(fetch, lambda page: page[0], next_cursor, start_cursor=first_url, max_pages=max_pages))
 
     def _request(self, url: str) -> object:
+        return self._request_page(url)[0]
+
+    def _request_page(self, url: str) -> tuple[object, str]:
         request = urllib.request.Request(
             url,
             headers={
@@ -313,7 +349,7 @@ class GitLabGovernanceClient:
                 "user-agent": "grc-lake",
             },
         )
-        return _guarded_request(request, timeout=20, label="gitlab api")
+        return _guarded_page(request, timeout=20, label="gitlab api")
 
 
 def _gitlab_access_label(level: int) -> str:
@@ -479,6 +515,10 @@ def _safe_call(func: Any) -> dict[str, Any] | list[dict[str, Any]]:
     try:
         return func()
     except urllib.error.HTTPError as exc:
+        if exc.code not in {401, 403, 404}:
+            # Transient failures exhausted their retry budget. Fail the sync
+            # instead of publishing them as an ordinary permission gap.
+            raise
         return {
             "available": False,
             "requires_scope_or_permission": True,

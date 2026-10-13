@@ -40,7 +40,7 @@ from security_lakehouse import netguard
 from security_lakehouse.connector_ids import stable_id_slug
 from security_lakehouse.ingestion import backoff
 from security_lakehouse.ingestion.oauth import ClientCredentialsToken
-from security_lakehouse.ingestion.paginate import paginate
+from security_lakehouse.ingestion.paginate import object_rows, paginate
 from security_lakehouse.io import read_json
 from security_lakehouse.models import utc_iso
 from security_lakehouse.timeutil import parse_iso
@@ -164,6 +164,8 @@ class CrowdStrikeClient:
             pagination = (page.get("meta") or {}).get("pagination") or {}
             offset = str(pagination.get("offset") or "")
             total = int(pagination.get("total") or 0)
+            if total > seen and (not resources or not offset):
+                raise ValueError("CrowdStrike collection incomplete: premature end of host pages")
             if not resources or not offset or (total and seen >= total):
                 return None
             return offset
@@ -188,6 +190,8 @@ class CrowdStrikeClient:
             total = int(pagination.get("total") or 0)
             # The combined endpoints report the offset of this page's first item.
             nxt = offset + count
+            if not count and nxt < total:
+                raise ValueError("CrowdStrike collection incomplete: premature empty policy page")
             return nxt if count and nxt < total else None
 
         return [_pick(item, POLICY_FIELDS) for item in paginate(fetch_page, _resources, next_cursor)]
@@ -493,7 +497,7 @@ def _event(
 
 
 def _resources(page: dict[str, Any]) -> list[dict[str, Any]]:
-    return [item for item in page.get("resources") or [] if isinstance(item, dict)]
+    return object_rows(page.get("resources", []), label="CrowdStrike")
 
 
 def _pick(item: dict[str, Any], fields: tuple[str, ...]) -> dict[str, Any]:

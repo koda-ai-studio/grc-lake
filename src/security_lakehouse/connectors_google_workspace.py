@@ -34,7 +34,7 @@ from typing import Any
 from security_lakehouse import netguard
 from security_lakehouse.connector_ids import stable_id_slug
 from security_lakehouse.ingestion import backoff
-from security_lakehouse.ingestion.paginate import paginate
+from security_lakehouse.ingestion.paginate import object_rows, paginate
 from security_lakehouse.io import read_json
 from security_lakehouse.models import utc_iso
 
@@ -221,7 +221,7 @@ class GoogleWorkspaceClient:
             return payload
 
         def extract_items(page: dict[str, Any]) -> list[dict[str, Any]]:
-            return [item for item in page.get(key, []) if isinstance(item, dict)]
+            return object_rows(page.get(key, []), label="Google Workspace")
 
         def next_cursor(page: dict[str, Any]) -> str | None:
             return str(page.get("nextPageToken") or "") or None

@@ -342,7 +342,7 @@ def test_inventory_permission_errors_are_not_swallowed(monkeypatch: pytest.Monke
         client.computers()
 
 
-def test_pagination_stops_on_an_empty_page_even_if_total_count_lies(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_pagination_rejects_an_empty_page_before_reported_total(monkeypatch: pytest.MonkeyPatch) -> None:
     fake = _FakeJamf(page_size=100)
 
     def lying_page(records: list[dict[str, Any]], query: dict[str, list[str]]) -> _FakeResponse:
@@ -352,7 +352,8 @@ def test_pagination_stops_on_an_empty_page_even_if_total_count_lies(monkeypatch:
     monkeypatch.setattr(fake, "_page", lying_page)
     client = _client(fake, monkeypatch)
 
-    assert len(client.computers()) == 3
+    with pytest.raises(ValueError, match="incomplete"):
+        client.computers()
 
 
 # --- runner wiring ----------------------------------------------------------------------------

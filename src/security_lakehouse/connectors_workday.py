@@ -26,6 +26,7 @@ from typing import Any
 from security_lakehouse import netguard
 from security_lakehouse.hris import EmploymentRecord, clean_hr_date, employment_event
 from security_lakehouse.ingestion import backoff
+from security_lakehouse.ingestion.paginate import object_rows
 from security_lakehouse.io import read_json
 
 WORKDAY_COLUMNS = (
@@ -101,7 +102,7 @@ def _report_rows(payload: Any) -> list[dict[str, Any]]:
     rows = payload.get("Report_Entry", []) if isinstance(payload, dict) else payload
     if not isinstance(rows, list):
         raise ValueError("Workday report JSON must contain a Report_Entry list")
-    return [row for row in rows if isinstance(row, dict)]
+    return object_rows(rows, label="Workday")
 
 
 def collect_workday_evidence(

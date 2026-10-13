@@ -18,7 +18,7 @@ from typing import Any
 
 from security_lakehouse import netguard
 from security_lakehouse.ingestion import backoff
-from security_lakehouse.ingestion.paginate import paginate
+from security_lakehouse.ingestion.paginate import object_rows, paginate
 from security_lakehouse.io import read_json
 from security_lakehouse.models import parse_event_time, utc_iso
 from security_lakehouse.runtime_environment import runtime_env
@@ -134,12 +134,12 @@ class SiemClient:
     @staticmethod
     def _extract_items(payload: Any, url: str) -> list[dict[str, Any]]:
         if isinstance(payload, list):
-            return [item for item in payload if isinstance(item, dict)]
+            return object_rows(payload, label="siem")
         if isinstance(payload, dict):
             for key in ITEM_KEYS:
                 value = payload.get(key)
                 if isinstance(value, list):
-                    return [item for item in value if isinstance(item, dict)]
+                    return object_rows(value, label="siem")
         raise ValueError(f"SIEM returned non-list JSON for {url}")
 
     def _json_list(self, url: str) -> list[dict[str, Any]]:

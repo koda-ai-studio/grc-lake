@@ -41,6 +41,13 @@ def next_link_url(link_header: str) -> str | None:
     return None
 
 
+def object_rows(value: Any, *, label: str) -> list[dict[str, Any]]:
+    """Reject malformed collections instead of silently dropping evidence rows."""
+    if not isinstance(value, list) or any(not isinstance(row, dict) for row in value):
+        raise ValueError(f"{label} collection incomplete: expected an array of objects")
+    return value
+
+
 def paginate(
     fetch_page: Callable[[Any | None], Page],
     extract_items: Callable[[Page], Iterable[Item]],

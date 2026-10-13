@@ -45,6 +45,7 @@ from pathlib import Path
 from typing import Any
 
 from security_lakehouse.ingestion import backoff
+from security_lakehouse.ingestion.paginate import object_rows, paginate
 from security_lakehouse.io import read_json
 from security_lakehouse.models import utc_iso
 
@@ -167,20 +168,26 @@ class KubernetesClient:
 
     def _list(self, api: str, method: str, **kwargs: Any) -> list[dict[str, Any]]:
         call = getattr(self._apis[api], method)
-        items: list[dict[str, Any]] = []
-        token: str | None = None
-        while True:
+
+        def fetch_page(token: str | None) -> dict[str, Any]:
             params = {**kwargs, "limit": PAGE_LIMIT, **({"_continue": token} if token else {})}
             raw = backoff.retry(
-                lambda params=params: call(**params),  # type: ignore[misc]
+                lambda: call(**params),
                 is_retryable=_is_retryable_api_error,
                 retry_after=_api_retry_after,
             )
-            page = self._serialize(raw) or {}
-            items.extend(item for item in page.get("items") or [] if isinstance(item, dict))
-            token = str((page.get("metadata") or {}).get("continue") or "") or None
-            if not token:
-                return items
+            page = self._serialize(raw)
+            if not isinstance(page, dict):
+                raise ValueError("Kubernetes collection incomplete: expected an object")
+            return page
+
+        return list(
+            paginate(
+                fetch_page,
+                lambda page: object_rows(page.get("items", []), label="Kubernetes"),
+                lambda page: str((page.get("metadata") or {}).get("continue") or "") or None,
+            )
+        )
 
 
 def _default_apis(
