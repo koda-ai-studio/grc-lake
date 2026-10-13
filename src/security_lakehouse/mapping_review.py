@@ -27,6 +27,7 @@ import hmac
 import json
 import logging
 import uuid
+from collections import Counter
 from collections.abc import Iterable, Mapping
 from datetime import UTC, datetime
 from pathlib import Path
@@ -144,7 +145,10 @@ def _index(payload: JsonObject) -> dict[MappingKey, tuple[JsonObject, JsonObject
     out: dict[MappingKey, tuple[JsonObject, JsonObject]] = {}
     for entry in payload.get("safeguards", []):
         for member in entry.get("satisfies", []):
-            out[(str(entry["safeguard_id"]), str(member.get("control_id")))] = (entry, member)
+            key = (str(entry["safeguard_id"]), str(member.get("control_id")))
+            if key in out:
+                raise MappingReviewError(f"ambiguous shipped mapping {key[0]} -> {key[1]}")
+            out[key] = (entry, member)
     return out
 
 
@@ -193,6 +197,7 @@ def record_decisions(
 
     shipped = payload if payload is not None else load_safeguards()
     index = _index(shipped)
+    controls = load_control_catalog()
     resolved: list[tuple[MappingKey, JsonObject, JsonObject]] = []
     seen: set[MappingKey] = set()
     for raw in requested:
@@ -212,12 +217,16 @@ def record_decisions(
                 f"framework_id {framework_id or '?'} does not match {safeguard_id} -> {control_id} "
                 f"(shipped framework {shipped_framework})"
             )
+        control = controls.get(control_id)
+        if control is None:
+            raise MappingReviewError(f"mapping target {control_id} is not in the control catalog")
+        if control.get("framework_id") != shipped_framework:
+            raise MappingReviewError(f"mapping target {control_id} does not match its catalog framework")
         if key in seen:
             raise MappingReviewError(f"mapping {safeguard_id} -> {control_id} appears twice in one decision")
         seen.add(key)
         resolved.append((key, entry, member))
 
-    controls = load_control_catalog()
     decided_at = utc_iso(now or datetime.now(UTC))
     batch_id = uuid.uuid4().hex
 
@@ -254,8 +263,8 @@ def record_decisions(
                     "source_anchor": member_mapping_source(entry, member),
                     "shipped_review_status": member.get("review_status", "reviewed"),
                     "review_basis_version": REVIEW_BASIS_VERSION,
-                    "review_basis_sha256": review_basis(entry, member, controls.get(key[1], {})),
-                    "control_sha256": canonical_sha256(controls.get(key[1], {})),
+                    "review_basis_sha256": review_basis(entry, member, controls[key[1]]),
+                    "control_sha256": canonical_sha256(controls[key[1]]),
                     "mapping_sha256": canonical_sha256(member),
                     "decided_at": decided_at,
                     "supersedes": latest.get(key),
@@ -473,14 +482,23 @@ def _effective_from_decisions(shipped, verified, decisions):
     controls = load_control_catalog()
     effective = copy.deepcopy(shipped)
     effective["review_log_verified"] = verified
+    target_counts = Counter(
+        (str(entry["safeguard_id"]), str(member.get("control_id")))
+        for entry in effective.get("safeguards", [])
+        for member in entry.get("satisfies", [])
+    )
     for entry in effective.get("safeguards", []):
         for member in entry.get("satisfies", []):
-            row = decisions.get((str(entry["safeguard_id"]), str(member.get("control_id"))))
+            key = (str(entry["safeguard_id"]), str(member.get("control_id")))
+            row = decisions.get(key)
+            control = controls.get(key[1])
             basis_verified = bool(
                 row
+                and target_counts[key] == 1
+                and control is not None
+                and control.get("framework_id") == member.get("framework_id")
                 and row.get("review_basis_version") == REVIEW_BASIS_VERSION
-                and row.get("review_basis_sha256")
-                == review_basis(entry, member, controls.get(str(member.get("control_id")), {}))
+                and row.get("review_basis_sha256") == review_basis(entry, member, control)
             )
             decision = str(row.get("decision")) if row else None
             if decision == "approve" and not basis_verified:

@@ -175,13 +175,26 @@ def test_mapping_decision_is_bound_to_control_definition(tmp_path, monkeypatch):
 
     from test_mapping_review import _PAYLOAD
 
-    catalog = {"ISO27001-A.5.15": {"control_id": "ISO27001-A.5.15", "version": "1.0.0", "title": "Original"}}
+    catalog = {
+        "ISO27001-A.5.15": {
+            "control_id": "ISO27001-A.5.15",
+            "framework_id": "iso-27001-2022",
+            "version": "1.0.0",
+            "title": "Original",
+        }
+    }
     monkeypatch.setattr(mapping_review, "load_control_catalog", lambda: catalog)
     _decide(tmp_path, "approve", _item("SG-A", "ISO27001-A.5.15", "iso-27001-2022"))
+    before = mapping_review.effective_safeguards(tmp_path, payload=deepcopy(_PAYLOAD))
+    approved = before["safeguards"][0]["satisfies"][1]
+    assert approved["effective_review_state"] == "org_reviewed"
+    assert approved["org_review"]["basis_verified"] is True
     catalog["ISO27001-A.5.15"]["version"] = "2.0.0"
     data = mapping_review.effective_safeguards(tmp_path, payload=deepcopy(_PAYLOAD))
     member = data["safeguards"][0]["satisfies"][1]
     assert member["effective_review_state"] == "proposed"
+    assert member["org_review"]["basis_verified"] is False
+    assert member["org_review"]["decision_id"] == approved["org_review"]["decision_id"]
 
 
 def test_manifest_unknown_fields_are_not_accepted_after_resealing(tmp_path):
