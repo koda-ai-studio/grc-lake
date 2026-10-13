@@ -1,0 +1,239 @@
+{
+  "connectors": [
+    {
+      "connector_id": "snowflake-evidence-lake",
+      "fixture_tests": ["tests/test_snowflake_connector.py"],
+      "live_record": null,
+      "owner": null
+    },
+    {
+      "connector_id": "databricks-evidence-lake",
+      "fixture_tests": ["tests/test_databricks_connector.py"],
+      "live_record": null,
+      "owner": null
+    },
+    {
+      "connector_id": "clickhouse-telemetry-lake",
+      "fixture_tests": [
+        "tests/test_clickhouse_connector.py",
+        "tests/test_collection_completeness.py"
+      ],
+      "live_record": null,
+      "owner": null
+    },
+    {
+      "connector_id": "object-storage-evidence",
+      "fixture_tests": ["tests/test_s3_connector.py"],
+      "live_record": null,
+      "owner": null
+    },
+    {
+      "connector_id": "github-security",
+      "fixture_tests": [
+        "tests/test_repo_governance.py",
+        "tests/test_github_collection_contract.py",
+        "tests/test_connector_runner.py"
+      ],
+      "live_record": null,
+      "owner": null
+    },
+    {
+      "connector_id": "gitlab-security",
+      "fixture_tests": [
+        "tests/test_repo_governance.py",
+        "tests/test_collection_completeness.py"
+      ],
+      "live_record": null,
+      "owner": null
+    },
+    {
+      "connector_id": "okta-identity",
+      "fixture_tests": [
+        "tests/test_okta_connector.py",
+        "tests/test_collection_completeness.py"
+      ],
+      "live_record": null,
+      "owner": null
+    },
+    {
+      "connector_id": "okta-system-log",
+      "fixture_tests": ["tests/test_okta_system_log_connector.py"],
+      "live_record": null,
+      "owner": null
+    },
+    {
+      "connector_id": "aws-posture",
+      "fixture_tests": [
+        "tests/test_aws_connector.py",
+        "tests/test_collection_completeness.py"
+      ],
+      "live_record": {
+        "date": "2026-10-11",
+        "source_basis": "ccd9d9c3",
+        "scope": "IAM/posture, 12 raw records; one bounded read-only collection, not an account-wide completeness claim.",
+        "reference": "docs/CURRENT_STATE.md#earlier-bounded-provider-qualification"
+      },
+      "owner": null
+    },
+    {
+      "connector_id": "identity-provider",
+      "fixture_tests": [],
+      "live_record": null,
+      "owner": null
+    },
+    {
+      "connector_id": "ticketing",
+      "fixture_tests": [],
+      "live_record": null,
+      "owner": null
+    },
+    {
+      "connector_id": "siem-alerts",
+      "fixture_tests": [
+        "tests/test_siem_connector.py",
+        "tests/test_collection_completeness.py"
+      ],
+      "live_record": null,
+      "owner": null
+    },
+    {
+      "connector_id": "runtime-gateway",
+      "fixture_tests": [
+        "tests/test_runtime_gateway_connector.py",
+        "tests/test_collection_completeness.py"
+      ],
+      "live_record": null,
+      "owner": null
+    },
+    {
+      "connector_id": "managed-local-evidence",
+      "fixture_tests": [],
+      "live_record": null,
+      "owner": null
+    },
+    {
+      "connector_id": "google-workspace-identity",
+      "fixture_tests": [
+        "tests/test_google_workspace_connector.py",
+        "tests/test_collection_completeness.py"
+      ],
+      "live_record": null,
+      "owner": null
+    },
+    {
+      "connector_id": "gcp-posture",
+      "fixture_tests": ["tests/test_gcp_connector.py"],
+      "live_record": {
+        "date": "2026-10-11",
+        "source_basis": "ccd9d9c3",
+        "scope": "Project IAM/assets, 181 raw records; no organization-policy rows, inherited/effective policy coverage unestablished.",
+        "reference": "docs/CURRENT_STATE.md#earlier-bounded-provider-qualification"
+      },
+      "owner": null
+    },
+    {
+      "connector_id": "azure-posture",
+      "fixture_tests": ["tests/test_azure_connector.py"],
+      "live_record": {
+        "date": "2026-10-11",
+        "source_basis": "ccd9d9c3",
+        "scope": "Subscription posture, 26 raw records; bounded scope, not tenant-wide coverage.",
+        "reference": "docs/CURRENT_STATE.md#earlier-bounded-provider-qualification"
+      },
+      "owner": null
+    },
+    {
+      "connector_id": "jira-ticketing",
+      "fixture_tests": [
+        "tests/test_jira_connector.py",
+        "tests/test_collection_completeness.py"
+      ],
+      "live_record": null,
+      "owner": null
+    },
+    {
+      "connector_id": "intune-devices",
+      "fixture_tests": [
+        "tests/test_intune_connector.py",
+        "tests/test_collection_completeness.py"
+      ],
+      "live_record": null,
+      "owner": null
+    },
+    {
+      "connector_id": "bamboohr-personnel",
+      "fixture_tests": [
+        "tests/test_bamboohr_connector.py",
+        "tests/test_collection_completeness.py"
+      ],
+      "live_record": null,
+      "owner": null
+    },
+    {
+      "connector_id": "rippling-personnel",
+      "fixture_tests": [
+        "tests/test_rippling_workday_connectors.py",
+        "tests/test_collection_completeness.py"
+      ],
+      "live_record": null,
+      "owner": null
+    },
+    {
+      "connector_id": "workday-personnel",
+      "fixture_tests": [
+        "tests/test_rippling_workday_connectors.py",
+        "tests/test_collection_completeness.py"
+      ],
+      "live_record": null,
+      "owner": null
+    },
+    {
+      "connector_id": "jamf-devices",
+      "fixture_tests": [
+        "tests/test_jamf_connector.py",
+        "tests/test_collection_completeness.py"
+      ],
+      "live_record": null,
+      "owner": null
+    },
+    {
+      "connector_id": "crowdstrike-falcon",
+      "fixture_tests": [
+        "tests/test_crowdstrike_connector.py",
+        "tests/test_collection_completeness.py"
+      ],
+      "live_record": null,
+      "owner": null
+    },
+    {
+      "connector_id": "kubernetes-cluster",
+      "fixture_tests": [
+        "tests/test_kubernetes_connector.py",
+        "tests/test_collection_completeness.py"
+      ],
+      "live_record": null,
+      "owner": null
+    },
+    {
+      "connector_id": "knowbe4-training",
+      "fixture_tests": [
+        "tests/test_knowbe4_connector.py",
+        "tests/test_knowbe4_qualification.py"
+      ],
+      "live_record": null,
+      "owner": null
+    },
+    {
+      "connector_id": "iceberg-parquet-lake",
+      "fixture_tests": ["tests/test_iceberg_parquet_connector.py"],
+      "live_record": null,
+      "owner": null
+    },
+    {
+      "connector_id": "bigquery-evidence-lake",
+      "fixture_tests": ["tests/test_bigquery_connector.py"],
+      "live_record": null,
+      "owner": null
+    }
+  ]
+}

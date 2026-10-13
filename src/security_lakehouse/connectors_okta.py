@@ -32,7 +32,7 @@ from typing import Any
 from security_lakehouse import netguard
 from security_lakehouse.connector_ids import stable_id_slug
 from security_lakehouse.ingestion import backoff
-from security_lakehouse.ingestion.paginate import next_link_url
+from security_lakehouse.ingestion.paginate import next_link_url, object_rows
 from security_lakehouse.io import read_json
 from security_lakehouse.models import utc_iso
 
@@ -88,9 +88,17 @@ class OktaClient:
         # than a silently-truncated first page.
         items: list[dict[str, Any]] = []
         next_url: str | None = url
+        origin = urllib.parse.urlsplit(url)
+        seen_urls: set[str] = set()
         for _ in range(MAX_PAGES):
             if not next_url:
                 break
+            target = urllib.parse.urlsplit(next_url)
+            if (target.scheme, target.netloc) != (origin.scheme, origin.netloc):
+                raise ValueError("Okta collection incomplete: foreign pagination origin")
+            if next_url in seen_urls:
+                raise ValueError("Okta collection incomplete: repeated pagination cursor")
+            seen_urls.add(next_url)
             request = urllib.request.Request(
                 next_url,
                 headers={
@@ -113,7 +121,7 @@ class OktaClient:
             payload, link_header = backoff.http_retry(_fetch_page)
             if not isinstance(payload, list):
                 raise ValueError(f"Okta returned non-list JSON for {next_url}")
-            items.extend(item for item in payload if isinstance(item, dict))
+            items.extend(object_rows(payload, label="Okta"))
             next_url = _next_link(link_header)
         if next_url:
             raise ValueError("Okta collection incomplete: pagination limit reached")

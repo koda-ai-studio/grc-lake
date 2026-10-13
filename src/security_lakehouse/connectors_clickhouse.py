@@ -83,6 +83,7 @@ class ClickHouseClient:
         rows: list[dict[str, Any]] = []
         last_time: str | None = None
         last_id: str | None = None
+        seen_cursors: set[tuple[str, str]] = set()
         for _ in range(MAX_PAGES):
             # Watermark and cursor values come from source rows, so they are
             # bound as typed HTTP query parameters and never spliced into SQL.
@@ -111,6 +112,10 @@ class ClickHouseClient:
             last_id = str(page[-1].get("event_id") or "")
             if not last_time or not last_id:
                 raise ValueError("ClickHouse collection incomplete: missing pagination cursor")
+            cursor = (last_time, last_id)
+            if cursor in seen_cursors:
+                raise ValueError("ClickHouse collection incomplete: repeated pagination cursor")
+            seen_cursors.add(cursor)
         else:
             raise ValueError("ClickHouse collection incomplete: pagination limit reached")
         return rows

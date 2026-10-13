@@ -20,6 +20,8 @@ Every guide in `docs/`, grouped by task. New here? Start with the
 
 [Current state and coverage](CURRENT_STATE.md) · [Contributor roadmap](../ROADMAP.md) · [Contributing](../CONTRIBUTING.md)
 
+[Connector qualification matrix](CONNECTOR_QUALIFICATION.md) · [GitHub collection contracts](GITHUB_QUALIFICATION.md)
+
 ## Operate
 
 [Upgrade from TrustOps to GRC Lake](REBRANDING.md) covers preserved data and integration identities.

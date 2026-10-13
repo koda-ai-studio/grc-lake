@@ -1,5 +1,10 @@
 .DEFAULT_GOAL := help
 
+.PHONY: connector-qualification-doc
+
+connector-qualification-doc: ## Regenerate the connector qualification matrix from catalog and evidence pointers.
+	$(PYTHON) tools/connector_qualification_doc.py
+
 # Python tools run from the locked uv environment so local results match CI.
 # Override with PYTHON=python to use the active interpreter instead.
 PYTHON ?= uv run --frozen python

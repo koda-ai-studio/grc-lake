@@ -210,9 +210,9 @@ def test_github_security_findings_not_truncated_below_1000(monkeypatch: pytest.M
     client = GitHubGovernanceClient(GovernanceRepoSpec(provider="github", owner="acme", repo="api"), token="t")
 
     def fake_request(url: str) -> object:
-        # 11 full pages then a short page — 1001 rows, more than the old 10-page cap.
+        # 11 distinct full pages then a short page, beyond the old 10-page cap.
         page = int(url.rsplit("page=", 1)[1])
-        return [{"state": "open"}] * 100 if page <= 11 else [{"state": "open"}]
+        return [{"number": page * 100 + index, "state": "open"} for index in range(100 if page <= 11 else 1)]
 
     monkeypatch.setattr(client, "_request", fake_request)
     findings = client.security_findings()

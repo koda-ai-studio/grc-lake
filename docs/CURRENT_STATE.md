@@ -27,6 +27,12 @@ Depth work is tracked in [provider parity #908](https://github.com/koda-ai-studi
 [reviewed mapping coverage #909](https://github.com/koda-ai-studio/grc-lake/issues/909),
 and [measured capacity #910](https://github.com/koda-ai-studio/grc-lake/issues/910).
 
+The generated [connector qualification matrix](CONNECTOR_QUALIFICATION.md)
+links offline test modules, historical bounded live records, declared permissions
+and qualification owners for every built-in contract. Its
+[GitHub slice](GITHUB_QUALIFICATION.md) documents tested collection failure modes.
+Neither linked tests nor a prior source audit qualify the current release.
+
 ## Coverage sources
 
 Use these maintained contracts rather than a second hand-maintained feature count.

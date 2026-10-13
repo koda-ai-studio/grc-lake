@@ -44,7 +44,7 @@ from security_lakehouse.connector_ids import stable_id_slug
 from security_lakehouse.connectors_intune import COMPLIANCE_CONTROLS, ENCRYPTION_CONTROLS
 from security_lakehouse.ingestion import backoff
 from security_lakehouse.ingestion.oauth import ClientCredentialsToken
-from security_lakehouse.ingestion.paginate import paginate
+from security_lakehouse.ingestion.paginate import object_rows, paginate
 from security_lakehouse.io import read_json
 from security_lakehouse.models import parse_event_time, utc_iso
 
@@ -135,6 +135,7 @@ class JamfProClient:
 
     def _paged(self, path: str, sections: list[str], *, sort: str) -> list[dict[str, Any]]:
         seen = 0
+        seen_pages: set[str] = set()
 
         def fetch_page(page: int | None) -> tuple[int, dict[str, Any]]:
             number = page or 0
@@ -149,16 +150,24 @@ class JamfProClient:
 
         def extract_items(page: tuple[int, dict[str, Any]]) -> list[dict[str, Any]]:
             nonlocal seen
-            items = [item for item in page[1].get("results") or [] if isinstance(item, dict)]
+            items = object_rows(page[1].get("results", []), label="Jamf Pro")
+            fingerprint = json.dumps(items, sort_keys=True)
+            if items and fingerprint in seen_pages:
+                raise ValueError("Jamf Pro collection incomplete: repeated page")
+            seen_pages.add(fingerprint)
             seen += len(items)
             return items
 
         def next_cursor(page: tuple[int, dict[str, Any]]) -> int | None:
             number, payload = page
             results = payload.get("results") or []
-            total = int(payload.get("totalCount") or 0)
-            if not results or seen >= total:
+            total = payload.get("totalCount")
+            if type(total) is not int or total < 0:
+                raise ValueError("Jamf Pro collection incomplete: missing pagination total")
+            if seen >= total:
                 return None
+            if not results:
+                raise ValueError("Jamf Pro collection incomplete: premature empty page")
             return number + 1
 
         return list(paginate(fetch_page, extract_items, next_cursor))
