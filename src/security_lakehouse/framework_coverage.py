@@ -19,7 +19,12 @@ from security_lakehouse.catalog import (
 )
 from security_lakehouse.framework_provenance import build_framework_view, framework_pack_counts, framework_pack_state
 from security_lakehouse.jsontypes import JsonObject
-from security_lakehouse.mappings import DEFAULT_MAPPINGS, article_mapping_reviewed, load_control_article_mappings
+from security_lakehouse.mappings import (
+    DEFAULT_MAPPINGS,
+    article_mapping_reviewed,
+    load_control_article_mappings,
+    source_mapping_matches_control,
+)
 from security_lakehouse.safeguards import (
     framework_mapping_coverage,
     load_safeguards,
@@ -69,7 +74,7 @@ def build_framework_coverage(
     for control_id, mapping in mappings.items():
         framework_id = str(mapping.get("framework_id") or "")
         target_control = controls.get(control_id)
-        if target_control and framework_id == target_control.get("framework_id") and mapping.get("articles"):
+        if source_mapping_matches_control(mapping, target_control):
             mappings_by_framework[framework_id].append(mapping)
             cited_control_ids.add(control_id)
 
