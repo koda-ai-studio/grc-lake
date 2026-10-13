@@ -30,7 +30,7 @@ def test_readme_header_leads_with_the_product_and_live_build_status() -> None:
     readme = README.read_text(encoding="utf-8")
     header = readme.split("## Quick start", maxsplit=1)[0]
     assert 'src="docs/images/grc-lake-capability-header.svg"' in header
-    assert "**Open-source trust operations, on your evidence lake.**" in header
+    assert "traceable control assessments and reviewable audit workpapers" in header
     assert "Open, self-hosted GRC for cloud and AI." not in header, "one tagline only"
     assert "Quick start" in header
     assert "ci.yml?branch=main&amp;label=CI" in header
@@ -231,7 +231,7 @@ def test_operating_loop_uses_concrete_actions() -> None:
 
 def test_product_preview_shows_overview_coverage_controls_families_and_investigation() -> None:
     readme = README.read_text(encoding="utf-8")
-    tour = readme.split("## Product tour", maxsplit=1)[1].split("## Quick start", maxsplit=1)[0]
+    tour = readme.split("## Product tour", maxsplit=1)[1].split("## Architecture", maxsplit=1)[0]
     assert "bundled synthetic company" in tour
     assert "<details>" not in tour
     views = ("dashboard", "frameworks", "controls", "control-families", "graph", "ai-governance")
@@ -251,8 +251,7 @@ def test_product_preview_shows_overview_coverage_controls_families_and_investiga
 
 def test_readme_glance_matches_the_generator_and_the_catalogs() -> None:
     readme = README.read_text(encoding="utf-8")
-    header = readme.split("## Quick start", maxsplit=1)[0]
-    block = header.split("<!-- BEGIN README AT A GLANCE -->", maxsplit=1)[1].split(
+    block = readme.split("<!-- BEGIN README AT A GLANCE -->", maxsplit=1)[1].split(
         "<!-- END README AT A GLANCE -->", maxsplit=1
     )[0]
     assert block == f"\n\n{render_readme_glance()}\n\n"

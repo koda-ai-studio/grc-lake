@@ -1,17 +1,18 @@
-# GRC Lake in five minutes
+# Five-minute console tour
 
-From nothing to evaluated controls on sample data, then your own cloud, a
-mapping review, and an auditor export. Steps 1 to 3 need no account and no
-credentials.
+Use synthetic evidence to find a failing control, inspect its evidence and
+mapping, and export a frozen assessment. The tour needs no provider account or
+credentials. Allow additional time for installation; the five minutes describe
+the walkthrough, not a measured clean-machine setup time.
 
 ## 1. Start GRC Lake with sample data
 
-Pick one.
+Pick one. These examples use the published **v0.3.3** release.
 
 **Docker Compose** (Docker with Compose v2):
 
 ```bash
-git clone https://github.com/msaad00/grc-lake.git
+git clone --branch v0.3.3 --depth 1 https://github.com/koda-ai-studio/grc-lake.git
 cd grc-lake
 docker compose up
 ```
@@ -19,150 +20,117 @@ docker compose up
 **pip** (Python 3.11 or later):
 
 ```bash
-python -m venv .venv && source .venv/bin/activate
-pip install "grc-lake[server]"
+python -m venv .venv
+source .venv/bin/activate
+pip install "grc-lake[server]==0.3.3"
 grc-lake fixtures load --company golden --out ./lake --rebase-times
-grc-lake serve --server --allow-insecure-no-auth --lake ./lake --port 8787
+grc-lake serve --server --allow-insecure-no-auth --lake ./lake --host 127.0.0.1 --port 8787
 ```
 
-Either way you get the bundled **golden** sample company (38 controls and 41
-evidence records across AWS, GitHub, identity, and AI-governance sources),
-served at <http://127.0.0.1:8787/console/dashboard/>.
+Open <http://127.0.0.1:8787/console/dashboard/>. The **golden** sample company
+contains synthetic cloud, repository, identity, and AI-governance evidence.
+The sample is deliberately unhealthy: failures and missing evidence are part of
+the exercise. Counts depend on the catalog and evidence freshness at evaluation.
 
-> **Authentication is off.** Both commands are for your own machine and sample
-> data only. Compose publishes the port on `127.0.0.1` only. For a shared or
-> real deployment, use the Compose `grc-lake-server` service (below) or the
-> [deployment guide](../deploy/README.md).
+Authentication is off and the demo listens on loopback. Keep it for local sample
+data; use [authenticated deployment](DEPLOYMENT.md) before connecting real evidence.
+For unreleased source changes, follow [Contributing](../CONTRIBUTING.md).
 
-Check it is up:
+Leave the server running. In a second terminal, activate the pip environment if
+using pip. The commands below use that installation and `./lake`.
+**Compose users:** run CLI commands inside the container, replace `./lake` with
+`/lake`, and use `/lake/exports/` for the OSCAL output paths in step 4. For example:
 
 ```bash
-curl -s http://127.0.0.1:8787/api/healthz
-# {"ok":true,"service":"grc-lake-assessment"}
+docker compose exec grc-lake grc-lake assessment status --lake /lake --format summary
 ```
 
-## 2. Read the first findings
+## 2. Follow a failure to its evidence
 
-In the console, **Overview** shows the posture score and the open violations;
-**Controls** lists each control with its result and the evidence behind it.
+In **Overview**, inspect findings and evidence freshness. Open **Controls**, pick
+a failing result, then inspect its evidence records, source, observation time,
+and failure reason. Use the investigation graph to follow recorded relationships.
+A missing or stale record cannot establish a pass.
 
-The same numbers from the API and the CLI:
-
-```bash
-curl -s http://127.0.0.1:8787/api/v1/posture/current | jq '.data.posture'
-grc-lake assessment status --lake ./lake | jq '.posture'
-grc-lake assessment violations --lake ./lake
-```
-
-For a concise terminal summary and the installed package version:
+Read the same assessment in the terminal:
 
 ```bash
 grc-lake --version
 grc-lake assessment status --lake ./lake --format summary
+grc-lake assessment violations --lake ./lake
 ```
 
-The summary shows the posture, total and unevaluated controls, failing and warning
-tests, open violations, and stale/expired/missing evidence. JSON remains the
-default; `--format json` selects it explicitly. Summary counts use the same
-assessment totals as JSON, including when detailed violation lists are capped.
+The summary reports total and unevaluated controls, failing and warning tests,
+open violations, and stale/expired/missing evidence. A posture score alone does
+not establish framework compliance.
 
-The sample company is deliberately unhealthy. Counts and scores depend on the
-evaluation policy and evidence freshness at run time; use the summary above for
-current values. Every failure links to the evidence record that caused it.
+## 3. Inspect the framework mapping
 
-With Compose, run CLI commands inside the container and use `/lake`:
+Open **Frameworks** and compare catalogued, mapped, and reviewed requirements.
+Use **Evaluate → Mapping review** to inspect proposed safeguard links. The same
+SOC 2 queue is available from the CLI:
 
 ```bash
-docker compose exec grc-lake grc-lake assessment status --lake /lake
+grc-lake frameworks review-queue --lake ./lake --framework soc2
+grc-lake frameworks safeguards --lake ./lake --format table
 ```
 
-## 3. Gate a pipeline on it
+A mapping links a safeguard to a framework requirement. Proposed mappings are
+not attestable; a reviewed mapping still needs scoped evidence and testing.
+This tour does not require an approval. For real evidence, an eligible human
+must evaluate the requirement and record their own rationale through the
+[mapping-review workflow](MAPPING_REVIEW.md).
 
-The [CI posture gate](CI_GATE.md) turns those numbers into a pass or fail for a
-pull request. From a checkout of this repository, with the server still running:
-
-```bash
-GRC_LAKE_URL=http://127.0.0.1:8787 MIN_SCORE=70 ./tools/ci/posture-gate.sh
-# exits 1: posture score is below 70, with 4 critical violations and 19 failing control tests
-```
-
-## 4. Connect one real cloud account, read-only
-
-Use a **new lake** for real evidence so it never mixes with the sample data.
-Install the cloud SDKs, then follow [Live cloud POC](LIVE_CLOUD_POC.md) for your
-provider. For AWS with an SSO profile, the local flow is:
+## 4. Freeze and export the result
 
 ```bash
-pip install "grc-lake[server,cloud]"
-aws sso login --profile grc-lake-poc
-export AWS_PROFILE=grc-lake-poc
-creds='{"account_id":"<account-id>"}'
-
-grc-lake connectors probe --lake ./my-lake --connector-id aws-posture --credentials-json "$creds"
-grc-lake connectors configure --lake ./my-lake --connector-id aws-posture --credentials-json "$creds" --state enabled
-grc-lake connectors sync --lake ./my-lake --connector-id aws-posture
-```
-
-The connector calls only read-only IAM APIs, listed in
-[Live cloud POC](LIVE_CLOUD_POC.md#aws-trial-account). For a server, use the
-assume-role variant and the templates in [`deploy/aws`](../deploy/aws/),
-[`deploy/azure`](../deploy/azure/), or [`deploy/gcp`](../deploy/gcp/); the
-console path is **Connections → choose a source → Test → Enable → Sync**.
-
-## 5. Review a mapping
-
-A mapping says "this safeguard's evidence satisfies that framework
-requirement". Proposed mappings have not been confirmed by a person. List the
-SOC 2 queue, then approve one with a rationale:
-
-```bash
-grc-lake frameworks review-queue --lake ./lake --framework soc2 \
-  | jq -r '.items[:5][] | "\(.safeguard_id) \(.control_id) \(.review_state)"'
-
-grc-lake frameworks review approve --lake ./lake \
-  --safeguard SG-IDENTITY-001 --framework soc2 --control SOC2-CC6.3 \
-  --rationale "Access-review evidence covers removal of logical access" \
-  --reviewer you@example.com
-
-grc-lake frameworks safeguards --lake ./lake --format table | head -3
-# Counts reflect the current catalog and your organization review decisions.
-```
-
-The decision is appended to a hash-chained log in the lake. In server mode
-only a signed-in `admin` or `compliance_reviewer` can decide, in the console
-under **Evaluate → Mapping review**. [Mapping review](MAPPING_REVIEW.md) has
-the full model.
-
-## 6. Export for an auditor
-
-```bash
-# Freeze the current posture as a hash-chained snapshot.
-grc-lake assessment snapshot --lake ./lake --reason "Q3 readiness review"
-
-# OSCAL component definition, including your org-reviewed mappings.
+grc-lake assessment snapshot --lake ./lake --reason "Synthetic demo review"
+grc-lake assessment verify-snapshots --lake ./lake
 grc-lake oscal export --component-definition --lake ./lake --out component-definition.json
-
-# OSCAL assessment results: one finding per evaluated control.
 grc-lake oscal export --assessment-results ./lake --out assessment-results.json
 ```
 
-[OSCAL export](OSCAL_EXPORT.md) explains both documents and the matching API
-routes. In the console, **Audit room** collects frozen assessments for review.
+Inspect the JSON documents: the component definition describes safeguard mappings;
+the assessment results describe evaluated controls. Compare the failing control
+with its console result. Exporting preserves the result; it does not approve
+mappings or turn failures into passes. [OSCAL export](OSCAL_EXPORT.md) explains
+the document boundaries and verification.
 
-## Next steps
+For Compose, copy the two outputs from the container after exporting them to
+`/lake/exports/`:
 
-- Run it for real with the Compose `grc-lake-server` service. It requires
-  authentication, has no sample data, and listens on `127.0.0.1:8788`; put a
-  TLS proxy in front. Create the first tenant and admin, whose email must
-  match their SSO login ([server auth](SERVER_AUTH.md) covers OIDC and SAML):
+```bash
+docker compose cp grc-lake:/lake/exports/component-definition.json ./component-definition.json
+docker compose cp grc-lake:/lake/exports/assessment-results.json ./assessment-results.json
+```
 
-  ```bash
-  cp deploy/compose/grc-lake.env.example grc-lake.env   # then fill in the secrets
-  docker compose run --rm grc-lake-server grc-lake auth create-tenant --lake /lake --slug acme --name "Acme"
-  docker compose run --rm grc-lake-server grc-lake auth create-user --lake /lake --tenant-slug acme --email admin@acme.example --role admin
-  docker compose up -d grc-lake-server
-  ```
+You have completed the tour when you can explain one failure, identify its
+supporting evidence, distinguish its mapping status, and locate the result in
+an export.
 
-- Reset the Compose demo with `docker compose down -v`.
-- [Product walkthrough](PRODUCT_WALKTHROUGH.md) · [connectors](CONNECTORS.md) ·
-  [framework coverage](FRAMEWORK_COVERAGE.md) · [contributing](../CONTRIBUTING.md)
+## Continue with a scoped workpaper
+
+The [auditor walkthrough](AUDITOR_WALKTHROUGH.md) uses a separate synthetic
+fixture with an explicit test plan, assessment period, and population baseline.
+Run its three commands from a source checkout to build a draft HTML/JSON
+workpaper and verify the exported file hashes. Inspect the missing asset,
+failed change observation, and incomplete sampling windows. Those extra inputs
+are needed for the workpaper; the console's golden demo alone is not a complete
+audit test plan. Hash verification establishes integrity relative to the
+manifest, not source authenticity or auditor acceptance.
+
+## Connect your own evidence
+
+Use a new lake so real evidence never mixes with the sample company. Start with
+one read-only source through [connector setup](CONNECTOR_CREDENTIALS.md) and
+[the live-cloud guide](LIVE_CLOUD_POC.md), or qualify an
+[existing-lake reader](BRING_YOUR_OWN_LAKE.md). Reader and mapping qualification
+vary. In the console: **Connections → choose a source → Test → Enable → Sync**.
+
+Configure [SSO and scoped credentials](SERVER_AUTH.md), storage, and
+[backup/restore](runbooks/BACKUP_RESTORE.md) for a shared deployment. For automated
+checks after setup, see the [CI posture gate](CI_GATE.md).
+
+If a step fails, report the installed version, install method, failed command,
+and sanitized error in a [bug report](https://github.com/koda-ai-studio/grc-lake/issues/new/choose).
+Do not include credentials or real evidence.
