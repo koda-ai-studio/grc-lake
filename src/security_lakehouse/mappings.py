@@ -26,17 +26,29 @@ def load_control_article_mappings(
 ) -> dict[str, dict[str, Any]]:
     """Return a {control_id: mapping_record} dict."""
     payload = json.loads(Path(path or DEFAULT_MAPPINGS).read_text(encoding="utf-8"))
-    mappings = payload.get("mappings")
+    mappings = payload.get("mappings") if isinstance(payload, dict) else None
     if not isinstance(mappings, list):
         raise ValueError("control article mappings must contain a `mappings` list")
     out: dict[str, dict[str, Any]] = {}
     for mapping in mappings:
-        cid = str(mapping.get("control_id") or "")
-        if not cid:
-            continue
-        mapping["articles"] = [source_provenance(article) for article in mapping.get("articles", [])]
+        if not isinstance(mapping, dict):
+            raise ValueError("each control article mapping must be an object")
+        cid = mapping.get("control_id")
+        if not isinstance(cid, str) or not cid.strip():
+            raise ValueError("control article mapping requires a nonempty control_id")
+        if cid in out:
+            raise ValueError(f"duplicate control article mapping: {cid}")
+        articles = mapping.get("articles", [])
+        if not isinstance(articles, list) or any(not isinstance(article, dict) for article in articles):
+            raise ValueError(f"mapping {cid} articles must be a list of objects")
+        mapping["articles"] = [source_provenance(article) for article in articles]
         out[cid] = mapping
     return out
+
+
+def source_mapping_matches_control(mapping: dict[str, Any], control: dict[str, Any] | None) -> bool:
+    """Credit citations only within the catalog target's framework identity."""
+    return bool(control and mapping.get("framework_id") == control.get("framework_id") and mapping.get("articles"))
 
 
 def article_mapping_reviewed(mapping: dict[str, Any] | None) -> bool:
@@ -53,17 +65,29 @@ def article_mapping_reviewed(mapping: dict[str, Any] | None) -> bool:
 
 def validate_control_article_mappings(
     path: str | Path | None = None,
+    catalog_path: str | Path | None = None,
 ) -> list[str]:
     """Return errors for missing/invalid mapping fields."""
     errors: list[str] = []
-    mappings = load_control_article_mappings(path)
+    try:
+        mappings = load_control_article_mappings(path)
+    except ValueError as exc:
+        return [str(exc)]
+    catalog = load_control_catalog(catalog_path)
     for cid, mapping in mappings.items():
         if not mapping.get("framework_id"):
             errors.append(f"mapping {cid} missing framework_id")
+        if cid not in catalog:
+            errors.append(f"mapping {cid} references unknown control")
+        elif mapping.get("framework_id") != catalog[cid].get("framework_id"):
+            errors.append(f"mapping {cid} framework_id disagrees with catalog target")
         articles = mapping.get("articles") or []
         if not articles:
             errors.append(f"mapping {cid} has no articles")
         for article in articles:
+            review = article.get("review_status", "reviewed")
+            if not isinstance(review, str) or review not in {"reviewed", "proposed"}:
+                errors.append(f"mapping {cid} article has invalid review_status")
             for required in ("article_id", "title", "official_source_url", "reviewed_by", "reviewed_at", "rationale"):
                 if article.get("review_status") == "proposed":
                     required = required.replace("reviewed_", "source_reconciled_")
@@ -96,7 +120,7 @@ def build_reviewed_crosswalk(
     by_framework: dict[str, dict[str, dict[str, Any]]] = defaultdict(dict)
     for cid, mapping in mappings.items():
         framework_id = str(mapping.get("framework_id") or "")
-        if framework_id:
+        if framework_id and source_mapping_matches_control(mapping, catalog.get(cid)):
             by_framework[framework_id][cid] = mapping
 
     def domains_for(framework: str) -> set[str]:
