@@ -78,9 +78,18 @@ export function InvestigationExplorer() {
     };
   }, [inlineExpanded]);
   const [rootOffset, setRootOffset] = useState(0);
+  const [safeguardPage, setSafeguardPage] = useState({
+    root: "",
+    framework: "",
+    offset: 0,
+  });
   const searchParams = useSearchParams();
   const [view, setView] = useState(
-    searchParams.get("root") ? "investigation" : "controls",
+    /^(control|safeguard|framework|category|family):/.test(
+      searchParams.get("root") ?? "",
+    ) || !searchParams.get("root")
+      ? "controls"
+      : "investigation",
   );
   const [root, setRoot] = useState(searchParams.get("root") ?? "");
   const [depth, setDepth] = useState(2);
@@ -99,6 +108,10 @@ export function InvestigationExplorer() {
     layers: [...visible].sort().join(","),
   });
   if (root) params.set("root", root);
+  if (safeguardPage.root === root) {
+    params.set("framework", safeguardPage.framework);
+    params.set("control_offset", String(safeguardPage.offset));
+  }
   if (version) params.set("version", version);
   const query = useQuery({
     queryKey: ["investigation-graph", params.toString()],
@@ -237,165 +250,161 @@ export function InvestigationExplorer() {
     setSelected(null);
   };
   return (
-    <div className="page-shell space-y-4">
+    <div className="page-shell space-y-2">
       <PageHeader
         title="Evidence investigation"
-        description="Follow recorded relationships from requirements and safeguards to evidence, environments and findings."
+        description="Inspect recorded paths and outcomes. Maps show catalog coverage and repository structure."
       />
-      <div className="rounded-xl border border-line bg-surface p-3 space-y-3">
-        <div
-          role="group"
-          aria-label="Investigation view"
-          className="flex flex-wrap gap-2"
-        >
-          {["controls", "environment", "investigation"].map((value) => (
-            <Button
-              key={value}
-              aria-pressed={view === value}
-              variant={view === value ? "primary" : "default"}
-              onClick={() => {
-                setView(value);
-                reset();
-              }}
-            >
-              {value === "controls"
-                ? "Controls & CCF"
-                : value === "environment"
-                  ? "Environment"
-                  : "Findings, sources & vendors"}
-            </Button>
-          ))}
-        </div>
-        <div className="flex flex-wrap items-end gap-3">
-          <label className="grid gap-1 text-xs text-muted">
-            Find a starting point
-            <input
-              className="ui-input"
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                reset();
-              }}
-              placeholder="Search this view…"
-            />
-          </label>
-          <label className="grid min-w-0 flex-1 gap-1 text-xs text-muted">
-            Starting point
-            <select
-              aria-label="Graph starting point"
-              className="ui-input min-w-0"
-              value={currentRoot}
-              onChange={(e) => {
-                setTrail([]);
-                setRoot(e.target.value);
-                setRepositoryView("evidence");
-                setEvidencePage(0);
-                setVersion(data?.version ?? "");
-                setSelected(null);
-              }}
-            >
-              <option value="">Choose a recorded node</option>
-              {currentRoot &&
-                !data?.roots.some((n) => n.id === currentRoot) && (
-                  <option value={currentRoot}>
-                    {data?.nodes.find((n) => n.id === currentRoot)?.label ??
-                      currentRoot}
-                  </option>
-                )}
-              {data?.roots.map((n) => (
-                <option key={n.id} value={n.id}>
-                  {n.label} · {n.kind.replaceAll("_", " ")}
-                </option>
-              ))}
-            </select>
-          </label>
-          {data && data.root_count > 50 && (
-            <div className="flex items-center gap-1">
-              <Button
-                size="sm"
-                disabled={rootOffset === 0}
-                onClick={() => setRootOffset(Math.max(0, rootOffset - 50))}
-              >
-                Previous starting points
-              </Button>
-              <Button
-                size="sm"
-                disabled={data.next_root_offset === null}
-                onClick={() => setRootOffset(data.next_root_offset!)}
-              >
-                Next starting points
-              </Button>
-            </div>
-          )}
-          <label className="grid gap-1 text-xs text-muted">
-            Depth
-            <select
-              aria-label="Graph depth"
-              className="ui-input"
-              value={depth}
-              onChange={(e) => setDepth(Number(e.target.value))}
-            >
-              {[1, 2, 3].map((n) => (
-                <option key={n} value={n}>
-                  {n} {n === 1 ? "hop" : "hops"}
-                </option>
-              ))}
-            </select>
-          </label>
-          <Button
-            onClick={() => {
-              setSelected(null);
-              if (version) setVersion("");
-              else void query.refetch();
-            }}
+      <details className="rounded-xl border border-line bg-surface p-3">
+        <summary className="cursor-pointer text-sm font-semibold">
+          Search and change starting point
+        </summary>
+        <div className="mt-3 space-y-3">
+          <div
+            role="group"
+            aria-label="Investigation view"
+            className="flex flex-wrap gap-2"
           >
-            Refresh evidence
-          </Button>
-        </div>
-        <details>
-          <summary className="cursor-pointer text-xs font-semibold">
-            Visible relationship layers
-          </summary>
-          <div className="mt-2 flex flex-wrap gap-3">
-            {optional.map((kind) => (
-              <label key={kind} className="flex items-center gap-1 text-xs">
-                <input
-                  type="checkbox"
-                  checked={visible.has(kind)}
-                  onChange={(e) => {
-                    setVisible((current) => {
-                      const next = new Set(current);
-                      if (e.target.checked) next.add(kind);
-                      else next.delete(kind);
-                      return next;
-                    });
-                    setVersion("");
-                  }}
-                />
-                {kind.replaceAll("_", " ")}
-              </label>
+            {["controls", "environment", "investigation"].map((value) => (
+              <Button
+                key={value}
+                aria-pressed={view === value}
+                variant={view === value ? "primary" : "default"}
+                onClick={() => {
+                  setView(value);
+                  reset();
+                }}
+              >
+                {value === "controls"
+                  ? "Controls & CCF"
+                  : value === "environment"
+                    ? "Environment"
+                    : "Findings, sources & vendors"}
+              </Button>
             ))}
           </div>
-        </details>
-      </div>
+          <div className="flex flex-wrap items-end gap-3">
+            <label className="grid gap-1 text-xs text-muted">
+              Find a starting point
+              <input
+                className="ui-input"
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  reset();
+                }}
+                placeholder="Type to filter starting points…"
+                aria-label="Find a starting point"
+              />
+            </label>
+            <label className="grid min-w-0 flex-1 gap-1 text-xs text-muted">
+              Starting point
+              <select
+                aria-label="Graph starting point"
+                className="ui-input min-w-0"
+                value={currentRoot}
+                onChange={(e) => {
+                  setTrail([]);
+                  setRoot(e.target.value);
+                  setRepositoryView("evidence");
+                  setEvidencePage(0);
+                  setVersion(data?.version ?? "");
+                  setSelected(null);
+                }}
+              >
+                <option value="">Choose a recorded node</option>
+                {currentRoot &&
+                  !data?.roots.some((n) => n.id === currentRoot) && (
+                    <option value={currentRoot}>
+                      {data?.nodes.find((n) => n.id === currentRoot)?.label ??
+                        currentRoot}
+                    </option>
+                  )}
+                {data?.roots.map((n) => (
+                  <option key={n.id} value={n.id}>
+                    {n.label} · {n.kind.replaceAll("_", " ")}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {data && data.root_count > 50 && (
+              <div className="flex items-center gap-1">
+                <Button
+                  size="sm"
+                  aria-label="Previous starting points"
+                  disabled={rootOffset === 0}
+                  onClick={() => setRootOffset(Math.max(0, rootOffset - 50))}
+                >
+                  Previous
+                </Button>
+                <Button
+                  size="sm"
+                  aria-label="Next starting points"
+                  disabled={data.next_root_offset === null}
+                  onClick={() => setRootOffset(data.next_root_offset!)}
+                >
+                  Next
+                </Button>
+              </div>
+            )}
+            <label className="grid gap-1 text-xs text-muted">
+              Depth
+              <select
+                aria-label="Graph depth"
+                className="ui-input"
+                value={depth}
+                onChange={(e) => setDepth(Number(e.target.value))}
+              >
+                {[1, 2, 3].map((n) => (
+                  <option key={n} value={n}>
+                    {n} {n === 1 ? "hop" : "hops"}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <Button
+              onClick={() => {
+                setSelected(null);
+                if (version) setVersion("");
+                else void query.refetch();
+              }}
+            >
+              Refresh evidence
+            </Button>
+          </div>
+          <details>
+            <summary className="cursor-pointer text-xs font-semibold">
+              Visible relationship layers
+            </summary>
+            <div className="mt-2 flex flex-wrap gap-3">
+              {optional.map((kind) => (
+                <label key={kind} className="flex items-center gap-1 text-xs">
+                  <input
+                    type="checkbox"
+                    checked={visible.has(kind)}
+                    onChange={(e) => {
+                      setVisible((current) => {
+                        const next = new Set(current);
+                        if (e.target.checked) next.add(kind);
+                        else next.delete(kind);
+                        return next;
+                      });
+                      setVersion("");
+                    }}
+                  />
+                  {kind.replaceAll("_", " ")}
+                </label>
+              ))}
+            </div>
+          </details>
+        </div>
+      </details>
       {query.isError && (
         <Button onClick={reset}>Reset to current evidence</Button>
       )}
       <QueryState queries={[query]} label="investigation graph">
         {data && (
           <>
-            <p role="status" className="text-xs text-muted">
-              {scopeIds.size === data.nodes.length
-                ? `${data.nodes.length} nodes · ${data.edges.length} relationships`
-                : `${scopeIds.size} of ${data.nodes.length} loaded nodes · ${shownEdges} of ${data.edges.length} relationships`}{" "}
-              · {data.boundary}.{" "}
-              {data.truncated
-                ? `${data.matching_nodes} nodes match; showing a bounded subset. Reduce depth or expand a selected node.`
-                : ""}{" "}
-              {data.root_count > 50
-                ? `Starting points ${data.root_offset + 1}–${Math.min(data.root_offset + 50, data.root_count)} of ${data.root_count}; search to narrow.`
-                : ""}
-            </p>
             {data.root_missing || data.nodes.length === 0 ? (
               <div className="rounded-xl border border-line p-6 text-sm text-muted">
                 No recorded relationships for this selection. Choose another
@@ -479,6 +488,82 @@ export function InvestigationExplorer() {
                       : "Expand graph workspace"}
                   </Button>
                 </div>
+                {(data.framework_groups?.length ?? 0) > 0 && (
+                  <div
+                    className="flex flex-wrap items-center gap-2 text-xs"
+                    aria-label="Safeguard framework groups"
+                  >
+                    <label className="flex items-center gap-2">
+                      Framework
+                      <select
+                        className="ui-input"
+                        aria-label="Safeguard framework"
+                        value={data.selected_framework}
+                        onChange={(e) => {
+                          setSafeguardPage({
+                            root: currentRoot,
+                            framework: e.target.value,
+                            offset: 0,
+                          });
+                          setSelected(null);
+                        }}
+                      >
+                        {data.framework_groups.map((group) => (
+                          <option
+                            key={group.framework_id}
+                            value={group.framework_id}
+                          >
+                            {group.label} ({group.control_count})
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <span>
+                      {data.framework_groups.reduce(
+                        (total, group) => total + group.control_count,
+                        0,
+                      )}{" "}
+                      mapped controls across {data.framework_groups.length}{" "}
+                      frameworks · mapping does not establish a pass
+                    </span>
+                    <span>
+                      Controls{" "}
+                      {data.control_count ? data.control_offset + 1 : 0}–
+                      {Math.min(data.control_offset + 5, data.control_count)} of{" "}
+                      {data.control_count}
+                    </span>
+                    <Button
+                      size="sm"
+                      aria-label="Previous mapped controls"
+                      disabled={!data.control_offset}
+                      onClick={() => {
+                        setSafeguardPage({
+                          root: currentRoot,
+                          framework: data.selected_framework,
+                          offset: Math.max(0, data.control_offset - 5),
+                        });
+                        setSelected(null);
+                      }}
+                    >
+                      Previous
+                    </Button>
+                    <Button
+                      size="sm"
+                      aria-label="Next mapped controls"
+                      disabled={data.next_control_offset === null}
+                      onClick={() => {
+                        setSafeguardPage({
+                          root: currentRoot,
+                          framework: data.selected_framework,
+                          offset: data.next_control_offset!,
+                        });
+                        setSelected(null);
+                      }}
+                    >
+                      Next
+                    </Button>
+                  </div>
+                )}
                 {repositoryRoot && (
                   <div
                     role="group"
@@ -555,22 +640,6 @@ export function InvestigationExplorer() {
                     )}
                   </div>
                 )}
-                <p className="text-xs text-muted">
-                  Click a node for details. Double-click or press Shift+Enter to
-                  explore its connections.
-                </p>
-                {mappingStates.length > 0 && (
-                  <p
-                    aria-label="Mapping review states"
-                    className="text-xs text-muted"
-                  >
-                    Mapping review:{" "}
-                    {mappingStates
-                      .map((state) => state.replaceAll("_", " "))
-                      .join(" · ")}
-                    . Details below.
-                  </p>
-                )}
                 <div
                   className={`grid items-start gap-3 ${selectedNode ? "xl:grid-cols-[minmax(0,1fr)_300px]" : ""}`}
                 >
@@ -601,7 +670,7 @@ export function InvestigationExplorer() {
                       pathFrom={null}
                       pathTo={null}
                       rankLimit={
-                        repositoryRoot && repositoryView === "all" ? 8 : 4
+                        repositoryRoot && repositoryView === "all" ? 8 : 5
                       }
                       focusId={selectedNode?.id}
                       onSelectNode={setSelected}
@@ -646,6 +715,34 @@ export function InvestigationExplorer() {
                       ))}
                   </ul>
                 </details>
+                <p role="status" className="text-xs text-muted">
+                  {scopeIds.size === data.nodes.length
+                    ? `${data.nodes.length} nodes · ${data.edges.length} relationships`
+                    : `${scopeIds.size} of ${data.nodes.length} loaded nodes · ${shownEdges} of ${data.edges.length} relationships`}{" "}
+                  · {data.boundary}.{" "}
+                  {data.truncated
+                    ? `${data.matching_nodes} nodes match; showing a bounded subset. Reduce depth or expand a selected node.`
+                    : ""}{" "}
+                  {data.root_count > 50
+                    ? `Starting points ${data.root_offset + 1}–${Math.min(data.root_offset + 50, data.root_count)} of ${data.root_count}; search to narrow.`
+                    : ""}
+                </p>
+                <p className="text-xs text-muted">
+                  Hover to follow links. Drag to arrange. Click for details.
+                  Double-click or press Shift+Enter to explore its connections.
+                </p>
+                {mappingStates.length > 0 && (
+                  <p
+                    aria-label="Mapping review states"
+                    className="text-xs text-muted"
+                  >
+                    Mapping review:{" "}
+                    {mappingStates
+                      .map((state) => state.replaceAll("_", " "))
+                      .join(" · ")}
+                    . Details below.
+                  </p>
+                )}
               </section>
             )}
           </>

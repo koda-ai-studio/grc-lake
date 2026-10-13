@@ -38,14 +38,14 @@ const KIND_TONE: Record<
   framework: "info",
   ccf_category: "info",
   ccf_family: "info",
-  safeguard: "ready",
+  safeguard: "info",
   environment: "info",
   account: "info",
   source: "info",
   vendor: "attention",
   finding: "critical",
 
-  control: "ready",
+  control: "info",
   evidence_type: "attention",
   asset: "critical",
   repository: "info",
@@ -205,7 +205,7 @@ export function GraphNodeDrawer({
           </div>
         )}
 
-        {isEvidence && (
+        {(isEvidence || ["control", "safeguard"].includes(node.kind)) && (
           <div className="rounded-lg border border-line p-3 text-sm">
             <Badge tone={outcome.tone}>{outcome.label}</Badge>
             <p className="mt-2 text-xs leading-5 text-muted">

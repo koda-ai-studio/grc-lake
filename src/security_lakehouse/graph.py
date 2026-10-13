@@ -104,7 +104,12 @@ def _freshness_index(lake: Path) -> dict[str, dict[str, Any]]:
     return index
 
 
-_GRAPH_INPUTS = ("silver/normalized_events.jsonl", "gold/asset_risk.jsonl", "catalog/control_map.json")
+_GRAPH_INPUTS = (
+    "silver/normalized_events.jsonl",
+    "gold/asset_risk.jsonl",
+    "gold/control_posture.jsonl",
+    "catalog/control_map.json",
+)
 _GRAPHS: DerivedCache[dict[str, Any]] = DerivedCache(max_entries=16, per_root=2)
 
 
@@ -146,6 +151,9 @@ def _build_compliance_graph(lake: Path) -> dict[str, Any]:
     )
     events = _silver_event_rows(lake)
     assets = _gold_asset_rows(lake)
+    posture = {
+        r["control_id"]: r for r in read_jsonl(lake / "gold/control_posture.jsonl", missing_ok=True, base_dir=lake)
+    }
 
     nodes: list[dict[str, Any]] = []
     edges: list[dict[str, Any]] = []
@@ -184,6 +192,8 @@ def _build_compliance_graph(lake: Path) -> dict[str, Any]:
                 "subtitle": control.get("title"),
                 "framework_id": framework_id,
                 "owner": control.get("owner"),
+                "status": posture.get(control_id, {}).get("status", "not_evaluated"),
+                "risk_score": posture.get(control_id, {}).get("risk_score"),
             }
         )
         if framework_id:
@@ -214,6 +224,7 @@ def _build_compliance_graph(lake: Path) -> dict[str, Any]:
                 "subtitle": str(event.get("event_id") or "Recorded binding"),
                 "event_count": 1,
                 "event_type": event_type,
+                "status": event.get("status", "observed"),
                 "evidence_id": event.get("event_id"),
                 "evidence_ref": event.get("evidence_ref"),
                 "provider": event.get("source"),
@@ -501,6 +512,9 @@ def build_repository_graph(lake_dir: str | Path) -> dict[str, Any]:
         or str((row.get("entity") or {}).get("asset_type") or "") == "repository"
     ]
     freshness_index = _freshness_index(lake)
+    posture = {
+        r["control_id"]: r for r in read_jsonl(lake / "gold/control_posture.jsonl", missing_ok=True, base_dir=lake)
+    }
     nodes: dict[str, dict[str, Any]] = {}
     edges: dict[str, dict[str, Any]] = {}
 
@@ -544,6 +558,7 @@ def build_repository_graph(lake_dir: str | Path) -> dict[str, Any]:
             "evidence_ref": evidence.get("evidence_ref"),
             "control_ids": [str(c) for c in event.get("controls") or []],
             "event_type": event_type,
+            "status": event.get("status", "observed"),
         }
         if severity := event.get("severity"):
             evidence_extra["severity"] = str(severity)
@@ -562,7 +577,14 @@ def build_repository_graph(lake_dir: str | Path) -> dict[str, Any]:
 
         for control_id in event.get("controls") or []:
             control_node = f"control:{control_id}"
-            add_node(control_node, "control", str(control_id), framework_id=_framework_from_control(str(control_id)))
+            add_node(
+                control_node,
+                "control",
+                str(control_id),
+                framework_id=_framework_from_control(str(control_id)),
+                status=posture.get(str(control_id), {}).get("status", "not_evaluated"),
+                risk_score=posture.get(str(control_id), {}).get("risk_score"),
+            )
             add_edge(evidence_node, control_node, "evidence_maps_control")
 
         if event_type == "repository.code_graph":

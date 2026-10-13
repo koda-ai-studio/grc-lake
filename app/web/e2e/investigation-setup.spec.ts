@@ -3,26 +3,48 @@ import { expect, test } from "@playwright/test";
 test("bounded investigation expands exact relationships with visible icons", async ({
   page,
 }) => {
-  let responseNodes = 0;
-  page.on("response", async (response) => {
-    if (response.url().includes("/graph/investigation") && response.ok())
-      responseNodes = (await response.json()).data.nodes.length;
-  });
-  await page.goto("/console/graph/");
-  await expect(
-    page.getByRole("heading", { name: "Evidence investigation" }),
-  ).toBeVisible();
+  const initialResponse = page.waitForResponse(
+    (response) =>
+      response.url().includes("/graph/investigation") && response.ok(),
+  );
+  await page.goto("/console/graph/?root=control%3ASOC2-CC6.1");
+  const initial = (await (await initialResponse).json()).data;
+  expect(initial.nodes.length).toBeGreaterThan(0);
+  expect(initial.nodes.length).toBeLessThanOrEqual(150);
   await expect(page.getByTestId("graph-node-icon").first()).toBeVisible();
-  expect(responseNodes).toBeLessThanOrEqual(150);
+  await page
+    .getByText("Search and change starting point", { exact: true })
+    .click();
+  const shallowResponse = page.waitForResponse(
+    (response) =>
+      response.url().includes("/graph/investigation") &&
+      new URL(response.url()).searchParams.get("depth") === "1" &&
+      response.ok(),
+  );
   await page.getByLabel("Graph depth").selectOption("1");
-  await page.locator(".react-flow__node").first().click();
+  const shallow = (await (await shallowResponse).json()).data;
+  const evidence = shallow.nodes.find(
+    (node: { label: string }) =>
+      node.label === "repository.governance.branch_protection",
+  );
+  expect(evidence).toBeDefined();
+  await page.locator(`.react-flow__node[data-id="${evidence.id}"]`).click();
   const inspector = page.getByRole("complementary", {
     name: "Selected graph node",
   });
   await expect(inspector).toBeVisible();
+  const focusedResponse = page.waitForResponse(
+    (response) =>
+      response.url().includes("/graph/investigation") &&
+      new URL(response.url()).searchParams.get("root") === evidence.id &&
+      response.ok(),
+  );
   await inspector
     .getByRole("button", { name: "Focus this evidence path" })
     .click();
+  const focused = (await (await focusedResponse).json()).data;
+  expect(focused.root).toBe(evidence.id);
+  expect(focused.edges.length).toBeGreaterThan(0);
   await expect(
     page.getByText(/Recorded relationships; not network reachability/),
   ).toBeVisible();
@@ -109,12 +131,25 @@ test("failed access test keeps configuration recoverable", async ({ page }) => {
   );
 });
 
-test("selected investigation stays legible and clears its relationship panel", async ({
+test("selected investigation highlights direct relationships and clears selection", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 1100 });
-  await page.goto("/console/graph/");
-  await page.locator('.react-flow__node[data-id="control:SOC2-CC6.1"]').click();
+  await page.goto("/console/graph/?root=control%3ASOC2-CC6.1");
+  const control = page.locator(
+    '.react-flow__node[data-id="control:SOC2-CC6.1"]',
+  );
+  await control.click();
+  const inspector = page.getByRole("complementary", {
+    name: "Selected graph node",
+  });
+  await expect(
+    inspector.getByRole("heading", { name: "SOC2-CC6.1", exact: true }),
+  ).toBeVisible();
+  // Move away from the canvas so this asserts selection, independently of hover.
+  await page
+    .getByRole("heading", { name: "Evidence investigation", exact: true })
+    .hover();
   const relationships = page.getByText(
     "Selected relationships and mapping review state",
     { exact: true },
@@ -127,11 +162,26 @@ test("selected investigation stays legible and clears its relationship panel", a
       .getByTestId("graph-node-label")
       .filter({ hasText: "Branch protection" }),
   ).toBeVisible();
-  await expect(page.locator(".react-flow__node .opacity-50")).toHaveCount(0);
+  await expect(control.locator(".opacity-50")).toHaveCount(0);
+  const branchEvidence = page.locator(".react-flow__node").filter({
+    has: page
+      .getByTestId("graph-node-label")
+      .filter({ hasText: "Branch protection" }),
+  });
+  await expect(branchEvidence.locator(".opacity-50")).toHaveCount(0);
+  // Assets two hops away remain present but dimmed while the control is selected.
+  await expect
+    .poll(() =>
+      page.locator('.react-flow__node[data-id^="asset:"] .opacity-50').count(),
+    )
+    .toBeGreaterThan(0);
   await expect(page.locator(".react-flow__edge-text")).toHaveCount(0);
   await expect(page.getByLabel("Mapping review states")).toContainText(
     "maintainer reviewed",
   );
+  await inspector.getByRole("button", { name: "Close node details" }).click();
+  await expect(inspector).toHaveCount(0);
+  await expect(page.locator(".react-flow__node .opacity-50")).toHaveCount(0);
 });
 
 test("graph expands, drills into a record and rolls back to its parent", async ({

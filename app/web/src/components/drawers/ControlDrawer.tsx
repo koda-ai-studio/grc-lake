@@ -93,6 +93,13 @@ export function ControlDrawer({ control, onClose, onOpenViolation }: Props) {
               >
                 {control.evidence_count}/{control.event_count} records →
               </Link>
+              {test && (
+                <p className="mt-1 text-xs font-normal text-muted">
+                  {test.evidence_count} records with outcomes used by control
+                  tests. Linked observations remain visible but do not establish
+                  a verdict.
+                </p>
+              )}
             </dd>
           </dl>
           <div>

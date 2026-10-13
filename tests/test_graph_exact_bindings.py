@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from security_lakehouse.graph import analyze_coverage, build_compliance_graph
+from security_lakehouse.graph import analyze_coverage, build_compliance_graph, build_repository_graph
 from test_api_v1 import _write_jsonl
 
 
@@ -303,3 +303,89 @@ def test_connector_namespaced_repository_records_reuse_exact_normalized_binding(
     assert len([node for node in graph["nodes"] if node["kind"] == "evidence_type"]) == 1
     # Only the other connector's unnormalized record needs a bronze-only node.
     assert len([node for node in graph["nodes"] if node["kind"] == "evidence"]) == 1
+
+
+def test_graphs_share_control_posture_and_observed_status(tmp_path: Path) -> None:
+    from security_lakehouse.investigation_graph import investigation_graph
+
+    _write_jsonl(
+        tmp_path / "silver/normalized_events.jsonl",
+        [
+            {
+                "event_id": "access",
+                "event_type": "iam.access_review",
+                "status": "open",
+                "control_ids": ["SOC2-CC6.1"],
+                "asset_id": "role",
+            }
+        ],
+    )
+    _write_jsonl(
+        tmp_path / "bronze/raw_events.jsonl",
+        [
+            {
+                "raw": {
+                    "event_id": "access",
+                    "event_type": "repository.governance.branch_protection",
+                    "status": "open",
+                    "controls": ["SOC2-CC6.1"],
+                    "entity": {"asset_id": "repo", "asset_type": "repository"},
+                }
+            }
+        ],
+    )
+    posture_path = tmp_path / "gold/control_posture.jsonl"
+    _write_jsonl(posture_path, [{"control_id": "SOC2-CC6.1", "status": "fail", "risk_score": 80}])
+    for graph in (
+        build_compliance_graph(tmp_path),
+        build_repository_graph(tmp_path),
+        investigation_graph(tmp_path, root="control:SOC2-CC6.1"),
+    ):
+        control = next(n for n in graph["nodes"] if n["id"] == "control:SOC2-CC6.1")
+        assert control["status"] == "fail"
+        assert control["risk_score"] == 80
+        assert next(n for n in graph["nodes"] if n["kind"] in {"evidence_type", "evidence"})["status"] == "open"
+        assert all(n["status"] == "not_evaluated" for n in graph["nodes"] if n["kind"] == "safeguard")
+    _write_jsonl(posture_path, [{"control_id": "SOC2-CC6.1", "status": "pass", "risk_score": 0}])
+    updated = build_compliance_graph(tmp_path)
+    assert next(n for n in updated["nodes"] if n["id"] == "control:SOC2-CC6.1")["status"] == "pass"
+    assert next(n for n in updated["nodes"] if n["id"] == "control:SOC2-CC1.1")["status"] == "not_evaluated"
+
+
+def test_safeguard_framework_groups_count_and_page_all_mappings(tmp_path: Path) -> None:
+    from security_lakehouse.investigation_graph import investigation_graph
+    from security_lakehouse.io import write_json
+
+    (tmp_path / "catalog").mkdir()
+    controls = [
+        {"control_id": f"{fid}-{i}", "framework_id": fid}
+        for fid, count in [("soc2", 12), ("iso27001", 7)]
+        for i in range(count)
+    ]
+    write_json(tmp_path / "catalog/control_map.json", {"controls": controls})
+    write_json(
+        tmp_path / "catalog/safeguards.json",
+        {
+            "safeguards": [
+                {
+                    "safeguard_id": "SAFE",
+                    "title": "Identity",
+                    "satisfies": [{"control_id": c["control_id"]} for c in controls],
+                }
+            ]
+        },
+    )
+    seen = set()
+    for offset in (0, 5, 10):
+        graph = investigation_graph(tmp_path, root="safeguard:SAFE", framework="soc2", control_offset=offset)
+        assert {r["framework_id"]: r["control_count"] for r in graph["framework_groups"]} == {"iso27001": 7, "soc2": 12}
+        page = [n for n in graph["nodes"] if n["kind"] == "control"]
+        assert len(page) <= 5
+        assert all(n["framework_id"] == "soc2" for n in page)
+        assert not seen.intersection(n["id"] for n in page)
+        seen.update(n["id"] for n in page)
+        assert graph["control_count"] == 12
+        assert graph["next_control_offset"] == (offset + 5 if offset < 10 else None)
+        ids = {n["id"] for n in graph["nodes"]}
+        assert all(e["source"] in ids and e["target"] in ids for e in graph["edges"])
+    assert len(seen) == 12

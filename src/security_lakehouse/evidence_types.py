@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 PROVIDER_EVENT_ALIASES: dict[str, tuple[str, ...]] = {
+    "iam.access_review": ("identity.access_review",),
+    "monitoring.detection": ("detection.alert",),
+    "scanner.dependency": ("vulnerability.finding",),
     "aws.iam.user_access": ("cloud.config", "identity.access_review"),
     "aws.iam.mfa_enrollment": ("cloud.config", "identity.access_review"),
     "aws.iam.password_policy": ("cloud.config", "identity.access_review"),

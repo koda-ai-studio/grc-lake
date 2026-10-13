@@ -56,6 +56,16 @@ def test_golden_fixture_ships_and_populates_dashboard(tmp_path: Path) -> None:
     frameworks = {row["framework"] for row in posture["frameworks"]}
     assert frameworks == {"SOC 2", "NIST AI RMF", "ISO 27001:2022"}
 
+    # The actual normalized pipeline must see the required types, not only the
+    # raw fixture helper. Observations remain excluded from verdict support.
+    tests = api_v1.handle_get("/api/v1/control-tests", {"limit": ["500"]}, tmp_path)[1]["data"]
+    assert all(not row["missing_evidence_types"] for row in tests)
+    cc61 = next(row for row in tests if row["control_id"] == "SOC2-CC6.1")
+    linked = next(row for row in posture_rows if row["control_id"] == "SOC2-CC6.1")
+    assert cc61["evidence_count"] == 4
+    assert linked["evidence_count"] == 6  # Two public observations retained.
+    assert "collect missing" not in cc61["next_action"]
+
 
 def test_golden_asset_types_match_their_event_types() -> None:
     from security_lakehouse.golden_fixture import build_golden_events
@@ -185,3 +195,27 @@ def test_golden_ai_inventory_carries_asset_names(tmp_path: Path) -> None:
     assert items and all(item.get("asset_name") for item in items)
     by_id = {item["asset_id"]: item for item in items}
     assert by_id["golden:model:risk-scorer"]["asset_name"] == "Risk scorer model"
+
+
+def test_golden_required_types_are_present_on_the_control_they_support() -> None:
+    from security_lakehouse.catalog import load_control_catalog
+    from security_lakehouse.evidence_types import expand_evidence_types
+    from security_lakehouse.golden_fixture import build_golden_fixture_rows
+    from security_lakehouse.programs import with_program_requirements
+
+    catalog = with_program_requirements(load_control_catalog())
+    rows = build_golden_fixture_rows()
+    missing = {}
+    for cid in golden_control_ids():
+        observed = {t for r in rows if cid in r["controls"] for t in expand_evidence_types(r["event_type"])}
+        absent = set(catalog[cid]["required_evidence_types"]) - observed
+        if absent:
+            missing[cid] = sorted(absent)
+    assert not missing, missing
+
+
+def test_access_review_alias_preserves_raw_type_without_inventing_other_evidence() -> None:
+    from security_lakehouse.evidence_types import expand_evidence_types
+
+    assert expand_evidence_types("iam.access_review") == ["iam.access_review", "identity.access_review"]
+    assert expand_evidence_types("runtime.inference") == ["runtime.inference"]

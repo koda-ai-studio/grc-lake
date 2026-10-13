@@ -89,6 +89,8 @@ export interface ControlPosture {
 }
 
 export interface ControlTest {
+  /** Records with outcomes; linked observations are excluded. */
+  evidence_count: number;
   control_id: string;
   name: string;
   result: "pass" | "fail" | "warn" | string;
@@ -1398,6 +1400,15 @@ export interface InvestigationGraph extends ComplianceGraph {
   root_count: number;
   root_offset: number;
   next_root_offset: number | null;
+  framework_groups: {
+    framework_id: string;
+    label: string;
+    control_count: number;
+  }[];
+  selected_framework: string;
+  control_count: number;
+  control_offset: number;
+  next_control_offset: number | null;
   depth: number;
   limit: number;
   truncated: boolean;

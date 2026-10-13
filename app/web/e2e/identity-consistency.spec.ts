@@ -48,6 +48,9 @@ test("a control family keeps its recognition icon between overview and graph", a
     .locator("path")
     .evaluateAll((nodes) => nodes.map((node) => node.getAttribute("d")));
   await page.goto("/console/graph/");
+  await page
+    .getByText("Search and change starting point", { exact: true })
+    .click();
   await page.getByLabel("Find a starting point").fill("identity");
   const root = page.getByLabel("Graph starting point", { exact: true });
   await expect(root.locator('option[value="family:identity"]')).toHaveCount(1);

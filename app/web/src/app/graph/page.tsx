@@ -54,7 +54,6 @@ import { InvestigationExplorer } from "@/components/graph/InvestigationExplorer"
 import { GraphNodeDrawer } from "@/components/graph/GraphNodeDrawer";
 import { useComplianceGraph, useRepositoryGraph } from "@/lib/api/hooks";
 import type { GraphNode, GraphNodeKind } from "@/lib/api/types";
-import { ROUTE_LABELS } from "@/lib/console-copy";
 import { formatCount, plural } from "@/lib/format";
 import { SM_UP, useMediaQuery } from "@/lib/use-media-query";
 
@@ -738,10 +737,10 @@ function GraphPageContent() {
   return (
     <div className="page-shell grid gap-3">
       <PageHeader
-        title={ROUTE_LABELS["/graph"]}
+        title="Framework and repository maps"
         description={
           graphMode === "compliance"
-            ? "Focused framework slices show the control-to-evidence-to-asset path clearly. Expand to the wide map only when you need every framework at once."
+            ? "Browse catalog coverage across frameworks. Use Evidence investigation to follow a specific record or safeguard."
             : "Public repo audit and authenticated governance evidence rendered as repositories, code structure, workflows, owners, required reviews, status checks, controls, and evidence refs. Public-mode gaps stay explicit."
         }
         actions={
@@ -951,73 +950,75 @@ function GraphPageContent() {
         }
       >
         {/* Phones get one summary line so the canvas is on the first screen. */}
-        <p
-          data-testid="graph-summary-line"
-          className="text-xs text-muted sm:hidden"
-        >
+        <p data-testid="graph-summary-line" className="text-xs text-muted">
           <b className="text-ink">{focusLabel}</b> ·{" "}
           {graphMode === "compliance"
             ? `${plural(visibleSummary.controls, "control")} · ${plural(visibleSummary.evidenceTypes, "evidence type")} · ${plural(visibleSummary.assets, "asset")} in view`
             : `${plural(visibleSummary.signals, "signal")} · ${plural(visibleSummary.repositories, "repository", "repositories")} in view`}
         </p>
-        <div className="hidden min-w-0 gap-2 sm:grid sm:grid-cols-2 xl:grid-cols-4">
-          <KpiTile
-            label="Focus"
-            value={focusLabel}
-            detail={`${formatCount(visibleSummary.nodes)} nodes / ${formatCount(visibleSummary.edges)} edges in view`}
-          />
-          <KpiTile
-            label={
-              graphMode === "compliance"
-                ? "Controls in view"
-                : "Governance signals in view"
-            }
-            value={
-              graphMode === "compliance"
-                ? visibleSummary.controls
-                : visibleSummary.signals
-            }
-            detail={
-              graphMode === "compliance"
-                ? `of ${formatCount(counts.control ?? 0)} requirements in the catalog`
-                : "after filters"
-            }
-          />
-          <KpiTile
-            label={
-              graphMode === "compliance"
-                ? "Evidence types in view"
-                : "Repositories in view"
-            }
-            value={
-              graphMode === "compliance"
-                ? visibleSummary.evidenceTypes
-                : visibleSummary.repositories
-            }
-            detail={
-              graphMode === "compliance"
-                ? `of ${formatCount(counts.evidence_type ?? 0)} in the catalog`
-                : "after filters"
-            }
-          />
-          <KpiTile
-            label={
-              graphMode === "compliance"
-                ? "Covered assets in view"
-                : "Signal gaps"
-            }
-            value={
-              graphMode === "compliance"
-                ? visibleSummary.assets
-                : (counts.signal_gap ?? 0)
-            }
-            detail={
-              graphMode === "compliance"
-                ? "with evidence paths"
-                : "need authenticated sync"
-            }
-          />
-        </div>
+        <details>
+          <summary className="cursor-pointer text-xs text-muted">
+            Map totals
+          </summary>
+          <div className="mt-2 grid min-w-0 gap-2 sm:grid-cols-2 xl:grid-cols-4">
+            <KpiTile
+              label="Focus"
+              value={focusLabel}
+              detail={`${formatCount(visibleSummary.nodes)} nodes / ${formatCount(visibleSummary.edges)} edges in view`}
+            />
+            <KpiTile
+              label={
+                graphMode === "compliance"
+                  ? "Controls in view"
+                  : "Governance signals in view"
+              }
+              value={
+                graphMode === "compliance"
+                  ? visibleSummary.controls
+                  : visibleSummary.signals
+              }
+              detail={
+                graphMode === "compliance"
+                  ? `of ${formatCount(counts.control ?? 0)} requirements in the catalog`
+                  : "after filters"
+              }
+            />
+            <KpiTile
+              label={
+                graphMode === "compliance"
+                  ? "Evidence types in view"
+                  : "Repositories in view"
+              }
+              value={
+                graphMode === "compliance"
+                  ? visibleSummary.evidenceTypes
+                  : visibleSummary.repositories
+              }
+              detail={
+                graphMode === "compliance"
+                  ? `of ${formatCount(counts.evidence_type ?? 0)} in the catalog`
+                  : "after filters"
+              }
+            />
+            <KpiTile
+              label={
+                graphMode === "compliance"
+                  ? "Covered assets in view"
+                  : "Signal gaps"
+              }
+              value={
+                graphMode === "compliance"
+                  ? visibleSummary.assets
+                  : (counts.signal_gap ?? 0)
+              }
+              detail={
+                graphMode === "compliance"
+                  ? "with evidence paths"
+                  : "need authenticated sync"
+              }
+            />
+          </div>
+        </details>
 
         {repoGraphEmpty && (
           <div className="rounded-xl border border-dashed border-line bg-surfaceMuted p-4 text-sm text-muted">
@@ -1360,7 +1361,7 @@ function GraphPageContent() {
               <CardTitle>Mapping inspector</CardTitle>
               <CardDescription>
                 {graphMode === "compliance"
-                  ? "Control paths currently visible in the graph. Select a row to inspect the mapped control and keep the canvas focused."
+                  ? "First ten catalog controls for the selected framework, including controls outside the canvas. Select a row to inspect its mapped evidence."
                   : "Repository governance paths in the graph. Select a row to focus the canvas on repo signals, gaps, and linked controls."}
               </CardDescription>
             </CardHeader>

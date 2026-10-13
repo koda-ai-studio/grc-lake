@@ -46,6 +46,8 @@ def build_vendor_risk_router(*, lake_for: Callable[[Identity], Path]) -> APIRout
                 limit=int(params.get("limit", "150")),
                 search=params.get("search", "")[:200],
                 root_offset=int(params.get("root_offset", "0")),
+                framework=params.get("framework", ""),
+                control_offset=int(params.get("control_offset", "0")),
                 layers=set(params["layers"].split(",")) if params.get("layers") else None,
                 expected_version=params.get("version"),
                 vendors=vendor_risk_services.list_assessments(session, identity.tenant_id),
