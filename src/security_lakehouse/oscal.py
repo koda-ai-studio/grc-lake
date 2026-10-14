@@ -60,6 +60,7 @@ from security_lakehouse.safeguards import (
     effective_review_state,
     load_ccf_families,
     load_safeguards,
+    unambiguous_safeguards,
 )
 
 # The exact OSCAL release this module targets and is structurally validated
@@ -159,7 +160,7 @@ def build_component_definition(
     moment = now or datetime.now(UTC)
 
     components: list[JsonObject] = []
-    for entry in payload.get("safeguards", []):
+    for entry in unambiguous_safeguards(payload):
         safeguard_id = str(entry["safeguard_id"])
         reviewed = [
             member
