@@ -7,7 +7,7 @@ retain `evaluatable` and `attestable` names for compatibility.
 
 Framework packs: 20 with catalogued requirements (2 more registry entries planned or superseded)
 Requirements catalogued: 2252 (all source-cited)
-Mapped (touched by a safeguard): 1417 (62.9%)
+Mapped (touched by a safeguard): 1422 (63.1%)
 **Reviewed safeguard mappings: 339 (15.1%)**
 Asset types modeled: 20
 
@@ -32,7 +32,7 @@ Asset types modeled: 20
 | NIST SP 800-171 Rev 3 (Protecting CUI in Nonfederal Systems) | [NIST SP 800-171 Rev. 3 (OSCAL catalog, usnistgov/oscal-content)](https://csrc.nist.gov/pubs/sp/800/171/r3/final) | implemented_limited_mapping | 97 | 97 | 85 | 0 | 0.0% | fresh |
 | NIST SP 800-53 Rev 5 Security and Privacy Controls | [NIST SP 800-53 Rev 5 (OSCAL catalog, usnistgov/oscal-content)](https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final) | implemented_limited_mapping | 1014 | 1014 | 285 | 96 | 9.5% | fresh |
 | NIST AI Risk Management Framework | [NIST Artificial Intelligence Risk Management Framework (AI RMF 1.0)](https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-ai-rmf-10) | implemented_full_pack | 72 | 72 | 69 | 0 | 0.0% | never pulled |
-| NIST Cybersecurity Framework (CSF) 2.0 | [NIST Cybersecurity Framework 2.0](https://www.nist.gov/cyberframework) | implemented_limited_mapping | 106 | 106 | 101 | 0 | 0.0% | never pulled |
+| NIST Cybersecurity Framework (CSF) 2.0 | [NIST Cybersecurity Framework 2.0](https://www.nist.gov/cyberframework) | implemented_limited_mapping | 106 | 106 | 106 | 0 | 0.0% | never pulled |
 | NIST Risk Management Framework (SP 800-37 Rev 2) | [NIST SP 800-37 Rev. 2](https://csrc.nist.gov/pubs/sp/800/37/r2/final) | implemented_limited_mapping | 47 | 47 | 46 | 0 | 0.0% | fresh |
 | PCI DSS v4.0.1 Payment Card Industry Data Security Standard (top-level coverage) | [PCI Security Standards Council - PCI DSS v4.0.1](https://www.pcisecuritystandards.org/document_library/?category=pcidss) | implemented_limited_mapping | 12 | 12 | 11 | 0 | 0.0% | never pulled |
 | SOC 1 Type II (ICFR) | [AICPA SOC 1 Reporting on Controls at a Service Organization](https://www.aicpa-cima.com/topic/audit-assurance/audit-and-assurance-greater-than-soc-2) | planned | 0 | 0 | 0 | 0 | 0.0% | never pulled |

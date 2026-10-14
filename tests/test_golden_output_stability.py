@@ -19,7 +19,7 @@ from security_lakehouse.pipeline import run_pipeline
 
 EXPECTED_SHA256 = {
     "gold/asset_risk.jsonl": "8169c0b42982e106eb9a446dda5f83242e9501617767452943339e43a8c791b7",
-    "gold/ccf_assessment.json": "c0d116afc05903a73ffb8d186eb3826f02facb13729f5129cabfbe645a2e2566",
+    "gold/ccf_assessment.json": "4c5411c105abb0f04cd98f8be9ccf5b526dda03373adb658abc6c0285fbd8230",
     "gold/control_posture.jsonl": "45ebfddf597bf80304d4801ecb4bd4c121461ec8145c70606d007ac16d32c196",
     "gold/metrics.json": "ec2fe66d18cefe0eb4e43bef657be37e75eb3096ef517d38abaed6c017b5b4a9",
     "silver/normalized_events.jsonl": "d1dfc24759f4bcf9cb9c8ad7fce34d8e96188bf95953cd5a6ccfce3188189efd",
@@ -38,7 +38,15 @@ def test_golden_pipeline_artifacts_are_byte_identical(tmp_path: Path) -> None:
     # Catalog additions establish proposed coverage, never evidence or passes.
     assessment = json.loads((lake / "gold/ccf_assessment.json").read_text())
     requirements = {row["control_id"]: row for row in assessment["requirements"]}
-    for control_id in ("NIST-800-171R3-03.09.01", "NIST-800-171R3-03.12.05"):
+    for control_id in (
+        "NIST-800-171R3-03.09.01",
+        "NIST-800-171R3-03.12.05",
+        "NIST-CSF-ID.IM-01",
+        "NIST-CSF-ID.IM-03",
+        "NIST-CSF-RS.MA-05",
+        "NIST-CSF-RC.RP-04",
+        "NIST-CSF-RC.RP-06",
+    ):
         assert requirements[control_id]["status"] == "not_evaluated"
         assert requirements[control_id]["pending_mapping_count"] == 1
 

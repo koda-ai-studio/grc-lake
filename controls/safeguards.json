@@ -18349,6 +18349,151 @@
         }
       ],
       "asset_types": ["audit_log", "service"]
+    },
+    {
+      "safeguard_id": "SG-EVALUATIONIMPROVEMENT-001",
+      "title": "Evaluation findings translated into improvements",
+      "risk_domain": "risk-management",
+      "objective": "Identify cybersecurity improvements from completed evaluations and retain their connection to the evaluated scope.",
+      "evidence_requirement": "An explicitly bound assessment records the evaluation reference, date and scope, the findings considered, and the resulting improvement decisions with owners. A recorded no-change decision needs a rationale. An evaluation report or a closed ticket alone does not demonstrate that improvements were identified.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "required_evidence_types": ["evaluation_improvement_assessment"],
+      "frequency": "continuous",
+      "owner": "grc",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "satisfies": [
+        {
+          "control_id": "NIST-CSF-ID.IM-01",
+          "framework_id": "nist-csf-2.0",
+          "role": "primary",
+          "review_status": "proposed",
+          "control_version": "1.1.0",
+          "mapping_source": {
+            "name": "NIST Cybersecurity Framework (CSF) 2.0",
+            "url": "https://nvlpubs.nist.gov/nistpubs/CSWP/NIST.CSWP.29.pdf",
+            "sha256": "3c31f46fee98cac0c4323453e5109291a213b4de7fef8c058af9bf67f717433c",
+            "locator": "Appendix A, ID.IM-01; direct outcome mapping, no cross-framework equivalence asserted"
+          }
+        }
+      ],
+      "asset_types": ["audit_log", "service"]
+    },
+    {
+      "safeguard_id": "SG-OPERATIONALIMPROVEMENT-001",
+      "title": "Operational experience translated into improvements",
+      "risk_domain": "risk-management",
+      "objective": "Identify cybersecurity improvements from the execution of operational processes, procedures and activities.",
+      "evidence_requirement": "An explicitly bound assessment links operational records or lessons learned to the process reviewed and the improvement decisions, owners and follow-up references. A recorded no-change decision needs a rationale. An operational log, absence of incidents or a test-only evaluation does not by itself demonstrate operational learning.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "required_evidence_types": ["operational_improvement_assessment"],
+      "frequency": "continuous",
+      "owner": "grc",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "satisfies": [
+        {
+          "control_id": "NIST-CSF-ID.IM-03",
+          "framework_id": "nist-csf-2.0",
+          "role": "primary",
+          "review_status": "proposed",
+          "control_version": "1.1.0",
+          "mapping_source": {
+            "name": "NIST Cybersecurity Framework (CSF) 2.0",
+            "url": "https://nvlpubs.nist.gov/nistpubs/CSWP/NIST.CSWP.29.pdf",
+            "sha256": "3c31f46fee98cac0c4323453e5109291a213b4de7fef8c058af9bf67f717433c",
+            "locator": "Appendix A, ID.IM-03; direct outcome mapping, no cross-framework equivalence asserted"
+          }
+        }
+      ],
+      "asset_types": ["audit_log", "service"]
+    },
+    {
+      "safeguard_id": "SG-RECOVERYINITIATION-001",
+      "title": "Recovery initiation criteria applied",
+      "risk_domain": "incident-response",
+      "objective": "Apply documented recovery initiation criteria to the incident before authorizing the transition into recovery.",
+      "evidence_requirement": "An explicitly bound assessment records the incident reference, applicable initiation criteria and version, evidence for the criteria, the decision and accountable decision-maker, and decision time. A recovery plan or a resolved incident ticket alone does not establish that the initiation criteria were applied.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "required_evidence_types": ["recovery_initiation_assessment"],
+      "frequency": "continuous",
+      "owner": "security-operations",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "satisfies": [
+        {
+          "control_id": "NIST-CSF-RS.MA-05",
+          "framework_id": "nist-csf-2.0",
+          "role": "primary",
+          "review_status": "proposed",
+          "control_version": "1.1.0",
+          "mapping_source": {
+            "name": "NIST Cybersecurity Framework (CSF) 2.0",
+            "url": "https://nvlpubs.nist.gov/nistpubs/CSWP/NIST.CSWP.29.pdf",
+            "sha256": "3c31f46fee98cac0c4323453e5109291a213b4de7fef8c058af9bf67f717433c",
+            "locator": "Appendix A, RS.MA-05; direct outcome mapping, no cross-framework equivalence asserted"
+          }
+        }
+      ],
+      "asset_types": ["audit_log", "host", "service"]
+    },
+    {
+      "safeguard_id": "SG-POSTINCIDENTNORMS-001",
+      "title": "Post-incident operating norms established",
+      "risk_domain": "incident-response",
+      "objective": "Use critical mission functions and cybersecurity risk considerations to establish the operating norms following an incident.",
+      "evidence_requirement": "An explicitly bound assessment links the incident to critical mission functions, residual cybersecurity risks, and the resulting operating norms, with an accountable owner and decision date. Successful restoration or availability alone does not demonstrate that mission needs and risks informed the new operating norms.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "required_evidence_types": ["post_incident_norms_assessment"],
+      "frequency": "continuous",
+      "owner": "security-operations",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "satisfies": [
+        {
+          "control_id": "NIST-CSF-RC.RP-04",
+          "framework_id": "nist-csf-2.0",
+          "role": "primary",
+          "review_status": "proposed",
+          "control_version": "1.1.0",
+          "mapping_source": {
+            "name": "NIST Cybersecurity Framework (CSF) 2.0",
+            "url": "https://nvlpubs.nist.gov/nistpubs/CSWP/NIST.CSWP.29.pdf",
+            "sha256": "3c31f46fee98cac0c4323453e5109291a213b4de7fef8c058af9bf67f717433c",
+            "locator": "Appendix A, RC.RP-04; direct outcome mapping, no cross-framework equivalence asserted"
+          }
+        }
+      ],
+      "asset_types": ["container_image", "repo", "service"]
+    },
+    {
+      "safeguard_id": "SG-RECOVERYCOMPLETION-001",
+      "title": "Recovery completion declared against criteria",
+      "risk_domain": "incident-response",
+      "objective": "Declare incident recovery complete against defined completion criteria and finish the incident-related documentation.",
+      "evidence_requirement": "An explicitly bound assessment identifies the incident, completion criteria and evidence of their satisfaction, the accountable declaration and time, and references to completed incident documentation. A healthy service or a closed ticket without the criteria and completed documentation does not establish recovery completion.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "required_evidence_types": ["recovery_completion_assessment"],
+      "frequency": "continuous",
+      "owner": "security-operations",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "satisfies": [
+        {
+          "control_id": "NIST-CSF-RC.RP-06",
+          "framework_id": "nist-csf-2.0",
+          "role": "primary",
+          "review_status": "proposed",
+          "control_version": "1.1.0",
+          "mapping_source": {
+            "name": "NIST Cybersecurity Framework (CSF) 2.0",
+            "url": "https://nvlpubs.nist.gov/nistpubs/CSWP/NIST.CSWP.29.pdf",
+            "sha256": "3c31f46fee98cac0c4323453e5109291a213b4de7fef8c058af9bf67f717433c",
+            "locator": "Appendix A, RC.RP-06; direct outcome mapping, no cross-framework equivalence asserted"
+          }
+        }
+      ],
+      "asset_types": ["container_image", "repo", "service"]
     }
   ]
 }

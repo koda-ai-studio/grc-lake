@@ -5,6 +5,7 @@ from pathlib import Path
 
 from security_lakehouse.safeguards import (
     contributes_to_coverage,
+    coverage_by_family,
     coverage_by_framework,
     effective_review_state,
     load_safeguards,
@@ -22,6 +23,11 @@ def main():
         f"{coverage['proposed']} proposed; {coverage['rejected_mappings']} mapping(s) rejected by the org"
     )
     text = re.sub(r"^\d+ safeguards map .*$", lambda _: headline, text, flags=re.M)
+    for row in coverage_by_family():
+        pattern = r"(^\|[^\n]*\| `" + re.escape(row["family_id"]) + r"`\s*\|)\s*\d+(\s*\|)"
+        text = re.sub(
+            pattern, lambda match, row=row: f"{match[1]} {row['safeguard_count']:10d}{match[2]}", text, flags=re.M
+        )
     for name, row in coverage["frameworks"].items():
         line = f"| {name:19s} | {row['controls']:12d} | {row['covered']:6d} | {row['coverage_pct']:5.1f}% |"
         text = re.sub(r"^\| " + re.escape(name) + r"\s+\|.*$", lambda _, line=line: line, text, flags=re.M)
