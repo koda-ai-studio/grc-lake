@@ -360,6 +360,27 @@ def contributes_to_coverage(member: JsonObject) -> bool:
     return member.get("role", "equivalent") in IMPLEMENTATION_ROLES
 
 
+def unambiguous_safeguards(payload: JsonObject) -> list[JsonObject]:
+    """Project only uniquely identified definitions and mapping targets.
+
+    A repeated safeguard ID makes all definitions with that ID ambiguous; a
+    repeated control ID within one safeguard makes every link to that target
+    ambiguous, even if the roles or review states differ. Distinct safeguards
+    may still cover the same requirement. Keep raw data intact for validation
+    and repair; never resolve a conflict by selecting the most favorable row.
+    """
+    entries = payload.get("safeguards", [])
+    ids = Counter(entry.get("safeguard_id") for entry in entries)
+    result = []
+    for entry in entries:
+        if ids[entry.get("safeguard_id")] != 1:
+            continue
+        members = entry.get("satisfies", [])
+        targets = Counter(member.get("control_id") for member in members)
+        result.append({**entry, "satisfies": [m for m in members if targets[m.get("control_id")] == 1]})
+    return result
+
+
 def safeguards_by_requirement(
     payload: JsonObject | None = None, *, reviewed_only: bool = False
 ) -> dict[str, list[str]]:
@@ -371,7 +392,7 @@ def safeguards_by_requirement(
     """
     data = payload or load_safeguards()
     out: dict[str, list[str]] = {}
-    for entry in data["safeguards"]:
+    for entry in unambiguous_safeguards(data):
         for member in entry.get("satisfies", []):
             state = effective_review_state(member)
             if state == "rejected" or not contributes_to_coverage(member):
@@ -602,7 +623,7 @@ def coverage_by_family(payload: JsonObject | None = None) -> list[JsonObject]:
     families = load_ccf_families()
     category_labels = {str(row["category_id"]): str(row["label"]) for row in load_ccf_categories()}
     grouped: dict[str, dict[str, Any]] = {}
-    for entry in data["safeguards"]:
+    for entry in unambiguous_safeguards(data):
         family_id = str(entry.get("risk_domain") or "uncategorized")
         _add_safeguard(grouped.setdefault(family_id, _mapping_ledger()), entry)
 
@@ -634,7 +655,7 @@ def coverage_by_category(payload: JsonObject | None = None) -> list[JsonObject]:
     data = payload or load_safeguards()
     families = load_ccf_families()
     ledgers: dict[str, dict[str, Any]] = {}
-    for entry in data["safeguards"]:
+    for entry in unambiguous_safeguards(data):
         category_id = str(families.get(str(entry.get("risk_domain")), {}).get("category") or "")
         _add_safeguard(ledgers.setdefault(category_id, _mapping_ledger()), entry)
 
@@ -674,7 +695,7 @@ def framework_mapping_coverage(
     states_by_control: dict[str, set[str]] = {}
     mapping_states: dict[str, dict[str, int]] = {}
     contextual_by_framework: dict[str, int] = {}
-    for entry in data["safeguards"]:
+    for entry in unambiguous_safeguards(data):
         for member in entry.get("satisfies", []):
             control_id = str(member.get("control_id"))
             if control_id not in controls:

@@ -17,3 +17,14 @@ domain U.S. government work, same policy as the NIST catalogs referenced in
 Re-fetch and replace both files, bump `OSCAL_VERSION` in
 `src/security_lakehouse/oscal.py`, and re-run `tests/test_oscal.py` to pick up
 a newer OSCAL release.
+
+### Ambiguous CCF identities
+
+Component-definition exports omit duplicate safeguard IDs and omit every mapping
+to a repeated control ID within a safeguard, including conflicting roles or
+review states. Coverage ledgers and reviewed requirement lookups use the same
+projection, so an ambiguous reviewed row cannot grant coverage or export credit.
+Unique sibling mappings and distinct safeguards for the same requirement remain
+eligible. The raw catalog and review queue remain available for diagnosis;
+`validate_safeguards` reports duplicates and assessment publication rejects them.
+This defensive read behavior does not repair or approve the catalog.
