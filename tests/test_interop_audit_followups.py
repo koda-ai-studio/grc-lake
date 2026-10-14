@@ -58,7 +58,8 @@ def test_oscal_known_catalog_uses_native_control_identifiers(monkeypatch):
             }
         ]
     }
-    result = oscal.build_component_definition(payload, {})
+    catalog = {"NIST-800-53-AC-2.1": {"framework_id": "nist-800-53-rev5"}}
+    result = oscal.build_component_definition(payload, catalog)
     implementation = result["component-definition"]["components"][0]["control-implementations"][0]
     assert implementation["source"] == url
     assert implementation["implemented-requirements"][0]["control-id"] == "ac-2.1"
