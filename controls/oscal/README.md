@@ -28,3 +28,9 @@ Unique sibling mappings and distinct safeguards for the same requirement remain
 eligible. The raw catalog and review queue remain available for diagnosis;
 `validate_safeguards` reports duplicates and assessment publication rejects them.
 This defensive read behavior does not repair or approve the catalog.
+
+Exports also share the coverage ledger's catalog target check. A reviewed mapping
+to an unknown requirement or a conflicting framework cannot produce an
+implemented requirement. Legacy rows that omit the framework use the catalog's
+framework identity. Valid sibling mappings remain eligible; the source records
+are not modified.

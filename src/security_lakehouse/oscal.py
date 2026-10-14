@@ -60,6 +60,7 @@ from security_lakehouse.safeguards import (
     effective_review_state,
     load_ccf_families,
     load_safeguards,
+    mapping_target_framework,
     unambiguous_safeguards,
 )
 
@@ -169,7 +170,9 @@ def build_component_definition(
         ]
         by_framework: dict[str, list[JsonObject]] = {}
         for member in reviewed:
-            by_framework.setdefault(str(member.get("framework_id")), []).append(member)
+            framework_id = mapping_target_framework(member, controls)
+            if framework_id is not None:
+                by_framework.setdefault(framework_id, []).append(member)
 
         control_implementations: list[JsonObject] = []
         for framework_id in sorted(by_framework):

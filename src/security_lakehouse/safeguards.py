@@ -676,6 +676,19 @@ def coverage_by_category(payload: JsonObject | None = None) -> list[JsonObject]:
     return rows
 
 
+def mapping_target_framework(member: JsonObject, catalog: dict[str, Any]) -> str | None:
+    """Resolve a mapping within the catalog, rejecting conflicting framework IDs.
+
+    Legacy rows without a framework inherit the catalog identity. Coverage and
+    exports must use the same target check before granting mapping credit.
+    """
+    control_id = member.get("control_id")
+    if not isinstance(control_id, str) or control_id not in catalog:
+        return None
+    framework = str(catalog[control_id].get("framework_id") or "unknown")
+    return framework if member.get("framework_id", framework) == framework else None
+
+
 def framework_mapping_coverage(
     payload: JsonObject | None = None, *, catalog: dict[str, Any] | None = None
 ) -> JsonObject:
@@ -697,12 +710,10 @@ def framework_mapping_coverage(
     contextual_by_framework: dict[str, int] = {}
     for entry in unambiguous_safeguards(data):
         for member in entry.get("satisfies", []):
-            control_id = str(member.get("control_id"))
-            if control_id not in controls:
+            framework = mapping_target_framework(member, controls)
+            if framework is None:
                 continue
-            framework = str(controls[control_id].get("framework_id") or "unknown")
-            if member.get("framework_id", framework) != framework:
-                continue
+            control_id = str(member["control_id"])
             if not contributes_to_coverage(member):
                 contextual_by_framework[framework] = contextual_by_framework.get(framework, 0) + 1
                 continue
