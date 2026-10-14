@@ -229,21 +229,24 @@ def test_operating_loop_uses_concrete_actions() -> None:
         assert action in section
 
 
-def test_product_preview_shows_overview_coverage_controls_families_and_investigation() -> None:
+def test_product_preview_shows_distinct_views_without_repeating_the_overview() -> None:
     readme = README.read_text(encoding="utf-8")
     tour = readme.split("## Product tour", maxsplit=1)[1].split("## Architecture", maxsplit=1)[0]
     assert "bundled synthetic company" in tour
     assert "<details>" not in tour
-    views = ("dashboard", "frameworks", "controls", "control-families", "graph", "ai-governance")
+    views = ("dashboard", "frameworks", "controls", "graph", "ai-governance")
     assert tour.count("<picture>") == len(views)
     positions = []
     for view in views:
         for theme in ("", "-dark"):
             image = f"docs/images/grc-lake-demo-{view}{theme}.png"
-            assert image in tour
+            assert tour.count(image) == 1
             assert (ROOT / image).is_file()
         positions.append(tour.index(f"grc-lake-demo-{view}.png"))
     assert positions == sorted(positions)
+    assert "grc-lake-demo-control-families" not in tour
+    assert "### Navigate control families and the CCF" in tour
+    assert "Proposed mappings are not attestable." in tour
     assert "<!-- BEGIN README CCF SUMMARY -->" not in readme
     assert "docs/FRAMEWORK_COVERAGE.md" in readme
     assert "docs/COMMON_CONTROL_FRAMEWORK.md" in readme
