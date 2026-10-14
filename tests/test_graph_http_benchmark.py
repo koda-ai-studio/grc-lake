@@ -37,11 +37,11 @@ def test_http_workload_uses_auth_and_preserves_tenant_bindings(tmp_path, monkeyp
     assert not list(tmp_path.rglob("credentials*"))
 
 
-def test_busy_server_shutdown_does_not_mask_the_request_failure():
+@pytest.fixture
+def slow_app():
     import time
 
     from fastapi import FastAPI
-    from tools.benchmark_investigation_http import loopback_server
 
     app = FastAPI()
 
@@ -50,14 +50,25 @@ def test_busy_server_shutdown_does_not_mask_the_request_failure():
         time.sleep(2)
         return {}
 
+    return app
+
+
+def test_busy_server_shutdown_does_not_mask_the_request_failure(slow_app):
+    from tools.benchmark_investigation_http import loopback_server
+
     # A client timeout leaves the server computing the abandoned request.
-    with pytest.raises(ValueError, match="first read failed"), loopback_server(app, shutdown_timeout=0.1) as url:
+    with pytest.raises(ValueError, match="first read failed"), loopback_server(slow_app, shutdown_timeout=0.1) as url:
         with pytest.raises(httpx.ReadTimeout):
             httpx.get(url + "/slow", timeout=0.2, trust_env=False)
         raise ValueError("first read failed")
+
+
+def test_busy_server_shutdown_reports_failure_without_a_request_failure(slow_app):
+    from tools.benchmark_investigation_http import loopback_server
+
     with (
         pytest.raises(RuntimeError, match="shutdown failed"),
-        loopback_server(app, shutdown_timeout=0.1) as url,
+        loopback_server(slow_app, shutdown_timeout=0.1) as url,
         pytest.raises(httpx.ReadTimeout),
     ):
         httpx.get(url + "/slow", timeout=0.2, trust_env=False)
