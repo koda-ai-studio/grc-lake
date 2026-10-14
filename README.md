@@ -113,11 +113,6 @@ The Common Control Framework (CCF) organizes reusable safeguards into categories
 and control families. Explore their links to framework requirements and see
 reviewed and proposed mappings separately. Proposed mappings are not attestable.
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/images/grc-lake-demo-control-families-dark.png">
-  <img src="docs/images/grc-lake-demo-control-families.png" alt="Control families grouped by CCF category, with safeguard counts and reviewed versus proposed requirement mappings" width="100%" loading="lazy">
-</picture>
-
 [How common safeguards work](docs/COMMON_CONTROL_FRAMEWORK.md).
 
 ### Trace a finding through the evidence graph
