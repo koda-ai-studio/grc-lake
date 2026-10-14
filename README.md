@@ -192,7 +192,7 @@ Upgrading from TrustOps? Read the [migration guide](docs/REBRANDING.md).
 
 <!-- BEGIN README AT A GLANCE -->
 
-- **20 framework packs, 2,252 catalogued requirements (1,965 distinct; FedRAMP Moderate's 287 rows restate NIST SP 800-53 controls),** linked through 96 common safeguards. 1,417 requirements have safeguard mappings; 339 have reviewed mappings and the other 1,078 are proposed.
+- **20 framework packs, 2,252 catalogued requirements (1,965 distinct; FedRAMP Moderate's 287 rows restate NIST SP 800-53 controls),** linked through 101 common safeguards. 1,422 requirements have safeguard mappings; 339 have reviewed mappings and the other 1,083 are proposed.
 - **25 read-only source adapters (7 in preview)**, plus OCSF presets for existing security lakes.
 - **Fails closed:** missing, stale, or partial evidence never produces a pass, and proposed mappings are not attestable.
 - **One engine, four surfaces:** console, REST API, CLI, and MCP server. Agents propose; humans approve.
