@@ -1,7 +1,8 @@
 # Agent Skill Catalog
 
-Versioned examples below target the 0.3.5 candidate and become usable after
-publication. For a published deployment, use the v0.3.4 versions of these guides.
+Versioned examples below target the published v0.3.5 release. See
+[release verification](https://github.com/koda-ai-studio/grc-lake/releases/tag/v0.3.5)
+for its artifacts and changelog.
 
 Composable **skills** for coding agents, CI jobs, and MCP clients. Each skill maps
 intent → `/api/v1` routes → MCP tools → example payloads.

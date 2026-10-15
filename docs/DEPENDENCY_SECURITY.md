@@ -1,7 +1,8 @@
 # Dependency security scope
 
-Reviewed 2026-10-12. Dependency advisories change; rerun both production and full
-build-tool audits when reviewing or upgrading the lockfiles.
+Lockfile review: 2026-10-12. Release image scan: 2026-10-15. Dependency advisories
+change; rerun both production and full build-tool audits when reviewing or
+upgrading the lockfiles.
 
 ## Container runtime findings
 
@@ -36,19 +37,21 @@ reports for 14 days, including when the fixable-only scan blocks the job. See
 [Scorecard evidence](SCORECARD_REMEDIATION.md#vulnerability-and-release-evidence)
 for artifact names and the separate Best Practices review requirements.
 
-### 0.3.5 candidate qualification scans
+### 0.3.5 release qualification scans
 
-The [release dry run](https://github.com/koda-ai-studio/grc-lake/actions/runs/38668715869)
-on source `6f645fde` completed on 2026-10-15 UTC. Both AMD64 and emulated ARM64
+The [release workflow](https://github.com/koda-ai-studio/grc-lake/actions/runs/38686161848)
+on source `a81782af` completed on 2026-10-15 UTC. Both AMD64 and emulated ARM64
 passed installed-dependency checks, the fixable-vulnerability gate and authenticated
 runtime probes. Each unfiltered image report contains 164 Debian package/advisory
 findings: 44 HIGH, 58 MEDIUM, 61 LOW and one UNKNOWN, with no listed fixed versions.
 The gate therefore passed with zero fixable MEDIUM/HIGH/CRITICAL findings; this
 is not a vulnerability-free result or closure of the Best Practices age criterion.
 
-These are unpublished candidate images, not published-digest verification. The
-workflow retains full scan reports and architecture receipts; the final release
-must run its gates again on the selected main revision and verify published bytes.
+Published AMD64 and ARM64 filesystem layers and runtime configuration match the
+scanned images. The workflow retains full scan reports and architecture receipts;
+[release verification](RELEASE_READINESS.md#verified-035-publication) records the
+published digests, package hashes and provenance checks. The eight distinct HIGH
+CVEs remain open; the release does not establish non-exploitability.
 
 ### 0.3.3 release qualification scans
 

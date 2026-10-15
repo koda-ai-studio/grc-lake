@@ -1,6 +1,6 @@
 # Current state and coverage
 
-Source review: **2026-10-15**. Source candidate: **0.3.5**. Latest published release checked: **v0.3.4**.
+Source review: **2026-10-15**. Source version: **0.3.5**. Latest published release checked: **v0.3.5**.
 Changes on `main` or in a pull request can be newer than the published package. Check the [releases](https://github.com/koda-ai-studio/grc-lake/releases)
 and [changelog](../CHANGELOG.md) for the version you install.
 
