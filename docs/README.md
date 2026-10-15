@@ -68,6 +68,7 @@ Every guide in `docs/`, grouped by task. New here? Start with the
 | [Framework packs](FRAMEWORK_PACKS.md)                                 | Pack contents, manifests, and gaps                        |
 | [Framework coverage](FRAMEWORK_COVERAGE.md)                           | Generated per-framework coverage matrix                   |
 | [Mapping review](MAPPING_REVIEW.md)                                   | Reviewing proposed safeguard mappings                     |
+| [NIST assessment expansion](NIST53_ASSESSMENTS.md)                    | Source-native assessment contracts and review boundaries  |
 | [Catalog versioning](CATALOG_VERSIONING.md)                           | Catalog versions and audit pinning                        |
 | [AI bill of materials](AIBOM.md)                                      | AI inventory evidence                                     |
 
