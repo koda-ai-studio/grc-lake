@@ -21,7 +21,10 @@ and preserve the evidence and review decisions behind each result.
 
 ## Quick start
 
-Published v0.3.4, with Python 3.11+ on macOS or Linux:
+The tour and catalog counts describe current source; see [release status](docs/RELEASE_READINESS.md)
+for changes since the published package.
+
+Install published v0.3.4 with Python 3.11+ on macOS or Linux:
 
 ```bash
 python -m venv .venv
@@ -62,7 +65,7 @@ make demo-local
 For MCP over stdio:
 
 ```bash
-pip install 'grc-lake[mcp]'
+pip install "grc-lake[mcp]==0.3.4"
 GRC_LAKE_LAKE=./lake grc-lake-mcp
 ```
 
@@ -192,9 +195,9 @@ Upgrading from TrustOps? Read the [migration guide](docs/REBRANDING.md).
 
 <!-- BEGIN README AT A GLANCE -->
 
-- **20 framework packs, 2,252 catalogued requirements (1,965 distinct; FedRAMP Moderate's 287 rows restate NIST SP 800-53 controls),** linked through 482 common safeguards. 1,803 requirements have safeguard mappings; 1,128 have reviewed mappings and the other 675 are proposed.
+- **20 framework packs, 2,252 catalogued requirements (1,965 distinct; FedRAMP Moderate's 287 rows restate NIST SP 800-53 controls),** linked through 482 safeguards, including source-native assessment contracts. 1,803 requirements have safeguard mappings; 1,128 have reviewed mappings and the other 675 are proposed.
 - **25 read-only source adapters (7 in preview)**, plus OCSF presets for existing security lakes.
-- **Fails closed:** missing, stale, or partial evidence never produces a pass, and proposed mappings are not attestable.
+- **Evidence stays scoped:** missing or stale evidence leaves gaps; a passing sample does not prove complete population coverage. Proposed mappings are not attestable.
 - **One engine, four surfaces:** console, REST API, CLI, and MCP server. Agents propose; humans approve.
 
 <!-- END README AT A GLANCE -->
