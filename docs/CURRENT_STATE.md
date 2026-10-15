@@ -1,6 +1,6 @@
 # Current state and coverage
 
-Source review: **2026-10-13**. Source candidate: **0.3.5**. Latest published release checked: **v0.3.4**.
+Source review: **2026-10-15**. Source candidate: **0.3.5**. Latest published release checked: **v0.3.4**.
 Changes on `main` or in a pull request can be newer than the published package. Check the [releases](https://github.com/koda-ai-studio/grc-lake/releases)
 and [changelog](../CHANGELOG.md) for the version you install.
 
@@ -23,8 +23,8 @@ The [investigation graph](INVESTIGATION_GRAPH.md) follows exact recorded binding
 explicit vendor asset links, with depth controls, expanded workspace, drill-down and
 roll-up. Shared presentation does not establish equal provider qualification.
 
-Depth work is tracked in [provider parity #908](https://github.com/koda-ai-studio/grc-lake/issues/908),
-[reviewed mapping coverage #909](https://github.com/koda-ai-studio/grc-lake/issues/909),
+Remaining depth work is described in the [connector qualification matrix](CONNECTOR_QUALIFICATION.md),
+the [SOC 2 and ISO review batches](reviews/SOC2_ISO_REVIEW.md),
 and [measured capacity #910](https://github.com/koda-ai-studio/grc-lake/issues/910).
 
 The generated [connector qualification matrix](CONNECTOR_QUALIFICATION.md)
@@ -65,7 +65,7 @@ remain separate checks in [release readiness](RELEASE_READINESS.md).
 | Area                | Implemented breadth                                                                                              | Evidence and remaining depth                                                                                                                                                                                  |
 | ------------------- | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Collection          | 28 catalog contracts: 25 executable adapters, including 7 preview; 3 configuration/access boundaries             | Shared console setup retains each provider's fields and permissions. Fixture behavior and access tests do not establish complete live collection; see the [qualification matrix](CONNECTOR_QUALIFICATION.md). |
-| Frameworks          | 20 populated packs; generated counts and effective review states in the [coverage matrix](FRAMEWORK_COVERAGE.md) | Source-cited, mapped, human-reviewed and freshly evaluated requirements are separate measures; deepen independent review in [#909](https://github.com/koda-ai-studio/grc-lake/issues/909).                    |
+| Frameworks          | 20 populated packs; generated counts and effective review states in the [coverage matrix](FRAMEWORK_COVERAGE.md) | Source-cited, mapped, human-reviewed and freshly evaluated requirements are separate measures; review the pending [SOC 2 and ISO batches](reviews/SOC2_ISO_REVIEW.md).                                        |
 | Investigation       | Exact records, source accounts, controls, CCF, repositories and explicit vendor asset links                      | Generation-bound reads and bounded navigation have contract tests. Server construction still scales with evidence volume; [#910](https://github.com/koda-ai-studio/grc-lake/issues/910) tracks measurement.   |
 | AI governance       | Model/agent worklist with owner, environment, signals, next actions and asset-filtered evidence                  | Recorded lineage is not automatically complete; observed controls are not fresh evaluations. No model safety or certification conclusion follows.                                                             |
 | Repository evidence | Public GitHub URL onboarding and audit CLI; authenticated GitHub/GitLab adapters                                 | Public collection is commit-pinned and bounded. Private governance remains unknown until authenticated collection; retained legacy source identities are not migrated.                                        |

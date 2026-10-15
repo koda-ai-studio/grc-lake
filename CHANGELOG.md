@@ -3,7 +3,9 @@
 All notable GRC Lake changes are summarized here. Versions follow semver for the
 Python package, Helm chart, and bundled web console.
 
-## 0.3.5 - 2026-10-13
+## 0.3.5 - 2026-10-15
+
+- Replace 28 weak proposed SOC 2 and ISO mapping relationships with 22 requirement-specific assessment contracts. Prepare 17 review batches covering 150 requirements and 185 candidate relationships, with pinned Cisco/Oracle implementation references, operating contracts, review fingerprints and blank decisions. Preserve earlier approved contracts and coverage totals; these new proposals grant no review or operating-effectiveness credit.
 
 - Record maintainer approval of 33 source-review batches with per-mapping inspected digests. Mapped coverage is 1,803/2,252 (80.1%); reviewed coverage is 1,128/2,252 (50.1%). Stale version pins remain uncredited, source-less alternatives remain proposed, and mapping review does not establish operating effectiveness.
 
