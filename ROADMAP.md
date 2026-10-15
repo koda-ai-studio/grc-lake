@@ -55,16 +55,18 @@ Public repository URL onboarding shipped in 0.3.4 ([#911](https://github.com/kod
 
 ## Coverage still incomplete
 
-The current mapping milestone is 80% mapped and 50% reviewed before the combined
-audit and release decision. The [NIST assessment expansion](docs/NIST53_ASSESSMENTS.md)
-brings proposed mapping coverage to 80.1%; reviewed coverage is still 15.1%.
-Prepare substantial source-backed review batches for the remaining 787 reviewed
-requirements. A merged mapping proposal or passing CI does not approve a mapping.
+The agreed catalog milestones are met in the 0.3.5 candidate: 80.1% mapped and
+50.1% reviewed. The [NIST assessment expansion](docs/NIST53_ASSESSMENTS.md) and
+[maintainer approval of 33 source-review batches](controls/reviews/2026-10-14-source-batches.json)
+provide the mapping and review increases. Complete the combined audit and
+final-main qualification before the release decision. A merged mapping proposal
+or passing CI does not approve a mapping.
 
 ISO 27701:2025 is a limited pack (10 of 78 Annex A controls). SOC 1 is planned
-without an official catalog. NIST 800-171 Rev 3, NIS2 and DORA mappings are
-proposed-only; NIST RMF and ISO 27701 also need mapping review. CIS Azure/GCP
-benchmarks and ISO 27001 clauses 4–10 remain gaps.
+without an official catalog. NIST 800-171 Rev 3, NIS2, DORA and NIST RMF now have
+reviewed mappings; gaps remain as shown in the [coverage matrix](docs/FRAMEWORK_COVERAGE.md).
+ISO 27701 still needs mapping review. CIS Azure/GCP benchmarks and ISO 27001
+clauses 4–10 remain gaps.
 
 879 of 2,083 safeguard-to-requirement mapping rows are proposed, so 675 of the 1,803 mapped requirements have no reviewed mapping.
 
