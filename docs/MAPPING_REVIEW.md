@@ -7,6 +7,13 @@ relies on a mapping, someone has to confirm that the safeguard's evidence
 really answers that requirement. This page covers who can do that, what gets
 recorded, and how the result shows up in coverage.
 
+## Pending SOC 2 and ISO review
+
+The [SOC 2 and ISO review batches](reviews/SOC2_ISO_REVIEW.md) contain the pending
+requirements, candidate operating contracts, source locators, specific review
+questions and empty decision fields. Cisco and Oracle guidance supports these
+proposals; it does not establish normative equivalence or human approval.
+
 ## What "reviewed" means
 
 A maintainer review inherited through `review_basis.inherited_from` remains valid

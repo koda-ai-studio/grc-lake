@@ -47,30 +47,31 @@ Every guide in `docs/`, grouped by task. New here? Start with the
 
 ## Evaluate
 
-| Guide                                                                 | Covers                                                    |
-| --------------------------------------------------------------------- | --------------------------------------------------------- |
-| [Evaluation contract](EVALUATION_CONTRACT.md)                         | What an evaluation guarantees                             |
-| [Evidence evaluation semantics](EVIDENCE_EVALUATION_SEMANTICS.md)     | How evidence states become results                        |
-| [Evidence lineage](EVIDENCE_LINEAGE.md)                               | Source identity, hashes and result links                  |
-| [Assessment generations](ASSESSMENT_GENERATIONS.md)                   | Publication and failure contracts                         |
-| [Assessment application contract](ASSESSMENT_APPLICATION_CONTRACT.md) | Shared services, durable outcomes, API limits and retries |
-| [Collection completeness](COLLECTION_COMPLETENESS.md)                 | Partial and blocked collection                            |
-| [Population reconciliation](POPULATION_RECONCILIATION.md)             | Reconciling the evidence population                       |
-| [Control test workpapers](CONTROL_TEST_WORKPAPERS.md)                 | Control design and period testing                         |
-| [Governed remediation](GOVERNED_REMEDIATION.md)                       | Exceptions and remediation                                |
-| [Audit readiness](AUDIT_READINESS.md)                                 | Audit-readiness API and audit room                        |
-| [GRC automation](GRC_AUTOMATION.md)                                   | The automated compliance loop and known gaps              |
-| [Common control framework](COMMON_CONTROL_FRAMEWORK.md)               | Safeguards, families, and categories                      |
-| [CCF assessment reads](CCF_READS.md)                                  | Reading CCF results                                       |
-| [CCF requirement gaps](CCF_REQUIREMENT_GAPS.md)                       | Mapping, safeguard and evidence gaps                      |
-| [CCF risk monitoring](CCF_RISK_MONITORING.md)                         | Risk prioritization and ongoing monitoring                |
-| [CCF AI context](CCF_AI_CONTEXT.md)                                   | AI inventory and deployment context                       |
-| [Framework packs](FRAMEWORK_PACKS.md)                                 | Pack contents, manifests, and gaps                        |
-| [Framework coverage](FRAMEWORK_COVERAGE.md)                           | Generated per-framework coverage matrix                   |
-| [Mapping review](MAPPING_REVIEW.md)                                   | Reviewing proposed safeguard mappings                     |
-| [NIST assessment expansion](NIST53_ASSESSMENTS.md)                    | Source-native assessment contracts and review boundaries  |
-| [Catalog versioning](CATALOG_VERSIONING.md)                           | Catalog versions and audit pinning                        |
-| [AI bill of materials](AIBOM.md)                                      | AI inventory evidence                                     |
+| Guide                                                                 | Covers                                                            |
+| --------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| [Evaluation contract](EVALUATION_CONTRACT.md)                         | What an evaluation guarantees                                     |
+| [Evidence evaluation semantics](EVIDENCE_EVALUATION_SEMANTICS.md)     | How evidence states become results                                |
+| [Evidence lineage](EVIDENCE_LINEAGE.md)                               | Source identity, hashes and result links                          |
+| [Assessment generations](ASSESSMENT_GENERATIONS.md)                   | Publication and failure contracts                                 |
+| [Assessment application contract](ASSESSMENT_APPLICATION_CONTRACT.md) | Shared services, durable outcomes, API limits and retries         |
+| [Collection completeness](COLLECTION_COMPLETENESS.md)                 | Partial and blocked collection                                    |
+| [Population reconciliation](POPULATION_RECONCILIATION.md)             | Reconciling the evidence population                               |
+| [Control test workpapers](CONTROL_TEST_WORKPAPERS.md)                 | Control design and period testing                                 |
+| [Governed remediation](GOVERNED_REMEDIATION.md)                       | Exceptions and remediation                                        |
+| [Audit readiness](AUDIT_READINESS.md)                                 | Audit-readiness API and audit room                                |
+| [GRC automation](GRC_AUTOMATION.md)                                   | The automated compliance loop and known gaps                      |
+| [Common control framework](COMMON_CONTROL_FRAMEWORK.md)               | Safeguards, families, and categories                              |
+| [CCF assessment reads](CCF_READS.md)                                  | Reading CCF results                                               |
+| [CCF requirement gaps](CCF_REQUIREMENT_GAPS.md)                       | Mapping, safeguard and evidence gaps                              |
+| [CCF risk monitoring](CCF_RISK_MONITORING.md)                         | Risk prioritization and ongoing monitoring                        |
+| [CCF AI context](CCF_AI_CONTEXT.md)                                   | AI inventory and deployment context                               |
+| [Framework packs](FRAMEWORK_PACKS.md)                                 | Pack contents, manifests, and gaps                                |
+| [Framework coverage](FRAMEWORK_COVERAGE.md)                           | Generated per-framework coverage matrix                           |
+| [Mapping review](MAPPING_REVIEW.md)                                   | Reviewing proposed safeguard mappings                             |
+| [SOC 2 and ISO review batches](reviews/SOC2_ISO_REVIEW.md)            | Source-guided proposals, operating contracts and review questions |
+| [NIST assessment expansion](NIST53_ASSESSMENTS.md)                    | Source-native assessment contracts and review boundaries          |
+| [Catalog versioning](CATALOG_VERSIONING.md)                           | Catalog versions and audit pinning                                |
+| [AI bill of materials](AIBOM.md)                                      | AI inventory evidence                                             |
 
 ## Integrate
 

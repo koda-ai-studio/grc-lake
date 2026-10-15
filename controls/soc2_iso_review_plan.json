@@ -1,0 +1,573 @@
+{
+  "schema": "grc_lake.vendor_review_plan.v1",
+  "sources": {
+    "cisco": {
+      "name": "Cisco Cloud Controls Framework 4.0",
+      "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
+      "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
+      "workbook_sha256": "ee3b8d68bd67c37137b7f517755fb92758d800f2f7016e5885379605f084eb4e"
+    },
+    "oracle-practice": {
+      "name": "Oracle ISO 42001 implementation practice, June 2026",
+      "url": "https://www.oracle.com/es/corporate/iso-42001-principles-into-practice/",
+      "sha256": "2ae1aaa8f783a1a5536bff151d5b40410002b9591a4de64d2743ba921f0f658a"
+    },
+    "oracle-risk": {
+      "name": "Oracle AI risk management practice, September 2026",
+      "url": "https://www.oracle.com/es/corporate/ai-risk-management-in-practice/",
+      "sha256": "2ba0eef33a0dcbb22de00ddbe3165d2785222a7631c4d478d4c8198aca79b0bf"
+    }
+  },
+  "repairs": [
+    {
+      "control_id": "SOC2-A1.1",
+      "risk_domain": "availability",
+      "objective": "Assess the requirement “Capacity and performance are monitored against availability commitments” within the declared system, period, and population.",
+      "evidence_checks": "capacity thresholds, utilization trends, demand forecasts, and capacity changes linked to service commitments",
+      "source": "cisco",
+      "cisco_controls": [335, 336],
+      "source_locator": "CCF 335; CCF 336",
+      "source_limit": "Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text.",
+      "replaces": [
+        {
+          "safeguard_id": "SG-DETECTION-001",
+          "member": {
+            "control_id": "SOC2-A1.1",
+            "framework_id": "soc2",
+            "role": "equivalent",
+            "review_status": "proposed",
+            "control_version": "1.0.0"
+          }
+        }
+      ]
+    },
+    {
+      "control_id": "SOC2-CC6.4",
+      "risk_domain": "physical-security",
+      "objective": "Assess the requirement “Physical access is limited to authorized personnel” within the declared system, period, and population.",
+      "evidence_checks": "authorized entry lists, physical entry restrictions, visitor records, access reviews, and investigated entry exceptions",
+      "source": "cisco",
+      "cisco_controls": [47, 53],
+      "source_locator": "CCF 47; CCF 53",
+      "source_limit": "Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text.",
+      "replaces": [
+        {
+          "safeguard_id": "SG-CHANGEMANAGEMENT-001",
+          "member": {
+            "control_id": "SOC2-CC6.4",
+            "framework_id": "soc2",
+            "role": "equivalent",
+            "review_status": "proposed",
+            "control_version": "1.0.0"
+          }
+        }
+      ]
+    },
+    {
+      "control_id": "SOC2-CC6.5",
+      "risk_domain": "data-protection",
+      "objective": "Assess the requirement “Asset retirement prevents recovery of residual data and software” within the declared system, period, and population.",
+      "evidence_checks": "retired-asset inventory, approved sanitization methods, removal of residual data and software, completion records, and verification before release or reuse",
+      "source": "cisco",
+      "cisco_controls": [85, 86, 88],
+      "source_locator": "CCF 85; CCF 86; CCF 88",
+      "source_limit": "Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text.",
+      "replaces": [
+        {
+          "safeguard_id": "SG-PHYSICAL-001",
+          "member": {
+            "control_id": "SOC2-CC6.5",
+            "framework_id": "soc2",
+            "role": "equivalent",
+            "review_status": "proposed",
+            "control_version": "1.0.0"
+          }
+        }
+      ]
+    },
+    {
+      "control_id": "SOC2-CC9.1",
+      "risk_domain": "availability",
+      "objective": "Assess the requirement “Business disruption risks have mitigation measures” within the declared system, period, and population.",
+      "evidence_checks": "internal and external disruption scenarios, mitigation ownership, continuity plans, recovery exercises, and corrective follow-up",
+      "source": "cisco",
+      "cisco_controls": [10, 124],
+      "source_locator": "CCF 10; CCF 124",
+      "source_limit": "Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text.",
+      "replaces": [
+        {
+          "safeguard_id": "SG-THIRDPARTYRISK-001",
+          "member": {
+            "control_id": "SOC2-CC9.1",
+            "framework_id": "soc2",
+            "role": "equivalent",
+            "review_status": "proposed",
+            "control_version": "1.0.0"
+          }
+        }
+      ]
+    },
+    {
+      "control_id": "SOC2-P6.2",
+      "risk_domain": "privacy",
+      "objective": "Assess the requirement “Authorized disclosure records are complete and current” within the declared system, period, and population.",
+      "evidence_checks": "a reconciled ledger of authorized disclosures identifying recipients, affected information, authorization, purpose, and date",
+      "source": "cisco",
+      "cisco_controls": [286],
+      "source_locator": "CCF 286",
+      "source_limit": "Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text.",
+      "replaces": [
+        {
+          "safeguard_id": "SG-THIRDPARTYRISK-001",
+          "member": {
+            "control_id": "SOC2-P6.2",
+            "framework_id": "soc2",
+            "role": "equivalent",
+            "review_status": "proposed",
+            "control_version": "1.0.0"
+          }
+        }
+      ]
+    },
+    {
+      "control_id": "SOC2-P6.3",
+      "risk_domain": "privacy",
+      "objective": "Assess the requirement “Unauthorized disclosure records include reported breaches” within the declared system, period, and population.",
+      "evidence_checks": "unauthorized-disclosure records linked to detected or reported incidents, affected information, investigation, disposition, and completeness reconciliation",
+      "source": "cisco",
+      "cisco_controls": [302, 323],
+      "source_locator": "CCF 302; CCF 323",
+      "source_limit": "Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text.",
+      "replaces": [
+        {
+          "safeguard_id": "SG-CHANGEMANAGEMENT-001",
+          "member": {
+            "control_id": "SOC2-P6.3",
+            "framework_id": "soc2",
+            "role": "equivalent",
+            "review_status": "proposed",
+            "control_version": "1.0.0"
+          }
+        },
+        {
+          "safeguard_id": "SG-PRIVACYNOTICE-001",
+          "member": {
+            "control_id": "SOC2-P6.3",
+            "framework_id": "soc2",
+            "role": "equivalent",
+            "review_status": "proposed",
+            "control_version": "1.0.0"
+          }
+        }
+      ]
+    },
+    {
+      "control_id": "SOC2-P6.4",
+      "risk_domain": "third-party-risk",
+      "objective": "Assess the requirement “Third-party privacy compliance is assessed and corrected” within the declared system, period, and population.",
+      "evidence_checks": "third-party privacy commitments, monitoring results, identified noncompliance, escalation, and verified corrective action",
+      "source": "cisco",
+      "cisco_controls": [274, 286],
+      "source_locator": "CCF 274; CCF 286",
+      "source_limit": "Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text.",
+      "replaces": [
+        {
+          "safeguard_id": "SG-INCIDENTRESPONSE-001",
+          "member": {
+            "control_id": "SOC2-P6.4",
+            "framework_id": "soc2",
+            "role": "equivalent",
+            "review_status": "proposed",
+            "control_version": "1.0.0"
+          }
+        },
+        {
+          "safeguard_id": "SG-INCIDENTNOTIFICATION-001",
+          "member": {
+            "control_id": "SOC2-P6.4",
+            "framework_id": "soc2",
+            "role": "equivalent",
+            "review_status": "proposed",
+            "control_version": "1.0.0"
+          }
+        }
+      ]
+    },
+    {
+      "control_id": "SOC2-P6.5",
+      "risk_domain": "third-party-risk",
+      "objective": "Assess the requirement “Third-party breach reporting commitments support incident response” within the declared system, period, and population.",
+      "evidence_checks": "third-party breach-reporting commitments, contact paths, timing requirements, received reports, and exercised coordination with incident responders",
+      "source": "cisco",
+      "cisco_controls": [274, 318, 323],
+      "source_locator": "CCF 274; CCF 318; CCF 323",
+      "source_limit": "Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text.",
+      "replaces": [
+        {
+          "safeguard_id": "SG-PRIVACYRIGHTS-001",
+          "member": {
+            "control_id": "SOC2-P6.5",
+            "framework_id": "soc2",
+            "role": "equivalent",
+            "review_status": "proposed",
+            "control_version": "1.0.0"
+          }
+        },
+        {
+          "safeguard_id": "SG-CROSSBORDERTRANSFER-001",
+          "member": {
+            "control_id": "SOC2-P6.5",
+            "framework_id": "soc2",
+            "role": "equivalent",
+            "review_status": "proposed",
+            "control_version": "1.0.0"
+          }
+        }
+      ]
+    },
+    {
+      "control_id": "SOC2-P6.6",
+      "risk_domain": "incident-response",
+      "objective": "Assess the requirement “Breach notification reaches affected people and authorities” within the declared system, period, and population.",
+      "evidence_checks": "breach-notification decisions, affected recipients and authorities, applicable timing, delivery evidence, and recorded exceptions",
+      "source": "cisco",
+      "cisco_controls": [302, 364],
+      "source_locator": "CCF 302; CCF 364",
+      "source_limit": "Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text.",
+      "replaces": [
+        {
+          "safeguard_id": "SG-PRIVACYRIGHTS-001",
+          "member": {
+            "control_id": "SOC2-P6.6",
+            "framework_id": "soc2",
+            "role": "equivalent",
+            "review_status": "proposed",
+            "control_version": "1.0.0"
+          }
+        }
+      ]
+    },
+    {
+      "control_id": "SOC2-P6.7",
+      "risk_domain": "privacy",
+      "objective": "Assess the requirement “Disclosure accounting is available to data subjects on request” within the declared system, period, and population.",
+      "evidence_checks": "disclosure accounting requests, verified requester identity, a reconciled disclosure ledger, fulfillment records, and reasons for exceptions",
+      "source": "cisco",
+      "cisco_controls": [277, 286],
+      "source_locator": "CCF 277; CCF 286",
+      "source_limit": "Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text.",
+      "replaces": [
+        {
+          "safeguard_id": "SG-DETECTION-001",
+          "member": {
+            "control_id": "SOC2-P6.7",
+            "framework_id": "soc2",
+            "role": "equivalent",
+            "review_status": "proposed",
+            "control_version": "1.0.0"
+          }
+        }
+      ]
+    },
+    {
+      "control_id": "ISO27001-A.5.13",
+      "risk_domain": "data-protection",
+      "objective": "Assess the requirement “Labelling of information” within the declared system, period, and population.",
+      "evidence_checks": "classification-linked labelling rules, affected information and assets, implementation samples, exceptions, and correction of inconsistent labels",
+      "source": "cisco",
+      "cisco_controls": [73],
+      "source_locator": "CCF 73",
+      "source_limit": "Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text.",
+      "replaces": [
+        {
+          "safeguard_id": "SG-DATAINVENTORY-001",
+          "member": {
+            "control_id": "ISO27001-A.5.13",
+            "framework_id": "iso-27001-2022",
+            "role": "equivalent",
+            "review_status": "proposed",
+            "mapping_basis": "title_theme",
+            "control_version": "1.0.0"
+          }
+        }
+      ]
+    },
+    {
+      "control_id": "ISO27001-A.5.28",
+      "risk_domain": "incident-response",
+      "objective": "Assess the requirement “Collection of evidence” within the declared system, period, and population.",
+      "evidence_checks": "authorized evidence collection, preservation, custody transfers, integrity checks, restricted access, and documented handling of evidence",
+      "source": "cisco",
+      "cisco_controls": [80, 183, 322],
+      "source_locator": "CCF 80; CCF 183; CCF 322",
+      "source_limit": "Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text.",
+      "replaces": [
+        {
+          "safeguard_id": "SG-INCIDENTHANDLING-001",
+          "member": {
+            "control_id": "ISO27001-A.5.28",
+            "framework_id": "iso-27001-2022",
+            "role": "equivalent",
+            "review_status": "proposed",
+            "control_version": "1.0.0"
+          }
+        }
+      ]
+    },
+    {
+      "control_id": "ISO27001-A.6.7",
+      "risk_domain": "identity",
+      "objective": "Assess the requirement “Remote working” within the declared system, period, and population.",
+      "evidence_checks": "remote-work scope, approved devices and locations, information handling, connection protections, worker responsibilities, and compliance checks",
+      "source": "cisco",
+      "cisco_controls": [67, 99, 170, 191],
+      "source_locator": "CCF 67; CCF 99; CCF 170; CCF 191",
+      "source_limit": "Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text.",
+      "replaces": [
+        {
+          "safeguard_id": "SG-IDENTITY-001",
+          "member": {
+            "control_id": "ISO27001-A.6.7",
+            "framework_id": "iso-27001-2022",
+            "role": "equivalent",
+            "review_status": "proposed",
+            "mapping_basis": "title_theme",
+            "control_version": "1.0.0"
+          }
+        }
+      ]
+    },
+    {
+      "control_id": "ISO27001-A.7.7",
+      "risk_domain": "physical-security",
+      "objective": "Assess the requirement “Clear desk and clear screen” within the declared system, period, and population.",
+      "evidence_checks": "clear-desk and clear-screen procedures, unattended-session protections, secure paper handling, observed checks, and exception resolution",
+      "source": "cisco",
+      "cisco_controls": [69, 142],
+      "source_locator": "CCF 69; CCF 142",
+      "source_limit": "Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text.",
+      "replaces": [
+        {
+          "safeguard_id": "SG-PHYSICAL-001",
+          "member": {
+            "control_id": "ISO27001-A.7.7",
+            "framework_id": "iso-27001-2022",
+            "role": "equivalent",
+            "review_status": "proposed",
+            "mapping_basis": "title_theme",
+            "control_version": "1.0.0"
+          }
+        }
+      ]
+    },
+    {
+      "control_id": "ISO27001-A.8.11",
+      "risk_domain": "data-protection",
+      "objective": "Assess the requirement “Data masking” within the declared system, period, and population.",
+      "evidence_checks": "masking requirements, the selected masking mechanism, access to unmasked values, transformation tests, and leakage checks in the intended environment",
+      "source": "cisco",
+      "cisco_controls": [69, 83],
+      "source_locator": "CCF 69; CCF 83",
+      "source_limit": "Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text.",
+      "replaces": [
+        {
+          "safeguard_id": "SG-DATAPROTECTION-001",
+          "member": {
+            "control_id": "ISO27001-A.8.11",
+            "framework_id": "iso-27001-2022",
+            "role": "equivalent",
+            "review_status": "proposed",
+            "mapping_basis": "title_theme",
+            "control_version": "1.0.0"
+          }
+        }
+      ]
+    },
+    {
+      "control_id": "ISO27001-A.8.17",
+      "risk_domain": "logging",
+      "objective": "Assess the requirement “Clock synchronization” within the declared system, period, and population.",
+      "evidence_checks": "approved time sources, synchronization configuration, clock offset monitoring, failure handling, and verification across the scoped systems",
+      "source": "cisco",
+      "cisco_controls": [241],
+      "source_locator": "CCF 241",
+      "source_limit": "Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text.",
+      "replaces": [
+        {
+          "safeguard_id": "SG-LOGGING-001",
+          "member": {
+            "control_id": "ISO27001-A.8.17",
+            "framework_id": "iso-27001-2022",
+            "role": "equivalent",
+            "review_status": "proposed",
+            "mapping_basis": "title_theme",
+            "control_version": "1.0.0"
+          }
+        }
+      ]
+    },
+    {
+      "control_id": "ISO27001-A.8.6",
+      "risk_domain": "availability",
+      "objective": "Assess the requirement “Capacity management” within the declared system, period, and population.",
+      "evidence_checks": "capacity baselines, demand forecasts, utilization thresholds, bottleneck analysis, and implemented capacity adjustments",
+      "source": "cisco",
+      "cisco_controls": [335, 336],
+      "source_locator": "CCF 335; CCF 336",
+      "source_limit": "Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text.",
+      "replaces": [
+        {
+          "safeguard_id": "SG-AVAILABILITY-001",
+          "member": {
+            "control_id": "ISO27001-A.8.6",
+            "framework_id": "iso-27001-2022",
+            "role": "equivalent",
+            "review_status": "proposed",
+            "mapping_basis": "title_theme",
+            "control_version": "1.0.0"
+          }
+        },
+        {
+          "safeguard_id": "SG-AICOMPUTE-001",
+          "member": {
+            "control_id": "ISO27001-A.8.6",
+            "framework_id": "iso-27001-2022",
+            "role": "equivalent",
+            "review_status": "proposed",
+            "control_version": "1.0.0"
+          }
+        }
+      ]
+    },
+    {
+      "control_id": "ISO42001-10.2",
+      "risk_domain": "ai-governance",
+      "objective": "Assess the requirement “Allocation of responsibilities” within the declared system, period, and population.",
+      "evidence_checks": "documented allocation of AI lifecycle responsibilities among provider, deployer, customer, and supplier, acknowledged owners, handoffs, and escalation paths",
+      "source": "oracle-practice",
+      "cisco_controls": [],
+      "source_locator": "ISO/IEC 42001 under the SaaS shared responsibility model; Oracle AI Review; METRO observability",
+      "source_limit": "Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text.",
+      "replaces": [
+        {
+          "safeguard_id": "SG-AIPROVENANCE-001",
+          "member": {
+            "control_id": "ISO42001-10.2",
+            "framework_id": "iso-42001-2023",
+            "role": "equivalent",
+            "review_status": "proposed",
+            "control_version": "1.0.0"
+          }
+        }
+      ]
+    },
+    {
+      "control_id": "ISO42001-4.6",
+      "risk_domain": "ai-governance",
+      "objective": "Assess the requirement “Human resources” within the declared system, period, and population.",
+      "evidence_checks": "AI lifecycle staffing needs, role competencies, assigned personnel, training or support plans, resourcing gaps, and management follow-up",
+      "source": "oracle-practice",
+      "cisco_controls": [],
+      "source_locator": "ISO/IEC 42001 under the SaaS shared responsibility model; Oracle AI Review; METRO observability",
+      "source_limit": "Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text.",
+      "replaces": [
+        {
+          "safeguard_id": "SG-AIOVERSIGHT-001",
+          "member": {
+            "control_id": "ISO42001-4.6",
+            "framework_id": "iso-42001-2023",
+            "role": "equivalent",
+            "review_status": "proposed",
+            "control_version": "1.0.0"
+          }
+        }
+      ]
+    },
+    {
+      "control_id": "ISO42001-6.1.3",
+      "risk_domain": "ai-governance",
+      "objective": "Assess the requirement “AI system risk treatment is planned and tracked” within the declared system, period, and population.",
+      "evidence_checks": "AI risk-treatment choices, selected controls, applicability decisions, accountable owners, implementation records, residual-risk decisions, and acceptance authority",
+      "source": "oracle-risk",
+      "cisco_controls": [],
+      "source_locator": "From an initial evaluation to ongoing risk management",
+      "source_limit": "Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text.",
+      "replaces": [
+        {
+          "safeguard_id": "SG-RISKMANAGEMENT-001",
+          "member": {
+            "control_id": "ISO42001-6.1.3",
+            "framework_id": "iso-42001-2023",
+            "role": "equivalent",
+            "review_status": "proposed",
+            "control_version": "1.0.0"
+          }
+        }
+      ]
+    },
+    {
+      "control_id": "ISO42001-6.2.8",
+      "risk_domain": "ai-governance",
+      "objective": "Assess the requirement “AI system recording of event logs” within the declared system, period, and population.",
+      "evidence_checks": "AI event-recording requirements by lifecycle phase, enabled logs, integrity and retention settings, access restrictions, and trace retrieval tests",
+      "source": "oracle-practice",
+      "cisco_controls": [],
+      "source_locator": "ISO/IEC 42001 under the SaaS shared responsibility model; Oracle AI Review; METRO observability",
+      "source_limit": "Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text.",
+      "replaces": [
+        {
+          "safeguard_id": "SG-AIGOVERNANCE-001",
+          "member": {
+            "control_id": "ISO42001-6.2.8",
+            "framework_id": "iso-42001-2023",
+            "role": "equivalent",
+            "review_status": "proposed",
+            "control_version": "1.0.0"
+          }
+        },
+        {
+          "safeguard_id": "SG-AIRUNTIMEACCESS-001",
+          "member": {
+            "control_id": "ISO42001-6.2.8",
+            "framework_id": "iso-42001-2023",
+            "role": "equivalent",
+            "review_status": "proposed",
+            "control_version": "1.0.0"
+          }
+        }
+      ]
+    },
+    {
+      "control_id": "ISO42001-8.2",
+      "risk_domain": "ai-governance",
+      "objective": "Assess the requirement “System documentation and information for users” within the declared system, period, and population.",
+      "evidence_checks": "user-facing AI system documentation covering intended use, limitations, responsibilities, operating instructions, document version, and delivery to intended users",
+      "source": "oracle-practice",
+      "cisco_controls": [],
+      "source_locator": "ISO/IEC 42001 under the SaaS shared responsibility model; Oracle AI Review; METRO observability",
+      "source_limit": "Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text.",
+      "replaces": [
+        {
+          "safeguard_id": "SG-DATAINVENTORY-001",
+          "member": {
+            "control_id": "ISO42001-8.2",
+            "framework_id": "iso-42001-2023",
+            "role": "equivalent",
+            "review_status": "proposed",
+            "control_version": "1.0.0"
+          }
+        },
+        {
+          "safeguard_id": "SG-AITRANSPARENCY-001",
+          "member": {
+            "control_id": "ISO42001-8.2",
+            "framework_id": "iso-42001-2023",
+            "role": "equivalent",
+            "review_status": "proposed",
+            "control_version": "1.0.0"
+          }
+        }
+      ]
+    }
+  ]
+}
