@@ -277,12 +277,13 @@ def render_readme_glance() -> str:
     standard_sources, preview_sources = _read_only_source_counts()
     return (
         f"- **{framework_count} framework packs, {_requirement_phrase(requirement_count)},** linked through "
-        f"{safeguard_count} common safeguards. {coverage['covered']:,} requirements have safeguard mappings; "
+        f"{safeguard_count} safeguards, including source-native assessment contracts. "
+        f"{coverage['covered']:,} requirements have safeguard mappings; "
         f"{coverage['reviewed']:,} have reviewed mappings and the other {coverage['proposed']:,} are proposed.\n"
         f"- **{standard_sources + preview_sources} read-only source adapters ({preview_sources} in preview)**, "
         "plus OCSF presets for existing security lakes.\n"
-        "- **Fails closed:** missing, stale, or partial evidence never produces a pass, and proposed mappings "
-        "are not attestable.\n"
+        "- **Evidence stays scoped:** missing or stale evidence leaves gaps; a passing sample does not prove "
+        "complete population coverage. Proposed mappings are not attestable.\n"
         "- **One engine, four surfaces:** console, REST API, CLI, and MCP server. Agents propose; humans approve."
     )
 
