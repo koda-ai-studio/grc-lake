@@ -241,6 +241,9 @@ def test_review_report_groups_frameworks_categories_and_source_gaps(proposed_sou
         "nis2-2022-2555",
         "dora-2022-2554",
         "eu-ai-act-2024-1689",
+        "soc2",
+        "iso-27001-2022",
+        "iso-42001-2023",
     }
 
 
@@ -345,14 +348,14 @@ def test_enrichment_records_verifiable_provenance() -> None:
 def test_every_safeguard_says_what_it_applies_to() -> None:
     """Evaluation targets resources, not frameworks.
 
-    The catalog records `asset_types` on all 942 requirements. A safeguard that
-    does not carry the union of its members' asset types cannot be pointed at
-    anything, which makes it undeployable as the operated object.
+    Every member's asset types must be covered by the safeguard's operated scope.
+    Removing a proposed relationship must not narrow that scope and invalidate
+    existing human review receipts for retained mappings.
     """
     catalog = load_control_catalog()
     for entry in load_safeguards()["safeguards"]:
         expected = sorted({t for m in entry["satisfies"] for t in (catalog[m["control_id"]].get("asset_types") or [])})
-        assert entry.get("asset_types") == expected, f"{entry['safeguard_id']} asset_types drifted from its members"
+        assert set(expected) <= set(entry.get("asset_types", [])), f"{entry['safeguard_id']} misses member asset types"
 
 
 def test_asset_type_lookup_finds_the_safeguards_that_apply() -> None:

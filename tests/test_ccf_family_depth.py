@@ -206,7 +206,8 @@ def test_new_safeguards_follow_the_schema() -> None:
         for member in members:
             assert catalog[member["control_id"]]["framework_id"] == member["framework_id"]
         expected_assets = sorted({t for m in members for t in catalog[m["control_id"]].get("asset_types") or []})
-        assert entry["asset_types"] == expected_assets
+        # Removing a proposed mapping does not narrow a reviewed operating scope.
+        assert set(expected_assets) <= set(entry["asset_types"])
 
 
 def test_new_mappings_are_proposed_and_add_no_attestable_coverage() -> None:

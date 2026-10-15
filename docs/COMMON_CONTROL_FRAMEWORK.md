@@ -94,9 +94,9 @@ rest of that control.
 | ---------------------------- | ------------------------- | -------------------------- | ---------: | ----------------------- | ------------ |
 | Governance and risk          | Risk management           | `risk-management`          |         30 | RA, CA, PM              | 18           |
 | Governance and risk          | Governance                | `governance`               |          8 | PL, PM                  | —            |
-| Identity and access          | Identity and access       | `identity`                 |        137 | AC, IA                  | 5, 6         |
-| Data protection and privacy  | Data protection           | `data-protection`          |          3 | SC, MP                  | 1, 3         |
-| Data protection and privacy  | Privacy                   | `privacy`                  |          5 | PT                      | —            |
+| Identity and access          | Identity and access       | `identity`                 |        138 | AC, IA                  | 5, 6         |
+| Data protection and privacy  | Data protection           | `data-protection`          |          6 | SC, MP                  | 1, 3         |
+| Data protection and privacy  | Privacy                   | `privacy`                  |          8 | PT                      | —            |
 | Secure engineering           | Change management         | `change-management`        |          4 | CM                      | —            |
 | Secure engineering           | Secure development        | `secure-development`       |          4 | SA                      | 16           |
 | Secure engineering           | Secure architecture       | `secure-architecture`      |          4 | SA, SC                  | —            |
@@ -104,21 +104,21 @@ rest of that control.
 | Infrastructure security      | Vulnerability management  | `vulnerability-management` |          3 | RA, SI                  | 7            |
 | Infrastructure security      | Network security          | `network-security`         |          1 | SC                      | 12           |
 | Detection and response       | Detection                 | `detection`                |          3 | SI                      | 10, 13       |
-| Detection and response       | Audit logging             | `logging`                  |         42 | AU                      | 8            |
-| Detection and response       | Incident response         | `incident-response`        |         35 | IR                      | 17           |
-| Resilience and integrity     | Availability and recovery | `availability`             |         28 | CP                      | 11           |
+| Detection and response       | Audit logging             | `logging`                  |         43 | AU                      | 8            |
+| Detection and response       | Incident response         | `incident-response`        |         37 | IR                      | 17           |
+| Resilience and integrity     | Availability and recovery | `availability`             |         31 | CP                      | 11           |
 | Resilience and integrity     | System maintenance        | `system-maintenance`       |         27 | MA                      | —            |
 | Resilience and integrity     | Processing integrity      | `processing-integrity`     |         90 | SI                      | —            |
-| Third-party and supply chain | Third-party risk          | `third-party-risk`         |          4 | SR, SA                  | 15           |
+| Third-party and supply chain | Third-party risk          | `third-party-risk`         |          6 | SR, SA                  | 15           |
 | People and physical          | People security           | `people-security`          |          3 | AT, PS                  | 14           |
-| People and physical          | Physical security         | `physical-security`        |          2 | PE                      | —            |
-| AI governance                | AI governance             | `ai-governance`            |         13 | —                       | —            |
+| People and physical          | Physical security         | `physical-security`        |          4 | PE                      | —            |
+| AI governance                | AI governance             | `ai-governance`            |         18 | —                       | —            |
 
 ## Where it stands
 
 ```
 $ grc-lake frameworks safeguards --format table
-482 safeguards map 1803 of 2252 requirements (80.1%) — 1128 maintainer-reviewed, 0 org-reviewed (50.1% attestable), 675 proposed; 0 mapping(s) rejected by the org
+504 safeguards map 1803 of 2252 requirements (80.1%) — 1128 maintainer-reviewed, 0 org-reviewed (50.1% attestable), 675 proposed; 0 mapping(s) rejected by the org
 ```
 
 A mapping is **reviewed** once a human has confirmed the requirements are the
