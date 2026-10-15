@@ -22,8 +22,20 @@ def test_every_family_is_defined_and_used() -> None:
 
 
 def test_no_catch_all_family() -> None:
-    used = Counter(entry["risk_domain"] for entry in load_safeguards()["safeguards"])
+    entries = load_safeguards()["safeguards"]
+    # Reusable safeguards retain their anti-catch-all guard. Source-native
+    # contracts follow the standard's obligation counts, not an equal quota:
+    # AC and IA legitimately contain many more clauses than other families.
+    common = [entry for entry in entries if not entry["safeguard_id"].startswith("SG-NIST53-")]
+    used = Counter(entry["risk_domain"] for entry in common)
     total = sum(used.values())
+    taxonomy = load_ccf_families()
+    for entry in entries:
+        if entry["safeguard_id"].startswith("SG-NIST53-"):
+            source_id = entry["safeguard_id"].removeprefix("SG-NIST53-")
+            assert len(entry["satisfies"]) == 1
+            assert entry["satisfies"][0]["control_id"] == "NIST-800-53-" + source_id
+            assert source_id.split("-")[0] in taxonomy[entry["risk_domain"]]["nist_800_53_families"]
     assert "controls-operations" not in used
     assert max(used.values()) <= total * 0.15
 
