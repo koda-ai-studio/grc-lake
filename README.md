@@ -202,8 +202,9 @@ Upgrading from TrustOps? Read the [migration guide](docs/REBRANDING.md).
 
 <!-- END README AT A GLANCE -->
 
-Catalog counts above are generated from source. Mapping-review decisions do not
-change access at a provider.
+Catalog counts above are generated from source. Reviewed counts record maintainer
+mapping decisions; see the [review method and limits](docs/COMMON_CONTROL_FRAMEWORK.md#maintainer-source-batch-review).
+Mapping-review decisions do not change access at a provider.
 
 [Framework coverage](docs/FRAMEWORK_COVERAGE.md) ·
 [Common safeguards](docs/COMMON_CONTROL_FRAMEWORK.md) ·
