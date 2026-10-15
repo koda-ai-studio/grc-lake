@@ -304,6 +304,37 @@ bound to the inspected semantic digest and original catalog commit. The receipt
 records the batch approval verbatim; no separate per-mapping rationale or second
 reviewer decision was supplied.
 
+**Review method and retained evidence.** The maintainer subsequently confirmed
+that they personally reviewed all controls and mappings in the 33 prepared
+batches. This is the reviewer's account of their inspection; the automated
+checks below verify the recorded scope and content, not the human review process.
+
+- **Preparation:** the packets included each catalog requirement, mapping role,
+  cited source and locator, source digest where supplied, safeguard operating
+  objective, evidence contract, required evidence and asset types, and inspected
+  semantic hash. The base catalog is commit
+  `40ce68a3b0ebe056b6f5565d4638d328e734d64d`. Source-native NIST contracts retain
+  their pinned source statements, assessment objectives and parameters; see the
+  [source and derivation record](NIST53_ASSESSMENTS.md#source-and-derivation).
+- **Human decision:** msaad00 approved all 33 batches without exceptions. The
+  receipt preserves that decision verbatim and identifies the 885 mapping
+  relationships it covers. The assistant prepared the material and recorded the
+  decision; it is not an additional human reviewer.
+- **Automated verification:** each approved relationship is checked against its
+  inspected semantic hash. Tests reconcile the exact approved set, distinct
+  requirement counts and stale-version exclusions. Source extraction checks
+  compare the 381 added NIST contracts with their pinned authoritative catalog.
+  These checks do not independently establish mapping correctness.
+- **Limits of the record:** no separate per-mapping written rationale, second
+  reviewer decision or review duration was supplied. The receipt timestamp marks
+  when the batch approval was recorded, not when each item was read. Its lines
+  mostly enumerate identities and hashes; they are not individual review notes.
+
+The aggregate reviewed percentage records maintainer mapping decisions. It does
+not establish independent assurance or equal review depth across frameworks;
+consult the [per-framework coverage matrix](FRAMEWORK_COVERAGE.md). SOC 2,
+ISO 27001 and ISO 42001 retain review gaps despite the aggregate milestone.
+
 The review adds 789 currently credited requirements, taking reviewed coverage to
 1,128 of 2,252 (50.1%). Seventeen approved requirements remain uncredited because
 their mapping versions are stale. Their original version pins are preserved.

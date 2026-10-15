@@ -62,6 +62,12 @@ provide the mapping and review increases. Complete the combined audit and
 final-main qualification before the release decision. A merged mapping proposal
 or passing CI does not approve a mapping.
 
+Prioritize the next bounded review batches for SOC 2, ISO 27001 and ISO 42001.
+Prepare clause-specific source evidence, safeguard rationale, evidence requirements
+and limitations before requesting new human decisions. Report progress per
+framework; the aggregate milestone does not establish balanced review depth.
+Do not extend the 33-batch approval to these remaining proposals.
+
 ISO 27701:2025 is a limited pack (10 of 78 Annex A controls). SOC 1 is planned
 without an official catalog. NIST 800-171 Rev 3, NIS2, DORA and NIST RMF now have
 reviewed mappings; gaps remain as shown in the [coverage matrix](docs/FRAMEWORK_COVERAGE.md).
