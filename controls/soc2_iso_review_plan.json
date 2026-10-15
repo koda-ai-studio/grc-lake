@@ -568,6 +568,270 @@
           }
         }
       ]
+    },
+    {
+      "control_id": "SOC2-CC1.1",
+      "risk_domain": "governance",
+      "objective": "Assess the requirement “Control environment demonstrates integrity and ethical values” within the declared system, period, and population.",
+      "evidence_checks": "approved ethical-conduct expectations, personnel acknowledgments, reporting channels, recorded violations, and timely investigation and corrective follow-up",
+      "source": "cisco",
+      "cisco_controls": [160],
+      "source_locator": "CCF 160",
+      "source_limit": "Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context.",
+      "replaces": [
+        {
+          "safeguard_id": "SG-GOVERNANCE-002",
+          "member": {
+            "control_id": "SOC2-CC1.1",
+            "framework_id": "soc2",
+            "role": "equivalent",
+            "review_status": "proposed",
+            "control_version": "1.0.0"
+          }
+        }
+      ]
+    },
+    {
+      "control_id": "SOC2-CC1.2",
+      "risk_domain": "governance",
+      "objective": "Assess the requirement “Board independence and oversight of internal control” within the declared system, period, and population.",
+      "evidence_checks": "board and committee responsibilities, member independence and relevant expertise, oversight agendas and minutes, management challenge, and tracked follow-up decisions",
+      "source": "cisco",
+      "cisco_controls": [128, 129],
+      "source_locator": "CCF 128; CCF 129",
+      "source_limit": "Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context.",
+      "replaces": [
+        {
+          "safeguard_id": "SG-GOVERNANCE-002",
+          "member": {
+            "control_id": "SOC2-CC1.2",
+            "framework_id": "soc2",
+            "role": "equivalent",
+            "review_status": "proposed",
+            "control_version": "1.0.0"
+          }
+        }
+      ]
+    },
+    {
+      "control_id": "SOC2-CC1.4",
+      "risk_domain": "governance",
+      "objective": "Assess the requirement “Commitment to competence is demonstrated” within the declared system, period, and population.",
+      "evidence_checks": "role-specific competence requirements, hiring and assessment records, periodic performance reviews, training needs, and remediation of identified skills gaps",
+      "source": "cisco",
+      "cisco_controls": [163, 168],
+      "source_locator": "CCF 163; CCF 168",
+      "source_limit": "Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context.",
+      "replaces": [
+        {
+          "safeguard_id": "SG-GOVERNANCE-002",
+          "member": {
+            "control_id": "SOC2-CC1.4",
+            "framework_id": "soc2",
+            "role": "equivalent",
+            "review_status": "proposed",
+            "control_version": "1.0.0"
+          }
+        }
+      ]
+    },
+    {
+      "control_id": "SOC2-CC1.5",
+      "risk_domain": "governance",
+      "objective": "Assess the requirement “Individuals are held accountable for internal control” within the declared system, period, and population.",
+      "evidence_checks": "assigned control responsibilities, communicated performance expectations, consideration of incentives and pressures, periodic accountability reviews, and corrective or disciplinary follow-up",
+      "source": "cisco",
+      "cisco_controls": [160, 168],
+      "source_locator": "CCF 160; CCF 168",
+      "source_limit": "Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context.",
+      "replaces": [
+        {
+          "safeguard_id": "SG-GOVERNANCE-002",
+          "member": {
+            "control_id": "SOC2-CC1.5",
+            "framework_id": "soc2",
+            "role": "equivalent",
+            "review_status": "proposed",
+            "control_version": "1.0.0"
+          }
+        }
+      ]
+    },
+    {
+      "control_id": "SOC2-CC2.1",
+      "risk_domain": "governance",
+      "objective": "Assess the requirement “Quality information supports internal control objectives” within the declared system, period, and population.",
+      "evidence_checks": "the information used for identified control decisions, documented completeness and accuracy checks, source provenance, timely updates, and handling of missing or unreliable inputs",
+      "source": "cisco",
+      "cisco_controls": [142],
+      "source_locator": "CCF 142",
+      "source_limit": "Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context.",
+      "replaces": [
+        {
+          "safeguard_id": "SG-GOVERNANCE-002",
+          "member": {
+            "control_id": "SOC2-CC2.1",
+            "framework_id": "soc2",
+            "role": "equivalent",
+            "review_status": "proposed",
+            "control_version": "1.0.0"
+          }
+        }
+      ]
+    },
+    {
+      "control_id": "SOC2-CC2.2",
+      "risk_domain": "governance",
+      "objective": "Assess the requirement “Internal control information is communicated internally” within the declared system, period, and population.",
+      "evidence_checks": "identified internal recipients, current control responsibilities and policy changes, delivery and acknowledgment records, escalation routes, and follow-up on communication failures",
+      "source": "cisco",
+      "cisco_controls": [127, 142],
+      "source_locator": "CCF 127; CCF 142",
+      "source_limit": "Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context.",
+      "replaces": [
+        {
+          "safeguard_id": "SG-GOVERNANCE-002",
+          "member": {
+            "control_id": "SOC2-CC2.2",
+            "framework_id": "soc2",
+            "role": "equivalent",
+            "review_status": "proposed",
+            "control_version": "1.0.0"
+          }
+        }
+      ]
+    },
+    {
+      "control_id": "SOC2-CC2.3",
+      "risk_domain": "governance",
+      "objective": "Assess the requirement “Control matters are communicated to external parties when required” within the declared system, period, and population.",
+      "evidence_checks": "identified external audiences and required control communications, assigned owners, accessible reporting channels, delivery or receipt records, and escalation and resolution of received concerns",
+      "source": "cisco",
+      "cisco_controls": [181],
+      "source_locator": "CCF 181",
+      "source_limit": "Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context.",
+      "replaces": [
+        {
+          "safeguard_id": "SG-GOVERNANCE-002",
+          "member": {
+            "control_id": "SOC2-CC2.3",
+            "framework_id": "soc2",
+            "role": "equivalent",
+            "review_status": "proposed",
+            "control_version": "1.0.0"
+          }
+        }
+      ]
+    },
+    {
+      "control_id": "SOC2-CC3.1",
+      "risk_domain": "governance",
+      "objective": "Assess the requirement “Objectives are specified with sufficient clarity” within the declared system, period, and population.",
+      "evidence_checks": "documented organizational and service objectives, measurable success criteria, risk tolerance and management approval, and traceability from objectives into risk assessments and control decisions",
+      "source": "cisco",
+      "cisco_controls": [124, 161],
+      "source_locator": "CCF 124; CCF 161",
+      "source_limit": "Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context.",
+      "replaces": [
+        {
+          "safeguard_id": "SG-GOVERNANCE-002",
+          "member": {
+            "control_id": "SOC2-CC3.1",
+            "framework_id": "soc2",
+            "role": "equivalent",
+            "review_status": "proposed",
+            "control_version": "1.0.0"
+          }
+        }
+      ]
+    },
+    {
+      "control_id": "SOC2-CC4.2",
+      "risk_domain": "governance",
+      "objective": "Assess the requirement “Control deficiencies are evaluated and communicated” within the declared system, period, and population.",
+      "evidence_checks": "the population of identified control deficiencies, severity and impact assessments, timely escalation to accountable management and oversight bodies, assigned remediation, and verified closure evidence",
+      "source": "cisco",
+      "cisco_controls": [124],
+      "source_locator": "CCF 124",
+      "source_limit": "Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context.",
+      "replaces": [
+        {
+          "safeguard_id": "SG-GOVERNANCE-002",
+          "member": {
+            "control_id": "SOC2-CC4.2",
+            "framework_id": "soc2",
+            "role": "equivalent",
+            "review_status": "proposed",
+            "control_version": "1.0.0"
+          }
+        }
+      ]
+    },
+    {
+      "control_id": "SOC2-CC5.1",
+      "risk_domain": "governance",
+      "objective": "Assess the requirement “Control activities are selected and developed” within the declared system, period, and population.",
+      "evidence_checks": "control selection and design decisions linked to identified risks and objectives, accountable risk-owner approvals, the intended operating scope, and evidence that selected activities are implemented",
+      "source": "cisco",
+      "cisco_controls": [124, 161],
+      "source_locator": "CCF 124; CCF 161",
+      "source_limit": "Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context.",
+      "replaces": [
+        {
+          "safeguard_id": "SG-GOVERNANCE-002",
+          "member": {
+            "control_id": "SOC2-CC5.1",
+            "framework_id": "soc2",
+            "role": "equivalent",
+            "review_status": "proposed",
+            "control_version": "1.0.0"
+          }
+        }
+      ]
+    },
+    {
+      "control_id": "SOC2-CC5.2",
+      "risk_domain": "governance",
+      "objective": "Assess the requirement “Technology general controls support objectives” within the declared system, period, and population.",
+      "evidence_checks": "technology dependencies supporting objectives, risk-based general control selection over access, processing integrity, acquisition, development and maintenance, and scoped operating records and exceptions",
+      "source": "cisco",
+      "cisco_controls": [161],
+      "source_locator": "CCF 161",
+      "source_limit": "Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context.",
+      "replaces": [
+        {
+          "safeguard_id": "SG-GOVERNANCE-002",
+          "member": {
+            "control_id": "SOC2-CC5.2",
+            "framework_id": "soc2",
+            "role": "equivalent",
+            "review_status": "proposed",
+            "control_version": "1.0.0"
+          }
+        }
+      ]
+    },
+    {
+      "control_id": "SOC2-CC5.3",
+      "risk_domain": "governance",
+      "objective": "Assess the requirement “Policies are deployed through procedures” within the declared system, period, and population.",
+      "evidence_checks": "approved policy requirements translated into actionable procedures, assigned ownership, communication and implementation records, timely execution, and corrective follow-up when procedures are not performed",
+      "source": "cisco",
+      "cisco_controls": [147],
+      "source_locator": "CCF 147",
+      "source_limit": "Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context.",
+      "replaces": [
+        {
+          "safeguard_id": "SG-GOVERNANCE-002",
+          "member": {
+            "control_id": "SOC2-CC5.3",
+            "framework_id": "soc2",
+            "role": "equivalent",
+            "review_status": "proposed",
+            "control_version": "1.0.0"
+          }
+        }
+      ]
     }
   ]
 }

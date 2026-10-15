@@ -59,7 +59,7 @@ def test_repaired_requirements_have_one_specific_proposed_contract(cid):
 def test_repaired_contracts_require_scoped_typed_evidence_and_separate_review(case):
     catalog = load_control_catalog()
     entries = [e for e in load_safeguards()["safeguards"] if e["safeguard_id"].startswith("SG-REVIEW-")]
-    assert len(entries) == len(TARGETS)
+    assert len(entries) == len(PLAN["repairs"])
     for entry in entries:
         cid = entry["satisfies"][0]["control_id"]
         row = normalized(
@@ -191,7 +191,7 @@ def test_repaired_proposals_are_not_exported_as_implemented_requirements():
         for c in components
         if any(p["name"] == "trustops-safeguard-id" and p["value"].startswith("SG-REVIEW-") for p in c["props"])
     ]
-    assert len(repaired) == 22
+    assert len(repaired) == len(PLAN["repairs"])
     assert all("control-implementations" not in c for c in repaired)
 
 
@@ -248,3 +248,42 @@ def test_cisco_parser_uses_current_explicit_ids_not_old_columns_or_markers():
     assert set(index) == {"SOC2-CC6.4", "SOC2-A1.1", "SOC2-P6.2", "SOC2-C1.1", "ISO27001-A.8.6"}
     assert len(index["SOC2-CC6.4"]) == 1
     assert index["ISO27001-A.8.6"][0]["cell"] == "BI2"
+
+
+GOVERNANCE_TARGETS = (
+    "SOC2-CC1.1",
+    "SOC2-CC1.2",
+    "SOC2-CC1.4",
+    "SOC2-CC1.5",
+    "SOC2-CC2.1",
+    "SOC2-CC2.2",
+    "SOC2-CC2.3",
+    "SOC2-CC3.1",
+    "SOC2-CC4.2",
+    "SOC2-CC5.1",
+    "SOC2-CC5.2",
+    "SOC2-CC5.3",
+)
+
+
+@pytest.mark.parametrize("cid", GOVERNANCE_TARGETS)
+def test_soc2_governance_requires_its_own_assessment_not_a_cmmc_plan(cid):
+    payload = load_safeguards()
+    owners = [e for e in payload["safeguards"] if any(m["control_id"] == cid for m in e["satisfies"])]
+    assert "SG-GOVERNANCE-002" not in {e["safeguard_id"] for e in owners}
+    entry = next(e for e in owners if e["safeguard_id"] == "SG-REVIEW-" + cid.replace(".", "-"))
+    assert len(entry["satisfies"]) == 1
+    assert entry["satisfies"][0]["review_status"] == "proposed"
+    assert entry["required_evidence_types"] == ["review_" + cid.lower().replace("-", "_").replace(".", "_")]
+    row = normalized(
+        asset_type=entry["asset_types"][0],
+        bindings=[entry["safeguard_id"]],
+        status="pass",
+        control_ids=[cid],
+        evidence_types=["system_security_plan"],
+    )
+    result = evaluate_safeguards(
+        [row], {"review_log_verified": True, "safeguards": [entry]}, {cid: load_control_catalog()[cid]}
+    )
+    assert result["safeguards"][0]["status"] != "pass"
+    assert result["requirements"][0]["status"] != "pass"

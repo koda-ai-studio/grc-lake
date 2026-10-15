@@ -184,7 +184,7 @@ def review_artifacts(payload: dict, plan: dict, index: dict) -> tuple[dict, str]
         "",
         "## Review scope and reproduction",
         "",
-        "This queue contains 150 requirements and 185 candidate relationships in 17 batches: SOC 2 (51 requirements), ISO 27001 (71), and ISO 42001 (28). Twenty-two requirement-specific assessment contracts replace 28 weak proposed relationships. Mapped and reviewed requirement counts are unchanged; every new contract remains proposed.",
+        f"This queue contains 150 requirements and 185 candidate relationships in 17 batches: SOC 2 (51 requirements), ISO 27001 (71), and ISO 42001 (28). {len(plan['repairs'])} requirement-specific assessment contracts replace {sum(len(r['replaces']) for r in plan['repairs'])} weak proposed relationships. Mapped and reviewed requirement counts are unchanged; every new contract remains proposed.",
         "",
         "Cisco references use explicit SOC 2 IDs and the ISO/IEC 27002:2022 column corresponding to ISO 27001:2022 Annex A. Older ISO columns and broad X markers are excluded. Processing Integrity requirements without a Cisco reference stay explicitly unsourced. Oracle articles provide AI governance examples; they do not supply the complete ISO 42001 requirement text. Fifteen unmapped ISO requirements remain outside this pending-mapping queue.",
         "",

@@ -7152,49 +7152,7 @@
           "control_version": "1.1.0"
         },
         {
-          "control_id": "SOC2-CC1.1",
-          "framework_id": "soc2",
-          "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
-        },
-        {
-          "control_id": "SOC2-CC1.2",
-          "framework_id": "soc2",
-          "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
-        },
-        {
           "control_id": "SOC2-CC1.3",
-          "framework_id": "soc2",
-          "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
-        },
-        {
-          "control_id": "SOC2-CC1.4",
-          "framework_id": "soc2",
-          "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
-        },
-        {
-          "control_id": "SOC2-CC1.5",
-          "framework_id": "soc2",
-          "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
-        },
-        {
-          "control_id": "SOC2-CC2.1",
-          "framework_id": "soc2",
-          "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
-        },
-        {
-          "control_id": "SOC2-CC2.2",
           "framework_id": "soc2",
           "role": "equivalent",
           "review_status": "proposed",
@@ -7378,48 +7336,6 @@
         {
           "control_id": "HIPAA-164.308(a)(8)",
           "framework_id": "hipaa-security-rule",
-          "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
-        },
-        {
-          "control_id": "SOC2-CC2.3",
-          "framework_id": "soc2",
-          "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
-        },
-        {
-          "control_id": "SOC2-CC3.1",
-          "framework_id": "soc2",
-          "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
-        },
-        {
-          "control_id": "SOC2-CC4.2",
-          "framework_id": "soc2",
-          "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
-        },
-        {
-          "control_id": "SOC2-CC5.1",
-          "framework_id": "soc2",
-          "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
-        },
-        {
-          "control_id": "SOC2-CC5.2",
-          "framework_id": "soc2",
-          "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
-        },
-        {
-          "control_id": "SOC2-CC5.3",
-          "framework_id": "soc2",
           "role": "equivalent",
           "review_status": "proposed",
           "control_version": "1.0.0"
@@ -33342,6 +33258,366 @@
             "url": "https://www.oracle.com/es/corporate/iso-42001-principles-into-practice/",
             "sha256": "2ae1aaa8f783a1a5536bff151d5b40410002b9591a4de64d2743ba921f0f658a",
             "locator": "ISO/IEC 42001 under the SaaS shared responsibility model; Oracle AI Review; METRO observability; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-REVIEW-SOC2-CC1-1",
+      "title": "Control environment demonstrates integrity and ethical values",
+      "risk_domain": "governance",
+      "objective": "Assess the requirement “Control environment demonstrates integrity and ethical values” within the declared system, period, and population.",
+      "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test approved ethical-conduct expectations, personnel acknowledgments, reporting channels, recorded violations, and timely investigation and corrective follow-up. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["review_soc2_cc1_1"],
+      "satisfies": [
+        {
+          "control_id": "SOC2-CC1.1",
+          "framework_id": "soc2",
+          "role": "primary",
+          "control_version": "1.0.0",
+          "review_status": "proposed",
+          "mapping_basis": "vendor_guided_proposal",
+          "mapping_source": {
+            "name": "Cisco Cloud Controls Framework 4.0",
+            "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
+            "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
+            "locator": "CCF 160; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-REVIEW-SOC2-CC1-2",
+      "title": "Board independence and oversight of internal control",
+      "risk_domain": "governance",
+      "objective": "Assess the requirement “Board independence and oversight of internal control” within the declared system, period, and population.",
+      "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test board and committee responsibilities, member independence and relevant expertise, oversight agendas and minutes, management challenge, and tracked follow-up decisions. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["review_soc2_cc1_2"],
+      "satisfies": [
+        {
+          "control_id": "SOC2-CC1.2",
+          "framework_id": "soc2",
+          "role": "primary",
+          "control_version": "1.0.0",
+          "review_status": "proposed",
+          "mapping_basis": "vendor_guided_proposal",
+          "mapping_source": {
+            "name": "Cisco Cloud Controls Framework 4.0",
+            "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
+            "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
+            "locator": "CCF 128; CCF 129; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-REVIEW-SOC2-CC1-4",
+      "title": "Commitment to competence is demonstrated",
+      "risk_domain": "governance",
+      "objective": "Assess the requirement “Commitment to competence is demonstrated” within the declared system, period, and population.",
+      "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test role-specific competence requirements, hiring and assessment records, periodic performance reviews, training needs, and remediation of identified skills gaps. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["review_soc2_cc1_4"],
+      "satisfies": [
+        {
+          "control_id": "SOC2-CC1.4",
+          "framework_id": "soc2",
+          "role": "primary",
+          "control_version": "1.0.0",
+          "review_status": "proposed",
+          "mapping_basis": "vendor_guided_proposal",
+          "mapping_source": {
+            "name": "Cisco Cloud Controls Framework 4.0",
+            "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
+            "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
+            "locator": "CCF 163; CCF 168; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-REVIEW-SOC2-CC1-5",
+      "title": "Individuals are held accountable for internal control",
+      "risk_domain": "governance",
+      "objective": "Assess the requirement “Individuals are held accountable for internal control” within the declared system, period, and population.",
+      "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test assigned control responsibilities, communicated performance expectations, consideration of incentives and pressures, periodic accountability reviews, and corrective or disciplinary follow-up. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["review_soc2_cc1_5"],
+      "satisfies": [
+        {
+          "control_id": "SOC2-CC1.5",
+          "framework_id": "soc2",
+          "role": "primary",
+          "control_version": "1.0.0",
+          "review_status": "proposed",
+          "mapping_basis": "vendor_guided_proposal",
+          "mapping_source": {
+            "name": "Cisco Cloud Controls Framework 4.0",
+            "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
+            "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
+            "locator": "CCF 160; CCF 168; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-REVIEW-SOC2-CC2-1",
+      "title": "Quality information supports internal control objectives",
+      "risk_domain": "governance",
+      "objective": "Assess the requirement “Quality information supports internal control objectives” within the declared system, period, and population.",
+      "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test the information used for identified control decisions, documented completeness and accuracy checks, source provenance, timely updates, and handling of missing or unreliable inputs. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["review_soc2_cc2_1"],
+      "satisfies": [
+        {
+          "control_id": "SOC2-CC2.1",
+          "framework_id": "soc2",
+          "role": "primary",
+          "control_version": "1.0.0",
+          "review_status": "proposed",
+          "mapping_basis": "vendor_guided_proposal",
+          "mapping_source": {
+            "name": "Cisco Cloud Controls Framework 4.0",
+            "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
+            "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
+            "locator": "CCF 142; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-REVIEW-SOC2-CC2-2",
+      "title": "Internal control information is communicated internally",
+      "risk_domain": "governance",
+      "objective": "Assess the requirement “Internal control information is communicated internally” within the declared system, period, and population.",
+      "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test identified internal recipients, current control responsibilities and policy changes, delivery and acknowledgment records, escalation routes, and follow-up on communication failures. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["review_soc2_cc2_2"],
+      "satisfies": [
+        {
+          "control_id": "SOC2-CC2.2",
+          "framework_id": "soc2",
+          "role": "primary",
+          "control_version": "1.0.0",
+          "review_status": "proposed",
+          "mapping_basis": "vendor_guided_proposal",
+          "mapping_source": {
+            "name": "Cisco Cloud Controls Framework 4.0",
+            "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
+            "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
+            "locator": "CCF 127; CCF 142; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-REVIEW-SOC2-CC2-3",
+      "title": "Control matters are communicated to external parties when required",
+      "risk_domain": "governance",
+      "objective": "Assess the requirement “Control matters are communicated to external parties when required” within the declared system, period, and population.",
+      "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test identified external audiences and required control communications, assigned owners, accessible reporting channels, delivery or receipt records, and escalation and resolution of received concerns. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["review_soc2_cc2_3"],
+      "satisfies": [
+        {
+          "control_id": "SOC2-CC2.3",
+          "framework_id": "soc2",
+          "role": "primary",
+          "control_version": "1.0.0",
+          "review_status": "proposed",
+          "mapping_basis": "vendor_guided_proposal",
+          "mapping_source": {
+            "name": "Cisco Cloud Controls Framework 4.0",
+            "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
+            "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
+            "locator": "CCF 181; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-REVIEW-SOC2-CC3-1",
+      "title": "Objectives are specified with sufficient clarity",
+      "risk_domain": "governance",
+      "objective": "Assess the requirement “Objectives are specified with sufficient clarity” within the declared system, period, and population.",
+      "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test documented organizational and service objectives, measurable success criteria, risk tolerance and management approval, and traceability from objectives into risk assessments and control decisions. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["review_soc2_cc3_1"],
+      "satisfies": [
+        {
+          "control_id": "SOC2-CC3.1",
+          "framework_id": "soc2",
+          "role": "primary",
+          "control_version": "1.0.0",
+          "review_status": "proposed",
+          "mapping_basis": "vendor_guided_proposal",
+          "mapping_source": {
+            "name": "Cisco Cloud Controls Framework 4.0",
+            "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
+            "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
+            "locator": "CCF 124; CCF 161; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-REVIEW-SOC2-CC4-2",
+      "title": "Control deficiencies are evaluated and communicated",
+      "risk_domain": "governance",
+      "objective": "Assess the requirement “Control deficiencies are evaluated and communicated” within the declared system, period, and population.",
+      "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test the population of identified control deficiencies, severity and impact assessments, timely escalation to accountable management and oversight bodies, assigned remediation, and verified closure evidence. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["review_soc2_cc4_2"],
+      "satisfies": [
+        {
+          "control_id": "SOC2-CC4.2",
+          "framework_id": "soc2",
+          "role": "primary",
+          "control_version": "1.0.0",
+          "review_status": "proposed",
+          "mapping_basis": "vendor_guided_proposal",
+          "mapping_source": {
+            "name": "Cisco Cloud Controls Framework 4.0",
+            "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
+            "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
+            "locator": "CCF 124; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-REVIEW-SOC2-CC5-1",
+      "title": "Control activities are selected and developed",
+      "risk_domain": "governance",
+      "objective": "Assess the requirement “Control activities are selected and developed” within the declared system, period, and population.",
+      "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test control selection and design decisions linked to identified risks and objectives, accountable risk-owner approvals, the intended operating scope, and evidence that selected activities are implemented. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["cloud_policy", "cloud_resource", "service"],
+      "required_evidence_types": ["review_soc2_cc5_1"],
+      "satisfies": [
+        {
+          "control_id": "SOC2-CC5.1",
+          "framework_id": "soc2",
+          "role": "primary",
+          "control_version": "1.0.0",
+          "review_status": "proposed",
+          "mapping_basis": "vendor_guided_proposal",
+          "mapping_source": {
+            "name": "Cisco Cloud Controls Framework 4.0",
+            "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
+            "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
+            "locator": "CCF 124; CCF 161; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-REVIEW-SOC2-CC5-2",
+      "title": "Technology general controls support objectives",
+      "risk_domain": "governance",
+      "objective": "Assess the requirement “Technology general controls support objectives” within the declared system, period, and population.",
+      "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test technology dependencies supporting objectives, risk-based general control selection over access, processing integrity, acquisition, development and maintenance, and scoped operating records and exceptions. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["cloud_policy", "cloud_resource", "service"],
+      "required_evidence_types": ["review_soc2_cc5_2"],
+      "satisfies": [
+        {
+          "control_id": "SOC2-CC5.2",
+          "framework_id": "soc2",
+          "role": "primary",
+          "control_version": "1.0.0",
+          "review_status": "proposed",
+          "mapping_basis": "vendor_guided_proposal",
+          "mapping_source": {
+            "name": "Cisco Cloud Controls Framework 4.0",
+            "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
+            "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
+            "locator": "CCF 161; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-REVIEW-SOC2-CC5-3",
+      "title": "Policies are deployed through procedures",
+      "risk_domain": "governance",
+      "objective": "Assess the requirement “Policies are deployed through procedures” within the declared system, period, and population.",
+      "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test approved policy requirements translated into actionable procedures, assigned ownership, communication and implementation records, timely execution, and corrective follow-up when procedures are not performed. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["cloud_policy", "cloud_resource", "service"],
+      "required_evidence_types": ["review_soc2_cc5_3"],
+      "satisfies": [
+        {
+          "control_id": "SOC2-CC5.3",
+          "framework_id": "soc2",
+          "role": "primary",
+          "control_version": "1.0.0",
+          "review_status": "proposed",
+          "mapping_basis": "vendor_guided_proposal",
+          "mapping_source": {
+            "name": "Cisco Cloud Controls Framework 4.0",
+            "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
+            "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
+            "locator": "CCF 147; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context."
           }
         }
       ]

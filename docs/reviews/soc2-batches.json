@@ -24,7 +24,7 @@
       "batches": [
         {
           "batch_id": "soc2-review-001",
-          "basis_sha256": "22452a0098eaa8f3502c74ae80a45b5a953736df8bdf46b05b1729769b9f4fba",
+          "basis_sha256": "18d172b508627ade9753911d1c5c92c401a1859d8a848c092ce25c6313fa1146",
           "requirements": [
             {
               "control_id": "SOC2-A1.1",
@@ -296,7 +296,7 @@
             {
               "control_id": "SOC2-CC1.1",
               "framework_ref": "SOC 2 CC1.1",
-              "question": "The governance safeguard currently asks for a CMMC system security plan. That artifact does not establish the ethical conduct commitments, reporting process, or handling of violations described by this catalog topic.",
+              "question": "Repaired proposal: verify approved ethical-conduct expectations, personnel acknowledgments, reporting channels, recorded violations, and timely investigation and corrective follow-up. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context.",
               "cisco_candidates": [
                 {
                   "control": "CCF 128",
@@ -333,35 +333,25 @@
               "oracle_context": [],
               "candidates": [
                 {
-                  "safeguard_id": "SG-GOVERNANCE-002",
-                  "role": "equivalent",
+                  "safeguard_id": "SG-REVIEW-SOC2-CC1-1",
+                  "role": "primary",
                   "review_state": "proposed",
-                  "review_basis_sha256": "7353098d34900b27cb30ae48da42f149fe9faa52f94832f045d511749c0bc957",
+                  "review_basis_sha256": "7de12f8ed85d5d1aba5333d943abdffc0bdf1c4e2b1532722cefb6135bc78e67",
                   "operating_contract": {
-                    "objective": "Board oversight, defined authority, accountability, and a maintained security policy are the control environment every audited framework opens with.",
-                    "evidence_requirement": "CUI protection evidence supports NIST SP 800-171 Rev 2 requirement 3.12.4 (Develop, document, and periodically update system security plans that describe system boundaries, system environments of operation, how security requirements...) for CMMC Level 2 assessment.",
-                    "evaluation_rule": "fail_when_missing_evidence",
-                    "asset_types": [
-                      "ai_agent",
-                      "ai_model",
-                      "audit_log",
-                      "cloud_policy",
-                      "cloud_resource",
-                      "container_image",
-                      "data_store",
-                      "host",
-                      "iam_role",
-                      "identity_group",
-                      "identity_user",
-                      "okta_user",
-                      "repo",
-                      "service"
-                    ],
-                    "required_evidence_types": null,
-                    "frequency": "continuous",
-                    "owner": "grc"
+                    "objective": "Assess the requirement “Control environment demonstrates integrity and ethical values” within the declared system, period, and population.",
+                    "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test approved ethical-conduct expectations, personnel acknowledgments, reporting channels, recorded violations, and timely investigation and corrective follow-up. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+                    "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+                    "asset_types": ["audit_log", "service"],
+                    "required_evidence_types": ["review_soc2_cc1_1"],
+                    "frequency": "documented assessment schedule and after material change",
+                    "owner": "security-assurance"
                   },
-                  "mapping_source": null,
+                  "mapping_source": {
+                    "name": "Cisco Cloud Controls Framework 4.0",
+                    "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
+                    "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
+                    "locator": "CCF 160; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context."
+                  },
                   "decision": null,
                   "reviewer": null,
                   "rationale": null
@@ -371,7 +361,7 @@
             {
               "control_id": "SOC2-CC1.2",
               "framework_ref": "SOC 2 CC1.2",
-              "question": "Distinguish management review from board oversight. Inspect independence, oversight responsibilities, meeting decisions, and follow-up rather than granting credit for any leadership review.",
+              "question": "Repaired proposal: verify board and committee responsibilities, member independence and relevant expertise, oversight agendas and minutes, management challenge, and tracked follow-up decisions. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context.",
               "cisco_candidates": [
                 {
                   "control": "CCF 128",
@@ -392,40 +382,6 @@
               "source_scope": "vendor implementation context, not verified normative equivalence",
               "oracle_context": [],
               "candidates": [
-                {
-                  "safeguard_id": "SG-GOVERNANCE-002",
-                  "role": "equivalent",
-                  "review_state": "proposed",
-                  "review_basis_sha256": "bf3c4e5983188d4b82231c58d8ab0f3b1d89b79185ff903744c02087739475e4",
-                  "operating_contract": {
-                    "objective": "Board oversight, defined authority, accountability, and a maintained security policy are the control environment every audited framework opens with.",
-                    "evidence_requirement": "CUI protection evidence supports NIST SP 800-171 Rev 2 requirement 3.12.4 (Develop, document, and periodically update system security plans that describe system boundaries, system environments of operation, how security requirements...) for CMMC Level 2 assessment.",
-                    "evaluation_rule": "fail_when_missing_evidence",
-                    "asset_types": [
-                      "ai_agent",
-                      "ai_model",
-                      "audit_log",
-                      "cloud_policy",
-                      "cloud_resource",
-                      "container_image",
-                      "data_store",
-                      "host",
-                      "iam_role",
-                      "identity_group",
-                      "identity_user",
-                      "okta_user",
-                      "repo",
-                      "service"
-                    ],
-                    "required_evidence_types": null,
-                    "frequency": "continuous",
-                    "owner": "grc"
-                  },
-                  "mapping_source": null,
-                  "decision": null,
-                  "reviewer": null,
-                  "rationale": null
-                },
                 {
                   "safeguard_id": "SG-MANAGEMENTREVIEW-001",
                   "role": "equivalent",
@@ -459,6 +415,30 @@
                     "owner": "grc"
                   },
                   "mapping_source": null,
+                  "decision": null,
+                  "reviewer": null,
+                  "rationale": null
+                },
+                {
+                  "safeguard_id": "SG-REVIEW-SOC2-CC1-2",
+                  "role": "primary",
+                  "review_state": "proposed",
+                  "review_basis_sha256": "ca46d9e50fb9da520a8b790d6d38a038129b02654fe7646f477c134995d89f58",
+                  "operating_contract": {
+                    "objective": "Assess the requirement “Board independence and oversight of internal control” within the declared system, period, and population.",
+                    "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test board and committee responsibilities, member independence and relevant expertise, oversight agendas and minutes, management challenge, and tracked follow-up decisions. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+                    "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+                    "asset_types": ["audit_log", "service"],
+                    "required_evidence_types": ["review_soc2_cc1_2"],
+                    "frequency": "documented assessment schedule and after material change",
+                    "owner": "security-assurance"
+                  },
+                  "mapping_source": {
+                    "name": "Cisco Cloud Controls Framework 4.0",
+                    "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
+                    "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
+                    "locator": "CCF 128; CCF 129; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context."
+                  },
                   "decision": null,
                   "reviewer": null,
                   "rationale": null
@@ -549,7 +529,7 @@
             {
               "control_id": "SOC2-CC1.4",
               "framework_ref": "SOC 2 CC1.4",
-              "question": "A system security plan is not competence evidence. Prepare role requirements, hiring or assessment records, training, and remediation of identified skills gaps.",
+              "question": "Repaired proposal: verify role-specific competence requirements, hiring and assessment records, periodic performance reviews, training needs, and remediation of identified skills gaps. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context.",
               "cisco_candidates": [
                 {
                   "control": "CCF 128",
@@ -611,35 +591,25 @@
               "oracle_context": [],
               "candidates": [
                 {
-                  "safeguard_id": "SG-GOVERNANCE-002",
-                  "role": "equivalent",
+                  "safeguard_id": "SG-REVIEW-SOC2-CC1-4",
+                  "role": "primary",
                   "review_state": "proposed",
-                  "review_basis_sha256": "f90e51ee201e4d0822b5fcb448c69856d5b7e7cd64cd4f77c3d2611aafd7ae23",
+                  "review_basis_sha256": "9cde65f2508de06f52fa5ca1fbeb15850fb55e6bc447a5c333f30e9090cdb447",
                   "operating_contract": {
-                    "objective": "Board oversight, defined authority, accountability, and a maintained security policy are the control environment every audited framework opens with.",
-                    "evidence_requirement": "CUI protection evidence supports NIST SP 800-171 Rev 2 requirement 3.12.4 (Develop, document, and periodically update system security plans that describe system boundaries, system environments of operation, how security requirements...) for CMMC Level 2 assessment.",
-                    "evaluation_rule": "fail_when_missing_evidence",
-                    "asset_types": [
-                      "ai_agent",
-                      "ai_model",
-                      "audit_log",
-                      "cloud_policy",
-                      "cloud_resource",
-                      "container_image",
-                      "data_store",
-                      "host",
-                      "iam_role",
-                      "identity_group",
-                      "identity_user",
-                      "okta_user",
-                      "repo",
-                      "service"
-                    ],
-                    "required_evidence_types": null,
-                    "frequency": "continuous",
-                    "owner": "grc"
+                    "objective": "Assess the requirement “Commitment to competence is demonstrated” within the declared system, period, and population.",
+                    "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test role-specific competence requirements, hiring and assessment records, periodic performance reviews, training needs, and remediation of identified skills gaps. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+                    "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+                    "asset_types": ["audit_log", "service"],
+                    "required_evidence_types": ["review_soc2_cc1_4"],
+                    "frequency": "documented assessment schedule and after material change",
+                    "owner": "security-assurance"
                   },
-                  "mapping_source": null,
+                  "mapping_source": {
+                    "name": "Cisco Cloud Controls Framework 4.0",
+                    "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
+                    "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
+                    "locator": "CCF 163; CCF 168; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context."
+                  },
                   "decision": null,
                   "reviewer": null,
                   "rationale": null
@@ -649,7 +619,7 @@
             {
               "control_id": "SOC2-CC1.5",
               "framework_ref": "SOC 2 CC1.5",
-              "question": "A system security plan alone does not establish accountability. Examine assigned responsibilities, performance expectations, exception handling, and corrective follow-up.",
+              "question": "Repaired proposal: verify assigned control responsibilities, communicated performance expectations, consideration of incentives and pressures, periodic accountability reviews, and corrective or disciplinary follow-up. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context.",
               "cisco_candidates": [
                 {
                   "control": "CCF 1",
@@ -716,35 +686,25 @@
               "oracle_context": [],
               "candidates": [
                 {
-                  "safeguard_id": "SG-GOVERNANCE-002",
-                  "role": "equivalent",
+                  "safeguard_id": "SG-REVIEW-SOC2-CC1-5",
+                  "role": "primary",
                   "review_state": "proposed",
-                  "review_basis_sha256": "54e3b5b069719423a3cb03ba77a614c6994a1bc679a99f9990059072afb34e70",
+                  "review_basis_sha256": "274e299766df237b6fe3d6cdaf1d6eee99458bb9ad52e8fdac03a6e68d1bd9ab",
                   "operating_contract": {
-                    "objective": "Board oversight, defined authority, accountability, and a maintained security policy are the control environment every audited framework opens with.",
-                    "evidence_requirement": "CUI protection evidence supports NIST SP 800-171 Rev 2 requirement 3.12.4 (Develop, document, and periodically update system security plans that describe system boundaries, system environments of operation, how security requirements...) for CMMC Level 2 assessment.",
-                    "evaluation_rule": "fail_when_missing_evidence",
-                    "asset_types": [
-                      "ai_agent",
-                      "ai_model",
-                      "audit_log",
-                      "cloud_policy",
-                      "cloud_resource",
-                      "container_image",
-                      "data_store",
-                      "host",
-                      "iam_role",
-                      "identity_group",
-                      "identity_user",
-                      "okta_user",
-                      "repo",
-                      "service"
-                    ],
-                    "required_evidence_types": null,
-                    "frequency": "continuous",
-                    "owner": "grc"
+                    "objective": "Assess the requirement “Individuals are held accountable for internal control” within the declared system, period, and population.",
+                    "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test assigned control responsibilities, communicated performance expectations, consideration of incentives and pressures, periodic accountability reviews, and corrective or disciplinary follow-up. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+                    "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+                    "asset_types": ["audit_log", "service"],
+                    "required_evidence_types": ["review_soc2_cc1_5"],
+                    "frequency": "documented assessment schedule and after material change",
+                    "owner": "security-assurance"
                   },
-                  "mapping_source": null,
+                  "mapping_source": {
+                    "name": "Cisco Cloud Controls Framework 4.0",
+                    "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
+                    "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
+                    "locator": "CCF 160; CCF 168; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context."
+                  },
                   "decision": null,
                   "reviewer": null,
                   "rationale": null
@@ -754,7 +714,7 @@
             {
               "control_id": "SOC2-CC2.1",
               "framework_ref": "SOC 2 CC2.1",
-              "question": "Specify which information supports each control decision and how completeness, accuracy, timeliness, and provenance are checked. Generic governance evidence does not establish information quality.",
+              "question": "Repaired proposal: verify the information used for identified control decisions, documented completeness and accuracy checks, source provenance, timely updates, and handling of missing or unreliable inputs. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context.",
               "cisco_candidates": [
                 {
                   "control": "CCF 1",
@@ -831,35 +791,25 @@
               "oracle_context": [],
               "candidates": [
                 {
-                  "safeguard_id": "SG-GOVERNANCE-002",
-                  "role": "equivalent",
+                  "safeguard_id": "SG-REVIEW-SOC2-CC2-1",
+                  "role": "primary",
                   "review_state": "proposed",
-                  "review_basis_sha256": "912ad41847840804604d4edbc0b0f8c8b7df4b53e109b17a8182b3d2077ed694",
+                  "review_basis_sha256": "26c7cad6f1530f70c70ec9cc5797ad850523a9015a846025c676df48847be524",
                   "operating_contract": {
-                    "objective": "Board oversight, defined authority, accountability, and a maintained security policy are the control environment every audited framework opens with.",
-                    "evidence_requirement": "CUI protection evidence supports NIST SP 800-171 Rev 2 requirement 3.12.4 (Develop, document, and periodically update system security plans that describe system boundaries, system environments of operation, how security requirements...) for CMMC Level 2 assessment.",
-                    "evaluation_rule": "fail_when_missing_evidence",
-                    "asset_types": [
-                      "ai_agent",
-                      "ai_model",
-                      "audit_log",
-                      "cloud_policy",
-                      "cloud_resource",
-                      "container_image",
-                      "data_store",
-                      "host",
-                      "iam_role",
-                      "identity_group",
-                      "identity_user",
-                      "okta_user",
-                      "repo",
-                      "service"
-                    ],
-                    "required_evidence_types": null,
-                    "frequency": "continuous",
-                    "owner": "grc"
+                    "objective": "Assess the requirement “Quality information supports internal control objectives” within the declared system, period, and population.",
+                    "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test the information used for identified control decisions, documented completeness and accuracy checks, source provenance, timely updates, and handling of missing or unreliable inputs. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+                    "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+                    "asset_types": ["audit_log", "service"],
+                    "required_evidence_types": ["review_soc2_cc2_1"],
+                    "frequency": "documented assessment schedule and after material change",
+                    "owner": "security-assurance"
                   },
-                  "mapping_source": null,
+                  "mapping_source": {
+                    "name": "Cisco Cloud Controls Framework 4.0",
+                    "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
+                    "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
+                    "locator": "CCF 142; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context."
+                  },
                   "decision": null,
                   "reviewer": null,
                   "rationale": null
@@ -870,12 +820,12 @@
         },
         {
           "batch_id": "soc2-review-002",
-          "basis_sha256": "2b1f8192e3465e24c555e436a722338ac71b6a12ba4c692ca0a5a1b9e2eedd25",
+          "basis_sha256": "a8c2020423c1eb14df42b54c315fd14e5940c476ccdc7143437715805c03bcab",
           "requirements": [
             {
               "control_id": "SOC2-CC2.2",
               "framework_ref": "SOC 2 CC2.2",
-              "question": "Require records showing the relevant control information reached its intended internal recipients. A policy or system security plan without communication evidence is insufficient.",
+              "question": "Repaired proposal: verify identified internal recipients, current control responsibilities and policy changes, delivery and acknowledgment records, escalation routes, and follow-up on communication failures. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context.",
               "cisco_candidates": [
                 {
                   "control": "CCF 1",
@@ -982,35 +932,25 @@
               "oracle_context": [],
               "candidates": [
                 {
-                  "safeguard_id": "SG-GOVERNANCE-002",
-                  "role": "equivalent",
+                  "safeguard_id": "SG-REVIEW-SOC2-CC2-2",
+                  "role": "primary",
                   "review_state": "proposed",
-                  "review_basis_sha256": "88432c8209eaef7a99c3c2087f7a67f4f116253f03ffb41a51a64a3ef8356b06",
+                  "review_basis_sha256": "003e7873c9104ed698f6009c28ff8565d73265dd0d2d824c1d5e4163b1116318",
                   "operating_contract": {
-                    "objective": "Board oversight, defined authority, accountability, and a maintained security policy are the control environment every audited framework opens with.",
-                    "evidence_requirement": "CUI protection evidence supports NIST SP 800-171 Rev 2 requirement 3.12.4 (Develop, document, and periodically update system security plans that describe system boundaries, system environments of operation, how security requirements...) for CMMC Level 2 assessment.",
-                    "evaluation_rule": "fail_when_missing_evidence",
-                    "asset_types": [
-                      "ai_agent",
-                      "ai_model",
-                      "audit_log",
-                      "cloud_policy",
-                      "cloud_resource",
-                      "container_image",
-                      "data_store",
-                      "host",
-                      "iam_role",
-                      "identity_group",
-                      "identity_user",
-                      "okta_user",
-                      "repo",
-                      "service"
-                    ],
-                    "required_evidence_types": null,
-                    "frequency": "continuous",
-                    "owner": "grc"
+                    "objective": "Assess the requirement “Internal control information is communicated internally” within the declared system, period, and population.",
+                    "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test identified internal recipients, current control responsibilities and policy changes, delivery and acknowledgment records, escalation routes, and follow-up on communication failures. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+                    "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+                    "asset_types": ["audit_log", "service"],
+                    "required_evidence_types": ["review_soc2_cc2_2"],
+                    "frequency": "documented assessment schedule and after material change",
+                    "owner": "security-assurance"
                   },
-                  "mapping_source": null,
+                  "mapping_source": {
+                    "name": "Cisco Cloud Controls Framework 4.0",
+                    "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
+                    "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
+                    "locator": "CCF 127; CCF 142; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context."
+                  },
                   "decision": null,
                   "reviewer": null,
                   "rationale": null
@@ -1020,7 +960,7 @@
             {
               "control_id": "SOC2-CC2.3",
               "framework_ref": "SOC 2 CC2.3",
-              "question": "Identify the external audiences, required communications, ownership, and delivery records. Internal governance documentation does not demonstrate external communication.",
+              "question": "Repaired proposal: verify identified external audiences and required control communications, assigned owners, accessible reporting channels, delivery or receipt records, and escalation and resolution of received concerns. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context.",
               "cisco_candidates": [
                 {
                   "control": "CCF 1",
@@ -1112,35 +1052,25 @@
               "oracle_context": [],
               "candidates": [
                 {
-                  "safeguard_id": "SG-GOVERNANCE-002",
-                  "role": "equivalent",
+                  "safeguard_id": "SG-REVIEW-SOC2-CC2-3",
+                  "role": "primary",
                   "review_state": "proposed",
-                  "review_basis_sha256": "5a0e5682d9c57bd5c5b6dae1b719d804f61bd644ed21c71739b61e45107356e3",
+                  "review_basis_sha256": "e4ed233a43dd1af7f1407c33bb1c60e36844a0c0dc2ba5ad0e40b8c0cff0974a",
                   "operating_contract": {
-                    "objective": "Board oversight, defined authority, accountability, and a maintained security policy are the control environment every audited framework opens with.",
-                    "evidence_requirement": "CUI protection evidence supports NIST SP 800-171 Rev 2 requirement 3.12.4 (Develop, document, and periodically update system security plans that describe system boundaries, system environments of operation, how security requirements...) for CMMC Level 2 assessment.",
-                    "evaluation_rule": "fail_when_missing_evidence",
-                    "asset_types": [
-                      "ai_agent",
-                      "ai_model",
-                      "audit_log",
-                      "cloud_policy",
-                      "cloud_resource",
-                      "container_image",
-                      "data_store",
-                      "host",
-                      "iam_role",
-                      "identity_group",
-                      "identity_user",
-                      "okta_user",
-                      "repo",
-                      "service"
-                    ],
-                    "required_evidence_types": null,
-                    "frequency": "continuous",
-                    "owner": "grc"
+                    "objective": "Assess the requirement “Control matters are communicated to external parties when required” within the declared system, period, and population.",
+                    "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test identified external audiences and required control communications, assigned owners, accessible reporting channels, delivery or receipt records, and escalation and resolution of received concerns. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+                    "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+                    "asset_types": ["audit_log", "service"],
+                    "required_evidence_types": ["review_soc2_cc2_3"],
+                    "frequency": "documented assessment schedule and after material change",
+                    "owner": "security-assurance"
                   },
-                  "mapping_source": null,
+                  "mapping_source": {
+                    "name": "Cisco Cloud Controls Framework 4.0",
+                    "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
+                    "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
+                    "locator": "CCF 181; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context."
+                  },
                   "decision": null,
                   "reviewer": null,
                   "rationale": null
@@ -1150,7 +1080,7 @@
             {
               "control_id": "SOC2-CC3.1",
               "framework_ref": "SOC 2 CC3.1",
-              "question": "Check that objectives are specific enough to drive risk assessment and control design; the existing CMMC-plan evidence requirement does not expressly require this.",
+              "question": "Repaired proposal: verify documented organizational and service objectives, measurable success criteria, risk tolerance and management approval, and traceability from objectives into risk assessments and control decisions. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context.",
               "cisco_candidates": [
                 {
                   "control": "CCF 1",
@@ -1192,35 +1122,25 @@
               "oracle_context": [],
               "candidates": [
                 {
-                  "safeguard_id": "SG-GOVERNANCE-002",
-                  "role": "equivalent",
+                  "safeguard_id": "SG-REVIEW-SOC2-CC3-1",
+                  "role": "primary",
                   "review_state": "proposed",
-                  "review_basis_sha256": "1df58ab484d9b6567746bfdbafea37a33e9759c4ff756977cadfd1a6332d7ebe",
+                  "review_basis_sha256": "df817a441bfbf28cf874137d1ebf8c873f11838ad5a300aaa3c3d918e8044152",
                   "operating_contract": {
-                    "objective": "Board oversight, defined authority, accountability, and a maintained security policy are the control environment every audited framework opens with.",
-                    "evidence_requirement": "CUI protection evidence supports NIST SP 800-171 Rev 2 requirement 3.12.4 (Develop, document, and periodically update system security plans that describe system boundaries, system environments of operation, how security requirements...) for CMMC Level 2 assessment.",
-                    "evaluation_rule": "fail_when_missing_evidence",
-                    "asset_types": [
-                      "ai_agent",
-                      "ai_model",
-                      "audit_log",
-                      "cloud_policy",
-                      "cloud_resource",
-                      "container_image",
-                      "data_store",
-                      "host",
-                      "iam_role",
-                      "identity_group",
-                      "identity_user",
-                      "okta_user",
-                      "repo",
-                      "service"
-                    ],
-                    "required_evidence_types": null,
-                    "frequency": "continuous",
-                    "owner": "grc"
+                    "objective": "Assess the requirement “Objectives are specified with sufficient clarity” within the declared system, period, and population.",
+                    "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test documented organizational and service objectives, measurable success criteria, risk tolerance and management approval, and traceability from objectives into risk assessments and control decisions. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+                    "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+                    "asset_types": ["audit_log", "service"],
+                    "required_evidence_types": ["review_soc2_cc3_1"],
+                    "frequency": "documented assessment schedule and after material change",
+                    "owner": "security-assurance"
                   },
-                  "mapping_source": null,
+                  "mapping_source": {
+                    "name": "Cisco Cloud Controls Framework 4.0",
+                    "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
+                    "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
+                    "locator": "CCF 124; CCF 161; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context."
+                  },
                   "decision": null,
                   "reviewer": null,
                   "rationale": null
@@ -1502,7 +1422,7 @@
             {
               "control_id": "SOC2-CC4.2",
               "framework_ref": "SOC 2 CC4.2",
-              "question": "The remediation-plan candidate needs deficiency evaluation, escalation, accountable recipients, and closure evidence. The governance candidate's system security plan does not establish these activities.",
+              "question": "Repaired proposal: verify the population of identified control deficiencies, severity and impact assessments, timely escalation to accountable management and oversight bodies, assigned remediation, and verified closure evidence. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context.",
               "cisco_candidates": [
                 {
                   "control": "CCF 124",
@@ -1528,40 +1448,6 @@
               "source_scope": "vendor implementation context, not verified normative equivalence",
               "oracle_context": [],
               "candidates": [
-                {
-                  "safeguard_id": "SG-GOVERNANCE-002",
-                  "role": "equivalent",
-                  "review_state": "proposed",
-                  "review_basis_sha256": "6e89f9058f4a8636f4513c8430b7a2fbe499166fda3c0ad0a3c98205a89f1c12",
-                  "operating_contract": {
-                    "objective": "Board oversight, defined authority, accountability, and a maintained security policy are the control environment every audited framework opens with.",
-                    "evidence_requirement": "CUI protection evidence supports NIST SP 800-171 Rev 2 requirement 3.12.4 (Develop, document, and periodically update system security plans that describe system boundaries, system environments of operation, how security requirements...) for CMMC Level 2 assessment.",
-                    "evaluation_rule": "fail_when_missing_evidence",
-                    "asset_types": [
-                      "ai_agent",
-                      "ai_model",
-                      "audit_log",
-                      "cloud_policy",
-                      "cloud_resource",
-                      "container_image",
-                      "data_store",
-                      "host",
-                      "iam_role",
-                      "identity_group",
-                      "identity_user",
-                      "okta_user",
-                      "repo",
-                      "service"
-                    ],
-                    "required_evidence_types": null,
-                    "frequency": "continuous",
-                    "owner": "grc"
-                  },
-                  "mapping_source": null,
-                  "decision": null,
-                  "reviewer": null,
-                  "rationale": null
-                },
                 {
                   "safeguard_id": "SG-POAM-001",
                   "role": "equivalent",
@@ -1598,13 +1484,37 @@
                   "decision": null,
                   "reviewer": null,
                   "rationale": null
+                },
+                {
+                  "safeguard_id": "SG-REVIEW-SOC2-CC4-2",
+                  "role": "primary",
+                  "review_state": "proposed",
+                  "review_basis_sha256": "873eebfd8373e6bfb8eebdf298bbf4e9ce3af1373ad857e1a4212560ea96336d",
+                  "operating_contract": {
+                    "objective": "Assess the requirement “Control deficiencies are evaluated and communicated” within the declared system, period, and population.",
+                    "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test the population of identified control deficiencies, severity and impact assessments, timely escalation to accountable management and oversight bodies, assigned remediation, and verified closure evidence. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+                    "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+                    "asset_types": ["audit_log", "service"],
+                    "required_evidence_types": ["review_soc2_cc4_2"],
+                    "frequency": "documented assessment schedule and after material change",
+                    "owner": "security-assurance"
+                  },
+                  "mapping_source": {
+                    "name": "Cisco Cloud Controls Framework 4.0",
+                    "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
+                    "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
+                    "locator": "CCF 124; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context."
+                  },
+                  "decision": null,
+                  "reviewer": null,
+                  "rationale": null
                 }
               ]
             },
             {
               "control_id": "SOC2-CC5.1",
               "framework_ref": "SOC 2 CC5.1",
-              "question": "Require control selection tied to identified risks and objectives. A general governance document is not evidence of the selection and design decision for each material risk.",
+              "question": "Repaired proposal: verify control selection and design decisions linked to identified risks and objectives, accountable risk-owner approvals, the intended operating scope, and evidence that selected activities are implemented. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context.",
               "cisco_candidates": [
                 {
                   "control": "CCF 1",
@@ -1636,35 +1546,29 @@
               "oracle_context": [],
               "candidates": [
                 {
-                  "safeguard_id": "SG-GOVERNANCE-002",
-                  "role": "equivalent",
+                  "safeguard_id": "SG-REVIEW-SOC2-CC5-1",
+                  "role": "primary",
                   "review_state": "proposed",
-                  "review_basis_sha256": "23c887a3d504f86011d4aba490a06b6fff8b3829ce7eba718136cd42641dd772",
+                  "review_basis_sha256": "65d1bf72e042f78a5ae2469e1d3da07226bf393cdbcb7ee92a21e381d021a64a",
                   "operating_contract": {
-                    "objective": "Board oversight, defined authority, accountability, and a maintained security policy are the control environment every audited framework opens with.",
-                    "evidence_requirement": "CUI protection evidence supports NIST SP 800-171 Rev 2 requirement 3.12.4 (Develop, document, and periodically update system security plans that describe system boundaries, system environments of operation, how security requirements...) for CMMC Level 2 assessment.",
-                    "evaluation_rule": "fail_when_missing_evidence",
+                    "objective": "Assess the requirement “Control activities are selected and developed” within the declared system, period, and population.",
+                    "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test control selection and design decisions linked to identified risks and objectives, accountable risk-owner approvals, the intended operating scope, and evidence that selected activities are implemented. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+                    "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
                     "asset_types": [
-                      "ai_agent",
-                      "ai_model",
-                      "audit_log",
                       "cloud_policy",
                       "cloud_resource",
-                      "container_image",
-                      "data_store",
-                      "host",
-                      "iam_role",
-                      "identity_group",
-                      "identity_user",
-                      "okta_user",
-                      "repo",
                       "service"
                     ],
-                    "required_evidence_types": null,
-                    "frequency": "continuous",
-                    "owner": "grc"
+                    "required_evidence_types": ["review_soc2_cc5_1"],
+                    "frequency": "documented assessment schedule and after material change",
+                    "owner": "security-assurance"
                   },
-                  "mapping_source": null,
+                  "mapping_source": {
+                    "name": "Cisco Cloud Controls Framework 4.0",
+                    "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
+                    "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
+                    "locator": "CCF 124; CCF 161; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context."
+                  },
                   "decision": null,
                   "reviewer": null,
                   "rationale": null
@@ -1674,7 +1578,7 @@
             {
               "control_id": "SOC2-CC5.2",
               "framework_ref": "SOC 2 CC5.2",
-              "question": "Specify the technology control objectives, selected controls, dependencies, and operation records. The existing governance evidence requirement is too generic to settle this mapping.",
+              "question": "Repaired proposal: verify technology dependencies supporting objectives, risk-based general control selection over access, processing integrity, acquisition, development and maintenance, and scoped operating records and exceptions. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context.",
               "cisco_candidates": [
                 {
                   "control": "CCF 1",
@@ -1711,35 +1615,29 @@
               "oracle_context": [],
               "candidates": [
                 {
-                  "safeguard_id": "SG-GOVERNANCE-002",
-                  "role": "equivalent",
+                  "safeguard_id": "SG-REVIEW-SOC2-CC5-2",
+                  "role": "primary",
                   "review_state": "proposed",
-                  "review_basis_sha256": "81ebaaf98129cbf76e4d59005d807e0b2fa0ab5137ed6dd4da7dada5227628a3",
+                  "review_basis_sha256": "5ddf056dcec16060e497202cb1d0f21a407f421302fa679631af9c7948186d54",
                   "operating_contract": {
-                    "objective": "Board oversight, defined authority, accountability, and a maintained security policy are the control environment every audited framework opens with.",
-                    "evidence_requirement": "CUI protection evidence supports NIST SP 800-171 Rev 2 requirement 3.12.4 (Develop, document, and periodically update system security plans that describe system boundaries, system environments of operation, how security requirements...) for CMMC Level 2 assessment.",
-                    "evaluation_rule": "fail_when_missing_evidence",
+                    "objective": "Assess the requirement “Technology general controls support objectives” within the declared system, period, and population.",
+                    "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test technology dependencies supporting objectives, risk-based general control selection over access, processing integrity, acquisition, development and maintenance, and scoped operating records and exceptions. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+                    "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
                     "asset_types": [
-                      "ai_agent",
-                      "ai_model",
-                      "audit_log",
                       "cloud_policy",
                       "cloud_resource",
-                      "container_image",
-                      "data_store",
-                      "host",
-                      "iam_role",
-                      "identity_group",
-                      "identity_user",
-                      "okta_user",
-                      "repo",
                       "service"
                     ],
-                    "required_evidence_types": null,
-                    "frequency": "continuous",
-                    "owner": "grc"
+                    "required_evidence_types": ["review_soc2_cc5_2"],
+                    "frequency": "documented assessment schedule and after material change",
+                    "owner": "security-assurance"
                   },
-                  "mapping_source": null,
+                  "mapping_source": {
+                    "name": "Cisco Cloud Controls Framework 4.0",
+                    "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
+                    "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
+                    "locator": "CCF 161; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context."
+                  },
                   "decision": null,
                   "reviewer": null,
                   "rationale": null
@@ -1749,7 +1647,7 @@
             {
               "control_id": "SOC2-CC5.3",
               "framework_ref": "SOC 2 CC5.3",
-              "question": "The policy-management candidate must cover procedure implementation and assigned responsibilities, not only policy approval or publication. Evaluate the broad governance candidate separately.",
+              "question": "Repaired proposal: verify approved policy requirements translated into actionable procedures, assigned ownership, communication and implementation records, timely execution, and corrective follow-up when procedures are not performed. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context.",
               "cisco_candidates": [
                 {
                   "control": "CCF 1",
@@ -1836,40 +1734,6 @@
               "oracle_context": [],
               "candidates": [
                 {
-                  "safeguard_id": "SG-GOVERNANCE-002",
-                  "role": "equivalent",
-                  "review_state": "proposed",
-                  "review_basis_sha256": "397f5c22605c80f85d4ab2e3c605867cfc8e2c520576559d2dea755d8dedd2b2",
-                  "operating_contract": {
-                    "objective": "Board oversight, defined authority, accountability, and a maintained security policy are the control environment every audited framework opens with.",
-                    "evidence_requirement": "CUI protection evidence supports NIST SP 800-171 Rev 2 requirement 3.12.4 (Develop, document, and periodically update system security plans that describe system boundaries, system environments of operation, how security requirements...) for CMMC Level 2 assessment.",
-                    "evaluation_rule": "fail_when_missing_evidence",
-                    "asset_types": [
-                      "ai_agent",
-                      "ai_model",
-                      "audit_log",
-                      "cloud_policy",
-                      "cloud_resource",
-                      "container_image",
-                      "data_store",
-                      "host",
-                      "iam_role",
-                      "identity_group",
-                      "identity_user",
-                      "okta_user",
-                      "repo",
-                      "service"
-                    ],
-                    "required_evidence_types": null,
-                    "frequency": "continuous",
-                    "owner": "grc"
-                  },
-                  "mapping_source": null,
-                  "decision": null,
-                  "reviewer": null,
-                  "rationale": null
-                },
-                {
                   "safeguard_id": "SG-POLICYMANAGEMENT-001",
                   "role": "equivalent",
                   "review_state": "proposed",
@@ -1915,6 +1779,34 @@
                     "owner": "grc"
                   },
                   "mapping_source": null,
+                  "decision": null,
+                  "reviewer": null,
+                  "rationale": null
+                },
+                {
+                  "safeguard_id": "SG-REVIEW-SOC2-CC5-3",
+                  "role": "primary",
+                  "review_state": "proposed",
+                  "review_basis_sha256": "4b0b1e5758beec722e17fcdaf1f6e3f59fc62f0ce363ba66138f7b8dd8f2660d",
+                  "operating_contract": {
+                    "objective": "Assess the requirement “Policies are deployed through procedures” within the declared system, period, and population.",
+                    "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test approved policy requirements translated into actionable procedures, assigned ownership, communication and implementation records, timely execution, and corrective follow-up when procedures are not performed. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+                    "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+                    "asset_types": [
+                      "cloud_policy",
+                      "cloud_resource",
+                      "service"
+                    ],
+                    "required_evidence_types": ["review_soc2_cc5_3"],
+                    "frequency": "documented assessment schedule and after material change",
+                    "owner": "security-assurance"
+                  },
+                  "mapping_source": {
+                    "name": "Cisco Cloud Controls Framework 4.0",
+                    "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
+                    "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
+                    "locator": "CCF 147; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context."
+                  },
                   "decision": null,
                   "reviewer": null,
                   "rationale": null
@@ -4625,5 +4517,5 @@
       ]
     }
   ],
-  "sha256": "c04c34eea54a8e89becd4cf8fecad328895f6a95724746cbda4bcf38d7c1ebe5"
+  "sha256": "07e5b29a24b1c73d8478e68d69c8443fc38397e6f9d2622bc87e57d804362672"
 }
