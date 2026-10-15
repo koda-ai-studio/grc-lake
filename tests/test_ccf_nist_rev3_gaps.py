@@ -1,6 +1,11 @@
 """Explicit Rev. 3 safeguards close coverage gaps without inventing attestation."""
 
+import pytest
+
 from security_lakehouse.safeguards import coverage_by_framework, load_safeguards, validate_safeguards
+
+# These tests exercise the original proposal state before the receipted review.
+pytestmark = pytest.mark.usefixtures("proposed_source_catalog")
 
 NEW = {"SG-INFORMATIONEXCHANGE-001": "03.12.05", "SG-PERSONNELSCREENING-001": "03.09.01"}
 

@@ -1,10 +1,15 @@
 """Source-backed CCF contract for security control assessments."""
 
+import pytest
+
 from security_lakehouse.safeguards import (
     coverage_by_framework,
     load_safeguards,
     safeguards_by_requirement,
 )
+
+# Exercise the original proposal state before the receipted review.
+pytestmark = pytest.mark.usefixtures("proposed_source_catalog")
 
 
 def test_control_assessments_use_the_nist_800_171_crosswalk() -> None:

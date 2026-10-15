@@ -10,6 +10,9 @@ from security_lakehouse.safeguards import (
     validate_safeguards,
 )
 
+# These tests exercise the original proposal state before the receipted review.
+pytestmark = pytest.mark.usefixtures("proposed_source_catalog")
+
 EXPECTED = {
     "SG-AIINVENTORY-001": ["NIST-AI-RMF-GOVERN-1.6"],
     "SG-AICONTEXT-001": ["NIST-AI-RMF-MAP-1.1"],

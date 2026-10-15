@@ -19,7 +19,7 @@ from security_lakehouse.pipeline import run_pipeline
 
 EXPECTED_SHA256 = {
     "gold/asset_risk.jsonl": "8169c0b42982e106eb9a446dda5f83242e9501617767452943339e43a8c791b7",
-    "gold/ccf_assessment.json": "aa03c6e19313a1e0e102297e730289230a660e8efff9582e0386582483b569e3",
+    "gold/ccf_assessment.json": "ae377a5cf9a5a16b2b0e2717913f20408c200fdf306563a49e66094413ad6bf3",
     "gold/control_posture.jsonl": "45ebfddf597bf80304d4801ecb4bd4c121461ec8145c70606d007ac16d32c196",
     "gold/metrics.json": "ec2fe66d18cefe0eb4e43bef657be37e75eb3096ef517d38abaed6c017b5b4a9",
     "silver/normalized_events.jsonl": "d1dfc24759f4bcf9cb9c8ad7fce34d8e96188bf95953cd5a6ccfce3188189efd",
@@ -35,7 +35,7 @@ def test_golden_pipeline_artifacts_are_byte_identical(tmp_path: Path) -> None:
     actual = {rel: hashlib.sha256((lake / rel).read_bytes()).hexdigest() for rel in EXPECTED_SHA256}
     assert actual == EXPECTED_SHA256, json.dumps(actual, indent=2, sort_keys=True)
 
-    # Catalog additions establish proposed coverage, never evidence or passes.
+    # Reviewed mappings still require operational evidence before they can pass.
     assessment = json.loads((lake / "gold/ccf_assessment.json").read_text())
     requirements = {row["control_id"]: row for row in assessment["requirements"]}
     for control_id in (
@@ -48,7 +48,7 @@ def test_golden_pipeline_artifacts_are_byte_identical(tmp_path: Path) -> None:
         "NIST-CSF-RC.RP-06",
     ):
         assert requirements[control_id]["status"] == "not_evaluated"
-        assert requirements[control_id]["pending_mapping_count"] == 1
+        assert requirements[control_id]["pending_mapping_count"] == 0
 
     # Round-two catalog corrections retain context without granting coverage.
     pci = requirements["PCI-DSS-8"]

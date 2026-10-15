@@ -1,11 +1,16 @@
 """Source-backed CCF contract for awareness and role-based training."""
 
+import pytest
+
 from security_lakehouse.safeguards import (
     coverage_by_framework,
     load_safeguards,
     mapping_review_queue,
     safeguards_by_requirement,
 )
+
+# These tests exercise the original proposal state before the receipted review.
+pytestmark = pytest.mark.usefixtures("proposed_source_catalog")
 
 SOURCE = {
     "name": "NIST SP 800-171 Rev. 2",

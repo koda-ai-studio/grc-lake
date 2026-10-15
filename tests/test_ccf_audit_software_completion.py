@@ -1,10 +1,15 @@
 """Source-backed CCF contracts for audit-event review and software authorization."""
 
+import pytest
+
 from security_lakehouse.safeguards import (
     coverage_by_framework,
     load_safeguards,
     safeguards_by_requirement,
 )
+
+# These tests exercise the original proposal state before the receipted review.
+pytestmark = pytest.mark.usefixtures("proposed_source_catalog")
 
 CROSSWALK_SOURCE = {
     "name": "NIST SP 800-171 Rev. 2",

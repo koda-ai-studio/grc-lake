@@ -118,7 +118,7 @@ rest of that control.
 
 ```
 $ grc-lake frameworks safeguards --format table
-482 safeguards map 1803 of 2252 requirements (80.1%) — 339 maintainer-reviewed, 0 org-reviewed (15.1% attestable), 1464 proposed; 0 mapping(s) rejected by the org
+482 safeguards map 1803 of 2252 requirements (80.1%) — 1128 maintainer-reviewed, 0 org-reviewed (50.1% attestable), 675 proposed; 0 mapping(s) rejected by the org
 ```
 
 A mapping is **reviewed** once a human has confirmed the requirements are the
@@ -295,6 +295,22 @@ Period-bound workpapers can record explicit `not_applicable`, `inherited`, or
 `compensating` assessment context with evidence and an independent review. See
 [the workpaper contract](AUDITOR_WALKTHROUGH.md#assessment-context).
 
+### Maintainer source-batch review
+
+The [2026-10-14 decision receipt](../controls/reviews/2026-10-14-source-batches.json)
+records msaad00's approval of 33 prepared source-review batches: 885 source-backed
+mapping relationships covering 806 distinct requirements. Each relationship is
+bound to the inspected semantic digest and original catalog commit. The receipt
+records the batch approval verbatim; no separate per-mapping rationale or second
+reviewer decision was supplied.
+
+The review adds 789 currently credited requirements, taking reviewed coverage to
+1,128 of 2,252 (50.1%). Seventeen approved requirements remain uncredited because
+their mapping versions are stale. Their original version pins are preserved.
+Mapped coverage remains 1,803 of 2,252 (80.1%). Source-less alternatives and
+supporting relationships receive no additional coverage credit. Approval does
+not establish operating effectiveness or turn missing evidence into a pass.
+
 ### NIST SP 800-171 Rev. 3 operational safeguards
 
 `SG-INFORMATIONEXCHANGE-001` covers requirement 03.12.05 through explicitly
@@ -304,7 +320,7 @@ through screening before access and rescreening under defined conditions.
 Personnel evidence should retain assessment references and completion outcomes,
 not sensitive investigation details.
 
-Both mappings are proposed. Their 800-53/FedRAMP CA-3 and PS-3 source-control links
+Both primary mappings have maintainer approval. Their 800-53/FedRAMP CA-3 and PS-3 source-control links
 are supporting context, not claims of full control equivalence. Observed
 connectivity or active accounts do not establish either safeguard, and passing
 safeguard evidence does not make a proposed requirement mapping attestable.

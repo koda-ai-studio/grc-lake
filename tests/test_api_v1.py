@@ -842,7 +842,15 @@ def test_ccf_coverage_endpoint_exposes_family_states(tmp_path: Path) -> None:
     assert body["meta"]["resource"] == "ccf.coverage"
     families = body["data"]["families"]
     assert families
-    assert {row["state"] for row in families} >= {"partially_reviewed", "proposed_only"}
+    for row in families:
+        expected = (
+            "proposed_only"
+            if row["reviewed_mapping_count"] == 0
+            else "reviewed"
+            if row["proposed_mapping_count"] == 0
+            else "partially_reviewed"
+        )
+        assert row["state"] == expected
     assert "frameworks" in body["data"]
 
 

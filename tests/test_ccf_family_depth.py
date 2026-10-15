@@ -19,6 +19,9 @@ from security_lakehouse.safeguards import (
     validate_safeguards,
 )
 
+# These tests exercise the original proposal state before the receipted review.
+pytestmark = pytest.mark.usefixtures("proposed_source_catalog")
+
 ROOT = Path(__file__).resolve().parents[1]
 RMF_MANIFEST = json.loads((ROOT / "frameworks/packs/data/nist_rmf_800_37r2.json").read_text())
 R3_MANIFEST = json.loads((ROOT / "frameworks/packs/data/nist_800_171_rev3.json").read_text())

@@ -66,7 +66,7 @@ def test_family_ledger_carries_definitions() -> None:
 
 
 def test_title_theme_members_never_inherit_a_safeguard_citation() -> None:
-    from security_lakehouse.safeguards import mapping_review_queue
+    from security_lakehouse.safeguards import mapping_review_items, mapping_review_queue
 
     safeguards = {entry["safeguard_id"]: entry for entry in load_safeguards()["safeguards"]}
     queue = mapping_review_queue()
@@ -80,5 +80,5 @@ def test_title_theme_members_never_inherit_a_safeguard_citation() -> None:
     ]
     assert themed
     assert all("mapping_source" not in item for item in themed)
-    inherited = next(item for item in queue if item["control_id"] == "CMMC-3.1.4")
+    inherited = next(item for item in mapping_review_items() if item["control_id"] == "CMMC-3.1.4")
     assert inherited["mapping_source"] == safeguards["SG-SEPARATIONOFDUTIES-001"]["mapping_source"]

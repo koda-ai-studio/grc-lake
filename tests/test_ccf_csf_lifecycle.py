@@ -15,6 +15,9 @@ from security_lakehouse.safeguards import (
 )
 from test_ccf_operational_assessment import normalized
 
+# These tests exercise the original proposal state before the receipted review.
+pytestmark = pytest.mark.usefixtures("proposed_source_catalog")
+
 CASES = {
     "SG-EVALUATIONIMPROVEMENT-001": ("ID.IM-01", "evaluation_improvement_assessment"),
     "SG-OPERATIONALIMPROVEMENT-001": ("ID.IM-03", "operational_improvement_assessment"),
