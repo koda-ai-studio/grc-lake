@@ -12,7 +12,7 @@ The three JSON companions contain exact candidate fingerprints, operating contra
 
 ## Review scope and reproduction
 
-This queue contains 150 requirements and 185 candidate relationships in 17 batches: SOC 2 (51 requirements), ISO 27001 (71), and ISO 42001 (28). Twenty-two requirement-specific assessment contracts replace 28 weak proposed relationships. Mapped and reviewed requirement counts are unchanged; every new contract remains proposed.
+This queue contains 150 requirements and 185 candidate relationships in 17 batches: SOC 2 (51 requirements), ISO 27001 (71), and ISO 42001 (28). 34 requirement-specific assessment contracts replace 40 weak proposed relationships. Mapped and reviewed requirement counts are unchanged; every new contract remains proposed.
 
 Cisco references use explicit SOC 2 IDs and the ISO/IEC 27002:2022 column corresponding to ISO 27001:2022 Annex A. Older ISO columns and broad X markers are excluded. Processing Integrity requirements without a Cisco reference stay explicitly unsourced. Oracle articles provide AI governance examples; they do not supply the complete ISO 42001 requirement text. Fifteen unmapped ISO requirements remain outside this pending-mapping queue.
 
@@ -54,6 +54,18 @@ Omit `--check` to regenerate. JSON verification compares parsed content, so repo
 - **ISO42001-6.1.3**: replace the proposed links from `SG-RISKMANAGEMENT-001` with `SG-REVIEW-ISO42001-6-1-3`.
 - **ISO42001-6.2.8**: replace the proposed links from `SG-AIGOVERNANCE-001`, `SG-AIRUNTIMEACCESS-001` with `SG-REVIEW-ISO42001-6-2-8`.
 - **ISO42001-8.2**: replace the proposed links from `SG-DATAINVENTORY-001`, `SG-AITRANSPARENCY-001` with `SG-REVIEW-ISO42001-8-2`.
+- **SOC2-CC1.1**: replace the proposed links from `SG-GOVERNANCE-002` with `SG-REVIEW-SOC2-CC1-1`.
+- **SOC2-CC1.2**: replace the proposed links from `SG-GOVERNANCE-002` with `SG-REVIEW-SOC2-CC1-2`.
+- **SOC2-CC1.4**: replace the proposed links from `SG-GOVERNANCE-002` with `SG-REVIEW-SOC2-CC1-4`.
+- **SOC2-CC1.5**: replace the proposed links from `SG-GOVERNANCE-002` with `SG-REVIEW-SOC2-CC1-5`.
+- **SOC2-CC2.1**: replace the proposed links from `SG-GOVERNANCE-002` with `SG-REVIEW-SOC2-CC2-1`.
+- **SOC2-CC2.2**: replace the proposed links from `SG-GOVERNANCE-002` with `SG-REVIEW-SOC2-CC2-2`.
+- **SOC2-CC2.3**: replace the proposed links from `SG-GOVERNANCE-002` with `SG-REVIEW-SOC2-CC2-3`.
+- **SOC2-CC3.1**: replace the proposed links from `SG-GOVERNANCE-002` with `SG-REVIEW-SOC2-CC3-1`.
+- **SOC2-CC4.2**: replace the proposed links from `SG-GOVERNANCE-002` with `SG-REVIEW-SOC2-CC4-2`.
+- **SOC2-CC5.1**: replace the proposed links from `SG-GOVERNANCE-002` with `SG-REVIEW-SOC2-CC5-1`.
+- **SOC2-CC5.2**: replace the proposed links from `SG-GOVERNANCE-002` with `SG-REVIEW-SOC2-CC5-2`.
+- **SOC2-CC5.3**: replace the proposed links from `SG-GOVERNANCE-002` with `SG-REVIEW-SOC2-CC5-3`.
 
 All other mappings and existing operating contracts are preserved, including the semantics bound to earlier human review receipts. These replacements do not supply evidence or approve an equivalence.
 
@@ -95,17 +107,17 @@ Source locators: CCF 69 (BF75), CCF 86 (BF92), CCF 87 (BF93), CCF 329 (BF335), C
 
 **SOC2-CC1.1** — Control environment demonstrates integrity and ethical values
 
-Candidates: `SG-GOVERNANCE-002`.
+Candidates: `SG-REVIEW-SOC2-CC1-1`.
 
-The governance safeguard currently asks for a CMMC system security plan. That artifact does not establish the ethical conduct commitments, reporting process, or handling of violations described by this catalog topic.
+Repaired proposal: verify approved ethical-conduct expectations, personnel acknowledgments, reporting channels, recorded violations, and timely investigation and corrective follow-up. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context.
 
 Source locators: CCF 128 (BD134), CCF 129 (BD135), CCF 147 (BD153), CCF 160 (BD166), CCF 162 (BD168), CCF 339 (BD345).
 
 **SOC2-CC1.2** — Board independence and oversight of internal control
 
-Candidates: `SG-GOVERNANCE-002`, `SG-MANAGEMENTREVIEW-001`.
+Candidates: `SG-MANAGEMENTREVIEW-001`, `SG-REVIEW-SOC2-CC1-2`.
 
-Distinguish management review from board oversight. Inspect independence, oversight responsibilities, meeting decisions, and follow-up rather than granting credit for any leadership review.
+Repaired proposal: verify board and committee responsibilities, member independence and relevant expertise, oversight agendas and minutes, management challenge, and tracked follow-up decisions. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context.
 
 Source locators: CCF 128 (BD134), CCF 129 (BD135), CCF 161 (BD167).
 
@@ -119,25 +131,25 @@ Source locators: No target-specific vendor reference found.
 
 **SOC2-CC1.4** — Commitment to competence is demonstrated
 
-Candidates: `SG-GOVERNANCE-002`.
+Candidates: `SG-REVIEW-SOC2-CC1-4`.
 
-A system security plan is not competence evidence. Prepare role requirements, hiring or assessment records, training, and remediation of identified skills gaps.
+Repaired proposal: verify role-specific competence requirements, hiring and assessment records, periodic performance reviews, training needs, and remediation of identified skills gaps. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context.
 
 Source locators: CCF 128 (BD134), CCF 129 (BD135), CCF 147 (BD153), CCF 162 (BD168), CCF 163 (BD169), CCF 168 (BD174), CCF 169 (BD175), CCF 172 (BD178), CCF 173 (BD179), CCF 174 (BD180), CCF 176 (BD182).
 
 **SOC2-CC1.5** — Individuals are held accountable for internal control
 
-Candidates: `SG-GOVERNANCE-002`.
+Candidates: `SG-REVIEW-SOC2-CC1-5`.
 
-A system security plan alone does not establish accountability. Examine assigned responsibilities, performance expectations, exception handling, and corrective follow-up.
+Repaired proposal: verify assigned control responsibilities, communicated performance expectations, consideration of incentives and pressures, periodic accountability reviews, and corrective or disciplinary follow-up. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context.
 
 Source locators: CCF 1 (BD7), CCF 128 (BD134), CCF 147 (BD153), CCF 160 (BD166), CCF 165 (BD171), CCF 166 (BD172), CCF 167 (BD173), CCF 168 (BD174), CCF 169 (BD175), CCF 172 (BD178), CCF 174 (BD180), CCF 176 (BD182).
 
 **SOC2-CC2.1** — Quality information supports internal control objectives
 
-Candidates: `SG-GOVERNANCE-002`.
+Candidates: `SG-REVIEW-SOC2-CC2-1`.
 
-Specify which information supports each control decision and how completeness, accuracy, timeliness, and provenance are checked. Generic governance evidence does not establish information quality.
+Repaired proposal: verify the information used for identified control decisions, documented completeness and accuracy checks, source provenance, timely updates, and handling of missing or unreliable inputs. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context.
 
 Source locators: CCF 1 (BD7), CCF 30 (BD36), CCF 32 (BD38), CCF 39 (BD45), CCF 40 (BD46), CCF 70 (BD76), CCF 73 (BD79), CCF 76 (BD82), CCF 81 (BD87), CCF 99 (BD105), CCF 124 (BD130), CCF 142 (BD148), CCF 241 (BD247), CCF 355 (BD361).
 
@@ -145,25 +157,25 @@ Source locators: CCF 1 (BD7), CCF 30 (BD36), CCF 32 (BD38), CCF 39 (BD45), CCF 4
 
 **SOC2-CC2.2** — Internal control information is communicated internally
 
-Candidates: `SG-GOVERNANCE-002`.
+Candidates: `SG-REVIEW-SOC2-CC2-2`.
 
-Require records showing the relevant control information reached its intended internal recipients. A policy or system security plan without communication evidence is insufficient.
+Repaired proposal: verify identified internal recipients, current control responsibilities and policy changes, delivery and acknowledgment records, escalation routes, and follow-up on communication failures. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context.
 
 Source locators: CCF 1 (BD7), CCF 33 (BD39), CCF 34 (BD40), CCF 73 (BD79), CCF 80 (BD86), CCF 81 (BD87), CCF 127 (BD133), CCF 128 (BD134), CCF 142 (BD148), CCF 165 (BD171), CCF 166 (BD172), CCF 167 (BD173), CCF 172 (BD178), CCF 173 (BD179), CCF 181 (BD187), CCF 317 (BD323), CCF 334 (BD340), CCF 338 (BD344), CCF 340 (BD346), CCF 363 (BD369).
 
 **SOC2-CC2.3** — Control matters are communicated to external parties when required
 
-Candidates: `SG-GOVERNANCE-002`.
+Candidates: `SG-REVIEW-SOC2-CC2-3`.
 
-Identify the external audiences, required communications, ownership, and delivery records. Internal governance documentation does not demonstrate external communication.
+Repaired proposal: verify identified external audiences and required control communications, assigned owners, accessible reporting channels, delivery or receipt records, and escalation and resolution of received concerns. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context.
 
 Source locators: CCF 1 (BD7), CCF 33 (BD39), CCF 34 (BD40), CCF 73 (BD79), CCF 80 (BD86), CCF 124 (BD130), CCF 127 (BD133), CCF 128 (BD134), CCF 129 (BD135), CCF 181 (BD187), CCF 329 (BD335), CCF 331 (BD337), CCF 338 (BD344), CCF 339 (BD345), CCF 340 (BD346), CCF 355 (BD361), CCF 363 (BD369).
 
 **SOC2-CC3.1** — Objectives are specified with sufficient clarity
 
-Candidates: `SG-GOVERNANCE-002`.
+Candidates: `SG-REVIEW-SOC2-CC3-1`.
 
-Check that objectives are specific enough to drive risk assessment and control design; the existing CMMC-plan evidence requirement does not expressly require this.
+Repaired proposal: verify documented organizational and service objectives, measurable success criteria, risk tolerance and management approval, and traceability from objectives into risk assessments and control decisions. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context.
 
 Source locators: CCF 1 (BD7), CCF 122 (BD128), CCF 124 (BD130), CCF 127 (BD133), CCF 128 (BD134), CCF 129 (BD135), CCF 161 (BD167).
 
@@ -193,33 +205,33 @@ Source locators: CCF 1 (BD7), CCF 124 (BD130), CCF 127 (BD133), CCF 128 (BD134),
 
 **SOC2-CC4.2** — Control deficiencies are evaluated and communicated
 
-Candidates: `SG-GOVERNANCE-002`, `SG-POAM-001`.
+Candidates: `SG-POAM-001`, `SG-REVIEW-SOC2-CC4-2`.
 
-The remediation-plan candidate needs deficiency evaluation, escalation, accountable recipients, and closure evidence. The governance candidate's system security plan does not establish these activities.
+Repaired proposal: verify the population of identified control deficiencies, severity and impact assessments, timely escalation to accountable management and oversight bodies, assigned remediation, and verified closure evidence. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context.
 
 Source locators: CCF 124 (BD130), CCF 127 (BD133), CCF 128 (BD134), CCF 161 (BD167).
 
 **SOC2-CC5.1** — Control activities are selected and developed
 
-Candidates: `SG-GOVERNANCE-002`.
+Candidates: `SG-REVIEW-SOC2-CC5-1`.
 
-Require control selection tied to identified risks and objectives. A general governance document is not evidence of the selection and design decision for each material risk.
+Repaired proposal: verify control selection and design decisions linked to identified risks and objectives, accountable risk-owner approvals, the intended operating scope, and evidence that selected activities are implemented. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context.
 
 Source locators: CCF 1 (BD7), CCF 122 (BD128), CCF 124 (BD130), CCF 127 (BD133), CCF 161 (BD167).
 
 **SOC2-CC5.2** — Technology general controls support objectives
 
-Candidates: `SG-GOVERNANCE-002`.
+Candidates: `SG-REVIEW-SOC2-CC5-2`.
 
-Specify the technology control objectives, selected controls, dependencies, and operation records. The existing governance evidence requirement is too generic to settle this mapping.
+Repaired proposal: verify technology dependencies supporting objectives, risk-based general control selection over access, processing integrity, acquisition, development and maintenance, and scoped operating records and exceptions. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context.
 
 Source locators: CCF 1 (BD7), CCF 122 (BD128), CCF 124 (BD130), CCF 127 (BD133), CCF 128 (BD134), CCF 161 (BD167).
 
 **SOC2-CC5.3** — Policies are deployed through procedures
 
-Candidates: `SG-GOVERNANCE-002`, `SG-POLICYMANAGEMENT-001`.
+Candidates: `SG-POLICYMANAGEMENT-001`, `SG-REVIEW-SOC2-CC5-3`.
 
-The policy-management candidate must cover procedure implementation and assigned responsibilities, not only policy approval or publication. Evaluate the broad governance candidate separately.
+Repaired proposal: verify approved policy requirements translated into actionable procedures, assigned ownership, communication and implementation records, timely execution, and corrective follow-up when procedures are not performed. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context.
 
 Source locators: CCF 1 (BD7), CCF 40 (BD46), CCF 68 (BD74), CCF 69 (BD75), CCF 85 (BD91), CCF 88 (BD94), CCF 119 (BD125), CCF 122 (BD128), CCF 124 (BD130), CCF 147 (BD153), CCF 161 (BD167), CCF 163 (BD169), CCF 168 (BD174), CCF 169 (BD175), CCF 174 (BD180), CCF 176 (BD182).
 

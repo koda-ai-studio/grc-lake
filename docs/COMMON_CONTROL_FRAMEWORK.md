@@ -93,7 +93,7 @@ rest of that control.
 | Category                     | Family                    | ID                         | Safeguards | NIST SP 800-53 families | CIS Controls |
 | ---------------------------- | ------------------------- | -------------------------- | ---------: | ----------------------- | ------------ |
 | Governance and risk          | Risk management           | `risk-management`          |         30 | RA, CA, PM              | 18           |
-| Governance and risk          | Governance                | `governance`               |          8 | PL, PM                  | —            |
+| Governance and risk          | Governance                | `governance`               |         20 | PL, PM                  | —            |
 | Identity and access          | Identity and access       | `identity`                 |        138 | AC, IA                  | 5, 6         |
 | Data protection and privacy  | Data protection           | `data-protection`          |          6 | SC, MP                  | 1, 3         |
 | Data protection and privacy  | Privacy                   | `privacy`                  |          8 | PT                      | —            |
@@ -118,7 +118,7 @@ rest of that control.
 
 ```
 $ grc-lake frameworks safeguards --format table
-504 safeguards map 1803 of 2252 requirements (80.1%) — 1128 maintainer-reviewed, 0 org-reviewed (50.1% attestable), 675 proposed; 0 mapping(s) rejected by the org
+516 safeguards map 1803 of 2252 requirements (80.1%) — 1128 maintainer-reviewed, 0 org-reviewed (50.1% attestable), 675 proposed; 0 mapping(s) rejected by the org
 ```
 
 A mapping is **reviewed** once a human has confirmed the requirements are the

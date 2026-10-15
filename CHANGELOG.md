@@ -3,6 +3,10 @@
 All notable GRC Lake changes are summarized here. Versions follow semver for the
 Python package, Helm chart, and bundled web console.
 
+## Unreleased
+
+- Replace 12 proposed SOC 2 governance links that relied on a CMMC system security plan with scoped, requirement-specific assessment contracts. Pin supporting Cisco references, require distinct evidence types, and regenerate the 17 SOC 2/ISO review batches. Preserve earlier human approvals and 80.1% mapped / 50.1% reviewed coverage; these proposals grant no new review credit.
+
 ## 0.3.5 - 2026-10-15
 
 - Replace 28 weak proposed SOC 2 and ISO mapping relationships with 22 requirement-specific assessment contracts. Prepare 17 review batches covering 150 requirements and 185 candidate relationships, with pinned Cisco/Oracle implementation references, operating contracts, review fingerprints and blank decisions. Preserve earlier approved contracts and coverage totals; these new proposals grant no review or operating-effectiveness credit.
