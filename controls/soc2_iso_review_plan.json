@@ -832,6 +832,28 @@
           }
         }
       ]
+    },
+    {
+      "control_id": "SOC2-CC1.3",
+      "risk_domain": "governance",
+      "objective": "Assess the requirement “Management establishes structure, authority, and responsibility” within the declared system, period, and population.",
+      "evidence_checks": "documented organizational structures and reporting lines, board oversight of authority and responsibility assignments, approved delegations and accountability, communication of role changes, and periodic evaluation and adjustment as objectives change",
+      "source": "cisco",
+      "cisco_controls": [127, 128, 129],
+      "source_locator": "CCF 127 (BD133); CCF 128 (BD134); CCF 129 (BD135), explicit CC 1.3 references in the SOC 2 2022 column",
+      "source_limit": "Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement. Evaluate the remaining role-register candidate separately; a role list alone does not establish board oversight or reporting relationships.",
+      "replaces": [
+        {
+          "safeguard_id": "SG-GOVERNANCE-002",
+          "member": {
+            "control_id": "SOC2-CC1.3",
+            "framework_id": "soc2",
+            "role": "equivalent",
+            "review_status": "proposed",
+            "control_version": "1.0.0"
+          }
+        }
+      ]
     }
   ]
 }

@@ -216,7 +216,17 @@ def test_cisco_parser_uses_current_explicit_ids_not_old_columns_or_markers():
     import zipfile
 
     ns = GENERATOR["NS"]["s"]
-    strings = ["CCF 335", "5.13", "X", "CC6.4; CC6.4", "A1.1", "P6.2", "C1.1", "A.8.6", "8.6.1"]
+    strings = [
+        "CCF 335",
+        "5.13",
+        "X",
+        "CC6.4; CC6.4; CC 1.3; CC1.3; CC\t1.3; NOTCC 2.9; CC 3.9.1; CC\n4.9",
+        "A1.1; A 1.3",
+        "P6.2; P 6.2",
+        "C1.1; C 1.1",
+        "A.8.6",
+        "8.6.1",
+    ]
     cells = {"C": 0, "BH": 1, "BA": 2, "BD": 3, "BE": 4, "BC": 5, "BF": 6, "BI": 7}
     row = "".join(f'<c r="{col}2" t="s"><v>{value}</v></c>' for col, value in cells.items())
     book = io.BytesIO()
@@ -245,14 +255,27 @@ def test_cisco_parser_uses_current_explicit_ids_not_old_columns_or_markers():
         "workbook_sha256": hashlib.sha256(book.getvalue()).hexdigest(),
     }
     index = GENERATOR["cisco_index"](outer.getvalue(), pin)
-    assert set(index) == {"SOC2-CC6.4", "SOC2-A1.1", "SOC2-P6.2", "SOC2-C1.1", "ISO27001-A.8.6"}
+    assert set(index) == {
+        "SOC2-CC6.4",
+        "SOC2-CC1.3",
+        "SOC2-A1.1",
+        "SOC2-A1.3",
+        "SOC2-P6.2",
+        "SOC2-C1.1",
+        "ISO27001-A.8.6",
+    }
     assert len(index["SOC2-CC6.4"]) == 1
+    assert index["SOC2-CC1.3"] == [
+        {"control": "CCF 335", "cell": "BD2", "narrative_lookup": "Control Narrative RFI, column B=CCF 335"}
+    ]
+    assert len(index["SOC2-P6.2"]) == len(index["SOC2-C1.1"]) == 1
     assert index["ISO27001-A.8.6"][0]["cell"] == "BI2"
 
 
 GOVERNANCE_TARGETS = (
     "SOC2-CC1.1",
     "SOC2-CC1.2",
+    "SOC2-CC1.3",
     "SOC2-CC1.4",
     "SOC2-CC1.5",
     "SOC2-CC2.1",

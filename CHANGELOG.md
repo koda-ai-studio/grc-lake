@@ -5,7 +5,7 @@ Python package, Helm chart, and bundled web console.
 
 ## Unreleased
 
-- Replace 12 proposed SOC 2 governance links that relied on a CMMC system security plan with scoped, requirement-specific assessment contracts. Pin supporting Cisco references, require distinct evidence types, and regenerate the 17 SOC 2/ISO review batches. Preserve earlier human approvals and 80.1% mapped / 50.1% reviewed coverage; these proposals grant no new review credit.
+- Replace 13 proposed SOC 2 governance links that relied on a CMMC system security plan with scoped, requirement-specific assessment contracts. Normalize spaced Cisco identifiers before deduplication so explicit CC1.3 and A1.3 references are retained without accepting cross-line or malformed IDs. Pin supporting Cisco references, require distinct evidence types, and regenerate the 17 SOC 2/ISO review batches. Preserve earlier human approvals and 80.1% mapped / 50.1% reviewed coverage; these proposals grant no new review credit.
 
 ## 0.3.5 - 2026-10-15
 

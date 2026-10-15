@@ -12,7 +12,7 @@ The three JSON companions contain exact candidate fingerprints, operating contra
 
 ## Review scope and reproduction
 
-This queue contains 150 requirements and 185 candidate relationships in 17 batches: SOC 2 (51 requirements), ISO 27001 (71), and ISO 42001 (28). 34 requirement-specific assessment contracts replace 40 weak proposed relationships. Mapped and reviewed requirement counts are unchanged; every new contract remains proposed.
+This queue contains 150 requirements and 185 candidate relationships in 17 batches: SOC 2 (51 requirements), ISO 27001 (71), and ISO 42001 (28). 35 requirement-specific assessment contracts replace 41 weak proposed relationships. Mapped and reviewed requirement counts are unchanged; every new contract remains proposed.
 
 Cisco references use explicit SOC 2 IDs and the ISO/IEC 27002:2022 column corresponding to ISO 27001:2022 Annex A. Older ISO columns and broad X markers are excluded. Processing Integrity requirements without a Cisco reference stay explicitly unsourced. Oracle articles provide AI governance examples; they do not supply the complete ISO 42001 requirement text. Fifteen unmapped ISO requirements remain outside this pending-mapping queue.
 
@@ -66,6 +66,7 @@ Omit `--check` to regenerate. JSON verification compares parsed content, so repo
 - **SOC2-CC5.1**: replace the proposed links from `SG-GOVERNANCE-002` with `SG-REVIEW-SOC2-CC5-1`.
 - **SOC2-CC5.2**: replace the proposed links from `SG-GOVERNANCE-002` with `SG-REVIEW-SOC2-CC5-2`.
 - **SOC2-CC5.3**: replace the proposed links from `SG-GOVERNANCE-002` with `SG-REVIEW-SOC2-CC5-3`.
+- **SOC2-CC1.3**: replace the proposed links from `SG-GOVERNANCE-002` with `SG-REVIEW-SOC2-CC1-3`.
 
 All other mappings and existing operating contracts are preserved, including the semantics bound to earlier human review receipts. These replacements do not supply evidence or approve an equivalence.
 
@@ -87,7 +88,7 @@ Candidates: `SG-AVAILABILITY-001`.
 
 Check that recovery exercises record results and corrective actions; a backup configuration or successful backup alone does not test recovery.
 
-Source locators: CCF 329 (BE335), CCF 331 (BE337).
+Source locators: CCF 10 (BE16), CCF 24 (BE30), CCF 25 (BE31), CCF 329 (BE335), CCF 331 (BE337).
 
 **SOC2-C1.1** — Confidential information is identified and protected
 
@@ -123,11 +124,11 @@ Source locators: CCF 128 (BD134), CCF 129 (BD135), CCF 161 (BD167).
 
 **SOC2-CC1.3** — Management establishes structure, authority, and responsibility
 
-Candidates: `SG-GOVERNANCE-002`, `SG-ROLESRESPONSIBILITIES-001`.
+Candidates: `SG-REVIEW-SOC2-CC1-3`, `SG-ROLESRESPONSIBILITIES-001`.
 
-The roles safeguard is a more specific candidate than the broad governance safeguard. Check authority, reporting relationships, and acknowledged assignments across the assessment scope.
+Repaired proposal: verify documented organizational structures and reporting lines, board oversight of authority and responsibility assignments, approved delegations and accountability, communication of role changes, and periodic evaluation and adjustment as objectives change. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement. Evaluate the remaining role-register candidate separately; a role list alone does not establish board oversight or reporting relationships.
 
-Source locators: No target-specific vendor reference found.
+Source locators: CCF 127 (BD133), CCF 128 (BD134), CCF 129 (BD135), CCF 171 (BD177), CCF 172 (BD178), CCF 329 (BD335), CCF 331 (BD337), CCF 364 (BD370).
 
 **SOC2-CC1.4** — Commitment to competence is demonstrated
 

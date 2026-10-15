@@ -24,7 +24,7 @@
       "batches": [
         {
           "batch_id": "soc2-review-001",
-          "basis_sha256": "18d172b508627ade9753911d1c5c92c401a1859d8a848c092ce25c6313fa1146",
+          "basis_sha256": "32895d845833c8941dbe5f03ec5882ca7a1f5c6637386df1d037885fb3c175ff",
           "requirements": [
             {
               "control_id": "SOC2-A1.1",
@@ -81,6 +81,21 @@
               "framework_ref": "SOC 2 A1.3",
               "question": "Check that recovery exercises record results and corrective actions; a backup configuration or successful backup alone does not test recovery.",
               "cisco_candidates": [
+                {
+                  "control": "CCF 10",
+                  "cell": "BE16",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 10"
+                },
+                {
+                  "control": "CCF 24",
+                  "cell": "BE30",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 24"
+                },
+                {
+                  "control": "CCF 25",
+                  "cell": "BE31",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 25"
+                },
                 {
                   "control": "CCF 329",
                   "cell": "BE335",
@@ -448,41 +463,72 @@
             {
               "control_id": "SOC2-CC1.3",
               "framework_ref": "SOC 2 CC1.3",
-              "question": "The roles safeguard is a more specific candidate than the broad governance safeguard. Check authority, reporting relationships, and acknowledged assignments across the assessment scope.",
-              "cisco_candidates": [],
-              "source_scope": "no target-specific vendor reference found",
+              "question": "Repaired proposal: verify documented organizational structures and reporting lines, board oversight of authority and responsibility assignments, approved delegations and accountability, communication of role changes, and periodic evaluation and adjustment as objectives change. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement. Evaluate the remaining role-register candidate separately; a role list alone does not establish board oversight or reporting relationships.",
+              "cisco_candidates": [
+                {
+                  "control": "CCF 127",
+                  "cell": "BD133",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 127"
+                },
+                {
+                  "control": "CCF 128",
+                  "cell": "BD134",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 128"
+                },
+                {
+                  "control": "CCF 129",
+                  "cell": "BD135",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 129"
+                },
+                {
+                  "control": "CCF 171",
+                  "cell": "BD177",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 171"
+                },
+                {
+                  "control": "CCF 172",
+                  "cell": "BD178",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 172"
+                },
+                {
+                  "control": "CCF 329",
+                  "cell": "BD335",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 329"
+                },
+                {
+                  "control": "CCF 331",
+                  "cell": "BD337",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 331"
+                },
+                {
+                  "control": "CCF 364",
+                  "cell": "BD370",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 364"
+                }
+              ],
+              "source_scope": "vendor implementation context, not verified normative equivalence",
               "oracle_context": [],
               "candidates": [
                 {
-                  "safeguard_id": "SG-GOVERNANCE-002",
-                  "role": "equivalent",
+                  "safeguard_id": "SG-REVIEW-SOC2-CC1-3",
+                  "role": "primary",
                   "review_state": "proposed",
-                  "review_basis_sha256": "e211642f450c412cf8dab50884dc39c86480d4e0de5295ed61bea8c4bcb1cc1f",
+                  "review_basis_sha256": "d2f7b1c81d0a07dc683d0a5ef85767f858308465a2d2b04f97a0f9b6619cbdc1",
                   "operating_contract": {
-                    "objective": "Board oversight, defined authority, accountability, and a maintained security policy are the control environment every audited framework opens with.",
-                    "evidence_requirement": "CUI protection evidence supports NIST SP 800-171 Rev 2 requirement 3.12.4 (Develop, document, and periodically update system security plans that describe system boundaries, system environments of operation, how security requirements...) for CMMC Level 2 assessment.",
-                    "evaluation_rule": "fail_when_missing_evidence",
-                    "asset_types": [
-                      "ai_agent",
-                      "ai_model",
-                      "audit_log",
-                      "cloud_policy",
-                      "cloud_resource",
-                      "container_image",
-                      "data_store",
-                      "host",
-                      "iam_role",
-                      "identity_group",
-                      "identity_user",
-                      "okta_user",
-                      "repo",
-                      "service"
-                    ],
-                    "required_evidence_types": null,
-                    "frequency": "continuous",
-                    "owner": "grc"
+                    "objective": "Assess the requirement “Management establishes structure, authority, and responsibility” within the declared system, period, and population.",
+                    "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test documented organizational structures and reporting lines, board oversight of authority and responsibility assignments, approved delegations and accountability, communication of role changes, and periodic evaluation and adjustment as objectives change. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+                    "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+                    "asset_types": ["audit_log", "service"],
+                    "required_evidence_types": ["review_soc2_cc1_3"],
+                    "frequency": "documented assessment schedule and after material change",
+                    "owner": "security-assurance"
                   },
-                  "mapping_source": null,
+                  "mapping_source": {
+                    "name": "Cisco Cloud Controls Framework 4.0",
+                    "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
+                    "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
+                    "locator": "CCF 127 (BD133); CCF 128 (BD134); CCF 129 (BD135), explicit CC 1.3 references in the SOC 2 2022 column; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement. Evaluate the remaining role-register candidate separately; a role list alone does not establish board oversight or reporting relationships."
+                  },
                   "decision": null,
                   "reviewer": null,
                   "rationale": null
@@ -4517,5 +4563,5 @@
       ]
     }
   ],
-  "sha256": "07e5b29a24b1c73d8478e68d69c8443fc38397e6f9d2622bc87e57d804362672"
+  "sha256": "dc3ae4f2e0eedbd34f252b0f7f8c07494eb7da8ff2e5c107a9dcd5e1efae2474"
 }
