@@ -2069,6 +2069,18 @@ export interface MappingReviewDecisionSummary {
 }
 
 export interface MappingReviewItem {
+  review_basis_sha256: string | null;
+  expected_decision_id: string | null;
+  operating_contract: {
+    objective: string | null;
+    evidence_requirement: string | null;
+    evaluation_rule: string | null;
+    asset_types: string[] | null;
+    required_evidence_types: string[] | null;
+    frequency: string | null;
+    owner: string | null;
+  } | null;
+  requirement_evidence: string | null;
   safeguard_id: string;
   safeguard_title: string | null;
   risk_domain: string | null;
@@ -2149,6 +2161,8 @@ export interface MappingReviewDecisionRequest {
   rationale: string;
   evidence_ref?: string;
   items: Array<{
+    review_basis_sha256: string;
+    expected_decision_id: string | null;
     safeguard_id: string;
     control_id: string;
     framework_id: string;

@@ -2217,6 +2217,19 @@ def record_mapping_review(
         return HTTPStatus.BAD_REQUEST, error_envelope(
             "bad_request", "items must be a list of mappings", resource=resource
         )
+    if any(
+        not isinstance(item, dict)
+        or not isinstance(item.get("review_basis_sha256"), str)
+        or re.fullmatch(r"[0-9a-f]{64}", item["review_basis_sha256"]) is None
+        or "expected_decision_id" not in item
+        or (item["expected_decision_id"] is not None and not isinstance(item["expected_decision_id"], str))
+        for item in items
+    ):
+        return HTTPStatus.BAD_REQUEST, error_envelope(
+            "bad_request",
+            "each mapping needs review_basis_sha256 and expected_decision_id from the current review queue",
+            resource=resource,
+        )
     try:
         records = record_decisions(
             lake,

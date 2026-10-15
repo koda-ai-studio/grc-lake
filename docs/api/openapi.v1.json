@@ -998,10 +998,30 @@
             "title": "Control Id",
             "type": "string"
           },
+          "expected_decision_id": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Decision Id"
+          },
           "framework_id": {
             "maxLength": 128,
             "minLength": 1,
             "title": "Framework Id",
+            "type": "string"
+          },
+          "review_basis_sha256": {
+            "maxLength": 64,
+            "minLength": 64,
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Review Basis Sha256",
             "type": "string"
           },
           "safeguard_id": {
@@ -1011,7 +1031,13 @@
             "type": "string"
           }
         },
-        "required": ["safeguard_id", "control_id", "framework_id"],
+        "required": [
+          "safeguard_id",
+          "control_id",
+          "framework_id",
+          "review_basis_sha256",
+          "expected_decision_id"
+        ],
         "title": "MappingRef",
         "type": "object"
       },

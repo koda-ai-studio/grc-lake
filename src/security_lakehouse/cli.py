@@ -657,7 +657,23 @@ def _parser() -> argparse.ArgumentParser:
         decide.add_argument("--rationale", required=True, help="why (required; recorded in the audit trail)")
         decide.add_argument("--reviewer", required=True, help="who is deciding (local mode has no login)")
         decide.add_argument("--evidence-ref", default=None, help="optional evidence or ticket reference")
+        decide.add_argument(
+            "--review-basis", default=None, help="semantic SHA-256 from the inspected review packet or queue"
+        )
+        decide.add_argument(
+            "--expected-decision-id", default="none", help="latest decision ID from that inspection, or none"
+        )
         decide.set_defaults(func=_frameworks_review_decide, decision=decision)
+    review_packet = review_sub.add_parser(
+        "packet", help="prepare version-bound human review batches without recording decisions"
+    )
+    review_packet.add_argument("--lake", default=None, help=_REVIEW_LAKE_HELP)
+    review_packet.add_argument(
+        "--framework", default=None, help="filter requirements; milestone denominator remains the full catalog"
+    )
+    review_packet.add_argument("--batch-size", type=int, default=25, help="distinct requirements per batch (1-100)")
+    review_packet.add_argument("--out", default=None, help="write JSON to this path (default stdout)")
+    review_packet.set_defaults(func=_frameworks_review_packet)
     review_export = review_sub.add_parser("export", help="export the decision log with its chain verification")
     review_export.add_argument("--lake", required=True, help="lake whose decision log to export")
     review_export.add_argument("--format", choices=["json", "csv"], default="json", help="output format")
@@ -2298,13 +2314,34 @@ def _frameworks_review_queue(args: argparse.Namespace) -> int:
     return 0
 
 
+def _frameworks_review_packet(args: argparse.Namespace) -> int:
+    from security_lakehouse.mapping_review_packet import build_review_packet
+
+    packet = build_review_packet(args.lake, framework_id=args.framework, batch_size=args.batch_size)
+    text = json.dumps(packet, indent=2, sort_keys=True) + "\n"
+    if args.out:
+        out_path = Path(args.out)
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        out_path.write_text(text, encoding="utf-8")
+        print(f"wrote {packet['summary']['batch_count']} review batch(es): {args.out}", file=sys.stderr)
+    else:
+        sys.stdout.write(text)
+    return 0
+
+
 def _frameworks_review_decide(args: argparse.Namespace) -> int:
     """Record one local-mode org review decision; the reviewer is named on the command line."""
     from security_lakehouse.mapping_review import record_decisions
 
+    item = {"safeguard_id": args.safeguard, "framework_id": args.framework, "control_id": args.control}
+    if args.review_basis is not None:
+        item["review_basis_sha256"] = args.review_basis
+        item["expected_decision_id"] = None if args.expected_decision_id == "none" else args.expected_decision_id
+    elif args.expected_decision_id != "none":
+        raise ValueError("--expected-decision-id requires --review-basis")
     record = record_decisions(
         args.lake,
-        items=[{"safeguard_id": args.safeguard, "framework_id": args.framework, "control_id": args.control}],
+        items=[item],
         decision=args.decision,
         rationale=args.rationale,
         reviewer=args.reviewer,

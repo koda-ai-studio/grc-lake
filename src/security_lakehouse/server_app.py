@@ -367,6 +367,8 @@ class MappingRef(_StrictModel):
     safeguard_id: str = Field(min_length=1, max_length=128)
     control_id: str = Field(min_length=1, max_length=128)
     framework_id: str = Field(min_length=1, max_length=128)
+    review_basis_sha256: str = Field(min_length=64, max_length=64, pattern=r"^[0-9a-f]{64}$")
+    expected_decision_id: str | None = Field(min_length=1, max_length=128)
 
 
 class MappingReviewDecisionRequest(_StrictModel):

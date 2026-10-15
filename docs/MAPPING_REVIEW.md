@@ -21,7 +21,7 @@ Each mapping in `controls/safeguards.json` ships with a `review_status`:
 
 - **reviewed**: a GRC Lake maintainer confirmed the equivalence against the
   requirement text. The console and API call this **maintainer-reviewed**.
-- **proposed**: suggested by a published crosswalk or by matching titles, and
+- **proposed**: a source-native assessment contract, a published crosswalk candidate, or a title-based suggestion, and
   not yet confirmed by anyone.
 
 Your organization can add its own decision on top of either state:
@@ -178,9 +178,18 @@ curl -s "$GRC_LAKE/api/v1/mapping-reviews/summary" -H "Authorization: Bearer $KE
 ```
 
 `POST /api/v1/mapping-reviews/decisions` takes
-`{"decision", "rationale", "items": [{"safeguard_id", "framework_id", "control_id"}], "evidence_ref"}`
+`{"decision", "rationale", "items": [{"safeguard_id", "framework_id", "control_id", "review_basis_sha256", "expected_decision_id"}], "evidence_ref"}`
 from a signed-in console session. A batch holds up to 500 mappings and is all or
-nothing.
+nothing. Copy both concurrency fields from the queue item that was inspected:
+`review_basis_sha256` binds the operating contract, source, mapping and requirement;
+`expected_decision_id` is the most recent decision ID, or JSON `null` when there
+has been no decision. Missing fields are rejected. If either the definition or
+history has changed, the entire batch is rejected before any log write. Refresh
+and inspect the changed item before submitting again. The console refreshes the
+queue and clears the stale selection after this conflict. Selections retain the
+inspected definition and decision tokens even when the queue refreshes in the
+background. History labels stale
+approvals as needing renewed review instead of presenting them as in force.
 
 CLI (local lake):
 
@@ -285,3 +294,40 @@ explicitly bound passing evidence still cannot produce a requirement pass until
 its mapping is reviewed; absent, stale, unrelated or non-conclusive evidence
 cannot establish operating effectiveness after review either. Full catalog
 mapping coverage is not certification or complete asset-population coverage.
+
+## Prepare bounded human review batches
+
+```bash
+# Shipped-catalog review preparation; does not modify reviews or a lake.
+grc-lake frameworks review packet --batch-size 25 --out review-packet.json
+# Filtered work uses the same global denominator for milestone reporting.
+grc-lake frameworks review packet --framework nist-csf-2.0 --out csf-review.json
+# Include one organization's current decisions when reviewing for that tenant.
+grc-lake frameworks review packet --lake ./lake --out org-review.json
+```
+
+Each batch groups distinct requirements and shows every candidate mapping,
+its source reference, the complete catalog requirement, the safeguard operating
+and evidence contract, the semantic basis hash and the latest decision ID.
+The packet leaves decision, reviewer and rationale blank. A citation's presence
+is reported separately from source validation; it does not establish equivalence.
+Alternative mappings never multiply a requirement's potential coverage credit.
+
+The summary reports the full catalog denominator and additional distinct
+requirements needed for 80% mapped and 50% reviewed coverage. Review all
+applicable clauses, parameter choices, dependencies, evidence specificity and
+limitations. Reject or request changes when the contract does not establish the
+mapping; targets do not justify approval. Packet hashes detect changed content,
+not authenticity or review completion.
+
+For a local decision based on a previously inspected packet, pass
+`--review-basis <review_basis_sha256> --expected-decision-id <id-or-none>` with
+the existing decision flags. The trusted local CLI remains compatible with
+immediate decisions without these optional tokens; HTTP submissions require
+them. Never reuse old tokens after a concurrent decision or definition change.
+
+Organization decisions affect only that organization's coverage. A shipped
+maintainer-reviewed milestone requires actual human decisions about the
+catalog mappings, with reviewer identity, rationale and source evidence carried
+into a catalog PR and validated against its current basis. This command does
+not import decisions, impersonate a reviewer, or promote proposals.

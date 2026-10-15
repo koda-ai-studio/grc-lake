@@ -9,6 +9,8 @@ import pytest
 
 from security_lakehouse import api_legacy, api_v1
 from security_lakehouse.auth.rbac import ROLE_SCOPES
+from security_lakehouse.catalog import load_control_catalog
+from security_lakehouse.ccf_contracts import review_basis
 from security_lakehouse.db.models import USER_ROLES
 from security_lakehouse.mapping_review import list_decisions
 from security_lakehouse.safeguards import load_safeguards
@@ -27,6 +29,8 @@ def _proposed_items(count: int, *, framework_id: str | None = None) -> list[dict
                     "safeguard_id": entry["safeguard_id"],
                     "control_id": member["control_id"],
                     "framework_id": member["framework_id"],
+                    "review_basis_sha256": review_basis(entry, member, load_control_catalog()[member["control_id"]]),
+                    "expected_decision_id": None,
                 }
             )
             if len(out) == count:
@@ -42,6 +46,8 @@ def _reviewed_item() -> dict[str, str]:
                     "safeguard_id": entry["safeguard_id"],
                     "control_id": member["control_id"],
                     "framework_id": member["framework_id"],
+                    "review_basis_sha256": review_basis(entry, member, load_control_catalog()[member["control_id"]]),
+                    "expected_decision_id": None,
                 }
     raise AssertionError("no reviewed mapping")
 
@@ -205,11 +211,14 @@ def test_local_post_requires_reviewer_and_rationale(tmp_path: Path) -> None:
 def test_history_lists_superseded_decisions_for_one_mapping(tmp_path: Path) -> None:
     item = _reviewed_item()
     for decision in ("needs_changes", "reject"):
-        api_v1.handle_post(
+        history = list_decisions(tmp_path)
+        item["expected_decision_id"] = history[-1]["decision_id"] if history else None
+        status, _ = api_v1.handle_post(
             "/api/v1/mapping-reviews/decisions",
             {"decision": decision, "rationale": f"{decision} note", "reviewer": "grc@acme.test", "items": [item]},
             tmp_path,
         )
+        assert status == HTTPStatus.CREATED
     _status, body = _get(
         "/api/v1/mapping-reviews/decisions",
         tmp_path,
@@ -355,7 +364,17 @@ def test_invalid_decision_is_a_400_and_writes_nothing(server) -> None:
     assert resp.status_code == HTTPStatus.BAD_REQUEST
     resp = client.post(
         "/api/v1/mapping-reviews/decisions",
-        json=_decision_body(items=[{"safeguard_id": "SG-NOPE", "control_id": "X", "framework_id": "soc2"}]),
+        json=_decision_body(
+            items=[
+                {
+                    "safeguard_id": "SG-NOPE",
+                    "control_id": "X",
+                    "framework_id": "soc2",
+                    "review_basis_sha256": "0" * 64,
+                    "expected_decision_id": None,
+                }
+            ]
+        ),
     )
     assert resp.status_code == HTTPStatus.BAD_REQUEST
     assert list_decisions(lake) == []
@@ -455,3 +474,40 @@ def test_handle_post_refuses_unauthenticated_decisions_in_server_mode(tmp_path: 
     assert status == HTTPStatus.FORBIDDEN, body
     assert body["errors"][0]["code"] == "forbidden"
     assert list_decisions(tmp_path) == []
+
+
+@pytest.mark.parametrize("missing", ["review_basis_sha256", "expected_decision_id"])
+def test_session_decision_requires_the_inspected_queue_tokens(server, missing):
+    app, tokens, lake = server
+    client = _session_client(app, tokens["compliance_reviewer"])
+    body = _decision_body()
+    body["items"][0].pop(missing)
+    assert client.post("/api/v1/mapping-reviews/decisions", json=body).status_code == 422
+    assert list_decisions(lake) == []
+
+
+def test_http_batch_rejects_stale_definition_then_stale_history_without_partial_write(server):
+    app, tokens, lake = server
+    client = _session_client(app, tokens["compliance_reviewer"])
+    items = _proposed_items(2)
+    stale = [dict(item) for item in items]
+    stale[1]["review_basis_sha256"] = "0" * 64
+    response = client.post("/api/v1/mapping-reviews/decisions", json=_decision_body(items=stale))
+    assert response.status_code == 400
+    assert "refresh the queue" in response.text
+    assert list_decisions(lake) == []
+    assert client.post("/api/v1/mapping-reviews/decisions", json=_decision_body(items=[items[1]])).status_code == 201
+    before = list_decisions(lake)
+    response = client.post("/api/v1/mapping-reviews/decisions", json=_decision_body(items=items))
+    assert response.status_code == 400
+    assert "history changed" in response.text
+    assert list_decisions(lake) == before
+    queue = client.get("/api/v1/mapping-reviews/queue?status=all&limit=500").json()["data"]
+    current = next(
+        row
+        for row in queue
+        if row["safeguard_id"] == items[1]["safeguard_id"] and row["control_id"] == items[1]["control_id"]
+    )
+    items[1]["expected_decision_id"] = current["expected_decision_id"]
+    assert client.post("/api/v1/mapping-reviews/decisions", json=_decision_body(items=items)).status_code == 201
+    assert len(list_decisions(lake)) == 3
