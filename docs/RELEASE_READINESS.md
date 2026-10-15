@@ -19,6 +19,13 @@ before a release decision. See the [NIST assessment expansion](NIST53_ASSESSMENT
 and [CSF review packet](MAPPING_REVIEW.md#csf-20-improvement-and-recovery-review-packet)
 for assessment boundaries.
 
+The candidate also replaces 28 weak proposed SOC 2 and ISO relationships with
+22 requirement-specific assessment contracts. The [17 pending review batches](reviews/SOC2_ISO_REVIEW.md)
+cover 150 requirements and 185 candidate relationships. Cisco and Oracle provide
+implementation context; these proposals preserve earlier human review receipts
+and add no reviewed coverage. Approval of the earlier 33 batches does not approve
+this new queue.
+
 GRC Lake **0.3.4 remains the latest verified published release**. It includes
 public repository onboarding, directional evidence graphs, collection completeness
 checks, and mapping-identity fixes.
