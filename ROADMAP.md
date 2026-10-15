@@ -66,7 +66,7 @@ without an official catalog. NIST 800-171 Rev 3, NIS2 and DORA mappings are
 proposed-only; NIST RMF and ISO 27701 also need mapping review. CIS Azure/GCP
 benchmarks and ISO 27001 clauses 4–10 remain gaps.
 
-1,743 of 2,083 safeguard-to-requirement mapping rows are proposed, so 1,464 of the 1,803 mapped requirements have no reviewed mapping.
+879 of 2,083 safeguard-to-requirement mapping rows are proposed, so 675 of the 1,803 mapped requirements have no reviewed mapping.
 
 Mapping counts are effective review states: a mapping marked reviewed against an
 older control version counts as proposed until it is re-reviewed.

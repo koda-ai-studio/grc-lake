@@ -28,6 +28,7 @@ REQUIRED: dict[str, str] = {
     "frameworks/registry.json": "the framework registry",
     "connectors/catalog.json": "the connector catalog",
     "controls/safeguards.json": "the CCF safeguards (framework coverage and review queue)",
+    "controls/reviews/2026-10-14-source-batches.json": "the maintainer mapping review receipt",
     "controls/families.json": "the CCF family taxonomy (safeguard validation and family ledger)",
 }
 

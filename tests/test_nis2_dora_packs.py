@@ -227,7 +227,7 @@ def test_every_control_has_connector_hints(framework_id: str) -> None:
 
 
 @pytest.mark.parametrize("framework_id", sorted(PACKS))
-def test_mappings_are_proposed_and_cite_the_pinned_article(framework_id: str) -> None:
+def test_mappings_are_proposed_and_cite_the_pinned_article(framework_id: str, proposed_source_catalog) -> None:
     payload = load_safeguards()
     assert validate_safeguards(payload) == []
     source = _manifest(framework_id)["source"]
@@ -248,7 +248,7 @@ def test_mappings_are_proposed_and_cite_the_pinned_article(framework_id: str) ->
 
 
 @pytest.mark.parametrize("framework_id", sorted(PACKS))
-def test_unmapped_rows_are_documented(framework_id: str) -> None:
+def test_unmapped_rows_are_documented(framework_id: str, proposed_source_catalog) -> None:
     manifest = _manifest(framework_id)
     prefix = PACKS[framework_id]["prefix"]
     mapped = {member["control_id"].removeprefix(prefix) for _, member in _members(framework_id)}

@@ -11,6 +11,9 @@ from security_lakehouse.ccf_evaluation import evaluate_safeguards
 from security_lakehouse.safeguards import coverage_by_framework, load_safeguards, validate_safeguards
 from test_ccf_operational_assessment import normalized
 
+# These tests exercise the original proposal state before the receipted review.
+pytestmark = pytest.mark.usefixtures("proposed_source_catalog")
+
 ROOT = Path(__file__).resolve().parents[1]
 PLAN = json.loads((ROOT / "controls/nist53_assessment_expansion.json").read_text())
 PREFIX = "SG-NIST53-"

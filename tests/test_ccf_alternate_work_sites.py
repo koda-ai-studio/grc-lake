@@ -1,10 +1,15 @@
 """Source-backed CCF contract for safeguarding CUI at alternate work sites."""
 
+import pytest
+
 from security_lakehouse.safeguards import (
     coverage_by_framework,
     load_safeguards,
     safeguards_by_requirement,
 )
+
+# These tests exercise the original proposal state before the receipted review.
+pytestmark = pytest.mark.usefixtures("proposed_source_catalog")
 
 
 def test_alternate_work_site_safeguards_use_the_nist_800_171_crosswalk() -> None:

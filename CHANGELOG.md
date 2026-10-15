@@ -5,6 +5,8 @@ Python package, Helm chart, and bundled web console.
 
 ## 0.3.5 - 2026-10-13
 
+- Record maintainer approval of 33 source-review batches with per-mapping inspected digests. Mapped coverage is 1,803/2,252 (80.1%); reviewed coverage is 1,128/2,252 (50.1%). Stale version pins remain uncredited, source-less alternatives remain proposed, and mapping review does not establish operating effectiveness.
+
 - Bind console mapping decisions to the inspected definition and latest decision, rejecting stale batches atomically. Show the safeguard operating and evidence requirements alongside each review. Export deterministic, bounded human-review packets with distinct-requirement milestone counts, source gaps and blank decisions; preparation grants no review credit.
 
 - Bound concurrent investigation graph builds per server process (`GRC_LAKE_GRAPH_BUILD_CONCURRENCY`, default 4). Excess requests return 503 with Retry-After instead of queueing. Builds stop at the next checkpoint after a client disconnect or a configurable deadline (`GRC_LAKE_GRAPH_BUILD_TIMEOUT_SECONDS`, default 60) and never return a partial graph; the slot is released once the build thread stops.

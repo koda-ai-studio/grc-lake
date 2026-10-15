@@ -221,7 +221,7 @@ def test_review_queue_filters_to_a_cross_framework_risk_domain() -> None:
     assert len(filtered) == sum(1 for item in everything if item["risk_domain"] == "detection")
 
 
-def test_review_report_groups_frameworks_categories_and_source_gaps() -> None:
+def test_review_report_groups_frameworks_categories_and_source_gaps(proposed_source_catalog) -> None:
     report = mapping_review_report()
 
     assert report["proposed_mapping_count"] == len(report["items"])
@@ -244,7 +244,7 @@ def test_review_report_groups_frameworks_categories_and_source_gaps() -> None:
     }
 
 
-def test_review_queue_falls_back_to_safeguard_level_provenance() -> None:
+def test_review_queue_falls_back_to_safeguard_level_provenance(proposed_source_catalog) -> None:
     safeguards = {entry["safeguard_id"]: entry for entry in load_safeguards()["safeguards"]}
     queue = mapping_review_queue()
     item = next(entry for entry in queue if entry["control_id"] == "CMMC-3.1.4")
@@ -260,7 +260,7 @@ def test_review_queue_never_promotes_a_mapping() -> None:
     assert before == after
 
 
-def test_review_queue_cli_reports_the_backlog(capsys) -> None:
+def test_review_queue_cli_reports_the_backlog(capsys, proposed_source_catalog) -> None:
     from security_lakehouse.cli import main
 
     assert main(["frameworks", "review-queue"]) == 0

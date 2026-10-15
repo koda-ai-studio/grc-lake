@@ -4,11 +4,16 @@ from __future__ import annotations
 
 import copy
 
+import pytest
+
 from security_lakehouse.safeguards import (
     coverage_by_framework,
     load_safeguards,
     mapping_review_report,
 )
+
+# These tests exercise the original proposal state before the receipted review.
+pytestmark = pytest.mark.usefixtures("proposed_source_catalog")
 
 CSF_SOURCE = {
     "name": "NIST Cybersecurity Framework (CSF) 2.0",

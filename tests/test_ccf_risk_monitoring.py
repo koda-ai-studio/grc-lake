@@ -10,6 +10,9 @@ from security_lakehouse.safeguards import (
     validate_safeguards,
 )
 
+# These tests exercise the original proposal state before the receipted review.
+pytestmark = pytest.mark.usefixtures("proposed_source_catalog")
+
 EXPECTED = {
     "SG-RISKPRIORITY-001": ["NIST-CSF-ID.RA-04", "NIST-CSF-ID.RA-05"],
     "SG-RISKRESPONSE-001": ["NIST-CSF-ID.RA-06"],

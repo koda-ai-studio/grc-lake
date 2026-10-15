@@ -94,3 +94,24 @@ def replicas(catalog, tmp_path, monkeypatch):
     from distributed_fixtures import _create_distributed_replicas
 
     yield from _create_distributed_replicas(catalog, tmp_path, monkeypatch)
+
+
+@pytest.fixture
+def proposed_source_catalog(tmp_path_factory, monkeypatch):
+    """Exercise proposal-to-review behavior independently of later maintainer decisions.
+
+    Only the explicitly receipted batch decisions are rolled back in this temporary
+    catalog. The shipped catalog and live receipt/coverage tests remain untouched.
+    """
+    from security_lakehouse import safeguards
+
+    payload = json.loads(safeguards.DEFAULT_SAFEGUARDS.read_text())
+    for entry in payload["safeguards"]:
+        for member in entry["satisfies"]:
+            if member.get("maintainer_review_ref") == "controls/reviews/2026-10-14-source-batches.json":
+                member["review_status"] = "proposed"
+                for key in ("maintainer_review_ref", "reviewed_by", "reviewed_at"):
+                    member.pop(key)
+    path = tmp_path_factory.mktemp("proposal-catalog") / "safeguards.json"
+    path.write_text(json.dumps(payload))
+    monkeypatch.setattr(safeguards, "DEFAULT_SAFEGUARDS", path)

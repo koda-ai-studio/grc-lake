@@ -191,7 +191,7 @@ def test_every_control_has_evidence_types_and_hints() -> None:
         assert _framework_from_control(control_id) == FRAMEWORK_ID
 
 
-def test_safeguard_mappings_are_proposed_cited_and_leave_lanes_alone() -> None:
+def test_safeguard_mappings_are_proposed_cited_and_leave_lanes_alone(proposed_source_catalog) -> None:
     payload = load_safeguards()
     assert validate_safeguards(payload) == []
     pdf = MANIFEST["source"]["pdf"]
@@ -219,7 +219,7 @@ def test_safeguard_mappings_are_proposed_cited_and_leave_lanes_alone() -> None:
             assert source["locator"].endswith(f"requirement {requirement}")
 
 
-def test_unmapped_requirements_are_exactly_the_documented_gaps() -> None:
+def test_unmapped_requirements_are_exactly_the_documented_gaps(proposed_source_catalog) -> None:
     mapped = {member["control_id"].removeprefix(PREFIX) for _, member in _members()}
     assert set(rows := {row["id"] for row in MANIFEST["rows"]}) - mapped == set(UNMAPPED)
     assert mapped <= rows

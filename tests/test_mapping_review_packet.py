@@ -2,9 +2,14 @@
 
 from copy import deepcopy
 
+import pytest
+
 from security_lakehouse.mapping_review import list_decisions
 from security_lakehouse.mapping_review_packet import build_review_packet
 from security_lakehouse.safeguards import load_safeguards
+
+# These tests exercise the original proposal state before the receipted review.
+pytestmark = pytest.mark.usefixtures("proposed_source_catalog")
 
 
 def test_packet_is_deterministic_read_only_and_deduplicates_requirements(tmp_path):

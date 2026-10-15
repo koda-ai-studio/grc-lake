@@ -77,7 +77,7 @@ def test_corrected_rows_are_versioned_and_unreviewed() -> None:
     assert art27["source_reconciled_by"] == "automated-source-reconciliation"
 
 
-def test_safeguard_mappings_follow_the_correct_meaning() -> None:
+def test_safeguard_mappings_follow_the_correct_meaning(proposed_source_catalog) -> None:
     art49 = _homes("EU-AI-ACT-Art.49")
     assert "SG-RISKMANAGEMENT-001" not in art49
     assert set(art49) == {"SG-AIGOVERNANCE-001"}

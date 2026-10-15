@@ -14,6 +14,7 @@ import argparse
 import hashlib
 import json
 import re
+from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
@@ -169,6 +170,16 @@ def build_entries(raw: bytes, plan: dict[str, Any], catalog: dict[str, Any]) -> 
     return entries
 
 
+def source_contract(entry: dict) -> dict:
+    """Compare source semantics while preserving separately recorded human decisions."""
+    contract = deepcopy(entry)
+    for member in contract["satisfies"]:
+        member["review_status"] = "proposed"
+        for field in ("maintainer_review_ref", "reviewed_by", "reviewed_at"):
+            member.pop(field, None)
+    return contract
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source", type=Path, required=True)
@@ -179,14 +190,14 @@ def main() -> None:
     payload = json.loads(SAFEGUARDS_PATH.read_text())
     existing = [e for e in payload["safeguards"] if e["safeguard_id"].startswith(PREFIX)]
     if args.check:
-        if existing != entries:
+        if [source_contract(entry) for entry in existing] != entries:
             raise SystemExit("NIST assessment safeguards differ from their pinned source")
     else:
         if any(e.get("reviewed_by") or any(m["review_status"] != "proposed" for m in e["satisfies"]) for e in existing):
             raise SystemExit("refusing to overwrite human-reviewed safeguards; reconcile their review basis explicitly")
         payload["safeguards"] = [e for e in payload["safeguards"] if not e["safeguard_id"].startswith(PREFIX)] + entries
         SAFEGUARDS_PATH.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n")
-    print(f"Verified {len(entries)} proposed obligation-specific safeguards against the pinned NIST source")
+    print(f"Verified {len(entries)} obligation-specific source contracts against the pinned NIST source")
 
 
 if __name__ == "__main__":

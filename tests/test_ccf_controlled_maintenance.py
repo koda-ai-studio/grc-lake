@@ -1,6 +1,11 @@
 """Source-backed CCF contract for controlled system maintenance."""
 
+import pytest
+
 from security_lakehouse.safeguards import load_safeguards, safeguards_by_requirement
+
+# These tests exercise the original proposal state before the receipted review.
+pytestmark = pytest.mark.usefixtures("proposed_source_catalog")
 
 
 def test_controlled_maintenance_uses_the_nist_800_171_crosswalk() -> None:

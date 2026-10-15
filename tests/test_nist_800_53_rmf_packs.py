@@ -76,12 +76,13 @@ def test_new_packs_are_honest_about_review_state() -> None:
     assert registry["nist-rmf-800-37r2"]["source_sha256"] == RMF["source"]["pdf_sha256"]
 
 
-def test_800_53_twins_share_the_review_state_of_the_identical_fedramp_mapping() -> None:
+def test_800_53_twins_share_the_review_state_of_the_identical_fedramp_mapping(proposed_source_catalog) -> None:
     """A FedRAMP Moderate control *is* the NIST SP 800-53 control of the same id.
 
     A human review of the FedRAMP mapping therefore reviews the identical
     800-53 requirement. The twin inherits that review, records where it came
-    from, and must follow the original if it is ever demoted.
+    from, and must follow the original if it is ever demoted. This fixture
+    isolates inherited reviews from later explicit maintainer decisions.
     """
     inherited = 0
     for safeguard in load_safeguards()["safeguards"]:
