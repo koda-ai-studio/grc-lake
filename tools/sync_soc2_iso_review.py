@@ -69,9 +69,12 @@ def cisco_index(raw: bytes, pin: dict) -> dict:
                 pattern = (
                     r"(?<![\w.])(?:A\.)?([5-8]\.\d+)(?![\w.])"
                     if column == "BI"
-                    else r"(?<![\w.])((?:CC|A|C|P)\d+\.\d+)(?![\w.])"
+                    else r"(?<![\w.])((?:CC|A|C|P)[ \t]*\d+\.\d+)(?![\w.])"
                 )
-                for ref in sorted(set(re.findall(pattern, text))):
+                # Cisco uses both CC1.3 and CC 1.3. Normalize only horizontal
+                # spacing within an explicit identifier, before deduplication.
+                refs = {re.sub(r"[ \t]+", "", ref) for ref in re.findall(pattern, text)}
+                for ref in sorted(refs):
                     cid = "ISO27001-A." + ref if column == "BI" else "SOC2-" + ref
                     index.setdefault(cid, []).append(
                         {

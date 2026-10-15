@@ -7152,13 +7152,6 @@
           "control_version": "1.1.0"
         },
         {
-          "control_id": "SOC2-CC1.3",
-          "framework_id": "soc2",
-          "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
-        },
-        {
           "control_id": "CMMC-3.1.3",
           "framework_id": "cmmc-2-level2",
           "role": "equivalent",
@@ -33618,6 +33611,36 @@
             "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
             "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
             "locator": "CCF 147; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-REVIEW-SOC2-CC1-3",
+      "title": "Management establishes structure, authority, and responsibility",
+      "risk_domain": "governance",
+      "objective": "Assess the requirement “Management establishes structure, authority, and responsibility” within the declared system, period, and population.",
+      "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test documented organizational structures and reporting lines, board oversight of authority and responsibility assignments, approved delegations and accountability, communication of role changes, and periodic evaluation and adjustment as objectives change. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["review_soc2_cc1_3"],
+      "satisfies": [
+        {
+          "control_id": "SOC2-CC1.3",
+          "framework_id": "soc2",
+          "role": "primary",
+          "control_version": "1.0.0",
+          "review_status": "proposed",
+          "mapping_basis": "vendor_guided_proposal",
+          "mapping_source": {
+            "name": "Cisco Cloud Controls Framework 4.0",
+            "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
+            "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
+            "locator": "CCF 127 (BD133); CCF 128 (BD134); CCF 129 (BD135), explicit CC 1.3 references in the SOC 2 2022 column; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement. Evaluate the remaining role-register candidate separately; a role list alone does not establish board oversight or reporting relationships."
           }
         }
       ]
