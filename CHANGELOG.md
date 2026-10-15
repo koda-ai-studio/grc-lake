@@ -11,7 +11,7 @@ Python package, Helm chart, and bundled web console.
 
 - Bound concurrent investigation graph builds per server process (`GRC_LAKE_GRAPH_BUILD_CONCURRENCY`, default 4). Excess requests return 503 with Retry-After instead of queueing. Builds stop at the next checkpoint after a client disconnect or a configurable deadline (`GRC_LAKE_GRAPH_BUILD_TIMEOUT_SECONDS`, default 60) and never return a partial graph; the slot is released once the build thread stops.
 
-- Add five proposed NIST CSF 2.0 mappings for evaluation and operational improvement, recovery initiation, post-incident operating norms, and recovery completion. Each requires distinct assessment evidence and a separate mapping review. All 106 CSF outcomes now have a catalog mapping; overall mapped coverage is 1,422 of 2,252 requirements (63.1%), while reviewed coverage remains 339 (15.1%). Catalog coverage does not establish assessment or compliance.
+- Add five NIST CSF 2.0 mappings for evaluation and operational improvement, recovery initiation, post-incident operating norms, and recovery completion, plus 381 source-native NIST 800-53 assessment safeguards. Each has a distinct assessment contract; their mapping approvals are included in the maintainer decision above. All 106 CSF outcomes now have a catalog mapping. Catalog coverage does not establish assessment or compliance.
 
 - Exclude ambiguous safeguard identities and repeated requirement mappings from coverage totals and OSCAL component exports. Preserve raw records for repair and keep valid sibling mappings eligible; conflicting rows cannot earn review credit by selecting the most favorable entry.
 

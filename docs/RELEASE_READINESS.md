@@ -7,15 +7,17 @@ safeguard mapping pages, and CCF coverage and export validation listed in the
 Package, console, chart, Compose defaults and CI examples target 0.3.5; those
 versioned references become usable only after publication gates succeed.
 
-The candidate includes five proposed CSF mappings and 381 proposed, source-native
-NIST 800-53 assessment safeguards. Overall mapped coverage is 1,803 of 2,252
-requirements (80.1%); reviewed coverage remains 339 (15.1%). The mapped target is
-met in this candidate; the 50% reviewed target still requires 787 additional
-reviewed requirements. These are catalog measures, not assessment results.
-Release qualification remains on hold for the agreed review milestone and the
-combined audit. The [NIST assessment expansion](NIST53_ASSESSMENTS.md) and
-[CSF review packet](MAPPING_REVIEW.md#csf-20-improvement-and-recovery-review-packet)
-require human mapping decisions before they earn review credit.
+The candidate includes five CSF mappings, 381 source-native NIST 800-53
+assessment safeguards, and the maintainer's approval of 33 source-review batches.
+Overall mapped coverage is 1,803 of 2,252 requirements (80.1%); reviewed coverage
+is 1,128 (50.1%). Both agreed catalog milestones are met in this candidate.
+The [recorded decision](../controls/reviews/2026-10-14-source-batches.json)
+binds the approval to the inspected mappings; 17 requirements with stale version
+pins remain uncredited. These are catalog measures, not assessment results.
+The combined audit, final-main CI and publication gates below remain required
+before a release decision. See the [NIST assessment expansion](NIST53_ASSESSMENTS.md)
+and [CSF review packet](MAPPING_REVIEW.md#csf-20-improvement-and-recovery-review-packet)
+for assessment boundaries.
 
 GRC Lake **0.3.4 remains the latest verified published release**. It includes
 public repository onboarding, directional evidence graphs, collection completeness

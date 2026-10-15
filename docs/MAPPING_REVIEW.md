@@ -265,11 +265,11 @@ reader defaults or claim that a mapping establishes operating effectiveness.
 ## CSF 2.0 improvement and recovery review packet
 
 This bounded slice covers ID.IM-01, ID.IM-03, RS.MA-05, RC.RP-04 and RC.RP-06.
-Each outcome has a separate proposed safeguard and a typed assessment-evidence
+Each outcome has a separate safeguard and a typed assessment-evidence
 contract in `controls/safeguards.json`. The source is
 [NIST CSF 2.0, Appendix A](https://nvlpubs.nist.gov/nistpubs/CSWP/NIST.CSWP.29.pdf),
 SHA-256 `3c31f46fee98cac0c4323453e5109291a213b4de7fef8c058af9bf67f717433c`.
-These are direct outcome proposals, not cross-framework equivalence claims.
+These are direct outcome mappings, not cross-framework equivalence claims.
 
 | Outcome  | Safeguard                     | Evidence to inspect before deciding equivalence                                                |
 | -------- | ----------------------------- | ---------------------------------------------------------------------------------------------- |
@@ -281,18 +281,19 @@ These are direct outcome proposals, not cross-framework equivalence claims.
 
 A qualified reviewer should compare each evidence contract and its limits with
 the cited outcome, then record `approve`, `needs_changes` or `reject` through the
-existing mapping-review workflow. No reviewer or decision has been recorded for
-this packet. The typed evidence names identify assessment records; they do not
+existing mapping-review workflow. The maintainer approved all five mappings in
+the [33-batch decision receipt](../controls/reviews/2026-10-14-source-batches.json).
+The typed evidence names identify assessment records; they do not
 claim a connector automatically extracts or semantically verifies these records.
 An assessor must establish the meaning of the record and bind the outcome to the
 specific safeguard. Framework tags, generic tickets and service health alone do
 not establish these outcomes.
 
 This slice adds five distinct mapped requirements, bringing CSF catalog mapping
-coverage to 106/106. It adds no reviewed requirements. Fresh, correctly typed,
-explicitly bound passing evidence still cannot produce a requirement pass until
-its mapping is reviewed; absent, stale, unrelated or non-conclusive evidence
-cannot establish operating effectiveness after review either. Full catalog
+coverage to 106/106. All five now earn review credit; CSF has 72/106 reviewed
+requirements overall. A reviewed mapping still needs fresh, correctly typed,
+explicitly bound passing evidence to support a requirement pass. Absent, stale,
+unrelated or non-conclusive evidence cannot establish operating effectiveness. Full catalog
 mapping coverage is not certification or complete asset-population coverage.
 
 ## Prepare bounded human review batches

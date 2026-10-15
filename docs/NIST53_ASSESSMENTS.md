@@ -1,8 +1,9 @@
 # NIST 800-53 assessment expansion
 
-This expansion adds 381 **proposed, source-native safeguards** for previously
-unmapped NIST SP 800-53 Rev. 5 obligations. It brings catalog mapping coverage to
-1,803 of 2,252 requirements (80.1%). Reviewed coverage remains 339 (15.1%).
+This expansion added 381 **source-native safeguards**, initially proposed, for
+previously unmapped NIST SP 800-53 Rev. 5 obligations. Catalog mapping coverage is
+1,803 of 2,252 requirements (80.1%). After the maintainer approved the 33
+source-review batches, reviewed coverage is 1,128 (50.1%).
 It does not establish 381 cross-framework equivalences or completed assessments.
 
 The scope closes the remaining catalog gaps in nine NIST families:
@@ -41,7 +42,7 @@ Access Control and Identification/Authentication therefore have more entries
 than smaller families. Each source family must match the governed CCF taxonomy.
 The existing 15% anti-catch-all distribution check remains on reusable common
 safeguards; native contracts are checked against their actual source family.
-Existing common safeguards and their reviews are unchanged. A future reusable
+The expansion left existing common safeguards and their reviews unchanged. A future reusable
 cross-framework mapping requires its own rationale and human review.
 
 To reproduce the extraction, download the pinned catalog above, then run:
@@ -52,7 +53,8 @@ PYTHONPATH=src python tools/sync_nist53_assessment_safeguards.py --source NIST_S
 
 The command verifies the complete source digest and version, rejects withdrawn or
 missing targets and unresolved parameters, and compares the resulting definitions
-with the checked-in safeguards. Without `--check`, it regenerates only this
+with the checked-in safeguards, excluding human review metadata from that
+source-contract comparison. Without `--check`, it regenerates only this
 expansion. It refuses to overwrite definitions that have recorded human reviews.
 Catalog lock, coverage documents and golden artifacts must then be regenerated
 with their owning commands.
@@ -75,5 +77,8 @@ Reviewers should compare each operating contract with its cited source and recor
 approve, needs-changes or reject with a rationale. Approval of a source-native
 mapping establishes that contract's mapping, not a cross-framework equivalence,
 the assessed organization's implementation, population completeness or certification.
-The remaining target is at least 1,126 reviewed requirements (50%): 787 more than
-the current catalog. Unrelated PR approvals do not supply those mapping decisions.
+The [maintainer decision receipt](../controls/reviews/2026-10-14-source-batches.json)
+records the approval of all 33 prepared source-review batches, including these
+381 safeguards. Overall reviewed coverage exceeds the 1,126-requirement (50%)
+target. Stale version pins still prevent review credit for 17 other approved
+requirements. Unrelated PR approvals do not supply mapping decisions.
