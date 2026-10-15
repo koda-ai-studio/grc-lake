@@ -55,6 +55,7 @@ from security_lakehouse.safeguards import (
     load_safeguards,
     mapping_review_items,
     member_mapping_source,
+    unambiguous_safeguards,
 )
 
 logger = logging.getLogger(__name__)
@@ -199,6 +200,7 @@ def record_decisions(
     index = _index(shipped)
     controls = load_control_catalog()
     resolved: list[tuple[MappingKey, JsonObject, JsonObject]] = []
+    expected_decisions: dict[MappingKey, str | None] = {}
     seen: set[MappingKey] = set()
     for raw in requested:
         if not isinstance(raw, Mapping):
@@ -222,9 +224,19 @@ def record_decisions(
             raise MappingReviewError(f"mapping target {control_id} is not in the control catalog")
         if control.get("framework_id") != shipped_framework:
             raise MappingReviewError(f"mapping target {control_id} does not match its catalog framework")
+        expected_basis = raw.get("review_basis_sha256")
+        if "review_basis_sha256" in raw and expected_basis != review_basis(entry, member, control):
+            raise MappingReviewError(
+                "mapping definition changed or its review basis is invalid; refresh the queue and review again"
+            )
         if key in seen:
             raise MappingReviewError(f"mapping {safeguard_id} -> {control_id} appears twice in one decision")
         seen.add(key)
+        if "expected_decision_id" in raw:
+            expected = raw["expected_decision_id"]
+            if expected is not None and (not isinstance(expected, str) or not expected.strip()):
+                raise MappingReviewError("expected_decision_id must be a decision ID or null")
+            expected_decisions[key] = expected
         resolved.append((key, entry, member))
 
     decided_at = utc_iso(now or datetime.now(UTC))
@@ -242,6 +254,8 @@ def record_decisions(
         latest: dict[MappingKey, str] = {}
         for row in rows:
             latest[(str(row.get("safeguard_id")), str(row.get("control_id")))] = str(row.get("decision_id"))
+        if any(latest.get(key) != expected for key, expected in expected_decisions.items()):
+            raise MappingReviewError("mapping decision history changed; refresh the queue and review again")
         records: list[JsonObject] = []
         for key, entry, member in resolved:
             decision_id = uuid.uuid4().hex
@@ -528,7 +542,9 @@ def list_review_items(
     risk_domain: str | None = None,
 ) -> list[JsonObject]:
     """Every mapping with its effective state, basis, source anchor and latest decision."""
-    effective = effective_safeguards(lake_dir, payload=payload)
+    shipped = payload if payload is not None else load_safeguards()
+    index = _index({**shipped, "safeguards": unambiguous_safeguards(shipped)})
+    effective = effective_safeguards(lake_dir, payload=shipped)
     org_reviews = {
         (str(entry["safeguard_id"]), str(member.get("control_id"))): member.get("org_review")
         for entry in effective.get("safeguards", [])
@@ -545,7 +561,32 @@ def list_review_items(
         key = (item["safeguard_id"], item["control_id"])
         item["control_title"] = catalog.get(item["control_id"], {}).get("title")
         item["latest_decision"] = org_reviews.get(key)
+        item["expected_decision_id"] = (org_reviews.get(key) or {}).get("decision_id")
         item["decision_count"] = counts.get(key, 0)
+        found = index.get(key)
+        control = catalog.get(item["control_id"])
+        item["review_basis_sha256"] = (
+            review_basis(found[0], found[1], control)
+            if found is not None and control is not None and control.get("framework_id") == item["framework_id"]
+            else None
+        )
+        item["operating_contract"] = (
+            {
+                field: found[0].get(field)
+                for field in (
+                    "objective",
+                    "evidence_requirement",
+                    "evaluation_rule",
+                    "asset_types",
+                    "required_evidence_types",
+                    "frequency",
+                    "owner",
+                )
+            }
+            if found is not None
+            else None
+        )
+        item["requirement_evidence"] = control.get("evidence_requirement") if control is not None else None
     return items
 
 

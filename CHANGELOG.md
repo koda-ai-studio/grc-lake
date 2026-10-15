@@ -5,6 +5,8 @@ Python package, Helm chart, and bundled web console.
 
 ## 0.3.5 - 2026-10-13
 
+- Bind console mapping decisions to the inspected definition and latest decision, rejecting stale batches atomically. Show the safeguard operating and evidence requirements alongside each review. Export deterministic, bounded human-review packets with distinct-requirement milestone counts, source gaps and blank decisions; preparation grants no review credit.
+
 - Bound concurrent investigation graph builds per server process (`GRC_LAKE_GRAPH_BUILD_CONCURRENCY`, default 4). Excess requests return 503 with Retry-After instead of queueing. Builds stop at the next checkpoint after a client disconnect or a configurable deadline (`GRC_LAKE_GRAPH_BUILD_TIMEOUT_SECONDS`, default 60) and never return a partial graph; the slot is released once the build thread stops.
 
 - Add five proposed NIST CSF 2.0 mappings for evaluation and operational improvement, recovery initiation, post-incident operating norms, and recovery completion. Each requires distinct assessment evidence and a separate mapping review. All 106 CSF outcomes now have a catalog mapping; overall mapped coverage is 1,422 of 2,252 requirements (63.1%), while reviewed coverage remains 339 (15.1%). Catalog coverage does not establish assessment or compliance.

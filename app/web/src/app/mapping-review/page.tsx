@@ -289,7 +289,11 @@ function DecisionForm({
   const record = useRecordMappingReviewMutation();
   const [rationale, setRationale] = useState("");
   const [evidenceRef, setEvidenceRef] = useState("");
-  const ready = canDecide && items.length > 0 && rationale.trim().length > 0;
+  const ready =
+    canDecide &&
+    items.length > 0 &&
+    items.every((item) => !!item.review_basis_sha256) &&
+    rationale.trim().length > 0;
 
   const submit = (decision: MappingReviewDecisionKind) => {
     if (!ready) return;
@@ -310,6 +314,8 @@ function DecisionForm({
           safeguard_id: item.safeguard_id,
           control_id: item.control_id,
           framework_id: item.framework_id,
+          review_basis_sha256: item.review_basis_sha256!,
+          expected_decision_id: item.expected_decision_id,
         })),
       },
       {
@@ -321,7 +327,10 @@ function DecisionForm({
           setEvidenceRef("");
           onDone();
         },
-        onError: (error) => notify.error(error.message),
+        onError: (error) => {
+          notify.error(error.message);
+          if (error.message.includes("refresh the queue")) onDone();
+        },
       },
     );
   };
@@ -491,6 +500,48 @@ function HistoryDrawer({
           </dl>
 
           <section
+            aria-label="Mapping evidence contract"
+            className="grid gap-3"
+          >
+            <h3 className="ui-section-title">Compare the obligations</h3>
+            {item.operating_contract ? (
+              <>
+                <p className="whitespace-pre-wrap text-ink">
+                  {item.operating_contract.objective}
+                </p>
+                <details>
+                  <summary className="cursor-pointer text-brand">
+                    Evidence and assessment requirements
+                  </summary>
+                  <p className="mt-2 whitespace-pre-wrap text-muted">
+                    {item.operating_contract.evidence_requirement}
+                  </p>
+                  <p className="mt-2 text-muted">
+                    Required evidence types:{" "}
+                    {item.operating_contract.required_evidence_types?.join(
+                      ", ",
+                    ) || "As specified by the contract"}
+                  </p>
+                  <p className="mt-2 text-muted">
+                    Asset types:{" "}
+                    {item.operating_contract.asset_types?.join(", ")}
+                  </p>
+                </details>
+              </>
+            ) : (
+              <p className="text-muted">
+                This mapping has no unambiguous operating contract. Resolve its
+                catalog identity before deciding.
+              </p>
+            )}
+            {item.requirement_evidence ? (
+              <p className="whitespace-pre-wrap text-muted">
+                Requirement evidence: {item.requirement_evidence}
+              </p>
+            ) : null}
+          </section>
+
+          <section
             aria-labelledby="mapping-history-title"
             className="grid gap-2"
           >
@@ -500,8 +551,8 @@ function HistoryDrawer({
             <QueryState queries={history} label="decision history">
               {rows.length === 0 ? (
                 <p className="text-xs text-muted">
-                  No org decisions yet. The shipped status is{" "}
-                  {item.shipped_review_status}.
+                  No organization decisions yet. Current state:{" "}
+                  {MAPPING_REVIEW_GLOSSARY[item.review_state].label}.
                 </p>
               ) : (
                 <ol className="grid gap-2">
@@ -515,7 +566,15 @@ function HistoryDrawer({
                           {DECISION_LABEL[row.decision]}
                         </Badge>
                         {index === 0 ? (
-                          <Badge tone="default">In force</Badge>
+                          <Badge tone="default">
+                            {item.latest_decision?.decision_id !==
+                            row.decision_id
+                              ? "Refresh review state"
+                              : row.decision === "approve" &&
+                                  item.latest_decision.basis_verified !== true
+                                ? "Needs renewed review"
+                                : "In force"}
+                          </Badge>
                         ) : (
                           <Badge tone="outline">Superseded</Badge>
                         )}
@@ -569,7 +628,9 @@ function MappingReviewContent() {
   const [status, setStatus] = useState("pending");
   const [query, setQuery] = useState("");
   const [offset, setOffset] = useState(0);
-  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [selected, setSelected] = useState<Map<string, MappingReviewItem>>(
+    new Map(),
+  );
   const [historyItem, setHistoryItem] = useState<MappingReviewItem | null>(
     null,
   );
@@ -597,23 +658,29 @@ function MappingReviewContent() {
     }
     return [...groups.entries()].sort(([a], [b]) => a.localeCompare(b));
   }, [summaryFamilies]);
-  const selectedItems = items.filter((item) => selected.has(mappingKey(item)));
+  // Preserve the inspected rows when a background refetch changes the queue.
+  const selectedItems = [...selected.values()];
   const allOnPageSelected =
     items.length > 0 && items.every((item) => selected.has(mappingKey(item)));
 
   const resetPaging = () => {
     setOffset(0);
-    setSelected(new Set());
+    setSelected(new Map());
   };
-  const toggle = (key: string) =>
+  const toggle = (item: MappingReviewItem) =>
     setSelected((prev) => {
-      const next = new Set(prev);
+      const key = mappingKey(item);
+      const next = new Map(prev);
       if (next.has(key)) next.delete(key);
-      else next.add(key);
+      else next.set(key, item);
       return next;
     });
   const toggleAll = () =>
-    setSelected(allOnPageSelected ? new Set() : new Set(items.map(mappingKey)));
+    setSelected(
+      allOnPageSelected
+        ? new Map()
+        : new Map(items.map((item) => [mappingKey(item), item])),
+    );
 
   const frameworkNames = summary.data?.framework_names ?? {};
   const frameworkOptions = Object.entries(frameworkNames).sort((a, b) =>
@@ -743,7 +810,7 @@ function MappingReviewContent() {
           <DecisionForm
             items={selectedItems}
             canDecide={canDecide}
-            onDone={() => setSelected(new Set())}
+            onDone={() => setSelected(new Map())}
           />
         </section>
 
@@ -821,7 +888,7 @@ function MappingReviewContent() {
                           type="checkbox"
                           aria-label={`Select ${item.safeguard_id} ${item.control_id}`}
                           checked={selected.has(key)}
-                          onChange={() => toggle(key)}
+                          onChange={() => toggle(item)}
                           className="h-4 w-4 accent-brand"
                         />
                       </td>
@@ -915,7 +982,7 @@ function MappingReviewContent() {
               disabled={offset === 0}
               onClick={() => {
                 setOffset(Math.max(0, offset - PAGE_SIZE));
-                setSelected(new Set());
+                setSelected(new Map());
               }}
             >
               Previous
@@ -925,7 +992,7 @@ function MappingReviewContent() {
               disabled={offset + PAGE_SIZE >= count}
               onClick={() => {
                 setOffset(offset + PAGE_SIZE);
-                setSelected(new Set());
+                setSelected(new Map());
               }}
             >
               Next

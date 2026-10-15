@@ -53,6 +53,10 @@ export function useRecordMappingReviewMutation() {
   return useMutation({
     mutationFn: (payload: MappingReviewDecisionRequest) =>
       api.recordMappingReview(payload),
+    onError: () => {
+      // A conflict means the inspected queue may no longer be current.
+      void qc.invalidateQueries({ queryKey: ["mapping-review"] });
+    },
     onSuccess: () => {
       // Decisions change coverage everywhere it is shown.
       void qc.invalidateQueries({ queryKey: ["mapping-review"] });

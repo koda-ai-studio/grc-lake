@@ -92,3 +92,68 @@ def test_legacy_approval_cannot_verify_an_invalid_target(tmp_path, monkeypatch, 
                 assert row["org_review"]["basis_verified"] is False
                 assert row["org_review"]["decision_id"] == "historical"
     assert payload == before
+
+
+def test_queue_exposes_the_exact_shipped_semantic_basis(tmp_path):
+    payload = _payload()
+    items = mapping_review.list_review_items(tmp_path, payload=payload)
+    catalog = mapping_review.load_control_catalog()
+    for item, member in zip(items, payload["safeguards"][0]["satisfies"], strict=True):
+        assert item["review_basis_sha256"] == review_basis(
+            payload["safeguards"][0], member, catalog[member["control_id"]]
+        )
+
+
+@pytest.mark.parametrize("decision", ["approve", "reject", "needs_changes"])
+def test_changed_basis_between_inspection_and_decision_rejects_the_whole_batch(tmp_path, decision):
+    payload = _payload()
+    items = _items(payload)
+    catalog = mapping_review.load_control_catalog()
+    for item, member in zip(items, payload["safeguards"][0]["satisfies"], strict=True):
+        item["review_basis_sha256"] = review_basis(payload["safeguards"][0], member, catalog[member["control_id"]])
+    _record(tmp_path, payload)
+    log, tip = mapping_review.review_log_path(tmp_path), mapping_review.review_tip_path(tmp_path)
+    before = log.read_bytes(), tip.read_bytes()
+    payload["safeguards"][0]["satisfies"][1]["mapping_source"] = {"locator": "changed source obligation"}
+    with pytest.raises(mapping_review.MappingReviewError, match="changed.*refresh"):
+        mapping_review.record_decisions(
+            tmp_path,
+            items=items,
+            decision=decision,
+            rationale="Reviewed the earlier definitions.",
+            reviewer="synthetic-reviewer",
+            payload=payload,
+        )
+    assert (log.read_bytes(), tip.read_bytes()) == before
+
+
+def test_basis_from_queue_remains_valid_after_an_org_decision_overlay(tmp_path):
+    payload = _payload()
+    _record(tmp_path, payload)
+    items = mapping_review.list_review_items(tmp_path, payload=payload)
+    rows = mapping_review.record_decisions(
+        tmp_path,
+        items=items,
+        decision="needs_changes",
+        rationale="Synthetic follow-up review.",
+        reviewer="synthetic-reviewer",
+        payload=payload,
+    )
+    assert [row["review_basis_sha256"] for row in rows] == [item["review_basis_sha256"] for item in items]
+
+
+def test_another_reviewers_decision_cannot_be_silently_overwritten(tmp_path):
+    payload = _payload()
+    items = [{**item, "expected_decision_id": None} for item in _items(payload)]
+    _record(tmp_path, payload, "reject")
+    before = mapping_review.review_log_path(tmp_path).read_bytes()
+    with pytest.raises(mapping_review.MappingReviewError, match="history changed.*refresh"):
+        mapping_review.record_decisions(
+            tmp_path,
+            items=items,
+            decision="approve",
+            rationale="Inspected before the other review.",
+            reviewer="second-synthetic-reviewer",
+            payload=payload,
+        )
+    assert mapping_review.review_log_path(tmp_path).read_bytes() == before
