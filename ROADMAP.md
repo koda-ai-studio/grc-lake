@@ -1,15 +1,15 @@
 # GRC Lake roadmap
 
-Status as of v0.3.4, checked **2026-10-13**; **v0.3.4 is published**.
+Status as of v0.3.5, checked **2026-10-15**; **v0.3.5 is published**.
 Start with [current state and coverage](docs/CURRENT_STATE.md) for shipped paths
 and qualification boundaries. This roadmap describes remaining work, not promises
 of release dates.
 
 ## Next milestone: deepen qualification
 
-Version 0.3.4 adds public repository URL onboarding, directional evidence graphs,
-and collection-completeness fixes. It retains the investigation, connector-workflow
-and AI-worklist changes, shared assessment services and bounded recovery behavior. Exact-main CI,
+Version 0.3.5 adds graph outcome and mapping-identity fixes, bounded graph builds,
+and CCF coverage and export validation. It includes the NIST mapping expansion
+and proposed SOC 2 and ISO assessment contracts. Exact-main CI,
 release qualification and published-artifact checks passed; see
 [release readiness](docs/RELEASE_READINESS.md). Provider depth, independent mapping
 review and measured capacity remain separate work below. Correctness, security,
@@ -58,12 +58,12 @@ Public repository URL onboarding shipped in 0.3.4 ([#911](https://github.com/kod
 
 ## Coverage still incomplete
 
-The agreed catalog milestones are met in the 0.3.5 candidate: 80.1% mapped and
+The agreed catalog milestones are met in 0.3.5: 80.1% mapped and
 50.1% reviewed. The [NIST assessment expansion](docs/NIST53_ASSESSMENTS.md) and
 [maintainer approval of 33 source-review batches](controls/reviews/2026-10-14-source-batches.json)
-provide the mapping and review increases. Complete the combined audit and
-final-main qualification before the release decision. A merged mapping proposal
-or passing CI does not approve a mapping.
+provide the mapping and review increases. Release qualification passed; it does
+not approve additional mappings. A merged proposal or passing CI does not
+approve a mapping.
 
 Prioritize the next bounded review batches for SOC 2, ISO 27001 and ISO 42001.
 Prepare clause-specific source evidence, safeguard rationale, evidence requirements
@@ -89,7 +89,7 @@ provider HA and production capacity remain unqualified by this audit.
 
 ## Release work
 
-v0.3.4 is published. The earlier 0.3.3 changes include dependency remediation,
+v0.3.5 is published. The earlier 0.3.3 changes include dependency remediation,
 authentication hardening, evidence eligibility, versioned CCF governance, exact
 lineage and frozen requirement-gap explanations. The console now exposes those
 gaps and record-level investigation, with bounded graph navigation and shared
