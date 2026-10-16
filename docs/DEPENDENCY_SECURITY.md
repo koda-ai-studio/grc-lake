@@ -1,6 +1,6 @@
 # Dependency security scope
 
-Lockfile review: 2026-10-12. Release image scan: 2026-10-15. Dependency advisories
+Lockfile review: 2026-10-12. Release image scan: 2026-10-16. Dependency advisories
 change; rerun both production and full build-tool audits when reviewing or
 upgrading the lockfiles.
 
@@ -36,6 +36,22 @@ CI and release qualification also retain full, unfiltered JSON vulnerability
 reports for 14 days, including when the fixable-only scan blocks the job. See
 [Scorecard evidence](SCORECARD_REMEDIATION.md#vulnerability-and-release-evidence)
 for artifact names and the separate Best Practices review requirements.
+
+### 0.3.6 release qualification scans
+
+The [release workflow](https://github.com/koda-ai-studio/grc-lake/actions/runs/38924465945)
+on source `17a011b8` completed on 2026-10-16 UTC. AMD64 and emulated ARM64 passed
+installed-dependency checks, the fixable-vulnerability gate, and authenticated
+runtime probes. Each unfiltered report contains 164 Debian package/advisory
+findings: 44 HIGH, 58 MEDIUM, 61 LOW, and one UNKNOWN, with no listed fixed versions.
+There are zero fixable MEDIUM/HIGH/CRITICAL findings. The eight distinct HIGH CVEs
+remain open; this does not establish non-exploitability or satisfy the Best
+Practices vulnerability-age criterion.
+
+Published filesystem layers and runtime configuration match the scanned images.
+[Release verification](RELEASE_READINESS.md#verified-036-publication) records the
+published digests, package hashes, and provenance checks. The workflow retains
+full scan reports and architecture receipts for 14 days.
 
 ### 0.3.5 release qualification scans
 

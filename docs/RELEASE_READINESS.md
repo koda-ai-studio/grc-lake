@@ -1,81 +1,79 @@
 # Release readiness
 
-GRC Lake **0.3.6 is a source candidate; it is not published**. Package, console,
-chart, Compose defaults and CI examples on this branch target the candidate.
-The latest verified published release remains 0.3.5. Candidate publication still
-requires an approved merge, green CI on the exact main commit, and the release
-workflow and artifact verification below.
+GRC Lake **0.3.6 is published and verified** on
+[PyPI](https://pypi.org/project/grc-lake/0.3.6/),
+[GitHub](https://github.com/koda-ai-studio/grc-lake/releases/tag/v0.3.6), and as
+`ghcr.io/koda-ai-studio/grc-lake:0.3.6`.
+Use the [v0.3.6 release templates](https://github.com/koda-ai-studio/grc-lake/tree/v0.3.6)
+for a published deployment. Later commits on `main` may contain unreleased changes.
 
-The candidate includes the repaired SOC 2 governance contracts, 35 receipt-bound
+The release includes repaired SOC 2 governance contracts, 35 receipt-bound
 mapping approvals, explicit legacy-review provenance, safeguard fan-out limits,
 the MCP SDK security floor, and refreshed [graph](benchmarks/INVESTIGATION.md) and
-[CCF/distributed](benchmarks/CCF_PIPELINE.md) measurements. The local measurements
-do not establish production capacity. At 10k records, the proposed 1 GiB graph
+[CCF/distributed](benchmarks/CCF_PIPELINE.md) measurements. Local measurements do
+not establish production capacity. At 10k records, the proposed 1 GiB graph
 memory budget is not qualified; 100k remains outside the interactive target.
 
-## Published 0.3.5 evidence
+Mapped coverage is 1,803 of 2,252 requirements (80.1%). Reviewed coverage is
+1,163 (51.6%): 381 source-native self-maps and 782 crosswalk-reviewed requirements.
+Separately, 824 reviewed requirements have a decision receipt and 339 rely only
+on legacy reviews with no recorded reviewer. These dimensions do not establish
+operating effectiveness, certification, or uniform review depth across frameworks.
+The [coverage matrix](FRAMEWORK_COVERAGE.md) reports each framework's counts.
+The [SOC 2 and ISO review queue](reviews/SOC2_ISO_REVIEW.md) retains 115 requirements
+in 13 batches. See the [review-method record](MAPPING_REVIEW.md#pending-soc-2-and-iso-review)
+for scope, source limitations, and recorded human decisions.
 
-GRC Lake **0.3.5 is published and verified**. It includes
-graph outcome accuracy, evidence-type alignment, bounded graph builds, readable
-safeguard mapping pages, and CCF coverage and export validation listed in the
-[changelog](../CHANGELOG.md).
-The versioned v0.3.5 templates and examples target that published release.
-
-The release includes five CSF mappings, 381 source-native NIST 800-53
-assessment safeguards, and the maintainer's approval of 33 source-review batches.
-Overall mapped coverage is 1,803 of 2,252 requirements (80.1%); reviewed coverage
-is 1,128 (50.1%). That is a blended aggregate: 381 of those reviewed requirements
-are source-native NIST 800-53 self-maps rather than crosswalk judgements, and
-review depth differs widely by framework. The [coverage matrix](FRAMEWORK_COVERAGE.md)
-reports each framework's reviewed, self-map and crosswalk counts.
-The [recorded decision](../controls/reviews/2026-10-14-source-batches.json)
-binds the approval to the inspected mappings; 17 requirements with stale version
-pins remain uncredited. These are catalog measures, not assessment results.
-The combined audit, final-main CI and publication gates passed for this release.
-See the [NIST assessment expansion](NIST53_ASSESSMENTS.md)
-and [CSF review packet](MAPPING_REVIEW.md#csf-20-improvement-and-recovery-review-packet)
-for assessment boundaries.
-
-The release also replaces 28 weak proposed SOC 2 and ISO relationships with
-22 requirement-specific assessment contracts. At publication, [17 review batches](https://github.com/koda-ai-studio/grc-lake/blob/v0.3.5/docs/reviews/SOC2_ISO_REVIEW.md)
-covered 150 requirements and 185 candidate relationships. Cisco and Oracle provide
-implementation context; these proposals preserve earlier human review receipts
-and add no reviewed coverage. Approval of the earlier 33 batches does not approve
-this new queue.
-
-Subsequent unreleased main commits completed 13 additional SOC 2 governance
-contracts and recorded the maintainer's approval of the 35 repaired proposals.
-The candidate has 1,163 reviewed requirements (51.6%): 824 have a decision
-receipt and 339 rely only on legacy reviews with no recorded reviewer. Mapped
-coverage remains 1,803/2,252 (80.1%). The published 0.3.5 figures above remain
-unchanged. Separately, the reviewed total splits into 381 source-native self-maps
-and 782 crosswalk-reviewed requirements; these categories do not describe review
-provenance or operating effectiveness. The [current queue](reviews/SOC2_ISO_REVIEW.md) has 115 requirements
-in 13 batches. See the [decision record](MAPPING_REVIEW.md#pending-soc-2-and-iso-review)
-for scope, source limitations and review-method disclosures. This is not a new
-release qualification or publication decision.
-
-Version **0.3.5 is available** on [PyPI](https://pypi.org/project/grc-lake/0.3.5/)
-and as the public image `ghcr.io/koda-ai-studio/grc-lake:0.3.5`.
-Use the [v0.3.5 release templates](https://github.com/koda-ai-studio/grc-lake/tree/v0.3.5)
-for a published deployment. Later commits on `main` may contain unreleased changes.
-A new source version remains a candidate until the publication gates below succeed.
 Existing `trustops-security-data-lake` releases remain available under their
 original PyPI name. Use a fresh Python environment when moving between distributions
 because they own overlapping module files. Legacy CLI aliases and Python imports
-remain supported.
-
-Local deployment remains supported. Distributed mode remains opt-in and requires
-the [migration and recovery procedures](DISTRIBUTED.md); local timings do not
-establish distributed capacity. Upgrading from 0.3.2 requires signing secrets of
-at least 32 bytes and, for SAML deployments, non-deprecated IdP signature and
-digest algorithms. Existing
-browser sessions must sign in again. See [deployment](DEPLOYMENT.md) and
+remain supported. Local deployment remains supported; distributed mode remains
+opt-in and requires the [migration and recovery procedures](DISTRIBUTED.md).
+Upgrading from 0.3.2 requires signing secrets of at least 32 bytes and, for SAML
+deployments, non-deprecated IdP signature and digest algorithms. Existing browser
+sessions must sign in again. See [deployment](DEPLOYMENT.md) and
 [server authentication](SERVER_AUTH.md).
 
-Source and CI qualification do not establish publication, live-provider accuracy,
-or a working customer deployment. The pinned build-tool replacement and its
-verification limits are documented in [dependency security scope](DEPENDENCY_SECURITY.md).
+## Verified 0.3.6 publication
+
+The [0.3.6 release workflow](https://github.com/koda-ai-studio/grc-lake/actions/runs/38924465945)
+passed on source `17a011b87ad68db5754591977f8c14c64bcc16a8`, after that exact
+main commit [passed CI](https://github.com/koda-ai-studio/grc-lake/actions/runs/38850091605).
+The `v0.3.6` tag resolves to that commit. Published wheel and sdist hashes match
+between GitHub, PyPI, and the release build:
+
+| Artifact                          | SHA-256                                                            |
+| --------------------------------- | ------------------------------------------------------------------ |
+| `grc_lake-0.3.6-py3-none-any.whl` | `5cf219399660052cf4a8de5f31cdc8d70d306446281734e217a8ba931d272053` |
+| `grc_lake-0.3.6.tar.gz`           | `06beaf00ab87d61eb5b178dcd62fd6401cad32012f220b8c49e0645e3b15e663` |
+
+Signed provenance for both packages and the multi-platform image verified against
+this repository, release workflow, source commit, and `v0.3.6` tag. A hash-locked
+PyPI install in a fresh environment passed installed-package, catalog, console,
+and integrity-route checks.
+
+Anonymous registry downloads verified every manifest, configuration, and filesystem
+blob for both architectures by digest. Published filesystem layers and runtime
+configuration match the scanned images that passed authenticated AMD64 and emulated
+ARM64 probes in release CI. Those probes cover tenant isolation, key revocation,
+persistence after recreation, snapshot integrity, non-root execution, and the
+bundled console. A separate native ARM64 post-publication probe is not recorded as
+passed; runtime evidence here is the hosted qualification linked to the published
+layers. These are synthetic checks, not TLS, IdP, live-provider, or capacity proof.
+
+| Image                | Digest                                                                    |
+| -------------------- | ------------------------------------------------------------------------- |
+| Multi-platform index | `sha256:cc7cca14d48d2a4e754312af1a655e99b4d1a8981ea1bb5a3348f271235d8308` |
+| Linux AMD64          | `sha256:d5ee3da43f945977bc9ac87cacdf9b0503086e9aee0d336dd5192763dc372e50` |
+| Linux ARM64          | `sha256:ccd72111e32fef2924812124b6dc560dda97ba3f60fe55bb33505feed0414430` |
+
+Use the index digest to pin these exact published bytes. The full scans retain
+44 HIGH package findings spanning eight CVEs per architecture, with zero fixable
+MEDIUM/HIGH/CRITICAL findings. See
+[dependency security scope](DEPENDENCY_SECURITY.md#036-release-qualification-scans);
+a policy pass is not a vulnerability-free image. Source, publication, and these
+synthetic checks do not establish live-provider accuracy or a working customer
+deployment.
 
 ## Verified 0.3.5 publication
 
@@ -257,7 +255,7 @@ comment, and the Dockerfile pins its base images by digest. Dependabot's
 
 ## Publication from the current repository
 
-The `grc-lake` PyPI project exists, and 0.3.5 was published from the current
+The `grc-lake` PyPI project exists, and 0.3.6 was published from the current
 repository. Preserve and verify its
 [ordinary trusted publisher](https://docs.pypi.org/trusted-publishers/adding-a-publisher/)
 configuration before the next release:
@@ -285,8 +283,8 @@ so the next release targets `ghcr.io/koda-ai-studio/grc-lake`. Before tagging:
 2. Preserve `ghcr.io/msaad00/grc-lake` for historical releases. GHCR uses granular
    permissions: a [repository transfer does not transfer package ownership](https://docs.github.com/en/packages/learn-github-packages/about-permissions-for-github-packages#about-repository-transfers)
    and can remove repository linkage and Actions access.
-3. The v0.3.5 release templates align Compose and the chart default to
-   `ghcr.io/koda-ai-studio/grc-lake:0.3.5`; Terraform inherits the chart default
+3. The v0.3.6 release templates align Compose and the chart default to
+   `ghcr.io/koda-ai-studio/grc-lake:0.3.6`; Terraform inherits the chart default
    when its image tag is empty. For later releases, update these references
    together and verify publication before recommending them.
 4. After user-authorized publication, verify anonymous pulls (if public delivery

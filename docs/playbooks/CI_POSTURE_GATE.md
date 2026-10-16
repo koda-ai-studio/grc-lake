@@ -1,8 +1,6 @@
 # CI posture gate playbook
 
-Versioned examples below target the v0.3.6 source candidate. Until publication, use
-[the v0.3.5 guide](https://github.com/koda-ai-studio/grc-lake/blob/v0.3.5/docs/playbooks/CI_POSTURE_GATE.md)
-for published-version examples.
+Versioned examples below target the [published v0.3.6 release](https://github.com/koda-ai-studio/grc-lake/releases/tag/v0.3.6).
 
 Block merges and deployments when GRC Lake posture regresses. Platform engineers should
 wire this **before** the human console — same `/api/v1` routes agents and MCP use.

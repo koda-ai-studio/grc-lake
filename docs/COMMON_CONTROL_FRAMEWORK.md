@@ -367,8 +367,8 @@ not establish operating effectiveness or turn missing evidence into a pass.
 After the source-batch milestone above, the maintainer approved 35 repaired
 proposals: 23 SOC 2, seven ISO 27001 and five ISO 42001. The
 [review record](MAPPING_REVIEW.md#pending-soc-2-and-iso-review)
-links the inspected contracts and source references. Current main has 1,163 reviewed requirements (51.6%); mapping coverage
-remains 1,803 (80.1%). These changes are not part of the published 0.3.5 release.
+links the inspected contracts and source references. Release 0.3.6 has 1,163 reviewed requirements (51.6%); mapping coverage
+remains 1,803 (80.1%). These changes are included in the published 0.3.6 release.
 Unapproved alternatives remain proposed, and operational evidence is still required.
 
 ### NIST SP 800-171 Rev. 3 operational safeguards

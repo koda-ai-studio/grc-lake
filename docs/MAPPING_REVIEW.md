@@ -21,10 +21,10 @@ The [source packet](reviews/2026-10-15-repaired-proposals.json) retains the
 corresponding contracts and source references. Vendor guidance does not establish
 normative equivalence or operating effectiveness.
 
-Current main has 1,163/2,252 reviewed requirements (51.6%), with mapped coverage
+Release 0.3.6 has 1,163/2,252 reviewed requirements (51.6%), with mapped coverage
 unchanged at 1,803/2,252 (80.1%). SOC 2 has 33/61 reviewed requirements (54.1%),
 ISO 27001 has 17/93 (18.3%), and ISO 42001 has 14/40 (35.0%). These approvals are
-unreleased changes after 0.3.5. They do not attest operating effectiveness.
+included in the published 0.3.6 release. They do not attest operating effectiveness.
 The remaining queue contains 115 requirements in 13 batches; alternative mappings
 to newly reviewed requirements remain proposed and receive no inherited approval.
 
