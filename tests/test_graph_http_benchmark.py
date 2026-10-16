@@ -138,3 +138,60 @@ def test_failed_http_requests_retain_prior_reads_and_failure_without_secrets(tmp
     assert len([r for r in reads if r["http_status"] == 200]) == 2
     assert any(r["http_status"] != 200 for r in reads)
     assert "secret-must-not-be-retained" not in progress.read_text()
+
+
+def test_admission_rejections_are_retained_per_tenant_not_failures(tmp_path, monkeypatch):
+    import time
+
+    from tools.benchmark_investigation_http import run_http_workload
+
+    from security_lakehouse import investigation_graph as graph
+
+    original = graph.investigation_graph
+
+    def slow_build(*args, **kwargs):
+        # Hold the single slot long enough that concurrent requests must be rejected.
+        time.sleep(0.4)
+        return original(*args, **kwargs)
+
+    monkeypatch.setattr(graph, "investigation_graph", slow_build)
+    report = run_http_workload(
+        tmp_path, rows=12, tenants=2, concurrency=4, repeats=1, seed=5, graph_build_concurrency=1
+    )
+    assert report["correctness_ok"]
+    assert report["admission"] == {"graph_build_concurrency": 1, "graph_build_timeout_seconds": 60.0}
+    assert report["checks"]["admission_slots_released"]
+    rejected = [r for r in report["reads"] if r["http_status"] == 503]
+    assert rejected
+    assert {r["error_code"] for r in rejected} == {"graph_build_capacity"}
+    assert all(r["retry_after"] == "1" for r in rejected)
+    for scenario in ("balanced", "skewed"):
+        burst = report["scenarios"][scenario]
+        for tenant, stats in burst["per_tenant"].items():
+            assert stats["admitted"] + sum(stats["rejected"].values()) == stats["submitted"]
+            samples = [r for r in report["reads"] if r["query"] == scenario and r["tenant"] == tenant]
+            assert stats["admitted"] == sum(r["http_status"] == 200 for r in samples)
+        assert burst["admitted"] + burst["rejected"] == burst["reads"]
+    assert sum(b["rejected"] for b in report["scenarios"].values()) == len(rejected)
+
+
+def test_distribution_of_no_samples_is_empty_not_an_error():
+    from tools.benchmark_investigation import distribution
+
+    assert distribution([]) == {}
+
+
+def test_parent_passes_graph_build_concurrency_to_the_worker(tmp_path):
+    args = SimpleNamespace(
+        scratch=tmp_path,
+        min_free_gib=1,
+        tenants=1,
+        repeats=1,
+        timeout=60,
+        max_rss_mib=1024,
+        transport="http",
+        graph_build_concurrency=2,
+    )
+    report = attempt(args, 12, 1)
+    assert report["correctness_ok"]
+    assert report["admission"]["graph_build_concurrency"] == 2
