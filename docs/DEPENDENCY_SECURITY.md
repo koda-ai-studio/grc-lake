@@ -25,7 +25,7 @@ verifies its absence while keeping the ncurses libraries available for Python.
 Install optional application dependencies in a derived image's build stage;
 the runtime image intentionally has no Python package installer.
 
-For the 0.3.7 candidate, CI and release scans reject all HIGH and CRITICAL
+From 0.3.7, CI and release scans reject all HIGH and CRITICAL
 findings, including unfixed ones, and fixable MEDIUM findings. The policy consumes the full scan without severity or fix-availability
 filters, retaining unresolved distribution findings. No available vendor fix does not mean not affected, and
 passing this gate does not satisfy the Best Practices 60-day criterion. The
@@ -36,13 +36,16 @@ reports for 14 days, including when the image policy blocks the job. See
 [Scorecard evidence](SCORECARD_REMEDIATION.md#vulnerability-and-release-evidence)
 for artifact names and the separate Best Practices review requirements.
 
-### 0.3.7 runtime candidate
+### 0.3.7 runtime
 
-The unpublished 0.3.7 candidate uses a digest-pinned
+The published 0.3.7 image uses a digest-pinned
 [distroless Debian 13 CC base](https://github.com/GoogleContainerTools/distroless)
 with CPython 3.14 and a small package overlay. The original 0.3.6 artifacts remain
-unchanged. Local scans of the candidate on AMD64 and ARM64 report zero HIGH and
-CRITICAL findings; remaining lower-severity matches still require review.
+unchanged. The [0.3.7 release workflow](https://github.com/koda-ai-studio/grc-lake/actions/runs/38963597264)
+qualified AMD64 and emulated ARM64. Each full report contains zero HIGH/CRITICAL,
+26 MEDIUM and 10 LOW findings, with no fixable MEDIUM findings. The published
+filesystem layers and runtime configuration match the scanned and probed images.
+See [publication verification](RELEASE_READINESS.md#verified-037-publication).
 
 The runtime omits shells, package managers, mount/login tools, Perl, systemd
 libraries, ACL libraries, and terminal libraries. Optional `readline`, curses,
@@ -61,10 +64,11 @@ There is no interactive shell or in-place package installation: run the Python
 CLI directly with `docker exec`, and add optional dependencies in a build stage.
 The JSON-form health check and Python-based Compose demo bootstrap require no shell. See [deployment](DEPLOYMENT.md).
 
-Both candidate architectures must pass the shared vulnerability policy and
-runtime probes before publication. Local evidence does not qualify a later
-build or change the published 0.3.6 findings. Fewer scanner findings also do not
-establish the OpenSSF vulnerability-age or cryptographic criteria.
+Both architectures passed the shared vulnerability policy and authenticated
+runtime probes before publication. These results do not qualify later builds
+or change the published 0.3.6 findings. Remaining MEDIUM advisories include
+findings older than 60 days; the OpenSSF vulnerability-age and cryptographic
+criteria remain separate requirements.
 
 ### 0.3.6 release qualification scans
 

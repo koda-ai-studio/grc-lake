@@ -76,7 +76,7 @@ gate fails. A failed earlier build can leave no report; a failed AMD64 gate can
 leave ARM64 unqualified. Missing reports are missing evidence, not clean scans.
 
 Review each report's image identity, advisory publication dates, installed and
-fixed versions, and component applicability. The candidate image policy blocks all HIGH/CRITICAL findings and fixable
+fixed versions, and component applicability. The image policy blocks all HIGH/CRITICAL findings and fixable
 MEDIUM findings. It does not prove the
 Best Practices requirement concerning medium-or-higher vulnerabilities older
 than 60 days. Retain unresolved distribution findings until a patched artifact
