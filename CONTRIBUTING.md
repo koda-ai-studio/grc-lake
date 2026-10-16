@@ -77,7 +77,16 @@ Run the checks that match what you touched before you push. CI runs all of them.
 CI partitions the complete collected Python suite into four groups, balancing
 by test count while keeping each module's fixtures on one runner. To reproduce
 a group locally, run `uv run python -m pytest -q -p tools.pytest_shard --ci-shard=1/4`
-(replace `1` with the failing group). Ordinary `make test` still runs everything.
+(replace `1` with the failing group). Ordinary `make test` still runs everything,
+serially; a full run takes roughly 25 minutes on a recent laptop. The suite does
+not use pytest-xdist, so `pytest -n auto` is not supported.
+
+Install every extra (`make uv-sync`) to get the same verdict as CI. With only
+`--extra dev`, tests that need an optional extra (the MCP server, FastAPI,
+cloud SDKs) skip instead of failing. CI loads `-p tools.pytest_strict_imports`,
+which turns those skips into failures so they cannot pass silently there. Repo-
+wide checks such as the Markdown link check read only git-tracked files, so
+local caches like `.terraform/` do not affect the result.
 The required `smoke` check passes only when every group, the pipeline smoke, hooks,
 and security scans pass; failures, cancellations, and skipped dependencies block it. Each group
 retains a JUnit report and prints its slowest tests for diagnosing imbalance.
