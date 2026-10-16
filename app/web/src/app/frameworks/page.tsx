@@ -86,6 +86,9 @@ function Row({
   const evaluatablePct = coverage?.evaluatable_coverage_pct ?? 0;
   const attestableCount = coverage?.attestable_requirement_count ?? 0;
   const attestablePct = coverage?.attestable_coverage_pct ?? 0;
+  const selfMapCount = coverage?.source_native_reviewed_requirement_count ?? 0;
+  const legacyOnlyCount =
+    coverage?.legacy_only_reviewed_requirement_count ?? 0;
   const topLevelCoverage =
     coverage?.coverage_level === "top_level" ||
     ["pci-dss-v4", "cis-controls-v8.1"].includes(framework.framework_id);
@@ -170,6 +173,15 @@ function Row({
               style={{ width: `${attestablePct}%` }}
             />
           </div>
+          {selfMapCount || legacyOnlyCount ? (
+            <p className="mt-1 text-[11px] text-muted">
+              {formatCount(selfMapCount)} source-native self-maps ·{" "}
+              {formatCount(attestableCount - selfMapCount)} crosswalk-reviewed
+              {legacyOnlyCount
+                ? ` · ${formatCount(legacyOnlyCount)} with no recorded reviewer`
+                : ""}
+            </p>
+          ) : null}
         </div>
       </div>
 
@@ -805,6 +817,19 @@ function FrameworksPageContent() {
                 </span>
               ) : null}
             </dd>
+            {coverageSummary?.source_native_reviewed_requirement_count ? (
+              <dd className="mt-1 text-xs text-muted">
+                {formatCount(
+                  coverageSummary.source_native_reviewed_requirement_count,
+                )}{" "}
+                source-native self-maps ·{" "}
+                {formatCount(
+                  coverageSummary.crosswalk_reviewed_requirement_count ?? 0,
+                )}{" "}
+                crosswalk-reviewed. A blended total; read each framework
+                below.
+              </dd>
+            ) : null}
           </div>
           <div className="px-4 py-4 sm:px-5">
             <dt className="ui-label">Requirements awaiting review</dt>
