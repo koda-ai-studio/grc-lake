@@ -25,10 +25,13 @@ from tools.benchmark_investigation import (
 )
 
 from security_lakehouse.generations import publish_generation
+from security_lakehouse.graph_admission import graph_build_settings
 from security_lakehouse.investigation_graph import _id
 from security_lakehouse.io import canonical_sha256, file_sha256
 
 ROUTE = "/api/v1/graph/investigation"
+# Explicit fail-fast server responses: saturation evidence, not correctness failures.
+ADMISSION_CODES = ("graph_build_capacity", "graph_build_timeout")
 
 
 @contextmanager
@@ -76,6 +79,10 @@ def loopback_server(app, shutdown_timeout=10):
                 raise RuntimeError("loopback server shutdown failed")
 
 
+def admission_rejected(receipt):
+    return receipt["http_status"] == 503 and receipt["error_code"] in ADMISSION_CODES
+
+
 def validate_http_graph(result, tenant, rows, *, seed=None, evidence_ids=None):
     validate_response(result, tenant, 150, evidence_ids=evidence_ids)
     expected = "evidence:" + canonical_sha256(next(fixture_rows(rows, tenant, seed=seed)))
@@ -88,8 +95,12 @@ def validate_http_graph(result, tenant, rows, *, seed=None, evidence_ids=None):
         raise ValueError("source account isolation failed")
 
 
-def run_http_workload(root, *, rows, tenants, concurrency, repeats, progress_path=None, seed=None):
+def run_http_workload(
+    root, *, rows, tenants, concurrency, repeats, progress_path=None, seed=None, graph_build_concurrency=None
+):
     with local_configuration():
+        if graph_build_concurrency is not None:
+            os.environ["GRC_LAKE_GRAPH_BUILD_CONCURRENCY"] = str(graph_build_concurrency)
         return _run_http_workload(
             root,
             rows=rows,
@@ -109,6 +120,7 @@ def _run_http_workload(root, *, rows, tenants, concurrency, repeats, progress_pa
     started = time.perf_counter()
     cpu = time.process_time()
     app = create_app(root, require_auth=True)
+    _, graph_timeout = graph_build_settings(os.environ)
     # No evaluation jobs are submitted by this read-only workload.
     app.state.job_worker_enabled = False
     credentials = {}
@@ -174,12 +186,20 @@ def _run_http_workload(root, *, rows, tenants, concurrency, repeats, progress_pa
                 except httpx.HTTPError as exc:
                     error_type = type(exc).__name__
                 finished = time.perf_counter()
+                error_code = None
+                if response is not None and response.status_code == 503:
+                    try:
+                        error_code = response.json()["errors"][0]["code"]
+                    except (ValueError, KeyError, IndexError, TypeError):
+                        error_code = None
                 receipt = {
                     "tenant": tenant,
                     "query": scenario,
                     "submission_ordinal": ordinal,
                     "http_status": response.status_code if response is not None else None,
                     "error_type": error_type,
+                    "error_code": error_code,
+                    "retry_after": response.headers.get("retry-after") if response is not None else None,
                     "seconds": finished - request_started,
                     "client_queue_seconds": request_started - submitted,
                     "completion_seconds": finished - started,
@@ -241,10 +261,13 @@ def _run_http_workload(root, *, rows, tenants, concurrency, repeats, progress_pa
                         retain()
                 burst_seconds = time.perf_counter() - burst_started
                 samples = [r for r in reads if r["query"] == scenario]
-                if any(r["http_status"] != 200 for r in samples):
+                if any(r["http_status"] != 200 and not admission_rejected(r) for r in samples):
                     raise ValueError("HTTP concurrent read failed")
+                admitted = [r for r in samples if r["http_status"] == 200]
                 scenarios[scenario] = {
                     "reads": len(samples),
+                    "admitted": len(admitted),
+                    "rejected": len(samples) - len(admitted),
                     "clients": concurrency,
                     "wall_seconds": burst_seconds,
                     "reads_per_second": len(samples) / burst_seconds,
@@ -252,7 +275,15 @@ def _run_http_workload(root, *, rows, tenants, concurrency, repeats, progress_pa
                         tenant: {
                             "submitted": batch.count(tenant),
                             "completed": sum(r["tenant"] == tenant for r in samples),
-                            "latency_seconds": distribution([r["seconds"] for r in samples if r["tenant"] == tenant]),
+                            "admitted": sum(r["tenant"] == tenant for r in admitted),
+                            "rejected": {
+                                code: sum(r["tenant"] == tenant and r["error_code"] == code for r in samples)
+                                for code in ADMISSION_CODES
+                            },
+                            "latency_seconds": distribution([r["seconds"] for r in admitted if r["tenant"] == tenant]),
+                            "rejection_latency_seconds": distribution(
+                                [r["seconds"] for r in samples if r["tenant"] == tenant and admission_rejected(r)]
+                            ),
                             "client_queue_seconds": distribution(
                                 [r["client_queue_seconds"] for r in samples if r["tenant"] == tenant]
                             ),
@@ -260,7 +291,10 @@ def _run_http_workload(root, *, rows, tenants, concurrency, repeats, progress_pa
                         for tenant in credentials
                     },
                 }
-            checks["all_submitted_reads_completed"] = True
+            checks["all_submitted_reads_answered"] = True
+            if app.state.graph_build_slots.active:
+                raise ValueError("graph build slot leaked after the bursts")
+            checks["admission_slots_released"] = True
             tenant = "tenant-0"
             lake = root / "tenants" / tenant
             publish_generation(lake, make_generation(lake, rows, tenant, changed=True, seed=seed))
@@ -280,6 +314,10 @@ def _run_http_workload(root, *, rows, tenants, concurrency, repeats, progress_pa
         "correctness_ok": True,
         "checks": checks,
         "scenarios": scenarios,
+        "admission": {
+            "graph_build_concurrency": app.state.graph_build_slots.capacity,
+            "graph_build_timeout_seconds": graph_timeout,
+        },
         "transport": "http",
         "seed": seed,
         "retained_bytes": sum(p.stat().st_size for p in root.rglob("*") if p.is_file() and not p.is_symlink()),
