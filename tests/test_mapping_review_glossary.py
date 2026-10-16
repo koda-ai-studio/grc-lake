@@ -49,3 +49,18 @@ def test_console_surfaces_use_the_glossary() -> None:
         assert "org-reviewed ·" not in source, rel
     review = (WEB / "app/mapping-review/page.tsx").read_text(encoding="utf-8")
     assert "{item.review_label}" not in review
+
+
+def test_console_names_review_provenance_with_the_server_labels() -> None:
+    from security_lakehouse.safeguards import REVIEW_PROVENANCE_LABELS
+
+    source = (WEB / "lib/console-copy.ts").read_text(encoding="utf-8")
+    block = source[source.index("export const REVIEW_PROVENANCE_LABELS") :]
+    block = block[: block.index("} as const;")]
+    labels = dict(re.findall(r"(\w+): \"([^\"]+)\",", block))
+    assert labels == REVIEW_PROVENANCE_LABELS
+    review = (WEB / "app/mapping-review/page.tsx").read_text(encoding="utf-8")
+    assert "REVIEW_PROVENANCE_LABELS[item.review_provenance]" in review
+    assert review.count("<ProvenanceNote item={item} />") == 2
+    frameworks = (WEB / "app/frameworks/page.tsx").read_text(encoding="utf-8")
+    assert "legacy_only_reviewed_requirement_count" in frameworks

@@ -1045,6 +1045,9 @@ export interface FrameworkCoverageSummary {
   maintainer_reviewed_requirement_count?: number;
   /** Attestable only through this organization's own approvals. */
   org_reviewed_requirement_count?: number;
+  /** Reviewed requirements whose only reviewed mappings name no reviewer. */
+  legacy_only_reviewed_requirement_count?: number;
+  legacy_unattributed_mapping_count?: number;
   org_reviewed_mapping_count?: number;
   needs_changes_mapping_count?: number;
   rejected_mapping_count?: number;
@@ -1083,6 +1086,8 @@ export interface FrameworkCoverageRow {
   attestable_coverage_pct: number;
   maintainer_reviewed_requirement_count?: number;
   org_reviewed_requirement_count?: number;
+  legacy_only_reviewed_requirement_count?: number;
+  legacy_unattributed_mapping_count?: number;
   org_reviewed_mapping_count?: number;
   needs_changes_mapping_count?: number;
   rejected_mapping_count?: number;
@@ -2092,6 +2097,9 @@ export interface MappingReviewItem {
   shipped_review_status: string;
   review_state: MappingReviewState;
   review_label: string;
+  /** Who stands behind an attestable mapping; null when not attestable. */
+  review_provenance?:
+    "maintainer_receipt" | "legacy_unattributed" | "org_decision" | null;
   mapping_basis: string | null;
   reviewed_anchors: string[];
   mapping_source: MappingSourceAnchor | null;

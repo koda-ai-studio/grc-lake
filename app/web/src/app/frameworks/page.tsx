@@ -796,6 +796,14 @@ function FrameworksPageContent() {
                 coverageSummary?.org_reviewed_requirement_count ?? 0,
               )}{" "}
               {MAPPING_REVIEW_GLOSSARY.org_reviewed.label.toLowerCase()}
+              {coverageSummary?.legacy_only_reviewed_requirement_count ? (
+                <span className="mt-1 block text-warning-fg">
+                  {formatCount(
+                    coverageSummary.legacy_only_reviewed_requirement_count,
+                  )}{" "}
+                  rest only on legacy reviews with no recorded reviewer
+                </span>
+              ) : null}
             </dd>
           </div>
           <div className="px-4 py-4 sm:px-5">

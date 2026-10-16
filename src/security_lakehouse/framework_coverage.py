@@ -135,6 +135,8 @@ def build_framework_coverage(
                 "attestable_requirement_count": shared.get("reviewed", 0),
                 "maintainer_reviewed_requirement_count": shared.get("maintainer_reviewed", 0),
                 "org_reviewed_requirement_count": shared.get("org_reviewed", 0),
+                "legacy_only_reviewed_requirement_count": shared.get("legacy_only_reviewed", 0),
+                "legacy_unattributed_mapping_count": shared.get("legacy_unattributed_mappings", 0),
                 "org_reviewed_mapping_count": shared.get("org_reviewed_mappings", 0),
                 "needs_changes_mapping_count": shared.get("needs_changes_mappings", 0),
                 "rejected_mapping_count": shared.get("rejected_mappings", 0),
@@ -186,6 +188,10 @@ def framework_coverage_summary(
         "attestable_requirement_count": attestable,
         "maintainer_reviewed_requirement_count": maintainer_reviewed,
         "org_reviewed_requirement_count": org_reviewed,
+        "legacy_only_reviewed_requirement_count": sum(
+            int(row.get("legacy_only_reviewed_requirement_count", 0)) for row in rows
+        ),
+        "legacy_unattributed_mapping_count": sum(int(row.get("legacy_unattributed_mapping_count", 0)) for row in rows),
         "org_reviewed_mapping_count": sum(int(row.get("org_reviewed_mapping_count", 0)) for row in rows),
         "needs_changes_mapping_count": sum(int(row.get("needs_changes_mapping_count", 0)) for row in rows),
         "rejected_mapping_count": sum(int(row.get("rejected_mapping_count", 0)) for row in rows),
@@ -242,12 +248,12 @@ def render_framework_coverage_markdown(
     applicability = applicability_rows if applicability_rows is not None else build_control_asset_applicability()
     summary = framework_coverage_summary(rows, applicability)
     lines = [
-        "| Framework | Official source | Status | Requirements | Source-cited | Mapped | Reviewed mappings | Reviewed % | Source state |",
-        "| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | --- |",
+        "| Framework | Official source | Status | Requirements | Source-cited | Mapped | Reviewed mappings | Reviewed % | No recorded reviewer | Source state |",
+        "| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |",
     ]
     for row in rows:
         lines.append(
-            "| {name} | [{source}]({url}) | {status} | {controls} | {mappings} | {evaluatable} | {attestable} | {attestable_pct}% | {freshness} |".format(
+            "| {name} | [{source}]({url}) | {status} | {controls} | {mappings} | {evaluatable} | {attestable} | {attestable_pct}% | {legacy} | {freshness} |".format(
                 name=_markdown_text(row["name"])
                 + (" (top-level coverage)" if row.get("coverage_level") == "top_level" else ""),
                 source=_markdown_text(row["official_source_name"]),
@@ -258,6 +264,7 @@ def render_framework_coverage_markdown(
                 evaluatable=row.get("evaluatable_requirement_count", 0),
                 attestable=row.get("attestable_requirement_count", 0),
                 attestable_pct=row.get("attestable_coverage_pct", 0.0),
+                legacy=row.get("legacy_only_reviewed_requirement_count", 0),
                 freshness=str(row["freshness_state"]).replace("_", " "),
             )
         )
@@ -275,12 +282,15 @@ def render_framework_coverage_markdown(
             f"Mapped (touched by a safeguard): {summary['evaluatable_requirement_count']} "
             f"({summary['evaluatable_coverage_pct']}%)",
             f"**Reviewed safeguard mappings: "
-            f"{summary['attestable_requirement_count']} ({summary['attestable_coverage_pct']}%)**",
+            f"{summary['attestable_requirement_count']} ({summary['attestable_coverage_pct']}%)**; "
+            f"{summary['legacy_only_reviewed_requirement_count']} rest only on legacy reviews with no recorded reviewer",
             f"Asset types modeled: {summary['asset_type_count']}",
             "",
             "> `Source-cited` = the requirement has an official source link. "
             + "`Mapped` = a safeguard claims it (reviewed or proposed). "
             + "`Reviewed` = a human has confirmed the safeguard-to-requirement mapping. "
+            + "`No recorded reviewer` = reviewed requirements whose only reviewed mappings predate decision "
+            + "receipts and name no reviewer (controls/reviews/legacy-unattributed.json). "
             + "An assessment still needs scoped evidence and tests of operating effectiveness.",
             "",
             *lines,

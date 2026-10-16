@@ -4,12 +4,44 @@ import re
 from pathlib import Path
 
 from security_lakehouse.safeguards import (
+    LEGACY_REVIEW_RECORD,
+    broadest_safeguards,
     contributes_to_coverage,
     coverage_by_family,
     coverage_by_framework,
     effective_review_state,
     load_safeguards,
 )
+
+
+def broadest_table(coverage):
+    """Prettier-aligned so the formatter and this generator agree."""
+    header = ["Safeguard", "Title", "Requirements", "Frameworks", "Reviewed", "Legacy, no reviewer", "Proposed"]
+    body = [
+        [
+            f"`{row['safeguard_id']}`",
+            str(row["title"]),
+            *(str(row[key]) for key in ("requirements", "frameworks", "reviewed", "legacy_unattributed", "proposed")),
+        ]
+        for row in broadest_safeguards()
+    ]
+    widths = [max(len(cells[i]) for cells in [header, *body]) for i in range(len(header))]
+
+    def line(cells):
+        padded = [
+            cell.ljust(w) if i < 2 else cell.rjust(w) for i, (cell, w) in enumerate(zip(cells, widths, strict=False))
+        ]
+        return "| " + " | ".join(padded) + " |"
+
+    rule = "| " + " | ".join("-" * w if i < 2 else "-" * (w - 1) + ":" for i, w in enumerate(widths)) + " |"
+    lines = ["", line(header), rule, *(line(cells) for cells in body)]
+    legacy = (
+        f"\n{coverage['legacy_only_reviewed']} of the {coverage['reviewed']} reviewed requirements rest only on "
+        f"legacy reviews with no recorded reviewer ({coverage['legacy_unattributed_mappings']} mappings, listed "
+        f"with their originating commits in [the legacy record](../{LEGACY_REVIEW_RECORD})); the other "
+        f"{coverage['receipt_reviewed']} have a decision receipt or an org decision.\n"
+    )
+    return "\n".join(lines) + "\n" + legacy
 
 
 def main():
@@ -38,6 +70,12 @@ def main():
         r"`asset_types` on all \d+ requirements", f"`asset_types` on all {coverage['controls']} requirements", text
     )
     text = re.sub(r"\d+ of \d+ titles still contain", "Some titles still contain", text)
+    text = re.sub(
+        r"(<!-- broadest-safeguards:start -->\n).*?(<!-- broadest-safeguards:end -->)",
+        lambda match: match[1] + broadest_table(coverage) + match[2],
+        text,
+        flags=re.S,
+    )
     path.write_text(text)
     states = [
         effective_review_state(member)
