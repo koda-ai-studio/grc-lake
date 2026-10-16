@@ -271,15 +271,51 @@ def render_open_graph() -> str:
     return _render_brand_template("open-graph")
 
 
+HEADLINE_FRAMEWORKS = (
+    ("soc2", "SOC 2"),
+    ("iso-27001-2022", "ISO 27001"),
+    ("hipaa-security-rule", "HIPAA"),
+    ("pci-dss-v4", "PCI DSS"),
+    ("nist-csf-2.0", "NIST CSF 2.0"),
+    ("nist-800-53-rev5", "NIST SP 800-53"),
+)
+TOP_LEVEL_FRAMEWORKS = {"pci-dss-v4"}
+
+
+def headline_framework_phrase(frameworks: dict[str, dict[str, int]]) -> str:
+    parts = []
+    for framework_id, label in HEADLINE_FRAMEWORKS:
+        row = frameworks[framework_id]
+        phrase = f"{label} {row['reviewed']:,}/{row['controls']:,}"
+        if framework_id in TOP_LEVEL_FRAMEWORKS:
+            phrase += " (top-level)"
+        notes = []
+        if row["source_native_reviewed"]:
+            notes.append(f"{row['source_native_reviewed']:,} source-native self-maps")
+        if row["legacy_only_reviewed"]:
+            notes.append(f"{row['legacy_only_reviewed']:,} with no recorded reviewer")
+        if notes:
+            phrase += f" ({'; '.join(notes)})"
+        parts.append(phrase)
+    return ", ".join(parts)
+
+
 def render_readme_glance() -> str:
     coverage = coverage_by_framework()
     safeguard_count, requirement_count, framework_count = _coverage_summary()
     standard_sources, preview_sources = _read_only_source_counts()
     return (
+        "- **Reviewed requirements by framework:** "
+        f"{headline_framework_phrase(coverage['frameworks'])}. "
+        "Every pack is in the [coverage matrix](docs/FRAMEWORK_COVERAGE.md).\n"
         f"- **{framework_count} framework packs, {_requirement_phrase(requirement_count)},** linked through "
         f"{safeguard_count} safeguards, including source-native assessment contracts. "
         f"{coverage['covered']:,} requirements have safeguard mappings; "
-        f"{coverage['reviewed']:,} have reviewed mappings and the other {coverage['proposed']:,} are proposed.\n"
+        f"{coverage['reviewed']:,} have reviewed mappings and the other {coverage['proposed']:,} are proposed. "
+        f"Of the reviewed, {coverage['source_native_reviewed']:,} are source-native self-maps (written from that "
+        f"requirement's own pinned source) and {coverage['crosswalk_reviewed']:,} rest on reviewed crosswalk "
+        f"mappings; {coverage['legacy_only_reviewed']:,} rest only on legacy reviews with no recorded reviewer. "
+        "The blended total is not a per-framework readiness figure.\n"
         f"- **{standard_sources + preview_sources} read-only source adapters ({preview_sources} in preview)**, "
         "plus OCSF presets for existing security lakes.\n"
         "- **Evidence stays scoped:** missing or stale evidence leaves gaps; a passing sample does not prove "

@@ -1,0 +1,89 @@
+{
+  "concurrent_tenants": 4,
+  "elapsed_seconds": 8.087536708000698,
+  "evidence": "synthetic-local-postgresql-and-s3-http-emulator",
+  "limitations": [
+    "one host",
+    "emulated S3",
+    "thread concurrency",
+    "synthetic evidence",
+    "not a production SLO"
+  ],
+  "platform": "macOS-27.0.1-arm64-arm-64bit",
+  "process_peak_rss_mib": 632.5,
+  "python": "3.12.13",
+  "qualification_environment": {
+    "dependencies": {
+      "SQLAlchemy": "2.0.50",
+      "boto3": "1.43.36",
+      "moto": "5.2.3",
+      "psycopg": "3.3.4"
+    },
+    "exit_code": 0,
+    "limits": {
+      "min_free_gib": 5,
+      "sampled_process_rss_mib": 4096,
+      "seconds": 600
+    },
+    "postgres": "postgres (PostgreSQL) 16.14 (Homebrew)",
+    "postgres_transport": "private Unix socket; TCP disabled",
+    "revision": "79dcb3eabb41429ab79a4d6336b2c1f74d461a82",
+    "sampled_group_peak_rss_mib": 761.515625,
+    "started_at_utc": "2026-10-16T03:50:31Z"
+  },
+  "results": [
+    {
+      "cold_read_seconds": 0.3898360830007732,
+      "lake_bytes": 20668379,
+      "partition_bytes": 18199,
+      "partition_download_seconds": 0.011325624998789863,
+      "partition_files": 1,
+      "partition_rows": 143,
+      "publish_seconds": 7.275613707999582,
+      "rows": 1000,
+      "shard": 50,
+      "tenant": "benchmark-0",
+      "warm_read_seconds": 0.05637362500056042
+    },
+    {
+      "cold_read_seconds": 0.37803058300050907,
+      "lake_bytes": 20544576,
+      "partition_bytes": 18134,
+      "partition_download_seconds": 0.00892220800051291,
+      "partition_files": 1,
+      "partition_rows": 143,
+      "publish_seconds": 7.297076749999178,
+      "rows": 1000,
+      "shard": 15,
+      "tenant": "benchmark-1",
+      "warm_read_seconds": 0.06362316699960502
+    },
+    {
+      "cold_read_seconds": 0.3596718340013467,
+      "lake_bytes": 20889188,
+      "partition_bytes": 18169,
+      "partition_download_seconds": 0.009505374999207561,
+      "partition_files": 1,
+      "partition_rows": 143,
+      "publish_seconds": 7.308184165998682,
+      "rows": 1000,
+      "shard": 46,
+      "tenant": "benchmark-2",
+      "warm_read_seconds": 0.06178379099947051
+    },
+    {
+      "cold_read_seconds": 0.39428175000102783,
+      "lake_bytes": 20785138,
+      "partition_bytes": 18145,
+      "partition_download_seconds": 0.00996304199907172,
+      "partition_files": 1,
+      "partition_rows": 143,
+      "publish_seconds": 7.272477832999357,
+      "rows": 1000,
+      "shard": 62,
+      "tenant": "benchmark-3",
+      "warm_read_seconds": 0.054772249999587075
+    }
+  ],
+  "rows_per_tenant": 1000
+}

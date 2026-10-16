@@ -61,7 +61,11 @@ Public repository URL onboarding shipped in 0.3.4 ([#911](https://github.com/kod
 The agreed catalog milestones are met in 0.3.5: 80.1% mapped and
 50.1% reviewed. The [NIST assessment expansion](docs/NIST53_ASSESSMENTS.md) and
 [maintainer approval of 33 source-review batches](controls/reviews/2026-10-14-source-batches.json)
-provide the mapping and review increases. Release qualification passed; it does
+provide the mapping and review increases. The 50.1% is a blended aggregate: 381 of
+those reviewed requirements are source-native NIST 800-53 self-maps, not
+crosswalk judgements. Read reviewed coverage per framework, split into self-maps
+and crosswalk reviews, in the [coverage matrix](docs/FRAMEWORK_COVERAGE.md).
+Release qualification passed; it does
 not approve additional mappings. A merged proposal or passing CI does not
 approve a mapping.
 

@@ -1,16 +1,33 @@
 # Release readiness
 
+GRC Lake **0.3.6 is a source candidate; it is not published**. Package, console,
+chart, Compose defaults and CI examples on this branch target the candidate.
+The latest verified published release remains 0.3.5. Candidate publication still
+requires an approved merge, green CI on the exact main commit, and the release
+workflow and artifact verification below.
+
+The candidate includes the repaired SOC 2 governance contracts, 35 receipt-bound
+mapping approvals, explicit legacy-review provenance, safeguard fan-out limits,
+the MCP SDK security floor, and refreshed [graph](benchmarks/INVESTIGATION.md) and
+[CCF/distributed](benchmarks/CCF_PIPELINE.md) measurements. The local measurements
+do not establish production capacity. At 10k records, the proposed 1 GiB graph
+memory budget is not qualified; 100k remains outside the interactive target.
+
+## Published 0.3.5 evidence
+
 GRC Lake **0.3.5 is published and verified**. It includes
 graph outcome accuracy, evidence-type alignment, bounded graph builds, readable
 safeguard mapping pages, and CCF coverage and export validation listed in the
 [changelog](../CHANGELOG.md).
-Package, console, chart, Compose defaults and CI examples target the published
-0.3.5 release.
+The versioned v0.3.5 templates and examples target that published release.
 
 The release includes five CSF mappings, 381 source-native NIST 800-53
 assessment safeguards, and the maintainer's approval of 33 source-review batches.
 Overall mapped coverage is 1,803 of 2,252 requirements (80.1%); reviewed coverage
-is 1,128 (50.1%).
+is 1,128 (50.1%). That is a blended aggregate: 381 of those reviewed requirements
+are source-native NIST 800-53 self-maps rather than crosswalk judgements, and
+review depth differs widely by framework. The [coverage matrix](FRAMEWORK_COVERAGE.md)
+reports each framework's reviewed, self-map and crosswalk counts.
 The [recorded decision](../controls/reviews/2026-10-14-source-batches.json)
 binds the approval to the inspected mappings; 17 requirements with stale version
 pins remain uncredited. These are catalog measures, not assessment results.
@@ -28,8 +45,12 @@ this new queue.
 
 Subsequent unreleased main commits completed 13 additional SOC 2 governance
 contracts and recorded the maintainer's approval of the 35 repaired proposals.
-Main now has 1,163 reviewed requirements (51.6%); the published 0.3.5 figures above
-remain unchanged. The [current queue](reviews/SOC2_ISO_REVIEW.md) has 115 requirements
+The candidate has 1,163 reviewed requirements (51.6%): 824 have a decision
+receipt and 339 rely only on legacy reviews with no recorded reviewer. Mapped
+coverage remains 1,803/2,252 (80.1%). The published 0.3.5 figures above remain
+unchanged. Separately, the reviewed total splits into 381 source-native self-maps
+and 782 crosswalk-reviewed requirements; these categories do not describe review
+provenance or operating effectiveness. The [current queue](reviews/SOC2_ISO_REVIEW.md) has 115 requirements
 in 13 batches. See the [decision record](MAPPING_REVIEW.md#pending-soc-2-and-iso-review)
 for scope, source limitations and review-method disclosures. This is not a new
 release qualification or publication decision.
