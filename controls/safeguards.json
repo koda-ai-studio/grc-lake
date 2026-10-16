@@ -11,8 +11,8 @@
       "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
       "frequency": "continuous",
       "owner": "security-platform",
-      "reviewed_by": "internal-trust-team",
-      "reviewed_at": "2026-07-10T00:00:00Z",
+      "reviewed_by": null,
+      "reviewed_at": null,
       "satisfies": [
         {
           "control_id": "SOC2-CC6.1",
@@ -1433,8 +1433,8 @@
       "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
       "frequency": "continuous",
       "owner": "security-platform",
-      "reviewed_by": "internal-trust-team",
-      "reviewed_at": "2026-07-10T00:00:00Z",
+      "reviewed_by": null,
+      "reviewed_at": null,
       "satisfies": [
         {
           "control_id": "SOC2-CC6.2",
@@ -1695,8 +1695,8 @@
       "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
       "frequency": "continuous",
       "owner": "security-platform",
-      "reviewed_by": "internal-trust-team",
-      "reviewed_at": "2026-07-10T00:00:00Z",
+      "reviewed_by": null,
+      "reviewed_at": null,
       "satisfies": [
         {
           "control_id": "SOC2-CC6.7",
@@ -2450,8 +2450,8 @@
       "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
       "frequency": "continuous",
       "owner": "detection-engineering",
-      "reviewed_by": "internal-trust-team",
-      "reviewed_at": "2026-07-10T00:00:00Z",
+      "reviewed_by": null,
+      "reviewed_at": null,
       "satisfies": [
         {
           "control_id": "SOC2-CC7.2",
@@ -3128,8 +3128,8 @@
       "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
       "frequency": "continuous",
       "owner": "detection-engineering",
-      "reviewed_by": "internal-trust-team",
-      "reviewed_at": "2026-07-10T00:00:00Z",
+      "reviewed_by": null,
+      "reviewed_at": null,
       "satisfies": [
         {
           "control_id": "SOC2-CC7.2",
@@ -3867,8 +3867,8 @@
       "evaluation_rule": "fail_when_missing_evidence",
       "frequency": "continuous",
       "owner": "platform-engineering",
-      "reviewed_by": "internal-trust-team",
-      "reviewed_at": "2026-07-10T00:00:00Z",
+      "reviewed_by": null,
+      "reviewed_at": null,
       "satisfies": [
         {
           "control_id": "SOC2-CC8.1",
@@ -4327,8 +4327,8 @@
       "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
       "frequency": "continuous",
       "owner": "detection-engineering",
-      "reviewed_by": "internal-trust-team",
-      "reviewed_at": "2026-07-10T00:00:00Z",
+      "reviewed_by": null,
+      "reviewed_at": null,
       "satisfies": [
         {
           "control_id": "SOC2-CC7.1",
@@ -4645,8 +4645,8 @@
       "evaluation_rule": "fail_when_high_severity_open",
       "frequency": "continuous",
       "owner": "grc",
-      "reviewed_by": "internal-trust-team",
-      "reviewed_at": "2026-07-10T00:00:00Z",
+      "reviewed_by": null,
+      "reviewed_at": null,
       "satisfies": [
         {
           "control_id": "SOC2-CC9.2",
@@ -5217,8 +5217,8 @@
       "evaluation_rule": "fail_when_missing_evidence",
       "frequency": "continuous",
       "owner": "grc",
-      "reviewed_by": "internal-trust-team",
-      "reviewed_at": "2026-07-10T00:00:00Z",
+      "reviewed_by": null,
+      "reviewed_at": null,
       "satisfies": [
         {
           "control_id": "SOC2-CC3.2",
@@ -5560,8 +5560,8 @@
       "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
       "frequency": "continuous",
       "owner": "platform-engineering",
-      "reviewed_by": "internal-trust-team",
-      "reviewed_at": "2026-07-10T00:00:00Z",
+      "reviewed_by": null,
+      "reviewed_at": null,
       "satisfies": [
         {
           "control_id": "SOC2-A1.2",
@@ -6275,8 +6275,8 @@
       "evaluation_rule": "fail_when_stale_evidence",
       "frequency": "continuous",
       "owner": "ai-security",
-      "reviewed_by": "internal-trust-team",
-      "reviewed_at": "2026-07-10T00:00:00Z",
+      "reviewed_by": null,
+      "reviewed_at": null,
       "satisfies": [
         {
           "control_id": "NIST-AI-RMF-GOVERN-1.1",
@@ -6629,8 +6629,8 @@
       "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
       "frequency": "continuous",
       "owner": "detection-engineering",
-      "reviewed_by": "internal-trust-team",
-      "reviewed_at": "2026-07-10T00:00:00Z",
+      "reviewed_by": null,
+      "reviewed_at": null,
       "satisfies": [
         {
           "control_id": "GDPR-Art.33",

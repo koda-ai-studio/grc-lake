@@ -60,6 +60,15 @@ REVIEW_STATE_DEFINITIONS = {
     "rejected": "Rejected by your organization; excluded from coverage.",
 }
 ATTESTABLE_STATES = frozenset({"maintainer_reviewed", "org_reviewed"})
+# Who stands behind an attestable mapping. A maintainer review is either bound
+# to a decision receipt under controls/reviews/ or predates receipts and names
+# no reviewer; the legacy record lists what is known about the latter.
+LEGACY_REVIEW_RECORD = "controls/reviews/legacy-unattributed.json"
+REVIEW_PROVENANCE_LABELS = {
+    "maintainer_receipt": "maintainer receipt",
+    "legacy_unattributed": "legacy, no reviewer recorded",
+    "org_decision": "org decision",
+}
 PENDING_STATES = frozenset({"proposed", "needs_changes"})
 
 # These labels describe the operated CCF safeguard families, not official
@@ -349,6 +358,17 @@ def effective_review_state(member: JsonObject, decision: str | None = None) -> s
     return "proposed"
 
 
+def review_provenance(member: JsonObject) -> str | None:
+    """Return who stands behind an attestable mapping, or ``None`` when it is not attestable."""
+    state = effective_review_state(member)
+    if state == "org_reviewed":
+        return "org_decision"
+    if state != "maintainer_reviewed":
+        return None
+    ref = member.get("maintainer_review_ref")
+    return "maintainer_receipt" if isinstance(ref, str) and ref else "legacy_unattributed"
+
+
 def contributes_to_coverage(member: JsonObject) -> bool:
     """Only implementation relationships can establish requirement coverage.
 
@@ -483,6 +503,7 @@ def mapping_review_items(
                     "shipped_review_status": member.get("review_status", "reviewed"),
                     "review_state": state,
                     "review_label": REVIEW_STATE_LABELS[state],
+                    "review_provenance": review_provenance(member),
                     "mapping_basis": member.get("mapping_basis"),
                     "reviewed_anchors": [anchor for anchor in anchors if anchor != control_id],
                     "mapping_source": member_mapping_source(entry, member),
@@ -708,6 +729,8 @@ def framework_mapping_coverage(
     states_by_control: dict[str, set[str]] = {}
     mapping_states: dict[str, dict[str, int]] = {}
     contextual_by_framework: dict[str, int] = {}
+    provenance_by_control: dict[str, set[str]] = {}
+    legacy_by_framework: dict[str, int] = {}
     for entry in unambiguous_safeguards(data):
         for member in entry.get("satisfies", []):
             framework = mapping_target_framework(member, controls)
@@ -723,6 +746,11 @@ def framework_mapping_coverage(
             states_by_control.setdefault(control_id, set()).add(state)
             counts = mapping_states.setdefault(framework, dict.fromkeys(REVIEW_STATE_LABELS, 0))
             counts[state] += 1
+            provenance = review_provenance(member)
+            if provenance is not None:
+                provenance_by_control.setdefault(control_id, set()).add(provenance)
+            if provenance == "legacy_unattributed":
+                legacy_by_framework[framework] = legacy_by_framework.get(framework, 0) + 1
 
     def requirement_bucket(control_id: str) -> str | None:
         states = states_by_control.get(control_id, set())
@@ -742,7 +770,14 @@ def framework_mapping_coverage(
         framework = str(control.get("framework_id") or "unknown")
         row = per_framework.setdefault(
             framework,
-            {"controls": 0, "covered": 0, "maintainer_reviewed": 0, "org_reviewed": 0, "rejected_requirements": 0},
+            {
+                "controls": 0,
+                "covered": 0,
+                "maintainer_reviewed": 0,
+                "org_reviewed": 0,
+                "legacy_only_reviewed": 0,
+                "rejected_requirements": 0,
+            },
         )
         row["controls"] += 1
         if control_id in mapped:
@@ -752,6 +787,8 @@ def framework_mapping_coverage(
             buckets[bucket] += 1
         if bucket in {"maintainer_reviewed", "org_reviewed"}:
             row[bucket] += 1
+            if provenance_by_control.get(control_id) == {"legacy_unattributed"}:
+                row["legacy_only_reviewed"] += 1
         elif bucket == "rejected":
             row["rejected_requirements"] += 1
     for framework, row in per_framework.items():
@@ -759,6 +796,7 @@ def framework_mapping_coverage(
         for state in REVIEW_STATE_LABELS:
             row[f"{state}_mappings"] = counts[state]
         row["contextual_mappings"] = contextual_by_framework.get(framework, 0)
+        row["legacy_unattributed_mappings"] = legacy_by_framework.get(framework, 0)
         row["reviewed"] = row["maintainer_reviewed"] + row["org_reviewed"]
         row["proposed"] = row["covered"] - row["reviewed"]
         row["uncovered"] = row["controls"] - row["covered"]
@@ -767,6 +805,7 @@ def framework_mapping_coverage(
     covered = sum(1 for cid in controls if cid in mapped)
     reviewed = buckets["maintainer_reviewed"] + buckets["org_reviewed"]
     all_states = {state: sum(counts[state] for counts in mapping_states.values()) for state in REVIEW_STATE_LABELS}
+    legacy_only = sum(row["legacy_only_reviewed"] for row in per_framework.values())
     return {
         "safeguards": len(data["safeguards"]),
         "contextual_mappings": sum(contextual_by_framework.values()),
@@ -780,6 +819,12 @@ def framework_mapping_coverage(
         "org_reviewed": buckets["org_reviewed"],
         "proposed": covered - reviewed,
         "rejected_requirements": buckets["rejected"],
+        # Reviewed requirements whose only attestable mappings predate decision
+        # receipts and name no reviewer; still counted, reported so they are
+        # never mistaken for receipt-backed review.
+        "receipt_reviewed": reviewed - legacy_only,
+        "legacy_only_reviewed": legacy_only,
+        "legacy_unattributed_mappings": sum(legacy_by_framework.values()),
         "maintainer_reviewed_mappings": all_states["maintainer_reviewed"],
         "org_reviewed_mappings": all_states["org_reviewed"],
         "needs_changes_mappings": all_states["needs_changes"],
@@ -796,6 +841,31 @@ def framework_mapping_coverage(
             for name, row in sorted(per_framework.items())
         },
     }
+
+
+def broadest_safeguards(payload: JsonObject | None = None, *, limit: int = 10) -> list[JsonObject]:
+    """Safeguards that satisfy the most requirements, with the review depth behind each."""
+    data = payload if payload is not None else load_safeguards()
+    rows: list[JsonObject] = []
+    for entry in data["safeguards"]:
+        members = entry.get("satisfies", [])
+        contributing = [m for m in members if contributes_to_coverage(m)]
+        provenances = [review_provenance(m) for m in contributing]
+        reviewed = sum(1 for p in provenances if p is not None)
+        rows.append(
+            {
+                "safeguard_id": str(entry["safeguard_id"]),
+                "title": entry.get("title"),
+                "requirements": len(members),
+                "frameworks": len({str(m.get("framework_id")) for m in members}),
+                "reviewed": reviewed,
+                "legacy_unattributed": provenances.count("legacy_unattributed"),
+                "proposed": len(contributing) - reviewed,
+                "contextual": len(members) - len(contributing),
+            }
+        )
+    rows.sort(key=lambda row: (-int(row["requirements"]), str(row["safeguard_id"])))
+    return rows[:limit]
 
 
 def coverage_by_framework(payload: JsonObject | None = None, *, catalog: dict[str, Any] | None = None) -> JsonObject:

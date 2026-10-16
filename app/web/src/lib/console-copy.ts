@@ -75,6 +75,16 @@ export const MAPPING_REVIEW_GLOSSARY = {
 
 export type MappingReviewGlossaryKey = keyof typeof MAPPING_REVIEW_GLOSSARY;
 
+/** Who stands behind an attestable mapping. Labels match the server's
+ * REVIEW_PROVENANCE_LABELS (safeguards.py). */
+export const REVIEW_PROVENANCE_LABELS = {
+  maintainer_receipt: "maintainer receipt",
+  legacy_unattributed: "legacy, no reviewer recorded",
+  org_decision: "org decision",
+} as const;
+
+export type ReviewProvenance = keyof typeof REVIEW_PROVENANCE_LABELS;
+
 /** One headline score, everything else a named sub-indicator. Each name
  * says what it measures and over which scope; keep them apart on every page. */
 export const SCORE_COPY = {

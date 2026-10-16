@@ -131,3 +131,17 @@ def test_mcp_framework_coverage_tool_reports_attestable() -> None:
     }
     assert "attestable_requirement_count" in payload["summary"]
     assert payload["summary"]["attestable_requirement_count"] <= payload["summary"]["evaluatable_requirement_count"]
+
+
+def test_coverage_separates_reviews_with_no_recorded_reviewer() -> None:
+    rows = build_framework_coverage()
+    by_id = {row["framework_id"]: row for row in rows}
+    summary = framework_coverage_summary(rows)
+    assert summary["legacy_only_reviewed_requirement_count"] == 339
+    assert summary["legacy_unattributed_mapping_count"] == 340
+    assert by_id["soc2"]["legacy_only_reviewed_requirement_count"] == 10
+    assert by_id["dora-2022-2554"]["legacy_only_reviewed_requirement_count"] == 0
+    assert all(row["legacy_only_reviewed_requirement_count"] <= row["attestable_requirement_count"] for row in rows)
+    markdown = render_framework_coverage_markdown(rows)
+    assert "No recorded reviewer |" in markdown
+    assert "339 rest only on legacy reviews with no recorded reviewer" in markdown
