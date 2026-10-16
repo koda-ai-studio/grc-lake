@@ -195,3 +195,46 @@ def test_parent_passes_graph_build_concurrency_to_the_worker(tmp_path):
     report = attempt(args, 12, 1)
     assert report["correctness_ok"]
     assert report["admission"]["graph_build_concurrency"] == 2
+
+
+def test_http_lifecycle_probes_report_deadline_disconnect_and_recovery(tmp_path, monkeypatch):
+    from tools.benchmark_investigation_http import run_http_workload
+
+    # Exercise the same loopback protocol with a short deadline in the test;
+    # qualification runs use the shipped 60-second deadline.
+    monkeypatch.setattr("security_lakehouse.graph_admission.DEFAULT_TIMEOUT_SECONDS", 0.5)
+    report = run_http_workload(
+        tmp_path,
+        rows=12,
+        tenants=1,
+        concurrency=1,
+        repeats=1,
+        client_timeout=5,
+        lifecycle_probes=True,
+    )
+    probes = report["lifecycle_probes"]
+    assert probes["deadline"]["http_status"] == 503
+    assert probes["deadline"]["error_code"] == "graph_build_timeout"
+    assert probes["deadline"]["seconds"] >= 0.5
+    assert probes["disconnect"]["abort_reason"] == "disconnected"
+    assert probes["disconnect"]["checkpoints"] > 0
+    assert probes["disconnect"]["release_seconds"] < 5
+    assert probes["slots_released"] and probes["recovery_http_status"] == 200
+    assert "Bearer" not in json.dumps(probes)
+
+
+def test_parent_preserves_http_timeout_and_lifecycle_options(tmp_path):
+    args = SimpleNamespace(
+        scratch=tmp_path,
+        min_free_gib=1,
+        tenants=1,
+        repeats=1,
+        timeout=90,
+        max_rss_mib=1024,
+        transport="http",
+        client_timeout=0.000001,
+        lifecycle_probes=False,
+    )
+    # A tiny timeout must reach the worker instead of silently using its default.
+    report = attempt(args, 12, 1)
+    assert not report["correctness_ok"]

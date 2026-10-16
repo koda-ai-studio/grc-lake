@@ -1,4 +1,4 @@
-# Candidate 0.3.5: versioned references become usable after publication.
+# Candidate 0.3.6: versioned references become usable after publication.
 # Use the v0.3.4 release templates for a published deployment.
 # Example: block merges when GRC Lake posture regresses.
 # Copy into .github/workflows/ and set repository secrets:
@@ -20,7 +20,7 @@ jobs:
     steps:
       - name: Evaluate GRC Lake posture
         id: gate
-        uses: koda-ai-studio/grc-lake/.github/actions/posture-gate@v0.3.5
+        uses: koda-ai-studio/grc-lake/.github/actions/posture-gate@v0.3.6
         with:
           grc-lake-url: ${{ secrets.GRC_LAKE_URL }}
           api-token: ${{ secrets.GRC_LAKE_API_TOKEN }}

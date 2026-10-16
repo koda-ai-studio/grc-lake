@@ -338,6 +338,9 @@ def _attempt(args, rows, concurrency):
                     folder,
                     *(("--seed", str(seed)) if seed is not None else ()),
                     *(("--graph-build-concurrency", str(slots)) if slots is not None else ()),
+                    "--client-timeout",
+                    str(getattr(args, "client_timeout", 75)),
+                    *(("--lifecycle-probes",) if getattr(args, "lifecycle_probes", False) else ()),
                 ],
                 stdout=output,
                 stderr=subprocess.DEVNULL,
@@ -402,6 +405,12 @@ def main():
     parser.add_argument("--transport", choices=("direct", "http"), default="direct")
     parser.add_argument("--seed", type=int, help="vary controls, outcomes and asset types deterministically")
     parser.add_argument(
+        "--client-timeout", type=float, default=75, help="HTTP client seconds; default exceeds server deadline"
+    )
+    parser.add_argument(
+        "--lifecycle-probes", action="store_true", help="HTTP only: inject deadline and socket-disconnect probes"
+    )
+    parser.add_argument(
         "--graph-build-concurrency", type=int, help="HTTP only: server graph build slots (default: shipped value)"
     )
     args = parser.parse_args()
@@ -415,6 +424,9 @@ def main():
         or args.min_free_gib < 1
         or (args.graph_build_concurrency is not None and not 1 <= args.graph_build_concurrency <= 64)
         or (args.graph_build_concurrency is not None and args.transport != "http")
+        or not math.isfinite(args.client_timeout)
+        or args.client_timeout <= 0
+        or (args.lifecycle_probes and args.transport != "http")
     ):
         parser.error(
             "require 2-100000 rows, 1-4 tenants, 1-8 workers, 1-10 repeats, positive watchdogs, >=1 GiB free"
@@ -429,7 +441,15 @@ def main():
                 from tools.benchmark_investigation_http import run_http_workload
 
                 workload = run_http_workload
-            options = {"graph_build_concurrency": args.graph_build_concurrency} if args.transport == "http" else {}
+            options = (
+                {
+                    "graph_build_concurrency": args.graph_build_concurrency,
+                    "client_timeout": args.client_timeout,
+                    "lifecycle_probes": args.lifecycle_probes,
+                }
+                if args.transport == "http"
+                else {}
+            )
             result = workload(
                 args.scratch,
                 rows=args.sizes[0],
@@ -512,7 +532,8 @@ def main():
         report["http_harness_sha256"] = file_sha256(ROOT / "tools/benchmark_investigation_http.py")
         report["configuration"]["http"] = {
             "server_processes": 1,
-            "client_timeout_seconds": 30,
+            "client_timeout_seconds": args.client_timeout,
+            "lifecycle_probes": args.lifecycle_probes,
             "auth_role": "security_admin",
             "database": "scratch SQLite",
             "query": {"view": "environment", "root": "own account-a asset-0", "depth": 1, "limit": 150},
