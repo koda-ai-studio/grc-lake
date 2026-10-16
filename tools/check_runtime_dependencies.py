@@ -7,6 +7,7 @@ import gzip
 import importlib.util
 import lzma
 import os
+import pwd
 import pyexpat
 import sqlite3
 import ssl
@@ -15,7 +16,10 @@ import tempfile
 import uuid
 from pathlib import Path
 
-assert os.getuid() == 1100, "runtime must retain the deployment UID"
+assert os.getuid() == os.getgid() == 1100, "runtime must retain the deployment UID/GID"
+user = pwd.getpwuid(os.getuid())
+assert user.pw_name == "grc-lake" and user.pw_dir == "/home/grc-lake"
+assert Path.cwd() == Path(user.pw_dir) and os.access(user.pw_dir, os.W_OK)
 for module in ("pip", "ensurepip", "readline", "_curses", "_uuid"):
     assert importlib.util.find_spec(module) is None, f"unexpected runtime module: {module}"
 for name in (
