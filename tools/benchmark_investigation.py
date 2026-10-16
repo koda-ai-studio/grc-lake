@@ -124,6 +124,8 @@ def require_rejection(fn):
 
 def distribution(values):
     ordered = sorted(values)
+    if not ordered:
+        return {}
     return {f"p{p}": ordered[max(0, math.ceil(len(ordered) * p / 100) - 1)] for p in (50, 95, 99)}
 
 
@@ -312,6 +314,7 @@ def attempt(args, rows, concurrency):
 
 def _attempt(args, rows, concurrency):
     seed = getattr(args, "seed", None)
+    slots = getattr(args, "graph_build_concurrency", None)
     with tempfile.TemporaryDirectory(prefix="grc-graph-benchmark-", dir=args.scratch) as folder:
         if shutil.disk_usage(folder).free < args.min_free_gib * 2**30:
             return {"stopped": "disk_floor_before_start"}
@@ -334,6 +337,7 @@ def _attempt(args, rows, concurrency):
                     "--scratch",
                     folder,
                     *(("--seed", str(seed)) if seed is not None else ()),
+                    *(("--graph-build-concurrency", str(slots)) if slots is not None else ()),
                 ],
                 stdout=output,
                 stderr=subprocess.DEVNULL,
@@ -397,6 +401,9 @@ def main():
     parser.add_argument("--worker", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--transport", choices=("direct", "http"), default="direct")
     parser.add_argument("--seed", type=int, help="vary controls, outcomes and asset types deterministically")
+    parser.add_argument(
+        "--graph-build-concurrency", type=int, help="HTTP only: server graph build slots (default: shipped value)"
+    )
     args = parser.parse_args()
     if (
         not all(2 <= n <= 100000 for n in args.sizes)
@@ -406,9 +413,12 @@ def main():
         or args.timeout <= 0
         or args.max_rss_mib <= 0
         or args.min_free_gib < 1
+        or (args.graph_build_concurrency is not None and not 1 <= args.graph_build_concurrency <= 64)
+        or (args.graph_build_concurrency is not None and args.transport != "http")
     ):
         parser.error(
-            "require 2-100000 rows, 1-4 tenants, 1-8 workers, 1-10 repeats, positive watchdogs and >=1 GiB free"
+            "require 2-100000 rows, 1-4 tenants, 1-8 workers, 1-10 repeats, positive watchdogs, >=1 GiB free"
+            " and HTTP-only 1-64 graph build slots"
         )
     if args.worker:
         try:
@@ -419,6 +429,7 @@ def main():
                 from tools.benchmark_investigation_http import run_http_workload
 
                 workload = run_http_workload
+            options = {"graph_build_concurrency": args.graph_build_concurrency} if args.transport == "http" else {}
             result = workload(
                 args.scratch,
                 rows=args.sizes[0],
@@ -427,6 +438,7 @@ def main():
                 repeats=args.repeats,
                 progress_path=args.scratch / "progress.json",
                 seed=args.seed,
+                **options,
             )
         except Exception as exc:  # noqa: BLE001 — worker boundary retains a failed attempt, never success
             progress = args.scratch / "progress.json"
@@ -504,11 +516,13 @@ def main():
             "auth_role": "security_admin",
             "database": "scratch SQLite",
             "query": {"view": "environment", "root": "own account-a asset-0", "depth": 1, "limit": 150},
+            "graph_build_concurrency": args.graph_build_concurrency or "shipped default",
             "dependencies": {name: version(name) for name in ("fastapi", "starlette", "anyio", "uvicorn", "httpx")},
         }
         report["limitations"] = [
             "Authenticated loopback HTTP, one Uvicorn process with default thread-pool and rate limits",
             "Balanced and 4:1 skewed client submissions; client queue delay is not server scheduler delay",
+            "Explicit 503 admission rejections are retained per tenant; they are not retried",
             "Client and server share one process and host; RSS and CPU include both",
             "Synthetic normalized records, SQLite state, no evaluation jobs or provider evidence",
             "Response body bytes exclude HTTP headers; no production fairness, SLO or capacity budget",
