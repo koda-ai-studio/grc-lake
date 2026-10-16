@@ -291,6 +291,7 @@ jobs:
           COVERAGE_FILE: build/coverage-shard-${{ matrix.shard }}.data
         run: >-
           uv run python -m pytest -q -p tools.pytest_shard --ci-shard="$SHARD"
+          -p tools.pytest_strict_imports --allow-import-skip=moto
           --durations=10 --junitxml=build/pytest-results.xml
           --cov --cov-report=term-missing:skip-covered
           --cov-report=xml:build/coverage-shard-${{ matrix.shard }}.xml

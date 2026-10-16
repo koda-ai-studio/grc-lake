@@ -69,6 +69,8 @@ def test_python_matrix_runs_complete_suite_once_and_preserves_artifact_dependenc
     test_step = next(step for step in tests["steps"] if "--ci-shard" in step.get("run", ""))
     assert test_step["env"]["SHARD"] == "${{ matrix.shard }}/${{ strategy.job-total }}"
     assert '-p tools.pytest_shard --ci-shard="$SHARD"' in test_step["run"]
+    assert "-p tools.pytest_strict_imports --allow-import-skip=moto " in test_step["run"]
+    assert any("--all-extras" in step.get("run", "") for step in tests["steps"])
     for name in ("pipeline-smoke", "python-tests", "e2e"):
         assert jobs[name]["needs"] == "web"
         assert any(step.get("with", {}).get("name") == "web-dist" for step in jobs[name]["steps"])

@@ -9,10 +9,11 @@ from typing import Any
 import pytest
 import yaml
 
+from repo_files import repo_files
+
 ROOT = Path(__file__).resolve().parents[1]
 ACTION = yaml.safe_load((ROOT / ".github" / "actions" / "posture-gate" / "action.yml").read_text(encoding="utf-8"))
 EXAMPLES = sorted((ROOT / "examples" / "github-actions").glob("*.yml"))
-SKIP_DIRS = {"node_modules", ".venv", ".next", ".claude", "dist", ".git", ".pytest_cache", "build"}
 
 
 def _compose() -> dict[str, Any]:
@@ -155,7 +156,7 @@ def test_documented_make_targets_exist(doc: str) -> None:
 
 
 def _markdown_files() -> list[Path]:
-    return [p for p in ROOT.rglob("*.md") if not SKIP_DIRS & set(p.relative_to(ROOT).parts)]
+    return [p for p in repo_files() if p.suffix == ".md"]
 
 
 def test_relative_markdown_links_resolve() -> None:

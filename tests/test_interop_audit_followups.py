@@ -4,8 +4,6 @@ from http import HTTPStatus
 
 import anyio
 import pytest
-from mcp.shared.exceptions import McpError
-from mcp.shared.memory import create_connected_server_and_client_session
 
 from security_lakehouse import api_legacy, mcp_server, oscal
 
@@ -17,6 +15,10 @@ def test_unknown_legacy_evidence_returns_not_found(tmp_path):
 
 
 def test_unknown_mcp_tool_is_a_protocol_error(tmp_path):
+    pytest.importorskip("mcp")
+    from mcp.shared.exceptions import McpError
+    from mcp.shared.memory import create_connected_server_and_client_session
+
     server = mcp_server.build_server(tmp_path)
 
     async def call():

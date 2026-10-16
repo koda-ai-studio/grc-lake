@@ -3,25 +3,19 @@
 Early scaffold work left "Coming in PR N" / "PR N adds ..." placeholder copy in
 user-facing surfaces (the React workbench, agent skills, the Python server).
 This test greps the shipped source trees for those phrases and fails if any
-remain, so the copy cannot regress. Generated trees (node_modules, the Next.js
-build output, the bundled web dist) are excluded.
+remain, so the copy cannot regress. Only tracked files are scanned, so
+generated trees (node_modules, the Next.js build output, the bundled web dist)
+never count.
 """
 
 from __future__ import annotations
 
 import re
-from pathlib import Path
 
-_REPO_ROOT = Path(__file__).resolve().parents[1]
+from repo_files import ROOT, repo_files
 
 # Shipped source trees that reach users (skills, web app, Python server).
-_SOURCE_ROOTS = (
-    Path("src/security_lakehouse"),
-    Path("app/web/src"),
-    Path("agent-skills"),
-)
-
-_EXCLUDED_DIRS = ("node_modules", ".next", "web/dist", "web-dist", "__pycache__")
+_SOURCE_ROOTS = ("src/security_lakehouse", "app/web/src", "agent-skills")
 
 _TEXT_SUFFIXES = {".py", ".ts", ".tsx", ".js", ".jsx", ".md", ".mdx", ".json"}
 
@@ -40,24 +34,17 @@ _SCAFFOLD_PATTERNS = (
 
 def test_no_scaffold_copy_in_shipped_sources() -> None:
     offenders: list[str] = []
-    for root in _SOURCE_ROOTS:
-        abs_root = _REPO_ROOT / root
-        if not abs_root.exists():
+    for path in repo_files(*_SOURCE_ROOTS):
+        if path.suffix not in _TEXT_SUFFIXES:
             continue
-        for path in abs_root.rglob("*"):
-            posix = path.as_posix()
-            if not path.is_file() or path.suffix not in _TEXT_SUFFIXES:
-                continue
-            if any(excluded in posix for excluded in _EXCLUDED_DIRS):
-                continue
-            try:
-                text = path.read_text(encoding="utf-8")
-            except (UnicodeDecodeError, OSError):
-                continue
-            for lineno, line in enumerate(text.splitlines(), start=1):
-                for pattern in _SCAFFOLD_PATTERNS:
-                    if pattern.search(line):
-                        rel = path.relative_to(_REPO_ROOT).as_posix()
-                        offenders.append(f"{rel}:{lineno}: {line.strip()}")
+        try:
+            text = path.read_text(encoding="utf-8")
+        except (UnicodeDecodeError, OSError):
+            continue
+        for lineno, line in enumerate(text.splitlines(), start=1):
+            for pattern in _SCAFFOLD_PATTERNS:
+                if pattern.search(line):
+                    rel = path.relative_to(ROOT).as_posix()
+                    offenders.append(f"{rel}:{lineno}: {line.strip()}")
 
     assert offenders == [], "scaffold copy must not ship to users:\n" + "\n".join(offenders)
