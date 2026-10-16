@@ -89,7 +89,7 @@ def build_framework_coverage(
         safeguards = effective_safeguards(lake_dir)
     else:
         safeguards = load_safeguards()
-    coverage = framework_mapping_coverage(safeguards, catalog=controls)
+    coverage = framework_mapping_coverage(safeguards, catalog=controls, registry=registry)
     review_log_verified = coverage["review_log_verified"]
 
     rows: list[JsonObject] = []
@@ -137,6 +137,11 @@ def build_framework_coverage(
                 "org_reviewed_requirement_count": shared.get("org_reviewed", 0),
                 "legacy_only_reviewed_requirement_count": shared.get("legacy_only_reviewed", 0),
                 "legacy_unattributed_mapping_count": shared.get("legacy_unattributed_mappings", 0),
+                # Disjoint split of attestable requirements: reviewed only through
+                # source-native self-maps vs. through a reviewed crosswalk mapping.
+                "source_native_reviewed_requirement_count": shared.get("source_native_reviewed", 0),
+                "crosswalk_reviewed_requirement_count": shared.get("crosswalk_reviewed", 0),
+                "crosswalk_reviewed_coverage_pct": shared.get("crosswalk_reviewed_pct", 0.0),
                 "org_reviewed_mapping_count": shared.get("org_reviewed_mappings", 0),
                 "needs_changes_mapping_count": shared.get("needs_changes_mappings", 0),
                 "rejected_mapping_count": shared.get("rejected_mappings", 0),
@@ -166,6 +171,8 @@ def framework_coverage_summary(
     attestable = sum(int(row.get("attestable_requirement_count", 0)) for row in rows)
     maintainer_reviewed = sum(int(row.get("maintainer_reviewed_requirement_count", 0)) for row in rows)
     org_reviewed = sum(int(row.get("org_reviewed_requirement_count", 0)) for row in rows)
+    source_native = sum(int(row.get("source_native_reviewed_requirement_count", 0)) for row in rows)
+    crosswalk = sum(int(row.get("crosswalk_reviewed_requirement_count", 0)) for row in rows)
     applicability = applicability_rows if applicability_rows is not None else build_control_asset_applicability()
     implemented = [row for row in rows if str(row.get("implementation_status", "")).startswith("implemented")]
     planned = [row for row in rows if str(row.get("implementation_status", "")) == "planned"]
@@ -192,6 +199,9 @@ def framework_coverage_summary(
             int(row.get("legacy_only_reviewed_requirement_count", 0)) for row in rows
         ),
         "legacy_unattributed_mapping_count": sum(int(row.get("legacy_unattributed_mapping_count", 0)) for row in rows),
+        "source_native_reviewed_requirement_count": source_native,
+        "crosswalk_reviewed_requirement_count": crosswalk,
+        "crosswalk_reviewed_coverage_pct": round(crosswalk / seeded * 100, 1) if seeded else 0.0,
         "org_reviewed_mapping_count": sum(int(row.get("org_reviewed_mapping_count", 0)) for row in rows),
         "needs_changes_mapping_count": sum(int(row.get("needs_changes_mapping_count", 0)) for row in rows),
         "rejected_mapping_count": sum(int(row.get("rejected_mapping_count", 0)) for row in rows),
@@ -248,12 +258,16 @@ def render_framework_coverage_markdown(
     applicability = applicability_rows if applicability_rows is not None else build_control_asset_applicability()
     summary = framework_coverage_summary(rows, applicability)
     lines = [
-        "| Framework | Official source | Status | Requirements | Source-cited | Mapped | Reviewed mappings | Reviewed % | No recorded reviewer | Source state |",
-        "| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |",
+        "| Framework | Official source | Status | Requirements | Source-cited | Mapped | Reviewed mappings | Reviewed %"
+        " | Source-native self-maps | Crosswalk reviewed | Crosswalk reviewed % | No recorded reviewer | Source state |",
+        "| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |",
     ]
     for row in rows:
         lines.append(
-            "| {name} | [{source}]({url}) | {status} | {controls} | {mappings} | {evaluatable} | {attestable} | {attestable_pct}% | {legacy} | {freshness} |".format(
+            (
+                "| {name} | [{source}]({url}) | {status} | {controls} | {mappings} | {evaluatable} | {attestable}"
+                " | {attestable_pct}% | {self_maps} | {crosswalk} | {crosswalk_pct}% | {legacy} | {freshness} |"
+            ).format(
                 name=_markdown_text(row["name"])
                 + (" (top-level coverage)" if row.get("coverage_level") == "top_level" else ""),
                 source=_markdown_text(row["official_source_name"]),
@@ -264,6 +278,9 @@ def render_framework_coverage_markdown(
                 evaluatable=row.get("evaluatable_requirement_count", 0),
                 attestable=row.get("attestable_requirement_count", 0),
                 attestable_pct=row.get("attestable_coverage_pct", 0.0),
+                self_maps=row.get("source_native_reviewed_requirement_count", 0),
+                crosswalk=row.get("crosswalk_reviewed_requirement_count", 0),
+                crosswalk_pct=row.get("crosswalk_reviewed_coverage_pct", 0.0),
                 legacy=row.get("legacy_only_reviewed_requirement_count", 0),
                 freshness=str(row["freshness_state"]).replace("_", " "),
             )
@@ -281,14 +298,22 @@ def render_framework_coverage_markdown(
             f"Requirements catalogued: {summary['seeded_control_count']} (all source-cited)",
             f"Mapped (touched by a safeguard): {summary['evaluatable_requirement_count']} "
             f"({summary['evaluatable_coverage_pct']}%)",
-            f"**Reviewed safeguard mappings: "
-            f"{summary['attestable_requirement_count']} ({summary['attestable_coverage_pct']}%)**; "
+            f"Reviewed safeguard mappings: {summary['attestable_requirement_count']} "
+            f"({summary['attestable_coverage_pct']}%), of which "
+            f"{summary['source_native_reviewed_requirement_count']} are source-native self-maps and "
+            f"{summary['crosswalk_reviewed_requirement_count']} are crosswalk-reviewed "
+            f"({summary['crosswalk_reviewed_coverage_pct']}%); "
             f"{summary['legacy_only_reviewed_requirement_count']} rest only on legacy reviews with no recorded reviewer",
             f"Asset types modeled: {summary['asset_type_count']}",
             "",
             "> `Source-cited` = the requirement has an official source link. "
             + "`Mapped` = a safeguard claims it (reviewed or proposed). "
             + "`Reviewed` = a human has confirmed the safeguard-to-requirement mapping. "
+            + "`Source-native self-maps` = requirements reviewed only through a safeguard that maps that one "
+            + "requirement and cites the framework's own pinned source (registry SHA-256); review confirms "
+            + "extraction fidelity, not a cross-framework judgement. "
+            + "`Crosswalk reviewed` = requirements with at least one reviewed mapping from a reusable or "
+            + "cross-framework safeguard. The blended total spans uneven frameworks; read coverage per row. "
             + "`No recorded reviewer` = reviewed requirements whose only reviewed mappings predate decision "
             + "receipts and name no reviewer (controls/reviews/legacy-unattributed.json). "
             + "An assessment still needs scoped evidence and tests of operating effectiveness.",
