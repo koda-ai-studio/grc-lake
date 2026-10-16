@@ -96,7 +96,17 @@ def validate_http_graph(result, tenant, rows, *, seed=None, evidence_ids=None):
 
 
 def run_http_workload(
-    root, *, rows, tenants, concurrency, repeats, progress_path=None, seed=None, graph_build_concurrency=None
+    root,
+    *,
+    rows,
+    tenants,
+    concurrency,
+    repeats,
+    progress_path=None,
+    seed=None,
+    graph_build_concurrency=None,
+    client_timeout=75,
+    lifecycle_probes=False,
 ):
     with local_configuration():
         if graph_build_concurrency is not None:
@@ -109,10 +119,14 @@ def run_http_workload(
             repeats=repeats,
             progress_path=progress_path,
             seed=seed,
+            client_timeout=client_timeout,
+            lifecycle_probes=lifecycle_probes,
         )
 
 
-def _run_http_workload(root, *, rows, tenants, concurrency, repeats, progress_path, seed):
+def _run_http_workload(
+    root, *, rows, tenants, concurrency, repeats, progress_path, seed, client_timeout, lifecycle_probes
+):
     from security_lakehouse.db.models import Tenant
     from security_lakehouse.db.repository import create_api_key, create_user
     from security_lakehouse.server_app import create_app
@@ -141,6 +155,7 @@ def _run_http_workload(root, *, rows, tenants, concurrency, repeats, progress_pa
             _, credentials[tenant] = create_api_key(session, tenant_id=tenant, user_id=user.id)
     reads = []
     checks = {}
+    probes = {}
 
     def retain():
         if progress_path is not None:
@@ -153,13 +168,14 @@ def _run_http_workload(root, *, rows, tenants, concurrency, repeats, progress_pa
                         "unique_records_per_tenant": rows,
                         "input_sha256": hashes,
                         "input_bytes_per_tenant": input_bytes,
+                        "lifecycle_probes": probes,
                     }
                 )
             )
             temporary.replace(progress_path)
 
     try:
-        with loopback_server(app) as url, httpx.Client(base_url=url, trust_env=False, timeout=30) as client:
+        with loopback_server(app) as url, httpx.Client(base_url=url, trust_env=False, timeout=client_timeout) as client:
             if client.get(ROUTE).status_code != 401:
                 raise ValueError("unauthenticated graph request was accepted")
             if client.get(ROUTE, headers={"Authorization": "Bearer invalid-benchmark-token"}).status_code != 401:
@@ -306,6 +322,17 @@ def _run_http_workload(root, *, rows, tenants, concurrency, repeats, progress_pa
             if response.status_code != 400 or "version changed" not in response.text:
                 raise ValueError("stale graph version was accepted")
             checks["stale_version_rejected"] = True
+            if lifecycle_probes:
+                from tools.benchmark_graph_lifecycle import run_lifecycle_probes
+
+                probes = run_lifecycle_probes(
+                    app,
+                    url,
+                    credentials[tenant],
+                    client_timeout=client_timeout,
+                    graph_timeout=graph_timeout,
+                )
+                checks["lifecycle_probes_passed"] = True
             retain()
     finally:
         app.state.sessionmaker.kw["bind"].dispose()
@@ -314,6 +341,7 @@ def _run_http_workload(root, *, rows, tenants, concurrency, repeats, progress_pa
         "correctness_ok": True,
         "checks": checks,
         "scenarios": scenarios,
+        "lifecycle_probes": probes,
         "admission": {
             "graph_build_concurrency": app.state.graph_build_slots.capacity,
             "graph_build_timeout_seconds": graph_timeout,
