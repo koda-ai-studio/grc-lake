@@ -10,7 +10,10 @@ Package, console, chart, Compose defaults and CI examples target the published
 The release includes five CSF mappings, 381 source-native NIST 800-53
 assessment safeguards, and the maintainer's approval of 33 source-review batches.
 Overall mapped coverage is 1,803 of 2,252 requirements (80.1%); reviewed coverage
-is 1,128 (50.1%).
+is 1,128 (50.1%). That is a blended aggregate: 381 of those reviewed requirements
+are source-native NIST 800-53 self-maps rather than crosswalk judgements, and
+review depth differs widely by framework. The [coverage matrix](FRAMEWORK_COVERAGE.md)
+reports each framework's reviewed, self-map and crosswalk counts.
 The [recorded decision](../controls/reviews/2026-10-14-source-batches.json)
 binds the approval to the inspected mappings; 17 requirements with stale version
 pins remain uncredited. These are catalog measures, not assessment results.
