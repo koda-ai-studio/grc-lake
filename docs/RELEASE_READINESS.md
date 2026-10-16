@@ -48,7 +48,9 @@ contracts and recorded the maintainer's approval of the 35 repaired proposals.
 The candidate has 1,163 reviewed requirements (51.6%): 824 have a decision
 receipt and 339 rely only on legacy reviews with no recorded reviewer. Mapped
 coverage remains 1,803/2,252 (80.1%). The published 0.3.5 figures above remain
-unchanged. The [current queue](reviews/SOC2_ISO_REVIEW.md) has 115 requirements
+unchanged. Separately, the reviewed total splits into 381 source-native self-maps
+and 782 crosswalk-reviewed requirements; these categories do not describe review
+provenance or operating effectiveness. The [current queue](reviews/SOC2_ISO_REVIEW.md) has 115 requirements
 in 13 batches. See the [decision record](MAPPING_REVIEW.md#pending-soc-2-and-iso-review)
 for scope, source limitations and review-method disclosures. This is not a new
 release qualification or publication decision.

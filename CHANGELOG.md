@@ -5,6 +5,8 @@ Python package, Helm chart, and bundled web console.
 
 ## 0.3.6 - 2026-10-16
 
+- Lead coverage reporting with per-framework review depth and distinguish 381 source-native self-maps from 782 crosswalk-reviewed requirements. Share the split across the mapping ledger, API, console, README and generated coverage matrix; neither classification is an operating-effectiveness verdict.
+
 - Retain per-tenant graph admission rejections, make the HTTP benchmark client deadline configurable, and add separate loopback deadline, disconnect and recovery probes. Publish refreshed direct/HTTP graph, CCF pipeline and local PostgreSQL/S3-emulator measurements with reproducible receipts. These synthetic results do not establish production capacity; the proposed 1 GiB graph envelope remains unqualified.
 
 - Limit repository-wide tests to tracked files and fail unexpected missing-extra skips in CI, while allowing documented local dev-only installations.
