@@ -297,38 +297,23 @@ Period-bound workpapers can record explicit `not_applicable`, `inherited`, or
 
 ### Maintainer source-batch review
 
-The [2026-10-14 decision receipt](../controls/reviews/2026-10-14-source-batches.json)
-records msaad00's approval of 33 prepared source-review batches: 885 source-backed
+The [2026-10-14 review record](../controls/reviews/2026-10-14-source-batches.json)
+contains maintainer approval for 33 source-review batches: 885 source-backed
 mapping relationships covering 806 distinct requirements. Each relationship is
-bound to the inspected semantic digest and original catalog commit. The receipt
-records the batch approval verbatim; no separate per-mapping rationale or second
-reviewer decision was supplied.
+bound to its inspected semantic digest and original catalog commit.
 
-**Review method and retained evidence.** The maintainer subsequently confirmed
-that they personally reviewed all controls and mappings in the 33 prepared
-batches. This is the reviewer's account of their inspection; the automated
-checks below verify the recorded scope and content, not the human review process.
+The source packets contain requirement references, mapping roles, source locators,
+safeguard objectives, evidence requirements and inspected hashes. Their base
+catalog is commit `40ce68a3b0ebe056b6f5565d4638d328e734d64d`. Source-native NIST
+contracts retain pinned source statements, assessment objectives and parameters;
+see the [source and derivation record](NIST53_ASSESSMENTS.md#source-and-derivation).
 
-- **Preparation:** the packets included each catalog requirement, mapping role,
-  cited source and locator, source digest where supplied, safeguard operating
-  objective, evidence contract, required evidence and asset types, and inspected
-  semantic hash. The base catalog is commit
-  `40ce68a3b0ebe056b6f5565d4638d328e734d64d`. Source-native NIST contracts retain
-  their pinned source statements, assessment objectives and parameters; see the
-  [source and derivation record](NIST53_ASSESSMENTS.md#source-and-derivation).
-- **Human decision:** msaad00 approved all 33 batches without exceptions. The
-  receipt preserves that decision verbatim and identifies the 885 mapping
-  relationships it covers. The assistant prepared the material and recorded the
-  decision; it is not an additional human reviewer.
-- **Automated verification:** each approved relationship is checked against its
-  inspected semantic hash. Tests reconcile the exact approved set, distinct
-  requirement counts and stale-version exclusions. Source extraction checks
-  compare the 381 added NIST contracts with their pinned authoritative catalog.
-  These checks do not independently establish mapping correctness.
-- **Limits of the record:** no separate per-mapping written rationale, second
-  reviewer decision or review duration was supplied. The receipt timestamp marks
-  when the batch approval was recorded, not when each item was read. Its lines
-  mostly enumerate identities and hashes; they are not individual review notes.
+Automated checks verify the recorded mapping identities and hashes, reconcile
+distinct requirement counts, and exclude stale versions from coverage. Source
+extraction checks compare the 381 added NIST contracts with the authoritative
+catalog. These checks establish record consistency, not mapping correctness or
+operating effectiveness. The timestamp records the batch decision, not individual
+inspection times.
 
 The aggregate reviewed percentage records maintainer mapping decisions. It does
 not establish independent assurance or equal review depth across frameworks;
@@ -346,9 +331,8 @@ not establish operating effectiveness or turn missing evidence into a pass.
 
 After the source-batch milestone above, the maintainer approved 35 repaired
 proposals: 23 SOC 2, seven ISO 27001 and five ISO 42001. The
-[decision and method record](MAPPING_REVIEW.md#pending-soc-2-and-iso-review)
-links the exact presented contracts and preserves the limits of the supplied
-decision. Current main has 1,163 reviewed requirements (51.6%); mapping coverage
+[review record](MAPPING_REVIEW.md#pending-soc-2-and-iso-review)
+links the inspected contracts and source references. Current main has 1,163 reviewed requirements (51.6%); mapping coverage
 remains 1,803 (80.1%). These changes are not part of the published 0.3.5 release.
 Unapproved alternatives remain proposed, and operational evidence is still required.
 

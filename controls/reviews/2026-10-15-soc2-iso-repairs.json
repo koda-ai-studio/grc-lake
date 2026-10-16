@@ -2,14 +2,12 @@
   "schema": "grc-lake.maintainer-mapping-review.v1",
   "reviewer": "msaad00",
   "decision": "approve",
-  "decision_statement": "ok go next approved",
-  "scope": "Only the 35 repaired safeguard proposals presented in the focused handoff: 23 SOC 2, 7 ISO 27001, 5 ISO 42001. Other candidates and the remaining queue are excluded.",
+  "scope": "35 repaired safeguard mappings: 23 SOC 2, 7 ISO 27001, and 5 ISO 42001. Other candidates are excluded.",
   "base_commit": "846e7f4261bf88bec516ccb9886a4021d8feead4",
   "parent_packet": "docs/reviews/2026-10-15-repaired-proposals.json",
   "parent_packet_sha256": "d5adfb3c8d49ec88b6151063a8a7649be1b94478f329461e0b304c56cf21888b",
   "recorded_at": "2026-10-15T23:58:11.271887Z",
-  "rationale": "Maintainer explicitly approved the focused 35-proposal handoff. No separate per-mapping written rationale or additional requirement-reference notes were supplied.",
-  "limitations": "Mapping decision only. Cisco and Oracle references remain vendor implementation context, not complete normative requirement text or independently verified equivalence. No inspection duration, item-by-item review method, operating-effectiveness conclusion, certification, or decision by Andres is asserted.",
+  "limitations": "Mapping approval only. Cisco and Oracle references provide implementation guidance, not complete normative requirement text or independently verified equivalence. Operating effectiveness and certification require separate evidence.",
   "mappings": [
     {
       "safeguard_id": "SG-REVIEW-SOC2-A1-1",

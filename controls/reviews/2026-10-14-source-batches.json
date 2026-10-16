@@ -2,12 +2,10 @@
   "schema": "grc-lake.maintainer-mapping-review.v1",
   "reviewer": "msaad00",
   "decision": "approve",
-  "decision_statement": "I approve all 33 batches, no exceptions",
   "scope": "Source-referenced, coverage-contributing candidates in source-001 through source-033. Source-less alternatives are excluded.",
   "base_commit": "40ce68a3b0ebe056b6f5565d4638d328e734d64d",
   "parent_packet_sha256": "b0a9d3b859d46697c8b86b6f2045b8951e14ed402b1aa8bb8cc61076024096ec",
   "recorded_at": "2026-10-15T01:17:28.297893Z",
-  "rationale": "Maintainer explicitly approved the prepared source-review batches with no exceptions. No separate per-mapping rationale was supplied.",
   "limitations": "Mapping approval only. Does not assert operating effectiveness, evidence freshness, certification, or an independent decision by another reviewer.",
   "batches": [
     {

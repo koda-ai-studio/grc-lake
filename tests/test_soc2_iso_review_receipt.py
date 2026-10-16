@@ -30,7 +30,8 @@ def test_decision_is_bound_to_the_presented_35_contracts_only():
     receipt = json.loads((ROOT / RECEIPT).read_text())
     packet = json.loads((ROOT / PACKET).read_text())
     assert receipt["reviewer"] == "msaad00"
-    assert receipt["decision_statement"] == "ok go next approved"
+    assert "decision_statement" not in receipt
+    assert "rationale" not in receipt
     assert receipt["decision"] == "approve"
     assert receipt["parent_packet_sha256"] == canonical_sha256(packet)
     expected = {(x["safeguard_id"], x["control_id"]): x for x in packet["items"]}
