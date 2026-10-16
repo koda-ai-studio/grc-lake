@@ -5,6 +5,8 @@ from pathlib import Path
 
 import pytest
 
+pytest.importorskip("pyarrow")
+
 from security_lakehouse.distributed.partitioning import export_partitions, select_partitions
 from security_lakehouse.pipeline import run_pipeline
 

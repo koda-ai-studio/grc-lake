@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import pytest
 
+pytest.importorskip("botocore")
+
 from security_lakehouse.distributed.config import ClusterConfig
 from security_lakehouse.distributed.objects import IntegrityError, ObjectStore
 

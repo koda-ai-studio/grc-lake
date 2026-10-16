@@ -172,6 +172,7 @@ def test_restore_into_fresh_postgres_and_object_store_preserves_history(catalog,
 
 
 def test_storage_failures_have_stable_codes_without_exception_details():
+    pytest.importorskip("botocore")
     import errno
 
     from botocore.exceptions import ClientError

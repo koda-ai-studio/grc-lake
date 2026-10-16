@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import pytest
+
 from security_lakehouse.brand_assets import (
     MCP_SERVER_NAME,
     grc_lake_mark_data_uri,
@@ -17,6 +19,7 @@ def test_grc_lake_mark_data_uri_is_embedded_svg() -> None:
 
 
 def test_mcp_icons_include_embedded_fallback() -> None:
+    pytest.importorskip("mcp")
     icons = mcp_icons()
     assert len(icons) >= 1
     assert any(icon.src.startswith("data:image/svg+xml") for icon in icons)
@@ -24,6 +27,7 @@ def test_mcp_icons_include_embedded_fallback() -> None:
 
 
 def test_mcp_icons_add_hosted_url_when_api_url_set(monkeypatch) -> None:
+    pytest.importorskip("mcp")
     monkeypatch.setenv("GRC_LAKE_API_URL", "https://grc-lake.example.com")
     icons = mcp_icons()
     assert icons[0].src == "https://grc-lake.example.com/brand/grc-lake-mark.svg"
