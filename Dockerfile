@@ -1,24 +1,35 @@
 # Multi-stage Dockerfile: builds the Next.js workbench, installs the Python
 # package with the workbench bundled in, ships a slim runtime image.
 #
-# Four stages:
-#   1. web-build  — Node 22 builds the static React export into
-#                   src/security_lakehouse/web/dist/
-#   2. py-build   — Python 3.14 installs the package + analytics extras into a
-#                   virtualenv that runtime mounts read-only (matches CI)
-#   3. runtime-deps — CPython + required Debian libraries and package records
-#   4. runtime    — distroless, copies the venv + lake mount points,
-#                   runs `grc-lake serve` as a non-root user without a shell
+# The web and Python builders produce the application. A separate APK stage
+# installs signed, version-pinned system packages into an empty runtime root.
+# CPython and native libraries come from the same vendor; the scratch stage keeps
+# the runtime shell-free while retaining vendor package records and licenses.
 #
 # Build:  docker build -t grc-lake:dev .
 # Run: see deploy/README.md for authenticated Compose and Kubernetes profiles.
 
-# Base images are pinned by multi-arch index digest so a rebuild of the same
-# commit gets the same bytes; Dependabot's docker ecosystem bumps tag + digest
-# together. uv is copied from its official image, pinned the same way.
+# Base images are pinned by multi-arch index digest to prevent silent tag
+# changes. Dependabot updates those pins; runtime package versions are tracked
+# separately in tools/runtime-packages.txt. uv also uses its official digest.
 FROM ghcr.io/astral-sh/uv:0.13.0@sha256:cdc6093146eb3ff6a40107b38f008b789e050e77ad87865e381d9917da55a168 AS uv
 
-# --- 1. React workbench ----------------------------------------------------
+# Signed runtime packages --------------------------------------------
+FROM cgr.dev/chainguard/wolfi-base:latest@sha256:256c88bb066424045021090932d50be93c8e3f2ce3586707702a401b146f3e43 AS runtime-system
+COPY tools/runtime-packages.txt /tmp/runtime-packages.txt
+# Signature verification uses the keys and repository configuration in the
+# digest-pinned builder. No shell or package manager is installed in the root.
+RUN apk add --root /runtime-root --initdb --no-scripts --no-cache \
+      --keys-dir /etc/apk/keys --repositories-file /etc/apk/repositories \
+      $(cat /tmp/runtime-packages.txt)
+
+# Use the same interpreter and native libraries for building and running.
+FROM runtime-system AS python-base
+RUN apk add --no-cache $(cat /tmp/runtime-packages.txt) \
+  && mkdir -p /usr/local/bin \
+  && ln -s /usr/bin/python3.14 /usr/local/bin/python
+
+# React workbench ----------------------------------------------------
 # The static export is the same on every architecture, so it builds on the
 # build host's platform instead of under emulation.
 FROM --platform=$BUILDPLATFORM node:22-slim@sha256:c3de60bf2f9dd0ac6370e6117950ff62d6e339527e7472301c9c78a017978392 AS web-build
@@ -28,8 +39,8 @@ RUN npm ci --no-audit --no-fund
 COPY app/web/ ./
 RUN npm run build
 
-# --- 2. Python package + analytics venv -----------------------------------
-FROM python:3.14-slim@sha256:a2b82f3c48559aa0a8446d9af49826b6e2b2016f4cd2afabfe6013ec53729170 AS py-build
+# Python package + analytics venv -----------------------------------
+FROM python-base AS py-build
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1 PIP_NO_CACHE_DIR=1
 WORKDIR /src
 COPY pyproject.toml uv.lock README.md ./
@@ -64,20 +75,13 @@ RUN python -m venv --without-pip /opt/grc-lake-venv \
   && uv pip install --python /opt/grc-lake-venv/bin/python --no-deps \
        ".[server,analytics,cloud,mcp,iceberg]"
 
-# --- 3. CPython and required Debian runtime packages -----------------------
-FROM python:3.14-slim@sha256:a2b82f3c48559aa0a8446d9af49826b6e2b2016f4cd2afabfe6013ec53729170 AS runtime-deps
-RUN apt-get update \
-  && apt-get install --no-install-recommends -y tini libbz2-1.0 libffi8 \
-       libgdbm6t64 libgdbm-compat4t64 liblzma5 libsqlite3-0 libzstd1 \
-  && python -m pip uninstall --yes pip
-COPY tools/build_runtime_root.py /tmp/build_runtime_root.py
+# Runtime identity and Python entrypoints -----------------------------------
+FROM python-base AS runtime-deps
+COPY tools/build_runtime_root.py tools/runtime-packages.txt /tmp/
 RUN python /tmp/build_runtime_root.py /runtime-root
 
-# --- 4. Shell-free runtime ------------------------------------------------
-# Keep the distribution package inventory; removing scanner metadata would hide
-# vulnerabilities rather than remove their components. The base is signed by
-# the upstream distroless project and pinned to its multi-platform index.
-FROM gcr.io/distroless/cc-debian13:nonroot@sha256:e792ab3d241a468a4fd7519ddbbebe66b49b5f365771716ea688ad40b6c6f1c2 AS runtime
+# Shell-free runtime ------------------------------------------------
+FROM scratch AS runtime
 LABEL org.opencontainers.image.title="GRC Lake"
 LABEL org.opencontainers.image.source="https://github.com/koda-ai-studio/grc-lake"
 LABEL org.opencontainers.image.licenses="Apache-2.0"

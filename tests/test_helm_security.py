@@ -51,13 +51,16 @@ def test_writable_home_matches_the_image_user_home(tmp_path, monkeypatch) -> Non
 
     root = tmp_path / "runtime-root"
     ownership = {}
+    inventory = root / "lib/apk/db/installed"
+    inventory.parent.mkdir(parents=True)
+    lock = Path(build_runtime_root.__file__).with_name("runtime-packages.txt").read_text()
+    inventory.write_text(
+        "\n\n".join(f"P:{name}\nV:{version}" for name, version in (line.split("=") for line in lock.splitlines()))
+    )
     # Exercise the actual passwd/home writer without copying host libraries,
-    # invoking Debian tools, or requiring privileged chown on the test host.
+    # installing system packages, or requiring privileged chown on the test host.
     monkeypatch.setattr(build_runtime_root.sys, "argv", ["build_runtime_root.py", str(root)])
     monkeypatch.setattr(build_runtime_root, "PACKAGES", ())
-    monkeypatch.setattr(
-        build_runtime_root.shutil, "copytree", lambda source, target, **kwargs: target.mkdir(parents=True)
-    )
     monkeypatch.setattr(build_runtime_root.os, "chown", lambda path, uid, gid: ownership.update({path: (uid, gid)}))
     build_runtime_root.main()
     users = [line.split(":") for line in (root / "etc/passwd").read_text().splitlines()]

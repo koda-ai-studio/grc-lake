@@ -1,62 +1,53 @@
 #!/usr/bin/env python3
-"""Assemble the CPython overlay for the distroless runtime during image build.
+"""Prepare the pinned vendor runtime and deployment identity.
 
-Copy whole Debian runtime packages, including license files and dpkg status
-records. Package metadata is required so scanners can identify their versions.
-The distroless base supplies glibc, OpenSSL, zlib, libgcc and libstdc++.
+The APK stage installs complete signed packages, licenses and inventory. This
+step retains those records, removes optional interactive Python modules, and
+sets the deployment identity.
 """
 
 import os
 import shutil
-import subprocess
 import sys
 from pathlib import Path
 
 PACKAGES = (
-    "libbz2-1.0",
-    "libffi8",
-    "libgdbm6t64",
-    "libgdbm-compat4t64",
-    "liblzma5",
-    "libsqlite3-0",
+    "libbz2-1",
+    "libffi",
+    "gdbm",
+    "xz",
+    "sqlite-libs",
     "libzstd1",
     "tini",
+    "libstdc++",
+    "zlib",
+    "python-3.14-base",
+    "openssl-4.0-libssl",
+    "openssl-4.0-libcrypto",
+    "ca-certificates-bundle",
 )
 
 
-def main() -> None:
-    root = Path(sys.argv[1])
-    root.mkdir(parents=True, exist_ok=False)
-    shutil.copytree("/usr/local", root / "usr/local", symlinks=True)
+def assemble_runtime(root: Path) -> None:
+    inventory = root / "lib/apk/db/installed"
+    if not inventory.is_file():
+        raise RuntimeError("runtime package inventory is missing")
+    installed = {line[2:] for line in inventory.read_text().splitlines() if line.startswith("P:")}
+    missing = set(PACKAGES) - installed
+    if missing:
+        raise RuntimeError(f"missing runtime packages: {sorted(missing)}")
     # Server/CLI workloads do not use interactive terminal editing, curses, or
     # the optional system libuuid backend. uuid's standard Python fallback stays.
-    for library in (root / "usr/local/lib").glob("python*/lib-dynload"):
+    for library in (root / "usr/lib").glob("python*/lib-dynload"):
         for pattern in ("readline.*.so", "_curses*.so", "_uuid.*.so"):
             for path in library.glob(pattern):
                 path.unlink()
-    for library in (root / "usr/local/lib").glob("python*/ensurepip"):
+    for library in (root / "usr/lib").glob("python*/ensurepip"):
         shutil.rmtree(library)
-    status_dir = root / "var/lib/dpkg/status.d"
-    status_dir.mkdir(parents=True)
-    for package in PACKAGES:
-        paths = subprocess.check_output(["dpkg-query", "-L", package], text=True).splitlines()
-        for name in paths:
-            source = Path(name)
-            if not source.is_absolute():
-                continue
-            target = root / source.relative_to("/")
-            if source.is_symlink():
-                target.parent.mkdir(parents=True, exist_ok=True)
-                target.symlink_to(os.readlink(source))
-            elif source.is_dir():
-                target.mkdir(parents=True, exist_ok=True)
-            elif source.is_file():
-                target.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(source, target)
-        status = subprocess.check_output(["dpkg-query", "-s", package], text=True)
-        if "Status: install ok installed" not in status:
-            raise RuntimeError(f"runtime package is not installed: {package}")
-        (status_dir / package).write_text(status)
+    aliases = root / "usr/local/bin"
+    aliases.mkdir(parents=True, exist_ok=True)
+    for name in ("python", "python3"):
+        (aliases / name).symlink_to("/usr/bin/python3.14")
     etc = root / "etc"
     etc.mkdir(exist_ok=True)
     (etc / "passwd").write_text(
@@ -67,6 +58,26 @@ def main() -> None:
         path = root / directory
         path.mkdir(parents=True, exist_ok=True)
         os.chown(path, 1100, 1100)
+
+
+def validate_package_lock(root: Path, lock: Path) -> None:
+    expected = set(lock.read_text().splitlines())
+    installed = set()
+    for record in (root / "lib/apk/db/installed").read_text().split("\n\n"):
+        fields = dict(line.split(":", 1) for line in record.splitlines() if line.startswith(("P:", "V:")))
+        if fields:
+            installed.add(f"{fields['P']}={fields['V']}")
+    if installed != expected:
+        raise RuntimeError(
+            f"runtime package lock mismatch: missing={sorted(expected - installed)}, "
+            f"unexpected={sorted(installed - expected)}"
+        )
+
+
+def main() -> None:
+    root = Path(sys.argv[1])
+    validate_package_lock(root, Path(__file__).with_name("runtime-packages.txt"))
+    assemble_runtime(root)
 
 
 if __name__ == "__main__":

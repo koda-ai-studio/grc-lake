@@ -27,6 +27,7 @@ examples/
 data/
 tools/*
 !tools/build_runtime_root.py
+!tools/runtime-packages.txt
 
 # Compose server secrets — never bake them into the image.
 grc-lake.env
