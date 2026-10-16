@@ -3,7 +3,11 @@
 All notable GRC Lake changes are summarized here. Versions follow semver for the
 Python package, Helm chart, and bundled web console.
 
-## Unreleased
+## 0.3.6 - 2026-10-16
+
+- Retain per-tenant graph admission rejections, make the HTTP benchmark client deadline configurable, and add separate loopback deadline, disconnect and recovery probes. Publish refreshed direct/HTTP graph, CCF pipeline and local PostgreSQL/S3-emulator measurements with reproducible receipts. These synthetic results do not establish production capacity; the proposed 1 GiB graph envelope remains unqualified.
+
+- Limit repository-wide tests to tracked files and fail unexpected missing-extra skips in CI, while allowing documented local dev-only installations.
 
 - Remove the `internal-trust-team` placeholder reviewer from the twelve seed safeguards. Record the 354 mappings reviewed before decision receipts in `controls/reviews/legacy-unattributed.json` with their originating commits and no reviewer. They still count as maintainer-reviewed. Coverage, the framework matrix, the mapping-review queue and the console now flag the 339 reviewed requirements that rest only on them; 824 have a decision receipt. A test lets that list only shrink. Reviewed totals and the 920 receipt-bound approvals are unchanged.
 

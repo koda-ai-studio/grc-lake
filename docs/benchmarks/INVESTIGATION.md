@@ -3,11 +3,132 @@
 The direct-function workload below and the [authenticated HTTP workload](#authenticated-loopback-http)
 measure separate paths. Neither establishes production capacity or distributed fairness.
 
-These synthetic local measurements exercise the production graph function on
-normalized evidence files. They do not qualify HTTP admission, distributed job
-fairness, authenticated providers, or production capacity. See
+Direct measurements exercise the production graph function on normalized
+evidence files; HTTP measurements separately exercise authentication and admission.
+Neither qualifies distributed fairness, live providers, or production capacity. See
 [#910](https://github.com/koda-ai-studio/grc-lake/issues/910) for the remaining
 server and deployment qualification work.
+
+## Current measurements: October 15, 2026
+
+Production source is `6b9de99c83023495f3e08c1623b590b1e9660e84`.
+The direct run used that clean commit; HTTP runs used clean harness commit
+`79dcb3eabb41429ab79a4d6336b2c1f74d461a82`, which changes benchmark tools and tests only.
+[Direct receipts](investigation-2026-10-15.json),
+[1k/10k HTTP receipts](investigation-http-2026-10-15.json), and
+[100k HTTP receipts](investigation-http-100k-2026-10-15.json) retain every attempt,
+input hash, per-request result, source fingerprint and environment. Dates in
+receipt timestamps are UTC; the measurement date here is America/New_York.
+
+Host: macOS ARM64, Python 3.12.13, 10 logical CPUs,
+16 GiB memory, local filesystem. Another CPU-intensive test workload overlapped
+the direct and 1k/10k HTTP runs; it had exited before the 100k run. OS caches and
+other system applications were uncontrolled. These are shared-host observations,
+not idle-host tail-latency qualification or a regression comparison with the older
+Python 3.13 measurements.
+
+### Direct reads
+
+Seed 910, two platform tenants, three repeats per query, and 12 burst reads per
+attempt. The six attempts passed all binding, collision, duplication, pagination,
+pinned-publication and stale/overlay-version checks. Peak RSS covers the complete
+attempt, including the sequential query shapes, not just its burst.
+
+| Records / tenant | Workers | Burst p95 (s) | Process peak RSS (MiB) |
+| ---------------- | ------- | ------------- | ---------------------- |
+| 1,000            | 1       | 0.281         | 87.2                   |
+| 1,000            | 4       | 1.032         | 131.6                  |
+| 1,000            | 8       | 2.022         | 183.7                  |
+| 10,000           | 1       | 1.210         | 1767.6                 |
+| 10,000           | 4       | 4.977         | 1430.7                 |
+| 10,000           | 8       | 10.080        | 1171.2                 |
+
+### HTTP admission and tenant skew
+
+One authenticated Uvicorn process, SQLite, the shipped four-build admission cap
+and 60-second build deadline, with a 75-second client timeout. Two repeats at
+1k/10k give 28 burst requests per attempt; one repeat at 100k gives 14. Latency
+below includes only successful burst responses and excludes client executor
+queue time. Rejected requests are counted separately; total responses per second
+in the raw harness includes 503s and is not successful-read throughput.
+All seven attempts passed authentication, tenant/account binding, duplicate,
+foreign-root and stale-version checks; no admission slot remained held.
+
+| Records / tenant | Clients | Admitted / submitted burst reads | Admitted burst p95 (s) | Process peak RSS (MiB) |
+| ---------------- | ------- | -------------------------------- | ---------------------- | ---------------------- |
+| 1,000            | 1       | 28/28                            | 0.311                  | 154.8                  |
+| 1,000            | 4       | 28/28                            | 1.126                  | 199.5                  |
+| 1,000            | 8       | 13/28                            | 1.302                  | 201.0                  |
+| 10,000           | 1       | 28/28                            | 1.265                  | 912.7                  |
+| 10,000           | 4       | 28/28                            | 5.589                  | 1225.0                 |
+| 10,000           | 8       | 12/28                            | 9.080                  | 916.4                  |
+| 100,000          | 1       | 14/14                            | 12.828                 | 2500.2                 |
+
+Every rejection in these natural bursts was `503 graph_build_capacity`.
+The table below preserves the per-tenant result at eight clients. Balanced
+submission is 1:1; skewed submission is 4:1. Both are small, fixed-order bursts,
+not randomized fairness trials. A global cap does not reserve slots per tenant.
+
+| Records / tenant | Submission pattern | Synthetic tenant | Submitted | Admitted | Capacity rejected |
+| ---------------- | ------------------ | ---------------- | --------- | -------- | ----------------- |
+| 1,000            | balanced           | tenant-0         | 4         | 3        | 1                 |
+| 1,000            | balanced           | tenant-1         | 4         | 1        | 3                 |
+| 1,000            | skewed             | tenant-0         | 16        | 6        | 10                |
+| 1,000            | skewed             | tenant-1         | 4         | 3        | 1                 |
+| 10,000           | balanced           | tenant-0         | 4         | 2        | 2                 |
+| 10,000           | balanced           | tenant-1         | 4         | 2        | 2                 |
+| 10,000           | skewed             | tenant-0         | 16        | 7        | 9                 |
+| 10,000           | skewed             | tenant-1         | 4         | 1        | 3                 |
+
+### Deadline, disconnect and recovery at 100k
+
+Natural 100k requests completed before the server deadline; they did not prove
+its expiration behavior. Separate, explicitly injected probes exercised the real
+authenticated route and cancellation token against the same fixture:
+
+- A cooperative hold before graph construction returned `503 graph_build_timeout`
+  after 60.023 seconds with the shipped 60-second deadline.
+- A hold at the real builder checkpoint synchronized an actual loopback socket
+  close with a running build. The token reported `disconnected`, and the slot
+  was released 0.021 seconds after closure.
+- A subsequent unmodified graph request returned 200 with graph data; all slots
+  were released. These injected timings are separate from natural read latency.
+
+The full 100k attempt took 311.0 seconds and peaked at
+2500.2 MiB. It passed the 4 GiB sampled watchdog, but does not
+qualify 100k as an interactive workload. No cross-host disconnect or proxy behavior
+was measured.
+
+### Budget disposition
+
+The earlier **single-client** p95 proposal of 2.5 seconds at 10k is met by the
+observed single-worker/client burst samples. It is not met at four or eight
+workers/clients. The proposed **1 GiB peak RSS** envelope is not supported:
+10k direct attempts and the four-client HTTP attempt exceeded it. The configured
+four-build cap is an admission mechanism, not a promise that four reads fit a
+1 GiB container. Requalify the intended deployment before adopting a memory or
+latency budget. No production capacity, fairness guarantee, or reviewer-approved
+budget is established; [#910](https://github.com/koda-ai-studio/grc-lake/issues/910)
+remains open.
+
+### Reproduce the current runs
+
+Use the recorded revisions, a fresh receipt path for every attempt, and enough
+scratch disk. The graph parent enforces a 4 GiB sampled worker-RSS cap and 5 GiB
+free-disk floor. Do not raise load after a failed or bounded-out attempt.
+
+```bash
+uv sync --frozen --all-extras
+uv run --frozen python tools/benchmark_investigation.py --seed 910 --tenants 2 \
+  --sizes 1000 10000 --concurrency 1 4 8 --repeats 3 --timeout 900 \
+  --max-rss-mib 4096 --out /tmp/graph-direct.json
+uv run --frozen python tools/benchmark_investigation.py --transport http --seed 910 \
+  --tenants 2 --sizes 1000 10000 --concurrency 1 4 8 --repeats 2 \
+  --client-timeout 75 --timeout 900 --max-rss-mib 4096 --out /tmp/graph-http.json
+uv run --frozen python tools/benchmark_investigation.py --transport http --seed 910 \
+  --tenants 2 --sizes 100000 --concurrency 1 --repeats 1 --lifecycle-probes \
+  --client-timeout 75 --timeout 2400 --max-rss-mib 4096 --out /tmp/graph-http-100k.json
+```
 
 ## Workload
 
@@ -55,8 +176,8 @@ The parent samples worker RSS and free disk every 250 ms. It kills and reaps the
 worker at the configured memory, disk or wall-time bound, retains the stopped
 attempt and completed-read receipts, removes only its temporary scratch tree,
 and stops before increasing load. These are sampled watchdogs, not hard OS
-allocation limits or reviewer-approved capacity budgets. Earlier development attempts remain in private local receipts; a timeout is
-never a successful sample.
+allocation limits or reviewer-approved capacity budgets. A watchdog stop or unexpected client timeout is
+never a successful sample; explicit server admission rejections are recorded separately.
 
 ## Recorded results: October 12, 2026
 
@@ -270,7 +391,8 @@ not production capacity claims and are not approved.
 Supporting 100k records per tenant interactively would require per-read cost to
 decouple from evidence volume, for example the generation-scoped index or cache
 in [#910](https://github.com/koda-ai-studio/grc-lake/issues/910). A bounded admission limit on concurrent graph builds would also be
-needed to keep memory predictable. Neither is approved or implemented here.
+needed to keep memory predictable. This describes the October 13 revision; the
+current measurements above exercise the subsequently implemented admission cap.
 
 ### Reproduce
 
@@ -286,6 +408,6 @@ uv run python tools/benchmark_investigation.py --transport http --seed 910 \
   --timeout 900 --max-rss-mib 4096 --out /tmp/graph-http.json
 ```
 
-Run sizes separately so a stop at one size does not prevent the next. Use an
+Do not increase size or concurrency after a failed or bounded-out attempt. Use an
 otherwise idle host for budget-grade numbers. Pass `--scratch` to place the
 temporary lakes on a volume with enough free space.
