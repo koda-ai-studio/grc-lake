@@ -12,6 +12,8 @@ import sys
 import zipfile
 from pathlib import Path
 
+import pytest
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
 
 from verify_wheel import verify
@@ -29,6 +31,8 @@ COMPLETE = {
     "trustops-0.2.0.data/data/controls/safeguards.json": "{}",
     "trustops-0.2.0.data/data/controls/families.json": "{}",
     "trustops-0.2.0.data/data/controls/reviews/2026-10-14-source-batches.json": "{}",
+    "trustops-0.2.0.data/data/controls/reviews/2026-10-15-soc2-iso-repairs.json": "{}",
+    "trustops-0.2.0.data/data/docs/reviews/2026-10-15-repaired-proposals.json": "{}",
 }
 
 for manifest in (Path(__file__).resolve().parents[1] / "frameworks/packs/data").glob("*.json"):
@@ -93,3 +97,9 @@ def test_missing_event_schema_is_rejected(tmp_path: Path) -> None:
 def test_missing_maintainer_review_receipt_is_rejected(tmp_path: Path) -> None:
     members = {k: v for k, v in COMPLETE.items() if "controls/reviews/" not in k}
     assert any("2026-10-14-source-batches.json" in p for p in verify(_wheel(tmp_path, members)))
+
+
+@pytest.mark.parametrize("filename", ["2026-10-15-soc2-iso-repairs.json", "2026-10-15-repaired-proposals.json"])
+def test_missing_repair_decision_or_inspected_packet_is_rejected(tmp_path: Path, filename: str) -> None:
+    members = {k: v for k, v in COMPLETE.items() if not k.endswith(filename)}
+    assert any(filename in problem for problem in verify(_wheel(tmp_path, members)))

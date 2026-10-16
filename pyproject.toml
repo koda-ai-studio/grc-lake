@@ -118,7 +118,7 @@ kubernetes = [
 # Agent-native front door: the Model Context Protocol server that exposes the
 # read surface over stdio so an agent can query posture headlessly.
 mcp = [
-    "mcp>=1.2.0,<2",
+    "mcp>=1.30.0,<2",
 ]
 # Typed Python client (`GrcLakeClient`) over the `/api/v1` surface so agents
 # and scripts share the same contract as humans
@@ -172,7 +172,8 @@ where = ["src"]
 "mockup_companies/saas/raw" = ["mockup_companies/saas/raw/security_events.jsonl"]
 "connectors" = ["connectors/catalog.json"]
 "controls" = ["controls/bundle.lock.json", "controls/catalog.json", "controls/safeguards.json", "controls/history.jsonl", "controls/families.json"]
-"controls/reviews" = ["controls/reviews/2026-10-14-source-batches.json"]
+"controls/reviews" = ["controls/reviews/2026-10-14-source-batches.json", "controls/reviews/2026-10-15-soc2-iso-repairs.json"]
+"docs/reviews" = ["docs/reviews/2026-10-15-repaired-proposals.json"]
 "frameworks" = ["frameworks/registry.json", "frameworks/verified_article_ids.json"]
 "mappings" = ["mappings/control_articles.json", "mappings/control_map.json", "mappings/remediation_guidance.json", "mappings/framework_equivalence.json"]
 "programs" = ["programs/catalog.json", "programs/vendor_questionnaires.json"]

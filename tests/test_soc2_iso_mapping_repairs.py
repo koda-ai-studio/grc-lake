@@ -11,6 +11,7 @@ from security_lakehouse.catalog import load_control_catalog
 from security_lakehouse.ccf_evaluation import evaluate_safeguards
 from security_lakehouse.safeguards import coverage_by_framework, load_safeguards, validate_safeguards
 from test_ccf_operational_assessment import normalized
+from test_soc2_iso_review_receipt import without_repair_approvals
 
 TARGETS = [
     "SOC2-A1.1",
@@ -43,7 +44,12 @@ PLAN = json.loads((ROOT / "controls/soc2_iso_review_plan.json").read_text())
 
 @pytest.mark.parametrize("cid", TARGETS)
 def test_repaired_requirements_have_one_specific_proposed_contract(cid):
-    matches = [(e, m) for e in load_safeguards()["safeguards"] for m in e["satisfies"] if m["control_id"] == cid]
+    matches = [
+        (e, m)
+        for e in without_repair_approvals(load_safeguards())["safeguards"]
+        for m in e["satisfies"]
+        if m["control_id"] == cid
+    ]
     assert len(matches) == 1
     entry, member = matches[0]
     assert entry["safeguard_id"].startswith("SG-REVIEW-")
@@ -58,7 +64,11 @@ def test_repaired_requirements_have_one_specific_proposed_contract(cid):
 @pytest.mark.parametrize("case", ["missing", "wrong_type", "unbound", "observed", "failed", "stale", "pass"])
 def test_repaired_contracts_require_scoped_typed_evidence_and_separate_review(case):
     catalog = load_control_catalog()
-    entries = [e for e in load_safeguards()["safeguards"] if e["safeguard_id"].startswith("SG-REVIEW-")]
+    entries = [
+        e
+        for e in without_repair_approvals(load_safeguards())["safeguards"]
+        if e["safeguard_id"].startswith("SG-REVIEW-")
+    ]
     assert len(entries) == len(PLAN["repairs"])
     for entry in entries:
         cid = entry["satisfies"][0]["control_id"]
@@ -85,7 +95,7 @@ def test_repaired_contracts_require_scoped_typed_evidence_and_separate_review(ca
 
 
 def test_repairs_preserve_distinct_coverage_without_adding_reviews():
-    payload = load_safeguards()
+    payload = without_repair_approvals(load_safeguards())
     assert validate_safeguards(payload) == []
     coverage = coverage_by_framework(payload)
     assert (coverage["controls"], coverage["covered"], coverage["reviewed"]) == (2252, 1803, 1128)
@@ -119,7 +129,7 @@ def test_published_packets_bind_current_semantics_and_contain_no_decisions(frame
     assert (
         len(requirements)
         == len(set(requirements))
-        == {"soc2": 51, "iso-27001-2022": 71, "iso-42001-2023": 28}[framework]
+        == {"soc2": 28, "iso-27001-2022": 64, "iso-42001-2023": 23}[framework]
     )
     assert set(requirements) == expected - reviewed
 
@@ -142,7 +152,7 @@ def test_generator_refuses_to_overwrite_changed_history_or_unrelated_entries(cha
     index = source_index()
     entry = next(e for e in payload["safeguards"] if e["safeguard_id"].startswith("SG-REVIEW-"))
     if change == "approved":
-        entry["satisfies"][0]["review_status"] = "reviewed"
+        entry["satisfies"][0]["reviewed_by"] = "unrecorded-reviewer"
     elif change == "source":
         index[plan["repairs"][0]["control_id"]] = []
     elif change == "duplicate":
@@ -158,6 +168,35 @@ def test_generator_refuses_to_overwrite_changed_history_or_unrelated_entries(cha
 def test_source_digest_mismatch_is_rejected():
     with pytest.raises(ValueError, match="source hash differs"):
         GENERATOR["verify_source"](b"changed source", PLAN["sources"]["cisco"])
+
+
+@pytest.mark.parametrize("change", ["decision", "duplicate", "fingerprint", "packet", "contract"])
+def test_generator_rejects_unbound_or_changed_recorded_review(change, tmp_path, monkeypatch):
+    from test_soc2_iso_review_receipt import PACKET, RECEIPT
+
+    payload = json.loads((ROOT / "controls/safeguards.json").read_text())
+    receipt = json.loads((ROOT / RECEIPT).read_text())
+    packet = json.loads((ROOT / PACKET).read_text())
+    if change == "decision":
+        receipt["decision"] = "reject"
+    elif change == "duplicate":
+        receipt["mappings"].append(deepcopy(receipt["mappings"][0]))
+    elif change == "fingerprint":
+        receipt["mappings"][0]["inspected_basis_sha256"] = "0" * 64
+    elif change == "packet":
+        packet["items"][0]["operating_contract"]["evidence_requirement"] = "weaker"
+    else:
+        entry = next(e for e in payload["safeguards"] if e["safeguard_id"].startswith("SG-REVIEW-"))
+        entry["evidence_requirement"] = "weaker"
+    for path, content in ((RECEIPT, receipt), (PACKET, packet)):
+        target = tmp_path / path
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(json.dumps(content))
+    monkeypatch.setitem(GENERATOR["preserve_recorded_review"].__globals__, "ROOT", tmp_path)
+    before = deepcopy(payload)
+    with pytest.raises(ValueError):
+        GENERATOR["repaired_payload"](payload, PLAN, source_index(), load_control_catalog())
+    assert payload == before
 
 
 def test_repair_preserves_every_existing_operating_contract_and_other_mapping():
@@ -185,7 +224,9 @@ def test_repair_preserves_every_existing_operating_contract_and_other_mapping():
 def test_repaired_proposals_are_not_exported_as_implemented_requirements():
     from security_lakehouse.oscal import build_component_definition
 
-    components = build_component_definition()["component-definition"]["components"]
+    components = build_component_definition(without_repair_approvals(load_safeguards()))["component-definition"][
+        "components"
+    ]
     repaired = [
         c
         for c in components
@@ -291,7 +332,7 @@ GOVERNANCE_TARGETS = (
 
 @pytest.mark.parametrize("cid", GOVERNANCE_TARGETS)
 def test_soc2_governance_requires_its_own_assessment_not_a_cmmc_plan(cid):
-    payload = load_safeguards()
+    payload = without_repair_approvals(load_safeguards())
     owners = [e for e in payload["safeguards"] if any(m["control_id"] == cid for m in e["satisfies"])]
     assert "SG-GOVERNANCE-002" not in {e["safeguard_id"] for e in owners}
     entry = next(e for e in owners if e["safeguard_id"] == "SG-REVIEW-" + cid.replace(".", "-"))

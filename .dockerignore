@@ -14,12 +14,15 @@ build/
 dist/
 .DS_Store
 
-# Not read by any Dockerfile COPY: tests, docs, examples, sample evidence,
+# Not read by any Dockerfile COPY: tests, most docs, examples, sample evidence,
 # and dev tooling. Excluding them keeps the build context small and stops an
 # edit there from invalidating the image cache.
 **/node_modules/
 tests/
-docs/
+docs/*
+!docs/reviews/
+docs/reviews/*
+!docs/reviews/2026-10-15-repaired-proposals.json
 examples/
 data/
 tools/

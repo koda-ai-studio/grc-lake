@@ -118,7 +118,7 @@ rest of that control.
 
 ```
 $ grc-lake frameworks safeguards --format table
-517 safeguards map 1803 of 2252 requirements (80.1%) — 1128 maintainer-reviewed, 0 org-reviewed (50.1% attestable), 675 proposed; 0 mapping(s) rejected by the org
+517 safeguards map 1803 of 2252 requirements (80.1%) — 1163 maintainer-reviewed, 0 org-reviewed (51.6% attestable), 640 proposed; 0 mapping(s) rejected by the org
 ```
 
 A mapping is **reviewed** once a human has confirmed the requirements are the
@@ -341,6 +341,16 @@ their mapping versions are stale. Their original version pins are preserved.
 Mapped coverage remains 1,803 of 2,252 (80.1%). Source-less alternatives and
 supporting relationships receive no additional coverage credit. Approval does
 not establish operating effectiveness or turn missing evidence into a pass.
+
+### SOC 2 and ISO repair decisions
+
+After the source-batch milestone above, the maintainer approved 35 repaired
+proposals: 23 SOC 2, seven ISO 27001 and five ISO 42001. The
+[decision and method record](MAPPING_REVIEW.md#pending-soc-2-and-iso-review)
+links the exact presented contracts and preserves the limits of the supplied
+decision. Current main has 1,163 reviewed requirements (51.6%); mapping coverage
+remains 1,803 (80.1%). These changes are not part of the published 0.3.5 release.
+Unapproved alternatives remain proposed, and operational evidence is still required.
 
 ### NIST SP 800-171 Rev. 3 operational safeguards
 

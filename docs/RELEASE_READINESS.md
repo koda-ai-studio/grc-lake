@@ -20,11 +20,19 @@ and [CSF review packet](MAPPING_REVIEW.md#csf-20-improvement-and-recovery-review
 for assessment boundaries.
 
 The release also replaces 28 weak proposed SOC 2 and ISO relationships with
-22 requirement-specific assessment contracts. The [17 pending review batches](reviews/SOC2_ISO_REVIEW.md)
-cover 150 requirements and 185 candidate relationships. Cisco and Oracle provide
+22 requirement-specific assessment contracts. At publication, [17 review batches](https://github.com/koda-ai-studio/grc-lake/blob/v0.3.5/docs/reviews/SOC2_ISO_REVIEW.md)
+covered 150 requirements and 185 candidate relationships. Cisco and Oracle provide
 implementation context; these proposals preserve earlier human review receipts
 and add no reviewed coverage. Approval of the earlier 33 batches does not approve
 this new queue.
+
+Subsequent unreleased main commits completed 13 additional SOC 2 governance
+contracts and recorded the maintainer's approval of the 35 repaired proposals.
+Main now has 1,163 reviewed requirements (51.6%); the published 0.3.5 figures above
+remain unchanged. The [current queue](reviews/SOC2_ISO_REVIEW.md) has 115 requirements
+in 13 batches. See the [decision record](MAPPING_REVIEW.md#pending-soc-2-and-iso-review)
+for scope, source limitations and review-method disclosures. This is not a new
+release qualification or publication decision.
 
 Version **0.3.5 is available** on [PyPI](https://pypi.org/project/grc-lake/0.3.5/)
 and as the public image `ghcr.io/koda-ai-studio/grc-lake:0.3.5`.

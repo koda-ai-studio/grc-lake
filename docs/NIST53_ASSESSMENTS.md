@@ -3,7 +3,8 @@
 This expansion added 381 **source-native safeguards**, initially proposed, for
 previously unmapped NIST SP 800-53 Rev. 5 obligations. Catalog mapping coverage is
 1,803 of 2,252 requirements (80.1%). After the maintainer approved the 33
-source-review batches, reviewed coverage is 1,128 (50.1%).
+source-review batches, reviewed coverage reached 1,128 (50.1%). Current totals
+include later decisions in the [coverage matrix](FRAMEWORK_COVERAGE.md).
 It does not establish 381 cross-framework equivalences or completed assessments.
 
 The scope closes the remaining catalog gaps in nine NIST families:

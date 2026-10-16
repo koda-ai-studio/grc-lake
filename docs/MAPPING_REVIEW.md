@@ -14,6 +14,23 @@ requirements, candidate operating contracts, source locators, specific review
 questions and empty decision fields. Cisco and Oracle guidance supports these
 proposals; it does not establish normative equivalence or human approval.
 
+The maintainer approved the 35 repaired proposals presented in the
+[archived focused packet](reviews/2026-10-15-repaired-proposals.json): 23 SOC 2,
+seven ISO 27001 and five ISO 42001. The
+[decision receipt](../controls/reviews/2026-10-15-soc2-iso-repairs.json) preserves
+“ok go next approved” and binds only those safeguard/requirement pairs to their
+inspected fingerprints. The assistant prepared the packet and recorded the
+maintainer's decision. No separate per-mapping rationale, additional requirement
+references, inspection duration, item-by-item review method, or decision by Andres
+was supplied; none is inferred. Vendor-source limitations remain attached.
+
+Current main has 1,163/2,252 reviewed requirements (51.6%), with mapped coverage
+unchanged at 1,803/2,252 (80.1%). SOC 2 has 33/61 reviewed requirements (54.1%),
+ISO 27001 has 17/93 (18.3%), and ISO 42001 has 14/40 (35.0%). These approvals are
+unreleased changes after 0.3.5. They do not attest operating effectiveness.
+The remaining queue contains 115 requirements in 13 batches; alternative mappings
+to newly reviewed requirements remain proposed and receive no inherited approval.
+
 ## What "reviewed" means
 
 A maintainer review inherited through `review_basis.inherited_from` remains valid

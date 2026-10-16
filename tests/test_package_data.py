@@ -44,14 +44,17 @@ def test_wheel_data_files_include_runtime_catalogs() -> None:
             assert (REPO_ROOT / rel_path).is_file(), rel_path
 
 
-def test_mcp_dependency_excludes_incompatible_major_version() -> None:
+def test_mcp_dependency_excludes_vulnerable_and_incompatible_versions() -> None:
     from packaging.requirements import Requirement
 
     pyproject = tomllib.loads((REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     dependencies = [Requirement(value) for value in pyproject["project"]["optional-dependencies"]["mcp"]]
     mcp = next(requirement for requirement in dependencies if requirement.name == "mcp")
     assert "2.0.0" not in mcp.specifier, "FastMCP entry point is incompatible with the MCP 2 API"
-    assert "1.26.0" in mcp.specifier
+    # CVE-2026-59951 affects the 1.x SDK through 1.29.1; 1.30.0 is patched.
+    assert "1.26.0" not in mcp.specifier
+    assert "1.29.1" not in mcp.specifier
+    assert "1.30.0" in mcp.specifier
 
 
 def test_every_runtime_data_path_is_packaged() -> None:

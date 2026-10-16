@@ -108,7 +108,10 @@ def proposed_source_catalog(tmp_path_factory, monkeypatch):
     payload = json.loads(safeguards.DEFAULT_SAFEGUARDS.read_text())
     for entry in payload["safeguards"]:
         for member in entry["satisfies"]:
-            if member.get("maintainer_review_ref") == "controls/reviews/2026-10-14-source-batches.json":
+            if member.get("maintainer_review_ref") in {
+                "controls/reviews/2026-10-14-source-batches.json",
+                "controls/reviews/2026-10-15-soc2-iso-repairs.json",
+            }:
                 member["review_status"] = "proposed"
                 for key in ("maintainer_review_ref", "reviewed_by", "reviewed_at"):
                     member.pop(key)

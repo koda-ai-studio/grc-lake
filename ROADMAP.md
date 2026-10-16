@@ -77,7 +77,7 @@ reviewed mappings; gaps remain as shown in the [coverage matrix](docs/FRAMEWORK_
 ISO 27701 still needs mapping review. CIS Azure/GCP benchmarks and ISO 27001
 clauses 4–10 remain gaps.
 
-873 of 2,077 safeguard-to-requirement mapping rows are proposed, so 675 of the 1,803 mapped requirements have no reviewed mapping.
+838 of 2,077 safeguard-to-requirement mapping rows are proposed, so 640 of the 1,803 mapped requirements have no reviewed mapping.
 
 Mapping counts are effective review states: a mapping marked reviewed against an
 older control version counts as proposed until it is re-reviewed.

@@ -1,0 +1,260 @@
+{
+  "schema": "grc-lake.maintainer-mapping-review.v1",
+  "reviewer": "msaad00",
+  "decision": "approve",
+  "decision_statement": "ok go next approved",
+  "scope": "Only the 35 repaired safeguard proposals presented in the focused handoff: 23 SOC 2, 7 ISO 27001, 5 ISO 42001. Other candidates and the remaining queue are excluded.",
+  "base_commit": "846e7f4261bf88bec516ccb9886a4021d8feead4",
+  "parent_packet": "docs/reviews/2026-10-15-repaired-proposals.json",
+  "parent_packet_sha256": "d5adfb3c8d49ec88b6151063a8a7649be1b94478f329461e0b304c56cf21888b",
+  "recorded_at": "2026-10-15T23:58:11.271887Z",
+  "rationale": "Maintainer explicitly approved the focused 35-proposal handoff. No separate per-mapping written rationale or additional requirement-reference notes were supplied.",
+  "limitations": "Mapping decision only. Cisco and Oracle references remain vendor implementation context, not complete normative requirement text or independently verified equivalence. No inspection duration, item-by-item review method, operating-effectiveness conclusion, certification, or decision by Andres is asserted.",
+  "mappings": [
+    {
+      "safeguard_id": "SG-REVIEW-SOC2-A1-1",
+      "framework_id": "soc2",
+      "control_id": "SOC2-A1.1",
+      "inspected_basis_sha256": "cda3651790c5195ee7e16d4e978209e3c027db68cba1771d18b1d97c66bdeecb",
+      "framework_ref": "SOC 2 A1.1"
+    },
+    {
+      "safeguard_id": "SG-REVIEW-SOC2-CC1-1",
+      "framework_id": "soc2",
+      "control_id": "SOC2-CC1.1",
+      "inspected_basis_sha256": "7de12f8ed85d5d1aba5333d943abdffc0bdf1c4e2b1532722cefb6135bc78e67",
+      "framework_ref": "SOC 2 CC1.1"
+    },
+    {
+      "safeguard_id": "SG-REVIEW-SOC2-CC1-2",
+      "framework_id": "soc2",
+      "control_id": "SOC2-CC1.2",
+      "inspected_basis_sha256": "ca46d9e50fb9da520a8b790d6d38a038129b02654fe7646f477c134995d89f58",
+      "framework_ref": "SOC 2 CC1.2"
+    },
+    {
+      "safeguard_id": "SG-REVIEW-SOC2-CC1-3",
+      "framework_id": "soc2",
+      "control_id": "SOC2-CC1.3",
+      "inspected_basis_sha256": "d2f7b1c81d0a07dc683d0a5ef85767f858308465a2d2b04f97a0f9b6619cbdc1",
+      "framework_ref": "SOC 2 CC1.3"
+    },
+    {
+      "safeguard_id": "SG-REVIEW-SOC2-CC1-4",
+      "framework_id": "soc2",
+      "control_id": "SOC2-CC1.4",
+      "inspected_basis_sha256": "9cde65f2508de06f52fa5ca1fbeb15850fb55e6bc447a5c333f30e9090cdb447",
+      "framework_ref": "SOC 2 CC1.4"
+    },
+    {
+      "safeguard_id": "SG-REVIEW-SOC2-CC1-5",
+      "framework_id": "soc2",
+      "control_id": "SOC2-CC1.5",
+      "inspected_basis_sha256": "274e299766df237b6fe3d6cdaf1d6eee99458bb9ad52e8fdac03a6e68d1bd9ab",
+      "framework_ref": "SOC 2 CC1.5"
+    },
+    {
+      "safeguard_id": "SG-REVIEW-SOC2-CC2-1",
+      "framework_id": "soc2",
+      "control_id": "SOC2-CC2.1",
+      "inspected_basis_sha256": "26c7cad6f1530f70c70ec9cc5797ad850523a9015a846025c676df48847be524",
+      "framework_ref": "SOC 2 CC2.1"
+    },
+    {
+      "safeguard_id": "SG-REVIEW-SOC2-CC2-2",
+      "framework_id": "soc2",
+      "control_id": "SOC2-CC2.2",
+      "inspected_basis_sha256": "003e7873c9104ed698f6009c28ff8565d73265dd0d2d824c1d5e4163b1116318",
+      "framework_ref": "SOC 2 CC2.2"
+    },
+    {
+      "safeguard_id": "SG-REVIEW-SOC2-CC2-3",
+      "framework_id": "soc2",
+      "control_id": "SOC2-CC2.3",
+      "inspected_basis_sha256": "e4ed233a43dd1af7f1407c33bb1c60e36844a0c0dc2ba5ad0e40b8c0cff0974a",
+      "framework_ref": "SOC 2 CC2.3"
+    },
+    {
+      "safeguard_id": "SG-REVIEW-SOC2-CC3-1",
+      "framework_id": "soc2",
+      "control_id": "SOC2-CC3.1",
+      "inspected_basis_sha256": "df817a441bfbf28cf874137d1ebf8c873f11838ad5a300aaa3c3d918e8044152",
+      "framework_ref": "SOC 2 CC3.1"
+    },
+    {
+      "safeguard_id": "SG-REVIEW-SOC2-CC4-2",
+      "framework_id": "soc2",
+      "control_id": "SOC2-CC4.2",
+      "inspected_basis_sha256": "873eebfd8373e6bfb8eebdf298bbf4e9ce3af1373ad857e1a4212560ea96336d",
+      "framework_ref": "SOC 2 CC4.2"
+    },
+    {
+      "safeguard_id": "SG-REVIEW-SOC2-CC5-1",
+      "framework_id": "soc2",
+      "control_id": "SOC2-CC5.1",
+      "inspected_basis_sha256": "65d1bf72e042f78a5ae2469e1d3da07226bf393cdbcb7ee92a21e381d021a64a",
+      "framework_ref": "SOC 2 CC5.1"
+    },
+    {
+      "safeguard_id": "SG-REVIEW-SOC2-CC5-2",
+      "framework_id": "soc2",
+      "control_id": "SOC2-CC5.2",
+      "inspected_basis_sha256": "5ddf056dcec16060e497202cb1d0f21a407f421302fa679631af9c7948186d54",
+      "framework_ref": "SOC 2 CC5.2"
+    },
+    {
+      "safeguard_id": "SG-REVIEW-SOC2-CC5-3",
+      "framework_id": "soc2",
+      "control_id": "SOC2-CC5.3",
+      "inspected_basis_sha256": "4b0b1e5758beec722e17fcdaf1f6e3f59fc62f0ce363ba66138f7b8dd8f2660d",
+      "framework_ref": "SOC 2 CC5.3"
+    },
+    {
+      "safeguard_id": "SG-REVIEW-SOC2-CC6-4",
+      "framework_id": "soc2",
+      "control_id": "SOC2-CC6.4",
+      "inspected_basis_sha256": "97300e3a970b6b84ea8f4bc21646f84e8925214c66d41feece7702d79acd2061",
+      "framework_ref": "SOC 2 CC6.4"
+    },
+    {
+      "safeguard_id": "SG-REVIEW-SOC2-CC6-5",
+      "framework_id": "soc2",
+      "control_id": "SOC2-CC6.5",
+      "inspected_basis_sha256": "ee9bff1b1217d4d36caebaa1cd70b18acef99d0e942f0f315540448046786202",
+      "framework_ref": "SOC 2 CC6.5"
+    },
+    {
+      "safeguard_id": "SG-REVIEW-SOC2-CC9-1",
+      "framework_id": "soc2",
+      "control_id": "SOC2-CC9.1",
+      "inspected_basis_sha256": "52941704bfbde3ae0973ca3238b11aae29bf9bc664ab0b8de65aea645918cb7e",
+      "framework_ref": "SOC 2 CC9.1"
+    },
+    {
+      "safeguard_id": "SG-REVIEW-SOC2-P6-2",
+      "framework_id": "soc2",
+      "control_id": "SOC2-P6.2",
+      "inspected_basis_sha256": "c68ee5679416e8207b203be24a4219ece2ac012f5c45a8175eddb734bc4d0a5f",
+      "framework_ref": "SOC 2 P6.2"
+    },
+    {
+      "safeguard_id": "SG-REVIEW-SOC2-P6-3",
+      "framework_id": "soc2",
+      "control_id": "SOC2-P6.3",
+      "inspected_basis_sha256": "b5423aa2a5c14bc3a9bd2602a2a26867d923f2a415ea84d1764541ac65ae3487",
+      "framework_ref": "SOC 2 P6.3"
+    },
+    {
+      "safeguard_id": "SG-REVIEW-SOC2-P6-4",
+      "framework_id": "soc2",
+      "control_id": "SOC2-P6.4",
+      "inspected_basis_sha256": "6dd6049dc4f9d4d18191369d95773bf05c9f545bd87bb1758965eefb1746ee37",
+      "framework_ref": "SOC 2 P6.4"
+    },
+    {
+      "safeguard_id": "SG-REVIEW-SOC2-P6-5",
+      "framework_id": "soc2",
+      "control_id": "SOC2-P6.5",
+      "inspected_basis_sha256": "8441d9c2d40d21829c38b2506b3070cccbcf8e911d41748be8e72b2cf8bfb008",
+      "framework_ref": "SOC 2 P6.5"
+    },
+    {
+      "safeguard_id": "SG-REVIEW-SOC2-P6-6",
+      "framework_id": "soc2",
+      "control_id": "SOC2-P6.6",
+      "inspected_basis_sha256": "72777923c7018203466fdf67160edf6a7cb7fef4a701568e561d4dfd0c4fab60",
+      "framework_ref": "SOC 2 P6.6"
+    },
+    {
+      "safeguard_id": "SG-REVIEW-SOC2-P6-7",
+      "framework_id": "soc2",
+      "control_id": "SOC2-P6.7",
+      "inspected_basis_sha256": "c228f7278b28001fdb131cf71e1b7e422ba25a725e340f5bee687dc3c3486d16",
+      "framework_ref": "SOC 2 P6.7"
+    },
+    {
+      "safeguard_id": "SG-REVIEW-ISO27001-A-5-13",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.5.13",
+      "inspected_basis_sha256": "7e07ce200dde6bebd973ccbe51e380bd40621a8c13db1ebed1703938de68eae5",
+      "framework_ref": "ISO 27001:2022 A.5.13"
+    },
+    {
+      "safeguard_id": "SG-REVIEW-ISO27001-A-5-28",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.5.28",
+      "inspected_basis_sha256": "803bf5d46c870f7d8eeef252a7ec067e056d1d60f63b341640b05c8f4d815f48",
+      "framework_ref": "ISO 27001:2022 A.5.28"
+    },
+    {
+      "safeguard_id": "SG-REVIEW-ISO27001-A-6-7",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.6.7",
+      "inspected_basis_sha256": "f5424b95fd29090d076bbf263636654b09017a9d6cd3100d718c07eb0ea132ca",
+      "framework_ref": "ISO 27001:2022 A.6.7"
+    },
+    {
+      "safeguard_id": "SG-REVIEW-ISO27001-A-7-7",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.7.7",
+      "inspected_basis_sha256": "5845875403026757e65038d75606a7aad88e03902f2b3160e29ecd8040ecb3c0",
+      "framework_ref": "ISO 27001:2022 A.7.7"
+    },
+    {
+      "safeguard_id": "SG-REVIEW-ISO27001-A-8-11",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.8.11",
+      "inspected_basis_sha256": "109d4fd61fdb2b33e7aa174dfc4ac64745b13d8536c36c65af3aa79c2e6524b1",
+      "framework_ref": "ISO 27001:2022 A.8.11"
+    },
+    {
+      "safeguard_id": "SG-REVIEW-ISO27001-A-8-17",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.8.17",
+      "inspected_basis_sha256": "29af25fd63b41e2e08e89556a4d8c627bdd27fabb358e837d0a5239c0fa4a501",
+      "framework_ref": "ISO 27001:2022 A.8.17"
+    },
+    {
+      "safeguard_id": "SG-REVIEW-ISO27001-A-8-6",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.8.6",
+      "inspected_basis_sha256": "9064dc3551d1c036291f87bb44fa5e43768a1059f5f520ffe28d3162ca83ccf8",
+      "framework_ref": "ISO 27001:2022 A.8.6"
+    },
+    {
+      "safeguard_id": "SG-REVIEW-ISO42001-10-2",
+      "framework_id": "iso-42001-2023",
+      "control_id": "ISO42001-10.2",
+      "inspected_basis_sha256": "f96bb307888bd890967188d68561ef78d99de3f1f31c7ce9d52e15b484204de1",
+      "framework_ref": "ISO 42001:2023 A.10.2"
+    },
+    {
+      "safeguard_id": "SG-REVIEW-ISO42001-4-6",
+      "framework_id": "iso-42001-2023",
+      "control_id": "ISO42001-4.6",
+      "inspected_basis_sha256": "033af72fdb59cb6eebf2071c4cdf4c7168441588cf255ed9688f37a1b1d8539f",
+      "framework_ref": "ISO 42001:2023 A.4.6"
+    },
+    {
+      "safeguard_id": "SG-REVIEW-ISO42001-6-1-3",
+      "framework_id": "iso-42001-2023",
+      "control_id": "ISO42001-6.1.3",
+      "inspected_basis_sha256": "d5c6a43a25d922a6e1bbba955cd2316adfa80f1846c6b01a147bc9bc42965833",
+      "framework_ref": "ISO 42001:2023 6.1.3"
+    },
+    {
+      "safeguard_id": "SG-REVIEW-ISO42001-6-2-8",
+      "framework_id": "iso-42001-2023",
+      "control_id": "ISO42001-6.2.8",
+      "inspected_basis_sha256": "045b75569c422f44a41dc640a907101504bc4026cb4c09b9bfdc0fa4d5587069",
+      "framework_ref": "ISO 42001:2023 A.6.2.8"
+    },
+    {
+      "safeguard_id": "SG-REVIEW-ISO42001-8-2",
+      "framework_id": "iso-42001-2023",
+      "control_id": "ISO42001-8.2",
+      "inspected_basis_sha256": "02cb3e93f699aa241638e9d3d72fb31704860a6237532cef569785973b504195",
+      "framework_ref": "ISO 42001:2023 A.8.2"
+    }
+  ]
+}
