@@ -9,6 +9,10 @@ By taking part you agree to the [Code of Conduct](CODE_OF_CONDUCT.md). Report
 security problems privately, as described in [SECURITY.md](SECURITY.md), not in
 a public issue.
 
+Repository files, commit messages, issues and pull requests are public. Keep
+private audits, working notes, chat transcripts and agent handoffs outside the
+repository. Publish product changes, reproducible tests and sanitized examples.
+
 ## Find work
 
 Read [current state and coverage](docs/CURRENT_STATE.md), then choose a scoped

@@ -7,7 +7,7 @@ Python package, Helm chart, and bundled web console.
 
 - Require MCP SDK 1.30.0 or newer within the 1.x series to address CVE-2026-59951. Include the inspected mapping-review archive in Docker build inputs as well as wheel distributions.
 
-- Record msaad00's approval of the 35 repaired proposals (23 SOC 2, seven ISO 27001, five ISO 42001), retaining the exact presented packet and per-mapping fingerprints. Reviewed coverage becomes 1,163/2,252 (51.6%); mapped coverage remains 80.1%. Preserve vendor-source limitations and disclose that no separate per-mapping rationale or second-reviewer decision was supplied. Regenerate the remaining 13 batches without approving alternatives; preserve recorded decisions only while their inspected contracts match.
+- Record maintainer approval of 35 repaired mappings (23 SOC 2, seven ISO 27001, five ISO 42001), with source contracts and per-mapping fingerprints. Reviewed coverage becomes 1,163/2,252 (51.6%); mapped coverage remains 80.1%. Preserve source limitations and keep mapping approval separate from operational evidence. Regenerate the remaining 13 batches without approving alternatives; preserve recorded decisions only while their inspected contracts match.
 
 - Replace 13 proposed SOC 2 governance links that relied on a CMMC system security plan with scoped, requirement-specific assessment contracts. Normalize spaced Cisco identifiers before deduplication so explicit CC1.3 and A1.3 references are retained without accepting cross-line or malformed IDs. Pin supporting Cisco references, require distinct evidence types, and regenerate the 17 SOC 2/ISO review batches. The mapping repairs themselves preserved earlier approvals and granted no additional review credit.
 

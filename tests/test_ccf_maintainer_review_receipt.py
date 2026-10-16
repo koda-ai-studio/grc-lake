@@ -17,7 +17,8 @@ def test_maintainer_decision_is_bound_to_each_inspected_mapping():
     receipt = json.loads((ROOT / RECEIPT).read_text())
     assert receipt["reviewer"] == "msaad00"
     assert receipt["decision"] == "approve"
-    assert receipt["decision_statement"] == "I approve all 33 batches, no exceptions"
+    assert "decision_statement" not in receipt
+    assert "rationale" not in receipt
     assert len(receipt["batches"]) == 33
     assert len(receipt["mappings"]) == 885
     assert len({row["control_id"] for row in receipt["mappings"]}) == 806
