@@ -24,12 +24,12 @@ and preserve the evidence and review decisions behind each result.
 The tour and catalog counts describe current source; see [release status](docs/RELEASE_READINESS.md)
 for changes since the published package.
 
-Install published v0.3.6 with Python 3.11+ on macOS or Linux:
+Install published v0.3.7 with Python 3.11+ on macOS or Linux:
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install "grc-lake[server]==0.3.6"
+pip install "grc-lake[server]==0.3.7"
 grc-lake fixtures load --company golden --out ./lake --rebase-times
 grc-lake serve --server --allow-insecure-no-auth --lake ./lake --host 127.0.0.1 --port 8787
 ```
@@ -48,7 +48,7 @@ Installation time depends on your machine and connection.
 The public Docker image needs no registry login. Use the published templates:
 
 ```bash
-git clone --branch v0.3.6 --depth 1 https://github.com/koda-ai-studio/grc-lake.git
+git clone --branch v0.3.7 --depth 1 https://github.com/koda-ai-studio/grc-lake.git
 cd grc-lake
 docker compose up
 ```
@@ -65,7 +65,7 @@ make demo-local
 For MCP over stdio:
 
 ```bash
-pip install "grc-lake[mcp]==0.3.6"
+pip install "grc-lake[mcp]==0.3.7"
 GRC_LAKE_LAKE=./lake grc-lake-mcp
 ```
 

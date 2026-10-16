@@ -1,7 +1,6 @@
 # Agent Skill Catalog
 
-Versioned examples below target the unpublished v0.3.7 candidate. For the current
-published version, use [the v0.3.6 guide](https://github.com/koda-ai-studio/grc-lake/blob/v0.3.6/docs/api/AGENT_SKILLS.md).
+Versioned examples below target the published v0.3.7 release.
 
 Composable **skills** for coding agents, CI jobs, and MCP clients. Each skill maps
 intent → `/api/v1` routes → MCP tools → example payloads.
