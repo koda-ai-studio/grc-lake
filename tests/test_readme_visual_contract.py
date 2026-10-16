@@ -276,6 +276,45 @@ def test_readme_glance_matches_the_generator_and_the_catalogs() -> None:
     )
     assert coverage["reviewed"] + coverage["proposed"] == coverage["covered"]
     assert f"{len(runnable)} read-only source adapters ({len(preview)} in preview)" in block
+    assert (
+        f"Of the reviewed, {coverage['source_native_reviewed']:,} are source-native self-maps" in block
+        and f"{coverage['crosswalk_reviewed']:,} rest on reviewed crosswalk mappings" in block
+        and f"{coverage['legacy_only_reviewed']:,} rest only on legacy reviews with no recorded reviewer" in block
+    )
+    assert coverage["source_native_reviewed"] + coverage["crosswalk_reviewed"] == coverage["reviewed"]
+    assert "The blended total is not a per-framework readiness figure." in block
+
+
+def test_readme_glance_leads_with_per_framework_reviewed_coverage() -> None:
+    from tools.render_readme_header import HEADLINE_FRAMEWORKS
+
+    readme = README.read_text(encoding="utf-8")
+    block = readme.split("<!-- BEGIN README AT A GLANCE -->", maxsplit=1)[1].split(
+        "<!-- END README AT A GLANCE -->", maxsplit=1
+    )[0]
+    bullets = [line for line in block.splitlines() if line.startswith("- ")]
+    assert 4 <= len(bullets) <= 6
+    lead = bullets[0]
+    assert lead.startswith("- **Reviewed requirements by framework:**")
+    frameworks = coverage_by_framework()["frameworks"]
+    positions = []
+    for framework_id, label in HEADLINE_FRAMEWORKS:
+        row = frameworks[framework_id]
+        phrase = f"{label} {row['reviewed']:,}/{row['controls']:,}"
+        assert phrase in lead, phrase
+        positions.append(lead.index(phrase))
+        notes = []
+        if row["source_native_reviewed"]:
+            notes.append(f"{row['source_native_reviewed']:,} source-native self-maps")
+        if row["legacy_only_reviewed"]:
+            notes.append(f"{row['legacy_only_reviewed']:,} with no recorded reviewer")
+        if notes:
+            assert f"{phrase} ({'; '.join(notes)})" in lead
+    assert positions == sorted(positions)
+    assert "PCI DSS" in lead and "(top-level)" in lead
+    assert frameworks["nist-800-53-rev5"]["source_native_reviewed"] > 0
+    # The blended aggregate is qualified, never the lead bullet.
+    assert f"{coverage_by_framework()['reviewed']:,} have reviewed mappings" not in lead
 
 
 def test_readme_counts_baseline_restatements_once() -> None:

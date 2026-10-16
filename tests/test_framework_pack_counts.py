@@ -84,4 +84,5 @@ def test_readme_glance_uses_the_shared_count() -> None:
     import render_readme_header
 
     summary = render_readme_header.render_readme_glance()
-    assert summary.startswith(f"- **{len(_seeded_framework_ids())} framework packs")
+    bullets = [line for line in summary.splitlines() if line.startswith("- **")]
+    assert any(line.startswith(f"- **{len(_seeded_framework_ids())} framework packs") for line in bullets)

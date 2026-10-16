@@ -28,7 +28,7 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
-from security_lakehouse.catalog import ROOT, load_control_catalog
+from security_lakehouse.catalog import ROOT, load_control_catalog, load_framework_registry
 from security_lakehouse.jsontypes import JsonObject
 from security_lakehouse.policy import validate_rule
 
@@ -710,8 +710,28 @@ def mapping_target_framework(member: JsonObject, catalog: dict[str, Any]) -> str
     return framework if member.get("framework_id", framework) == framework else None
 
 
+def is_source_native_mapping(entry: JsonObject, member: JsonObject, framework: str, registry: dict[str, Any]) -> bool:
+    """True when a safeguard is a self-map of its only requirement.
+
+    The safeguard maps exactly one requirement, and that mapping cites the same
+    pinned source bytes (SHA-256) the framework registry records for the target
+    framework. Such a contract is derived from the requirement's own text, so its
+    review confirms extraction fidelity, not a cross-framework judgement.
+    """
+    if len(entry.get("satisfies") or []) != 1:
+        return False
+    source = member.get("mapping_source")
+    if not isinstance(source, dict):
+        return False
+    pinned = (registry.get(framework) or {}).get("source_sha256")
+    return bool(pinned) and source.get("sha256") == pinned
+
+
 def framework_mapping_coverage(
-    payload: JsonObject | None = None, *, catalog: dict[str, Any] | None = None
+    payload: JsonObject | None = None,
+    *,
+    catalog: dict[str, Any] | None = None,
+    registry: dict[str, Any] | None = None,
 ) -> JsonObject:
     """Shared catalog-denominated mapping ledger, separate from operating verdicts.
 
@@ -722,8 +742,13 @@ def framework_mapping_coverage(
     ``rejected_requirements`` lost all evaluated coverage to org rejections.
     Only catalog targets with a matching framework contribute to this ledger;
     legacy mappings without a framework ID inherit the catalog identity.
+    Reviewed requirements are further split into ``source_native_reviewed``
+    (reviewed only through self-maps, see :func:`is_source_native_mapping`) and
+    ``crosswalk_reviewed`` (at least one reviewed mapping from a reusable or
+    cross-framework safeguard); the two always sum to ``reviewed``.
     """
     controls = catalog if catalog is not None else load_control_catalog()
+    sources = registry if registry is not None else load_framework_registry()
     data = payload or load_safeguards()
     mapped: set[str] = set()
     states_by_control: dict[str, set[str]] = {}
@@ -731,6 +756,8 @@ def framework_mapping_coverage(
     contextual_by_framework: dict[str, int] = {}
     provenance_by_control: dict[str, set[str]] = {}
     legacy_by_framework: dict[str, int] = {}
+    reviewed_kinds: dict[str, set[str]] = {}
+    self_map_mappings: dict[str, int] = {}
     for entry in unambiguous_safeguards(data):
         for member in entry.get("satisfies", []):
             framework = mapping_target_framework(member, controls)
@@ -751,6 +778,11 @@ def framework_mapping_coverage(
                 provenance_by_control.setdefault(control_id, set()).add(provenance)
             if provenance == "legacy_unattributed":
                 legacy_by_framework[framework] = legacy_by_framework.get(framework, 0) + 1
+            if state in ATTESTABLE_STATES:
+                native = is_source_native_mapping(entry, member, framework, sources)
+                reviewed_kinds.setdefault(control_id, set()).add("source_native" if native else "crosswalk")
+                if native:
+                    self_map_mappings[framework] = self_map_mappings.get(framework, 0) + 1
 
     def requirement_bucket(control_id: str) -> str | None:
         states = states_by_control.get(control_id, set())
@@ -777,6 +809,8 @@ def framework_mapping_coverage(
                 "org_reviewed": 0,
                 "legacy_only_reviewed": 0,
                 "rejected_requirements": 0,
+                "source_native_reviewed": 0,
+                "crosswalk_reviewed": 0,
             },
         )
         row["controls"] += 1
@@ -789,6 +823,8 @@ def framework_mapping_coverage(
             row[bucket] += 1
             if provenance_by_control.get(control_id) == {"legacy_unattributed"}:
                 row["legacy_only_reviewed"] += 1
+            native_only = "crosswalk" not in reviewed_kinds.get(control_id, set())
+            row["source_native_reviewed" if native_only else "crosswalk_reviewed"] += 1
         elif bucket == "rejected":
             row["rejected_requirements"] += 1
     for framework, row in per_framework.items():
@@ -797,6 +833,7 @@ def framework_mapping_coverage(
             row[f"{state}_mappings"] = counts[state]
         row["contextual_mappings"] = contextual_by_framework.get(framework, 0)
         row["legacy_unattributed_mappings"] = legacy_by_framework.get(framework, 0)
+        row["source_native_reviewed_mappings"] = self_map_mappings.get(framework, 0)
         row["reviewed"] = row["maintainer_reviewed"] + row["org_reviewed"]
         row["proposed"] = row["covered"] - row["reviewed"]
         row["uncovered"] = row["controls"] - row["covered"]
@@ -825,6 +862,8 @@ def framework_mapping_coverage(
         "receipt_reviewed": reviewed - legacy_only,
         "legacy_only_reviewed": legacy_only,
         "legacy_unattributed_mappings": sum(legacy_by_framework.values()),
+        "source_native_reviewed": sum(row["source_native_reviewed"] for row in per_framework.values()),
+        "crosswalk_reviewed": sum(row["crosswalk_reviewed"] for row in per_framework.values()),
         "maintainer_reviewed_mappings": all_states["maintainer_reviewed"],
         "org_reviewed_mappings": all_states["org_reviewed"],
         "needs_changes_mappings": all_states["needs_changes"],
@@ -837,6 +876,9 @@ def framework_mapping_coverage(
                 **row,
                 "coverage_pct": round(100.0 * row["covered"] / row["controls"], 1) if row["controls"] else 0.0,
                 "reviewed_pct": round(100.0 * row["reviewed"] / row["controls"], 1) if row["controls"] else 0.0,
+                "crosswalk_reviewed_pct": round(100.0 * row["crosswalk_reviewed"] / row["controls"], 1)
+                if row["controls"]
+                else 0.0,
             }
             for name, row in sorted(per_framework.items())
         },

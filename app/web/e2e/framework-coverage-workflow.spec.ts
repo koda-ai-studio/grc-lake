@@ -22,6 +22,16 @@ test.describe("framework coverage workflow", () => {
       portfolio.getByText(/requirements with a reviewed mapping/),
     ).toBeVisible();
     await expect(
+      portfolio.getByText(
+        /^\d[\d,]* source-native self-maps · \d[\d,]* crosswalk-reviewed\. A blended total; read each framework below\.$/,
+      ),
+    ).toBeVisible();
+    await expect(
+      page.getByText(
+        /^\d[\d,]* source-native self-maps · \d[\d,]* crosswalk-reviewed( · \d[\d,]* with no recorded reviewer)?$/,
+      ),
+    ).not.toHaveCount(0);
+    await expect(
       portfolio.getByText("Proposed mappings awaiting review"),
     ).toHaveCount(0);
     await expect(

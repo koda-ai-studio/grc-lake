@@ -1048,6 +1048,11 @@ export interface FrameworkCoverageSummary {
   /** Reviewed requirements whose only reviewed mappings name no reviewer. */
   legacy_only_reviewed_requirement_count?: number;
   legacy_unattributed_mapping_count?: number;
+  /** Reviewed only through source-native self-maps (no crosswalk judgement). */
+  source_native_reviewed_requirement_count?: number;
+  /** Reviewed through at least one reviewed crosswalk mapping. */
+  crosswalk_reviewed_requirement_count?: number;
+  crosswalk_reviewed_coverage_pct?: number;
   org_reviewed_mapping_count?: number;
   needs_changes_mapping_count?: number;
   rejected_mapping_count?: number;
@@ -1088,6 +1093,9 @@ export interface FrameworkCoverageRow {
   org_reviewed_requirement_count?: number;
   legacy_only_reviewed_requirement_count?: number;
   legacy_unattributed_mapping_count?: number;
+  source_native_reviewed_requirement_count?: number;
+  crosswalk_reviewed_requirement_count?: number;
+  crosswalk_reviewed_coverage_pct?: number;
   org_reviewed_mapping_count?: number;
   needs_changes_mapping_count?: number;
   rejected_mapping_count?: number;
