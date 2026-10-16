@@ -1,6 +1,6 @@
 # Dependency security scope
 
-Lockfile review: 2026-10-12. Release image scan: 2026-10-15. Dependency advisories
+Lockfile review: 2026-10-12. Release image scan: 2026-10-16. Dependency advisories
 change; rerun both production and full build-tool audits when reviewing or
 upgrading the lockfiles.
 
@@ -15,9 +15,8 @@ AMD64 and ARM64.
 The 0.3.3 image creates the virtual environment without pip, removes the
 base interpreter's pip and ensurepip, and refreshes liblzma from Debian security
 for [DSA-6549-1](https://security-tracker.debian.org/tracker/DSA-6549-1).
-`tools/check_image_dependencies.sh` checks both installed interpreters, the
-minimum patched liblzma version, compression and SQLite operations, and TLS
-context creation.
+The 0.3.3 checks covered both installed interpreters, the minimum patched
+liblzma version, compression and SQLite operations, and TLS context creation.
 The image also removes setuid/setgid permission bits from system utilities and
 checks that they remain absent. This reduces privilege-elevation paths; it does
 not patch or suppress unresolved util-linux, ACL or other distribution findings.
@@ -26,16 +25,62 @@ verifies its absence while keeping the ncurses libraries available for Python.
 Install optional application dependencies in a derived image's build stage;
 the runtime image intentionally has no Python package installer.
 
-CI and release scans reject fixable MEDIUM, HIGH and CRITICAL findings. Run a
-second scan without severity or fix-availability filters to retain unresolved
-distribution findings. No available vendor fix does not mean not affected, and
+For the 0.3.7 candidate, CI and release scans reject all HIGH and CRITICAL
+findings, including unfixed ones, and fixable MEDIUM findings. The policy consumes the full scan without severity or fix-availability
+filters, retaining unresolved distribution findings. No available vendor fix does not mean not affected, and
 passing this gate does not satisfy the Best Practices 60-day criterion. The
 published 0.3.2 digests remain unchanged; these remediations are in 0.3.3.
 
 CI and release qualification also retain full, unfiltered JSON vulnerability
-reports for 14 days, including when the fixable-only scan blocks the job. See
+reports for 14 days, including when the image policy blocks the job. See
 [Scorecard evidence](SCORECARD_REMEDIATION.md#vulnerability-and-release-evidence)
 for artifact names and the separate Best Practices review requirements.
+
+### 0.3.7 runtime candidate
+
+The unpublished 0.3.7 candidate uses a digest-pinned
+[distroless Debian 13 CC base](https://github.com/GoogleContainerTools/distroless)
+with CPython 3.14 and a small package overlay. The original 0.3.6 artifacts remain
+unchanged. Local scans of the candidate on AMD64 and ARM64 report zero HIGH and
+CRITICAL findings; remaining lower-severity matches still require review.
+
+The runtime omits shells, package managers, mount/login tools, Perl, systemd
+libraries, ACL libraries, and terminal libraries. Optional `readline`, curses,
+and system-libuuid Python extension modules are omitted; ordinary `uuid` support
+uses Python's fallback. CPython's bundled Expat is checked at version 2.8.5 or
+later; no unused system Expat library is added. Application native libraries,
+compression, SQLite and TLS contexts are exercised in both interpreters.
+
+`tools/build_runtime_root.py` copies complete required Debian package file lists,
+including their licenses and dpkg status records. The base's package records
+remain present. No scanner suppressions, deleted package metadata, or vulnerability
+applicability exceptions are used to obtain the lower count.
+
+The entrypoint, numeric UID/GID 1100, persistent paths and API contract remain.
+There is no interactive shell or in-place package installation: run the Python
+CLI directly with `docker exec`, and add optional dependencies in a build stage.
+The JSON-form health check and Python-based Compose demo bootstrap require no shell. See [deployment](DEPLOYMENT.md).
+
+Both candidate architectures must pass the shared vulnerability policy and
+runtime probes before publication. Local evidence does not qualify a later
+build or change the published 0.3.6 findings. Fewer scanner findings also do not
+establish the OpenSSF vulnerability-age or cryptographic criteria.
+
+### 0.3.6 release qualification scans
+
+The [release workflow](https://github.com/koda-ai-studio/grc-lake/actions/runs/38924465945)
+on source `17a011b8` completed on 2026-10-16 UTC. AMD64 and emulated ARM64 passed
+installed-dependency checks, the fixable-vulnerability gate, and authenticated
+runtime probes. Each unfiltered report contains 164 Debian package/advisory
+findings: 44 HIGH, 58 MEDIUM, 61 LOW, and one UNKNOWN, with no listed fixed versions.
+There are zero fixable MEDIUM/HIGH/CRITICAL findings. The eight distinct HIGH CVEs
+remain open; this does not establish non-exploitability or satisfy the Best
+Practices vulnerability-age criterion.
+
+Published filesystem layers and runtime configuration match the scanned images.
+[Release verification](RELEASE_READINESS.md#verified-036-publication) records the
+published digests, package hashes, and provenance checks. The workflow retains
+full scan reports and architecture receipts for 14 days.
 
 ### 0.3.5 release qualification scans
 

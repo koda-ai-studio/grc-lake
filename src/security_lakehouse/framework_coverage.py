@@ -257,9 +257,12 @@ def render_framework_coverage_markdown(
 ) -> str:
     applicability = applicability_rows if applicability_rows is not None else build_control_asset_applicability()
     summary = framework_coverage_summary(rows, applicability)
-    lines = [
+    header = (
         "| Framework | Official source | Status | Requirements | Source-cited | Mapped | Reviewed mappings | Reviewed %"
-        " | Source-native self-maps | Crosswalk reviewed | Crosswalk reviewed % | No recorded reviewer | Source state |",
+        " | Source-native self-maps | Crosswalk reviewed | Crosswalk reviewed % | No recorded reviewer | Source state |"
+    )
+    lines = [
+        header,
         "| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |",
     ]
     for row in rows:

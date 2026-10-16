@@ -53,12 +53,11 @@ def test_each_published_architecture_is_loaded_checked_and_scanned_first(platfor
         if step.get("uses", "").startswith("aquasecurity/trivy-action@")
         and step.get("with", {}).get("image-ref") == image
     ]
-    assert any(
-        scan["with"].get("exit-code") == "1"
-        and {"MEDIUM", "HIGH", "CRITICAL"} <= set(scan["with"].get("severity", "").split(","))
-        and not scan.get("continue-on-error")
-        for scan in scans
-    ), f"{platform} is not release-gated"
+    reports = [scan["with"]["output"] for scan in scans if scan["with"].get("format") == "json"]
+    assert len(reports) == 1
+    assert any("tools/check_image_vulnerabilities.py" in args and reports[0] in args for args in commands), (
+        f"{platform} is not gated against unfixed high vulnerabilities"
+    )
 
 
 def test_docker_console_builder_uses_the_ci_node_major():
@@ -98,9 +97,13 @@ def test_unfiltered_image_evidence_is_retained_even_when_policy_scan_fails(workf
     assert options["exit-code"] == "0", "Unfixed findings are evidence, not a replacement release policy"
     assert not report.get("continue-on-error"), "Scanner errors must not look like complete evidence"
     assert report.get("env", {}).get("TRIVY_PLATFORM") == platform
-    gate_index, gate = next((i, step) for i, step in scans if step["with"].get("exit-code") == "1")
+    gate_index, gate = next(
+        (i, step)
+        for i, step in enumerate(steps)
+        if "tools/check_image_vulnerabilities.py" in shlex.split(step.get("run", ""))
+        and options["output"] in shlex.split(step.get("run", ""))
+    )
     assert report_index < gate_index, "A failing policy gate would prevent evidence collection"
-    assert gate["with"]["ignore-unfixed"] is True
     assert not gate.get("continue-on-error")
     upload_index, upload = next(
         (i, step)

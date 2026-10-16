@@ -27,7 +27,7 @@ name: grc-lake
 
 services:
   grc-lake:
-    image: ghcr.io/koda-ai-studio/grc-lake:${GRC_LAKE_VERSION:-0.3.6}
+    image: ghcr.io/koda-ai-studio/grc-lake:${GRC_LAKE_VERSION:-0.3.7}
     environment:
       # The container binds 0.0.0.0 internally, so no-auth mode must be named
       # explicitly; the host side below stays on loopback.
@@ -41,24 +41,25 @@ services:
     cap_drop:
       - ALL
     command:
-      - sh
+      - python
       - -c
       - |
-        set -e
-        echo "======================================================================"
-        echo " GRC Lake LOCAL DEMO: NO AUTHENTICATION. Sample data only."
-        echo " Published on 127.0.0.1:8787. Do not expose this port."
-        echo " For real use: docker compose up -d grc-lake-server"
-        echo "======================================================================"
-        if [ ! -e /lake/.grc-lake-demo-seeded ] && [ ! -e /lake/.trustops-demo-seeded ]; then
-          grc-lake fixtures load --company golden --out /lake --rebase-times
-          touch /lake/.grc-lake-demo-seeded
-        fi
-        exec grc-lake serve --server --allow-insecure-no-auth --lake /lake --host 0.0.0.0 --port 8787
+        import os
+        import subprocess
+        from pathlib import Path
+        print("GRC Lake LOCAL DEMO: NO AUTHENTICATION. Sample data only.", flush=True)
+        print("Published on 127.0.0.1:8787. Do not expose this port.", flush=True)
+        print("For real use: docker compose up -d grc-lake-server", flush=True)
+        lake = Path("/lake")
+        marker = lake / ".grc-lake-demo-seeded"
+        if not marker.exists() and not (lake / ".trustops-demo-seeded").exists():
+            subprocess.run("grc-lake fixtures load --company golden --out /lake --rebase-times".split(), check=True)
+            marker.touch()
+        os.execvp("grc-lake", "grc-lake serve --server --allow-insecure-no-auth --lake /lake --host 0.0.0.0 --port 8787".split())
 
   grc-lake-server:
     profiles: ["server"]
-    image: ghcr.io/koda-ai-studio/grc-lake:${GRC_LAKE_VERSION:-0.3.6}
+    image: ghcr.io/koda-ai-studio/grc-lake:${GRC_LAKE_VERSION:-0.3.7}
     # The image's default command serves with authentication required.
     env_file:
       - grc-lake.env

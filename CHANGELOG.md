@@ -3,6 +3,13 @@
 All notable GRC Lake changes are summarized here. Versions follow semver for the
 Python package, Helm chart, and bundled web console.
 
+## 0.3.7 - 2026-10-16
+
+- Replace the general-purpose runtime OS with a pinned distroless base and only the Python application's required Debian libraries. Remove shells, package managers, mount/login utilities, Perl, and optional terminal/libuuid Python extensions; retain package inventories and licenses for vulnerability scanning. Native dependency, compression, XML, database, authentication, tenant-isolation and persistence probes cover both architectures.
+- Block all HIGH and CRITICAL image findings, including those without a listed fix, plus fixable MEDIUM findings. Retain unfiltered scan evidence and fail incomplete reports; no suppression or applicability exception supplies a policy pass.
+- Make the framework coverage table header explicit to avoid an implicit string-concatenation warning without changing generated output.
+- Give the graph lifecycle test's ordinary cold reads and recovery sufficient time under CI coverage while preserving the injected deadline assertion and production timeout.
+
 ## 0.3.6 - 2026-10-16
 
 - Lead coverage reporting with per-framework review depth and distinguish 381 source-native self-maps from 782 crosswalk-reviewed requirements. Share the split across the mapping ledger, API, console, README and generated coverage matrix; neither classification is an operating-effectiveness verdict.

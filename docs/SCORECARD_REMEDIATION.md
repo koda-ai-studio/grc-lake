@@ -71,13 +71,13 @@ all cryptographic criteria for every supported integration and deployment.
 CI retains `image-vulnerabilities/trivy-ci-amd64.json`. Release qualification
 retains `release-image-vulnerabilities/trivy-release-amd64.json` and
 `trivy-release-arm64.json`. These reports include every severity and findings
-without a vendor fix, and remain available for 14 days even if the fixable-only
+without a vendor fix, and remain available for 14 days even if the image policy
 gate fails. A failed earlier build can leave no report; a failed AMD64 gate can
 leave ARM64 unqualified. Missing reports are missing evidence, not clean scans.
 
 Review each report's image identity, advisory publication dates, installed and
-fixed versions, and component applicability. The separate blocking policy for
-fixable MEDIUM/HIGH/CRITICAL findings remains in place. It does not prove the
+fixed versions, and component applicability. The candidate image policy blocks all HIGH/CRITICAL findings and fixable
+MEDIUM findings. It does not prove the
 Best Practices requirement concerning medium-or-higher vulnerabilities older
 than 60 days. Retain unresolved distribution findings until a patched artifact
 or a reviewed applicability decision supplies evidence. See

@@ -25,7 +25,8 @@ docs/reviews/*
 !docs/reviews/2026-10-15-repaired-proposals.json
 examples/
 data/
-tools/
+tools/*
+!tools/build_runtime_root.py
 
 # Compose server secrets — never bake them into the image.
 grc-lake.env

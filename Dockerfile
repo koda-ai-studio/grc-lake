@@ -1,13 +1,14 @@
 # Multi-stage Dockerfile: builds the Next.js workbench, installs the Python
 # package with the workbench bundled in, ships a slim runtime image.
 #
-# Three stages:
+# Four stages:
 #   1. web-build  — Node 22 builds the static React export into
 #                   src/security_lakehouse/web/dist/
 #   2. py-build   — Python 3.14 installs the package + analytics extras into a
 #                   virtualenv that runtime mounts read-only (matches CI)
-#   3. runtime    — Python 3.14 slim, copies the venv + lake mount points,
-#                   runs `grc-lake serve` as a non-root user
+#   3. runtime-deps — CPython + required Debian libraries and package records
+#   4. runtime    — distroless, copies the venv + lake mount points,
+#                   runs `grc-lake serve` as a non-root user without a shell
 #
 # Build:  docker build -t grc-lake:dev .
 # Run: see deploy/README.md for authenticated Compose and Kubernetes profiles.
@@ -63,32 +64,32 @@ RUN python -m venv --without-pip /opt/grc-lake-venv \
   && uv pip install --python /opt/grc-lake-venv/bin/python --no-deps \
        ".[server,analytics,cloud,mcp,iceberg]"
 
-# --- 3. Slim runtime ------------------------------------------------------
-FROM python:3.14-slim@sha256:a2b82f3c48559aa0a8446d9af49826b6e2b2016f4cd2afabfe6013ec53729170 AS runtime
+# --- 3. CPython and required Debian runtime packages -----------------------
+FROM python:3.14-slim@sha256:a2b82f3c48559aa0a8446d9af49826b6e2b2016f4cd2afabfe6013ec53729170 AS runtime-deps
+RUN apt-get update \
+  && apt-get install --no-install-recommends -y tini libbz2-1.0 libffi8 \
+       libgdbm6t64 libgdbm-compat4t64 liblzma5 libsqlite3-0 libzstd1 \
+  && python -m pip uninstall --yes pip
+COPY tools/build_runtime_root.py /tmp/build_runtime_root.py
+RUN python /tmp/build_runtime_root.py /runtime-root
+
+# --- 4. Shell-free runtime ------------------------------------------------
+# Keep the distribution package inventory; removing scanner metadata would hide
+# vulnerabilities rather than remove their components. The base is signed by
+# the upstream distroless project and pinned to its multi-platform index.
+FROM gcr.io/distroless/cc-debian13:nonroot@sha256:e792ab3d241a468a4fd7519ddbbebe66b49b5f365771716ea688ad40b6c6f1c2 AS runtime
 LABEL org.opencontainers.image.title="GRC Lake"
 LABEL org.opencontainers.image.source="https://github.com/koda-ai-studio/grc-lake"
 LABEL org.opencontainers.image.licenses="Apache-2.0"
 
-ENV PATH="/opt/grc-lake-venv/bin:${PATH}" \
+ENV PATH="/opt/grc-lake-venv/bin:/usr/local/bin:/usr/bin" \
+    LD_LIBRARY_PATH=/usr/local/lib \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     GRC_LAKE_LAKE=/lake \
     GRC_LAKE_DATA_DIR=/opt/grc-lake-data
 
-# Refresh PCRE2 and liblzma from Debian security (DSA-6530-1, DSA-6549-1).
-# Dependencies are installed in the build stage by uv. The runtime needs no
-# pip or ensurepip, including the vulnerable copies inherited from Python.
-RUN apt-get update \
-  && apt-get install --no-install-recommends -y tini libpcre2-8-0 liblzma5 \
-  && python -m pip uninstall --yes pip \
-  && python -c "import pathlib, shutil, sysconfig; shutil.rmtree(pathlib.Path(sysconfig.get_path('stdlib')) / 'ensurepip')" \
-  && rm -rf /var/lib/apt/lists/* \
-  && rm -f /usr/bin/infocmp \
-  && groupadd --gid 1100 grc-lake \
-  && useradd --uid 1100 --gid 1100 --home /home/grc-lake --create-home --shell /bin/bash grc-lake \
-  && mkdir -p /lake \
-  && chown -R grc-lake:grc-lake /lake \
-  && find /usr -xdev -type f \( -perm -4000 -o -perm -2000 \) -exec chmod a-s {} +
+COPY --from=runtime-deps /runtime-root/ /
 
 COPY --from=py-build /opt/grc-lake-venv /opt/grc-lake-venv
 # Ship the framework / control / connector / mapping catalogs inside the
@@ -108,7 +109,7 @@ WORKDIR /home/grc-lake
 EXPOSE 8787
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
-  CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8787/api/healthz', timeout=2)"
+  CMD ["python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8787/api/healthz', timeout=2)"]
 
 ENTRYPOINT ["/usr/bin/tini", "--"]
 CMD ["grc-lake", "serve", "--server", "--lake", "/lake", "--host", "0.0.0.0", "--port", "8787"]

@@ -44,11 +44,34 @@ def test_lint_passes_with_the_documented_profile() -> None:
     assert linted.returncode == 0, linted.stdout + linted.stderr
 
 
-def test_writable_home_matches_the_image_user_home() -> None:
+def test_writable_home_matches_the_image_user_home(tmp_path, monkeypatch) -> None:
     import re
 
+    from tools import build_runtime_root
+
+    root = tmp_path / "runtime-root"
+    ownership = {}
+    # Exercise the actual passwd/home writer without copying host libraries,
+    # invoking Debian tools, or requiring privileged chown on the test host.
+    monkeypatch.setattr(build_runtime_root.sys, "argv", ["build_runtime_root.py", str(root)])
+    monkeypatch.setattr(build_runtime_root, "PACKAGES", ())
+    monkeypatch.setattr(
+        build_runtime_root.shutil, "copytree", lambda source, target, **kwargs: target.mkdir(parents=True)
+    )
+    monkeypatch.setattr(build_runtime_root.os, "chown", lambda path, uid, gid: ownership.update({path: (uid, gid)}))
+    build_runtime_root.main()
+    users = [line.split(":") for line in (root / "etc/passwd").read_text().splitlines()]
+    user = next(record for record in users if record[0] == "grc-lake")
+    uid, gid, home = int(user[2]), int(user[3]), user[5]
+    assert uid == gid == 1100
+    assert (root / home.lstrip("/")).is_dir()
+    assert ownership[root / home.lstrip("/")] == (uid, gid)
+    assert ownership[root / "lake"] == (uid, gid)
+
     dockerfile = (CHART.parents[2] / "Dockerfile").read_text()
-    home = re.search(r"useradd [^\n]*--home (\S+)", dockerfile).group(1)
+    assert "RUN python /tmp/build_runtime_root.py /runtime-root" in dockerfile
+    assert "COPY --from=runtime-deps /runtime-root/ /" in dockerfile
+    assert re.findall(r"^USER (\S+)$", dockerfile, re.M)[-1] == user[0]
     workdir = re.findall(r"^WORKDIR (\S+)$", dockerfile, re.M)[-1]
     assert home == workdir == "/home/grc-lake"
     result = _helm_template()
@@ -60,6 +83,8 @@ def test_writable_home_matches_the_image_user_home() -> None:
         assert container["securityContext"]["readOnlyRootFilesystem"] is True
         mounts = {mount["name"]: mount["mountPath"] for mount in container["volumeMounts"]}
         assert mounts["home"] == home
+        assert spec["securityContext"]["runAsUser"] == uid
+        assert spec["securityContext"]["fsGroup"] == gid
         assert "emptyDir" in next(volume for volume in spec["volumes"] if volume["name"] == "home")
     deployment = next(spec for spec in specs if spec["containers"][0]["name"] != "scheduler")
     assert deployment["containers"][0]["name"] == "grc-lake"

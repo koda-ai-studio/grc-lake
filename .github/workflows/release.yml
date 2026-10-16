@@ -264,14 +264,8 @@ jobs:
           severity: UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
           ignore-unfixed: false
           exit-code: "0"
-      - name: Scan image (fixable MEDIUM/HIGH/CRITICAL block the release)
-        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
-        with:
-          image-ref: grc-lake:scan
-          version: v0.70.0
-          severity: CRITICAL,HIGH,MEDIUM
-          ignore-unfixed: true
-          exit-code: "1"
+      - name: Reject HIGH/CRITICAL and fixable MEDIUM findings (grc-lake:scan)
+        run: python3 tools/check_image_vulnerabilities.py trivy-release-amd64.json
       - name: Qualify authenticated AMD64 runtime
         run: python tools/authenticated_smoke.py --image grc-lake:scan --platform linux/amd64 --output build/release-smoke-amd64
       - name: Build ARM64 image for scanning
@@ -300,16 +294,8 @@ jobs:
           severity: UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
           ignore-unfixed: false
           exit-code: "0"
-      - name: Scan ARM64 image (fixable MEDIUM/HIGH/CRITICAL block the release)
-        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
-        env:
-          TRIVY_PLATFORM: linux/arm64
-        with:
-          image-ref: grc-lake:scan-arm64
-          version: v0.70.0
-          severity: CRITICAL,HIGH,MEDIUM
-          ignore-unfixed: true
-          exit-code: "1"
+      - name: Reject HIGH/CRITICAL and fixable MEDIUM findings (grc-lake:scan-arm64)
+        run: python3 tools/check_image_vulnerabilities.py trivy-release-arm64.json
       - name: Qualify authenticated ARM64 runtime
         run: python tools/authenticated_smoke.py --image grc-lake:scan-arm64 --platform linux/arm64 --output build/release-smoke-arm64
       - name: Retain architecture qualification receipts

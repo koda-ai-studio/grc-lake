@@ -8,6 +8,17 @@ sharing, and agent APIs — without locking evidence in a vendor silo.
 Upgrading from TrustOps? Follow the [rebranding migration guide](REBRANDING.md)
 to preserve volumes, release names, secrets and compatibility aliases.
 
+## Candidate runtime boundary
+
+The unpublished 0.3.7 container uses a shell-free runtime. Use the Python CLI
+directly (`docker exec <container> grc-lake ...`); `/bin/sh`, Bash, package managers,
+`readline`, curses, and the optional system-libuuid Python backend are absent.
+Standard Python `uuid` operations remain supported. Install additional libraries
+in a build stage and qualify the resulting image before deployment. The application
+still runs as UID/GID 1100 with the same persistent paths and authenticated API.
+Published 0.3.6 images retain their earlier runtime; see
+[release readiness](RELEASE_READINESS.md) and [dependency security](DEPENDENCY_SECURITY.md).
+
 ## Deployment models
 
 | Model           | Who runs it                                  | Best for                                                         |
