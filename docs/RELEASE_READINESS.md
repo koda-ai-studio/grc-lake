@@ -1,5 +1,12 @@
 # Release readiness
 
+**0.3.7 is an unpublished candidate.** It reduces the container runtime to
+required components and blocks unfixed HIGH/CRITICAL findings. The latest
+published release remains 0.3.6, whose historical scan findings below are unchanged.
+See [runtime hardening](DEPENDENCY_SECURITY.md#037-runtime-candidate) for the
+new image boundary and qualification. Merge, exact-main CI and publication
+verification are still required for the candidate.
+
 GRC Lake **0.3.6 is published and verified** on
 [PyPI](https://pypi.org/project/grc-lake/0.3.6/),
 [GitHub](https://github.com/koda-ai-studio/grc-lake/releases/tag/v0.3.6), and as
@@ -162,7 +169,7 @@ when its required CI checks pass.
 | Console               | `npm --prefix app/web run lint`, `npm --prefix app/web run typecheck`, `npm --prefix app/web run build` | A bundled static console with no lint or type errors                                                                        |
 | Browser interactions  | `bash tools/run_e2e_console.sh`                                                                         | Dashboard, links, disclosures, accessible interactions, and responsive layouts pass against synthetic fixtures              |
 | Dependency security   | `make pip-audit npm-audit`                                                                              | No audit-blocking vulnerabilities in the resolved dependencies                                                              |
-| Image vulnerabilities | CI `docker-build` job (Trivy)                                                                           | No fixable MEDIUM, HIGH or CRITICAL vulnerability in the built image                                                        |
+| Image vulnerabilities | CI `docker-build` job (Trivy)                                                                           | No HIGH/CRITICAL finding, or fixable MEDIUM finding, in the built image                                                     |
 | Packaging             | `make release-build`                                                                                    | A clean `dist/`; wheel verification confirms that the console and required runtime assets are included                      |
 | Deployment templates  | `make deploy-check`                                                                                     | Helm rendering and Terraform validation pass; no resources are provisioned                                                  |
 | Changelog             | A `## <version> - <date>` section in `CHANGELOG.md`                                                     | The section exists and becomes the GitHub release notes                                                                     |
@@ -186,8 +193,8 @@ workflow enforces these gates before anything is published:
    upgrade that major together after checking the [Node release schedule](https://nodejs.org/en/about/previous-releases).
 4. **Both image architectures.** AMD64 and ARM64 are built and loaded separately.
    Installed dependency checks, Trivy scans and authenticated tenant-isolation /
-   persistence probes must pass before the multi-platform image is pushed. A
-   fixable MEDIUM, HIGH or CRITICAL vulnerability blocks publication. ARM64 runtime
+   persistence probes must pass before the multi-platform image is pushed. Any
+   HIGH/CRITICAL finding, or fixable MEDIUM finding, blocks publication. ARM64 runtime
    qualification on the AMD64 runner uses emulation.
 5. **Publication order.** PyPI waits for the image job, including its checks and
    provenance publication. An image failure cannot leave a new Python version
@@ -320,7 +327,8 @@ Use `tools/compose_smoke.py` separately when qualifying the unauthenticated demo
 
 Scan each published architecture against a fresh vulnerability database. Retain
 all severities in the report, then separately evaluate the release policy of no
-fixable MEDIUM/HIGH/CRITICAL findings. A policy pass is not a vulnerability-free image.
+HIGH/CRITICAL findings, including unfixed ones, and fixable MEDIUM findings.
+A policy pass is not a vulnerability-free image.
 
 ## What the overview means
 

@@ -40,6 +40,46 @@ def test_demo_service_is_localhost_only_seeds_the_golden_fixture_and_says_auth_i
     assert any(str(volume).endswith(":/lake") for volume in demo["volumes"])
 
 
+@pytest.mark.parametrize("marker", [None, ".grc-lake-demo-seeded", ".trustops-demo-seeded"])
+def test_demo_bootstrap_runs_without_shell_and_preserves_seed_markers(tmp_path, monkeypatch, marker) -> None:
+    import os
+    import subprocess
+
+    command = _compose()["services"]["grc-lake"]["command"]
+    assert command[:2] == ["python", "-c"]
+    if marker:
+        (tmp_path / marker).touch()
+    loads = []
+    servers = []
+    monkeypatch.setattr(subprocess, "run", lambda args, **kwargs: loads.append((args, kwargs)))
+    monkeypatch.setattr(os, "execvp", lambda executable, args: servers.append((executable, args)))
+    exec(command[2].replace("/lake", str(tmp_path)), {})
+    assert len(loads) == (0 if marker else 1)
+    if loads:
+        assert loads[0][0][:5] == ["grc-lake", "fixtures", "load", "--company", "golden"]
+        assert loads[0][1] == {"check": True}
+        assert (tmp_path / ".grc-lake-demo-seeded").exists()
+    assert len(servers) == 1 and servers[0][0] == "grc-lake"
+    assert "--allow-insecure-no-auth" in servers[0][1]
+
+
+def test_demo_bootstrap_does_not_mark_or_serve_a_failed_seed(tmp_path, monkeypatch) -> None:
+    import os
+    import subprocess
+
+    command = _compose()["services"]["grc-lake"]["command"]
+    assert command[:2] == ["python", "-c"]
+
+    def fail(*args, **kwargs):
+        raise subprocess.CalledProcessError(1, args[0])
+
+    monkeypatch.setattr(subprocess, "run", fail)
+    monkeypatch.setattr(os, "execvp", lambda *_: pytest.fail("must not serve after failed seeding"))
+    with pytest.raises(subprocess.CalledProcessError):
+        exec(command[2].replace("/lake", str(tmp_path)), {})
+    assert not (tmp_path / ".grc-lake-demo-seeded").exists()
+
+
 def test_server_profile_requires_auth_secrets_and_ships_no_demo_data() -> None:
     compose = _compose()
     server = compose["services"]["grc-lake-server"]

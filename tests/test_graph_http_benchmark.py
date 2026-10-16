@@ -200,22 +200,23 @@ def test_parent_passes_graph_build_concurrency_to_the_worker(tmp_path):
 def test_http_lifecycle_probes_report_deadline_disconnect_and_recovery(tmp_path, monkeypatch):
     from tools.benchmark_investigation_http import run_http_workload
 
-    # Exercise the same loopback protocol with a short deadline in the test;
-    # qualification runs use the shipped 60-second deadline.
-    monkeypatch.setattr("security_lakehouse.graph_admission.DEFAULT_TIMEOUT_SECONDS", 0.5)
+    # This budget also covers cold reads and recovery under coverage on CI.
+    # Keep it shorter than qualification's 60s without imposing a 500ms
+    # performance requirement on the unrelated ordinary reads in this test.
+    monkeypatch.setattr("security_lakehouse.graph_admission.DEFAULT_TIMEOUT_SECONDS", 5.0)
     report = run_http_workload(
         tmp_path,
         rows=12,
         tenants=1,
         concurrency=1,
         repeats=1,
-        client_timeout=5,
+        client_timeout=20,
         lifecycle_probes=True,
     )
     probes = report["lifecycle_probes"]
     assert probes["deadline"]["http_status"] == 503
     assert probes["deadline"]["error_code"] == "graph_build_timeout"
-    assert probes["deadline"]["seconds"] >= 0.5
+    assert probes["deadline"]["seconds"] >= 5.0
     assert probes["disconnect"]["abort_reason"] == "disconnected"
     assert probes["disconnect"]["checkpoints"] > 0
     assert probes["disconnect"]["release_seconds"] < 5
