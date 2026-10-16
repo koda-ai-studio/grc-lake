@@ -87,8 +87,7 @@ function Row({
   const attestableCount = coverage?.attestable_requirement_count ?? 0;
   const attestablePct = coverage?.attestable_coverage_pct ?? 0;
   const selfMapCount = coverage?.source_native_reviewed_requirement_count ?? 0;
-  const legacyOnlyCount =
-    coverage?.legacy_only_reviewed_requirement_count ?? 0;
+  const legacyOnlyCount = coverage?.legacy_only_reviewed_requirement_count ?? 0;
   const topLevelCoverage =
     coverage?.coverage_level === "top_level" ||
     ["pci-dss-v4", "cis-controls-v8.1"].includes(framework.framework_id);
@@ -826,8 +825,7 @@ function FrameworksPageContent() {
                 {formatCount(
                   coverageSummary.crosswalk_reviewed_requirement_count ?? 0,
                 )}{" "}
-                crosswalk-reviewed. A blended total; read each framework
-                below.
+                crosswalk-reviewed. A blended total; read each framework below.
               </dd>
             ) : null}
           </div>
