@@ -4,10 +4,12 @@ import re
 import tomllib
 from pathlib import Path
 
+from repo_files import repo_files
+
 ROOT = Path(__file__).resolve().parents[1]
 
 PUBLIC_DOCS = sorted(
-    [ROOT / "README.md", ROOT / "ROADMAP.md", *(ROOT / "docs").rglob("*.md")],
+    [ROOT / "README.md", ROOT / "ROADMAP.md", *(p for p in repo_files("docs") if p.suffix == ".md")],
 )
 
 INTERNAL_DOCS = (
@@ -63,7 +65,7 @@ def test_docs_index_links_every_public_doc() -> None:
     index = ROOT / "docs" / "README.md"
     text = index.read_text(encoding="utf-8")
     linked = {(index.parent / target).resolve() for target in re.findall(r"\]\(([^)#]+\.md)(?:#[^)]*)?\)", text)}
-    for path in (ROOT / "docs").rglob("*.md"):
+    for path in (p for p in repo_files("docs") if p.suffix == ".md"):
         if path == index:
             continue
         assert path.resolve() in linked, f"docs/README.md does not link {path.relative_to(ROOT)}"
