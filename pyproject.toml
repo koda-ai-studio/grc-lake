@@ -118,7 +118,7 @@ kubernetes = [
 # Agent-native front door: the Model Context Protocol server that exposes the
 # read surface over stdio so an agent can query posture headlessly.
 mcp = [
-    "mcp>=1.2.0,<2",
+    "mcp>=1.30.0,<2",
 ]
 # Typed Python client (`GrcLakeClient`) over the `/api/v1` surface so agents
 # and scripts share the same contract as humans

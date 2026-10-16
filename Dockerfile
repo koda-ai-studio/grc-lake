@@ -35,6 +35,7 @@ COPY pyproject.toml uv.lock README.md ./
 COPY src/ ./src/
 COPY connectors/ ./connectors/
 COPY controls/ ./controls/
+COPY docs/reviews/2026-10-15-repaired-proposals.json ./docs/reviews/
 COPY frameworks/ ./frameworks/
 COPY mappings/ ./mappings/
 COPY programs/ ./programs/
