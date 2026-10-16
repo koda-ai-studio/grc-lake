@@ -1,0 +1,2161 @@
+{
+  "schema": "grc-lake.legacy-mapping-review.v1",
+  "status": "legacy_unattributed",
+  "reviewer": null,
+  "decision": null,
+  "scope": "Safeguard-to-requirement mappings shipped as reviewed before decision receipts existed. Each row cites the commit since which it has been reviewed without a maintainer_review_ref, from the first-parent history of controls/safeguards.json.",
+  "limitations": "Not an approval. No reviewer, decision or per-mapping rationale was recorded. Coverage still counts these rows as maintainer-reviewed and reports them separately as legacy_unattributed_mappings and legacy_only_reviewed. A row leaves this list when a decision receipt replaces it or it returns to proposed; rows are never added.",
+  "base_commit": "13cedfe2f60090238c3ca24b8aa8647a048f599f",
+  "origins": [
+    {
+      "commit": "acf64cefd4467b6f8a3318df06e815ca11707de8",
+      "pull_request": 563,
+      "date": "2026-08-11",
+      "title": "feat(controls): adopt a Common Control Framework (#563)",
+      "what_is_known": "Seeded the first twelve safeguards from mappings/framework_equivalence.json (added in #460). Those groups carry reviewed_by \"internal-trust-team\" and reviewed_at 2026-07-10T00:00:00Z. That value is a placeholder, not an attributable reviewer, and no decision record exists for it.",
+      "mapping_count": 49
+    },
+    {
+      "commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85",
+      "pull_request": 700,
+      "date": "2026-09-22",
+      "title": "ccf: attest CMMC, ISO 27017, FedRAMP, ISO 42001, and CIS AWS safeguard mappings (#700)",
+      "what_is_known": "Promoted proposed CMMC 2.0 Level 2, ISO/IEC 27017, FedRAMP Moderate, ISO/IEC 42001 and CIS AWS mappings to reviewed. The pull request describes a title, evidence and framework-reference comparison but names no reviewer and has no decision receipt.",
+      "mapping_count": 209
+    },
+    {
+      "commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922",
+      "pull_request": 717,
+      "date": "2026-09-24",
+      "title": "feat(ccf): inherit 800-53 reviews from FedRAMP; official AI RMF titles (#717)",
+      "what_is_known": "Marked NIST SP 800-53 Rev. 5 mappings reviewed by inheriting the review of the matching FedRAMP Moderate mapping (review_basis.inherited_from). The inherited source is itself one of the unattributed rows above.",
+      "mapping_count": 96
+    }
+  ],
+  "mappings": [
+    {
+      "safeguard_id": "SG-AIGOVERNANCE-001",
+      "control_id": "EU-AI-ACT-Art.10",
+      "framework_id": "eu-ai-act-2024-1689",
+      "origin_commit": "acf64cefd4467b6f8a3318df06e815ca11707de8"
+    },
+    {
+      "safeguard_id": "SG-AIGOVERNANCE-001",
+      "control_id": "ISO42001-2.2",
+      "framework_id": "iso-42001-2023",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-AIGOVERNANCE-001",
+      "control_id": "ISO42001-2.4",
+      "framework_id": "iso-42001-2023",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-AIGOVERNANCE-001",
+      "control_id": "ISO42001-3.2",
+      "framework_id": "iso-42001-2023",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-AIGOVERNANCE-001",
+      "control_id": "ISO42001-6.2.7",
+      "framework_id": "iso-42001-2023",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-AIGOVERNANCE-001",
+      "control_id": "ISO42001-8.1",
+      "framework_id": "iso-42001-2023",
+      "origin_commit": "acf64cefd4467b6f8a3318df06e815ca11707de8"
+    },
+    {
+      "safeguard_id": "SG-AIGOVERNANCE-001",
+      "control_id": "ISO42001-9.4",
+      "framework_id": "iso-42001-2023",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-AIGOVERNANCE-001",
+      "control_id": "NIST-AI-RMF-GOVERN-1.1",
+      "framework_id": "nist-ai-rmf",
+      "origin_commit": "acf64cefd4467b6f8a3318df06e815ca11707de8"
+    },
+    {
+      "safeguard_id": "SG-AVAILABILITY-001",
+      "control_id": "CMMC-3.8.9",
+      "framework_id": "cmmc-2-level2",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-AVAILABILITY-001",
+      "control_id": "FEDRAMP-CP-10",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-AVAILABILITY-001",
+      "control_id": "FEDRAMP-CP-10.2",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-AVAILABILITY-001",
+      "control_id": "FEDRAMP-CP-6",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-AVAILABILITY-001",
+      "control_id": "FEDRAMP-CP-7",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-AVAILABILITY-001",
+      "control_id": "FEDRAMP-CP-9",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-AVAILABILITY-001",
+      "control_id": "ISO27001-A.8.13",
+      "framework_id": "iso-27001-2022",
+      "origin_commit": "acf64cefd4467b6f8a3318df06e815ca11707de8"
+    },
+    {
+      "safeguard_id": "SG-AVAILABILITY-001",
+      "control_id": "NIST-800-53-CP-10",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-AVAILABILITY-001",
+      "control_id": "NIST-800-53-CP-10.2",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-AVAILABILITY-001",
+      "control_id": "NIST-800-53-CP-6",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-AVAILABILITY-001",
+      "control_id": "NIST-800-53-CP-7",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-AVAILABILITY-001",
+      "control_id": "NIST-800-53-CP-9",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-AVAILABILITY-001",
+      "control_id": "NIST-CSF-PR.DS-01",
+      "framework_id": "nist-csf-2.0",
+      "origin_commit": "acf64cefd4467b6f8a3318df06e815ca11707de8"
+    },
+    {
+      "safeguard_id": "SG-AVAILABILITY-001",
+      "control_id": "SOC2-A1.2",
+      "framework_id": "soc2",
+      "origin_commit": "acf64cefd4467b6f8a3318df06e815ca11707de8"
+    },
+    {
+      "safeguard_id": "SG-CHANGEMANAGEMENT-001",
+      "control_id": "CMMC-3.4.1",
+      "framework_id": "cmmc-2-level2",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-CHANGEMANAGEMENT-001",
+      "control_id": "CMMC-3.4.2",
+      "framework_id": "cmmc-2-level2",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-CHANGEMANAGEMENT-001",
+      "control_id": "CMMC-3.4.3",
+      "framework_id": "cmmc-2-level2",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-CHANGEMANAGEMENT-001",
+      "control_id": "CMMC-3.4.4",
+      "framework_id": "cmmc-2-level2",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-CHANGEMANAGEMENT-001",
+      "control_id": "CMMC-3.4.5",
+      "framework_id": "cmmc-2-level2",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-CHANGEMANAGEMENT-001",
+      "control_id": "CMMC-3.4.6",
+      "framework_id": "cmmc-2-level2",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-CHANGEMANAGEMENT-001",
+      "control_id": "FEDRAMP-CM-3",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "acf64cefd4467b6f8a3318df06e815ca11707de8"
+    },
+    {
+      "safeguard_id": "SG-CHANGEMANAGEMENT-001",
+      "control_id": "FEDRAMP-CM-3.2",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-CHANGEMANAGEMENT-001",
+      "control_id": "FEDRAMP-CM-5",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-CHANGEMANAGEMENT-001",
+      "control_id": "FEDRAMP-CM-6",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-CHANGEMANAGEMENT-001",
+      "control_id": "FEDRAMP-CM-9",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-CHANGEMANAGEMENT-001",
+      "control_id": "ISO27001-A.8.32",
+      "framework_id": "iso-27001-2022",
+      "origin_commit": "acf64cefd4467b6f8a3318df06e815ca11707de8"
+    },
+    {
+      "safeguard_id": "SG-CHANGEMANAGEMENT-001",
+      "control_id": "ISO27017-12.1.2",
+      "framework_id": "iso-27017-2015",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-CHANGEMANAGEMENT-001",
+      "control_id": "NIST-800-53-CM-3",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-CHANGEMANAGEMENT-001",
+      "control_id": "NIST-800-53-CM-3.2",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-CHANGEMANAGEMENT-001",
+      "control_id": "NIST-800-53-CM-5",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-CHANGEMANAGEMENT-001",
+      "control_id": "NIST-800-53-CM-6",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-CHANGEMANAGEMENT-001",
+      "control_id": "NIST-800-53-CM-9",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-CHANGEMANAGEMENT-001",
+      "control_id": "NIST-CSF-PR.DS-01",
+      "framework_id": "nist-csf-2.0",
+      "origin_commit": "acf64cefd4467b6f8a3318df06e815ca11707de8"
+    },
+    {
+      "safeguard_id": "SG-CHANGEMANAGEMENT-001",
+      "control_id": "SOC2-CC8.1",
+      "framework_id": "soc2",
+      "origin_commit": "acf64cefd4467b6f8a3318df06e815ca11707de8"
+    },
+    {
+      "safeguard_id": "SG-DATAPROTECTION-001",
+      "control_id": "CIS-AWS-2.2.1",
+      "framework_id": "cis_aws",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-DATAPROTECTION-001",
+      "control_id": "CIS-AWS-2.3.1",
+      "framework_id": "cis_aws",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-DATAPROTECTION-001",
+      "control_id": "CIS-AWS-2.4.1",
+      "framework_id": "cis_aws",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-DATAPROTECTION-001",
+      "control_id": "CIS-AWS-3.5",
+      "framework_id": "cis_aws",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-DATAPROTECTION-001",
+      "control_id": "CMMC-3.1.13",
+      "framework_id": "cmmc-2-level2",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-DATAPROTECTION-001",
+      "control_id": "CMMC-3.1.17",
+      "framework_id": "cmmc-2-level2",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-DATAPROTECTION-001",
+      "control_id": "CMMC-3.1.19",
+      "framework_id": "cmmc-2-level2",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-DATAPROTECTION-001",
+      "control_id": "CMMC-3.13.10",
+      "framework_id": "cmmc-2-level2",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-DATAPROTECTION-001",
+      "control_id": "CMMC-3.13.11",
+      "framework_id": "cmmc-2-level2",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-DATAPROTECTION-001",
+      "control_id": "CMMC-3.13.16",
+      "framework_id": "cmmc-2-level2",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-DATAPROTECTION-001",
+      "control_id": "CMMC-3.13.8",
+      "framework_id": "cmmc-2-level2",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-DATAPROTECTION-001",
+      "control_id": "CMMC-3.5.10",
+      "framework_id": "cmmc-2-level2",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-DATAPROTECTION-001",
+      "control_id": "CMMC-3.8.6",
+      "framework_id": "cmmc-2-level2",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-DATAPROTECTION-001",
+      "control_id": "FEDRAMP-AC-17.2",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-DATAPROTECTION-001",
+      "control_id": "FEDRAMP-AC-18.1",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-DATAPROTECTION-001",
+      "control_id": "FEDRAMP-AC-19.5",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-DATAPROTECTION-001",
+      "control_id": "FEDRAMP-CP-9.8",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-DATAPROTECTION-001",
+      "control_id": "FEDRAMP-SC-12",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-DATAPROTECTION-001",
+      "control_id": "FEDRAMP-SC-13",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-DATAPROTECTION-001",
+      "control_id": "FEDRAMP-SC-28",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-DATAPROTECTION-001",
+      "control_id": "FEDRAMP-SC-28.1",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-DATAPROTECTION-001",
+      "control_id": "FEDRAMP-SC-8.1",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-DATAPROTECTION-001",
+      "control_id": "GDPR-Art.32",
+      "framework_id": "gdpr-2016-679",
+      "origin_commit": "acf64cefd4467b6f8a3318df06e815ca11707de8"
+    },
+    {
+      "safeguard_id": "SG-DATAPROTECTION-001",
+      "control_id": "HIPAA-164.312(e)",
+      "framework_id": "hipaa-security-rule",
+      "origin_commit": "acf64cefd4467b6f8a3318df06e815ca11707de8"
+    },
+    {
+      "safeguard_id": "SG-DATAPROTECTION-001",
+      "control_id": "ISO27001-A.8.24",
+      "framework_id": "iso-27001-2022",
+      "origin_commit": "acf64cefd4467b6f8a3318df06e815ca11707de8"
+    },
+    {
+      "safeguard_id": "SG-DATAPROTECTION-001",
+      "control_id": "ISO27017-10.1.1",
+      "framework_id": "iso-27017-2015",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-DATAPROTECTION-001",
+      "control_id": "ISO27017-10.1.2",
+      "framework_id": "iso-27017-2015",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-DATAPROTECTION-001",
+      "control_id": "NIST-800-53-AC-17.2",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-DATAPROTECTION-001",
+      "control_id": "NIST-800-53-AC-18.1",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-DATAPROTECTION-001",
+      "control_id": "NIST-800-53-AC-19.5",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-DATAPROTECTION-001",
+      "control_id": "NIST-800-53-CP-9.8",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-DATAPROTECTION-001",
+      "control_id": "NIST-800-53-SC-12",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-DATAPROTECTION-001",
+      "control_id": "NIST-800-53-SC-13",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-DATAPROTECTION-001",
+      "control_id": "NIST-800-53-SC-28",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-DATAPROTECTION-001",
+      "control_id": "NIST-800-53-SC-28.1",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-DATAPROTECTION-001",
+      "control_id": "NIST-800-53-SC-8.1",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-DATAPROTECTION-001",
+      "control_id": "PCI-DSS-7",
+      "framework_id": "pci-dss-v4",
+      "origin_commit": "acf64cefd4467b6f8a3318df06e815ca11707de8"
+    },
+    {
+      "safeguard_id": "SG-DATAPROTECTION-001",
+      "control_id": "SOC2-CC6.7",
+      "framework_id": "soc2",
+      "origin_commit": "acf64cefd4467b6f8a3318df06e815ca11707de8"
+    },
+    {
+      "safeguard_id": "SG-DATARETENTION-001",
+      "control_id": "CMMC-3.7.3",
+      "framework_id": "cmmc-2-level2",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-DATARETENTION-001",
+      "control_id": "FEDRAMP-AU-11",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-DATARETENTION-001",
+      "control_id": "FEDRAMP-CM-2.3",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-DATARETENTION-001",
+      "control_id": "FEDRAMP-SI-12",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-DATARETENTION-001",
+      "control_id": "FEDRAMP-SR-12",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-DATARETENTION-001",
+      "control_id": "ISO27017-11.2.7",
+      "framework_id": "iso-27017-2015",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-DATARETENTION-001",
+      "control_id": "NIST-800-53-AU-11",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-DATARETENTION-001",
+      "control_id": "NIST-800-53-CM-2.3",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-DATARETENTION-001",
+      "control_id": "NIST-800-53-SI-12",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-DATARETENTION-001",
+      "control_id": "NIST-800-53-SR-12",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-DETECTION-001",
+      "control_id": "CIS-AWS-4.13",
+      "framework_id": "cis_aws",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-DETECTION-001",
+      "control_id": "CMMC-3.1.12",
+      "framework_id": "cmmc-2-level2",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-DETECTION-001",
+      "control_id": "CMMC-3.12.3",
+      "framework_id": "cmmc-2-level2",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-DETECTION-001",
+      "control_id": "CMMC-3.14.3",
+      "framework_id": "cmmc-2-level2",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-DETECTION-001",
+      "control_id": "CMMC-3.14.6",
+      "framework_id": "cmmc-2-level2",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-DETECTION-001",
+      "control_id": "FEDRAMP-AC-17.1",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-DETECTION-001",
+      "control_id": "FEDRAMP-AU-6",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "acf64cefd4467b6f8a3318df06e815ca11707de8"
+    },
+    {
+      "safeguard_id": "SG-DETECTION-001",
+      "control_id": "FEDRAMP-CA-7",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-DETECTION-001",
+      "control_id": "FEDRAMP-CA-7.4",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-DETECTION-001",
+      "control_id": "FEDRAMP-CM-8.3",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-DETECTION-001",
+      "control_id": "FEDRAMP-SI-4",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-DETECTION-001",
+      "control_id": "FEDRAMP-SI-4.5",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-DETECTION-001",
+      "control_id": "FEDRAMP-SI-5",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-DETECTION-001",
+      "control_id": "FEDRAMP-SI-7.7",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-DETECTION-001",
+      "control_id": "ISO27001-A.8.16",
+      "framework_id": "iso-27001-2022",
+      "origin_commit": "acf64cefd4467b6f8a3318df06e815ca11707de8"
+    },
+    {
+      "safeguard_id": "SG-DETECTION-001",
+      "control_id": "ISO27017-CLD.12.4.5",
+      "framework_id": "iso-27017-2015",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-DETECTION-001",
+      "control_id": "NIST-800-53-AC-17.1",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-DETECTION-001",
+      "control_id": "NIST-800-53-AU-6",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-DETECTION-001",
+      "control_id": "NIST-800-53-CA-7",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-DETECTION-001",
+      "control_id": "NIST-800-53-CA-7.4",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-DETECTION-001",
+      "control_id": "NIST-800-53-CM-8.3",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-DETECTION-001",
+      "control_id": "NIST-800-53-SI-4",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-DETECTION-001",
+      "control_id": "NIST-800-53-SI-4.5",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-DETECTION-001",
+      "control_id": "NIST-800-53-SI-5",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-DETECTION-001",
+      "control_id": "NIST-800-53-SI-7.7",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-DETECTION-001",
+      "control_id": "NIST-CSF-DE.AE-02",
+      "framework_id": "nist-csf-2.0",
+      "origin_commit": "acf64cefd4467b6f8a3318df06e815ca11707de8"
+    },
+    {
+      "safeguard_id": "SG-DETECTION-001",
+      "control_id": "PCI-DSS-10",
+      "framework_id": "pci-dss-v4",
+      "origin_commit": "acf64cefd4467b6f8a3318df06e815ca11707de8"
+    },
+    {
+      "safeguard_id": "SG-DETECTION-001",
+      "control_id": "SOC2-CC7.2",
+      "framework_id": "soc2",
+      "origin_commit": "acf64cefd4467b6f8a3318df06e815ca11707de8"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "CIS-AWS-1.10",
+      "framework_id": "cis_aws",
+      "origin_commit": "acf64cefd4467b6f8a3318df06e815ca11707de8"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "CIS-AWS-1.11",
+      "framework_id": "cis_aws",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "CIS-AWS-1.12",
+      "framework_id": "cis_aws",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "CIS-AWS-1.13",
+      "framework_id": "cis_aws",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "CIS-AWS-1.14",
+      "framework_id": "cis_aws",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "CIS-AWS-1.15",
+      "framework_id": "cis_aws",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "CIS-AWS-1.16",
+      "framework_id": "cis_aws",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "CIS-AWS-1.18",
+      "framework_id": "cis_aws",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "CIS-AWS-1.20",
+      "framework_id": "cis_aws",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "CIS-AWS-1.22",
+      "framework_id": "cis_aws",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "CIS-AWS-1.4",
+      "framework_id": "cis_aws",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "CIS-AWS-1.5",
+      "framework_id": "cis_aws",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "CIS-AWS-1.6",
+      "framework_id": "cis_aws",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "CIS-AWS-1.8",
+      "framework_id": "cis_aws",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "CIS-AWS-1.9",
+      "framework_id": "cis_aws",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "CMMC-3.1.1",
+      "framework_id": "cmmc-2-level2",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "CMMC-3.1.15",
+      "framework_id": "cmmc-2-level2",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "CMMC-3.1.2",
+      "framework_id": "cmmc-2-level2",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "CMMC-3.1.5",
+      "framework_id": "cmmc-2-level2",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "CMMC-3.1.6",
+      "framework_id": "cmmc-2-level2",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "CMMC-3.5.1",
+      "framework_id": "cmmc-2-level2",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "CMMC-3.5.2",
+      "framework_id": "cmmc-2-level2",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "CMMC-3.5.3",
+      "framework_id": "cmmc-2-level2",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "CMMC-3.5.5",
+      "framework_id": "cmmc-2-level2",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "CMMC-3.5.6",
+      "framework_id": "cmmc-2-level2",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "CMMC-3.5.8",
+      "framework_id": "cmmc-2-level2",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "FEDRAMP-AC-2",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "acf64cefd4467b6f8a3318df06e815ca11707de8"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "FEDRAMP-AC-3",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "FEDRAMP-AC-6",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "FEDRAMP-AC-6.1",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "FEDRAMP-AC-6.10",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "FEDRAMP-AC-6.2",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "FEDRAMP-AC-6.5",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "FEDRAMP-AC-6.7",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "FEDRAMP-IA-11",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "FEDRAMP-IA-2",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "FEDRAMP-IA-2.1",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "FEDRAMP-IA-2.12",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "FEDRAMP-IA-2.2",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "FEDRAMP-IA-2.8",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "FEDRAMP-IA-4",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "FEDRAMP-IA-4.4",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "FEDRAMP-IA-5",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "FEDRAMP-IA-5.1",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "FEDRAMP-IA-5.2",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "FEDRAMP-IA-5.6",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "FEDRAMP-IA-6",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "FEDRAMP-IA-8",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "FEDRAMP-IA-8.1",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "FEDRAMP-IA-8.2",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "HIPAA-164.308(a)(4)",
+      "framework_id": "hipaa-security-rule",
+      "origin_commit": "acf64cefd4467b6f8a3318df06e815ca11707de8"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "ISO27001-A.5.15",
+      "framework_id": "iso-27001-2022",
+      "origin_commit": "acf64cefd4467b6f8a3318df06e815ca11707de8"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "ISO27017-9.1.1",
+      "framework_id": "iso-27017-2015",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "ISO27017-9.2.3",
+      "framework_id": "iso-27017-2015",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "ISO27017-9.4.1",
+      "framework_id": "iso-27017-2015",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "ISO27017-9.4.3",
+      "framework_id": "iso-27017-2015",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "NIST-800-53-AC-2",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "NIST-800-53-AC-3",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "NIST-800-53-AC-6",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "NIST-800-53-AC-6.1",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "NIST-800-53-AC-6.10",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "NIST-800-53-AC-6.2",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "NIST-800-53-AC-6.5",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "NIST-800-53-AC-6.7",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "NIST-800-53-IA-11",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "NIST-800-53-IA-2",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "NIST-800-53-IA-2.1",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "NIST-800-53-IA-2.12",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "NIST-800-53-IA-2.2",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "NIST-800-53-IA-2.8",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "NIST-800-53-IA-4",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "NIST-800-53-IA-4.4",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "NIST-800-53-IA-5",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "NIST-800-53-IA-5.1",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "NIST-800-53-IA-5.2",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "NIST-800-53-IA-5.6",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "NIST-800-53-IA-6",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "NIST-800-53-IA-8",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "NIST-800-53-IA-8.1",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "NIST-800-53-IA-8.2",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "NIST-CSF-PR.AA-01",
+      "framework_id": "nist-csf-2.0",
+      "origin_commit": "acf64cefd4467b6f8a3318df06e815ca11707de8"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "control_id": "SOC2-CC6.1",
+      "framework_id": "soc2",
+      "origin_commit": "acf64cefd4467b6f8a3318df06e815ca11707de8"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-002",
+      "control_id": "FEDRAMP-AC-2.1",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-002",
+      "control_id": "FEDRAMP-AC-2.2",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-002",
+      "control_id": "ISO27001-A.8.2",
+      "framework_id": "iso-27001-2022",
+      "origin_commit": "acf64cefd4467b6f8a3318df06e815ca11707de8"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-002",
+      "control_id": "ISO27017-9.2.1",
+      "framework_id": "iso-27017-2015",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-002",
+      "control_id": "ISO27017-9.2.2",
+      "framework_id": "iso-27017-2015",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-002",
+      "control_id": "ISO27017-9.2.5",
+      "framework_id": "iso-27017-2015",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-002",
+      "control_id": "ISO27017-9.2.6",
+      "framework_id": "iso-27017-2015",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-002",
+      "control_id": "NIST-800-53-AC-2.1",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-002",
+      "control_id": "NIST-800-53-AC-2.2",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-002",
+      "control_id": "NIST-CSF-PR.AA-05",
+      "framework_id": "nist-csf-2.0",
+      "origin_commit": "acf64cefd4467b6f8a3318df06e815ca11707de8"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-002",
+      "control_id": "SOC2-CC6.2",
+      "framework_id": "soc2",
+      "origin_commit": "acf64cefd4467b6f8a3318df06e815ca11707de8"
+    },
+    {
+      "safeguard_id": "SG-INCIDENTRESPONSE-001",
+      "control_id": "CMMC-3.6.2",
+      "framework_id": "cmmc-2-level2",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-INCIDENTRESPONSE-001",
+      "control_id": "CMMC-3.6.3",
+      "framework_id": "cmmc-2-level2",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-INCIDENTRESPONSE-001",
+      "control_id": "GDPR-Art.33",
+      "framework_id": "gdpr-2016-679",
+      "origin_commit": "acf64cefd4467b6f8a3318df06e815ca11707de8"
+    },
+    {
+      "safeguard_id": "SG-INCIDENTRESPONSE-001",
+      "control_id": "HIPAA-164.308(a)(1)(ii)(B)",
+      "framework_id": "hipaa-security-rule",
+      "origin_commit": "acf64cefd4467b6f8a3318df06e815ca11707de8"
+    },
+    {
+      "safeguard_id": "SG-INCIDENTRESPONSE-001",
+      "control_id": "SOC2-P3.2",
+      "framework_id": "soc2",
+      "origin_commit": "acf64cefd4467b6f8a3318df06e815ca11707de8"
+    },
+    {
+      "safeguard_id": "SG-LOGGING-001",
+      "control_id": "CIS-AWS-3.4",
+      "framework_id": "cis_aws",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-LOGGING-001",
+      "control_id": "CIS-AWS-3.7",
+      "framework_id": "cis_aws",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-LOGGING-001",
+      "control_id": "CIS-AWS-3.8",
+      "framework_id": "cis_aws",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-LOGGING-001",
+      "control_id": "CIS-AWS-3.9",
+      "framework_id": "cis_aws",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-LOGGING-001",
+      "control_id": "CIS-AWS-4.1",
+      "framework_id": "cis_aws",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-LOGGING-001",
+      "control_id": "CIS-AWS-4.10",
+      "framework_id": "cis_aws",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-LOGGING-001",
+      "control_id": "CIS-AWS-4.11",
+      "framework_id": "cis_aws",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-LOGGING-001",
+      "control_id": "CIS-AWS-4.12",
+      "framework_id": "cis_aws",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-LOGGING-001",
+      "control_id": "CIS-AWS-4.14",
+      "framework_id": "cis_aws",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-LOGGING-001",
+      "control_id": "CIS-AWS-4.15",
+      "framework_id": "cis_aws",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-LOGGING-001",
+      "control_id": "CIS-AWS-4.2",
+      "framework_id": "cis_aws",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-LOGGING-001",
+      "control_id": "CIS-AWS-4.3",
+      "framework_id": "cis_aws",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-LOGGING-001",
+      "control_id": "CIS-AWS-4.4",
+      "framework_id": "cis_aws",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-LOGGING-001",
+      "control_id": "CIS-AWS-4.5",
+      "framework_id": "cis_aws",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-LOGGING-001",
+      "control_id": "CIS-AWS-4.6",
+      "framework_id": "cis_aws",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-LOGGING-001",
+      "control_id": "CIS-AWS-4.7",
+      "framework_id": "cis_aws",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-LOGGING-001",
+      "control_id": "CIS-AWS-4.8",
+      "framework_id": "cis_aws",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-LOGGING-001",
+      "control_id": "CIS-AWS-4.9",
+      "framework_id": "cis_aws",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-LOGGING-001",
+      "control_id": "CMMC-3.1.7",
+      "framework_id": "cmmc-2-level2",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-LOGGING-001",
+      "control_id": "CMMC-3.3.1",
+      "framework_id": "cmmc-2-level2",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-LOGGING-001",
+      "control_id": "CMMC-3.3.4",
+      "framework_id": "cmmc-2-level2",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-LOGGING-001",
+      "control_id": "CMMC-3.3.5",
+      "framework_id": "cmmc-2-level2",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-LOGGING-001",
+      "control_id": "CMMC-3.3.6",
+      "framework_id": "cmmc-2-level2",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-LOGGING-001",
+      "control_id": "CMMC-3.3.7",
+      "framework_id": "cmmc-2-level2",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-LOGGING-001",
+      "control_id": "CMMC-3.3.8",
+      "framework_id": "cmmc-2-level2",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-LOGGING-001",
+      "control_id": "CMMC-3.3.9",
+      "framework_id": "cmmc-2-level2",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-LOGGING-001",
+      "control_id": "FEDRAMP-AU-12",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-LOGGING-001",
+      "control_id": "FEDRAMP-AU-2",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "acf64cefd4467b6f8a3318df06e815ca11707de8"
+    },
+    {
+      "safeguard_id": "SG-LOGGING-001",
+      "control_id": "FEDRAMP-AU-3",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-LOGGING-001",
+      "control_id": "FEDRAMP-AU-4",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-LOGGING-001",
+      "control_id": "FEDRAMP-AU-5",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-LOGGING-001",
+      "control_id": "FEDRAMP-AU-6.3",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-LOGGING-001",
+      "control_id": "FEDRAMP-AU-7",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-LOGGING-001",
+      "control_id": "FEDRAMP-AU-8",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-LOGGING-001",
+      "control_id": "ISO27001-A.8.15",
+      "framework_id": "iso-27001-2022",
+      "origin_commit": "acf64cefd4467b6f8a3318df06e815ca11707de8"
+    },
+    {
+      "safeguard_id": "SG-LOGGING-001",
+      "control_id": "ISO27017-12.4.1",
+      "framework_id": "iso-27017-2015",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-LOGGING-001",
+      "control_id": "NIST-800-53-AU-12",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-LOGGING-001",
+      "control_id": "NIST-800-53-AU-2",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-LOGGING-001",
+      "control_id": "NIST-800-53-AU-3",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-LOGGING-001",
+      "control_id": "NIST-800-53-AU-4",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-LOGGING-001",
+      "control_id": "NIST-800-53-AU-5",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-LOGGING-001",
+      "control_id": "NIST-800-53-AU-6.3",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-LOGGING-001",
+      "control_id": "NIST-800-53-AU-7",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-LOGGING-001",
+      "control_id": "NIST-800-53-AU-8",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-LOGGING-001",
+      "control_id": "PCI-DSS-10",
+      "framework_id": "pci-dss-v4",
+      "origin_commit": "acf64cefd4467b6f8a3318df06e815ca11707de8"
+    },
+    {
+      "safeguard_id": "SG-LOGGING-001",
+      "control_id": "SOC2-CC7.2",
+      "framework_id": "soc2",
+      "origin_commit": "acf64cefd4467b6f8a3318df06e815ca11707de8"
+    },
+    {
+      "safeguard_id": "SG-NETWORK-001",
+      "control_id": "CMMC-3.13.6",
+      "framework_id": "cmmc-2-level2",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-NETWORK-001",
+      "control_id": "CMMC-3.13.9",
+      "framework_id": "cmmc-2-level2",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-NETWORK-001",
+      "control_id": "FEDRAMP-AC-18",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-NETWORK-001",
+      "control_id": "FEDRAMP-AC-18.3",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-NETWORK-001",
+      "control_id": "FEDRAMP-SC-10",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-NETWORK-001",
+      "control_id": "FEDRAMP-SC-5",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-NETWORK-001",
+      "control_id": "FEDRAMP-SC-7",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-NETWORK-001",
+      "control_id": "ISO27017-13.1.1",
+      "framework_id": "iso-27017-2015",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-NETWORK-001",
+      "control_id": "ISO27017-13.1.2",
+      "framework_id": "iso-27017-2015",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-NETWORK-001",
+      "control_id": "ISO27017-13.1.3",
+      "framework_id": "iso-27017-2015",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-NETWORK-001",
+      "control_id": "NIST-800-53-AC-18",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-NETWORK-001",
+      "control_id": "NIST-800-53-AC-18.3",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-NETWORK-001",
+      "control_id": "NIST-800-53-SC-10",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-NETWORK-001",
+      "control_id": "NIST-800-53-SC-5",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-NETWORK-001",
+      "control_id": "NIST-800-53-SC-7",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-PHYSICAL-001",
+      "control_id": "CMMC-3.10.1",
+      "framework_id": "cmmc-2-level2",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-PHYSICAL-001",
+      "control_id": "CMMC-3.10.5",
+      "framework_id": "cmmc-2-level2",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-PHYSICAL-001",
+      "control_id": "CMMC-3.8.1",
+      "framework_id": "cmmc-2-level2",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-PHYSICAL-001",
+      "control_id": "CMMC-3.8.3",
+      "framework_id": "cmmc-2-level2",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-PHYSICAL-001",
+      "control_id": "CMMC-3.8.4",
+      "framework_id": "cmmc-2-level2",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-PHYSICAL-001",
+      "control_id": "CMMC-3.8.5",
+      "framework_id": "cmmc-2-level2",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-PHYSICAL-001",
+      "control_id": "CMMC-3.8.7",
+      "framework_id": "cmmc-2-level2",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-PHYSICAL-001",
+      "control_id": "FEDRAMP-MP-2",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-PHYSICAL-001",
+      "control_id": "FEDRAMP-MP-3",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-PHYSICAL-001",
+      "control_id": "FEDRAMP-MP-4",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-PHYSICAL-001",
+      "control_id": "FEDRAMP-MP-5",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-PHYSICAL-001",
+      "control_id": "FEDRAMP-MP-6",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-PHYSICAL-001",
+      "control_id": "FEDRAMP-PE-14",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-PHYSICAL-001",
+      "control_id": "FEDRAMP-PE-16",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-PHYSICAL-001",
+      "control_id": "FEDRAMP-PE-2",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-PHYSICAL-001",
+      "control_id": "FEDRAMP-PE-3",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-PHYSICAL-001",
+      "control_id": "FEDRAMP-PE-6",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-PHYSICAL-001",
+      "control_id": "FEDRAMP-PE-8",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-PHYSICAL-001",
+      "control_id": "NIST-800-53-MP-2",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-PHYSICAL-001",
+      "control_id": "NIST-800-53-MP-3",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-PHYSICAL-001",
+      "control_id": "NIST-800-53-MP-4",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-PHYSICAL-001",
+      "control_id": "NIST-800-53-MP-5",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-PHYSICAL-001",
+      "control_id": "NIST-800-53-MP-6",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-PHYSICAL-001",
+      "control_id": "NIST-800-53-PE-14",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-PHYSICAL-001",
+      "control_id": "NIST-800-53-PE-16",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-PHYSICAL-001",
+      "control_id": "NIST-800-53-PE-2",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-PHYSICAL-001",
+      "control_id": "NIST-800-53-PE-3",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-PHYSICAL-001",
+      "control_id": "NIST-800-53-PE-6",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-PHYSICAL-001",
+      "control_id": "NIST-800-53-PE-8",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-RISKMANAGEMENT-001",
+      "control_id": "FEDRAMP-RA-3",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-RISKMANAGEMENT-001",
+      "control_id": "FEDRAMP-RA-3.1",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-RISKMANAGEMENT-001",
+      "control_id": "HIPAA-164.308(a)(1)(ii)(A)",
+      "framework_id": "hipaa-security-rule",
+      "origin_commit": "acf64cefd4467b6f8a3318df06e815ca11707de8"
+    },
+    {
+      "safeguard_id": "SG-RISKMANAGEMENT-001",
+      "control_id": "ISO27001-A.5.8",
+      "framework_id": "iso-27001-2022",
+      "origin_commit": "acf64cefd4467b6f8a3318df06e815ca11707de8"
+    },
+    {
+      "safeguard_id": "SG-RISKMANAGEMENT-001",
+      "control_id": "ISO42001-5.2",
+      "framework_id": "iso-42001-2023",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-RISKMANAGEMENT-001",
+      "control_id": "ISO42001-5.3",
+      "framework_id": "iso-42001-2023",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-RISKMANAGEMENT-001",
+      "control_id": "NIST-800-53-RA-3",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-RISKMANAGEMENT-001",
+      "control_id": "NIST-800-53-RA-3.1",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-RISKMANAGEMENT-001",
+      "control_id": "NIST-CSF-ID.RA-01",
+      "framework_id": "nist-csf-2.0",
+      "origin_commit": "acf64cefd4467b6f8a3318df06e815ca11707de8"
+    },
+    {
+      "safeguard_id": "SG-RISKMANAGEMENT-001",
+      "control_id": "SOC2-CC3.2",
+      "framework_id": "soc2",
+      "origin_commit": "acf64cefd4467b6f8a3318df06e815ca11707de8"
+    },
+    {
+      "safeguard_id": "SG-SECUREDEV-001",
+      "control_id": "FEDRAMP-SA-10",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-SECUREDEV-001",
+      "control_id": "FEDRAMP-SA-11",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-SECUREDEV-001",
+      "control_id": "FEDRAMP-SA-15",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-SECUREDEV-001",
+      "control_id": "FEDRAMP-SA-3",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-SECUREDEV-001",
+      "control_id": "NIST-800-53-SA-10",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-SECUREDEV-001",
+      "control_id": "NIST-800-53-SA-11",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-SECUREDEV-001",
+      "control_id": "NIST-800-53-SA-15",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-SECUREDEV-001",
+      "control_id": "NIST-800-53-SA-3",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-THIRDPARTYRISK-001",
+      "control_id": "FEDRAMP-SA-4",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-THIRDPARTYRISK-001",
+      "control_id": "FEDRAMP-SR-5",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-THIRDPARTYRISK-001",
+      "control_id": "FEDRAMP-SR-6",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-THIRDPARTYRISK-001",
+      "control_id": "GDPR-Art.28",
+      "framework_id": "gdpr-2016-679",
+      "origin_commit": "acf64cefd4467b6f8a3318df06e815ca11707de8"
+    },
+    {
+      "safeguard_id": "SG-THIRDPARTYRISK-001",
+      "control_id": "ISO27001-A.5.19",
+      "framework_id": "iso-27001-2022",
+      "origin_commit": "acf64cefd4467b6f8a3318df06e815ca11707de8"
+    },
+    {
+      "safeguard_id": "SG-THIRDPARTYRISK-001",
+      "control_id": "ISO27017-15.1.1",
+      "framework_id": "iso-27017-2015",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-THIRDPARTYRISK-001",
+      "control_id": "ISO42001-10.3",
+      "framework_id": "iso-42001-2023",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-THIRDPARTYRISK-001",
+      "control_id": "NIST-800-53-SA-4",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-THIRDPARTYRISK-001",
+      "control_id": "NIST-800-53-SR-5",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-THIRDPARTYRISK-001",
+      "control_id": "NIST-800-53-SR-6",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-THIRDPARTYRISK-001",
+      "control_id": "NIST-CSF-GV.SC-05",
+      "framework_id": "nist-csf-2.0",
+      "origin_commit": "acf64cefd4467b6f8a3318df06e815ca11707de8"
+    },
+    {
+      "safeguard_id": "SG-THIRDPARTYRISK-001",
+      "control_id": "SOC2-CC9.2",
+      "framework_id": "soc2",
+      "origin_commit": "acf64cefd4467b6f8a3318df06e815ca11707de8"
+    },
+    {
+      "safeguard_id": "SG-TRAINING-001",
+      "control_id": "FEDRAMP-AT-4",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-TRAINING-001",
+      "control_id": "NIST-800-53-AT-4",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-VULNERABILITYMANAGEMENT-001",
+      "control_id": "CIS-AWS-5.1",
+      "framework_id": "cis_aws",
+      "origin_commit": "acf64cefd4467b6f8a3318df06e815ca11707de8"
+    },
+    {
+      "safeguard_id": "SG-VULNERABILITYMANAGEMENT-001",
+      "control_id": "CMMC-3.11.2",
+      "framework_id": "cmmc-2-level2",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-VULNERABILITYMANAGEMENT-001",
+      "control_id": "CMMC-3.11.3",
+      "framework_id": "cmmc-2-level2",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-VULNERABILITYMANAGEMENT-001",
+      "control_id": "CMMC-3.12.2",
+      "framework_id": "cmmc-2-level2",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-VULNERABILITYMANAGEMENT-001",
+      "control_id": "FEDRAMP-RA-5",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-VULNERABILITYMANAGEMENT-001",
+      "control_id": "FEDRAMP-RA-5.2",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-VULNERABILITYMANAGEMENT-001",
+      "control_id": "FEDRAMP-SI-2",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-VULNERABILITYMANAGEMENT-001",
+      "control_id": "FEDRAMP-SI-2.2",
+      "framework_id": "fedramp-moderate",
+      "origin_commit": "69fc9efb7baa95844886f3379b569a6a8e1b9d85"
+    },
+    {
+      "safeguard_id": "SG-VULNERABILITYMANAGEMENT-001",
+      "control_id": "ISO27001-A.8.8",
+      "framework_id": "iso-27001-2022",
+      "origin_commit": "acf64cefd4467b6f8a3318df06e815ca11707de8"
+    },
+    {
+      "safeguard_id": "SG-VULNERABILITYMANAGEMENT-001",
+      "control_id": "NIST-800-53-RA-5",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-VULNERABILITYMANAGEMENT-001",
+      "control_id": "NIST-800-53-RA-5.2",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-VULNERABILITYMANAGEMENT-001",
+      "control_id": "NIST-800-53-SI-2",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-VULNERABILITYMANAGEMENT-001",
+      "control_id": "NIST-800-53-SI-2.2",
+      "framework_id": "nist-800-53-rev5",
+      "origin_commit": "bfd6c13c01e0229e9bb3459eaafba673400ab922"
+    },
+    {
+      "safeguard_id": "SG-VULNERABILITYMANAGEMENT-001",
+      "control_id": "NIST-CSF-ID.RA-01",
+      "framework_id": "nist-csf-2.0",
+      "origin_commit": "acf64cefd4467b6f8a3318df06e815ca11707de8"
+    },
+    {
+      "safeguard_id": "SG-VULNERABILITYMANAGEMENT-001",
+      "control_id": "PCI-DSS-11",
+      "framework_id": "pci-dss-v4",
+      "origin_commit": "acf64cefd4467b6f8a3318df06e815ca11707de8"
+    },
+    {
+      "safeguard_id": "SG-VULNERABILITYMANAGEMENT-001",
+      "control_id": "SOC2-CC7.1",
+      "framework_id": "soc2",
+      "origin_commit": "acf64cefd4467b6f8a3318df06e815ca11707de8"
+    }
+  ]
+}

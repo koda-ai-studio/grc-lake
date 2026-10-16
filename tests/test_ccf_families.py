@@ -101,3 +101,88 @@ def test_title_theme_members_never_inherit_a_safeguard_citation() -> None:
     assert all("mapping_source" not in item for item in themed)
     inherited = next(item for item in mapping_review_items() if item["control_id"] == "CMMC-3.1.4")
     assert inherited["mapping_source"] == safeguards["SG-SEPARATIONOFDUTIES-001"]["mapping_source"]
+
+
+# A broad safeguard answers many requirements with one generic evidence rule,
+# so each extra requirement gets shallower assurance. Existing umbrellas may
+# only shrink; any other safeguard, new ones included, stays at or under the cap.
+FANOUT_CAP = 20
+FANOUT_CEILINGS = {
+    "SG-IDENTITY-001": 153,
+    "SG-LOGGING-001": 78,
+    "SG-DATAPROTECTION-001": 77,
+    "SG-PHYSICAL-001": 75,
+    "SG-AVAILABILITY-001": 73,
+    "SG-GOVERNANCE-002": 72,
+    "SG-DETECTION-001": 71,
+    "SG-NETWORK-001": 62,
+    "SG-THIRDPARTYRISK-001": 55,
+    "SG-POLICYMANAGEMENT-001": 51,
+    "SG-CHANGEMANAGEMENT-001": 48,
+    "SG-AIGOVERNANCE-001": 38,
+    "SG-INCIDENTHANDLING-001": 37,
+    "SG-VULNERABILITYMANAGEMENT-001": 32,
+    "SG-RISKMANAGEMENT-001": 31,
+    "SG-INCIDENTRESPONSE-001": 30,
+    "SG-INCIDENTNOTIFICATION-001": 30,
+    "SG-DATAINVENTORY-001": 30,
+    "SG-TRAINING-001": 29,
+    "SG-IDENTITY-002": 28,
+    "SG-INCIDENTPLAN-001": 25,
+    "SG-DATARETENTION-001": 22,
+    "SG-SUPPLYCHAINPROGRAM-001": 21,
+}
+
+
+def fanout_problems(entries: list[dict]) -> list[str]:
+    problems = []
+    for entry in entries:
+        sid, count = entry["safeguard_id"], len(entry["satisfies"])
+        limit = FANOUT_CEILINGS.get(sid, FANOUT_CAP)
+        if count > limit:
+            problems.append(f"{sid} satisfies {count} requirements; its ceiling is {limit}")
+    return problems
+
+
+def test_safeguard_fanout_never_grows() -> None:
+    entries = load_safeguards()["safeguards"]
+    assert fanout_problems(entries) == []
+    present = {entry["safeguard_id"]: len(entry["satisfies"]) for entry in entries}
+    assert set(FANOUT_CEILINGS) <= set(present), "drop ceilings for removed safeguards"
+    assert all(limit > FANOUT_CAP for limit in FANOUT_CEILINGS.values())
+    lowered = {sid: present[sid] for sid, limit in FANOUT_CEILINGS.items() if present[sid] < limit}
+    assert not lowered, f"lower these ceilings to the new counts: {lowered}"
+
+
+def test_fanout_guard_rejects_growth_and_new_umbrellas() -> None:
+    entries = json.loads(json.dumps(load_safeguards()["safeguards"]))
+    identity = next(e for e in entries if e["safeguard_id"] == "SG-IDENTITY-001")
+    identity["satisfies"].append(dict(identity["satisfies"][0], control_id="EXTRA"))
+    member = {"control_id": "X", "framework_id": "soc2", "role": "equivalent"}
+    entries.append({"safeguard_id": "SG-NEW-001", "satisfies": [member] * (FANOUT_CAP + 1)})
+    assert fanout_problems(entries) == [
+        "SG-IDENTITY-001 satisfies 154 requirements; its ceiling is 153",
+        f"SG-NEW-001 satisfies {FANOUT_CAP + 1} requirements; its ceiling is {FANOUT_CAP}",
+    ]
+
+
+def test_ccf_doc_lists_the_broadest_safeguards_from_the_data() -> None:
+    from security_lakehouse.safeguards import broadest_safeguards
+
+    doc = (ROOT / "docs/COMMON_CONTROL_FRAMEWORK.md").read_text()
+    rows = broadest_safeguards()
+    assert [row["safeguard_id"] for row in rows[:3]] == ["SG-IDENTITY-001", "SG-LOGGING-001", "SG-DATAPROTECTION-001"]
+    assert rows[0]["requirements"] == 153
+    assert rows[0]["frameworks"] > 1
+    assert rows[0]["reviewed"] + rows[0]["proposed"] + rows[0]["contextual"] == rows[0]["requirements"]
+    from tools.sync_ccf_doc import broadest_table
+
+    from security_lakehouse.safeguards import coverage_by_framework
+
+    block = doc.split("<!-- broadest-safeguards:start -->\n", 1)[1].split("<!-- broadest-safeguards:end -->", 1)[0]
+    assert block == broadest_table(coverage_by_framework()), (
+        "broadest-safeguards table is stale; run tools/sync_ccf_doc.py"
+    )
+    for row in rows:
+        assert f"`{row['safeguard_id']}`" in block
+    assert "a pass on one does not demonstrate each requirement" in doc

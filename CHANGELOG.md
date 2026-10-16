@@ -5,6 +5,10 @@ Python package, Helm chart, and bundled web console.
 
 ## Unreleased
 
+- Remove the `internal-trust-team` placeholder reviewer from the twelve seed safeguards. Record the 354 mappings reviewed before decision receipts in `controls/reviews/legacy-unattributed.json` with their originating commits and no reviewer. They still count as maintainer-reviewed. Coverage, the framework matrix, the mapping-review queue and the console now flag the 339 reviewed requirements that rest only on them; 824 have a decision receipt. A test lets that list only shrink. Reviewed totals and the 920 receipt-bound approvals are unchanged.
+
+- Cap safeguard fan-out with a ratchet test: the 23 umbrella safeguards above 20 requirements may only shrink, and any other safeguard stays at 20 or fewer. The CCF guide adds a generated table of the broadest safeguards and explains why a pass on one does not demonstrate each mapped requirement.
+
 - Require MCP SDK 1.30.0 or newer within the 1.x series to address CVE-2026-59951. Include the inspected mapping-review archive in Docker build inputs as well as wheel distributions.
 
 - Record maintainer approval of 35 repaired mappings (23 SOC 2, seven ISO 27001, five ISO 42001), with source contracts and per-mapping fingerprints. Reviewed coverage becomes 1,163/2,252 (51.6%); mapped coverage remains 80.1%. Preserve source limitations and keep mapping approval separate from operational evidence. Regenerate the remaining 13 batches without approving alternatives; preserve recorded decisions only while their inspected contracts match.

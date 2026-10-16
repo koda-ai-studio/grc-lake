@@ -23,7 +23,11 @@ import type {
   MappingReviewState,
   MappingReviewSummary,
 } from "@/lib/api/types";
-import { MAPPING_REVIEW_GLOSSARY, ROUTE_LABELS } from "@/lib/console-copy";
+import {
+  MAPPING_REVIEW_GLOSSARY,
+  REVIEW_PROVENANCE_LABELS,
+  ROUTE_LABELS,
+} from "@/lib/console-copy";
 import { formatCount, formatDateTime, plural } from "@/lib/format";
 import { notify } from "@/lib/toast";
 import { cn } from "@/lib/utils";
@@ -406,6 +410,22 @@ function DecisionForm({
   );
 }
 
+function ProvenanceNote({ item }: { item: MappingReviewItem }) {
+  if (!item.review_provenance) return null;
+  return (
+    <div
+      className={cn(
+        "mt-1 text-xs",
+        item.review_provenance === "legacy_unattributed"
+          ? "text-warning-fg"
+          : "text-muted",
+      )}
+    >
+      {REVIEW_PROVENANCE_LABELS[item.review_provenance]}
+    </div>
+  );
+}
+
 function SourceAnchor({ item }: { item: MappingReviewItem }) {
   if (!item.mapping_source) {
     return <span className="text-muted">—</span>;
@@ -453,6 +473,7 @@ function HistoryDrawer({
                 <Badge tone={STATE_TONE[item.review_state]}>
                   {MAPPING_REVIEW_GLOSSARY[item.review_state].label}
                 </Badge>
+                <ProvenanceNote item={item} />
                 <p className="mt-1 text-xs text-muted">
                   {MAPPING_REVIEW_GLOSSARY[item.review_state].definition}
                 </p>
@@ -936,6 +957,7 @@ function MappingReviewContent() {
                         <Badge tone={STATE_TONE[item.review_state]}>
                           {MAPPING_REVIEW_GLOSSARY[item.review_state].label}
                         </Badge>
+                        <ProvenanceNote item={item} />
                         {item.latest_decision ? (
                           <div className="mt-1 text-xs text-muted">
                             {item.latest_decision.reviewer}

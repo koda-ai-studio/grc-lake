@@ -32,6 +32,7 @@ COMPLETE = {
     "trustops-0.2.0.data/data/controls/families.json": "{}",
     "trustops-0.2.0.data/data/controls/reviews/2026-10-14-source-batches.json": "{}",
     "trustops-0.2.0.data/data/controls/reviews/2026-10-15-soc2-iso-repairs.json": "{}",
+    "trustops-0.2.0.data/data/controls/reviews/legacy-unattributed.json": "{}",
     "trustops-0.2.0.data/data/docs/reviews/2026-10-15-repaired-proposals.json": "{}",
 }
 
