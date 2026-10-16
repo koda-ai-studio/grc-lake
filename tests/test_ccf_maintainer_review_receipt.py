@@ -7,6 +7,7 @@ from pathlib import Path
 from security_lakehouse.catalog import load_control_catalog
 from security_lakehouse.ccf_contracts import review_basis
 from security_lakehouse.safeguards import coverage_by_framework, load_safeguards, member_mapping_source
+from test_soc2_iso_review_receipt import without_repair_approvals
 
 ROOT = Path(__file__).resolve().parents[1]
 RECEIPT = "controls/reviews/2026-10-14-source-batches.json"
@@ -21,7 +22,7 @@ def test_maintainer_decision_is_bound_to_each_inspected_mapping():
     assert len(receipt["mappings"]) == 885
     assert len({row["control_id"] for row in receipt["mappings"]}) == 806
     catalog = load_control_catalog()
-    payload = load_safeguards()
+    payload = without_repair_approvals(load_safeguards())
     entries = {entry["safeguard_id"]: entry for entry in payload["safeguards"]}
     expected = {(row["safeguard_id"], row["control_id"]) for row in receipt["mappings"]}
     actual = {
@@ -46,7 +47,7 @@ def test_maintainer_decision_is_bound_to_each_inspected_mapping():
 
 
 def test_review_credit_is_distinct_and_does_not_expand_mapping_coverage():
-    payload = load_safeguards()
+    payload = without_repair_approvals(load_safeguards())
     before = deepcopy(payload)
     for entry in before["safeguards"]:
         for member in entry["satisfies"]:
@@ -66,7 +67,7 @@ def test_stale_approvals_remain_uncredited_and_fresh_evidence_is_still_required(
     from security_lakehouse.mapping_review_packet import build_review_packet
     from security_lakehouse.safeguards import effective_review_state
 
-    payload = load_safeguards()
+    payload = without_repair_approvals(load_safeguards())
     receipt = json.loads((ROOT / RECEIPT).read_text())
     approved_ids = {m["control_id"] for m in receipt["mappings"]}
     credited_ids = {
@@ -76,7 +77,7 @@ def test_stale_approvals_remain_uncredited_and_fresh_evidence_is_still_required(
         if effective_review_state(m) == "maintainer_reviewed"
     }
     assert len(approved_ids - credited_ids) == 17
-    packet = build_review_packet(tmp_path)
+    packet = build_review_packet(tmp_path, payload=payload)
     assert packet["summary"]["reviewed_requirements"] == 1128
     assert packet["summary"]["additional_reviewed_needed"] == 0
     assert not list(tmp_path.rglob("*"))

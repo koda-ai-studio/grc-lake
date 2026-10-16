@@ -32580,14 +32580,17 @@
           "framework_id": "soc2",
           "role": "primary",
           "control_version": "1.0.0",
-          "review_status": "proposed",
+          "review_status": "reviewed",
           "mapping_basis": "vendor_guided_proposal",
           "mapping_source": {
             "name": "Cisco Cloud Controls Framework 4.0",
             "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
             "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
             "locator": "CCF 335; CCF 336; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text."
-          }
+          },
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-15T23:58:11.271887Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-15-soc2-iso-repairs.json"
         }
       ]
     },
@@ -32615,14 +32618,17 @@
           "framework_id": "soc2",
           "role": "primary",
           "control_version": "1.0.0",
-          "review_status": "proposed",
+          "review_status": "reviewed",
           "mapping_basis": "vendor_guided_proposal",
           "mapping_source": {
             "name": "Cisco Cloud Controls Framework 4.0",
             "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
             "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
             "locator": "CCF 47; CCF 53; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text."
-          }
+          },
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-15T23:58:11.271887Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-15-soc2-iso-repairs.json"
         }
       ]
     },
@@ -32650,14 +32656,17 @@
           "framework_id": "soc2",
           "role": "primary",
           "control_version": "1.0.0",
-          "review_status": "proposed",
+          "review_status": "reviewed",
           "mapping_basis": "vendor_guided_proposal",
           "mapping_source": {
             "name": "Cisco Cloud Controls Framework 4.0",
             "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
             "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
             "locator": "CCF 85; CCF 86; CCF 88; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text."
-          }
+          },
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-15T23:58:11.271887Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-15-soc2-iso-repairs.json"
         }
       ]
     },
@@ -32680,14 +32689,17 @@
           "framework_id": "soc2",
           "role": "primary",
           "control_version": "1.0.0",
-          "review_status": "proposed",
+          "review_status": "reviewed",
           "mapping_basis": "vendor_guided_proposal",
           "mapping_source": {
             "name": "Cisco Cloud Controls Framework 4.0",
             "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
             "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
             "locator": "CCF 10; CCF 124; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text."
-          }
+          },
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-15T23:58:11.271887Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-15-soc2-iso-repairs.json"
         }
       ]
     },
@@ -32710,14 +32722,17 @@
           "framework_id": "soc2",
           "role": "primary",
           "control_version": "1.0.0",
-          "review_status": "proposed",
+          "review_status": "reviewed",
           "mapping_basis": "vendor_guided_proposal",
           "mapping_source": {
             "name": "Cisco Cloud Controls Framework 4.0",
             "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
             "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
             "locator": "CCF 286; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text."
-          }
+          },
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-15T23:58:11.271887Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-15-soc2-iso-repairs.json"
         }
       ]
     },
@@ -32740,14 +32755,17 @@
           "framework_id": "soc2",
           "role": "primary",
           "control_version": "1.0.0",
-          "review_status": "proposed",
+          "review_status": "reviewed",
           "mapping_basis": "vendor_guided_proposal",
           "mapping_source": {
             "name": "Cisco Cloud Controls Framework 4.0",
             "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
             "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
             "locator": "CCF 302; CCF 323; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text."
-          }
+          },
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-15T23:58:11.271887Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-15-soc2-iso-repairs.json"
         }
       ]
     },
@@ -32770,14 +32788,17 @@
           "framework_id": "soc2",
           "role": "primary",
           "control_version": "1.0.0",
-          "review_status": "proposed",
+          "review_status": "reviewed",
           "mapping_basis": "vendor_guided_proposal",
           "mapping_source": {
             "name": "Cisco Cloud Controls Framework 4.0",
             "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
             "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
             "locator": "CCF 274; CCF 286; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text."
-          }
+          },
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-15T23:58:11.271887Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-15-soc2-iso-repairs.json"
         }
       ]
     },
@@ -32800,14 +32821,17 @@
           "framework_id": "soc2",
           "role": "primary",
           "control_version": "1.0.0",
-          "review_status": "proposed",
+          "review_status": "reviewed",
           "mapping_basis": "vendor_guided_proposal",
           "mapping_source": {
             "name": "Cisco Cloud Controls Framework 4.0",
             "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
             "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
             "locator": "CCF 274; CCF 318; CCF 323; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text."
-          }
+          },
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-15T23:58:11.271887Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-15-soc2-iso-repairs.json"
         }
       ]
     },
@@ -32830,14 +32854,17 @@
           "framework_id": "soc2",
           "role": "primary",
           "control_version": "1.0.0",
-          "review_status": "proposed",
+          "review_status": "reviewed",
           "mapping_basis": "vendor_guided_proposal",
           "mapping_source": {
             "name": "Cisco Cloud Controls Framework 4.0",
             "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
             "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
             "locator": "CCF 302; CCF 364; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text."
-          }
+          },
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-15T23:58:11.271887Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-15-soc2-iso-repairs.json"
         }
       ]
     },
@@ -32860,14 +32887,17 @@
           "framework_id": "soc2",
           "role": "primary",
           "control_version": "1.0.0",
-          "review_status": "proposed",
+          "review_status": "reviewed",
           "mapping_basis": "vendor_guided_proposal",
           "mapping_source": {
             "name": "Cisco Cloud Controls Framework 4.0",
             "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
             "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
             "locator": "CCF 277; CCF 286; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text."
-          }
+          },
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-15T23:58:11.271887Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-15-soc2-iso-repairs.json"
         }
       ]
     },
@@ -32890,14 +32920,17 @@
           "framework_id": "iso-27001-2022",
           "role": "primary",
           "control_version": "1.0.0",
-          "review_status": "proposed",
+          "review_status": "reviewed",
           "mapping_basis": "vendor_guided_proposal",
           "mapping_source": {
             "name": "Cisco Cloud Controls Framework 4.0",
             "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
             "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
             "locator": "CCF 73; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text."
-          }
+          },
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-15T23:58:11.271887Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-15-soc2-iso-repairs.json"
         }
       ]
     },
@@ -32920,14 +32953,17 @@
           "framework_id": "iso-27001-2022",
           "role": "primary",
           "control_version": "1.0.0",
-          "review_status": "proposed",
+          "review_status": "reviewed",
           "mapping_basis": "vendor_guided_proposal",
           "mapping_source": {
             "name": "Cisco Cloud Controls Framework 4.0",
             "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
             "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
             "locator": "CCF 80; CCF 183; CCF 322; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text."
-          }
+          },
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-15T23:58:11.271887Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-15-soc2-iso-repairs.json"
         }
       ]
     },
@@ -32950,14 +32986,17 @@
           "framework_id": "iso-27001-2022",
           "role": "primary",
           "control_version": "1.0.0",
-          "review_status": "proposed",
+          "review_status": "reviewed",
           "mapping_basis": "vendor_guided_proposal",
           "mapping_source": {
             "name": "Cisco Cloud Controls Framework 4.0",
             "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
             "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
             "locator": "CCF 67; CCF 99; CCF 170; CCF 191; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text."
-          }
+          },
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-15T23:58:11.271887Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-15-soc2-iso-repairs.json"
         }
       ]
     },
@@ -32980,14 +33019,17 @@
           "framework_id": "iso-27001-2022",
           "role": "primary",
           "control_version": "1.0.0",
-          "review_status": "proposed",
+          "review_status": "reviewed",
           "mapping_basis": "vendor_guided_proposal",
           "mapping_source": {
             "name": "Cisco Cloud Controls Framework 4.0",
             "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
             "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
             "locator": "CCF 69; CCF 142; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text."
-          }
+          },
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-15T23:58:11.271887Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-15-soc2-iso-repairs.json"
         }
       ]
     },
@@ -33010,14 +33052,17 @@
           "framework_id": "iso-27001-2022",
           "role": "primary",
           "control_version": "1.0.0",
-          "review_status": "proposed",
+          "review_status": "reviewed",
           "mapping_basis": "vendor_guided_proposal",
           "mapping_source": {
             "name": "Cisco Cloud Controls Framework 4.0",
             "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
             "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
             "locator": "CCF 69; CCF 83; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text."
-          }
+          },
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-15T23:58:11.271887Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-15-soc2-iso-repairs.json"
         }
       ]
     },
@@ -33040,14 +33085,17 @@
           "framework_id": "iso-27001-2022",
           "role": "primary",
           "control_version": "1.0.0",
-          "review_status": "proposed",
+          "review_status": "reviewed",
           "mapping_basis": "vendor_guided_proposal",
           "mapping_source": {
             "name": "Cisco Cloud Controls Framework 4.0",
             "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
             "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
             "locator": "CCF 241; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text."
-          }
+          },
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-15T23:58:11.271887Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-15-soc2-iso-repairs.json"
         }
       ]
     },
@@ -33070,14 +33118,17 @@
           "framework_id": "iso-27001-2022",
           "role": "primary",
           "control_version": "1.0.0",
-          "review_status": "proposed",
+          "review_status": "reviewed",
           "mapping_basis": "vendor_guided_proposal",
           "mapping_source": {
             "name": "Cisco Cloud Controls Framework 4.0",
             "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
             "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
             "locator": "CCF 335; CCF 336; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text."
-          }
+          },
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-15T23:58:11.271887Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-15-soc2-iso-repairs.json"
         }
       ]
     },
@@ -33106,14 +33157,17 @@
           "framework_id": "iso-42001-2023",
           "role": "primary",
           "control_version": "1.0.0",
-          "review_status": "proposed",
+          "review_status": "reviewed",
           "mapping_basis": "vendor_guided_proposal",
           "mapping_source": {
             "name": "Oracle ISO 42001 implementation practice, June 2026",
             "url": "https://www.oracle.com/es/corporate/iso-42001-principles-into-practice/",
             "sha256": "2ae1aaa8f783a1a5536bff151d5b40410002b9591a4de64d2743ba921f0f658a",
             "locator": "ISO/IEC 42001 under the SaaS shared responsibility model; Oracle AI Review; METRO observability; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text."
-          }
+          },
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-15T23:58:11.271887Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-15-soc2-iso-repairs.json"
         }
       ]
     },
@@ -33142,14 +33196,17 @@
           "framework_id": "iso-42001-2023",
           "role": "primary",
           "control_version": "1.0.0",
-          "review_status": "proposed",
+          "review_status": "reviewed",
           "mapping_basis": "vendor_guided_proposal",
           "mapping_source": {
             "name": "Oracle ISO 42001 implementation practice, June 2026",
             "url": "https://www.oracle.com/es/corporate/iso-42001-principles-into-practice/",
             "sha256": "2ae1aaa8f783a1a5536bff151d5b40410002b9591a4de64d2743ba921f0f658a",
             "locator": "ISO/IEC 42001 under the SaaS shared responsibility model; Oracle AI Review; METRO observability; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text."
-          }
+          },
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-15T23:58:11.271887Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-15-soc2-iso-repairs.json"
         }
       ]
     },
@@ -33172,14 +33229,17 @@
           "framework_id": "iso-42001-2023",
           "role": "primary",
           "control_version": "1.0.0",
-          "review_status": "proposed",
+          "review_status": "reviewed",
           "mapping_basis": "vendor_guided_proposal",
           "mapping_source": {
             "name": "Oracle AI risk management practice, September 2026",
             "url": "https://www.oracle.com/es/corporate/ai-risk-management-in-practice/",
             "sha256": "2ba0eef33a0dcbb22de00ddbe3165d2785222a7631c4d478d4c8198aca79b0bf",
             "locator": "From an initial evaluation to ongoing risk management; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text."
-          }
+          },
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-15T23:58:11.271887Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-15-soc2-iso-repairs.json"
         }
       ]
     },
@@ -33208,14 +33268,17 @@
           "framework_id": "iso-42001-2023",
           "role": "primary",
           "control_version": "1.0.0",
-          "review_status": "proposed",
+          "review_status": "reviewed",
           "mapping_basis": "vendor_guided_proposal",
           "mapping_source": {
             "name": "Oracle ISO 42001 implementation practice, June 2026",
             "url": "https://www.oracle.com/es/corporate/iso-42001-principles-into-practice/",
             "sha256": "2ae1aaa8f783a1a5536bff151d5b40410002b9591a4de64d2743ba921f0f658a",
             "locator": "ISO/IEC 42001 under the SaaS shared responsibility model; Oracle AI Review; METRO observability; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text."
-          }
+          },
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-15T23:58:11.271887Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-15-soc2-iso-repairs.json"
         }
       ]
     },
@@ -33244,14 +33307,17 @@
           "framework_id": "iso-42001-2023",
           "role": "primary",
           "control_version": "1.0.0",
-          "review_status": "proposed",
+          "review_status": "reviewed",
           "mapping_basis": "vendor_guided_proposal",
           "mapping_source": {
             "name": "Oracle ISO 42001 implementation practice, June 2026",
             "url": "https://www.oracle.com/es/corporate/iso-42001-principles-into-practice/",
             "sha256": "2ae1aaa8f783a1a5536bff151d5b40410002b9591a4de64d2743ba921f0f658a",
             "locator": "ISO/IEC 42001 under the SaaS shared responsibility model; Oracle AI Review; METRO observability; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text."
-          }
+          },
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-15T23:58:11.271887Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-15-soc2-iso-repairs.json"
         }
       ]
     },
@@ -33274,14 +33340,17 @@
           "framework_id": "soc2",
           "role": "primary",
           "control_version": "1.0.0",
-          "review_status": "proposed",
+          "review_status": "reviewed",
           "mapping_basis": "vendor_guided_proposal",
           "mapping_source": {
             "name": "Cisco Cloud Controls Framework 4.0",
             "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
             "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
             "locator": "CCF 160; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context."
-          }
+          },
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-15T23:58:11.271887Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-15-soc2-iso-repairs.json"
         }
       ]
     },
@@ -33304,14 +33373,17 @@
           "framework_id": "soc2",
           "role": "primary",
           "control_version": "1.0.0",
-          "review_status": "proposed",
+          "review_status": "reviewed",
           "mapping_basis": "vendor_guided_proposal",
           "mapping_source": {
             "name": "Cisco Cloud Controls Framework 4.0",
             "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
             "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
             "locator": "CCF 128; CCF 129; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context."
-          }
+          },
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-15T23:58:11.271887Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-15-soc2-iso-repairs.json"
         }
       ]
     },
@@ -33334,14 +33406,17 @@
           "framework_id": "soc2",
           "role": "primary",
           "control_version": "1.0.0",
-          "review_status": "proposed",
+          "review_status": "reviewed",
           "mapping_basis": "vendor_guided_proposal",
           "mapping_source": {
             "name": "Cisco Cloud Controls Framework 4.0",
             "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
             "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
             "locator": "CCF 163; CCF 168; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context."
-          }
+          },
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-15T23:58:11.271887Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-15-soc2-iso-repairs.json"
         }
       ]
     },
@@ -33364,14 +33439,17 @@
           "framework_id": "soc2",
           "role": "primary",
           "control_version": "1.0.0",
-          "review_status": "proposed",
+          "review_status": "reviewed",
           "mapping_basis": "vendor_guided_proposal",
           "mapping_source": {
             "name": "Cisco Cloud Controls Framework 4.0",
             "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
             "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
             "locator": "CCF 160; CCF 168; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context."
-          }
+          },
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-15T23:58:11.271887Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-15-soc2-iso-repairs.json"
         }
       ]
     },
@@ -33394,14 +33472,17 @@
           "framework_id": "soc2",
           "role": "primary",
           "control_version": "1.0.0",
-          "review_status": "proposed",
+          "review_status": "reviewed",
           "mapping_basis": "vendor_guided_proposal",
           "mapping_source": {
             "name": "Cisco Cloud Controls Framework 4.0",
             "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
             "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
             "locator": "CCF 142; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context."
-          }
+          },
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-15T23:58:11.271887Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-15-soc2-iso-repairs.json"
         }
       ]
     },
@@ -33424,14 +33505,17 @@
           "framework_id": "soc2",
           "role": "primary",
           "control_version": "1.0.0",
-          "review_status": "proposed",
+          "review_status": "reviewed",
           "mapping_basis": "vendor_guided_proposal",
           "mapping_source": {
             "name": "Cisco Cloud Controls Framework 4.0",
             "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
             "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
             "locator": "CCF 127; CCF 142; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context."
-          }
+          },
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-15T23:58:11.271887Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-15-soc2-iso-repairs.json"
         }
       ]
     },
@@ -33454,14 +33538,17 @@
           "framework_id": "soc2",
           "role": "primary",
           "control_version": "1.0.0",
-          "review_status": "proposed",
+          "review_status": "reviewed",
           "mapping_basis": "vendor_guided_proposal",
           "mapping_source": {
             "name": "Cisco Cloud Controls Framework 4.0",
             "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
             "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
             "locator": "CCF 181; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context."
-          }
+          },
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-15T23:58:11.271887Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-15-soc2-iso-repairs.json"
         }
       ]
     },
@@ -33484,14 +33571,17 @@
           "framework_id": "soc2",
           "role": "primary",
           "control_version": "1.0.0",
-          "review_status": "proposed",
+          "review_status": "reviewed",
           "mapping_basis": "vendor_guided_proposal",
           "mapping_source": {
             "name": "Cisco Cloud Controls Framework 4.0",
             "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
             "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
             "locator": "CCF 124; CCF 161; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context."
-          }
+          },
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-15T23:58:11.271887Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-15-soc2-iso-repairs.json"
         }
       ]
     },
@@ -33514,14 +33604,17 @@
           "framework_id": "soc2",
           "role": "primary",
           "control_version": "1.0.0",
-          "review_status": "proposed",
+          "review_status": "reviewed",
           "mapping_basis": "vendor_guided_proposal",
           "mapping_source": {
             "name": "Cisco Cloud Controls Framework 4.0",
             "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
             "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
             "locator": "CCF 124; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context."
-          }
+          },
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-15T23:58:11.271887Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-15-soc2-iso-repairs.json"
         }
       ]
     },
@@ -33544,14 +33637,17 @@
           "framework_id": "soc2",
           "role": "primary",
           "control_version": "1.0.0",
-          "review_status": "proposed",
+          "review_status": "reviewed",
           "mapping_basis": "vendor_guided_proposal",
           "mapping_source": {
             "name": "Cisco Cloud Controls Framework 4.0",
             "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
             "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
             "locator": "CCF 124; CCF 161; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context."
-          }
+          },
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-15T23:58:11.271887Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-15-soc2-iso-repairs.json"
         }
       ]
     },
@@ -33574,14 +33670,17 @@
           "framework_id": "soc2",
           "role": "primary",
           "control_version": "1.0.0",
-          "review_status": "proposed",
+          "review_status": "reviewed",
           "mapping_basis": "vendor_guided_proposal",
           "mapping_source": {
             "name": "Cisco Cloud Controls Framework 4.0",
             "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
             "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
             "locator": "CCF 161; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context."
-          }
+          },
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-15T23:58:11.271887Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-15-soc2-iso-repairs.json"
         }
       ]
     },
@@ -33604,14 +33703,17 @@
           "framework_id": "soc2",
           "role": "primary",
           "control_version": "1.0.0",
-          "review_status": "proposed",
+          "review_status": "reviewed",
           "mapping_basis": "vendor_guided_proposal",
           "mapping_source": {
             "name": "Cisco Cloud Controls Framework 4.0",
             "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
             "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
             "locator": "CCF 147; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement; these selected vendor controls provide partial supporting context."
-          }
+          },
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-15T23:58:11.271887Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-15-soc2-iso-repairs.json"
         }
       ]
     },
@@ -33634,14 +33736,17 @@
           "framework_id": "soc2",
           "role": "primary",
           "control_version": "1.0.0",
-          "review_status": "proposed",
+          "review_status": "reviewed",
           "mapping_basis": "vendor_guided_proposal",
           "mapping_source": {
             "name": "Cisco Cloud Controls Framework 4.0",
             "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
             "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
             "locator": "CCF 127 (BD133); CCF 128 (BD134); CCF 129 (BD135), explicit CC 1.3 references in the SOC 2 2022 column; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. The assessor must verify the full applicable requirement. Evaluate the remaining role-register candidate separately; a role list alone does not establish board oversight or reporting relationships."
-          }
+          },
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-15T23:58:11.271887Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-15-soc2-iso-repairs.json"
         }
       ]
     }

@@ -24,48 +24,8 @@
       "batches": [
         {
           "batch_id": "iso-42001-2023-review-001",
-          "basis_sha256": "ad382b1d63203846869eea2053616687dbdb486ca580cae0879eff2b6d5974d1",
+          "basis_sha256": "bdb6a9d7bd17eaa9b36d80755943674926f477799e43f1159b5c21d12556b7c2",
           "requirements": [
-            {
-              "control_id": "ISO42001-10.2",
-              "framework_ref": "ISO 42001:2023 A.10.2",
-              "question": "Repaired proposal: verify documented allocation of AI lifecycle responsibilities among provider, deployer, customer, and supplier, acknowledged owners, handoffs, and escalation paths. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text.",
-              "cisco_candidates": [],
-              "source_scope": "vendor implementation context, not verified normative equivalence",
-              "oracle_context": ["oracle-practice", "oracle-risk"],
-              "candidates": [
-                {
-                  "safeguard_id": "SG-REVIEW-ISO42001-10-2",
-                  "role": "primary",
-                  "review_state": "proposed",
-                  "review_basis_sha256": "f96bb307888bd890967188d68561ef78d99de3f1f31c7ce9d52e15b484204de1",
-                  "operating_contract": {
-                    "objective": "Assess the requirement “Allocation of responsibilities” within the declared system, period, and population.",
-                    "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test documented allocation of AI lifecycle responsibilities among provider, deployer, customer, and supplier, acknowledged owners, handoffs, and escalation paths. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
-                    "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
-                    "asset_types": [
-                      "ai_agent",
-                      "ai_model",
-                      "audit_log",
-                      "data_store",
-                      "service"
-                    ],
-                    "required_evidence_types": ["review_iso42001_10_2"],
-                    "frequency": "documented assessment schedule and after material change",
-                    "owner": "security-assurance"
-                  },
-                  "mapping_source": {
-                    "name": "Oracle ISO 42001 implementation practice, June 2026",
-                    "url": "https://www.oracle.com/es/corporate/iso-42001-principles-into-practice/",
-                    "sha256": "2ae1aaa8f783a1a5536bff151d5b40410002b9591a4de64d2743ba921f0f658a",
-                    "locator": "ISO/IEC 42001 under the SaaS shared responsibility model; Oracle AI Review; METRO observability; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text."
-                  },
-                  "decision": null,
-                  "reviewer": null,
-                  "rationale": null
-                }
-              ]
-            },
             {
               "control_id": "ISO42001-3.3",
               "framework_ref": "ISO 42001:2023 A.3.3",
@@ -334,46 +294,6 @@
               ]
             },
             {
-              "control_id": "ISO42001-4.6",
-              "framework_ref": "ISO 42001:2023 A.4.6",
-              "question": "Repaired proposal: verify AI lifecycle staffing needs, role competencies, assigned personnel, training or support plans, resourcing gaps, and management follow-up. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text.",
-              "cisco_candidates": [],
-              "source_scope": "vendor implementation context, not verified normative equivalence",
-              "oracle_context": ["oracle-practice", "oracle-risk"],
-              "candidates": [
-                {
-                  "safeguard_id": "SG-REVIEW-ISO42001-4-6",
-                  "role": "primary",
-                  "review_state": "proposed",
-                  "review_basis_sha256": "033af72fdb59cb6eebf2071c4cdf4c7168441588cf255ed9688f37a1b1d8539f",
-                  "operating_contract": {
-                    "objective": "Assess the requirement “Human resources” within the declared system, period, and population.",
-                    "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test AI lifecycle staffing needs, role competencies, assigned personnel, training or support plans, resourcing gaps, and management follow-up. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
-                    "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
-                    "asset_types": [
-                      "ai_agent",
-                      "ai_model",
-                      "audit_log",
-                      "data_store",
-                      "service"
-                    ],
-                    "required_evidence_types": ["review_iso42001_4_6"],
-                    "frequency": "documented assessment schedule and after material change",
-                    "owner": "security-assurance"
-                  },
-                  "mapping_source": {
-                    "name": "Oracle ISO 42001 implementation practice, June 2026",
-                    "url": "https://www.oracle.com/es/corporate/iso-42001-principles-into-practice/",
-                    "sha256": "2ae1aaa8f783a1a5536bff151d5b40410002b9591a4de64d2743ba921f0f658a",
-                    "locator": "ISO/IEC 42001 under the SaaS shared responsibility model; Oracle AI Review; METRO observability; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text."
-                  },
-                  "decision": null,
-                  "reviewer": null,
-                  "rationale": null
-                }
-              ]
-            },
-            {
               "control_id": "ISO42001-5.4",
               "framework_ref": "ISO 42001:2023 A.5.4",
               "question": "For assessing ai system impact on individuals or groups, compare each candidate (AI governance and model inventory; AI benefit, cost and impact assessment) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.",
@@ -566,46 +486,6 @@
                   "rationale": null
                 }
               ]
-            }
-          ]
-        },
-        {
-          "batch_id": "iso-42001-2023-review-002",
-          "basis_sha256": "12e7670b5376a7b2f6b44529fbc0955e94d1316191083d6c4e07a2dfaed8046f",
-          "requirements": [
-            {
-              "control_id": "ISO42001-6.1.3",
-              "framework_ref": "ISO 42001:2023 6.1.3",
-              "question": "Repaired proposal: verify AI risk-treatment choices, selected controls, applicability decisions, accountable owners, implementation records, residual-risk decisions, and acceptance authority. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text.",
-              "cisco_candidates": [],
-              "source_scope": "vendor implementation context, not verified normative equivalence",
-              "oracle_context": ["oracle-practice", "oracle-risk"],
-              "candidates": [
-                {
-                  "safeguard_id": "SG-REVIEW-ISO42001-6-1-3",
-                  "role": "primary",
-                  "review_state": "proposed",
-                  "review_basis_sha256": "d5c6a43a25d922a6e1bbba955cd2316adfa80f1846c6b01a147bc9bc42965833",
-                  "operating_contract": {
-                    "objective": "Assess the requirement “AI system risk treatment is planned and tracked” within the declared system, period, and population.",
-                    "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test AI risk-treatment choices, selected controls, applicability decisions, accountable owners, implementation records, residual-risk decisions, and acceptance authority. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
-                    "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
-                    "asset_types": ["ai_agent", "ai_model"],
-                    "required_evidence_types": ["review_iso42001_6_1_3"],
-                    "frequency": "documented assessment schedule and after material change",
-                    "owner": "security-assurance"
-                  },
-                  "mapping_source": {
-                    "name": "Oracle AI risk management practice, September 2026",
-                    "url": "https://www.oracle.com/es/corporate/ai-risk-management-in-practice/",
-                    "sha256": "2ba0eef33a0dcbb22de00ddbe3165d2785222a7631c4d478d4c8198aca79b0bf",
-                    "locator": "From an initial evaluation to ongoing risk management; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text."
-                  },
-                  "decision": null,
-                  "reviewer": null,
-                  "rationale": null
-                }
-              ]
             },
             {
               "control_id": "ISO42001-6.2.2",
@@ -764,7 +644,13 @@
                   "rationale": null
                 }
               ]
-            },
+            }
+          ]
+        },
+        {
+          "batch_id": "iso-42001-2023-review-002",
+          "basis_sha256": "59ba06535233fb1dc6aabd73f93dc00cac359c028397e6f419495194b64fc6d1",
+          "requirements": [
             {
               "control_id": "ISO42001-6.2.4",
               "framework_ref": "ISO 42001:2023 A.6.2.4",
@@ -1014,46 +900,6 @@
               ]
             },
             {
-              "control_id": "ISO42001-6.2.8",
-              "framework_ref": "ISO 42001:2023 A.6.2.8",
-              "question": "Repaired proposal: verify AI event-recording requirements by lifecycle phase, enabled logs, integrity and retention settings, access restrictions, and trace retrieval tests. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text.",
-              "cisco_candidates": [],
-              "source_scope": "vendor implementation context, not verified normative equivalence",
-              "oracle_context": ["oracle-practice", "oracle-risk"],
-              "candidates": [
-                {
-                  "safeguard_id": "SG-REVIEW-ISO42001-6-2-8",
-                  "role": "primary",
-                  "review_state": "proposed",
-                  "review_basis_sha256": "045b75569c422f44a41dc640a907101504bc4026cb4c09b9bfdc0fa4d5587069",
-                  "operating_contract": {
-                    "objective": "Assess the requirement “AI system recording of event logs” within the declared system, period, and population.",
-                    "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test AI event-recording requirements by lifecycle phase, enabled logs, integrity and retention settings, access restrictions, and trace retrieval tests. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
-                    "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
-                    "asset_types": [
-                      "ai_agent",
-                      "ai_model",
-                      "audit_log",
-                      "data_store",
-                      "service"
-                    ],
-                    "required_evidence_types": ["review_iso42001_6_2_8"],
-                    "frequency": "documented assessment schedule and after material change",
-                    "owner": "security-assurance"
-                  },
-                  "mapping_source": {
-                    "name": "Oracle ISO 42001 implementation practice, June 2026",
-                    "url": "https://www.oracle.com/es/corporate/iso-42001-principles-into-practice/",
-                    "sha256": "2ae1aaa8f783a1a5536bff151d5b40410002b9591a4de64d2743ba921f0f658a",
-                    "locator": "ISO/IEC 42001 under the SaaS shared responsibility model; Oracle AI Review; METRO observability; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text."
-                  },
-                  "decision": null,
-                  "reviewer": null,
-                  "rationale": null
-                }
-              ]
-            },
-            {
               "control_id": "ISO42001-7.2",
               "framework_ref": "ISO 42001:2023 A.7.2",
               "question": "For data for development and enhancement of ai system, compare each candidate (AI training and evaluation data governance; AI governance and model inventory) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.",
@@ -1293,13 +1139,7 @@
                   "rationale": null
                 }
               ]
-            }
-          ]
-        },
-        {
-          "batch_id": "iso-42001-2023-review-003",
-          "basis_sha256": "bd5233af851c9e138c1dc2b45c867e5d9bec82462ece0d12de9d0f8393d42529",
-          "requirements": [
+            },
             {
               "control_id": "ISO42001-7.5",
               "framework_ref": "ISO 42001:2023 A.7.5",
@@ -1400,46 +1240,6 @@
                     "owner": "ai-governance"
                   },
                   "mapping_source": null,
-                  "decision": null,
-                  "reviewer": null,
-                  "rationale": null
-                }
-              ]
-            },
-            {
-              "control_id": "ISO42001-8.2",
-              "framework_ref": "ISO 42001:2023 A.8.2",
-              "question": "Repaired proposal: verify user-facing AI system documentation covering intended use, limitations, responsibilities, operating instructions, document version, and delivery to intended users. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text.",
-              "cisco_candidates": [],
-              "source_scope": "vendor implementation context, not verified normative equivalence",
-              "oracle_context": ["oracle-practice", "oracle-risk"],
-              "candidates": [
-                {
-                  "safeguard_id": "SG-REVIEW-ISO42001-8-2",
-                  "role": "primary",
-                  "review_state": "proposed",
-                  "review_basis_sha256": "02cb3e93f699aa241638e9d3d72fb31704860a6237532cef569785973b504195",
-                  "operating_contract": {
-                    "objective": "Assess the requirement “System documentation and information for users” within the declared system, period, and population.",
-                    "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test user-facing AI system documentation covering intended use, limitations, responsibilities, operating instructions, document version, and delivery to intended users. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
-                    "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
-                    "asset_types": [
-                      "ai_agent",
-                      "ai_model",
-                      "audit_log",
-                      "data_store",
-                      "service"
-                    ],
-                    "required_evidence_types": ["review_iso42001_8_2"],
-                    "frequency": "documented assessment schedule and after material change",
-                    "owner": "security-assurance"
-                  },
-                  "mapping_source": {
-                    "name": "Oracle ISO 42001 implementation practice, June 2026",
-                    "url": "https://www.oracle.com/es/corporate/iso-42001-principles-into-practice/",
-                    "sha256": "2ae1aaa8f783a1a5536bff151d5b40410002b9591a4de64d2743ba921f0f658a",
-                    "locator": "ISO/IEC 42001 under the SaaS shared responsibility model; Oracle AI Review; METRO observability; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text."
-                  },
                   "decision": null,
                   "reviewer": null,
                   "rationale": null
@@ -1631,7 +1431,13 @@
                   "rationale": null
                 }
               ]
-            },
+            }
+          ]
+        },
+        {
+          "batch_id": "iso-42001-2023-review-003",
+          "basis_sha256": "e395f43b76b26fa1849890062159d1488eedbc31db76694f1ba6ee6ceb24a2bf",
+          "requirements": [
             {
               "control_id": "ISO42001-8.5",
               "framework_ref": "ISO 42001:2023 A.8.5",
@@ -1762,5 +1568,5 @@
       ]
     }
   ],
-  "sha256": "c4bcf3133556a2cfde59dc21d80c9185d05ebf789f04d6cc29888acca069ffd4"
+  "sha256": "de3456fb97b7ea6efd24c6d47d65bf3f73e113347ccde2b6bdb09410cc0c4bb7"
 }

@@ -29,6 +29,8 @@ REQUIRED: dict[str, str] = {
     "connectors/catalog.json": "the connector catalog",
     "controls/safeguards.json": "the CCF safeguards (framework coverage and review queue)",
     "controls/reviews/2026-10-14-source-batches.json": "the maintainer mapping review receipt",
+    "controls/reviews/2026-10-15-soc2-iso-repairs.json": "the SOC 2 and ISO maintainer decision receipt",
+    "docs/reviews/2026-10-15-repaired-proposals.json": "the inspected SOC 2 and ISO review basis",
     "controls/families.json": "the CCF family taxonomy (safeguard validation and family ledger)",
 }
 
