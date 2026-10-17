@@ -1,4 +1,4 @@
-# Candidate 0.3.7: versioned references become usable after publication.
+# Candidate 0.3.8: versioned references become usable after publication.
 # Use the v0.3.4 release templates for a published deployment.
 # Try the GRC Lake posture gate with no deployment of your own.
 #
@@ -34,7 +34,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install GRC Lake
-        run: pip install "grc-lake[server]==0.3.7"
+        run: pip install "grc-lake[server]==0.3.8"
 
       - name: Load the sample company
         run: grc-lake fixtures load --company golden --out "$RUNNER_TEMP/lake" --rebase-times
@@ -54,7 +54,7 @@ jobs:
 
       - name: Ratchet gate (sample baseline)
         id: baseline
-        uses: koda-ai-studio/grc-lake/.github/actions/posture-gate@v0.3.7
+        uses: koda-ai-studio/grc-lake/.github/actions/posture-gate@v0.3.8
         with:
           grc-lake-url: ${{ env.GRC_LAKE_URL }}
           min-score: "5"
@@ -65,7 +65,7 @@ jobs:
       - name: Strict gate (expected to fail on the sample)
         id: strict
         continue-on-error: true
-        uses: koda-ai-studio/grc-lake/.github/actions/posture-gate@v0.3.7
+        uses: koda-ai-studio/grc-lake/.github/actions/posture-gate@v0.3.8
         with:
           grc-lake-url: ${{ env.GRC_LAKE_URL }}
           min-score: "70"
