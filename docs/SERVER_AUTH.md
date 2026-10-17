@@ -104,6 +104,16 @@ revoke, MCP config copy). Admins manage tenant users under **Access → Users &
 roles** (promote, demote, deactivate). Paste an API key on the sign-in page to
 open a browser session without SSO.
 
+OIDC ID tokens must use RSA signatures with keys of at least 2048 bits,
+ECDSA on P-256/P-384/P-521, or EdDSA on Ed25519/Ed448. Unsigned tokens,
+shared-secret signing keys and weak RSA keys are rejected. This policy applies
+to both cached JWKS and keys fetched during rotation; a retired weak key does
+not prevent use of a different, strong key in the same set. The token issuer
+must exactly match `GRC_LAKE_OIDC_ISSUER`, and its audience must include
+`GRC_LAKE_OIDC_CLIENT_ID`; `azp` does not replace that audience requirement.
+Library nonce, expiry and signature validation remains in place.
+Before upgrading, rotate weak IdP keys and confirm the issuer's exact spelling.
+
 ## User directory
 
 | Endpoint                             | Purpose                                     |
@@ -184,6 +194,11 @@ Incoming SAML signatures and digests must use modern algorithms. The server
 rejects the toolkit's deprecated algorithms, including RSA-SHA1 signatures and
 SHA-1 digests. Configure the IdP to use RSA-SHA256 and SHA-256 (or stronger);
 legacy SHA-1 assertions fail login without a compatibility fallback.
+The configured IdP certificate must contain an RSA key of at least 2048 bits
+or a NIST P-256/P-384/P-521 EC key. Malformed certificates, smaller keys and
+other key types are rejected before SAML protocol use. PEM and base64-only
+certificate formats are accepted. Rotate incompatible certificates at the IdP
+and update `GRC_LAKE_SAML_IDP_X509_CERT` before upgrading.
 
 Login is SP-initiated by default. `/login` stores the AuthnRequest ID in a
 signed, ten-minute `SameSite=None; Secure` cookie, so the deployment must be
@@ -479,3 +494,36 @@ Downgrade refuses to discard retained remediation review receipts, exception
 approval identity, or task/job authority provenance. Restore an independently
 verified backup to use an older application; do not erase audit evidence to make
 a schema downgrade succeed. Empty installations still support migration reversal.
+
+## TLS and forward secrecy
+
+Terminate public HTTPS at a maintained reverse proxy or ingress. Configure
+TLS 1.2/1.3, trusted certificates with RSA >= 2048 bits or NIST P-256 or stronger,
+and only ECDHE/DHE key exchange for TLS 1.2. Disable static RSA key exchange
+and obsolete protocol versions. TLS 1.3 fresh handshakes use ephemeral key
+agreement; do not enable PSK-only resumption without forward secrecy.
+Keep the application port private and use the proxy as the public entrypoint.
+
+The guarded HTTPS client uses Python's verifying default SSL context, which
+requires TLS 1.2 or later and forward-secret cipher suites on supported Python
+versions. Incoming TLS belongs to the deployment, so an application test cannot
+certify an operator's proxy, load balancer, or every provider SDK connection.
+
+From a checkout, check a deployment you operate:
+
+```bash
+python tools/check_tls_policy.py grc-lake.example.com
+# Private PKI: retain certificate verification with an explicit CA bundle.
+python tools/check_tls_policy.py grc-lake.example.com --cafile /path/to/ca.pem
+```
+
+The checker sends TLS handshakes only. It records the protocol, cipher,
+certificate fingerprint and time, then offers two TLS 1.2 static-RSA AES-GCM
+suites and requires a protocol/handshake rejection. A failed certificate check,
+timeout or reset is a failure to qualify, not evidence of rejection. Exit zero
+means those bounded checks passed; it does not enumerate all cipher suites,
+check legacy protocol rejection, or prove every backend has the same policy.
+Review the proxy configuration and use a full TLS scanner for that broader
+scope. Keep endpoint-specific results outside the public repository.
+
+Reference: [Python SSL defaults](https://docs.python.org/3/library/ssl.html#ssl.create_default_context).

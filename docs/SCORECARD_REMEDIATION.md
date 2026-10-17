@@ -54,14 +54,20 @@ and verify the resulting badge through the program's public project record.
   [`auth/signing.py`](../src/security_lakehouse/auth/signing.py) and
   [`auth/session_middleware.py`](../src/security_lakehouse/auth/session_middleware.py).
 - SAML requires signed assertions and rejects the toolkit's deprecated
-  signature/digest algorithms. The configured IdP certificate, key strength,
-  and optional integrations still need review. See
+  signature/digest algorithms. The configured IdP certificate must use RSA >= 2048 bits or
+  NIST P-256/P-384/P-521 before protocol use. See
   [`auth/saml.py`](../src/security_lakehouse/auth/saml.py) and
   [server authentication](SERVER_AUTH.md).
+- OIDC filters cached and refreshed signing keys to RSA >= 2048 bits,
+  NIST P-256/P-384/P-521, or Ed25519/Ed448. It rejects unsigned/shared-secret
+  ID tokens and binds issuer/audience to the configured provider/client. See
+  [`auth/oidc_client.py`](../src/security_lakehouse/auth/oidc_client.py).
 - Guarded HTTPS requests use Python's default verifying SSL context. Incoming
   TLS terminates at the operator's proxy or ingress. Forward secrecy and the
   enabled TLS algorithms require evidence from that deployment; a local HTTP
-  smoke test or application-level signing test cannot establish them.
+  smoke test or application-level signing test cannot establish them. The
+  [TLS deployment check](SERVER_AUTH.md#tls-and-forward-secrecy) records bounded
+  handshake evidence without treating it as an exhaustive deployment audit.
 
 These implementation facts support assessment review; they do not establish
 all cryptographic criteria for every supported integration and deployment.
