@@ -3,6 +3,11 @@
 All notable GRC Lake changes are summarized here. Versions follow semver for the
 Python package, Helm chart, and bundled web console.
 
+## Unreleased
+
+- Reject weak SAML certificate and OIDC signing keys, including refreshed JWKS during key rotation. Bind OIDC token issuer and audience to the configured provider and client. Existing IdPs using RSA keys below 2048 bits or shared-secret ID-token signing must rotate before upgrading.
+- Add a bounded deployment TLS checker and local negotiation tests for forward-secret TLS 1.2/1.3, static-RSA rejection, and certificate verification. Document the proxy configuration and qualification scope.
+
 ## 0.3.8 - 2026-10-17
 
 - Build the container runtime from pinned Wolfi CPython 3.14 and matching system libraries in an empty root. Require the complete installed package set to match the runtime lock, retaining package inventory and licenses. Preserve the shell-free, non-root entrypoint, persistent paths and authentication contract.

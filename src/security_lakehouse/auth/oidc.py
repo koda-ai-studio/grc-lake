@@ -93,9 +93,13 @@ def build_oauth(config: OIDCConfig):
     """Register the OIDC client with authlib's Starlette integration."""
     from authlib.integrations.starlette_client import OAuth
 
+    from security_lakehouse.auth.oidc_client import StrongKeyOAuth2App
+
     oauth = OAuth()
     oauth.register(
         name="oidc",
+        client_cls=StrongKeyOAuth2App,
+        expected_issuer=config.issuer,
         client_id=config.client_id,
         client_secret=config.client_secret,
         server_metadata_url=config.metadata_url,

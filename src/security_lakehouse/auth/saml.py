@@ -78,6 +78,7 @@ class SAMLConfig:
 
     def settings(self) -> dict[str, Any]:
         """Return OneLogin python3-saml settings."""
+        _validate_idp_certificate(self.idp_x509_cert)
         settings: dict[str, Any] = {
             "strict": True,
             "debug": False,
@@ -118,6 +119,26 @@ class SAMLConfig:
                 "binding": "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect",
             }
         return settings
+
+
+def _validate_idp_certificate(certificate: str) -> None:
+    """Reject malformed or weak signing certificates before protocol use."""
+    from cryptography import x509
+    from cryptography.hazmat.primitives.asymmetric import ec, rsa
+
+    # python3-saml accepts both PEM and the base64 certificate body.
+    pem = certificate.strip()
+    if not pem.startswith("-----BEGIN CERTIFICATE-----"):
+        pem = "-----BEGIN CERTIFICATE-----\n" + "\n".join(pem.split()) + "\n-----END CERTIFICATE-----\n"
+    try:
+        key = x509.load_pem_x509_certificate(pem.encode("ascii")).public_key()
+    except (ValueError, UnicodeError) as exc:
+        raise SAMLConfigError("SAML IdP signing certificate must be a valid X.509 certificate") from exc
+    if isinstance(key, rsa.RSAPublicKey) and key.key_size >= 2048:
+        return
+    if isinstance(key, ec.EllipticCurvePublicKey) and key.curve.name in {"secp256r1", "secp384r1", "secp521r1"}:
+        return
+    raise SAMLConfigError("SAML IdP signing key must be RSA >= 2048 bits or NIST P-256/P-384/P-521")
 
 
 def load_saml_config() -> SAMLConfig | None:
