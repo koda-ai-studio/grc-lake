@@ -40,7 +40,9 @@ def check_endpoint(host: str, port: int = 443, *, cafile: str | None = None, tim
         "scope": "One verified connection plus one TLS 1.2 static-RSA probe; not an exhaustive TLS audit",
     }
     try:
-        strong = _handshake(host, port, ssl.create_default_context(cafile=cafile), timeout)
+        context = ssl.create_default_context(cafile=cafile)
+        context.minimum_version = ssl.TLSVersion.TLSv1_2
+        strong = _handshake(host, port, context, timeout)
         result["negotiated"] = strong
         cipher = strong["cipher"] or ""
         if strong["version"] not in {"TLSv1.2", "TLSv1.3"} or not (

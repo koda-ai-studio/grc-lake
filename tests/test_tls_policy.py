@@ -7,6 +7,7 @@ import ssl
 import threading
 from contextlib import contextmanager
 from datetime import UTC, datetime, timedelta
+from types import SimpleNamespace
 
 import pytest
 from cryptography import x509
@@ -131,3 +132,21 @@ def test_cli_returns_failure_for_inconclusive_probe(monkeypatch, capsys):
     monkeypatch.setattr(check_tls_policy, "_handshake", timeout)
     assert check_tls_policy.main(["localhost"]) == 1
     assert '"passed": false' in capsys.readouterr().out
+
+
+def test_probe_enforces_tls_floor_before_connecting(monkeypatch):
+    from tools import check_tls_policy
+
+    # Simulate a context factory with no version floor without opening a socket.
+    context = SimpleNamespace(minimum_version=ssl.TLSVersion.MINIMUM_SUPPORTED)
+    monkeypatch.setattr(check_tls_policy.ssl, "create_default_context", lambda **kwargs: context)
+    attempted = []
+
+    def handshake(host, port, supplied_context, timeout):
+        assert supplied_context.minimum_version >= ssl.TLSVersion.TLSv1_2
+        attempted.append(host)
+        raise TimeoutError("test timeout")
+
+    monkeypatch.setattr(check_tls_policy, "_handshake", handshake)
+    assert not check_endpoint("localhost")["passed"]
+    assert attempted == ["localhost"]
