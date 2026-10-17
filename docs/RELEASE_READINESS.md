@@ -1,5 +1,12 @@
 # Release readiness
 
+The **0.3.8 candidate is not published**. It replaces the runtime base with
+pinned Wolfi Python and matching system libraries, preserving the deployment
+identity, persistent paths and API contract. See [runtime construction](DEPENDENCY_SECURITY.md#building-the-current-runtime).
+The candidate requires successful CI and release qualification on its final
+main commit before publication. The 0.3.7 receipts below describe that published
+release, not the candidate.
+
 GRC Lake **0.3.7 is published and verified** on
 [PyPI](https://pypi.org/project/grc-lake/0.3.7/),
 [GitHub](https://github.com/koda-ai-studio/grc-lake/releases/tag/v0.3.7), and as

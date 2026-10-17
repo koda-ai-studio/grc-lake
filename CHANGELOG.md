@@ -3,6 +3,11 @@
 All notable GRC Lake changes are summarized here. Versions follow semver for the
 Python package, Helm chart, and bundled web console.
 
+## 0.3.8 - 2026-10-17
+
+- Build the container runtime from pinned Wolfi CPython 3.14 and matching system libraries in an empty root. Require the complete installed package set to match the runtime lock, retaining package inventory and licenses. Preserve the shell-free, non-root entrypoint, persistent paths and authentication contract.
+- Check populated TLS trust stores alongside native imports, compression, SQLite and XML dependencies. Qualify both architectures with signed SAML, authenticated tenant-isolation, Compose persistence and upgrade probes. Image scans remain unfiltered; no vulnerability suppression or policy exception is added.
+
 ## 0.3.7 - 2026-10-16
 
 - Replace the general-purpose runtime OS with a pinned distroless base and only the Python application's required Debian libraries. Remove shells, package managers, mount/login utilities, Perl, and optional terminal/libuuid Python extensions; retain package inventories and licenses for vulnerability scanning. Native dependency, compression, XML, database, authentication, tenant-isolation and persistence probes cover both architectures.
