@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 
 import pytest
@@ -17,7 +18,7 @@ from lxml import etree
 from onelogin.saml2.constants import OneLogin_Saml2_Constants as C
 from onelogin.saml2.utils import OneLogin_Saml2_Utils
 
-from security_lakehouse.auth.saml import SAMLConfig, build_saml_auth, saml_request_data
+from security_lakehouse.auth.saml import SAMLConfig, SAMLConfigError, build_saml_auth, saml_request_data
 
 _ACS = "https://grc.test/api/v1/auth/saml/acs"
 _ENTITY = "https://grc.test/saml/metadata"
@@ -25,10 +26,9 @@ _IDP = "https://idp.test"
 _REQUEST_ID = "_test_request"
 
 
-@pytest.fixture(scope="module")
-def signing_material():
+def _signing_material(key_size=2048):
     # Ephemeral test-only material; never write a private key into a fixture file.
-    key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    key = rsa.generate_private_key(public_exponent=65537, key_size=key_size)
     name = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "SAML test IdP")])
     now = datetime.now(UTC)
     cert = (
@@ -47,6 +47,18 @@ def signing_material():
         ).decode(),
         cert.public_bytes(serialization.Encoding.PEM).decode(),
     )
+
+
+@pytest.fixture(scope="module")
+def signing_material():
+    return _signing_material()
+
+
+def test_saml_rejects_weak_idp_key_before_accepting_assertion():
+    material = _signing_material(1024)
+    xml = _signed_response(material, C.RSA_SHA256, C.SHA256)
+    with pytest.raises(SAMLConfigError, match="2048"):
+        _authenticate(material, xml)
 
 
 def _signed_response(signing_material, signature_algorithm, digest_algorithm):
@@ -132,3 +144,12 @@ def test_saml_rejects_tampered_modern_assertion(signing_material):
     auth = _authenticate(signing_material, xml.replace(b"human@example.test", b"other@example.test"))
     assert not auth.is_authenticated()
     assert "Signature validation failed" in auth.get_last_error_reason()
+
+
+def test_saml_accepts_certificate_body_and_rejects_malformed_certificate(signing_material):
+    config = SAMLConfig(_ENTITY, _ACS, _IDP, f"{_IDP}/sso", signing_material[1])
+    body = "".join(signing_material[1].splitlines()[1:-1])
+    assert replace(config, idp_x509_cert=body).settings()["idp"]["x509cert"] == body
+    for value in ("not-a-cert", "", "\N{SNOWMAN}"):
+        with pytest.raises(SAMLConfigError, match="valid X.509"):
+            replace(config, idp_x509_cert=value).settings()
