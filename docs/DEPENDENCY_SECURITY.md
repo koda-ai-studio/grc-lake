@@ -36,6 +36,26 @@ reports for 14 days, including when the image policy blocks the job. See
 [Scorecard evidence](SCORECARD_REMEDIATION.md#vulnerability-and-release-evidence)
 for artifact names and the separate Best Practices review requirements.
 
+### Building the current runtime
+
+The Dockerfile installs CPython 3.14 and its matching system libraries from the
+signed repository configured in the digest-pinned
+[Wolfi builder](https://github.com/wolfi-dev/os). A separate, empty root receives
+only the required runtime packages. The final image starts from `scratch` and
+retains the APK inventory and vendor license metadata. Optional interactive
+Python modules and `ensurepip` are removed. Shells and package-manager
+executables remain in the builder, outside the final image.
+
+`tools/runtime-packages.txt` pins the complete system-package resolution.
+`tools/build_runtime_root.py` rejects an installed package set that differs from
+that file before preparing the deployment identity and Python entrypoints.
+Updating the builder digest or package versions requires fresh unfiltered scans, installed
+native-library checks, Compose quickstart and authenticated runtime probes on
+AMD64 and ARM64. An unavailable pinned package fails the build; it must not fall
+back to an unpinned version. Python dependencies continue to use `uv.lock` and
+hash-verified installation. This build configuration does not alter existing
+published release images or their scan results below.
+
 ### 0.3.7 runtime
 
 The published 0.3.7 image uses a digest-pinned
@@ -54,7 +74,7 @@ uses Python's fallback. CPython's bundled Expat is checked at version 2.8.5 or
 later; no unused system Expat library is added. Application native libraries,
 compression, SQLite and TLS contexts are exercised in both interpreters.
 
-`tools/build_runtime_root.py` copies complete required Debian package file lists,
+The 0.3.7 overlay copied complete required Debian package file lists,
 including their licenses and dpkg status records. The base's package records
 remain present. No scanner suppressions, deleted package metadata, or vulnerability
 applicability exceptions are used to obtain the lower count.

@@ -26,6 +26,8 @@ for name in (
     "/bin/sh",
     "/bin/bash",
     "/usr/bin/apt-get",
+    "/sbin/apk",
+    "/usr/bin/apk",
     "/usr/bin/dpkg",
     "/usr/bin/mount",
     "/usr/bin/nsenter",
@@ -36,8 +38,10 @@ payload = b"grc-lake compression smoke" * 100
 for codec in (bz2, gzip, lzma):
     assert codec.decompress(codec.compress(payload)) == payload
 assert sqlite3.connect(":memory:").execute("select 1").fetchone() == (1,)
-assert ssl.create_default_context().check_hostname
-assert pyexpat.version_info >= (2, 8, 5), "bundled Expat security floor"
+context = ssl.create_default_context()
+assert context.check_hostname
+assert context.cert_store_stats()["x509_ca"] > 0, "system TLS trust store is empty"
+assert pyexpat.version_info >= (2, 8, 5), "Expat security floor"
 assert uuid.uuid4().version == 4
 assert ctypes.CDLL(None)
 with tempfile.TemporaryDirectory() as folder, dbm.gnu.open(str(Path(folder) / "probe"), "c") as database:
@@ -49,17 +53,24 @@ for root, _directories, files in os.walk("/usr"):
         if path.is_symlink():
             continue
         assert not path.stat().st_mode & (stat.S_ISUID | stat.S_ISGID), f"elevated runtime file: {path}"
-status = Path("/var/lib/dpkg/status.d")
+inventory = Path("/lib/apk/db/installed").read_text()
+packages = {line[2:] for line in inventory.splitlines() if line.startswith("P:")}
 for package in (
-    "libbz2-1.0",
-    "libffi8",
-    "libgdbm6t64",
-    "libgdbm-compat4t64",
-    "liblzma5",
-    "libsqlite3-0",
+    "libbz2-1",
+    "libffi",
+    "gdbm",
+    "xz",
+    "sqlite-libs",
     "libzstd1",
     "tini",
+    "libstdc++",
+    "zlib",
+    "python-3.14-base",
+    "openssl-4.0-libssl",
+    "openssl-4.0-libcrypto",
+    "ca-certificates-bundle",
 ):
-    record = (status / package).read_text()
-    assert f"Package: {package}\n" in record and "Status: install ok installed" in record
+    assert package in packages, f"missing runtime package record: {package}"
+for package in ("busybox", "bash", "apk-tools"):
+    assert package not in packages, f"unexpected runtime package: {package}"
 print("Runtime dependency and package-inventory checks passed.")
