@@ -1,6 +1,6 @@
 # Dependency security scope
 
-Lockfile review: 2026-10-12. Release image scan: 2026-10-16. Dependency advisories
+Lockfile review: 2026-10-12. Release image scan: 2026-10-17. Dependency advisories
 change; rerun both production and full build-tool audits when reviewing or
 upgrading the lockfiles.
 
@@ -55,6 +55,21 @@ AMD64 and ARM64. An unavailable pinned package fails the build; it must not fall
 back to an unpinned version. Python dependencies continue to use `uv.lock` and
 hash-verified installation. This build configuration does not alter existing
 published release images or their scan results below.
+
+### 0.3.8 release qualification scans
+
+The [0.3.8 release workflow](https://github.com/koda-ai-studio/grc-lake/actions/runs/39056996566)
+qualified AMD64 and emulated ARM64 on source
+`0b04d15d0b0a6acd5a8d0a92cbf664feb0ddeb97`. Both full Trivy reports contain
+zero reported vulnerabilities in the recognized Wolfi and Python packages.
+No suppression or applicability exception was added. Published filesystem layers
+and runtime configuration match the scanned images and authenticated runtime
+receipts; see [publication verification](RELEASE_READINESS.md#verified-038-publication).
+
+Scanner results depend on the vendor advisory database and recognized components;
+they do not establish absence of unknown or application vulnerabilities. The
+OpenSSF assessment also requires evidence for cryptographic practices and response
+history. This release does not change the findings in earlier published images.
 
 ### 0.3.7 runtime
 

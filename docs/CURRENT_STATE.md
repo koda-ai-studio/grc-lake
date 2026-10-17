@@ -1,7 +1,7 @@
 # Current state and coverage
 
-Release verification: **2026-10-16**. Source version: **0.3.7**. Latest published release checked: **v0.3.7**.
-See the [publication receipt](RELEASE_READINESS.md#verified-036-publication) for artifact and runtime evidence.
+Release verification: **2026-10-17**. Source version: **0.3.8**. Latest published release checked: **v0.3.8**.
+See the [publication receipt](RELEASE_READINESS.md#verified-038-publication) for artifact and runtime evidence.
 Changes on `main` or in a pull request can be newer than the published package. Check the [releases](https://github.com/koda-ai-studio/grc-lake/releases)
 and [changelog](../CHANGELOG.md) for the version you install.
 

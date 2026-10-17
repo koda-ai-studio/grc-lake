@@ -1,25 +1,17 @@
 # Release readiness
 
-The **0.3.8 candidate is not published**. It replaces the runtime base with
-pinned Wolfi Python and matching system libraries, preserving the deployment
-identity, persistent paths and API contract. See [runtime construction](DEPENDENCY_SECURITY.md#building-the-current-runtime).
-The candidate requires successful CI and release qualification on its final
-main commit before publication. The 0.3.7 receipts below describe that published
-release, not the candidate.
-
-GRC Lake **0.3.7 is published and verified** on
-[PyPI](https://pypi.org/project/grc-lake/0.3.7/),
-[GitHub](https://github.com/koda-ai-studio/grc-lake/releases/tag/v0.3.7), and as
-`ghcr.io/koda-ai-studio/grc-lake:0.3.7`.
-Use the [v0.3.7 release templates](https://github.com/koda-ai-studio/grc-lake/tree/v0.3.7)
+GRC Lake **0.3.8 is published and verified** on
+[PyPI](https://pypi.org/project/grc-lake/0.3.8/),
+[GitHub](https://github.com/koda-ai-studio/grc-lake/releases/tag/v0.3.8), and as
+`ghcr.io/koda-ai-studio/grc-lake:0.3.8`.
+Use the [v0.3.8 release templates](https://github.com/koda-ai-studio/grc-lake/tree/v0.3.8)
 for a published deployment. Later commits on `main` may contain unreleased changes.
 
-The shell-free runtime removes the unused components responsible for the earlier
-44 HIGH findings. Both published architectures match images qualified with zero
-HIGH/CRITICAL findings; 26 MEDIUM and 10 LOW findings remain per architecture.
-CI and release gates now block unfixed HIGH/CRITICAL as well as fixable MEDIUM.
-See [runtime hardening](DEPENDENCY_SECURITY.md#037-runtime) for compatibility and
-remaining vulnerability scope. Existing 0.3.6 artifacts are unchanged.
+The shell-free runtime uses pinned Wolfi Python and matching system libraries.
+Both published architectures match images qualified with zero reported vulnerabilities.
+CI and release gates continue to block all HIGH/CRITICAL and fixable MEDIUM findings.
+See [runtime construction and scan scope](DEPENDENCY_SECURITY.md#038-release-qualification-scans).
+Earlier published images and their historical scan results remain unchanged.
 
 The release includes repaired SOC 2 governance contracts, 35 receipt-bound
 mapping approvals, explicit legacy-review provenance, safeguard fan-out limits,
@@ -47,6 +39,42 @@ Upgrading from 0.3.2 requires signing secrets of at least 32 bytes and, for SAML
 deployments, non-deprecated IdP signature and digest algorithms. Existing browser
 sessions must sign in again. See [deployment](DEPLOYMENT.md) and
 [server authentication](SERVER_AUTH.md).
+
+## Verified 0.3.8 publication
+
+The [0.3.8 release workflow](https://github.com/koda-ai-studio/grc-lake/actions/runs/39056996566)
+passed on source `0b04d15d0b0a6acd5a8d0a92cbf664feb0ddeb97`, after that exact
+main commit [passed CI](https://github.com/koda-ai-studio/grc-lake/actions/runs/39005264318)
+and [release qualification](https://github.com/koda-ai-studio/grc-lake/actions/runs/39056234153).
+The `v0.3.8` tag resolves to that commit. Published wheel and sdist hashes match
+between GitHub, PyPI, and the release build:
+
+| Artifact                          | SHA-256                                                            |
+| --------------------------------- | ------------------------------------------------------------------ |
+| `grc_lake-0.3.8-py3-none-any.whl` | `b1d7f8b1a178b6b3507b7144c1681170c975f1c10ac1f91c281b0a27e180a6ca` |
+| `grc_lake-0.3.8.tar.gz`           | `5f610c01028fa28bb4c2ffa6207768690aec303f1362c2fd6584f05d00bb0206` |
+
+The retained signed Python bundle and image provenance verify against this
+repository, release workflow, source commit, and `v0.3.8` tag. A fresh hash-locked
+PyPI wheel installation passed installed-package, catalog, console and integrity-route
+checks outside the checkout.
+
+The anonymously readable multi-platform index is `sha256:0b4d927332f1af0567a8b147260d8b6b48f071be401ebcfe861f671d96c407af`:
+
+- AMD64: `sha256:8c96f9035a29819180a0a67bfadcf811fb6daac2b1ac83805b1dc80b32b17bd5`
+- ARM64: `sha256:38300ca17886657028c285de3b84e35b9c3df05e281ac673ac7363ac9ffd29a9`
+
+Every platform manifest, configuration and compressed layer was fetched anonymously
+and hash-verified. Published filesystem layers and runtime configuration match the
+images scanned and probed by the release workflow. Both architecture runtime
+receipts pass authentication, tenant isolation, revocation, persistence, snapshot
+integrity, bundled console and non-root checks. AMD64 and emulated ARM64 were
+qualified on the hosted runner; synthetic probes do not establish production capacity.
+
+Both full image scans contain **zero reported vulnerabilities** in the recognized Wolfi and
+Python packages. This is a dated scanner result, not proof that every component or
+application behavior is free of vulnerabilities. Existing release artifacts and
+their historical findings remain unchanged.
 
 ## Verified 0.3.7 publication
 
@@ -304,7 +332,7 @@ comment, and the Dockerfile pins its base images by digest. Dependabot's
 
 ## Publication from the current repository
 
-The `grc-lake` PyPI project exists, and 0.3.7 was published from the current
+The `grc-lake` PyPI project exists, and 0.3.8 was published from the current
 repository. Preserve and verify its
 [ordinary trusted publisher](https://docs.pypi.org/trusted-publishers/adding-a-publisher/)
 configuration before the next release:
@@ -332,8 +360,8 @@ so the next release targets `ghcr.io/koda-ai-studio/grc-lake`. Before tagging:
 2. Preserve `ghcr.io/msaad00/grc-lake` for historical releases. GHCR uses granular
    permissions: a [repository transfer does not transfer package ownership](https://docs.github.com/en/packages/learn-github-packages/about-permissions-for-github-packages#about-repository-transfers)
    and can remove repository linkage and Actions access.
-3. The v0.3.7 release templates align Compose and the chart default to
-   `ghcr.io/koda-ai-studio/grc-lake:0.3.7`; Terraform inherits the chart default
+3. The v0.3.8 release templates align Compose and the chart default to
+   `ghcr.io/koda-ai-studio/grc-lake:0.3.8`; Terraform inherits the chart default
    when its image tag is empty. For later releases, update these references
    together and verify publication before recommending them.
 4. After user-authorized publication, verify anonymous pulls (if public delivery

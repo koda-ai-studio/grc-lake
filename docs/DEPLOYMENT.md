@@ -10,13 +10,13 @@ to preserve volumes, release names, secrets and compatibility aliases.
 
 ## Runtime boundary
 
-The 0.3.7 container uses a shell-free runtime. Use the Python CLI
+The 0.3.8 container uses a shell-free Wolfi runtime with matching Python and system libraries. Use the Python CLI
 directly (`docker exec <container> grc-lake ...`); `/bin/sh`, Bash, package managers,
 `readline`, curses, and the optional system-libuuid Python backend are absent.
 Standard Python `uuid` operations remain supported. Install additional libraries
 in a build stage and qualify the resulting image before deployment. The application
 still runs as UID/GID 1100 with the same persistent paths and authenticated API.
-Published 0.3.6 images retain their earlier runtime; see
+Earlier published images retain their original runtimes; see
 [release readiness](RELEASE_READINESS.md) and [dependency security](DEPENDENCY_SECURITY.md).
 
 ## Deployment models
