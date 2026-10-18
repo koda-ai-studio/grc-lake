@@ -1,5 +1,4 @@
-# v0.3.9 release candidate; use the v0.3.8 tag for published examples.
-# Use the v0.3.4 release templates for a published deployment.
+# Published v0.3.9 release.
 # Try the GRC Lake posture gate with no deployment of your own.
 #
 # Copy into .github/workflows/ of any repository. The job installs GRC Lake on

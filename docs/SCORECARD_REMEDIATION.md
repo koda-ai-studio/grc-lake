@@ -23,8 +23,10 @@ reviewed changes.
 
 The existing [project entry](https://www.bestpractices.dev/en/projects/15368)
 tracks the canonical `https://github.com/koda-ai-studio/grc-lake` repository.
-Use that entry rather than registering a duplicate. Its live status is the
-authority for whether a badge has been earned.
+The public record shows a **passing** badge as of 2026-10-18. The assessment
+covers the OSS implementation and supported secure configuration; it does not
+certify every deployment. Use the existing entry for updates and check its live
+status before citing the badge.
 
 A maintainer can use the following repository sources while completing the
 [passing-badge criteria](https://www.bestpractices.dev/en/criteria/0):
@@ -36,10 +38,9 @@ A maintainer can use the following repository sources while completing the
 - Build and validation: `Makefile`, `.github/workflows/ci.yml`, and `tests/`.
 - Static analysis: `.github/workflows/codeql.yml` and security checks in CI.
 
-These are evidence pointers, not completed questionnaire answers. Maintainers
-must separately verify response-time history, security expertise, cryptographic
-practices, and unresolved vulnerability age. Register the current repository URL
-and verify the resulting badge through the program's public project record.
+Maintainers must keep response-time history, security expertise, cryptographic
+practices, and unresolved vulnerability age current when updating the assessment.
+Repository documents alone do not establish those answers.
 
 ### Cryptographic evidence and deployment boundaries
 
