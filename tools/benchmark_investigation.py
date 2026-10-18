@@ -21,7 +21,7 @@ from pathlib import Path
 
 from security_lakehouse.generations import new_generation, pin_generation, publish_generation, seal_generation
 from security_lakehouse.investigation_graph import _id, investigation_graph
-from security_lakehouse.io import canonical_sha256, file_sha256, write_jsonl_from_iterable
+from security_lakehouse.io import canonical_sha256, file_sha256, write_json, write_jsonl_from_iterable
 
 ROOT = Path(__file__).resolve().parents[1]
 # Every platform tenant reuses this source account ID (for example two
@@ -80,12 +80,18 @@ def expected_evidence_ids(rows, tenant, *, seed=None):
     return {"evidence:" + canonical_sha256(record) for record in fixture_rows(rows, tenant, seed=seed)}
 
 
-def make_generation(lake, rows, tenant, *, changed=False, seed=None):
+def make_generation(lake, rows, tenant, *, changed=False, seed=None, frozen_catalogs=False):
     generation = new_generation(lake)
     path = generation / "silver/normalized_events.jsonl"
     records = list(fixture_rows(rows, tenant, changed=changed, seed=seed))
     # Exact duplicate must not create an extra graph node or edge.
     write_jsonl_from_iterable(path, [*records, records[0]])
+    if frozen_catalogs:
+        from security_lakehouse.catalog import load_control_catalog
+        from security_lakehouse.mapping_review import effective_safeguards
+
+        write_json(generation / "catalog/control_map.json", {"controls": list(load_control_catalog().values())})
+        write_json(generation / "catalog/safeguards.json", effective_safeguards(lake))
     seal_generation(generation, legacy=True)
     return generation
 
@@ -141,7 +147,7 @@ def control_page_query(lake):
     raise ValueError("control pagination unavailable")
 
 
-def run_workload(root, *, rows, tenants, concurrency, repeats, progress_path=None, seed=None):
+def run_workload(root, *, rows, tenants, concurrency, repeats, progress_path=None, seed=None, frozen_catalogs=False):
     started = time.perf_counter()
     cpu = time.process_time()
     lakes = [root / f"tenant-{i}" for i in range(tenants)]
@@ -149,7 +155,7 @@ def run_workload(root, *, rows, tenants, concurrency, repeats, progress_path=Non
     hashes = []
     input_bytes = []
     for lake in lakes:
-        generation = make_generation(lake, rows, lake.name, seed=seed)
+        generation = make_generation(lake, rows, lake.name, seed=seed, frozen_catalogs=frozen_catalogs)
         hashes.append(file_sha256(generation / "silver/normalized_events.jsonl"))
         input_bytes.append((generation / "silver/normalized_events.jsonl").stat().st_size)
         publish_generation(lake, generation)
@@ -241,7 +247,7 @@ def run_workload(root, *, rows, tenants, concurrency, repeats, progress_path=Non
             retain_progress()
     burst_seconds = time.perf_counter() - burst_started
     lake = lakes[0]
-    replacement = make_generation(lake, rows, lake.name, changed=True, seed=seed)
+    replacement = make_generation(lake, rows, lake.name, changed=True, seed=seed, frozen_catalogs=frozen_catalogs)
     with pin_generation(lake):
         with ThreadPoolExecutor(max_workers=1) as writer:
             writer.submit(publish_generation, lake, replacement).result()
@@ -338,6 +344,8 @@ def _attempt(args, rows, concurrency):
                     folder,
                     *(("--seed", str(seed)) if seed is not None else ()),
                     *(("--graph-build-concurrency", str(slots)) if slots is not None else ()),
+                    *(("--frozen-catalogs",) if getattr(args, "frozen_catalogs", False) else ()),
+                    *(("--disable-model-cache",) if getattr(args, "disable_model_cache", False) else ()),
                     "--client-timeout",
                     str(getattr(args, "client_timeout", 75)),
                     *(("--lifecycle-probes",) if getattr(args, "lifecycle_probes", False) else ()),
@@ -401,6 +409,8 @@ def main():
     parser.add_argument("--min-free-gib", type=float, default=5)
     parser.add_argument("--scratch", type=Path)
     parser.add_argument("--out", type=Path)
+    parser.add_argument("--frozen-catalogs", action="store_true", help="freeze catalogs to exercise model reuse")
+    parser.add_argument("--disable-model-cache", action="store_true", help="bypass retention for paired measurements")
     parser.add_argument("--worker", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--transport", choices=("direct", "http"), default="direct")
     parser.add_argument("--seed", type=int, help="vary controls, outcomes and asset types deterministically")
@@ -433,6 +443,11 @@ def main():
             " and HTTP-only 1-64 graph build slots"
         )
     if args.worker:
+        if args.disable_model_cache:
+            from security_lakehouse import investigation_graph as graph_module
+            from security_lakehouse.investigation_cache import ModelCache
+
+            graph_module._MODEL_CACHE = ModelCache(max_bytes=0)
         try:
             workload = run_workload
             if args.transport == "http":
@@ -458,6 +473,7 @@ def main():
                 repeats=args.repeats,
                 progress_path=args.scratch / "progress.json",
                 seed=args.seed,
+                frozen_catalogs=args.frozen_catalogs,
                 **options,
             )
         except Exception as exc:  # noqa: BLE001 — worker boundary retains a failed attempt, never success
@@ -511,6 +527,8 @@ def main():
             "min_free_gib": args.min_free_gib,
             "sample_seconds": 0.25,
             "seed": args.seed,
+            "frozen_catalogs": args.frozen_catalogs,
+            "model_cache": "disabled" if args.disable_model_cache else "shipped policy",
             "fixture": (
                 "uniform two-control fixture" if args.seed is None else "seeded mixed controls/outcomes/asset types"
             )

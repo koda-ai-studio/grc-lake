@@ -107,6 +107,7 @@ def run_http_workload(
     graph_build_concurrency=None,
     client_timeout=75,
     lifecycle_probes=False,
+    frozen_catalogs=False,
 ):
     with local_configuration():
         if graph_build_concurrency is not None:
@@ -121,11 +122,12 @@ def run_http_workload(
             seed=seed,
             client_timeout=client_timeout,
             lifecycle_probes=lifecycle_probes,
+            frozen_catalogs=frozen_catalogs,
         )
 
 
 def _run_http_workload(
-    root, *, rows, tenants, concurrency, repeats, progress_path, seed, client_timeout, lifecycle_probes
+    root, *, rows, tenants, concurrency, repeats, progress_path, seed, client_timeout, lifecycle_probes, frozen_catalogs
 ):
     from security_lakehouse.db.models import Tenant
     from security_lakehouse.db.repository import create_api_key, create_user
@@ -144,7 +146,7 @@ def _run_http_workload(
         tenant = f"tenant-{index}"
         lake = root / "tenants" / tenant
         evidence[tenant] = expected_evidence_ids(rows, tenant, seed=seed)
-        generation = make_generation(lake, rows, tenant, seed=seed)
+        generation = make_generation(lake, rows, tenant, seed=seed, frozen_catalogs=frozen_catalogs)
         hashes.append(file_sha256(generation / "silver/normalized_events.jsonl"))
         input_bytes.append((generation / "silver/normalized_events.jsonl").stat().st_size)
         publish_generation(lake, generation)
@@ -313,7 +315,9 @@ def _run_http_workload(
             checks["admission_slots_released"] = True
             tenant = "tenant-0"
             lake = root / "tenants" / tenant
-            publish_generation(lake, make_generation(lake, rows, tenant, changed=True, seed=seed))
+            publish_generation(
+                lake, make_generation(lake, rows, tenant, changed=True, seed=seed, frozen_catalogs=frozen_catalogs)
+            )
             response = client.get(
                 ROUTE,
                 headers={"Authorization": "Bearer " + credentials[tenant]},

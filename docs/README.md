@@ -102,16 +102,17 @@ Every guide in `docs/`, grouped by task. New here? Start with the
 
 ## Security
 
-| Guide                                                        | Covers                                    |
-| ------------------------------------------------------------ | ----------------------------------------- |
-| [Trust boundaries](THREAT_MODEL.md)                          | Threat model and trust boundaries         |
-| [Dependency security](DEPENDENCY_SECURITY.md)                | Dependency security scope                 |
-| [Scorecard remediation](SCORECARD_REMEDIATION.md)            | Review, fuzzing, and badge evidence gates |
-| [Third-party assets](THIRD_PARTY_ASSETS.md)                  | Policy for third-party logos and assets   |
-| [Benchmarks](BENCHMARKS.md)                                  | Validation and benchmark plan             |
-| [Artifact hashing benchmark](benchmarks/ARTIFACT_HASHING.md) | Artifact hashing memory benchmark         |
-| [CCF pipeline benchmark](benchmarks/CCF_PIPELINE.md)         | Bounded CCF pipeline measurements         |
-| [Investigation graph benchmark](benchmarks/INVESTIGATION.md) | Bounded graph reads and failure receipts  |
+| Guide                                                              | Covers                                               |
+| ------------------------------------------------------------------ | ---------------------------------------------------- |
+| [Trust boundaries](THREAT_MODEL.md)                                | Threat model and trust boundaries                    |
+| [Dependency security](DEPENDENCY_SECURITY.md)                      | Dependency security scope                            |
+| [Scorecard remediation](SCORECARD_REMEDIATION.md)                  | Review, fuzzing, and badge evidence gates            |
+| [Third-party assets](THIRD_PARTY_ASSETS.md)                        | Policy for third-party logos and assets              |
+| [Benchmarks](BENCHMARKS.md)                                        | Validation and benchmark plan                        |
+| [Artifact hashing benchmark](benchmarks/ARTIFACT_HASHING.md)       | Artifact hashing memory benchmark                    |
+| [CCF pipeline benchmark](benchmarks/CCF_PIPELINE.md)               | Bounded CCF pipeline measurements                    |
+| [Investigation graph benchmark](benchmarks/INVESTIGATION.md)       | Bounded graph reads and failure receipts             |
+| [Investigation cache benchmark](benchmarks/INVESTIGATION_CACHE.md) | Generation-model reuse, latency and memory tradeoffs |
 
 ## Reference
 

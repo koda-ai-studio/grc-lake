@@ -31,7 +31,34 @@ The graph represents evidence relationships, not network reachability, attack pa
 
 Generated evidence and frozen requirement/safeguard catalogs are read within one pinned generation. When frozen catalogs are unavailable in a legacy lake, catalog definitions use the current catalog. Taxonomy labels are catalog navigation metadata. Current vendor and triage records are operational overlays; the response version covers those overlays as well as graph contents.
 
-The API builds the server-side model before selecting the bounded response. Its processing cost still grows with evidence volume; the response bound is not a claim of constant-memory indexing or production-scale qualification.
+The API reuses completed models within a server process when the pinned generation
+has frozen requirement and safeguard catalogs. The cache key includes the resolved
+lake root, generation manifest, every graph input file version, current triage,
+vendor records and navigation catalogs. File versions use content hashes for
+recent writes and filesystem identity/change timestamps for settled files, as in
+the lake's JSONL indexes. Changing a generation or overlay cannot reuse the previous
+key. Mutable legacy lakes and generations missing frozen catalogs rebuild normally.
+
+The process retains at most eight models, one per lake, within a 128 MiB budget of
+accounted Python object sizes. Models expire 60 seconds after insertion, with
+expired entries removed on the next cache access; least recently used models are
+evicted when necessary. Oversized models are returned without retention. This is
+not a total RSS bound: active builds, active readers, temporary allocations and
+Python allocator overhead are additional. No graph cache is written to disk. See the
+[reuse measurements](benchmarks/INVESTIGATION_CACHE.md) for observed cold/warm
+latency and memory tradeoffs.
+
+Concurrent requests for the same key share a completed build. Waiting readers
+check cancellation every 50 ms; canceling one waiter does not cancel other
+readers. Failed builds are never retained. Input-version changes detected across construction
+prevent retention. Returned nodes and edges are independent copies, so a caller
+cannot mutate another response. Authentication and graph admission still run for
+every HTTP request, including cache hits.
+
+A cold read still builds the full server-side model, and warm reads still scan it
+to select a neighborhood. Depth, layers and search operate on the same model.
+Neither this bounded reuse nor the response bound establishes constant-memory
+indexing, tenant fairness or production-scale qualification.
 
 ### Build admission and cancellation
 
