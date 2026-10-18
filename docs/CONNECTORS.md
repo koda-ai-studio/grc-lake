@@ -93,7 +93,7 @@ grc-lake connectors list
 
 ## Connector Runner
 
-GRC Lake currently has **28 connector contracts**. **Twenty-five** are executable
+GRC Lake currently has **27 connector contracts**. **Twenty-four** are executable
 runners (direct source/API runners, the Snowflake, Databricks, ClickHouse,
 Iceberg/Parquet, BigQuery, S3, SIEM, and runtime-gateway existing-lake readers, and
 the Okta System Log incremental adapter). The remaining entries are read-only access contracts or managed evidence
@@ -128,7 +128,6 @@ kubeconfig). See [Hosted connector credentials](SERVER_AUTH.md#hosted-connector-
 | `jamf-devices`              | Jamf Pro device posture | executable (preview)                    |
 | `crowdstrike-falcon`        | CrowdStrike Falcon EDR  | executable (preview)                    |
 | `kubernetes-cluster`        | Kubernetes config       | executable (preview)                    |
-| `knowbe4-training`          | KnowBe4 training        | executable (preview)                    |
 | `snowflake-evidence-lake`   | governed evidence lake  | executable existing-lake read           |
 | `clickhouse-telemetry-lake` | telemetry analytics     | executable existing-lake read           |
 | `iceberg-parquet-lake`      | Iceberg / Parquet lake  | executable existing-lake read (preview) |
@@ -874,98 +873,23 @@ honoring `Retry-After`.
 container commands and args, labels, and annotations are never stored; only the names
 of Secret-backed variables, image references, and binding subjects are kept.
 
-## KnowBe4: security awareness training (preview)
+## Retired connectors
 
-`knowbe4-training` reads the KnowBe4 Reporting API
-(`https://{region}.api.knowbe4.com`, region `us`, `eu`, `ca`, `uk`, or `de`):
-`GET /v1/users?status=active`, `GET /v1/training/enrollments?exclude_archived_users=true`,
-and `GET /v1/phishing/security_tests`, paged 500 rows at a time.
+The KnowBe4 preview connector (`knowbe4-training`) is removed in the next release
+after 0.3.9. It is no longer offered for configuration, access probes, or syncs.
+Saved configurations remain in the append-only history but are excluded from
+scheduled collection. Explicit calls for that connector ID are rejected.
 
-**Paging.** KnowBe4 deprecates the `page` parameter in November 2026. After that, requests
-must use `per_page` or `cursor`, and the first request starts pagination with `cursor=0`
-([Reporting API reference, Pagination](https://developer.knowbe4.com/rest/reporting);
-[API Change Log, 2026-02-03](https://support.knowbe4.com/hc/en-us/articles/37449905326995-API-Change-Log)).
-As of 2026-10-13, KnowBe4 does not document where the next cursor appears in the
-response. The connector therefore works as follows:
+Previously collected observations, assessments, snapshots and exports remain
+available. Retirement does not delete evidence or change recorded control results;
+evidence still ages under the normal freshness rules. Remove any external jobs
+that call this connector, and revoke its Reporting API token in KnowBe4 if it is
+no longer used elsewhere. GRC Lake does not revoke provider credentials.
 
-- It requests `cursor=0&per_page=500`.
-- If a `Link: rel="next"` header includes a `cursor` value, the connector follows that
-  cursor. It uses only the cursor value and always sends the next request to the
-  configured regional host.
-- A short or empty page with no next cursor ends the collection.
-- A full page with no next cursor fails with an explicit incomplete-collection
-  error. A next link without exactly one nonblank cursor also fails, even on a
-  short page. The connector never falls back to deprecated `page` requests.
-- If KnowBe4 repeats a record identity (even in overlapping or reordered pages),
-  returns a malformed identity, or repeats a cursor, the sync fails without
-  replacing existing evidence or advancing its watermark.
-
-**Migration limitation:** removing `page` requests does not verify the undocumented
-next-cursor response. A full terminal page (including exactly 500 rows) without a
-next cursor is also ambiguous and fails closed. Accounts that previously needed
-legacy paging now receive an error until their cursor response is supported.
-[Issue #737](https://github.com/koda-ai-studio/grc-lake/issues/737) stays open until
-an authorized live run with more than 500 rows confirms the response contract.
-
-**Cursor qualification.** On an authorized account, obtain an independent count of
-more than 500 active users, non-archived enrollments, or phishing tests. With a
-Reporting API credential available through the named environment variable (or its
-`_FILE` secret reference), run:
-
-```bash
-uv run python tools/qualify_knowbe4.py --region us --collection users \
-  --expected-count 501 --credential-ref KNOWBE4_API_TOKEN \
-  --out /private/scratch/knowbe4-cursor-receipt.json
-```
-
-Replace 501 with the independently observed count. The command makes read-only
-requests through the same cursor-only client as normal syncs and retains only page counts, next-link presence,
-source revision and completion status. It never writes identities, emails, keys,
-response bodies or cursor values. A full page with no next cursor, page-budget
-exhaustion, or an unexpected count cannot qualify. This is one list's pagination
-check, not all-endpoint or complete live-provider qualification. Keep failed
-receipts and confirm the response contract with KnowBe4 when no next cursor is
-available; do not infer a response field from another API.
-
-| Event                      | Pass when                                                             | Controls                                                                                                                                |
-| -------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `knowbe4.user.training`    | Every enrollment is `Completed` or `Passed`                           | FEDRAMP-AT-2, FEDRAMP-AT-4, CMMC-3.2.1, CMMC-3.2.2, ISO27001-A.6.3, NIST-CSF-PR.AT-01, CIS-CONTROLS-14, SOC2-CC1.4, HIPAA-164.308(a)(5) |
-| `knowbe4.phishing.summary` | Delivery-weighted phish-prone % of tests in the last 90 days is < 20% | FEDRAMP-AT-2, CMMC-3.2.1, ISO27001-A.6.3, NIST-CSF-PR.AT-01, CIS-CONTROLS-14                                                            |
-
-Any `Past Due` enrollment is an open medium finding (`training_overdue`); only
-`Not Started`/`In Progress` is open low (`training_incomplete`); an active user with no
-enrollment is open medium (`not_enrolled`). The enrollment schema has no due date, so
-`Past Due` is KnowBe4's own verdict. No phishing test in the last 90 days is
-`observed`, never a pass. The 20% threshold is a GRC Lake default, not a KnowBe4
-benchmark.
-
-**Least privilege.** A Reporting API key from the KnowBe4 Reporting API console
-(Platinum, Diamond, SAT Foundations, or SAT Advanced subscription). A console user who can
-open **Account Settings → Account Integrations → API** generates it there: they turn on
-**Enable Report API Access**, then select **Reporting API → Create New API Token**
-([Reporting API Overview](https://support.knowbe4.com/hc/en-us/articles/115016090908-Reporting-API-Overview)).
-Use an account administrator to provision the key. The
-[Security Roles Guide](https://support.knowbe4.com/hc/en-us/articles/115015389767-Security-Roles-Guide)
-also documents an **Account Settings: Read/Write** permission for custom security
-roles, but neither guide explicitly confirms that this permission alone can create
-Reporting API tokens. A narrower provisioning role remains unverified.
-Tokens expire after at most five years. The key is read-only
-reporting for the whole account — KnowBe4 offers no finer scope — and is not the User
-Event API key. Store it as a secret and reference it with `credential_ref` (default
-`KNOWBE4_API_TOKEN`); only the region is stored in GRC Lake. Anonymized consoles return
-no per-user data.
-
-**Rate limits.** KnowBe4 allows 4 requests/second, a 50/minute burst, and 2,000 plus
-licensed users per day. The client paces requests at least 1.25 s apart and retries
-429/5xx honoring `Retry-After`. KnowBe4's burst lockout lasts about five minutes, which is
-longer than the shared retry budget. When 429 responses outlast that budget, the run fails
-with "rate limit reached ... retry the sync later" instead of a generic error.
-
-**Data minimization.** Only user ID, primary email (the join key to identity-provider
-and HRIS records), employee number, enrollment status counts, last completion date,
-and phish-prone percentage are kept. Names, job titles, phone numbers, locations,
-divisions, manager details, aliases, and custom fields are dropped before anything is
-stored. The key is only ever sent to the configured regional host.
+For training-related controls, use managed local evidence to retain applicable
+training records and reviews. A submitted document does not automatically establish
+training completion or satisfy the control; assessment still requires appropriate
+scope, provenance and review. No replacement provider integration is included.
 
 ## Existing lakes: mappings, Iceberg/Parquet, BigQuery (preview)
 

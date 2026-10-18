@@ -59,7 +59,6 @@ def test_preview_connectors_are_wired_into_the_console_and_badged() -> None:
         "jamf-devices",
         "crowdstrike-falcon",
         "kubernetes-cluster",
-        "knowbe4-training",
         "databricks-evidence-lake",
         "iceberg-parquet-lake",
         "bigquery-evidence-lake",

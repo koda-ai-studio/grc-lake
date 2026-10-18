@@ -299,22 +299,6 @@ export const CONNECTOR_CREDENTIAL_FIELDS: Record<string, ConnectorFieldDef[]> =
         hint: "Optional, comma-separated. Without it, image sources are recorded as inventory only.",
       },
     ],
-    "knowbe4-training": [
-      {
-        name: "region",
-        label: "KnowBe4 account region",
-        placeholder: "us",
-        required: true,
-        hint: "us, eu, ca, uk, or de — the server your console is on (training.knowbe4.com is us).",
-      },
-      {
-        name: "credential_ref",
-        label: "Reporting API key env var",
-        placeholder: "KNOWBE4_API_TOKEN",
-        required: true,
-        hint: "Key from the KnowBe4 Reporting API console (read-only reporting), stored as a secret reference.",
-      },
-    ],
     "workday-personnel": [
       {
         name: "report_url",

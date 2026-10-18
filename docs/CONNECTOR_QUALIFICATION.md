@@ -18,8 +18,7 @@ owner is recorded here. Credentials, provider identities and raw live evidence s
 The [GitHub collection contract](GITHUB_QUALIFICATION.md) details the selected adapter's
 pagination, errors, replay and remaining limitations. Follow-ups remain in
 [#908](https://github.com/koda-ai-studio/grc-lake/issues/908),
-[Databricks #734](https://github.com/koda-ai-studio/grc-lake/issues/734) and
-[KnowBe4 #737](https://github.com/koda-ai-studio/grc-lake/issues/737).
+and [Databricks #734](https://github.com/koda-ai-studio/grc-lake/issues/734).
 
 ## Evidence and ownership
 
@@ -41,7 +40,6 @@ pagination, errors, replay and remaining limitations. Follow-ups remain in
 | `intune-devices` | Implemented | [intune_connector](../tests/test_intune_connector.py); [collection_completeness](../tests/test_collection_completeness.py) | No scoped live record linked | Unassigned |
 | `jamf-devices` | Preview | [jamf_connector](../tests/test_jamf_connector.py); [collection_completeness](../tests/test_collection_completeness.py) | No scoped live record linked | Unassigned |
 | `jira-ticketing` | Implemented | [jira_connector](../tests/test_jira_connector.py); [collection_completeness](../tests/test_collection_completeness.py) | No scoped live record linked | Unassigned |
-| `knowbe4-training` | Preview | [knowbe4_connector](../tests/test_knowbe4_connector.py); [knowbe4_qualification](../tests/test_knowbe4_qualification.py) | No scoped live record linked | Unassigned |
 | `kubernetes-cluster` | Preview | [kubernetes_connector](../tests/test_kubernetes_connector.py); [collection_completeness](../tests/test_collection_completeness.py) | No scoped live record linked | Unassigned |
 | `managed-local-evidence` | Configuration boundary | Catalog validation only | Not applicable: no standalone collector | Unassigned |
 | `object-storage-evidence` | Implemented | [s3_connector](../tests/test_s3_connector.py) | No scoped live record linked | Unassigned |
@@ -77,7 +75,6 @@ Qualify the actual principal, account, resource scope and provider version separ
 | `intune-devices` | `scoped_token` | DeviceManagementManagedDevices.Read.All |
 | `jamf-devices` | `scoped_token` | Read Computers; Read Mobile Devices |
 | `jira-ticketing` | `scoped_token` | read:jira-work; read:jira-user; read:project:jira |
-| `knowbe4-training` | `scoped_token` | Reporting API key (read-only reporting; Platinum, Diamond, SAT Foundation, or SAT Advanced subscription) |
 | `kubernetes-cluster` | `scoped_token` | get/list clusterrolebindings and rolebindings; get/list namespaces, pods, and networkpolicies; get/list deployments, daemonsets, statefulsets, replicasets, jobs, and cronjobs |
 | `managed-local-evidence` | `dedicated_schema` | write dedicated TrustOps output directory; read generated TrustOps output directory |
 | `object-storage-evidence` | `read_only_role` | LIST evidence prefix; GET evidence objects |

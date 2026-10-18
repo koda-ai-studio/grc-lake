@@ -3,6 +3,10 @@
 All notable GRC Lake changes are summarized here. Versions follow semver for the
 Python package, Helm chart, and bundled web console.
 
+## Unreleased
+
+- Retire the unqualified KnowBe4 preview connector, its setup surfaces and qualification tooling. Existing configurations are no longer scheduled and explicit syncs are rejected. Historical evidence, snapshots and exports remain readable; managed local evidence remains available for applicable training records. Remove external sync jobs and revoke unused provider tokens separately.
+
 ## 0.3.9 - 2026-10-18
 
 - Reject weak SAML certificate and OIDC signing keys, including refreshed JWKS during key rotation. Bind OIDC token issuer and audience to the configured provider and client. Existing IdPs using RSA keys below 2048 bits or shared-secret ID-token signing must rotate before upgrading.
