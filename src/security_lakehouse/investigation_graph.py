@@ -8,20 +8,70 @@ import hashlib
 import json
 from collections import Counter, defaultdict
 from collections.abc import Callable, Iterable, Mapping
+from copy import deepcopy
 from itertools import islice
 from pathlib import Path
 from typing import Any
 
+from security_lakehouse import catalog
+from security_lakehouse import safeguards as safeguard_catalog
 from security_lakehouse.catalog import control_catalog_view, framework_registry_view
 from security_lakehouse.domain_identity import source_asset_key
 from security_lakehouse.event_status import FAIL_STATUSES, normalize_event_status
-from security_lakehouse.generations import generation_reader, pinned_path
+from security_lakehouse.generations import generation_identity, generation_reader, pinned_path
+from security_lakehouse.investigation_cache import Key, Model, ModelCache
 from security_lakehouse.investigation_repository import add_repository_context
-from security_lakehouse.io import canonical_sha256, read_json, read_jsonl
+from security_lakehouse.io import canonical_sha256, file_version, read_json, read_jsonl
 from security_lakehouse.mapping_review import effective_safeguards
 from security_lakehouse.models import instant_sort_key
 from security_lakehouse.safeguards import effective_review_state, load_ccf_categories, load_ccf_families
 from security_lakehouse.tracking import list_events
+
+_MODEL_CACHE = ModelCache()
+# Every generated input read by _build_model/add_repository_context. Missing
+# optional files also participate, so later additions cannot reuse an old model.
+_MODEL_FILES = (
+    "catalog/control_map.json",
+    "catalog/safeguards.json",
+    "gold/ccf_assessment.json",
+    "gold/control_posture.jsonl",
+    "gold/evidence_freshness.jsonl",
+    "silver/normalized_events.jsonl",
+    "gold/asset_risk.jsonl",
+    "bronze/raw_events.jsonl",
+    "gold/violation_tracking.jsonl",
+)
+
+
+def _model_key(lake: Path, vendors: list[dict[str, Any]] | None, check: Callable[[], None]) -> Key | None:
+    identity = generation_identity(lake)
+    if identity is None or not all(pinned_path(lake / relative).is_file() for relative in _MODEL_FILES[:2]):
+        # Legacy live catalogs include mutable org mapping decisions. Never
+        # treat their absence as an immutable empty catalog.
+        return None
+    versions = []
+    for relative in _MODEL_FILES:
+        check()
+        versions.append(file_version(lake / relative, base_dir=lake))
+    for path in (catalog.DEFAULT_FRAMEWORK_REGISTRY, safeguard_catalog.DEFAULT_FAMILIES):
+        check()
+        versions.append(file_version(path))
+    return str(lake.resolve()), canonical_sha256([identity, versions, vendors or []])
+
+
+def _model(lake: Path, vendors: list[dict[str, Any]] | None, check: Callable[[], None]) -> Model:
+    # Vendor records originate outside the generation. Own the supplied snapshot
+    # so subsequent caller mutations cannot alter a cached graph.
+    vendors = deepcopy(vendors)
+    key = _model_key(lake, vendors, check)
+
+    def build() -> Model:
+        nodes, edges, frameworks = _build_model(lake, vendors, check)
+        return nodes, edges, frameworks, _graph_version(nodes.values(), edges.values(), check)
+
+    if key is None:
+        return build()
+    return _MODEL_CACHE.get_or_build(key, build, lambda: _model_key(lake, vendors, check) == key, check)
 
 
 def _id(kind: str, *parts: str) -> str:
@@ -281,10 +331,9 @@ def investigation_graph(
     validate_bounds(view=view, depth=depth, limit=limit, root_offset=root_offset, control_offset=control_offset)
     check = checkpoint or (lambda: None)
     check()
-    nodes, edges, frameworks = _build_model(lake, vendors, check)
+    nodes, edges, frameworks, version = _model(lake, vendors, check)
 
     check()
-    version = _graph_version(nodes.values(), edges.values(), check)
     if expected_version and version != expected_version:
         raise ValueError("graph version changed; refresh before expanding")
     eligible = {key for key, n in nodes.items() if not layers or n["kind"] in layers}
@@ -381,8 +430,8 @@ def investigation_graph(
     check()
     kept = set(ordered[:limit])
     return {
-        "nodes": [nodes[k] for k in ordered[:limit]],
-        "edges": [e for e in edges.values() if e["source"] in kept and e["target"] in kept],
+        "nodes": [deepcopy(nodes[k]) for k in ordered[:limit]],
+        "edges": [deepcopy(e) for e in edges.values() if e["source"] in kept and e["target"] in kept],
         "counts": dict(Counter(n["kind"] for n in nodes.values())),
         "version": version,
         "root": root,

@@ -13,8 +13,9 @@ def test_dangling_edges_and_foreign_tenant_data_fail_measurement():
         )
 
 
-def test_small_workload_checks_generation_isolation_and_records_all_queries(tmp_path):
-    report = run_workload(tmp_path, rows=12, tenants=2, concurrency=2, repeats=1)
+@pytest.mark.parametrize("frozen_catalogs", [False, True])
+def test_small_workload_checks_generation_isolation_and_records_all_queries(tmp_path, frozen_catalogs):
+    report = run_workload(tmp_path, rows=12, tenants=2, concurrency=2, repeats=1, frozen_catalogs=frozen_catalogs)
     assert report["correctness_ok"]
     assert report["checks"] == {
         "source_account_isolation": True,

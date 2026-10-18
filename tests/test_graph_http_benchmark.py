@@ -8,13 +8,16 @@ import pytest
 from tools.benchmark_investigation import attempt
 
 
-def test_http_workload_uses_auth_and_preserves_tenant_bindings(tmp_path, monkeypatch):
+@pytest.mark.parametrize("frozen_catalogs", [False, True])
+def test_http_workload_uses_auth_and_preserves_tenant_bindings(tmp_path, monkeypatch, frozen_catalogs):
     from tools.benchmark_investigation_http import run_http_workload
 
     # A benchmark must never migrate an operator's configured database.
     monkeypatch.setenv("TRUSTOPS_DATABASE_URL", "postgresql://must-not-connect.invalid/private")
     monkeypatch.setenv("GRC_LAKE_ALLOW_INSECURE", "1")
-    report = run_http_workload(tmp_path, rows=12, tenants=2, concurrency=2, repeats=1, seed=5)
+    report = run_http_workload(
+        tmp_path, rows=12, tenants=2, concurrency=2, repeats=1, seed=5, frozen_catalogs=frozen_catalogs
+    )
     assert report["correctness_ok"]
     assert report["seed"] == 5
     assert all(report["checks"].values())

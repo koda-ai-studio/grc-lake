@@ -5,6 +5,8 @@ Python package, Helm chart, and bundled web console.
 
 ## Unreleased
 
+- Reuse completed investigation models for pinned generations with frozen catalogs in a bounded process-local cache. Invalidate reuse on evidence, triage, vendor and navigation changes; preserve expansion versions and independent response data. Coalesce same-key builds with cancellable waiting and retain no failed or oversized model.
+
 - Reduce investigation graph temporary memory by batching canonical version hashing, releasing build scratch before traversal, and deriving undirected neighbors from directed indexes. Preserve expansion tokens and check cancellation between hash batches. Refresh reproducible graph, pipeline and local distributed measurements with explicit latency and fairness limits.
 
 - Retire the unqualified KnowBe4 preview connector, its setup surfaces and qualification tooling. Existing configurations are no longer scheduled and explicit syncs are rejected. Historical evidence, snapshots and exports remain readable; managed local evidence remains available for applicable training records. Remove external sync jobs and revoke unused provider tokens separately.
