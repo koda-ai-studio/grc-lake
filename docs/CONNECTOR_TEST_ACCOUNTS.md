@@ -24,16 +24,15 @@ workspaces also need suitable synthetic evidence views before collection is usef
 
 ## Additional coverage
 
-| Option                                                                                                          | What it adds                                         | Gate                                                                                                                                                                                  |
-| --------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [ClickHouse Cloud trial](https://clickhouse.com/pricing)                                                        | Managed telemetry-lake reads and sink round trips    | $300 credits over up to 30 days; the pricing page describes a subsequent pay-as-you-go transition. Confirm billing settings. A self-managed ClickHouse test instance is another path. |
-| [Intune trial](https://learn.microsoft.com/en-us/intune/fundamentals/free-trial-sign-up)                        | Device inventory/compliance through Microsoft Graph  | 30 days; use test devices and an isolated tenant or approved test scope. An empty tenant cannot establish device coverage.                                                            |
-| [GitLab Free or Ultimate trial](https://about.gitlab.com/solutions/open-source/join/)                           | Repository governance, reviews and security findings | API entitlements vary by tier. The OSS program has eligibility conditions; do not assume public source alone qualifies.                                                               |
-| [KnowBe4 API-enabled tenant](https://support.knowbe4.com/hc/en-us/articles/115016090908-Reporting-API-Overview) | Training, users/groups and campaign pagination       | Reporting API requires an entitled plan. Confirm access with the vendor before relying on a generic trial or demo.                                                                    |
+| Option                                                                                   | What it adds                                         | Gate                                                                                                                                                                                  |
+| ---------------------------------------------------------------------------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [ClickHouse Cloud trial](https://clickhouse.com/pricing)                                 | Managed telemetry-lake reads and sink round trips    | $300 credits over up to 30 days; the pricing page describes a subsequent pay-as-you-go transition. Confirm billing settings. A self-managed ClickHouse test instance is another path. |
+| [Intune trial](https://learn.microsoft.com/en-us/intune/fundamentals/free-trial-sign-up) | Device inventory/compliance through Microsoft Graph  | 30 days; use test devices and an isolated tenant or approved test scope. An empty tenant cannot establish device coverage.                                                            |
+| [GitLab Free or Ultimate trial](https://about.gitlab.com/solutions/open-source/join/)    | Repository governance, reviews and security findings | API entitlements vary by tier. The OSS program has eligibility conditions; do not assume public source alone qualifies.                                                               |
 
 Local ClickHouse, Kubernetes and file-backed Parquet tests can complement these
 accounts. Keycloak can exercise GRC Lake's OIDC sign-in; it does not replace
-Okta, KnowBe4, Databricks or their evidence APIs.
+Okta, Databricks or their evidence APIs.
 
 ## Make each account useful
 

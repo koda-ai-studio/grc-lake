@@ -120,7 +120,7 @@
     },
     "nist-800-171-rev3": {
       "03.01": ["okta-identity", "aws-posture", "google-workspace-identity"],
-      "03.02": ["knowbe4-training", "managed-local-evidence"],
+      "03.02": ["managed-local-evidence"],
       "03.03": ["okta-system-log", "siem-alerts", "clickhouse-telemetry-lake"],
       "03.04": ["aws-posture", "azure-posture", "gcp-posture"],
       "03.05": ["okta-identity", "aws-posture", "identity-provider"],
@@ -154,7 +154,7 @@
       "Art21.2(d)": ["managed-local-evidence", "ticketing"],
       "Art21.2(e)": ["github-security", "gitlab-security", "aws-posture"],
       "Art21.2(f)": ["managed-local-evidence", "ticketing"],
-      "Art21.2(g)": ["knowbe4-training", "managed-local-evidence"],
+      "Art21.2(g)": ["managed-local-evidence"],
       "Art21.2(h)": ["aws-posture", "azure-posture", "gcp-posture"],
       "Art21.2(i)": [
         "okta-identity",
@@ -205,7 +205,7 @@
         "managed-local-evidence",
         "object-storage-evidence"
       ],
-      "Art13": ["siem-alerts", "knowbe4-training", "managed-local-evidence"],
+      "Art13": ["siem-alerts", "managed-local-evidence"],
       "Art14": ["managed-local-evidence"],
       "Art16": ["managed-local-evidence"],
       "Art17": ["siem-alerts", "ticketing", "jira-ticketing"],

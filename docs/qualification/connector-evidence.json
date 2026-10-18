@@ -215,15 +215,6 @@
       "owner": null
     },
     {
-      "connector_id": "knowbe4-training",
-      "fixture_tests": [
-        "tests/test_knowbe4_connector.py",
-        "tests/test_knowbe4_qualification.py"
-      ],
-      "live_record": null,
-      "owner": null
-    },
-    {
       "connector_id": "iceberg-parquet-lake",
       "fixture_tests": ["tests/test_iceberg_parquet_connector.py"],
       "live_record": null,

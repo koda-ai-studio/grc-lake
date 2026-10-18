@@ -199,13 +199,6 @@ export const CONNECTOR_VISUALS: Record<string, ConnectorVisual> = {
     bg: "#eff6ff",
     categoryLabel: "Container platform",
   },
-  "knowbe4-training": {
-    vendor: "KnowBe4",
-    mark: "KB",
-    accent: "#e3701a",
-    bg: "#fff7ed",
-    categoryLabel: "Security training",
-  },
   "databricks-evidence-lake": {
     vendor: "Databricks",
     mark: "DB",
