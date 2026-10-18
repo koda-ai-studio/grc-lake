@@ -62,3 +62,11 @@ framework names, simple monograms, a globe, a shield, and a stars motif to
 identify scope. They are not official institutional logos or certification
 seals. The console uses these at small sizes; the approved NIST illustrations
 remain bundled separately. No runtime or repository dependency is introduced.
+
+## README Snowflake mark
+
+The README header uses the Snowflake path from Simple Icons, matching
+Agent-Bom’s `docs/images/vendor/simple-icons/snowflake.svg`. The path is embedded
+by `tools/render_readme_header.py` so the header renders without external assets.
+Simple Icons artwork is CC0 1.0; Snowflake retains its trademark. The mark
+identifies the Snowflake integration and implies no endorsement. Asset owner: GRC Lake maintainers. Updated October 18, 2026.
