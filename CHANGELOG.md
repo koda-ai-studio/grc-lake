@@ -5,6 +5,8 @@ Python package, Helm chart, and bundled web console.
 
 ## Unreleased
 
+- Reduce investigation graph temporary memory by batching canonical version hashing, releasing build scratch before traversal, and deriving undirected neighbors from directed indexes. Preserve expansion tokens and check cancellation between hash batches. Refresh reproducible graph, pipeline and local distributed measurements with explicit latency and fairness limits.
+
 - Retire the unqualified KnowBe4 preview connector, its setup surfaces and qualification tooling. Existing configurations are no longer scheduled and explicit syncs are rejected. Historical evidence, snapshots and exports remain readable; managed local evidence remains available for applicable training records. Remove external sync jobs and revoke unused provider tokens separately.
 
 ## 0.3.9 - 2026-10-18

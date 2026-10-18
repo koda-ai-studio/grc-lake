@@ -1,0 +1,85 @@
+{
+  "concurrent_tenants": 4,
+  "elapsed_seconds": 15.038032291980926,
+  "evidence": "synthetic-local-postgresql-and-s3-http-emulator",
+  "limitations": [
+    "one host",
+    "emulated S3",
+    "thread concurrency",
+    "synthetic evidence",
+    "not a production SLO"
+  ],
+  "platform": "macOS-27.0.1-arm64-arm-64bit",
+  "process_peak_rss_mib": 615.40625,
+  "python": "3.12.13",
+  "results": [
+    {
+      "cold_read_seconds": 0.6825595409900416,
+      "lake_bytes": 20668379,
+      "partition_bytes": 18199,
+      "partition_download_seconds": 0.020364750002045184,
+      "partition_files": 1,
+      "partition_rows": 143,
+      "publish_seconds": 13.831296625023242,
+      "rows": 1000,
+      "shard": 50,
+      "tenant": "benchmark-0",
+      "warm_read_seconds": 0.09842691698577255
+    },
+    {
+      "cold_read_seconds": 0.703011957986746,
+      "lake_bytes": 20544576,
+      "partition_bytes": 18134,
+      "partition_download_seconds": 0.017737333982950076,
+      "partition_files": 1,
+      "partition_rows": 143,
+      "publish_seconds": 13.82300779200159,
+      "rows": 1000,
+      "shard": 15,
+      "tenant": "benchmark-1",
+      "warm_read_seconds": 0.100885375024518
+    },
+    {
+      "cold_read_seconds": 0.670530332979979,
+      "lake_bytes": 20627044,
+      "partition_bytes": 18169,
+      "partition_download_seconds": 0.022422791982535273,
+      "partition_files": 1,
+      "partition_rows": 143,
+      "publish_seconds": 13.857080500019947,
+      "rows": 1000,
+      "shard": 46,
+      "tenant": "benchmark-2",
+      "warm_read_seconds": 0.0999505830113776
+    },
+    {
+      "cold_read_seconds": 0.6709599580208305,
+      "lake_bytes": 20785138,
+      "partition_bytes": 18145,
+      "partition_download_seconds": 0.010676041012629867,
+      "partition_files": 1,
+      "partition_rows": 143,
+      "publish_seconds": 13.876492291979957,
+      "rows": 1000,
+      "shard": 62,
+      "tenant": "benchmark-3",
+      "warm_read_seconds": 0.11025191697990522
+    }
+  ],
+  "rows_per_tenant": 1000,
+  "qualification": {
+    "returncode": 0,
+    "stopped": null,
+    "sampled_group_peak_rss_mib": 716.90625,
+    "elapsed_seconds": 18.369444874988403,
+    "postgres_version": "postgres (PostgreSQL) 16.14 (Homebrew)",
+    "revision": "a4af812b2ca52588efc1bd03ed53281df2f9de24",
+    "harness_sha256": "cb8fa315169a8fc6611066771cc917c5415cdc2d0af7a0cfcbd981d64ae11095",
+    "limits": {
+      "seconds": 600,
+      "rss_mib": 4096,
+      "free_gib": 5
+    },
+    "scope": "Disposable local PostgreSQL, private Unix socket, TCP disabled; Moto loopback S3; PostgreSQL memory excluded from Python group"
+  }
+}

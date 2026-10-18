@@ -1,0 +1,17 @@
+{
+  "returncode": 1,
+  "stopped": null,
+  "sampled_group_peak_rss_mib": 272.25,
+  "elapsed_seconds": 7.240615999995498,
+  "postgres_version": "postgres (PostgreSQL) 16.14 (Homebrew)",
+  "revision": "a4af812b2ca52588efc1bd03ed53281df2f9de24",
+  "harness_sha256": "cb8fa315169a8fc6611066771cc917c5415cdc2d0af7a0cfcbd981d64ae11095",
+  "limits": {
+    "seconds": 600,
+    "rss_mib": 4096,
+    "free_gib": 5
+  },
+  "scope": "Disposable local PostgreSQL, private Unix socket, TCP disabled; Moto loopback S3; PostgreSQL memory excluded from Python group",
+  "failure": "Disposable cluster defaulted to SQL_ASCII; driver initialization returned bytes for server version and failed before workload measurement.",
+  "measured_rows": 0
+}
