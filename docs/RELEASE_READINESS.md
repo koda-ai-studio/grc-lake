@@ -1,16 +1,16 @@
 # Release readiness
 
-GRC Lake **0.3.8 is published and verified** on
-[PyPI](https://pypi.org/project/grc-lake/0.3.8/),
-[GitHub](https://github.com/koda-ai-studio/grc-lake/releases/tag/v0.3.8), and as
-`ghcr.io/koda-ai-studio/grc-lake:0.3.8`.
-Use the [v0.3.8 release templates](https://github.com/koda-ai-studio/grc-lake/tree/v0.3.8)
+GRC Lake **0.3.9 is published and verified** on
+[PyPI](https://pypi.org/project/grc-lake/0.3.9/),
+[GitHub](https://github.com/koda-ai-studio/grc-lake/releases/tag/v0.3.9), and as
+`ghcr.io/koda-ai-studio/grc-lake:0.3.9`.
+Use the [v0.3.9 release templates](https://github.com/koda-ai-studio/grc-lake/tree/v0.3.9)
 for a published deployment. Later commits on `main` may contain unreleased changes.
 
 The shell-free runtime uses pinned Wolfi Python and matching system libraries.
 Both published architectures match images qualified with zero reported vulnerabilities.
 CI and release gates continue to block all HIGH/CRITICAL and fixable MEDIUM findings.
-See [runtime construction and scan scope](DEPENDENCY_SECURITY.md#038-release-qualification-scans).
+See [runtime construction and scan scope](DEPENDENCY_SECURITY.md#039-release-qualification-scans).
 Earlier published images and their historical scan results remain unchanged.
 
 The release includes repaired SOC 2 governance contracts, 35 receipt-bound
@@ -40,178 +40,74 @@ deployments, non-deprecated IdP signature and digest algorithms. Existing browse
 sessions must sign in again. See [deployment](DEPLOYMENT.md) and
 [server authentication](SERVER_AUTH.md).
 
-## 0.3.9 candidate
+## Verified 0.3.9 publication
 
 Version 0.3.9 adds SSO signing-key strength checks, exact OIDC issuer and audience
 binding, and a bounded TLS endpoint checker. Weak IdP keys and shared-secret
 ID-token signing must be replaced before upgrading; see [server authentication](SERVER_AUTH.md).
-This candidate is not published. README installation commands remain on 0.3.8.
 
-Release dry runs retain signed Python provenance and qualify both image
-architectures before publication. Verify the candidate commit, package hashes,
-provenance and runtime receipts together; a dry run does not establish PyPI or
-registry publication, live IdP behavior, or production proxy configuration.
+The [release workflow](https://github.com/koda-ai-studio/grc-lake/actions/runs/39160555436)
+passed on source `f7c9256fc94488338e2f49e3bc8d6f52b6939392`, after that exact
+main commit [passed CI](https://github.com/koda-ai-studio/grc-lake/actions/runs/39148426622)
+and [release qualification](https://github.com/koda-ai-studio/grc-lake/actions/runs/39148736277).
+The `v0.3.9` tag resolves to that commit. Published wheel and sdist hashes match
+between GitHub, PyPI, and the release build:
+
+| Artifact                          | SHA-256                                                            |
+| --------------------------------- | ------------------------------------------------------------------ |
+| `grc_lake-0.3.9-py3-none-any.whl` | `e88d7660fa44653df51c85a84aef509c8706e4fb536d5f95a5899f9a1494c480` |
+| `grc_lake-0.3.9.tar.gz`           | `1d7bacfd7c754d9e91cedc428333dc034272728c92519793132abd06f529ee68` |
+
+The retained signed Python bundle and image provenance verify against this
+repository, release workflow, source commit, and `v0.3.9` tag. A fresh hash-locked
+PyPI wheel installation passed package, catalog, console and integrity-route
+checks outside the checkout.
+
+The anonymously readable multi-platform index is `sha256:e4a2b2d0049221f34c6009e82a70cabacbc440870a0284933a4588951fdf5f89`:
+
+- AMD64: `sha256:e6dcba4dc6e581305911de797629e0e1056494385c2c4e1ede93a68a7525d00f`
+- ARM64: `sha256:084072cc7fb5bc42b809d374aa97c2baea6abf77b3313e17440bfecb5911529f`
+
+Every platform manifest, configuration and compressed layer was fetched anonymously
+and hash-verified. Published filesystem layers and runtime configuration match the
+images scanned and probed by the release workflow. Both architecture runtime
+receipts pass authentication, tenant isolation, revocation, persistence, snapshot
+integrity, bundled console and non-root checks. AMD64 and emulated ARM64 were
+qualified on the hosted runner; these checks do not establish production capacity,
+live IdP behavior, or production proxy configuration.
+
+Both full image scans contain **zero reported vulnerabilities** in the recognized
+29 Wolfi and 110 Python packages per architecture. This is a dated scanner result,
+not proof that every component or application behavior is free of vulnerabilities.
 
 ## Verified 0.3.8 publication
 
-The [0.3.8 release workflow](https://github.com/koda-ai-studio/grc-lake/actions/runs/39056996566)
-passed on source `0b04d15d0b0a6acd5a8d0a92cbf664feb0ddeb97`, after that exact
-main commit [passed CI](https://github.com/koda-ai-studio/grc-lake/actions/runs/39005264318)
-and [release qualification](https://github.com/koda-ai-studio/grc-lake/actions/runs/39056234153).
-The `v0.3.8` tag resolves to that commit. Published wheel and sdist hashes match
-between GitHub, PyPI, and the release build:
-
-| Artifact                          | SHA-256                                                            |
-| --------------------------------- | ------------------------------------------------------------------ |
-| `grc_lake-0.3.8-py3-none-any.whl` | `b1d7f8b1a178b6b3507b7144c1681170c975f1c10ac1f91c281b0a27e180a6ca` |
-| `grc_lake-0.3.8.tar.gz`           | `5f610c01028fa28bb4c2ffa6207768690aec303f1362c2fd6584f05d00bb0206` |
-
-The retained signed Python bundle and image provenance verify against this
-repository, release workflow, source commit, and `v0.3.8` tag. A fresh hash-locked
-PyPI wheel installation passed installed-package, catalog, console and integrity-route
-checks outside the checkout.
-
-The anonymously readable multi-platform index is `sha256:0b4d927332f1af0567a8b147260d8b6b48f071be401ebcfe861f671d96c407af`:
-
-- AMD64: `sha256:8c96f9035a29819180a0a67bfadcf811fb6daac2b1ac83805b1dc80b32b17bd5`
-- ARM64: `sha256:38300ca17886657028c285de3b84e35b9c3df05e281ac673ac7363ac9ffd29a9`
-
-Every platform manifest, configuration and compressed layer was fetched anonymously
-and hash-verified. Published filesystem layers and runtime configuration match the
-images scanned and probed by the release workflow. Both architecture runtime
-receipts pass authentication, tenant isolation, revocation, persistence, snapshot
-integrity, bundled console and non-root checks. AMD64 and emulated ARM64 were
-qualified on the hosted runner; synthetic probes do not establish production capacity.
-
-Both full image scans contain **zero reported vulnerabilities** in the recognized Wolfi and
-Python packages. This is a dated scanner result, not proof that every component or
-application behavior is free of vulnerabilities. Existing release artifacts and
-their historical findings remain unchanged.
+[Package hashes, image digests and verification scope](https://github.com/koda-ai-studio/grc-lake/blob/f7c9256fc94488338e2f49e3bc8d6f52b6939392/docs/RELEASE_READINESS.md#verified-038-publication)
+remain available in the historical record. Both image scans reported zero vulnerabilities in recognized packages.
+These results describe those release bytes and do not qualify later builds.
 
 ## Verified 0.3.7 publication
 
-The [0.3.7 release workflow](https://github.com/koda-ai-studio/grc-lake/actions/runs/38963597264)
-passed on source `7a268b35404dba1bffcb09169878b0e46eb50f3d`, after that exact
-main commit [passed CI](https://github.com/koda-ai-studio/grc-lake/actions/runs/38936304539)
-and [release qualification](https://github.com/koda-ai-studio/grc-lake/actions/runs/38960647955).
-The `v0.3.7` tag resolves to that commit. Published wheel and sdist hashes match
-between GitHub, PyPI, and the release build:
-
-| Artifact                          | SHA-256                                                            |
-| --------------------------------- | ------------------------------------------------------------------ |
-| `grc_lake-0.3.7-py3-none-any.whl` | `c8824103fd5af500894bb04488e5334688d9733f801cb671cfbb163422343f01` |
-| `grc_lake-0.3.7.tar.gz`           | `c6b6596d48da23fbfaf8c5cc004316e4a5ee9bacf417d034b99e82e7394f1693` |
-
-The retained signed Python bundle and image provenance verify against this
-repository, release workflow, source commit, and `v0.3.7` tag. A fresh hash-locked
-PyPI wheel installation passed installed-package, catalog, console and integrity-route
-checks outside the checkout.
-
-The anonymously readable multi-platform index is `sha256:a16b90e1e5b6d55f70ca51561bd9834c2f963809025dfeda09aa77bb7b90d84b`:
-
-- AMD64: `sha256:598cc431b73da748e8b93bd56a2f4f957754f1c2d99c0c731a037a23c532504a`
-- ARM64: `sha256:df331e87eefb7f4ab346493c249046375a0f38b8d833fddbf08eac126da5c314`
-
-Every platform manifest, configuration and compressed layer was fetched anonymously
-and hash-verified. Published filesystem layers and runtime configuration match the
-images scanned and probed by the release workflow. Both architecture runtime
-receipts pass authentication, tenant isolation, revocation, persistence, snapshot
-integrity, bundled console and non-root checks. AMD64 and emulated ARM64 were
-qualified on the hosted runner; synthetic probes do not establish production capacity.
-
-Each unfiltered scan reports **zero HIGH/CRITICAL, 26 MEDIUM and 10 LOW findings**,
-with no fixable MEDIUM findings. The remaining advisories do not satisfy the
-OpenSSF vulnerability-age criterion; see [dependency security](DEPENDENCY_SECURITY.md).
+[Package hashes, image digests and verification scope](https://github.com/koda-ai-studio/grc-lake/blob/f7c9256fc94488338e2f49e3bc8d6f52b6939392/docs/RELEASE_READINESS.md#verified-037-publication)
+remain available in the historical record. Each image scan retained 26 MEDIUM and 10 LOW findings, including advisories older than 60 days.
+These results describe those release bytes and do not qualify later builds.
 
 ## Verified 0.3.6 publication
 
-The [0.3.6 release workflow](https://github.com/koda-ai-studio/grc-lake/actions/runs/38924465945)
-passed on source `17a011b87ad68db5754591977f8c14c64bcc16a8`, after that exact
-main commit [passed CI](https://github.com/koda-ai-studio/grc-lake/actions/runs/38850091605).
-The `v0.3.6` tag resolves to that commit. Published wheel and sdist hashes match
-between GitHub, PyPI, and the release build:
-
-| Artifact                          | SHA-256                                                            |
-| --------------------------------- | ------------------------------------------------------------------ |
-| `grc_lake-0.3.6-py3-none-any.whl` | `5cf219399660052cf4a8de5f31cdc8d70d306446281734e217a8ba931d272053` |
-| `grc_lake-0.3.6.tar.gz`           | `06beaf00ab87d61eb5b178dcd62fd6401cad32012f220b8c49e0645e3b15e663` |
-
-Signed provenance for both packages and the multi-platform image verified against
-this repository, release workflow, source commit, and `v0.3.6` tag. A hash-locked
-PyPI install in a fresh environment passed installed-package, catalog, console,
-and integrity-route checks.
-
-Anonymous registry downloads verified every manifest, configuration, and filesystem
-blob for both architectures by digest. Published filesystem layers and runtime
-configuration match the scanned images that passed authenticated AMD64 and emulated
-ARM64 probes in release CI. Those probes cover tenant isolation, key revocation,
-persistence after recreation, snapshot integrity, non-root execution, and the
-bundled console. A separate native ARM64 post-publication probe is not recorded as
-passed; runtime evidence here is the hosted qualification linked to the published
-layers. These are synthetic checks, not TLS, IdP, live-provider, or capacity proof.
-
-| Image                | Digest                                                                    |
-| -------------------- | ------------------------------------------------------------------------- |
-| Multi-platform index | `sha256:cc7cca14d48d2a4e754312af1a655e99b4d1a8981ea1bb5a3348f271235d8308` |
-| Linux AMD64          | `sha256:d5ee3da43f945977bc9ac87cacdf9b0503086e9aee0d336dd5192763dc372e50` |
-| Linux ARM64          | `sha256:ccd72111e32fef2924812124b6dc560dda97ba3f60fe55bb33505feed0414430` |
-
-Use the index digest to pin these exact published bytes. The full scans retain
-44 HIGH package findings spanning eight CVEs per architecture, with zero fixable
-MEDIUM/HIGH/CRITICAL findings. See
-[dependency security scope](DEPENDENCY_SECURITY.md#036-release-qualification-scans);
-a policy pass is not a vulnerability-free image. Source, publication, and these
-synthetic checks do not establish live-provider accuracy or a working customer
-deployment.
+[Package hashes, image digests and verification scope](https://github.com/koda-ai-studio/grc-lake/blob/f7c9256fc94488338e2f49e3bc8d6f52b6939392/docs/RELEASE_READINESS.md#verified-036-publication)
+remain available in the historical record. Each image scan retained 44 HIGH findings across eight CVEs.
+These results describe those release bytes and do not qualify later builds.
 
 ## Verified 0.3.5 publication
 
-The [0.3.5 release workflow](https://github.com/koda-ai-studio/grc-lake/actions/runs/38686161848)
-passed on source `a81782af345e89484ec65f1e270e2475b11c174c`, after that exact
-main commit [passed CI](https://github.com/koda-ai-studio/grc-lake/actions/runs/38681620153).
-The `v0.3.5` tag resolves to that commit. Published wheel and sdist hashes match
-between GitHub, PyPI and the release build:
-
-| Artifact                          | SHA-256                                                            |
-| --------------------------------- | ------------------------------------------------------------------ |
-| `grc_lake-0.3.5-py3-none-any.whl` | `2049da57f197fb040f6fd172f5470bb9fbb19d1c59d8cefbeca8becb9b813546` |
-| `grc_lake-0.3.5.tar.gz`           | `63c9e215d005f296dec2e014b5e23b7b880a351e38eb2a45c251319a4022d480` |
-
-Signed provenance for both packages and the multi-platform image verified against
-this repository, release workflow, source commit and `v0.3.5` tag. A hash-locked
-PyPI install in an isolated environment passed catalog, console, health and integrity
-checks. Its catalog contains 504 safeguards, 2,252 requirements, 1,803 mapped
-requirements and 1,128 reviewed requirements.
-
-Anonymous registry downloads verified every manifest, configuration and filesystem
-blob for both architectures by digest. Published filesystem layers and runtime
-configuration match the scanned images that passed authenticated AMD64 and emulated
-ARM64 probes in release CI. Those probes cover tenant isolation, key revocation,
-persistence after recreation, snapshot integrity, non-root execution and the bundled
-console. A separate native ARM64 post-publication probe is not recorded as passed;
-the runtime evidence here is the hosted release qualification linked to the
-published layers. These are synthetic checks with the boundaries below.
-
-| Image                | Digest                                                                    |
-| -------------------- | ------------------------------------------------------------------------- |
-| Multi-platform index | `sha256:03a76cb81e0c4b049e9ce3d94d879b61d66458ab287f448ce385c4d46a14abe7` |
-| Linux AMD64          | `sha256:9de319e1d89627a4d54c28a66b61d84910cc142d19a59fdf21f1effb34820d37` |
-| Linux ARM64          | `sha256:f6ea9f3bb1b3098f5abc0b13ea7340718eaffb027d976da3338dbff863a8aea1` |
-
-Use the index digest when a deployment must stay on these exact published bytes.
-The full scans retain 44 HIGH package findings spanning eight CVEs per architecture,
-with zero fixable MEDIUM/HIGH/CRITICAL findings. See
-[dependency security scope](DEPENDENCY_SECURITY.md#035-release-qualification-scans);
-a policy pass is not a vulnerability-free image.
+[Package hashes, image digests and verification scope](https://github.com/koda-ai-studio/grc-lake/blob/f7c9256fc94488338e2f49e3bc8d6f52b6939392/docs/RELEASE_READINESS.md#verified-035-publication)
+remain available in the historical record. Each image scan retained 44 HIGH findings across eight CVEs.
+These results describe those release bytes and do not qualify later builds.
 
 ### Historical 0.3.4 receipt
 
-The [0.3.4 release workflow](https://github.com/koda-ai-studio/grc-lake/actions/runs/38423407182)
-passed on `af628dbc18999fcd973697cd64b80158b77255a0`. Its package hash comparison,
-signed provenance, isolated installation and native ARM64 authenticated probe
-passed. Its multi-platform digest remains
-`sha256:bd2dc1366ea3b11f4414c369cdd09a700a9745c135244ef346b61bcc014e6cfe`.
-That earlier runtime evidence does not qualify a later release.
+The [0.3.4 publication record](https://github.com/koda-ai-studio/grc-lake/blob/f7c9256fc94488338e2f49e3bc8d6f52b6939392/docs/RELEASE_READINESS.md#historical-034-receipt)
+retains its workflow, source commit, image digest and verification scope.
 
 ## Assessment and recovery qualification
 
@@ -344,7 +240,7 @@ comment, and the Dockerfile pins its base images by digest. Dependabot's
 
 ## Publication from the current repository
 
-The `grc-lake` PyPI project exists, and 0.3.8 was published from the current
+The `grc-lake` PyPI project exists, and 0.3.9 was published from the current
 repository. Preserve and verify its
 [ordinary trusted publisher](https://docs.pypi.org/trusted-publishers/adding-a-publisher/)
 configuration before the next release:
@@ -372,8 +268,8 @@ so the next release targets `ghcr.io/koda-ai-studio/grc-lake`. Before tagging:
 2. Preserve `ghcr.io/msaad00/grc-lake` for historical releases. GHCR uses granular
    permissions: a [repository transfer does not transfer package ownership](https://docs.github.com/en/packages/learn-github-packages/about-permissions-for-github-packages#about-repository-transfers)
    and can remove repository linkage and Actions access.
-3. The v0.3.8 release templates align Compose and the chart default to
-   `ghcr.io/koda-ai-studio/grc-lake:0.3.8`; Terraform inherits the chart default
+3. The v0.3.9 release templates align Compose and the chart default to
+   `ghcr.io/koda-ai-studio/grc-lake:0.3.9`; Terraform inherits the chart default
    when its image tag is empty. For later releases, update these references
    together and verify publication before recommending them.
 4. After user-authorized publication, verify anonymous pulls (if public delivery

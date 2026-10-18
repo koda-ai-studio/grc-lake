@@ -9,6 +9,7 @@
   <a href="https://github.com/koda-ai-studio/grc-lake/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/koda-ai-studio/grc-lake/ci.yml?branch=main&amp;label=CI" alt="CI status"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-blue" alt="License: Apache 2.0"></a>
   <a href="https://scorecard.dev/viewer/?uri=github.com/koda-ai-studio/grc-lake"><img src="https://api.scorecard.dev/projects/github.com/koda-ai-studio/grc-lake/badge" alt="OpenSSF Scorecard"></a>
+  <a href="https://www.bestpractices.dev/en/projects/15368"><img src="https://www.bestpractices.dev/projects/15368/badge" alt="OpenSSF Best Practices"></a>
 </p>
 
 **Turn security evidence into traceable control assessments and reviewable audit workpapers.**
@@ -24,12 +25,12 @@ and preserve the evidence and review decisions behind each result.
 The tour and catalog counts describe current source; see [release status](docs/RELEASE_READINESS.md)
 for changes since the published package.
 
-Install published v0.3.8 with Python 3.11+ on macOS or Linux:
+Install published v0.3.9 with Python 3.11+ on macOS or Linux:
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install "grc-lake[server]==0.3.8"
+pip install "grc-lake[server]==0.3.9"
 grc-lake fixtures load --company golden --out ./lake --rebase-times
 grc-lake serve --server --allow-insecure-no-auth --lake ./lake --host 127.0.0.1 --port 8787
 ```
@@ -48,7 +49,7 @@ Installation time depends on your machine and connection.
 The public Docker image needs no registry login. Use the published templates:
 
 ```bash
-git clone --branch v0.3.8 --depth 1 https://github.com/koda-ai-studio/grc-lake.git
+git clone --branch v0.3.9 --depth 1 https://github.com/koda-ai-studio/grc-lake.git
 cd grc-lake
 docker compose up
 ```
@@ -65,7 +66,7 @@ make demo-local
 For MCP over stdio:
 
 ```bash
-pip install "grc-lake[mcp]==0.3.8"
+pip install "grc-lake[mcp]==0.3.9"
 GRC_LAKE_LAKE=./lake grc-lake-mcp
 ```
 
