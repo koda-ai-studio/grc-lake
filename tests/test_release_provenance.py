@@ -18,17 +18,21 @@ def _jobs() -> dict:
 
 def test_python_bundle_is_retained_before_publication_and_attached_to_release() -> None:
     jobs = _jobs()
-    steps = jobs["pypi"]["steps"]
+    steps = jobs["build"]["steps"]
     attest = next(step for step in steps if step.get("uses", "").startswith("actions/attest@"))
     assert attest.get("id"), "Attestation output must be addressable for retention"
     stage = next(step for step in steps if step.get("name") == "Stage Python provenance bundle")
     assert stage["env"]["BUNDLE_PATH"] == "${{ steps." + attest["id"] + ".outputs.bundle-path }}"
-    upload = next(step for step in steps if step.get("uses", "").startswith("actions/upload-artifact@"))
+    upload = next(step for step in steps if step.get("with", {}).get("name") == "python-provenance")
     assert upload["with"]["name"] == "python-provenance"
     assert upload["with"]["path"] == "provenance/python-provenance.sigstore.json"
     assert upload["with"]["if-no-files-found"] == "error"
-    publish = next(step for step in steps if step.get("uses", "").startswith("pypa/gh-action-pypi-publish@"))
-    assert steps.index(attest) < steps.index(stage) < steps.index(upload) < steps.index(publish)
+    assert steps.index(attest) < steps.index(stage) < steps.index(upload)
+    assert "build" in jobs["pypi"]["needs"]
+    assert "if" not in jobs["build"]
+    assert "if" not in attest
+    assert jobs["build"]["permissions"]["id-token"] == "write"
+    assert jobs["build"]["permissions"]["attestations"] == "write"
     # Bundles must not land in the directory uploaded to PyPI as distributions.
     assert attest["with"]["subject-path"] == "dist/*"
     release_steps = jobs["github-release"]["steps"]
@@ -47,7 +51,7 @@ def test_python_bundle_is_retained_before_publication_and_attached_to_release() 
 
 @pytest.mark.parametrize("bundle_state", ["present", "empty", "missing"])
 def test_bundle_staging_preserves_bytes_and_rejects_missing_evidence(tmp_path: Path, bundle_state: str) -> None:
-    steps = _jobs()["pypi"]["steps"]
+    steps = _jobs()["build"]["steps"]
     stage = next(step for step in steps if step.get("name") == "Stage Python provenance bundle")
     source = tmp_path / "runner bundle.json"
     payload = b'{"fixture": "signed bundle bytes are copied unchanged"}\n'

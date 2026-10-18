@@ -4,33 +4,22 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from fastapi import HTTPException, Request, status
+from fastapi import HTTPException, status
 
 from security_lakehouse import api_v1
 from security_lakehouse.auth.rbac import Identity
 from security_lakehouse.data_policy import redact_payload
-from security_lakehouse.db.base import DEFAULT_PAGE_LIMIT, clamp_limit
+from security_lakehouse.server_routes.deps import (
+    page_meta as _page_meta,
+)
+from security_lakehouse.server_routes.deps import (
+    pagination as _pagination,
+)
+from security_lakehouse.server_routes.deps import (
+    query_params as _params,
+)
 
-
-def _params(request: Request) -> dict[str, list[str]]:
-    """Convert Starlette's query multidict into the ``api_v1`` param shape."""
-    params: dict[str, list[str]] = {}
-    for key, value in request.query_params.multi_items():
-        params.setdefault(key, []).append(value)
-    return params
-
-
-def _pagination(params: dict[str, list[str]]) -> tuple[int, int]:
-    """Read ``limit``/``offset`` query params, clamped to a safe page window.
-
-    A missing/invalid ``limit`` defaults to ``DEFAULT_PAGE_LIMIT`` so list
-    endpoints are always bounded; an oversized one is capped server-side.
-    """
-    limit_raw = api_v1.first_param(params, "limit")
-    offset_raw = api_v1.first_param(params, "offset")
-    limit = clamp_limit(int(limit_raw)) if limit_raw and limit_raw.lstrip("-").isdigit() else DEFAULT_PAGE_LIMIT
-    offset = int(offset_raw) if offset_raw and offset_raw.isdigit() else 0
-    return limit, max(0, offset)
+__all__ = ["_page_meta", "_pagination", "_params"]
 
 
 def _page_window(params: dict[str, list[str]], *, maximum: int = 1000) -> tuple[int, int]:
@@ -49,11 +38,6 @@ def _page_window(params: dict[str, list[str]], *, maximum: int = 1000) -> tuple[
 
 def _applied_filters(**values: str | None) -> dict[str, list[str]]:
     return {name: [value] for name, value in values.items() if value}
-
-
-def _page_meta(limit: int, offset: int, count: int) -> dict[str, int]:
-    """Envelope ``meta`` fields describing the returned page."""
-    return {"count": count, "limit": limit, "offset": offset}
 
 
 def _portable_references(payload: object) -> object:

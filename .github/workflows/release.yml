@@ -127,6 +127,11 @@ jobs:
     needs: [verify-tested-commit, verify-version]
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+      artifact-metadata: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -175,25 +180,6 @@ jobs:
           path: sbom/
           if-no-files-found: error
 
-  pypi:
-    # PyPI versions are immutable: wait for both container architectures and
-    # their authenticated runtime probes before publishing the Python package.
-    needs: [build, image]
-    # Publish only from a version tag. A workflow_dispatch with dry_run:false on
-    # a branch would otherwise reach PyPI with no tag↔version gate having run.
-    if: github.ref_type == 'tag' && (github.event_name == 'push' || !inputs.dry_run)
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    environment: release
-    permissions:
-      id-token: write # PyPI trusted publishing + Sigstore signing
-      attestations: write
-      artifact-metadata: write
-    steps:
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with:
-          name: dist
-          path: dist
       # SLSA build provenance for the exact wheel and sdist bytes, verifiable
       # with `gh attestation verify <file> --repo <owner>/<repo>`.
       - uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
@@ -214,6 +200,24 @@ jobs:
           name: python-provenance
           path: provenance/python-provenance.sigstore.json
           if-no-files-found: error
+
+  pypi:
+    # PyPI versions are immutable: wait for both container architectures and
+    # their authenticated runtime probes before publishing the Python package.
+    needs: [build, image]
+    # Publish only from a version tag. A workflow_dispatch with dry_run:false on
+    # a branch would otherwise reach PyPI with no tag↔version gate having run.
+    if: github.ref_type == 'tag' && (github.event_name == 'push' || !inputs.dry_run)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: release
+    permissions:
+      id-token: write # PyPI trusted publishing
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: dist
+          path: dist
       - uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2
 
   image:
