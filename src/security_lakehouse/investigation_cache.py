@@ -50,7 +50,7 @@ class ModelCache:
     readers or builds. No lock is held while building or waiting on another build.
     """
 
-    def __init__(self, *, max_bytes: int = 64 * 1024 * 1024, max_entries: int = 8, ttl: float = 60):
+    def __init__(self, *, max_bytes: int = 128 * 1024 * 1024, max_entries: int = 8, ttl: float = 60):
         self.max_bytes = max_bytes
         self.max_entries = max_entries
         self.ttl = ttl

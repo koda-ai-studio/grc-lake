@@ -200,3 +200,26 @@ def test_cancellation_is_checked_on_a_warm_hit(tmp_path):
 
     with pytest.raises(RuntimeError, match="disconnected"):
         graph.investigation_graph(tmp_path, checkpoint=cancel)
+
+
+@pytest.mark.parametrize(
+    "query",
+    [
+        {},
+        {"view": "environment", "depth": 1},
+        {"view": "investigation", "depth": 3},
+        {"root": "control:TEST", "layers": {"control", "evidence_type"}},
+        {"search": "missing"},
+        {"root_offset": 50},
+        {"root": "absent"},
+    ],
+)
+def test_cached_responses_equal_uncached_across_query_shapes(tmp_path, monkeypatch, query):
+    from security_lakehouse.investigation_cache import ModelCache
+
+    publish_generation(tmp_path, generation(tmp_path))
+    monkeypatch.setattr(graph, "_MODEL_CACHE", ModelCache(max_bytes=0))
+    expected = graph.investigation_graph(tmp_path, **query)
+    monkeypatch.setattr(graph, "_MODEL_CACHE", ModelCache())
+    graph.investigation_graph(tmp_path)  # Populate using a different query.
+    assert graph.investigation_graph(tmp_path, **query) == expected

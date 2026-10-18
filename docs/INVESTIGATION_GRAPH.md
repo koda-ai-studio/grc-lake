@@ -39,7 +39,7 @@ recent writes and filesystem identity/change timestamps for settled files, as in
 the lake's JSONL indexes. Changing a generation or overlay cannot reuse the previous
 key. Mutable legacy lakes and generations missing frozen catalogs rebuild normally.
 
-The process retains at most eight models, one per lake, within a 64 MiB budget of
+The process retains at most eight models, one per lake, within a 128 MiB budget of
 accounted Python object sizes. Models expire 60 seconds after insertion, with
 expired entries removed on the next cache access; least recently used models are
 evicted when necessary. Oversized models are returned without retention. This is
