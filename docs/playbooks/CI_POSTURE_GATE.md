@@ -1,6 +1,6 @@
 # CI posture gate playbook
 
-Versioned examples below target the published v0.3.8 release.
+Versioned examples below target the v0.3.9 release candidate; use the v0.3.8 tag for published examples.
 
 Block merges and deployments when GRC Lake posture regresses. Platform engineers should
 wire this **before** the human console — same `/api/v1` routes agents and MCP use.
@@ -37,7 +37,7 @@ Example step:
 
 ```yaml
 - name: GRC Lake posture gate
-  uses: koda-ai-studio/grc-lake/.github/actions/posture-gate@v0.3.8
+  uses: koda-ai-studio/grc-lake/.github/actions/posture-gate@v0.3.9
   with:
     grc-lake-url: ${{ secrets.GRC_LAKE_URL }}
     api-token: ${{ secrets.GRC_LAKE_API_TOKEN }}

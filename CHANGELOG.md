@@ -3,10 +3,12 @@
 All notable GRC Lake changes are summarized here. Versions follow semver for the
 Python package, Helm chart, and bundled web console.
 
-## Unreleased
+## 0.3.9 - 2026-10-18
 
 - Reject weak SAML certificate and OIDC signing keys, including refreshed JWKS during key rotation. Bind OIDC token issuer and audience to the configured provider and client. Existing IdPs using RSA keys below 2048 bits or shared-secret ID-token signing must rotate before upgrading.
 - Add a bounded deployment TLS checker and local negotiation tests for forward-secret TLS 1.2/1.3, static-RSA rejection, and certificate verification. Document the proxy configuration and qualification scope.
+
+- Retain signed Python build provenance during release dry runs, before publication. Consolidate duplicated route query and pagination helpers without changing response contracts.
 
 ## 0.3.8 - 2026-10-17
 

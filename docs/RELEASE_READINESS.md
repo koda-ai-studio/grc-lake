@@ -40,6 +40,18 @@ deployments, non-deprecated IdP signature and digest algorithms. Existing browse
 sessions must sign in again. See [deployment](DEPLOYMENT.md) and
 [server authentication](SERVER_AUTH.md).
 
+## 0.3.9 candidate
+
+Version 0.3.9 adds SSO signing-key strength checks, exact OIDC issuer and audience
+binding, and a bounded TLS endpoint checker. Weak IdP keys and shared-secret
+ID-token signing must be replaced before upgrading; see [server authentication](SERVER_AUTH.md).
+This candidate is not published. README installation commands remain on 0.3.8.
+
+Release dry runs retain signed Python provenance and qualify both image
+architectures before publication. Verify the candidate commit, package hashes,
+provenance and runtime receipts together; a dry run does not establish PyPI or
+registry publication, live IdP behavior, or production proxy configuration.
+
 ## Verified 0.3.8 publication
 
 The [0.3.8 release workflow](https://github.com/koda-ai-studio/grc-lake/actions/runs/39056996566)
