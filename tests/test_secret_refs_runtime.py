@@ -45,7 +45,6 @@ CASES = {
     "bamboohr-personnel": "credential_ref",
     "rippling-personnel": "credential_ref",
     "workday-personnel": "credential_ref",
-    "knowbe4-training": "credential_ref",
     "siem-alerts": "credential_ref",
     "runtime-gateway": "credential_ref",
     "clickhouse-telemetry-lake": "credential_ref",

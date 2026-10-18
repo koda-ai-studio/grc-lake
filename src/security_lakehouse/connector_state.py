@@ -505,12 +505,6 @@ def _missing_required_config(
         # time; only the cluster label is required to enable.
         return ["cluster_name"] if not _has_value(credentials, "cluster_name") else []
 
-    if connector_id == "knowbe4-training":
-        missing = [] if _has_value(credentials, "region") else ["region"]
-        if not (_has_value(credentials, "credential_ref") or _has_value(credentials, "token")):
-            missing.append("credential_ref")
-        return missing
-
     if connector_id == "gcp-posture":
         # Credentials resolve through Application Default Credentials, so only
         # the project scope is required — no stored credential reference, the

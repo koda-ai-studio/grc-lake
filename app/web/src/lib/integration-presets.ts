@@ -176,22 +176,6 @@ const PRESETS: Record<string, IntegrationPreset> = {
       "Secrets, env values, container arguments, labels, and annotations are never read or stored.",
     ],
   },
-  "knowbe4-training": {
-    connectorId: "knowbe4-training",
-    title: "KnowBe4 training",
-    authLabel: "Reporting API key",
-    badges: ["Read-only reporting", "Secret reference only"],
-    summary:
-      "Generate a Reporting API key in the KnowBe4 console, store it as a secret, then pick the account region. Sync reads training enrollment status and phishing test results.",
-    providerSetup:
-      "A KnowBe4 admin generates a Reporting API key. It requires a Platinum, Diamond, SAT Foundation, or SAT Advanced subscription.",
-    trustOpsInput: "Region and the API key secret reference.",
-    advancedTitle: "What is collected",
-    advancedDetails: [
-      "User ID, email, employee number, enrollment status counts, last completion date, and phish-prone percentage.",
-      "Names, phone numbers, locations, manager details, and custom fields are never stored.",
-    ],
-  },
   "databricks-evidence-lake": {
     connectorId: "databricks-evidence-lake",
     title: "Databricks evidence lake",

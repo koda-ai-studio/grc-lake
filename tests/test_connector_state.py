@@ -1096,7 +1096,6 @@ def test_oauth_client_credentials_fallback_matches_the_console_form() -> None:
         ("jamf-devices", {"base_url": "https://acme.jamfcloud.com", "client_id": "c"}, "client_secret_ref"),
         ("crowdstrike-falcon", {"client_id": "c"}, "cloud, client_secret_ref"),
         ("kubernetes-cluster", {"context": "prod"}, "cluster_name"),
-        ("knowbe4-training", {}, "region, credential_ref"),
     ],
 )
 def test_preview_endpoint_connectors_name_missing_enablement_fields(
@@ -1115,7 +1114,6 @@ def test_preview_endpoint_connectors_name_missing_enablement_fields(
         ),
         ("crowdstrike-falcon", {"cloud": "eu-1", "client_id": "c", "client_secret_ref": "CROWDSTRIKE_CLIENT_SECRET"}),
         ("kubernetes-cluster", {"cluster_name": "prod-eks"}),
-        ("knowbe4-training", {"region": "eu", "credential_ref": "KNOWBE4_API_TOKEN"}),
     ],
 )
 def test_preview_endpoint_connectors_accept_complete_configuration(

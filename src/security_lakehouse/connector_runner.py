@@ -102,11 +102,6 @@ from security_lakehouse.connectors_jira import (
     JiraFixtureClient,
     collect_jira_evidence,
 )
-from security_lakehouse.connectors_knowbe4 import (
-    KnowBe4Client,
-    KnowBe4FixtureClient,
-    collect_knowbe4_evidence,
-)
 from security_lakehouse.connectors_kubernetes import (
     KubernetesClient,
     KubernetesFixtureClient,
@@ -280,9 +275,8 @@ AZURE_SUBSCRIPTION_ID_ENV = "AZURE_SUBSCRIPTION_ID"
 AZURE_TENANT_ID_ENV = "AZURE_TENANT_ID"
 
 # Jamf Pro and CrowdStrike Falcon authenticate as OAuth API clients; only the
-# client id and a reference to the secret are stored. KnowBe4 uses a Reporting
-# API key referenced the same way. Kubernetes reads a kubeconfig path (or the
-# in-cluster service account) — never an inline token.
+# client id and a reference to the secret are stored. Kubernetes reads a
+# kubeconfig path (or the in-cluster service account) — never an inline token.
 JAMF_URL_ENV = "JAMF_URL"
 JAMF_CLIENT_ID_ENV = "JAMF_CLIENT_ID"
 JAMF_CLIENT_SECRET_ENV = "JAMF_CLIENT_SECRET"
@@ -291,7 +285,6 @@ CROWDSTRIKE_CLIENT_ID_ENV = "CROWDSTRIKE_CLIENT_ID"
 CROWDSTRIKE_CLIENT_SECRET_ENV = "CROWDSTRIKE_CLIENT_SECRET"
 KUBECONFIG_ENV = "KUBECONFIG"
 KUBERNETES_SERVICE_HOST_ENV = "KUBERNETES_SERVICE_HOST"
-KNOWBE4_API_TOKEN_ENV = "KNOWBE4_API_TOKEN"
 
 # Environment variables carrying the Jira Cloud site base URL and the account
 # email used for HTTP Basic read auth. The read-only API token is read from
@@ -705,10 +698,6 @@ def _build_kubernetes(inputs: SyncInputs) -> list[dict[str, Any]]:
     return _collect_kubernetes(fixture_dir=inputs.fixture_dir, env=inputs.env, credentials=inputs.credentials)
 
 
-def _build_knowbe4(inputs: SyncInputs) -> list[dict[str, Any]]:
-    return _collect_knowbe4(fixture_dir=inputs.fixture_dir, env=inputs.env, credentials=inputs.credentials)
-
-
 def _build_jira(inputs: SyncInputs) -> list[dict[str, Any]]:
     return _collect_jira(
         fixture_dir=inputs.fixture_dir,
@@ -813,7 +802,6 @@ REGISTRY: dict[str, ConnectorBuilder] = {
     "jamf-devices": _build_jamf,
     "crowdstrike-falcon": _build_crowdstrike,
     "kubernetes-cluster": _build_kubernetes,
-    "knowbe4-training": _build_knowbe4,
     "iceberg-parquet-lake": _build_iceberg,
     "bigquery-evidence-lake": _build_bigquery,
 }
@@ -1353,26 +1341,6 @@ def _collect_kubernetes(
         KubernetesClient(cluster_name, context=context, kubeconfig_path=kubeconfig_path, in_cluster=in_cluster),
         allowed_registries=allowed_registries,
     )
-
-
-def _collect_knowbe4(
-    *,
-    fixture_dir: str | Path | None,
-    env: dict[str, str],
-    credentials: dict[str, Any] | None = None,
-) -> list[dict[str, Any]]:
-    env = runtime_env(env)
-    creds = credentials or {}
-    region = str(creds.get("region") or "us").strip().lower()
-    if fixture_dir:
-        return collect_knowbe4_evidence(KnowBe4FixtureClient(fixture_dir, region=region))
-    token = _resolve_provider_secret(str(creds.get("credential_ref") or ""), KNOWBE4_API_TOKEN_ENV, env)
-    if not token:
-        raise ValueError(
-            "knowbe4-training sync requires --fixture-dir, or a KnowBe4 Reporting API key "
-            f"(credential_ref naming the secret, or {KNOWBE4_API_TOKEN_ENV}) and the account region"
-        )
-    return collect_knowbe4_evidence(KnowBe4Client(region, token=token))
 
 
 def _split_list(value: Any) -> list[str] | None:
