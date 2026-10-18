@@ -1,5 +1,9 @@
 # Bounded investigation graph measurements
 
+For the subsequent bounded generation-model cache, see the
+[frozen-catalog reuse measurements](INVESTIGATION_CACHE.md). The measurements
+below retain the earlier implementation and its full-build behavior.
+
 ## October 18, 2026
 
 These synthetic local measurements exercise graph correctness, memory, latency,

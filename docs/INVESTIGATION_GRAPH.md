@@ -44,11 +44,13 @@ accounted Python object sizes. Models expire 60 seconds after insertion, with
 expired entries removed on the next cache access; least recently used models are
 evicted when necessary. Oversized models are returned without retention. This is
 not a total RSS bound: active builds, active readers, temporary allocations and
-Python allocator overhead are additional. No graph cache is written to disk.
+Python allocator overhead are additional. No graph cache is written to disk. See the
+[reuse measurements](benchmarks/INVESTIGATION_CACHE.md) for observed cold/warm
+latency and memory tradeoffs.
 
 Concurrent requests for the same key share a completed build. Waiting readers
 check cancellation every 50 ms; canceling one waiter does not cancel other
-readers. Failed builds are never retained. Input changes during construction
+readers. Failed builds are never retained. Input-version changes detected across construction
 prevent retention. Returned nodes and edges are independent copies, so a caller
 cannot mutate another response. Authentication and graph admission still run for
 every HTTP request, including cache hits.

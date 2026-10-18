@@ -1,0 +1,132 @@
+# Generation-scoped graph reuse measurements
+
+## October 18, 2026
+
+These are synthetic local measurements of bounded model reuse, not production
+capacity, a tenant-fairness guarantee or an approved latency SLO.
+
+The [disabled-cache baseline](investigation-cache-disabled-2026-10-18.json) and the
+[64 MiB experiment](investigation-cache-64-2026-10-18.json) use clean source
+`f67217c5533a8963a11af695620be3167f2e1a73`. The [128 MiB direct](investigation-cache-128-2026-10-18.json)
+and [128 MiB HTTP](investigation-cache-http-128-2026-10-18.json) runs use clean source
+`ad513ef183a924227ac69da2c34a606e2dc08a2f`. Between these revisions, production code changes only
+the retention budget from 64 to 128 MiB; the remaining changes are documentation
+and response-equivalence tests. Every receipt retains configuration, revision,
+source fingerprints, input hashes, individual reads, load averages and resource
+observations. All 30 completed attempts across the five receipts passed their
+correctness checks. The [64 MiB HTTP experiment](investigation-cache-http-64-2026-10-18.json) is also
+retained, including rejections.
+
+Host: macOS ARM64, Python 3.12.13, 10 logical CPUs, 16 GiB physical memory,
+local filesystem. Runs were sequential, with no other task-owned benchmark or
+test running concurrently. OS caches, other applications and host load were
+uncontrolled. These are observed comparisons, not controlled tail guarantees.
+
+## Direct reads
+
+Two tenants, 1k/10k unique records each, seed 910, 1/4/8 worker threads,
+three repeats per query and 12 burst reads per attempt. The fixture now freezes
+requirement and safeguard catalogs, exercising the same cache eligibility as
+published generations. It is still a synthetic normalized-evidence fixture,
+not a full assessment pipeline or live-provider dataset. The legacy fixture mode
+remains available and bypasses model reuse.
+
+Input hashes, model counts, checks and every recorded response shape/size match
+between disabled, 64 MiB and 128 MiB direct runs. Checks include exact record
+bindings, source-account collisions across platform tenants, duplicate suppression,
+root/control pagination, pinned publication and stale evidence/overlay versions.
+
+| Records / tenant | Workers | Disabled burst p95 s | 128 MiB burst p95 s | Disabled peak RSS MiB | 128 MiB peak RSS MiB |
+| ---------------- | ------- | -------------------- | ------------------- | --------------------- | -------------------- |
+| 1,000            | 1       | 0.264                | 0.335               | 85.1                  | 102.8                |
+| 1,000            | 4       | 1.079                | 0.101               | 134.0                 | 103.3                |
+| 1,000            | 8       | 2.169                | 0.551               | 219.2                 | 109.9                |
+| 10,000           | 1       | 1.093                | 0.117               | 164.0                 | 290.8                |
+| 10,000           | 4       | 6.932                | 0.547               | 368.7                 | 297.3                |
+| 10,000           | 8       | 9.662                | 0.762               | 681.2                 | 301.5                |
+
+RSS covers the complete worker, including setup, retained cache and all queries.
+The 1k single-worker burst was slower with reuse in this sample, so the
+measurements do not show a uniform latency improvement. Retaining models raises
+the single-worker baseline memory; avoiding simultaneous
+rebuilds lowers the observed peak at higher concurrency. The 128 MiB retention
+budget accounts reachable Python object sizes, not allocator overhead, in-flight
+builds or total RSS. Each server worker has its own cache.
+
+First-call and repeated-call medians below use the single-worker attempts.
+First means the first graph call for each tenant; it is not a cold OS page cache.
+
+| Records / tenant | Disabled first s | 128 MiB first s | Disabled repeat s | 128 MiB repeat s |
+| ---------------- | ---------------- | --------------- | ----------------- | ---------------- |
+| 1,000            | 0.250            | 0.324           | 0.251             | 0.020            |
+| 10,000           | 1.079            | 1.490           | 1.064             | 0.060            |
+
+A cold build adds retention-size accounting. Cache hits still scan the model to
+select a neighborhood. A generation, triage, vendor or navigation change,
+expiration or eviction can require another full build; the first-call cost must
+not be represented as the warm-call cost.
+
+## Retention sizing
+
+The 64 MiB experiment could not retain both 10k tenant models. Alternating
+single-worker requests therefore rebuilt models: burst p95 was
+1.606 s, worse than the disabled baseline's
+1.093 s. The 128 MiB limit admits both models in this
+fixture while preserving an eight-entry limit, one model per lake, 60-second
+maximum entry age and least-recently-used eviction. Larger or more varied tenant
+workloads may still evict or bypass retention. Concurrent callers already waiting
+on an oversized build can share its result without retaining it afterward.
+These bounds are implementation limits, not reviewed deployment-sizing budgets.
+
+## Authenticated loopback HTTP
+
+One Uvicorn process, default four-slot admission, scratch SQLite and synthetic
+API keys. Two repeats produce 28 balanced/skewed burst requests per attempt.
+Requests exercise the authenticated tenant's exact colliding asset binding,
+invalid/missing credentials, foreign roots and stale generation versions.
+
+| Records / tenant | Clients | Admitted / submitted | Admitted burst p95 s | Process peak RSS MiB |
+| ---------------- | ------- | -------------------- | -------------------- | -------------------- |
+| 1,000            | 1       | 28/28                | 0.334                | 176.5                |
+| 1,000            | 4       | 28/28                | 1.274                | 204.3                |
+| 1,000            | 8       | 16/28                | 0.246                | 182.1                |
+| 10,000           | 1       | 28/28                | 0.192                | 359.8                |
+| 10,000           | 4       | 28/28                | 0.666                | 369.8                |
+| 10,000           | 8       | 18/28                | 1.054                | 368.8                |
+
+Only admitted burst reads contribute to p95. Every rejection was
+`503 graph_build_capacity`; rejections are not successful graph reads. All
+submissions answered and all admission slots released. Cache hits still take
+an admission slot, and finite balanced/4:1 bursts do not prove fairness or
+starvation freedom. These runs did not repeat 100k timeout/disconnect or
+cross-host/proxy qualification; see the [earlier lifecycle measurements](INVESTIGATION.md).
+
+## Reproduce
+
+Use a fresh output path per run. Every attempt runs in a fresh process with a
+900-second watchdog, 4 GiB sampled RSS bound and 5 GiB free-disk floor. Samples
+are every 250 ms; these are safety stops, not hard OS allocation limits.
+
+```bash
+uv sync --frozen --all-extras
+uv run --frozen python tools/benchmark_investigation.py --frozen-catalogs \
+  --disable-model-cache --seed 910 --tenants 2 --sizes 1000 10000 \
+  --concurrency 1 4 8 --repeats 3 --timeout 900 --max-rss-mib 4096 \
+  --out /tmp/graph-cache-disabled.json
+uv run --frozen python tools/benchmark_investigation.py --frozen-catalogs \
+  --seed 910 --tenants 2 --sizes 1000 10000 --concurrency 1 4 8 \
+  --repeats 3 --timeout 900 --max-rss-mib 4096 --out /tmp/graph-cache-enabled.json
+uv run --frozen python tools/benchmark_investigation.py --transport http \
+  --frozen-catalogs --seed 910 --tenants 2 --sizes 1000 10000 \
+  --concurrency 1 4 8 --repeats 2 --client-timeout 75 --timeout 900 \
+  --max-rss-mib 4096 --out /tmp/graph-cache-http.json
+```
+
+Use the recorded revision to reproduce the 64 MiB policy. Disabled mode bypasses
+both retention and build coalescing. The default fixture without
+`--frozen-catalogs` continues to measure legacy fallback behavior.
+
+[#910](https://github.com/koda-ai-studio/grc-lake/issues/910) remains open for
+reviewed budgets, representative workload/topology qualification and tenant
+admission policy. Generation-scoped reuse reduces repeated construction work;
+it does not provide a persistent neighborhood index or establish production scale.
