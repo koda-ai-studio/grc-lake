@@ -1,0 +1,474 @@
+{
+  "untracked_source_sha256": {},
+  "schema_version": "grc.investigation_benchmark.v2",
+  "revision": "a4af812b2ca52588efc1bd03ed53281df2f9de24",
+  "tracked_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "harness_sha256": "899f25cf6e84d08680bba844ae6a8f36fa019bd42cccb83bb5f4aabf651e6962",
+  "measured_at": "2026-10-18T21:16:04.559260+00:00",
+  "environment": {
+    "platform": "macOS-27.0.1-arm64-arm-64bit",
+    "python": "3.12.13",
+    "cpu_count": 10,
+    "machine": "arm64",
+    "physical_memory_bytes": 17179869184,
+    "storage": "local filesystem, synthetic legacy-compatible generations",
+    "cache": "OS and shared catalog caches uncontrolled; first means first graph call per tenant"
+  },
+  "configuration": {
+    "transport": "http",
+    "tenants": 2,
+    "repeats": 1,
+    "sizes": [100000],
+    "concurrency": [1],
+    "timeout_seconds": 2400.0,
+    "sampled_rss_limit_mib": 4096,
+    "min_free_gib": 5,
+    "sample_seconds": 0.25,
+    "seed": 910,
+    "fixture": "seeded mixed controls/outcomes/asset types; every tenant shares source account shared-account-a",
+    "http": {
+      "server_processes": 1,
+      "client_timeout_seconds": 75.0,
+      "lifecycle_probes": true,
+      "auth_role": "security_admin",
+      "database": "scratch SQLite",
+      "query": {
+        "view": "environment",
+        "root": "own account-a asset-0",
+        "depth": 1,
+        "limit": 150
+      },
+      "graph_build_concurrency": "shipped default",
+      "dependencies": {
+        "fastapi": "0.141.1",
+        "starlette": "1.6.0",
+        "anyio": "4.14.2",
+        "uvicorn": "0.48.0",
+        "httpx": "0.28.1"
+      }
+    }
+  },
+  "limitations": [
+    "Authenticated loopback HTTP, one Uvicorn process with default thread-pool and rate limits",
+    "Balanced and 4:1 skewed client submissions; client queue delay is not server scheduler delay",
+    "Explicit 503 admission rejections are retained per tenant; they are not retried",
+    "Client and server share one process and host; RSS and CPU include both",
+    "Synthetic normalized records, SQLite state, no evaluation jobs or provider evidence",
+    "Response body bytes exclude HTTP headers; no production fairness, SLO or capacity budget",
+    "No object-store failover, crash recovery or distributed admission qualification"
+  ],
+  "attempts": [
+    {
+      "rows": 100000,
+      "concurrency": 1,
+      "correctness_ok": true,
+      "checks": {
+        "unauthenticated_rejected": true,
+        "invalid_credential_rejected": true,
+        "exact_bindings": true,
+        "duplicate_records": true,
+        "source_account_isolation": true,
+        "account_collision_isolation": true,
+        "foreign_root_rejected": true,
+        "all_submitted_reads_answered": true,
+        "admission_slots_released": true,
+        "stale_version_rejected": true,
+        "lifecycle_probes_passed": true
+      },
+      "scenarios": {
+        "balanced": {
+          "reads": 4,
+          "admitted": 4,
+          "rejected": 0,
+          "clients": 1,
+          "wall_seconds": 45.71992799997679,
+          "reads_per_second": 0.08748920164533135,
+          "per_tenant": {
+            "tenant-0": {
+              "submitted": 2,
+              "completed": 2,
+              "admitted": 2,
+              "rejected": {
+                "graph_build_capacity": 0,
+                "graph_build_timeout": 0
+              },
+              "latency_seconds": {
+                "p50": 11.363420000008773,
+                "p95": 11.655889375018887,
+                "p99": 11.655889375018887
+              },
+              "rejection_latency_seconds": {},
+              "client_queue_seconds": {
+                "p50": 0.00019541700021363795,
+                "p95": 22.63893929097685,
+                "p99": 22.63893929097685
+              }
+            },
+            "tenant-1": {
+              "submitted": 2,
+              "completed": 2,
+              "admitted": 2,
+              "rejected": {
+                "graph_build_capacity": 0,
+                "graph_build_timeout": 0
+              },
+              "latency_seconds": {
+                "p50": 11.275605750008253,
+                "p95": 11.423491667024791,
+                "p99": 11.423491667024791
+              },
+              "rejection_latency_seconds": {},
+              "client_queue_seconds": {
+                "p50": 11.363149250013521,
+                "p95": 34.29498166698613,
+                "p99": 34.29498166698613
+              }
+            }
+          }
+        },
+        "skewed": {
+          "reads": 10,
+          "admitted": 10,
+          "rejected": 0,
+          "clients": 1,
+          "wall_seconds": 106.29578062501969,
+          "reads_per_second": 0.09407711144506352,
+          "per_tenant": {
+            "tenant-0": {
+              "submitted": 8,
+              "completed": 8,
+              "admitted": 8,
+              "rejected": {
+                "graph_build_capacity": 0,
+                "graph_build_timeout": 0
+              },
+              "latency_seconds": {
+                "p50": 10.536751625011675,
+                "p95": 11.701725041988539,
+                "p99": 11.701725041988539
+              },
+              "rejection_latency_seconds": {},
+              "client_queue_seconds": {
+                "p50": 31.620949917007238,
+                "p95": 85.50447949999943,
+                "p99": 85.50447949999943
+              }
+            },
+            "tenant-1": {
+              "submitted": 2,
+              "completed": 2,
+              "admitted": 2,
+              "rejected": {
+                "graph_build_capacity": 0,
+                "graph_build_timeout": 0
+              },
+              "latency_seconds": {
+                "p50": 10.22082145800232,
+                "p95": 10.392209834011737,
+                "p99": 10.392209834011737
+              },
+              "rejection_latency_seconds": {},
+              "client_queue_seconds": {
+                "p50": 42.1706333750044,
+                "p95": 95.90214337498765,
+                "p99": 95.90214337498765
+              }
+            }
+          }
+        }
+      },
+      "lifecycle_probes": {
+        "deadline": {
+          "injection": "cooperative hold before graph construction",
+          "configured_seconds": 60.0,
+          "seconds": 60.02736079200986,
+          "http_status": 503,
+          "error_code": "graph_build_timeout"
+        },
+        "disconnect": {
+          "injection": "hold at real builder checkpoint until loopback socket closes",
+          "checkpoints": 2,
+          "abort_reason": "disconnected",
+          "release_seconds": 0.024597207986516878
+        },
+        "slots_released": true,
+        "recovery_http_status": 200
+      },
+      "admission": {
+        "graph_build_concurrency": 4,
+        "graph_build_timeout_seconds": 60.0
+      },
+      "transport": "http",
+      "seed": 910,
+      "retained_bytes": 116633966,
+      "unique_records_per_tenant": 100000,
+      "input_rows_including_duplicates": 100001,
+      "input_sha256": [
+        "878b66cdb6d59a1fd606c6dc8d83f0ffff9db06b747f782e1a3d4a6555f97cc1",
+        "ec64d8dfd5fde46618280bd2ebce7c98ae159ccf94e238eb9f248c9f39e7211f"
+      ],
+      "input_bytes_per_tenant": [38621080, 38621080],
+      "model_counts": {
+        "framework": 20,
+        "control": 2252,
+        "ccf_category": 10,
+        "ccf_family": 21,
+        "safeguard": 517,
+        "evidence_type": 100000,
+        "asset": 100000,
+        "environment": 2,
+        "account": 2,
+        "source": 2,
+        "finding": 39669
+      },
+      "wall_seconds": 285.7001776249963,
+      "cpu_seconds": 220.51130899999998,
+      "peak_rss_mib": 929.375,
+      "reads": [
+        {
+          "tenant": "tenant-0",
+          "query": "first",
+          "submission_ordinal": 0,
+          "http_status": 200,
+          "error_type": null,
+          "error_code": null,
+          "retry_after": null,
+          "seconds": 11.866772749985103,
+          "client_queue_seconds": 6.660120561718941e-7,
+          "completion_seconds": 17.585268457973143,
+          "response_body_bytes": 8745,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-1",
+          "query": "first",
+          "submission_ordinal": 1,
+          "http_status": 200,
+          "error_type": null,
+          "error_code": null,
+          "retry_after": null,
+          "seconds": 11.571693667006912,
+          "client_queue_seconds": 1.1669762898236513e-6,
+          "completion_seconds": 29.157872666983167,
+          "response_body_bytes": 8745,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "balanced",
+          "submission_ordinal": 0,
+          "http_status": 200,
+          "error_type": null,
+          "error_code": null,
+          "retry_after": null,
+          "seconds": 11.363420000008773,
+          "client_queue_seconds": 0.00019541700021363795,
+          "completion_seconds": 63.64893274998758,
+          "response_body_bytes": 8745,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-1",
+          "query": "balanced",
+          "submission_ordinal": 1,
+          "http_status": 200,
+          "error_type": null,
+          "error_code": null,
+          "retry_after": null,
+          "seconds": 11.275605750008253,
+          "client_queue_seconds": 11.363149250013521,
+          "completion_seconds": 74.9247031249979,
+          "response_body_bytes": 8745,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "balanced",
+          "submission_ordinal": 2,
+          "http_status": 200,
+          "error_type": null,
+          "error_code": null,
+          "retry_after": null,
+          "seconds": 11.655889375018887,
+          "client_queue_seconds": 22.63893929097685,
+          "completion_seconds": 86.5807913329918,
+          "response_body_bytes": 8745,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-1",
+          "query": "balanced",
+          "submission_ordinal": 3,
+          "http_status": 200,
+          "error_type": null,
+          "error_code": null,
+          "retry_after": null,
+          "seconds": 11.423491667024791,
+          "client_queue_seconds": 34.29498166698613,
+          "completion_seconds": 98.00444541699835,
+          "response_body_bytes": 8745,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 0,
+          "http_status": 200,
+          "error_type": null,
+          "error_code": null,
+          "retry_after": null,
+          "seconds": 10.901208125025732,
+          "client_queue_seconds": 7.266699685715139e-5,
+          "completion_seconds": 108.90652874999796,
+          "response_body_bytes": 8745,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 1,
+          "http_status": 200,
+          "error_type": null,
+          "error_code": null,
+          "retry_after": null,
+          "seconds": 10.477778458007379,
+          "client_queue_seconds": 10.90110466699116,
+          "completion_seconds": 119.38446324999677,
+          "response_body_bytes": 8745,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 2,
+          "http_status": 200,
+          "error_type": null,
+          "error_code": null,
+          "retry_after": null,
+          "seconds": 10.241747916996246,
+          "client_queue_seconds": 21.37902587497956,
+          "completion_seconds": 129.62636529197334,
+          "response_body_bytes": 8745,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 3,
+          "http_status": 200,
+          "error_type": null,
+          "error_code": null,
+          "retry_after": null,
+          "seconds": 10.54952612501802,
+          "client_queue_seconds": 31.620949917007238,
+          "completion_seconds": 140.17607187500107,
+          "response_body_bytes": 8745,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-1",
+          "query": "skewed",
+          "submission_ordinal": 4,
+          "http_status": 200,
+          "error_type": null,
+          "error_code": null,
+          "retry_after": null,
+          "seconds": 10.22082145800232,
+          "client_queue_seconds": 42.1706333750044,
+          "completion_seconds": 150.39705374999903,
+          "response_body_bytes": 8745,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 5,
+          "http_status": 200,
+          "error_type": null,
+          "error_code": null,
+          "retry_after": null,
+          "seconds": 11.701725041988539,
+          "client_queue_seconds": 52.39160245799576,
+          "completion_seconds": 162.09892966697225,
+          "response_body_bytes": 8745,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 6,
+          "http_status": 200,
+          "error_type": null,
+          "error_code": null,
+          "retry_after": null,
+          "seconds": 10.87388749999809,
+          "client_queue_seconds": 64.09350454199011,
+          "completion_seconds": 172.9729982499848,
+          "response_body_bytes": 8745,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 7,
+          "http_status": 200,
+          "error_type": null,
+          "error_code": null,
+          "retry_after": null,
+          "seconds": 10.536751625011675,
+          "client_queue_seconds": 74.967571458983,
+          "completion_seconds": 183.50993266698788,
+          "response_body_bytes": 8745,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-0",
+          "query": "skewed",
+          "submission_ordinal": 8,
+          "http_status": 200,
+          "error_type": null,
+          "error_code": null,
+          "retry_after": null,
+          "seconds": 10.397503707994474,
+          "client_queue_seconds": 85.50447949999943,
+          "completion_seconds": 193.90759695798624,
+          "response_body_bytes": 8745,
+          "response_nodes": 4,
+          "response_edges": 3
+        },
+        {
+          "tenant": "tenant-1",
+          "query": "skewed",
+          "submission_ordinal": 9,
+          "http_status": 200,
+          "error_type": null,
+          "error_code": null,
+          "retry_after": null,
+          "seconds": 10.392209834011737,
+          "client_queue_seconds": 95.90214337498765,
+          "completion_seconds": 204.29997004198958,
+          "response_body_bytes": 8745,
+          "response_nodes": 4,
+          "response_edges": 3
+        }
+      ],
+      "load_average_before": [6.8251953125, 15.3349609375, 20.64501953125],
+      "load_average_after": [3.2841796875, 8.591796875, 16.06591796875]
+    }
+  ],
+  "http_harness_sha256": "2e0cf34fad64bb3d1faa592795a6e1db9f08af3c899e666ea3825e451000cee9"
+}
