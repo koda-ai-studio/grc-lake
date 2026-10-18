@@ -37,6 +37,12 @@ def model_size(model: Model, limit: int, check: Callable[[], None]) -> int:
     return total
 
 
+class _Flight:
+    def __init__(self) -> None:
+        self.ready = Event()
+        self.model: Model | None = None
+
+
 class ModelCache:
     """One model per lake, LRU eviction, cancellable same-key build coalescing.
 
@@ -50,7 +56,7 @@ class ModelCache:
         self.ttl = ttl
         self._lock = Lock()
         self._entries: OrderedDict[Key, tuple[Model, int, float]] = OrderedDict()
-        self._building: dict[Key, Event] = {}
+        self._building: dict[Key, _Flight] = {}
         self._bytes = 0
 
     def get_or_build(
@@ -71,17 +77,26 @@ class ModelCache:
                     return cached[0]
                 waiting = self._building.get(key)
                 if waiting is None:
-                    finished = Event()
+                    finished = _Flight()
                     self._building[key] = finished
                     break
             # A disconnected waiter must not cancel the leader or other readers.
-            waiting.wait(0.05)
+            if waiting.ready.wait(0.05):
+                check()
+                if waiting.model is not None:
+                    # Oversized models can serve existing waiters without
+                    # becoming a retained cache entry. Their lifetime is bounded
+                    # by active requests, just like an uncached build's result.
+                    return waiting.model
         try:
             model = build()
             check()
             size = model_size(model, self.max_bytes, check)
-            if size <= self.max_bytes and self.max_entries > 0 and valid():
+            if valid():
                 check()
+                finished.model = model
+                if size > self.max_bytes:
+                    return model
                 with self._lock:
                     for previous in list(self._entries):
                         if previous[0] == key[0]:
@@ -96,4 +111,4 @@ class ModelCache:
         finally:
             with self._lock:
                 del self._building[key]
-                finished.set()
+                finished.ready.set()

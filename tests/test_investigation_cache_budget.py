@@ -134,3 +134,31 @@ def test_canceled_size_accounting_does_not_publish():
     with pytest.raises(RuntimeError, match="deadline"):
         store.get_or_build(("a", "v"), build, lambda: True, check)
     assert not store._entries and not store._building
+
+
+def test_oversized_build_is_shared_with_existing_waiters_but_not_retained():
+    store = cache.ModelCache(max_bytes=1)
+    entered, release, waiting = Event(), Event(), Event()
+    calls = []
+    checkpoints = []
+
+    def build():
+        calls.append(1)
+        entered.set()
+        assert release.wait(5)
+        return model()
+
+    def waiter_check():
+        checkpoints.append(1)
+        if len(checkpoints) > 1:
+            waiting.set()
+
+    with ThreadPoolExecutor(2) as pool:
+        leader = pool.submit(store.get_or_build, ("a", "v"), build, lambda: True, lambda: None)
+        assert entered.wait(5)
+        waiter = pool.submit(store.get_or_build, ("a", "v"), build, lambda: True, waiter_check)
+        assert waiting.wait(5)
+        release.set()
+        assert leader.result() is waiter.result()
+    assert len(calls) == 1
+    assert not store._entries and not store._building and store._bytes == 0
