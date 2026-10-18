@@ -4,8 +4,11 @@ Catalog edges describe mappings, not evaluated compliance or attack paths.
 The browser receives a bounded slice; hidden neighbors stay explicitly counted.
 """
 
+import hashlib
+import json
 from collections import Counter, defaultdict
-from collections.abc import Callable
+from collections.abc import Callable, Iterable, Mapping
+from itertools import islice
 from pathlib import Path
 from typing import Any
 
@@ -25,6 +28,29 @@ def _id(kind: str, *parts: str) -> str:
     return kind + ":" + canonical_sha256(parts)
 
 
+def _graph_version(nodes: Iterable[dict[str, Any]], edges: Iterable[dict[str, Any]], check: Callable[[], None]) -> str:
+    """Hash the existing canonical [nodes, edges] encoding in bounded row batches."""
+    digest = hashlib.sha256(b"[")
+    for separator, rows in ((b"", nodes), (b",", edges)):
+        digest.update(separator + b"[")
+        iterator = iter(rows)
+        first = True
+        while True:
+            check()
+            batch = list(islice(iterator, 128))
+            if not batch:
+                break
+            if not first:
+                digest.update(b",")
+            encoded = json.dumps(batch, sort_keys=True, separators=(",", ":"), default=str)
+            digest.update(encoded[1:-1].encode("utf-8"))
+            first = False
+        digest.update(b"]")
+    digest.update(b"]")
+    check()
+    return digest.hexdigest()
+
+
 def validate_bounds(
     *, view: str = "controls", depth: int = 2, limit: int = 150, root_offset: int = 0, control_offset: int = 0, **_: Any
 ) -> None:
@@ -35,27 +61,10 @@ def validate_bounds(
         raise ValueError("invalid graph bounds or view")
 
 
-@generation_reader
-def investigation_graph(
-    lake: Path,
-    *,
-    root: str | None = None,
-    view: str = "controls",
-    depth: int = 2,
-    limit: int = 150,
-    layers: set[str] | None = None,
-    search: str = "",
-    root_offset: int = 0,
-    framework: str = "",
-    control_offset: int = 0,
-    vendors: list[dict[str, Any]] | None = None,
-    expected_version: str | None = None,
-    checkpoint: Callable[[], None] | None = None,
-) -> dict[str, Any]:
-    """Build one bounded slice; ``checkpoint`` may raise to abort before any result exists."""
-    validate_bounds(view=view, depth=depth, limit=limit, root_offset=root_offset, control_offset=control_offset)
-    check = checkpoint or (lambda: None)
-    check()
+def _build_model(
+    lake: Path, vendors: list[dict[str, Any]] | None, check: Callable[[], None]
+) -> tuple[dict[str, dict[str, Any]], dict[str, dict[str, Any]], Mapping[str, Mapping[str, Any]]]:
+    """Release source rows and temporary bindings before fingerprinting and traversal."""
     nodes: dict[str, dict[str, Any]] = {}
     edges: dict[str, dict[str, Any]] = {}
 
@@ -139,7 +148,8 @@ def investigation_graph(
         asset_scopes[asset].add(account)
     evidence_by_event = defaultdict(list)
     check()
-    for event in sorted(events, key=canonical_sha256):
+    ordered_events = sorted(((canonical_sha256(event), event) for event in events), key=lambda item: item[0])
+    for event_hash, event in ordered_events:
         check()
         account, asset = source_asset_key({**event, "asset_id": event.get("asset_id") or ""})
         provider = str(event.get("source") or "")
@@ -151,7 +161,7 @@ def investigation_graph(
             observed_at=event.get("event_time"),
         )
         aid = _id("asset", account, asset)
-        eid = "evidence:" + canonical_sha256(event)
+        eid = "evidence:" + event_hash
         evidence_by_event[(account, event.get("event_id"), asset)].append(eid)
         fresh = freshness.get((account, event.get("event_id")), {})
         node(
@@ -247,12 +257,37 @@ def investigation_graph(
             else "Review the vendor assessment and its explicitly recorded asset links."
         )
 
+    return nodes, edges, frameworks
+
+
+@generation_reader
+def investigation_graph(
+    lake: Path,
+    *,
+    root: str | None = None,
+    view: str = "controls",
+    depth: int = 2,
+    limit: int = 150,
+    layers: set[str] | None = None,
+    search: str = "",
+    root_offset: int = 0,
+    framework: str = "",
+    control_offset: int = 0,
+    vendors: list[dict[str, Any]] | None = None,
+    expected_version: str | None = None,
+    checkpoint: Callable[[], None] | None = None,
+) -> dict[str, Any]:
+    """Build one bounded slice; ``checkpoint`` may raise to abort before any result exists."""
+    validate_bounds(view=view, depth=depth, limit=limit, root_offset=root_offset, control_offset=control_offset)
+    check = checkpoint or (lambda: None)
     check()
-    version = canonical_sha256([list(nodes.values()), list(edges.values())])
+    nodes, edges, frameworks = _build_model(lake, vendors, check)
+
+    check()
+    version = _graph_version(nodes.values(), edges.values(), check)
     if expected_version and version != expected_version:
         raise ValueError("graph version changed; refresh before expanding")
     eligible = {key for key, n in nodes.items() if not layers or n["kind"] in layers}
-    adjacency: dict[str, set[str]] = defaultdict(set)
     outgoing: dict[str, set[str]] = defaultdict(set)
     incoming: dict[str, set[str]] = defaultdict(set)
     check()
@@ -260,8 +295,10 @@ def investigation_graph(
         if e["source"] in eligible and e["target"] in eligible:
             outgoing[e["source"]].add(e["target"])
             incoming[e["target"]].add(e["source"])
-            adjacency[e["source"]].add(e["target"])
-            adjacency[e["target"]].add(e["source"])
+
+    def neighbors(key: str) -> set[str]:
+        return outgoing.get(key, set()) | incoming.get(key, set())
+
     root_kinds = (
         {"control", "safeguard", "ccf_category", "ccf_family", "framework"}
         if view == "controls"
@@ -281,7 +318,7 @@ def investigation_graph(
         ),
         key=lambda n: (
             n["kind"] != ("environment" if view == "environment" else "control"),
-            -len(adjacency[n["id"]]),
+            -len(neighbors(n["id"])),
             n.get("source_account_id", ""),
             n["id"],
         ),
@@ -290,7 +327,8 @@ def investigation_graph(
         observed_controls = [
             n
             for n in choices
-            if n["kind"] == "control" and any(nodes[target]["kind"] == "evidence_type" for target in outgoing[n["id"]])
+            if n["kind"] == "control"
+            and any(nodes[target]["kind"] == "evidence_type" for target in outgoing.get(n["id"], ()))
         ]
         preferred = next((n for n in observed_controls if n["id"] == "control:SOC2-CC6.1"), None)
         root = (preferred or (observed_controls[0] if observed_controls else choices[0]))["id"] if choices else None
@@ -298,7 +336,7 @@ def investigation_graph(
     ordered = list(selected)
     # A control path walks upstream and downstream independently: reaching a
     # shared framework or safeguard must not turn back into sibling controls.
-    walks = (outgoing, incoming) if view == "controls" else (adjacency,)
+    walks = (outgoing, incoming) if view == "controls" else (None,)
     for links in walks:
         frontier = {root} if root in eligible else set()
         visited = set(frontier)
@@ -308,7 +346,7 @@ def investigation_graph(
             for key in frontier:
                 if view != "controls" and key != root and nodes[key]["kind"] in {"framework", "control", "safeguard"}:
                     continue
-                following.update(links[key] - visited)
+                following.update((links.get(key, set()) if links is not None else neighbors(key)) - visited)
             visited.update(following)
             ordered.extend(sorted(following - selected))
             selected.update(following)
@@ -320,7 +358,7 @@ def investigation_graph(
     if root in nodes and nodes[root]["kind"] == "safeguard":
         # Count the full direct mapping set before the response cap. Return only
         # one framework page, keeping original nodes and recorded edge endpoints.
-        for key in sorted(incoming[root]):
+        for key in sorted(incoming.get(root, ())):
             if nodes[key]["kind"] == "control":
                 grouped_controls[nodes[key]["framework_id"]].append(key)
         framework_groups = [
