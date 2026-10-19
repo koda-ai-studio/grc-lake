@@ -46,31 +46,57 @@ class BuildToken:
 
 
 class GraphBuildSlots:
-    """Non-blocking counting slots; a full process rejects rather than queues."""
+    """Atomic process and authenticated-tenant limits; no waiting queue."""
 
-    def __init__(self, capacity: int) -> None:
+    def __init__(self, capacity: int, tenant_capacity: int | None = None) -> None:
         if not 1 <= capacity <= MAX_CONCURRENCY:
             raise ValueError(f"graph build concurrency must be between 1 and {MAX_CONCURRENCY}")
         self.capacity = capacity
+        self.tenant_capacity = max(1, capacity // 2) if tenant_capacity is None else tenant_capacity
+        if not 1 <= self.tenant_capacity <= capacity:
+            raise ValueError("graph tenant concurrency must be between 1 and process concurrency")
+        self._active_by_tenant: dict[str, int] = {}
         self._lock = threading.Lock()
         self._active = 0
 
     @property
     def active(self) -> int:
-        return self._active
+        with self._lock:
+            return self._active
 
-    def try_acquire(self) -> bool:
+    def try_acquire(self, tenant_id: str) -> str | None:
+        """Return an atomic rejection code, or None after acquiring one slot."""
+        if not tenant_id:
+            raise ValueError("graph admission requires an authenticated tenant")
         with self._lock:
             if self._active >= self.capacity:
-                return False
+                return "graph_build_capacity"
+            tenant_active = self._active_by_tenant.get(tenant_id, 0)
+            if tenant_active >= self.tenant_capacity:
+                return "graph_tenant_capacity"
             self._active += 1
-            return True
+            self._active_by_tenant[tenant_id] = tenant_active + 1
+            return None
 
-    def release(self) -> None:
+    def release(self, tenant_id: str) -> None:
         with self._lock:
-            if self._active <= 0:
-                raise RuntimeError("graph build slot released more times than acquired")
+            tenant_active = self._active_by_tenant.get(tenant_id, 0)
+            if not tenant_active:
+                raise RuntimeError("graph build slot released more times than acquired for tenant")
             self._active -= 1
+            if tenant_active == 1:
+                del self._active_by_tenant[tenant_id]
+            else:
+                self._active_by_tenant[tenant_id] = tenant_active - 1
+
+
+def graph_tenant_capacity(env: Mapping[str, str], capacity: int) -> int:
+    """Default to half the process slots (rounded down, minimum one)."""
+    raw = env.get("GRC_LAKE_GRAPH_TENANT_CONCURRENCY", "").strip()
+    limit = int(raw) if raw else max(1, capacity // 2)
+    if not 1 <= limit <= capacity:
+        raise ValueError("GRC_LAKE_GRAPH_TENANT_CONCURRENCY must be between 1 and process concurrency")
+    return limit
 
 
 def graph_build_settings(env: Mapping[str, str]) -> tuple[int, float | None]:

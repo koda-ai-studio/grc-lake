@@ -92,7 +92,7 @@ from security_lakehouse.db.base import (
 from security_lakehouse.db.models import REMEDIATION_PRIORITIES, USER_ROLES, AgentRun, User
 from security_lakehouse.demo_links import build_demo_kit
 from security_lakehouse.execution_mode import run_in_server_mode, server_execution
-from security_lakehouse.graph_admission import GraphBuildSlots, graph_build_settings
+from security_lakehouse.graph_admission import GraphBuildSlots, graph_build_settings, graph_tenant_capacity
 from security_lakehouse.ingestion_status import build_ingestion_status
 from security_lakehouse.io import resolve_path
 from security_lakehouse.operation_execution import execute_operation, execute_stored_operation
@@ -2491,7 +2491,7 @@ def create_app(lake_dir: str | Path, *, require_auth: bool = True) -> FastAPI:
 
     # --- vendor risk questionnaires (GRC) ---
     graph_capacity, graph_timeout = graph_build_settings(runtime_env())
-    app.state.graph_build_slots = GraphBuildSlots(graph_capacity)
+    app.state.graph_build_slots = GraphBuildSlots(graph_capacity, graph_tenant_capacity(runtime_env(), graph_capacity))
     app.include_router(
         build_vendor_risk_router(
             lake_for=lake_for, graph_slots=app.state.graph_build_slots, graph_timeout=graph_timeout
