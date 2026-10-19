@@ -98,7 +98,7 @@ def test_repairs_preserve_distinct_coverage_without_adding_reviews():
     payload = without_repair_approvals(load_safeguards())
     assert validate_safeguards(payload) == []
     coverage = coverage_by_framework(payload)
-    assert (coverage["controls"], coverage["covered"], coverage["reviewed"]) == (2252, 1803, 1128)
+    assert (coverage["controls"], coverage["covered"], coverage["reviewed"]) == (2252, 1818, 1128)
 
 
 @pytest.mark.parametrize("framework", GENERATOR["FRAMEWORKS"])
@@ -129,7 +129,7 @@ def test_published_packets_bind_current_semantics_and_contain_no_decisions(frame
     assert (
         len(requirements)
         == len(set(requirements))
-        == {"soc2": 28, "iso-27001-2022": 64, "iso-42001-2023": 23}[framework]
+        == {"soc2": 28, "iso-27001-2022": 76, "iso-42001-2023": 26}[framework]
     )
     assert set(requirements) == expected - reviewed
 

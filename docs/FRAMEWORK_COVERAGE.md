@@ -7,7 +7,7 @@ retain `evaluatable` and `attestable` names for compatibility.
 
 Framework packs: 20 with catalogued requirements (2 more registry entries planned or superseded)
 Requirements catalogued: 2252 (all source-cited)
-Mapped (touched by a safeguard): 1803 (80.1%)
+Mapped (touched by a safeguard): 1818 (80.7%)
 Reviewed safeguard mappings: 1163 (51.6%), of which 381 are source-native self-maps and 782 are crosswalk-reviewed (34.7%); 339 rest only on legacy reviews with no recorded reviewer
 Asset types modeled: 20
 
@@ -23,11 +23,11 @@ Asset types modeled: 20
 | NIST SP 800-53B Moderate baseline (FedRAMP foundation only) | [NIST SP 800-53 Rev 5 Moderate baseline (FedRAMP Moderate foundation)](https://csrc.nist.gov/publications/detail/sp/800-53b/final) | implemented_full_pack | 287 | 287 | 262 | 114 | 39.7% | 0 | 114 | 39.7% | 96 | never pulled |
 | GDPR - EU General Data Protection Regulation (2016/679) | [EUR-Lex - Regulation (EU) 2016/679](https://eur-lex.europa.eu/eli/reg/2016/679/oj) | implemented_limited_mapping | 20 | 20 | 20 | 2 | 10.0% | 0 | 2 | 10.0% | 2 | never pulled |
 | HIPAA Security Rule (45 CFR Parts 160, 162, 164) | [U.S. HHS HIPAA Security Rule](https://www.hhs.gov/hipaa/for-professionals/security/index.html) | implemented_limited_mapping | 24 | 24 | 19 | 4 | 16.7% | 0 | 4 | 16.7% | 4 | never pulled |
-| ISO/IEC 27001:2022 Information security management systems | [ISO/IEC 27001:2022](https://www.iso.org/standard/27001) | implemented_full_pack | 93 | 93 | 81 | 17 | 18.3% | 0 | 17 | 18.3% | 10 | never pulled |
+| ISO/IEC 27001:2022 Information security management systems | [ISO/IEC 27001:2022](https://www.iso.org/standard/27001) | implemented_full_pack | 93 | 93 | 93 | 17 | 18.3% | 0 | 17 | 18.3% | 10 | never pulled |
 | ISO/IEC 27017:2015 Cloud security controls | [ISO/IEC 27017:2015](https://www.iso.org/standard/43757.html) | implemented_full_pack | 47 | 47 | 44 | 18 | 38.3% | 0 | 18 | 38.3% | 18 | never pulled |
 | ISO/IEC 27701:2019 Privacy information management | [ISO/IEC 27701:2019](https://www.iso.org/standard/71670.html) | planned | 0 | 0 | 0 | 0 | 0.0% | 0 | 0 | 0.0% | 0 | never pulled |
 | ISO/IEC 27701:2025 Privacy information management | [ISO/IEC 27701:2025](https://www.iso.org/standard/27701) | implemented_limited_mapping | 10 | 10 | 8 | 0 | 0.0% | 0 | 0 | 0.0% | 0 | fresh |
-| ISO/IEC 42001:2023 AI management system | [ISO/IEC 42001:2023](https://www.iso.org/standard/42001) | implemented_full_pack | 40 | 40 | 37 | 14 | 35.0% | 0 | 14 | 35.0% | 9 | never pulled |
+| ISO/IEC 42001:2023 AI management system | [ISO/IEC 42001:2023](https://www.iso.org/standard/42001) | implemented_full_pack | 40 | 40 | 40 | 14 | 35.0% | 0 | 14 | 35.0% | 9 | never pulled |
 | NIS2 Directive (EU) 2022/2555 | [EUR-Lex, Directive (EU) 2022/2555 (CELEX 32022L2555)](https://eur-lex.europa.eu/eli/dir/2022/2555/oj) | implemented_limited_mapping | 17 | 17 | 17 | 17 | 100.0% | 0 | 17 | 100.0% | 0 | fresh |
 | NIST SP 800-171 Rev 3 (Protecting CUI in Nonfederal Systems) | [NIST SP 800-171 Rev. 3 (OSCAL catalog, usnistgov/oscal-content)](https://csrc.nist.gov/pubs/sp/800/171/r3/final) | implemented_limited_mapping | 97 | 97 | 85 | 85 | 87.6% | 0 | 85 | 87.6% | 0 | fresh |
 | NIST SP 800-53 Rev 5 Security and Privacy Controls | [NIST SP 800-53 Rev 5 (OSCAL catalog, usnistgov/oscal-content)](https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final) | implemented_limited_mapping | 1014 | 1014 | 666 | 495 | 48.8% | 381 | 114 | 11.2% | 96 | fresh |

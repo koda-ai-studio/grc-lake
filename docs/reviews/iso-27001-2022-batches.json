@@ -24,7 +24,7 @@
       "batches": [
         {
           "batch_id": "iso-27001-2022-review-001",
-          "basis_sha256": "10ef63a65c013a13a894fbaddd83a918b680f2882757e56f181ba887e8f1923a",
+          "basis_sha256": "017acda712e2e067f3dd2e96301967b87bb2a9d507e42cd37a1138fd7f51e894",
           "requirements": [
             {
               "control_id": "ISO27001-A.5.1",
@@ -230,6 +230,61 @@
                     "owner": "grc"
                   },
                   "mapping_source": null,
+                  "decision": null,
+                  "reviewer": null,
+                  "rationale": null
+                }
+              ]
+            },
+            {
+              "control_id": "ISO27001-A.5.11",
+              "framework_ref": "ISO 27001:2022 A.5.11",
+              "question": "Requirement-specific proposal: verify the issued-asset register reconciled to leavers and role changes, return responsibilities and deadlines, notifications, dated custody receipts, inventory updates, and escalation and recovery actions for unreturned assets. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Cisco provides a return-of-property workflow; local timing, worker scope and exceptions must be justified.",
+              "cisco_candidates": [
+                {
+                  "control": "CCF 67",
+                  "cell": "BI73",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 67"
+                },
+                {
+                  "control": "CCF 227",
+                  "cell": "BI233",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 227"
+                },
+                {
+                  "control": "CCF 228",
+                  "cell": "BI234",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 228"
+                },
+                {
+                  "control": "CCF 229",
+                  "cell": "BI235",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 229"
+                }
+              ],
+              "source_scope": "vendor implementation context, not verified normative equivalence",
+              "oracle_context": [],
+              "candidates": [
+                {
+                  "safeguard_id": "SG-REVIEW-ISO27001-A-5-11",
+                  "role": "primary",
+                  "review_state": "proposed",
+                  "review_basis_sha256": "8faa7a9533cad2012b6b4c40838037fc3767f1ddb93c449a9a876c76ffe94028",
+                  "operating_contract": {
+                    "objective": "Assess the requirement “Return of assets” within the declared system, period, and population.",
+                    "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test the issued-asset register reconciled to leavers and role changes, return responsibilities and deadlines, notifications, dated custody receipts, inventory updates, and escalation and recovery actions for unreturned assets. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+                    "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+                    "asset_types": ["audit_log", "service"],
+                    "required_evidence_types": ["review_iso27001_a_5_11"],
+                    "frequency": "documented assessment schedule and after material change",
+                    "owner": "security-assurance"
+                  },
+                  "mapping_source": {
+                    "name": "Cisco Cloud Controls Framework 4.0",
+                    "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
+                    "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
+                    "locator": "CCF 229; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Cisco provides a return-of-property workflow; local timing, worker scope and exceptions must be justified."
+                  },
                   "decision": null,
                   "reviewer": null,
                   "rationale": null
@@ -818,7 +873,13 @@
                   "rationale": null
                 }
               ]
-            },
+            }
+          ]
+        },
+        {
+          "batch_id": "iso-27001-2022-review-002",
+          "basis_sha256": "8c5d142da62735dcd4dd8b5d1987bcdbc6738d9dd2d5faf1cf7626436de3f683",
+          "requirements": [
             {
               "control_id": "ISO27001-A.5.21",
               "framework_ref": "ISO 27001:2022 A.5.21",
@@ -927,13 +988,7 @@
                   "rationale": null
                 }
               ]
-            }
-          ]
-        },
-        {
-          "batch_id": "iso-27001-2022-review-002",
-          "basis_sha256": "12aed3ab8719708eb8f91b389f5981a92face9e766c52281eaade65073085c81",
-          "requirements": [
+            },
             {
               "control_id": "ISO27001-A.5.22",
               "framework_ref": "ISO 27001:2022 A.5.22",
@@ -1543,6 +1598,51 @@
               ]
             },
             {
+              "control_id": "ISO27001-A.5.3",
+              "framework_ref": "ISO 27001:2022 A.5.3",
+              "question": "Requirement-specific proposal: verify the documented incompatible-duty matrix, actual production and administrative entitlements, independent change approvals, attempted self-approval tests, periodic conflict reviews, and approved compensating controls with owners and expiry dates. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Production change separation is one example; the assessor must also identify other incompatible duties in scope.",
+              "cisco_candidates": [
+                {
+                  "control": "CCF 39",
+                  "cell": "BI45",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 39"
+                },
+                {
+                  "control": "CCF 226",
+                  "cell": "BI232",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 226"
+                }
+              ],
+              "source_scope": "vendor implementation context, not verified normative equivalence",
+              "oracle_context": [],
+              "candidates": [
+                {
+                  "safeguard_id": "SG-REVIEW-ISO27001-A-5-3",
+                  "role": "primary",
+                  "review_state": "proposed",
+                  "review_basis_sha256": "a211ce5b4a737a91b397581ed4dec172e589f624443e5026200ed5dde1393564",
+                  "operating_contract": {
+                    "objective": "Assess the requirement “Segregation of duties” within the declared system, period, and population.",
+                    "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test the documented incompatible-duty matrix, actual production and administrative entitlements, independent change approvals, attempted self-approval tests, periodic conflict reviews, and approved compensating controls with owners and expiry dates. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+                    "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+                    "asset_types": ["audit_log", "service"],
+                    "required_evidence_types": ["review_iso27001_a_5_3"],
+                    "frequency": "documented assessment schedule and after material change",
+                    "owner": "security-assurance"
+                  },
+                  "mapping_source": {
+                    "name": "Cisco Cloud Controls Framework 4.0",
+                    "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
+                    "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
+                    "locator": "CCF 39; CCF 226; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Production change separation is one example; the assessor must also identify other incompatible duties in scope."
+                  },
+                  "decision": null,
+                  "reviewer": null,
+                  "rationale": null
+                }
+              ]
+            },
+            {
               "control_id": "ISO27001-A.5.30",
               "framework_ref": "ISO 27001:2022 A.5.30",
               "question": "For ict readiness for business continuity, compare each candidate (Backup and availability) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.",
@@ -1615,7 +1715,13 @@
                   "rationale": null
                 }
               ]
-            },
+            }
+          ]
+        },
+        {
+          "batch_id": "iso-27001-2022-review-003",
+          "basis_sha256": "b0da873c80ca5d7a0552c7cf303025e7a59f26158a7ca93e60b2baf6e6a43fba",
+          "requirements": [
             {
               "control_id": "ISO27001-A.5.31",
               "framework_ref": "ISO 27001:2022 A.5.31",
@@ -1705,6 +1811,81 @@
               ]
             },
             {
+              "control_id": "ISO27001-A.5.32",
+              "framework_ref": "ISO 27001:2022 A.5.32",
+              "question": "Requirement-specific proposal: verify the inventory of licensed software and protected material, acquisition and use rights, entitlement counts reconciled to actual use, restrictions on copying or distribution, periodic checks and remediation of unauthorized use. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Software licensing guidance is narrower than all intellectual property rights; non-software material needs separate evidence.",
+              "cisco_candidates": [
+                {
+                  "control": "CCF 165",
+                  "cell": "BI171",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 165"
+                },
+                {
+                  "control": "CCF 166",
+                  "cell": "BI172",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 166"
+                },
+                {
+                  "control": "CCF 167",
+                  "cell": "BI173",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 167"
+                },
+                {
+                  "control": "CCF 173",
+                  "cell": "BI179",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 173"
+                },
+                {
+                  "control": "CCF 329",
+                  "cell": "BI335",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 329"
+                },
+                {
+                  "control": "CCF 331",
+                  "cell": "BI337",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 331"
+                },
+                {
+                  "control": "CCF 339",
+                  "cell": "BI345",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 339"
+                },
+                {
+                  "control": "CCF 366",
+                  "cell": "BI372",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 366"
+                }
+              ],
+              "source_scope": "vendor implementation context, not verified normative equivalence",
+              "oracle_context": [],
+              "candidates": [
+                {
+                  "safeguard_id": "SG-REVIEW-ISO27001-A-5-32",
+                  "role": "primary",
+                  "review_state": "proposed",
+                  "review_basis_sha256": "46f8f4273c174602eceeb1e832dbdc5ebe0ffdca40c55825994718b4cbb5d15f",
+                  "operating_contract": {
+                    "objective": "Assess the requirement “Intellectual property rights” within the declared system, period, and population.",
+                    "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test the inventory of licensed software and protected material, acquisition and use rights, entitlement counts reconciled to actual use, restrictions on copying or distribution, periodic checks and remediation of unauthorized use. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+                    "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+                    "asset_types": ["audit_log", "service"],
+                    "required_evidence_types": ["review_iso27001_a_5_32"],
+                    "frequency": "documented assessment schedule and after material change",
+                    "owner": "security-assurance"
+                  },
+                  "mapping_source": {
+                    "name": "Cisco Cloud Controls Framework 4.0",
+                    "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
+                    "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
+                    "locator": "CCF 366; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Software licensing guidance is narrower than all intellectual property rights; non-software material needs separate evidence."
+                  },
+                  "decision": null,
+                  "reviewer": null,
+                  "rationale": null
+                }
+              ]
+            },
+            {
               "control_id": "ISO27001-A.5.33",
               "framework_ref": "ISO 27001:2022 A.5.33",
               "question": "For protection of records, compare each candidate (Data retention and secure disposal) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.",
@@ -1769,13 +1950,7 @@
                   "rationale": null
                 }
               ]
-            }
-          ]
-        },
-        {
-          "batch_id": "iso-27001-2022-review-003",
-          "basis_sha256": "584ba0033b3214f138ae56a078ae0be633275a1d96fcdb5ad5d35acc6d3a297f",
-          "requirements": [
+            },
             {
               "control_id": "ISO27001-A.5.34",
               "framework_ref": "ISO 27001:2022 A.5.34",
@@ -1995,6 +2170,56 @@
               ]
             },
             {
+              "control_id": "ISO27001-A.5.37",
+              "framework_ref": "ISO 27001:2022 A.5.37",
+              "question": "Requirement-specific proposal: verify the inventory of operational procedures, accountable owners, approved current versions accessible to operators, dependencies and failure handling, sampled execution records, and change-driven review of procedures for critical operations. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. SDLC and key-management procedures illustrate operating documentation; they do not establish completeness of all operating procedures.",
+              "cisco_candidates": [
+                {
+                  "control": "CCF 30",
+                  "cell": "BI36",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 30"
+                },
+                {
+                  "control": "CCF 81",
+                  "cell": "BI87",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 81"
+                },
+                {
+                  "control": "CCF 96",
+                  "cell": "BI102",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 96"
+                }
+              ],
+              "source_scope": "vendor implementation context, not verified normative equivalence",
+              "oracle_context": [],
+              "candidates": [
+                {
+                  "safeguard_id": "SG-REVIEW-ISO27001-A-5-37",
+                  "role": "primary",
+                  "review_state": "proposed",
+                  "review_basis_sha256": "729163be4d4455bdd77dceb4db77e5d6b2c414d0cf9dfb434e213863d6dbbd6c",
+                  "operating_contract": {
+                    "objective": "Assess the requirement “Documented operating procedures” within the declared system, period, and population.",
+                    "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test the inventory of operational procedures, accountable owners, approved current versions accessible to operators, dependencies and failure handling, sampled execution records, and change-driven review of procedures for critical operations. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+                    "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+                    "asset_types": ["audit_log", "service"],
+                    "required_evidence_types": ["review_iso27001_a_5_37"],
+                    "frequency": "documented assessment schedule and after material change",
+                    "owner": "security-assurance"
+                  },
+                  "mapping_source": {
+                    "name": "Cisco Cloud Controls Framework 4.0",
+                    "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
+                    "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
+                    "locator": "CCF 30; CCF 96; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. SDLC and key-management procedures illustrate operating documentation; they do not establish completeness of all operating procedures."
+                  },
+                  "decision": null,
+                  "reviewer": null,
+                  "rationale": null
+                }
+              ]
+            },
+            {
               "control_id": "ISO27001-A.5.4",
               "framework_ref": "ISO 27001:2022 A.5.4",
               "question": "For management responsibilities, compare each candidate (Governance and control environment) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.",
@@ -2163,6 +2388,77 @@
               ]
             },
             {
+              "control_id": "ISO27001-A.5.6",
+              "framework_ref": "ISO 27001:2022 A.5.6",
+              "question": "Requirement-specific proposal: verify the relevant professional and security groups or advisory channels, designated contacts, active subscriptions or participation records, triage and distribution of received information, and tracked decisions responding to relevant security developments. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Subscription records alone do not demonstrate active use of advice or complete coverage of relevant groups.",
+              "cisco_candidates": [
+                {
+                  "control": "CCF 122",
+                  "cell": "BI128",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 122"
+                },
+                {
+                  "control": "CCF 124",
+                  "cell": "BI130",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 124"
+                },
+                {
+                  "control": "CCF 128",
+                  "cell": "BI134",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 128"
+                },
+                {
+                  "control": "CCF 129",
+                  "cell": "BI135",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 129"
+                },
+                {
+                  "control": "CCF 356",
+                  "cell": "BI362",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 356"
+                },
+                {
+                  "control": "CCF 357",
+                  "cell": "BI363",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 357"
+                }
+              ],
+              "source_scope": "vendor implementation context, not verified normative equivalence",
+              "oracle_context": [],
+              "candidates": [
+                {
+                  "safeguard_id": "SG-REVIEW-ISO27001-A-5-6",
+                  "role": "primary",
+                  "review_state": "proposed",
+                  "review_basis_sha256": "38c4466bf29f32cf0c5a4ea8f478616adcd89af31a3cb1cefe3e179339f824d7",
+                  "operating_contract": {
+                    "objective": "Assess the requirement “Contact with special interest groups” within the declared system, period, and population.",
+                    "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test the relevant professional and security groups or advisory channels, designated contacts, active subscriptions or participation records, triage and distribution of received information, and tracked decisions responding to relevant security developments. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+                    "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+                    "asset_types": ["audit_log", "service"],
+                    "required_evidence_types": ["review_iso27001_a_5_6"],
+                    "frequency": "documented assessment schedule and after material change",
+                    "owner": "security-assurance"
+                  },
+                  "mapping_source": {
+                    "name": "Cisco Cloud Controls Framework 4.0",
+                    "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
+                    "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
+                    "locator": "CCF 357; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Subscription records alone do not demonstrate active use of advice or complete coverage of relevant groups."
+                  },
+                  "decision": null,
+                  "reviewer": null,
+                  "rationale": null
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "batch_id": "iso-27001-2022-review-004",
+          "basis_sha256": "5d4fbea07fad3c6e795e9417ce1f7c4da71ccf8c1b4b435a777025562e7e262e",
+          "requirements": [
+            {
               "control_id": "ISO27001-A.5.7",
               "framework_ref": "ISO 27001:2022 A.5.7",
               "question": "For threat intelligence, compare each candidate (Monitoring and incident detection) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.",
@@ -2288,6 +2584,101 @@
               ]
             },
             {
+              "control_id": "ISO27001-A.6.1",
+              "framework_ref": "ISO 27001:2022 A.6.1",
+              "question": "Requirement-specific proposal: verify the role-based screening policy and lawful jurisdictional scope, joiner population reconciled to personnel records, screening completion before relevant access, authorized exceptions, and protections and retention limits for sensitive screening records. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Cisco describes pre-employment screening; local law, proportionality and applicable contractor scope need assessor confirmation.",
+              "cisco_candidates": [
+                {
+                  "control": "CCF 162",
+                  "cell": "BI168",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 162"
+                }
+              ],
+              "source_scope": "vendor implementation context, not verified normative equivalence",
+              "oracle_context": [],
+              "candidates": [
+                {
+                  "safeguard_id": "SG-REVIEW-ISO27001-A-6-1",
+                  "role": "primary",
+                  "review_state": "proposed",
+                  "review_basis_sha256": "8431950b41bd5124c2a4682a1d67b6a731f50a72112ecb8d647532d814c3b8e6",
+                  "operating_contract": {
+                    "objective": "Assess the requirement “Screening” within the declared system, period, and population.",
+                    "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test the role-based screening policy and lawful jurisdictional scope, joiner population reconciled to personnel records, screening completion before relevant access, authorized exceptions, and protections and retention limits for sensitive screening records. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+                    "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+                    "asset_types": ["audit_log", "service"],
+                    "required_evidence_types": ["review_iso27001_a_6_1"],
+                    "frequency": "documented assessment schedule and after material change",
+                    "owner": "security-assurance"
+                  },
+                  "mapping_source": {
+                    "name": "Cisco Cloud Controls Framework 4.0",
+                    "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
+                    "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
+                    "locator": "CCF 162; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Cisco describes pre-employment screening; local law, proportionality and applicable contractor scope need assessor confirmation."
+                  },
+                  "decision": null,
+                  "reviewer": null,
+                  "rationale": null
+                }
+              ]
+            },
+            {
+              "control_id": "ISO27001-A.6.2",
+              "framework_ref": "ISO 27001:2022 A.6.2",
+              "question": "Requirement-specific proposal: verify the approved employment and contractor terms defining security responsibilities, signed acceptance reconciled to the onboarding population, communication before access, updates after role changes, and documented handling of missing or outdated agreements. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Confidentiality agreements are examples within employment terms; they do not establish every security obligation.",
+              "cisco_candidates": [
+                {
+                  "control": "CCF 165",
+                  "cell": "BI171",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 165"
+                },
+                {
+                  "control": "CCF 166",
+                  "cell": "BI172",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 166"
+                },
+                {
+                  "control": "CCF 167",
+                  "cell": "BI173",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 167"
+                },
+                {
+                  "control": "CCF 339",
+                  "cell": "BI345",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 339"
+                }
+              ],
+              "source_scope": "vendor implementation context, not verified normative equivalence",
+              "oracle_context": [],
+              "candidates": [
+                {
+                  "safeguard_id": "SG-REVIEW-ISO27001-A-6-2",
+                  "role": "primary",
+                  "review_state": "proposed",
+                  "review_basis_sha256": "cedbee799e48f9e0361c00d234ff0c63bc94f5d7f249773142d322c8f62547d6",
+                  "operating_contract": {
+                    "objective": "Assess the requirement “Terms and conditions of employment” within the declared system, period, and population.",
+                    "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test the approved employment and contractor terms defining security responsibilities, signed acceptance reconciled to the onboarding population, communication before access, updates after role changes, and documented handling of missing or outdated agreements. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+                    "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+                    "asset_types": ["audit_log", "service"],
+                    "required_evidence_types": ["review_iso27001_a_6_2"],
+                    "frequency": "documented assessment schedule and after material change",
+                    "owner": "security-assurance"
+                  },
+                  "mapping_source": {
+                    "name": "Cisco Cloud Controls Framework 4.0",
+                    "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
+                    "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
+                    "locator": "CCF 165; CCF 166; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Confidentiality agreements are examples within employment terms; they do not establish every security obligation."
+                  },
+                  "decision": null,
+                  "reviewer": null,
+                  "rationale": null
+                }
+              ]
+            },
+            {
               "control_id": "ISO27001-A.6.3",
               "framework_ref": "ISO 27001:2022 A.6.3",
               "question": "For information security awareness, education and training, compare each candidate (Security awareness and training) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.",
@@ -2336,6 +2727,151 @@
                     "owner": "grc"
                   },
                   "mapping_source": null,
+                  "decision": null,
+                  "reviewer": null,
+                  "rationale": null
+                }
+              ]
+            },
+            {
+              "control_id": "ISO27001-A.6.4",
+              "framework_ref": "ISO 27001:2022 A.6.4",
+              "question": "Requirement-specific proposal: verify the documented response to security policy breaches, communication and acknowledgement of consequences, fair and authorized investigation steps, restricted case records, consistent application to sampled cases, and recorded escalation and closure decisions. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Published consequences and acknowledgements alone do not establish that the disciplinary process operated appropriately.",
+              "cisco_candidates": [
+                {
+                  "control": "CCF 160",
+                  "cell": "BI166",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 160"
+                }
+              ],
+              "source_scope": "vendor implementation context, not verified normative equivalence",
+              "oracle_context": [],
+              "candidates": [
+                {
+                  "safeguard_id": "SG-REVIEW-ISO27001-A-6-4",
+                  "role": "primary",
+                  "review_state": "proposed",
+                  "review_basis_sha256": "7819461fed865b33e63e7a82900997ec0a5fd1a31bbfb4d077b2a1d798257ab2",
+                  "operating_contract": {
+                    "objective": "Assess the requirement “Disciplinary process” within the declared system, period, and population.",
+                    "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test the documented response to security policy breaches, communication and acknowledgement of consequences, fair and authorized investigation steps, restricted case records, consistent application to sampled cases, and recorded escalation and closure decisions. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+                    "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+                    "asset_types": ["audit_log", "service"],
+                    "required_evidence_types": ["review_iso27001_a_6_4"],
+                    "frequency": "documented assessment schedule and after material change",
+                    "owner": "security-assurance"
+                  },
+                  "mapping_source": {
+                    "name": "Cisco Cloud Controls Framework 4.0",
+                    "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
+                    "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
+                    "locator": "CCF 160; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Published consequences and acknowledgements alone do not establish that the disciplinary process operated appropriately."
+                  },
+                  "decision": null,
+                  "reviewer": null,
+                  "rationale": null
+                }
+              ]
+            },
+            {
+              "control_id": "ISO27001-A.6.5",
+              "framework_ref": "ISO 27001:2022 A.6.5",
+              "question": "Requirement-specific proposal: verify the leaver and role-change population, documented continuing security obligations, handover and notice records, approvals for changed duties, dated removal or adjustment of access, and reconciliation of unresolved exceptions against personnel records. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Access revocation and review support only part of continuing responsibilities; confidentiality and other surviving duties need separate evidence.",
+              "cisco_candidates": [
+                {
+                  "control": "CCF 53",
+                  "cell": "BI59",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 53"
+                },
+                {
+                  "control": "CCF 194",
+                  "cell": "BI200",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 194"
+                },
+                {
+                  "control": "CCF 227",
+                  "cell": "BI233",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 227"
+                },
+                {
+                  "control": "CCF 228",
+                  "cell": "BI234",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 228"
+                }
+              ],
+              "source_scope": "vendor implementation context, not verified normative equivalence",
+              "oracle_context": [],
+              "candidates": [
+                {
+                  "safeguard_id": "SG-REVIEW-ISO27001-A-6-5",
+                  "role": "primary",
+                  "review_state": "proposed",
+                  "review_basis_sha256": "428344deca50165e5386c5af6ecb075ae074ed76d7b3216ae16fcaf2a3168ca9",
+                  "operating_contract": {
+                    "objective": "Assess the requirement “Responsibilities after termination or change of employment” within the declared system, period, and population.",
+                    "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test the leaver and role-change population, documented continuing security obligations, handover and notice records, approvals for changed duties, dated removal or adjustment of access, and reconciliation of unresolved exceptions against personnel records. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+                    "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+                    "asset_types": ["audit_log", "service"],
+                    "required_evidence_types": ["review_iso27001_a_6_5"],
+                    "frequency": "documented assessment schedule and after material change",
+                    "owner": "security-assurance"
+                  },
+                  "mapping_source": {
+                    "name": "Cisco Cloud Controls Framework 4.0",
+                    "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
+                    "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
+                    "locator": "CCF 194; CCF 227; CCF 228; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Access revocation and review support only part of continuing responsibilities; confidentiality and other surviving duties need separate evidence."
+                  },
+                  "decision": null,
+                  "reviewer": null,
+                  "rationale": null
+                }
+              ]
+            },
+            {
+              "control_id": "ISO27001-A.6.6",
+              "framework_ref": "ISO 27001:2022 A.6.6",
+              "question": "Requirement-specific proposal: verify the inventory of confidentiality agreements and protected information, employee and external-party applicability, approved terms and duration, signed agreements before relevant disclosure, periodic review, and handling of missing signatures or changed obligations. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Vendor examples cover employee and supplier agreements; enforceability and the local information scope require separate review.",
+              "cisco_candidates": [
+                {
+                  "control": "CCF 165",
+                  "cell": "BI171",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 165"
+                },
+                {
+                  "control": "CCF 166",
+                  "cell": "BI172",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 166"
+                },
+                {
+                  "control": "CCF 339",
+                  "cell": "BI345",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 339"
+                }
+              ],
+              "source_scope": "vendor implementation context, not verified normative equivalence",
+              "oracle_context": [],
+              "candidates": [
+                {
+                  "safeguard_id": "SG-REVIEW-ISO27001-A-6-6",
+                  "role": "primary",
+                  "review_state": "proposed",
+                  "review_basis_sha256": "f046f3d36dd3546e5482f703fa93f76480b6fd9bb1dd6304c5d53c87222382fc",
+                  "operating_contract": {
+                    "objective": "Assess the requirement “Confidentiality or non-disclosure agreements” within the declared system, period, and population.",
+                    "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test the inventory of confidentiality agreements and protected information, employee and external-party applicability, approved terms and duration, signed agreements before relevant disclosure, periodic review, and handling of missing signatures or changed obligations. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+                    "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+                    "asset_types": ["audit_log", "service"],
+                    "required_evidence_types": ["review_iso27001_a_6_6"],
+                    "frequency": "documented assessment schedule and after material change",
+                    "owner": "security-assurance"
+                  },
+                  "mapping_source": {
+                    "name": "Cisco Cloud Controls Framework 4.0",
+                    "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
+                    "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
+                    "locator": "CCF 165; CCF 166; CCF 339; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Vendor examples cover employee and supplier agreements; enforceability and the local information scope require separate review."
+                  },
                   "decision": null,
                   "reviewer": null,
                   "rationale": null
@@ -2465,7 +3001,7 @@
           ]
         },
         {
-          "batch_id": "iso-27001-2022-review-004",
+          "batch_id": "iso-27001-2022-review-005",
           "basis_sha256": "a72043ce0d092da5822e4234c6da05a71f073fd57fa74a5222d5d18283cd534d",
           "requirements": [
             {
@@ -3056,8 +3592,8 @@
           ]
         },
         {
-          "batch_id": "iso-27001-2022-review-005",
-          "basis_sha256": "cd1f0613ad418f728da8c4bf4f321aad7ed7519fc01d572dfa570ecedc982f31",
+          "batch_id": "iso-27001-2022-review-006",
+          "basis_sha256": "ab2a68eb53679a6223c1663b8bb650ac744bab552642647db847f88eef4309bb",
           "requirements": [
             {
               "control_id": "ISO27001-A.7.8",
@@ -3177,6 +3713,90 @@
                     "owner": "platform-engineering"
                   },
                   "mapping_source": null,
+                  "decision": null,
+                  "reviewer": null,
+                  "rationale": null
+                }
+              ]
+            },
+            {
+              "control_id": "ISO27001-A.8.1",
+              "framework_ref": "ISO 27001:2022 A.8.1",
+              "question": "Requirement-specific proposal: verify the endpoint inventory reconciled to users and access records, approved configurations, encryption and management enrollment, access restrictions for unmanaged devices, monitoring of deviations, and dated remediation or time-limited exceptions. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Mobile-device enrollment and encryption are partial examples; all applicable endpoint classes and configurations must be assessed.",
+              "cisco_candidates": [
+                {
+                  "control": "CCF 67",
+                  "cell": "BI73",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 67"
+                },
+                {
+                  "control": "CCF 99",
+                  "cell": "BI105",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 99"
+                },
+                {
+                  "control": "CCF 165",
+                  "cell": "BI171",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 165"
+                },
+                {
+                  "control": "CCF 166",
+                  "cell": "BI172",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 166"
+                },
+                {
+                  "control": "CCF 167",
+                  "cell": "BI173",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 167"
+                },
+                {
+                  "control": "CCF 170",
+                  "cell": "BI176",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 170"
+                },
+                {
+                  "control": "CCF 191",
+                  "cell": "BI197",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 191"
+                },
+                {
+                  "control": "CCF 197",
+                  "cell": "BI203",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 197"
+                },
+                {
+                  "control": "CCF 198",
+                  "cell": "BI204",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 198"
+                }
+              ],
+              "source_scope": "vendor implementation context, not verified normative equivalence",
+              "oracle_context": [],
+              "candidates": [
+                {
+                  "safeguard_id": "SG-REVIEW-ISO27001-A-8-1",
+                  "role": "primary",
+                  "review_state": "proposed",
+                  "review_basis_sha256": "9ff0504f58174bb4de3b5846520ea3313191463509dffed0192e90a48c14b1d5",
+                  "operating_contract": {
+                    "objective": "Assess the requirement “User endpoint devices” within the declared system, period, and population.",
+                    "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test the endpoint inventory reconciled to users and access records, approved configurations, encryption and management enrollment, access restrictions for unmanaged devices, monitoring of deviations, and dated remediation or time-limited exceptions. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+                    "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+                    "asset_types": [
+                      "cloud_policy",
+                      "cloud_resource",
+                      "service"
+                    ],
+                    "required_evidence_types": ["review_iso27001_a_8_1"],
+                    "frequency": "documented assessment schedule and after material change",
+                    "owner": "security-assurance"
+                  },
+                  "mapping_source": {
+                    "name": "Cisco Cloud Controls Framework 4.0",
+                    "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
+                    "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
+                    "locator": "CCF 99; CCF 170; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Mobile-device enrollment and encryption are partial examples; all applicable endpoint classes and configurations must be assessed."
+                  },
                   "decision": null,
                   "reviewer": null,
                   "rationale": null
@@ -3732,7 +4352,13 @@
                   "rationale": null
                 }
               ]
-            },
+            }
+          ]
+        },
+        {
+          "batch_id": "iso-27001-2022-review-007",
+          "basis_sha256": "c9126315d7848fe624dfe1560ea26147d4c5fefb1ce9cb46b6c4ef50e3fd2b90",
+          "requirements": [
             {
               "control_id": "ISO27001-A.8.22",
               "framework_ref": "ISO 27001:2022 A.8.22",
@@ -3801,13 +4427,7 @@
                   "rationale": null
                 }
               ]
-            }
-          ]
-        },
-        {
-          "batch_id": "iso-27001-2022-review-006",
-          "basis_sha256": "dcae3eb6e218f8e15a4323af453bcd8cf342c7863d18551ad990ed9696c66887",
-          "requirements": [
+            },
             {
               "control_id": "ISO27001-A.8.23",
               "framework_ref": "ISO 27001:2022 A.8.23",
@@ -4740,7 +5360,13 @@
                   "rationale": null
                 }
               ]
-            },
+            }
+          ]
+        },
+        {
+          "batch_id": "iso-27001-2022-review-008",
+          "basis_sha256": "044d85489c2065e13b7fdcc208a5a5911d9c22d388744a6b0d1d75970c19774f",
+          "requirements": [
             {
               "control_id": "ISO27001-A.8.33",
               "framework_ref": "ISO 27001:2022 A.8.33",
@@ -4786,13 +5412,61 @@
                   "rationale": null
                 }
               ]
-            }
-          ]
-        },
-        {
-          "batch_id": "iso-27001-2022-review-007",
-          "basis_sha256": "61799a1b56356dcd4c0c67cded1ae6e451ef0b6e8239ddc0858fccd3810ff889",
-          "requirements": [
+            },
+            {
+              "control_id": "ISO27001-A.8.34",
+              "framework_ref": "ISO 27001:2022 A.8.34",
+              "question": "Requirement-specific proposal: verify the authorization and risk review for audit tests, agreed scope and timing, least-privilege test access, protection of copied data, monitoring and recovery arrangements, and removal of temporary access and test artifacts. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Cisco cites this target in broad audit and risk controls but does not specify all audit-test protections; these original checks require direct requirement review.",
+              "cisco_candidates": [
+                {
+                  "control": "CCF 1",
+                  "cell": "BI7",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 1"
+                },
+                {
+                  "control": "CCF 129",
+                  "cell": "BI135",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 129"
+                },
+                {
+                  "control": "CCF 161",
+                  "cell": "BI167",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 161"
+                }
+              ],
+              "source_scope": "vendor implementation context, not verified normative equivalence",
+              "oracle_context": [],
+              "candidates": [
+                {
+                  "safeguard_id": "SG-REVIEW-ISO27001-A-8-34",
+                  "role": "primary",
+                  "review_state": "proposed",
+                  "review_basis_sha256": "bb67e93440636afb60474dd9cdcb6930c111f65f6f77e46a8e365e6cefb10d36",
+                  "operating_contract": {
+                    "objective": "Assess the requirement “Protection of information systems during audit testing” within the declared system, period, and population.",
+                    "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test the authorization and risk review for audit tests, agreed scope and timing, least-privilege test access, protection of copied data, monitoring and recovery arrangements, and removal of temporary access and test artifacts. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+                    "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+                    "asset_types": [
+                      "cloud_policy",
+                      "cloud_resource",
+                      "service"
+                    ],
+                    "required_evidence_types": ["review_iso27001_a_8_34"],
+                    "frequency": "documented assessment schedule and after material change",
+                    "owner": "security-assurance"
+                  },
+                  "mapping_source": {
+                    "name": "Cisco Cloud Controls Framework 4.0",
+                    "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
+                    "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
+                    "locator": "CCF 1; CCF 161; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Cisco cites this target in broad audit and risk controls but does not specify all audit-test protections; these original checks require direct requirement review."
+                  },
+                  "decision": null,
+                  "reviewer": null,
+                  "rationale": null
+                }
+              ]
+            },
             {
               "control_id": "ISO27001-A.8.4",
               "framework_ref": "ISO 27001:2022 A.8.4",
@@ -5126,5 +5800,5 @@
       ]
     }
   ],
-  "sha256": "800431f8673fcdc835b54cd0c1081b3d0139014c240a6fb02a9fa4286b8e12a3"
+  "sha256": "345a617039a083f70e1f500b329881217f00ffce6ef678e66f7bf32b3ba1732b"
 }
