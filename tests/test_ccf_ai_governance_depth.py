@@ -55,10 +55,8 @@ AI_RMF_INTENTIONALLY_UNMAPPED = {
     "NIST-AI-RMF-GOVERN-4.1",
     "NIST-AI-RMF-MAP-1.2",
 }
-# A.2.3 (alignment with other organizational policies) and A.10.4 (customers)
-# are policy-level obligations with no AI-system evidence of their own.
-# The restored Annex obligation has no independently reviewed safeguard mapping.
-ISO_42001_INTENTIONALLY_UNMAPPED = {"ISO42001-2.3", "ISO42001-10.4", "ISO42001-A.6.1.3"}
+# These obligations have distinct assessor contracts, still awaiting mapping review.
+ISO_42001_ASSESSOR_PROPOSALS = {"ISO42001-2.3", "ISO42001-10.4", "ISO42001-A.6.1.3"}
 
 AI_RMF_SOURCE = {
     "name": "NIST AI 100-1, Artificial Intelligence Risk Management Framework (AI RMF 1.0)",
@@ -170,10 +168,14 @@ def test_nist_ai_rmf_coverage_leaves_only_the_documented_gaps() -> None:
     assert coverage_by_framework()["frameworks"]["nist-ai-rmf"]["covered"] == 69
 
 
-def test_iso_42001_annex_a_coverage_leaves_only_the_documented_gaps() -> None:
+def test_iso_42001_annex_a_coverage_keeps_assessor_proposals_unreviewed() -> None:
     catalog = load_control_catalog()
     iso = {cid for cid, row in catalog.items() if row["framework_id"] == "iso-42001-2023"}
-    assert iso - set(safeguards_by_requirement()) == ISO_42001_INTENTIONALLY_UNMAPPED
+    assert iso <= set(safeguards_by_requirement())
+    for cid in ISO_42001_ASSESSOR_PROPOSALS:
+        entry = _entries()["SG-REVIEW-" + cid.replace(".", "-")]
+        assert entry["satisfies"][0]["review_status"] == "proposed"
+        assert cid not in safeguards_by_requirement(reviewed_only=True)
 
 
 def test_runtime_gateway_evidence_reaches_the_runtime_access_safeguard() -> None:
@@ -216,6 +218,6 @@ def test_ai_context_doc_lists_every_ai_safeguard_and_every_documented_gap() -> N
     for control_id in AI_RMF_INTENTIONALLY_UNMAPPED:
         function, number = control_id.removeprefix("NIST-AI-RMF-").split("-", 1)
         assert f"{function} {number}" in doc, control_id
-    for control_id in ISO_42001_INTENTIONALLY_UNMAPPED:
+    for control_id in ISO_42001_ASSESSOR_PROPOSALS:
         ref = control_id.removeprefix("ISO42001-")
         assert (ref if ref.startswith("A.") else "A." + ref) in doc, control_id

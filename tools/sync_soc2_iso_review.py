@@ -136,6 +136,8 @@ def repaired_payload(payload: dict, plan: dict, index: dict, catalog: dict) -> d
         control = catalog[cid]
         source = plan["sources"][repair["source"]]
         if repair["source"] == "cisco":
+            if not repair["cisco_controls"]:
+                raise ValueError(f"explicit Cisco reference required: {cid}")
             available = {r["control"] for r in index.get(cid, [])}
             if not {f"CCF {n}" for n in repair["cisco_controls"]} <= available:
                 raise ValueError(f"Cisco source does not cite target {cid}")
@@ -172,6 +174,13 @@ def repaired_payload(payload: dict, plan: dict, index: dict, catalog: dict) -> d
                 }
             ],
         }
+        if not repair["replaces"] and any(
+            m["control_id"] == cid
+            for e in result["safeguards"]
+            if e["safeguard_id"] != entry["safeguard_id"]
+            for m in e["satisfies"]
+        ):
+            raise ValueError(f"new proposal target is already mapped: {cid}")
         existing = next((e for e in result["safeguards"] if e["safeguard_id"] == entry["safeguard_id"]), None)
         if existing is not None and existing != entry:
             entry = preserve_recorded_review(existing, entry, control)
@@ -224,7 +233,7 @@ def review_artifacts(payload: dict, plan: dict, index: dict) -> tuple[dict, str]
         "",
         "QUEUE_SUMMARY",
         "",
-        "Cisco references use explicit SOC 2 IDs and the ISO/IEC 27002:2022 column corresponding to ISO 27001:2022 Annex A. Older ISO columns and broad X markers are excluded. Processing Integrity requirements without a Cisco reference stay explicitly unsourced. Oracle articles provide AI governance examples; they do not supply the complete ISO 42001 requirement text. Fifteen unmapped ISO requirements remain outside this pending-mapping queue.",
+        "Cisco references use explicit SOC 2 IDs and the ISO/IEC 27002:2022 column corresponding to ISO 27001:2022 Annex A. Older ISO columns and broad X markers are excluded. Processing Integrity requirements without a Cisco reference stay explicitly unsourced. Oracle articles provide AI governance examples; they do not supply the complete ISO 42001 requirement text. Proposed coverage is not reviewed coverage or operating assurance; incomplete normative source access must be resolved during review.",
         "",
         "Download the pinned source URLs below into a local directory as `cisco-ccf-v4.zip`, `oracle-practice.html`, and `oracle-risk.html`. The generator checks both the ZIP and workbook hashes and both HTML hashes; a changed source requires inspection and a deliberate pin update. Vendor source files are not committed.",
         "",
@@ -239,11 +248,17 @@ def review_artifacts(payload: dict, plan: dict, index: dict) -> tuple[dict, str]
     ]
     for key, source in plan["sources"].items():
         lines.append(f"- [{source['name']}]({source['url']}), SHA-256 `{source['sha256']}`. Key: `{key}`.")
-    lines += ["", "## Repaired proposals", ""]
+    lines += ["", "## Requirement-specific proposals", ""]
     for repair in plan["repairs"]:
         old_ids = ", ".join(f"`{old['safeguard_id']}`" for old in repair["replaces"])
         lines.append(
-            f"- **{repair['control_id']}**: replace the proposed links from {old_ids} with `{PREFIX + repair['control_id'].replace('.', '-')}`."
+            f"- **{repair['control_id']}**: "
+            + (
+                f"replace the proposed links from {old_ids}"
+                if old_ids
+                else "add a proposal for a previously unmapped requirement"
+            )
+            + f" using `{PREFIX + repair['control_id'].replace('.', '-')}`."
         )
     lines += [
         "",
@@ -261,7 +276,12 @@ def review_artifacts(payload: dict, plan: dict, index: dict) -> tuple[dict, str]
                 cid = requirement["control_id"]
                 repair = repairs.get(cid)
                 question = (
-                    ("Repaired proposal: verify " + repair["evidence_checks"] + ". " + repair["source_limit"])
+                    (
+                        "Requirement-specific proposal: verify "
+                        + repair["evidence_checks"]
+                        + ". "
+                        + repair["source_limit"]
+                    )
                     if repair
                     else questions[cid]
                 )
@@ -318,8 +338,9 @@ def review_artifacts(payload: dict, plan: dict, index: dict) -> tuple[dict, str]
         f"This queue contains {len(requirements)} requirements and "
         f"{sum(len(r['candidates']) for r in requirements)} candidate relationships in "
         f"{sum(len(f['batches']) for f in packets)} batches: {counts}. "
-        f"{len(plan['repairs'])} requirement-specific assessment contracts replaced "
+        f"{sum(bool(r['replaces']) for r in plan['repairs'])} requirement-specific assessment contracts replaced "
         f"{sum(len(r['replaces']) for r in plan['repairs'])} weak proposed relationships. "
+        f"{sum(not r['replaces'] for r in plan['repairs'])} additional contracts propose mappings for previously unmapped requirements. "
         "Reviewed requirements are excluded from this pending queue; separate alternatives do not inherit their approval."
     )
     body = {"schema": "grc_lake.vendor_review_batches.v1", "sources": plan["sources"], "frameworks": packets}

@@ -55,10 +55,10 @@ Safeguards that operate a general control sit in that control's family: inferenc
 
 The `runtime-gateway` connector tags every tool-call, policy-decision and runtime-block event with `NIST-AI-RMF-MEASURE-2.7` by default, and `SG-AIRUNTIMEACCESS-001` claims that requirement, so gateway evidence reaches the runtime access safeguard without configuration. The `kubernetes-cluster` connector does not yet identify model-serving workloads; its image provenance evidence covers serving container images only, not model weights, and `SG-AIPROVENANCE-001` says so. The other safeguards name connectors whose records hold their evidence (`siem-alerts`, `ticketing`, `jira-ticketing`, `clickhouse-telemetry-lake`). Those connectors tag general security requirements by default, not AI ones, so today that evidence is attested; `siem-alerts` and `clickhouse-telemetry-lake` rows that list an AI requirement in their `controls` field do reach the safeguard.
 
-### Intentionally unmapped
+### Gaps and assessor proposals
 
 - NIST AI RMF GOVERN 3.1, GOVERN 4.1 and MAP 1.2 ask for demographically diverse, interdisciplinary teams and a safety-first culture. No operated safeguard produces evidence for them, so they stay unmapped rather than being attached to a safeguard that does not test them.
-- ISO/IEC 42001 A.2.3 (alignment with other organizational policies) and A.10.4 (customers) are policy-level obligations without AI-system evidence of their own.
+- ISO/IEC 42001 A.2.3 (alignment with other organizational policies) and A.10.4 (customers) now have separate proposed assessor contracts. They require policy-alignment and customer-responsibility evidence; runtime AI observations cannot substitute for those records. The [source-pinned review queue](reviews/SOC2_ISO_REVIEW.md) identifies Oracle implementation context and its limits.
 - EU AI Act Article 50 (transparency for certain AI systems) and Article 73 (serious incident reporting) are not in the seeded EU AI Act pack. `SG-AITRANSPARENCY-001` and `SG-AIINCIDENT-001` are written to cover them once the pack adds those articles.
 
 ## Evaluation boundary
@@ -66,5 +66,6 @@ The `runtime-gateway` connector tags every tool-call, policy-decision and runtim
 The executable rule rejects missing or stale evidence and open findings. It does not establish semantic completeness of uploaded documents. A reviewer must check the stated evidence requirement and system scope before promoting a proposed mapping. Agents may submit observations or draft responses; recorded approval remains separate from deterministic evaluation.
 
 Annex A.6.1.3 is distinct from management clause 6.1.3. The restored
-`ISO42001-A.6.1.3` requirement remains unmapped pending independent review;
-existing risk-treatment mappings do not attest responsible development processes.
+`ISO42001-A.6.1.3` requirement has its own proposed responsible-development
+assessment contract, pending mapping review. Existing risk-treatment mappings
+do not attest responsible development processes.

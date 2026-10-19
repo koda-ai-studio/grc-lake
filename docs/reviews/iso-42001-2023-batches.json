@@ -24,8 +24,88 @@
       "batches": [
         {
           "batch_id": "iso-42001-2023-review-001",
-          "basis_sha256": "bdb6a9d7bd17eaa9b36d80755943674926f477799e43f1159b5c21d12556b7c2",
+          "basis_sha256": "d044c5b019ff80a78eadd7be124f1b97cc0f68ab609265320bacef9943d100fc",
           "requirements": [
+            {
+              "control_id": "ISO42001-10.4",
+              "framework_ref": "ISO 42001:2023 A.10.4",
+              "question": "Requirement-specific proposal: verify the customer-facing allocation of AI responsibilities, communicated intended uses and limits, agreed oversight and incident channels, delivery and acknowledgement records, and sampled follow-up when customer obligations or system behavior change. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Oracle describes shared provider and customer responsibilities, not a clause-level customer-control crosswalk.",
+              "cisco_candidates": [],
+              "source_scope": "vendor implementation context, not verified normative equivalence",
+              "oracle_context": ["oracle-practice", "oracle-risk"],
+              "candidates": [
+                {
+                  "safeguard_id": "SG-REVIEW-ISO42001-10-4",
+                  "role": "primary",
+                  "review_state": "proposed",
+                  "review_basis_sha256": "a51d4415ef53f8c2a62dedc6b225650f94f43c267d9842e4f90cfd9d633978ef",
+                  "operating_contract": {
+                    "objective": "Assess the requirement “Customers” within the declared system, period, and population.",
+                    "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test the customer-facing allocation of AI responsibilities, communicated intended uses and limits, agreed oversight and incident channels, delivery and acknowledgement records, and sampled follow-up when customer obligations or system behavior change. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+                    "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+                    "asset_types": [
+                      "ai_agent",
+                      "ai_model",
+                      "audit_log",
+                      "data_store",
+                      "service"
+                    ],
+                    "required_evidence_types": ["review_iso42001_10_4"],
+                    "frequency": "documented assessment schedule and after material change",
+                    "owner": "security-assurance"
+                  },
+                  "mapping_source": {
+                    "name": "Oracle ISO 42001 implementation practice, June 2026",
+                    "url": "https://www.oracle.com/es/corporate/iso-42001-principles-into-practice/",
+                    "sha256": "2ae1aaa8f783a1a5536bff151d5b40410002b9591a4de64d2743ba921f0f658a",
+                    "locator": "ISO/IEC 42001 under the SaaS shared responsibility model; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Oracle describes shared provider and customer responsibilities, not a clause-level customer-control crosswalk."
+                  },
+                  "decision": null,
+                  "reviewer": null,
+                  "rationale": null
+                }
+              ]
+            },
+            {
+              "control_id": "ISO42001-2.3",
+              "framework_ref": "ISO 42001:2023 A.2.3",
+              "question": "Requirement-specific proposal: verify the AI policy cross-reference to security, privacy, risk, quality and other applicable organizational policies, identified conflicts, accountable resolution and approval, communicated changes, and scheduled or event-triggered checks of continuing alignment. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Oracle describes corporate governance integration, not normative requirements for policy alignment.",
+              "cisco_candidates": [],
+              "source_scope": "vendor implementation context, not verified normative equivalence",
+              "oracle_context": ["oracle-practice", "oracle-risk"],
+              "candidates": [
+                {
+                  "safeguard_id": "SG-REVIEW-ISO42001-2-3",
+                  "role": "primary",
+                  "review_state": "proposed",
+                  "review_basis_sha256": "1995473f2492be8e3a457120aab99afe19fe2840a7f4f146e19dcd648d5dbc89",
+                  "operating_contract": {
+                    "objective": "Assess the requirement “Alignment with other organizational policies” within the declared system, period, and population.",
+                    "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test the AI policy cross-reference to security, privacy, risk, quality and other applicable organizational policies, identified conflicts, accountable resolution and approval, communicated changes, and scheduled or event-triggered checks of continuing alignment. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+                    "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+                    "asset_types": [
+                      "ai_agent",
+                      "ai_model",
+                      "audit_log",
+                      "data_store",
+                      "service"
+                    ],
+                    "required_evidence_types": ["review_iso42001_2_3"],
+                    "frequency": "documented assessment schedule and after material change",
+                    "owner": "security-assurance"
+                  },
+                  "mapping_source": {
+                    "name": "Oracle ISO 42001 implementation practice, June 2026",
+                    "url": "https://www.oracle.com/es/corporate/iso-42001-principles-into-practice/",
+                    "sha256": "2ae1aaa8f783a1a5536bff151d5b40410002b9591a4de64d2743ba921f0f658a",
+                    "locator": "Oracle’s AI management system: Responsible AI embedded in the product lifecycle; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Oracle describes corporate governance integration, not normative requirements for policy alignment."
+                  },
+                  "decision": null,
+                  "reviewer": null,
+                  "rationale": null
+                }
+              ]
+            },
             {
               "control_id": "ISO42001-3.3",
               "framework_ref": "ISO 42001:2023 A.3.3",
@@ -486,7 +566,13 @@
                   "rationale": null
                 }
               ]
-            },
+            }
+          ]
+        },
+        {
+          "batch_id": "iso-42001-2023-review-002",
+          "basis_sha256": "555223aa5cf3ac6d3161b099b564f5655e0fb3bc926cd81c6d894a33bab65780",
+          "requirements": [
             {
               "control_id": "ISO42001-6.2.2",
               "framework_ref": "ISO 42001:2023 A.6.2.2",
@@ -644,13 +730,7 @@
                   "rationale": null
                 }
               ]
-            }
-          ]
-        },
-        {
-          "batch_id": "iso-42001-2023-review-002",
-          "basis_sha256": "59ba06535233fb1dc6aabd73f93dc00cac359c028397e6f419495194b64fc6d1",
-          "requirements": [
+            },
             {
               "control_id": "ISO42001-6.2.4",
               "framework_ref": "ISO 42001:2023 A.6.2.4",
@@ -1245,7 +1325,13 @@
                   "rationale": null
                 }
               ]
-            },
+            }
+          ]
+        },
+        {
+          "batch_id": "iso-42001-2023-review-003",
+          "basis_sha256": "e48d9479b9d27976c13ef416a91426664c88c940751166b901b263e5471fa821",
+          "requirements": [
             {
               "control_id": "ISO42001-8.3",
               "framework_ref": "ISO 42001:2023 A.8.3",
@@ -1431,13 +1517,7 @@
                   "rationale": null
                 }
               ]
-            }
-          ]
-        },
-        {
-          "batch_id": "iso-42001-2023-review-003",
-          "basis_sha256": "e395f43b76b26fa1849890062159d1488eedbc31db76694f1ba6ee6ceb24a2bf",
-          "requirements": [
+            },
             {
               "control_id": "ISO42001-8.5",
               "framework_ref": "ISO 42001:2023 A.8.5",
@@ -1562,11 +1642,51 @@
                   "rationale": null
                 }
               ]
+            },
+            {
+              "control_id": "ISO42001-A.6.1.3",
+              "framework_ref": "ISO 42001:2023 A.6.1.3",
+              "question": "Requirement-specific proposal: verify the documented AI design and development process, assigned lifecycle roles, risk and impact review gates, requirements traceability, verification and validation records, release approvals, and treatment of deviations and subsequent design changes. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Oracle describes lifecycle governance examples, not a published clause crosswalk or complete responsible-development process.",
+              "cisco_candidates": [],
+              "source_scope": "vendor implementation context, not verified normative equivalence",
+              "oracle_context": ["oracle-practice", "oracle-risk"],
+              "candidates": [
+                {
+                  "safeguard_id": "SG-REVIEW-ISO42001-A-6-1-3",
+                  "role": "primary",
+                  "review_state": "proposed",
+                  "review_basis_sha256": "fef1ff20620a93b9f53b8497046fb87ffb4faad32e1ad3f827a218e805b90500",
+                  "operating_contract": {
+                    "objective": "Assess the requirement “Processes for responsible design and development of AI systems” within the declared system, period, and population.",
+                    "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test the documented AI design and development process, assigned lifecycle roles, risk and impact review gates, requirements traceability, verification and validation records, release approvals, and treatment of deviations and subsequent design changes. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+                    "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+                    "asset_types": [
+                      "ai_agent",
+                      "ai_model",
+                      "audit_log",
+                      "data_store",
+                      "service"
+                    ],
+                    "required_evidence_types": ["review_iso42001_a_6_1_3"],
+                    "frequency": "documented assessment schedule and after material change",
+                    "owner": "security-assurance"
+                  },
+                  "mapping_source": {
+                    "name": "Oracle ISO 42001 implementation practice, June 2026",
+                    "url": "https://www.oracle.com/es/corporate/iso-42001-principles-into-practice/",
+                    "sha256": "2ae1aaa8f783a1a5536bff151d5b40410002b9591a4de64d2743ba921f0f658a",
+                    "locator": "Oracle’s AI management system: Responsible AI embedded in the product lifecycle; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Oracle describes lifecycle governance examples, not a published clause crosswalk or complete responsible-development process."
+                  },
+                  "decision": null,
+                  "reviewer": null,
+                  "rationale": null
+                }
+              ]
             }
           ]
         }
       ]
     }
   ],
-  "sha256": "de3456fb97b7ea6efd24c6d47d65bf3f73e113347ccde2b6bdb09410cc0c4bb7"
+  "sha256": "999eed7cf93310e88cf3cd3a6d0ae31538abf0f884f78d8017949fcd4c13a2b4"
 }
