@@ -31,7 +31,7 @@ from security_lakehouse.io import canonical_sha256, file_sha256
 
 ROUTE = "/api/v1/graph/investigation"
 # Explicit fail-fast server responses: saturation evidence, not correctness failures.
-ADMISSION_CODES = ("graph_build_capacity", "graph_build_timeout")
+ADMISSION_CODES = ("graph_build_capacity", "graph_tenant_capacity", "graph_build_timeout")
 
 
 @contextmanager
@@ -348,6 +348,7 @@ def _run_http_workload(
         "lifecycle_probes": probes,
         "admission": {
             "graph_build_concurrency": app.state.graph_build_slots.capacity,
+            "graph_tenant_concurrency": app.state.graph_build_slots.tenant_capacity,
             "graph_build_timeout_seconds": graph_timeout,
         },
         "transport": "http",

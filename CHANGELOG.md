@@ -5,6 +5,8 @@ Python package, Helm chart, and bundled web console.
 
 ## Unreleased
 
+- Bound concurrent investigation reads per authenticated tenant as well as per process. Share limits across credentials, return distinct tenant/process saturation codes, and retain per-tenant rejection counts in the HTTP benchmark. Release both quotas after completion or cancellation.
+
 - Reuse completed investigation models for pinned generations with frozen catalogs in a bounded process-local cache. Invalidate reuse on evidence, triage, vendor and navigation changes; preserve expansion versions and independent response data. Coalesce same-key builds with cancellable waiting and retain no failed or oversized model.
 
 - Reduce investigation graph temporary memory by batching canonical version hashing, releasing build scratch before traversal, and deriving undirected neighbors from directed indexes. Preserve expansion tokens and check cancellation between hash batches. Refresh reproducible graph, pipeline and local distributed measurements with explicit latency and fairness limits.
