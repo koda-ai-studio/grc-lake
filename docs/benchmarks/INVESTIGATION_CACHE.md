@@ -130,3 +130,62 @@ both retention and build coalescing. The default fixture without
 reviewed budgets, representative workload/topology qualification and tenant
 admission policy. Generation-scoped reuse reduces repeated construction work;
 it does not provide a persistent neighborhood index or establish production scale.
+
+## Navigation index follow-up
+
+The paired [main baseline](investigation-index-baseline-2026-10-18.json) at
+`ac2805f15722527f796275dc29e8059e3b1862ff` and
+[indexed reads](investigation-index-indexed-2026-10-18.json) at
+`6f7d2bac749a0e19907719ab0382f3fa144d8033` use clean committed source and
+identical input hashes. Both retain the existing 128 MiB cache policy.
+The latter also retains compact directed adjacency, counts, ordered roots,
+default roots and edge positions with each generation model. All twelve attempts
+passed the harness correctness checks.
+
+These runs use the **uniform two-control fixture**, two tenants, frozen catalogs,
+three repeats, 1k/10k records per tenant and 1/4/8 direct-read workers. They are
+separate from the seeded mixed-control measurements above. Both ran on the same
+10-core ARM64, 16 GiB macOS host with Python 3.12.13. Shared-host CPU load, OS caches
+and allocation are uncontrolled; per-attempt load averages and every read are
+retained in the raw reports. These are single paired runs, not statistical
+confidence intervals, HTTP throughput or production capacity qualification.
+
+| Records / tenant | Workers | Main burst p95 s | Indexed burst p95 s | Main peak RSS MiB | Indexed peak RSS MiB |
+| ---------------- | ------- | ---------------- | ------------------- | ----------------- | -------------------- |
+| 1,000            | 1       | 0.090            | 0.047               | 101.1             | 98.9                 |
+| 1,000            | 4       | 0.281            | 0.089               | 101.3             | 103.3                |
+| 1,000            | 8       | 0.442            | 0.174               | 99.7              | 101.6                |
+| 10,000           | 1       | 0.221            | 0.040               | 274.5             | 285.3                |
+| 10,000           | 4       | 1.596            | 0.182               | 284.8             | 280.6                |
+| 10,000           | 8       | 3.218            | 0.463               | 309.9             | 247.2                |
+
+Warm unfiltered reads avoid rebuilding adjacency and scanning all nodes/edges for
+counts, root ordering and output edges. Layer filters still rebuild eligible
+membership and degree ordering; search still scans indexed roots. Neighborhood
+traversal and exact truncation counts still depend on the reachable graph.
+
+Cold work is more expensive. First-call medians and complete workload wall times
+below are from the single-worker attempts; first means the first graph call per
+tenant, not a cold OS cache. The full workload includes first, repeated, filtered,
+paginated and concurrent reads plus correctness probes that change generations
+and overlays. It must not be replaced by a warm-only throughput claim.
+
+| Records / tenant | Main first s | Indexed first s | Main repeat s | Indexed repeat s | Main total wall s | Indexed total wall s |
+| ---------------- | ------------ | --------------- | ------------- | ---------------- | ----------------- | -------------------- |
+| 1,000            | 1.218        | 0.908           | 0.035         | 0.012            | 10.107            | 8.160                |
+| 10,000           | 2.109        | 3.602           | 0.179         | 0.025            | 22.888            | 32.199               |
+
+Reproduce from each source revision using the same Python environment:
+
+```bash
+PYTHONHASHSEED=0 PYTHONPATH=src python tools/benchmark_investigation.py \
+  --sizes 1000 10000 --tenants 2 --concurrency 1 4 8 --repeats 3 \
+  --frozen-catalogs --timeout 180 --max-rss-mib 1536 --min-free-gib 1 \
+  --out /tmp/investigation-index-result.json
+```
+
+The retention accounting includes the derived indexes and deduplicates shared
+node and edge objects. Models that no longer fit are evicted or not retained;
+the index change does not raise the cache budget. Total process RSS and active
+builds remain outside that accounting. Existing model invalidation, cooperative
+cancellation and per-process admission still apply.
