@@ -78,8 +78,9 @@ def build_vendor_risk_router(
             graph.validate_bounds(**bounds)
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
-        if not graph_slots.try_acquire():
-            return _unavailable("graph_build_capacity", "graph build capacity reached; retry shortly", retry_after=1)
+        rejection = graph_slots.try_acquire(identity.tenant_id)
+        if rejection is not None:
+            return _unavailable(rejection, "graph read concurrency limit reached; retry shortly", retry_after=1)
         token = BuildToken(graph_timeout)
 
         def build() -> dict[str, Any]:
@@ -100,7 +101,7 @@ def build_vendor_risk_router(
             raise HTTPException(status_code=400, detail=str(exc)) from exc
         finally:
             watcher.cancel()
-            graph_slots.release()
+            graph_slots.release(identity.tenant_id)
         return JSONResponse(payload)
 
     @router.get("/api/v1/vendor-questionnaires")

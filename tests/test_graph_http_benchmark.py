@@ -143,7 +143,8 @@ def test_failed_http_requests_retain_prior_reads_and_failure_without_secrets(tmp
     assert "secret-must-not-be-retained" not in progress.read_text()
 
 
-def test_admission_rejections_are_retained_per_tenant_not_failures(tmp_path, monkeypatch):
+@pytest.mark.parametrize("capacity, code", [(1, "graph_build_capacity"), (4, "graph_tenant_capacity")])
+def test_admission_rejections_are_retained_per_tenant_not_failures(tmp_path, monkeypatch, capacity, code):
     import time
 
     from tools.benchmark_investigation_http import run_http_workload
@@ -159,14 +160,19 @@ def test_admission_rejections_are_retained_per_tenant_not_failures(tmp_path, mon
 
     monkeypatch.setattr(graph, "investigation_graph", slow_build)
     report = run_http_workload(
-        tmp_path, rows=12, tenants=2, concurrency=4, repeats=1, seed=5, graph_build_concurrency=1
+        tmp_path, rows=12, tenants=2, concurrency=4, repeats=1, seed=5, graph_build_concurrency=capacity
     )
     assert report["correctness_ok"]
-    assert report["admission"] == {"graph_build_concurrency": 1, "graph_build_timeout_seconds": 60.0}
+    assert report["admission"] == {
+        "graph_build_concurrency": capacity,
+        "graph_tenant_concurrency": max(1, capacity // 2),
+        "graph_build_timeout_seconds": 60.0,
+    }
     assert report["checks"]["admission_slots_released"]
     rejected = [r for r in report["reads"] if r["http_status"] == 503]
     assert rejected
-    assert {r["error_code"] for r in rejected} == {"graph_build_capacity"}
+    assert code in {r["error_code"] for r in rejected}
+    assert all(r["error_code"] in {"graph_build_capacity", "graph_tenant_capacity"} for r in rejected)
     assert all(r["retry_after"] == "1" for r in rejected)
     for scenario in ("balanced", "skewed"):
         burst = report["scenarios"][scenario]

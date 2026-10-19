@@ -26,6 +26,7 @@ from security_lakehouse.graph_admission import (
     GraphBuildAborted,
     GraphBuildSlots,
     graph_build_settings,
+    graph_tenant_capacity,
 )
 from security_lakehouse.server_app import create_app
 from test_api_v1 import _seed_lake
@@ -67,17 +68,55 @@ def test_settings_defaults_and_validation() -> None:
 
 
 def test_slots_fail_fast_at_capacity_and_release() -> None:
-    slots = GraphBuildSlots(2)
-    assert slots.try_acquire() and slots.try_acquire()
-    assert not slots.try_acquire()
+    slots = GraphBuildSlots(2, 2)
+    assert slots.try_acquire("a") is None and slots.try_acquire("a") is None
+    assert slots.try_acquire("b") == "graph_build_capacity"
     assert slots.active == 2
-    slots.release()
-    assert slots.try_acquire()
-    slots.release()
-    slots.release()
-    assert slots.active == 0
     with pytest.raises(RuntimeError):
-        slots.release()
+        slots.release("b")
+    assert slots.active == 2
+    slots.release("a")
+    assert slots.try_acquire("b") is None
+    slots.release("a")
+    slots.release("b")
+    assert slots.active == 0
+    assert not slots._active_by_tenant
+    with pytest.raises(RuntimeError):
+        slots.release("a")
+
+
+@pytest.mark.parametrize("capacity, expected", [(1, 1), (2, 1), (3, 1), (4, 2), (64, 32)])
+def test_tenant_settings_and_constructor(capacity: int, expected: int) -> None:
+    assert graph_tenant_capacity({}, capacity) == expected
+    assert GraphBuildSlots(capacity).tenant_capacity == expected
+    assert graph_tenant_capacity({"GRC_LAKE_GRAPH_TENANT_CONCURRENCY": str(capacity)}, capacity) == capacity
+    for value in ("0", "-1", str(capacity + 1), "x", "nan", "1.5"):
+        with pytest.raises(ValueError):
+            graph_tenant_capacity({"GRC_LAKE_GRAPH_TENANT_CONCURRENCY": value}, capacity)
+    with pytest.raises(ValueError):
+        GraphBuildSlots(capacity, capacity + 1)
+
+
+def test_tenant_slot_races_are_bounded_and_release_only_the_owner() -> None:
+    from concurrent.futures import ThreadPoolExecutor
+
+    slots = GraphBuildSlots(4)
+    barrier = threading.Barrier(16)
+
+    def acquire(tenant: str) -> tuple[str, str | None]:
+        barrier.wait(timeout=10)
+        return tenant, slots.try_acquire(tenant)
+
+    with ThreadPoolExecutor(max_workers=16) as pool:
+        results = list(pool.map(acquire, ["a"] * 12 + ["b"] * 4))
+    admitted = [tenant for tenant, error in results if error is None]
+    assert sorted(admitted) == ["a", "a", "b", "b"]
+    assert slots.active == 4
+    for tenant in admitted:
+        slots.release(tenant)
+    assert slots.active == 0 and not slots._active_by_tenant
+    with pytest.raises(ValueError):
+        slots.try_acquire("")
 
 
 def test_build_token_deadline_and_cancel() -> None:
@@ -158,14 +197,18 @@ def test_saturation_returns_503_with_retry_after_then_recovers(tmp_path: Path, m
         release.set()
         worker.join(10)
     assert first["r"].status_code == 200
+    assert not app.state.graph_build_slots._active_by_tenant
     assert app.state.graph_build_slots.active == 0
     assert client.get(URL, headers=_bearer(token)).status_code == 200
 
 
 def test_invalid_bounds_never_take_a_slot(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     app, client, token = _env(tmp_path, monkeypatch, GRC_LAKE_GRAPH_BUILD_CONCURRENCY="1")
+    assert client.get(URL).status_code == 401
+    assert client.get(URL, headers=_bearer("invalid")).status_code == 401
     assert client.get(URL, headers=_bearer(token), params={"depth": "bad"}).status_code == 400
     assert client.get(URL, headers=_bearer(token), params={"depth": 9}).status_code == 400
+    assert not app.state.graph_build_slots._active_by_tenant
     assert app.state.graph_build_slots.active == 0
 
 
@@ -178,6 +221,7 @@ def test_slot_released_after_builder_error(tmp_path: Path, monkeypatch: pytest.M
     monkeypatch.setattr(graph_module, "investigation_graph", failing)
     raising = TestClient(app, raise_server_exceptions=False)
     assert raising.get(URL, headers=_bearer(token)).status_code == 500
+    assert not app.state.graph_build_slots._active_by_tenant
     assert app.state.graph_build_slots.active == 0
 
 
@@ -187,6 +231,7 @@ def test_real_builder_deadline_aborts_with_503_and_releases(tmp_path: Path, monk
     assert response.status_code == 503
     assert response.headers["Retry-After"]
     assert response.json()["errors"][0]["code"] == "graph_build_timeout"
+    assert not app.state.graph_build_slots._active_by_tenant
     assert app.state.graph_build_slots.active == 0
 
 
@@ -253,6 +298,7 @@ def test_client_disconnect_cancels_build_and_releases_slot(tmp_path: Path, monke
 
     sent = asyncio.run(drive())
     assert outcome["reason"] == "disconnected"
+    assert not app.state.graph_build_slots._active_by_tenant
     assert app.state.graph_build_slots.active == 0
     start = next(m for m in sent if m["type"] == "http.response.start")
     assert start["status"] == 503
@@ -285,4 +331,61 @@ def test_concurrent_tenants_keep_isolated_results(tmp_path: Path, monkeypatch: p
     assert results["own"].json()["data"]["nodes"][0]["kind"] == "vendor"
     assert results["other"].json()["data"]["root_missing"]
     assert "Private vendor" not in results["other"].text
+    assert not app.state.graph_build_slots._active_by_tenant
     assert app.state.graph_build_slots.active == 0
+
+
+def test_tenant_flood_cannot_take_all_slots_or_bypass_with_second_key(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    app, client, other_token = _env(tmp_path, monkeypatch)
+    with session_scope(app.state.sessionmaker) as session:
+        tenant = create_tenant(session, slug="flood", name="Flood")
+        user = create_user(session, tenant_id=tenant.id, email="flood@example.test", role="read_only")
+        _, token = create_api_key(session, tenant_id=tenant.id, user_id=user.id)
+        _, second_key = create_api_key(session, tenant_id=tenant.id, user_id=user.id)
+    started, release = threading.Event(), threading.Event()
+    lock = threading.Lock()
+    calls = 0
+
+    def builder(lake: Path, **kwargs: Any) -> dict[str, Any]:
+        nonlocal calls
+        with lock:
+            calls += 1
+            current = calls
+            if current == 2:
+                started.set()
+        if current <= 2:
+            assert release.wait(10)
+        return {"nodes": [], "edges": []}
+
+    monkeypatch.setattr(graph_module, "investigation_graph", builder)
+    results: list[Any] = []
+    workers = [
+        threading.Thread(target=lambda: results.append(client.get(URL, headers=_bearer(token)))) for _ in range(2)
+    ]
+    for worker in workers:
+        worker.start()
+    try:
+        assert started.wait(10)
+        # Neither credentials nor an untrusted tenant hint change the quota owner.
+        busy = client.get(URL, headers={**_bearer(second_key), "X-Tenant-ID": "other"}, params={"tenant_id": "other"})
+        assert busy.status_code == 503
+        assert busy.json()["errors"][0]["code"] == "graph_tenant_capacity"
+        assert busy.headers["Retry-After"] == "1"
+        assert client.get(URL, headers=_bearer(other_token)).status_code == 200
+        assert app.state.graph_build_slots.active == 2
+    finally:
+        release.set()
+        for worker in workers:
+            worker.join(10)
+    assert len(results) == 2 and all(r.status_code == 200 for r in results)
+    assert not app.state.graph_build_slots._active_by_tenant
+    assert app.state.graph_build_slots.active == 0
+    assert client.get(URL, headers=_bearer(second_key)).status_code == 200
+
+
+def test_invalid_tenant_limit_stops_startup(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("GRC_LAKE_GRAPH_TENANT_CONCURRENCY", "5")
+    with pytest.raises(ValueError, match="GRC_LAKE_GRAPH_TENANT_CONCURRENCY"):
+        create_app(tmp_path)
