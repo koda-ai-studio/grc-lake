@@ -1,0 +1,26 @@
+{
+  "schema_version": "trustops.control_test_plan.v1",
+  "tenant_id": "audit-demo",
+  "period_start": "2026-01-01T00:00:00Z",
+  "period_end": "2026-01-03T00:00:00Z",
+  "as_of": "2026-01-04T00:00:00Z",
+  "controls": [
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "activity": "Test MFA enforcement, privileged authorization and access-review completion",
+      "owner": "security",
+      "system": "identity",
+      "frequency": "daily",
+      "procedure": "Inspect the separate scoped assessor records and underlying tests for each principal and evidence type; reconcile review removals to completed access changes.",
+      "cadence_days": 1,
+      "sample_per_window": 1,
+      "sampling_rationale": "One illustrative observation per daily window; no statistical extrapolation",
+      "design_event_ids": ["design"],
+      "required_evidence_types": [
+        "identity.mfa",
+        "identity.privileged_access",
+        "identity.access_review"
+      ]
+    }
+  ]
+}

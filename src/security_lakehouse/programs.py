@@ -123,7 +123,6 @@ def build_control_tests(
         observed_types = sorted(
             {str(evidence_type) for event in evidence_events for evidence_type in _event_evidence_types(event)}
         )
-        missing_types = sorted(set(required_types) - set(observed_types))
         freshness = summarize_control_freshness(
             evidence_events,
             required_evidence_types=required_types,
@@ -131,6 +130,7 @@ def build_control_tests(
             default_slo_minutes=int(program.get("default_freshness_days") or 7) * 24 * 60,
             connectors=connectors,
         )
+        missing_types = freshness["missing_evidence_types"]
         confidence_inputs = _confidence_inputs(control, evidence_events, missing_types, freshness, bool(config))
         confidence_score = _confidence_score(confidence_inputs)
         result = _test_result(control, evidence_events, failing_events, freshness)
