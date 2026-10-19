@@ -57,6 +57,8 @@ every HTTP request, including cache hits.
 
 A cold read still builds the full server-side model, and warm reads still scan it
 to select a neighborhood. Depth, layers and search operate on the same model.
+Completed models also retain directed adjacency, original edge positions, node-kind counts, ordered starting points and default roots. These derived indexes count against the same 128 MiB retention budget and expire or invalidate with their model. Unfiltered warm reads avoid full node/edge scans to rebuild those indexes; response edges retain their original order. Layer filters recompute eligible membership and degree ordering, search scans the indexed starting points, and broad neighborhoods still traverse their matching nodes. Cold builds do extra index construction, and larger retained models can cause earlier eviction.
+
 Neither this bounded reuse nor the response bound establishes constant-memory
 indexing, tenant fairness or production-scale qualification.
 

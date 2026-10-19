@@ -223,3 +223,85 @@ def test_cached_responses_equal_uncached_across_query_shapes(tmp_path, monkeypat
     monkeypatch.setattr(graph, "_MODEL_CACHE", ModelCache())
     graph.investigation_graph(tmp_path)  # Populate using a different query.
     assert graph.investigation_graph(tmp_path, **query) == expected
+
+
+def test_warm_bounded_reads_do_not_rescan_all_nodes_or_edges(tmp_path, monkeypatch):
+    class CountedDict(dict):
+        scans = 0
+
+        def values(self):
+            self.scans += 1
+            return super().values()
+
+        def items(self):
+            self.scans += 1
+            return super().items()
+
+        def __iter__(self):
+            self.scans += 1
+            return super().__iter__()
+
+    publish_generation(tmp_path, generation(tmp_path))
+    original = graph._build_model
+    tables = []
+
+    def counted(*args):
+        nodes, edges, frameworks = original(*args)
+        wrapped = CountedDict(nodes), CountedDict(edges)
+        tables.extend(wrapped)
+        return *wrapped, frameworks
+
+    monkeypatch.setattr(graph, "_build_model", counted)
+    expected = graph.investigation_graph(tmp_path, root="control:TEST", depth=1)
+    for table in tables:
+        table.scans = 0
+    assert graph.investigation_graph(tmp_path, root="control:TEST", depth=1) == expected
+    assert len(tables) == 2  # Cache hit, not an incidental rebuild.
+    assert [table.scans for table in tables] == [0, 0]
+
+
+def test_index_data_cannot_be_mutated_through_response(tmp_path):
+    publish_generation(tmp_path, generation(tmp_path))
+    original = graph.investigation_graph(tmp_path)
+    expected = copy.deepcopy(original)
+    original["counts"]["control"] = -1
+    original["roots"][0]["label"] = "corrupted"
+    original["roots"].clear()
+    assert graph.investigation_graph(tmp_path) == expected
+
+
+def test_index_storage_counts_against_the_existing_retention_budget(tmp_path, monkeypatch):
+    from security_lakehouse.investigation_cache import ModelCache, model_size
+
+    publish_generation(tmp_path, generation(tmp_path))
+    with pin_generation(tmp_path):
+        value = graph._model(tmp_path, None, lambda: None)
+    without_indexes = model_size(value[:4], 10**9, lambda: None)
+    with_indexes = model_size(value, 10**9, lambda: None)
+    assert with_indexes > without_indexes
+    store = ModelCache(max_bytes=without_indexes)
+    monkeypatch.setattr(graph, "_MODEL_CACHE", store)
+    graph.investigation_graph(tmp_path)
+    assert not store._entries and store._bytes == 0
+
+
+def test_index_build_cancellation_never_retains_a_partial_model(tmp_path, monkeypatch):
+    from security_lakehouse.investigation_cache import ModelCache
+
+    publish_generation(tmp_path, generation(tmp_path))
+    store = ModelCache()
+    monkeypatch.setattr(graph, "_MODEL_CACHE", store)
+    original = graph.build_indexes
+
+    def cancelled(nodes, edges, check):
+        def abort():
+            raise RuntimeError("disconnected during indexing")
+
+        return original(nodes, edges, abort)
+
+    monkeypatch.setattr(graph, "build_indexes", cancelled)
+    with pytest.raises(RuntimeError, match="disconnected during indexing"):
+        graph.investigation_graph(tmp_path)
+    assert not store._entries and not store._building and store._bytes == 0
+    monkeypatch.setattr(graph, "build_indexes", original)
+    assert graph.investigation_graph(tmp_path)["nodes"]

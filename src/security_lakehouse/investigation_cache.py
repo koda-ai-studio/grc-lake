@@ -7,7 +7,9 @@ from threading import Event, Lock
 from time import monotonic
 from typing import Any
 
-Model = tuple[dict[str, dict[str, Any]], dict[str, dict[str, Any]], Mapping[str, Mapping[str, Any]], str]
+from security_lakehouse.investigation_index import ReadIndexes
+
+Model = tuple[dict[str, dict[str, Any]], dict[str, dict[str, Any]], Mapping[str, Mapping[str, Any]], str, ReadIndexes]
 Key = tuple[str, str]
 
 
