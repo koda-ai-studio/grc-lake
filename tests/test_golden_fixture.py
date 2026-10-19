@@ -56,15 +56,32 @@ def test_golden_fixture_ships_and_populates_dashboard(tmp_path: Path) -> None:
     frameworks = {row["framework"] for row in posture["frameworks"]}
     assert frameworks == {"SOC 2", "NIST AI RMF", "ISO 27001:2022"}
 
-    # The actual normalized pipeline must see the required types, not only the
-    # raw fixture helper. Observations remain excluded from verdict support.
+    # Supplemental records cover the required types across the dataset, but
+    # belong to distinct assets. They must not complete another asset's test.
+    # Public observations also remain excluded from verdict support.
     tests = api_v1.handle_get("/api/v1/control-tests", {"limit": ["500"]}, tmp_path)[1]["data"]
-    assert all(not row["missing_evidence_types"] for row in tests)
+    incomplete = {row["control_id"]: row for row in tests if row["missing_evidence_types"]}
+    assert set(incomplete) == {
+        "SOC2-CC6.1",
+        "SOC2-CC7.2",
+        "NIST-AI-RMF-MAP-1.5",
+        "NIST-AI-RMF-MEASURE-2.7",
+    }
+    for row in incomplete.values():
+        assert row["missing_evidence_types"] == row["required_evidence_types"]
+        assert row["confidence_inputs"]["freshness"] == 0
+        assert all(kind in row["next_action"] for kind in row["missing_evidence_types"])
+    assert {cid: row["result"] for cid, row in incomplete.items()} == {
+        "SOC2-CC6.1": "fail",
+        "SOC2-CC7.2": "needs_evidence",
+        "NIST-AI-RMF-MAP-1.5": "fail",
+        "NIST-AI-RMF-MEASURE-2.7": "needs_evidence",
+    }
     cc61 = next(row for row in tests if row["control_id"] == "SOC2-CC6.1")
     linked = next(row for row in posture_rows if row["control_id"] == "SOC2-CC6.1")
     assert cc61["evidence_count"] == 4
     assert linked["evidence_count"] == 6  # Two public observations retained.
-    assert "collect missing" not in cc61["next_action"]
+    assert cc61["next_action"].startswith("request ")
 
 
 def test_golden_asset_types_match_their_event_types() -> None:
@@ -197,7 +214,8 @@ def test_golden_ai_inventory_carries_asset_names(tmp_path: Path) -> None:
     assert by_id["golden:model:risk-scorer"]["asset_name"] == "Risk scorer model"
 
 
-def test_golden_required_types_are_present_on_the_control_they_support() -> None:
+def test_golden_required_types_are_present_across_each_control_dataset() -> None:
+    """Dataset type coverage does not establish completeness for each asset."""
     from security_lakehouse.catalog import load_control_catalog
     from security_lakehouse.evidence_types import expand_evidence_types
     from security_lakehouse.golden_fixture import build_golden_fixture_rows
