@@ -63,7 +63,7 @@ jobs:
           python-version: ${{ matrix.python }}
       - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
-          version: "0.13.0"
+          version: "0.13.1" # keep in step with the Dockerfile uv image
           enable-cache: true
       - name: Build and verify fresh wheel
         run: |
@@ -100,7 +100,7 @@ jobs:
           python-version: "3.12"
       - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
-          version: "0.13.0" # keep in step with the Dockerfile uv image
+          version: "0.13.1" # keep in step with the Dockerfile uv image
           enable-cache: true
       - name: Install (frozen lockfile)
         run: uv sync --frozen --all-extras
@@ -130,7 +130,7 @@ jobs:
           node-version: "22"
       - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
-          version: "0.13.0" # keep in step with the Dockerfile uv image
+          version: "0.13.1" # keep in step with the Dockerfile uv image
           enable-cache: true
       - name: Install (frozen)
         run: uv sync --frozen --extra dev
@@ -157,7 +157,7 @@ jobs:
           python-version: "3.12"
       - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
-          version: "0.13.0" # keep in step with the Dockerfile uv image
+          version: "0.13.1" # keep in step with the Dockerfile uv image
           enable-cache: true
       - name: Install (frozen)
         run: uv sync --frozen --all-extras
@@ -217,7 +217,7 @@ jobs:
           python-version: "3.12"
       - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
-          version: "0.13.0" # keep in step with the Dockerfile uv image
+          version: "0.13.1" # keep in step with the Dockerfile uv image
           enable-cache: true
       - name: Install (frozen)
         run: uv sync --frozen --all-extras
@@ -280,7 +280,7 @@ jobs:
           python-version: "3.14" # Match the container runtime.
       - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
-          version: "0.13.0" # keep in step with the Dockerfile uv image
+          version: "0.13.1" # keep in step with the Dockerfile uv image
           enable-cache: true
       - name: Install (frozen)
         run: uv sync --frozen --all-extras
@@ -326,7 +326,7 @@ jobs:
           python-version: "3.12"
       - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
-          version: "0.13.0" # keep in step with the Dockerfile uv image
+          version: "0.13.1" # keep in step with the Dockerfile uv image
           enable-cache: true
       - name: Install (frozen)
         run: uv sync --frozen --extra dev
@@ -394,7 +394,7 @@ jobs:
           python-version: "3.12"
       - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
-          version: "0.13.0" # keep in step with the Dockerfile uv image
+          version: "0.13.1" # keep in step with the Dockerfile uv image
           enable-cache: true
       - name: Install
         run: uv sync --frozen --extra server --extra dev
@@ -418,7 +418,7 @@ jobs:
           python-version: "3.12"
       - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
-          version: "0.13.0" # keep in step with the Dockerfile uv image
+          version: "0.13.1" # keep in step with the Dockerfile uv image
           enable-cache: true
       - name: Install (frozen)
         run: uv sync --frozen --all-extras
@@ -445,7 +445,7 @@ jobs:
           python-version: "3.12"
       - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
-          version: "0.13.0"
+          version: "0.13.1" # keep in step with the Dockerfile uv image
       - name: Helm security and runtime contracts
         run: uv run --locked --extra dev pytest -q tests/test_helm_security.py tests/test_helm_runtime.py
       - name: terraform fmt
@@ -562,7 +562,7 @@ jobs:
           python-version: "3.12"
       - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
-          version: "0.13.0" # keep in step with the Dockerfile uv image
+          version: "0.13.1" # keep in step with the Dockerfile uv image
           enable-cache: true
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
