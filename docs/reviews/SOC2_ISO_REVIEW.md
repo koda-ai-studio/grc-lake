@@ -12,9 +12,9 @@ The three JSON companions contain exact candidate fingerprints, operating contra
 
 ## Review scope and reproduction
 
-This queue contains 115 requirements and 146 candidate relationships in 13 batches: soc2 (28 requirements), iso-27001-2022 (64 requirements), iso-42001-2023 (23 requirements). 35 requirement-specific assessment contracts replaced 41 weak proposed relationships. Reviewed requirements are excluded from this pending queue; separate alternatives do not inherit their approval.
+This queue contains 130 requirements and 161 candidate relationships in 14 batches: soc2 (28 requirements), iso-27001-2022 (76 requirements), iso-42001-2023 (26 requirements). 35 requirement-specific assessment contracts replaced 41 weak proposed relationships. 15 additional contracts propose mappings for previously unmapped requirements. Reviewed requirements are excluded from this pending queue; separate alternatives do not inherit their approval.
 
-Cisco references use explicit SOC 2 IDs and the ISO/IEC 27002:2022 column corresponding to ISO 27001:2022 Annex A. Older ISO columns and broad X markers are excluded. Processing Integrity requirements without a Cisco reference stay explicitly unsourced. Oracle articles provide AI governance examples; they do not supply the complete ISO 42001 requirement text. Fifteen unmapped ISO requirements remain outside this pending-mapping queue.
+Cisco references use explicit SOC 2 IDs and the ISO/IEC 27002:2022 column corresponding to ISO 27001:2022 Annex A. Older ISO columns and broad X markers are excluded. Processing Integrity requirements without a Cisco reference stay explicitly unsourced. Oracle articles provide AI governance examples; they do not supply the complete ISO 42001 requirement text. Proposed coverage is not reviewed coverage or operating assurance; incomplete normative source access must be resolved during review.
 
 Download the pinned source URLs below into a local directory as `cisco-ccf-v4.zip`, `oracle-practice.html`, and `oracle-risk.html`. The generator checks both the ZIP and workbook hashes and both HTML hashes; a changed source requires inspection and a deliberate pin update. Vendor source files are not committed.
 
@@ -30,43 +30,58 @@ Omit `--check` to regenerate. JSON verification compares parsed content, so repo
 - [Oracle ISO 42001 implementation practice, June 2026](https://www.oracle.com/es/corporate/iso-42001-principles-into-practice/), SHA-256 `2ae1aaa8f783a1a5536bff151d5b40410002b9591a4de64d2743ba921f0f658a`. Key: `oracle-practice`.
 - [Oracle AI risk management practice, September 2026](https://www.oracle.com/es/corporate/ai-risk-management-in-practice/), SHA-256 `2ba0eef33a0dcbb22de00ddbe3165d2785222a7631c4d478d4c8198aca79b0bf`. Key: `oracle-risk`.
 
-## Repaired proposals
+## Requirement-specific proposals
 
-- **SOC2-A1.1**: replace the proposed links from `SG-DETECTION-001` with `SG-REVIEW-SOC2-A1-1`.
-- **SOC2-CC6.4**: replace the proposed links from `SG-CHANGEMANAGEMENT-001` with `SG-REVIEW-SOC2-CC6-4`.
-- **SOC2-CC6.5**: replace the proposed links from `SG-PHYSICAL-001` with `SG-REVIEW-SOC2-CC6-5`.
-- **SOC2-CC9.1**: replace the proposed links from `SG-THIRDPARTYRISK-001` with `SG-REVIEW-SOC2-CC9-1`.
-- **SOC2-P6.2**: replace the proposed links from `SG-THIRDPARTYRISK-001` with `SG-REVIEW-SOC2-P6-2`.
-- **SOC2-P6.3**: replace the proposed links from `SG-CHANGEMANAGEMENT-001`, `SG-PRIVACYNOTICE-001` with `SG-REVIEW-SOC2-P6-3`.
-- **SOC2-P6.4**: replace the proposed links from `SG-INCIDENTRESPONSE-001`, `SG-INCIDENTNOTIFICATION-001` with `SG-REVIEW-SOC2-P6-4`.
-- **SOC2-P6.5**: replace the proposed links from `SG-PRIVACYRIGHTS-001`, `SG-CROSSBORDERTRANSFER-001` with `SG-REVIEW-SOC2-P6-5`.
-- **SOC2-P6.6**: replace the proposed links from `SG-PRIVACYRIGHTS-001` with `SG-REVIEW-SOC2-P6-6`.
-- **SOC2-P6.7**: replace the proposed links from `SG-DETECTION-001` with `SG-REVIEW-SOC2-P6-7`.
-- **ISO27001-A.5.13**: replace the proposed links from `SG-DATAINVENTORY-001` with `SG-REVIEW-ISO27001-A-5-13`.
-- **ISO27001-A.5.28**: replace the proposed links from `SG-INCIDENTHANDLING-001` with `SG-REVIEW-ISO27001-A-5-28`.
-- **ISO27001-A.6.7**: replace the proposed links from `SG-IDENTITY-001` with `SG-REVIEW-ISO27001-A-6-7`.
-- **ISO27001-A.7.7**: replace the proposed links from `SG-PHYSICAL-001` with `SG-REVIEW-ISO27001-A-7-7`.
-- **ISO27001-A.8.11**: replace the proposed links from `SG-DATAPROTECTION-001` with `SG-REVIEW-ISO27001-A-8-11`.
-- **ISO27001-A.8.17**: replace the proposed links from `SG-LOGGING-001` with `SG-REVIEW-ISO27001-A-8-17`.
-- **ISO27001-A.8.6**: replace the proposed links from `SG-AVAILABILITY-001`, `SG-AICOMPUTE-001` with `SG-REVIEW-ISO27001-A-8-6`.
-- **ISO42001-10.2**: replace the proposed links from `SG-AIPROVENANCE-001` with `SG-REVIEW-ISO42001-10-2`.
-- **ISO42001-4.6**: replace the proposed links from `SG-AIOVERSIGHT-001` with `SG-REVIEW-ISO42001-4-6`.
-- **ISO42001-6.1.3**: replace the proposed links from `SG-RISKMANAGEMENT-001` with `SG-REVIEW-ISO42001-6-1-3`.
-- **ISO42001-6.2.8**: replace the proposed links from `SG-AIGOVERNANCE-001`, `SG-AIRUNTIMEACCESS-001` with `SG-REVIEW-ISO42001-6-2-8`.
-- **ISO42001-8.2**: replace the proposed links from `SG-DATAINVENTORY-001`, `SG-AITRANSPARENCY-001` with `SG-REVIEW-ISO42001-8-2`.
-- **SOC2-CC1.1**: replace the proposed links from `SG-GOVERNANCE-002` with `SG-REVIEW-SOC2-CC1-1`.
-- **SOC2-CC1.2**: replace the proposed links from `SG-GOVERNANCE-002` with `SG-REVIEW-SOC2-CC1-2`.
-- **SOC2-CC1.4**: replace the proposed links from `SG-GOVERNANCE-002` with `SG-REVIEW-SOC2-CC1-4`.
-- **SOC2-CC1.5**: replace the proposed links from `SG-GOVERNANCE-002` with `SG-REVIEW-SOC2-CC1-5`.
-- **SOC2-CC2.1**: replace the proposed links from `SG-GOVERNANCE-002` with `SG-REVIEW-SOC2-CC2-1`.
-- **SOC2-CC2.2**: replace the proposed links from `SG-GOVERNANCE-002` with `SG-REVIEW-SOC2-CC2-2`.
-- **SOC2-CC2.3**: replace the proposed links from `SG-GOVERNANCE-002` with `SG-REVIEW-SOC2-CC2-3`.
-- **SOC2-CC3.1**: replace the proposed links from `SG-GOVERNANCE-002` with `SG-REVIEW-SOC2-CC3-1`.
-- **SOC2-CC4.2**: replace the proposed links from `SG-GOVERNANCE-002` with `SG-REVIEW-SOC2-CC4-2`.
-- **SOC2-CC5.1**: replace the proposed links from `SG-GOVERNANCE-002` with `SG-REVIEW-SOC2-CC5-1`.
-- **SOC2-CC5.2**: replace the proposed links from `SG-GOVERNANCE-002` with `SG-REVIEW-SOC2-CC5-2`.
-- **SOC2-CC5.3**: replace the proposed links from `SG-GOVERNANCE-002` with `SG-REVIEW-SOC2-CC5-3`.
-- **SOC2-CC1.3**: replace the proposed links from `SG-GOVERNANCE-002` with `SG-REVIEW-SOC2-CC1-3`.
+- **SOC2-A1.1**: replace the proposed links from `SG-DETECTION-001` using `SG-REVIEW-SOC2-A1-1`.
+- **SOC2-CC6.4**: replace the proposed links from `SG-CHANGEMANAGEMENT-001` using `SG-REVIEW-SOC2-CC6-4`.
+- **SOC2-CC6.5**: replace the proposed links from `SG-PHYSICAL-001` using `SG-REVIEW-SOC2-CC6-5`.
+- **SOC2-CC9.1**: replace the proposed links from `SG-THIRDPARTYRISK-001` using `SG-REVIEW-SOC2-CC9-1`.
+- **SOC2-P6.2**: replace the proposed links from `SG-THIRDPARTYRISK-001` using `SG-REVIEW-SOC2-P6-2`.
+- **SOC2-P6.3**: replace the proposed links from `SG-CHANGEMANAGEMENT-001`, `SG-PRIVACYNOTICE-001` using `SG-REVIEW-SOC2-P6-3`.
+- **SOC2-P6.4**: replace the proposed links from `SG-INCIDENTRESPONSE-001`, `SG-INCIDENTNOTIFICATION-001` using `SG-REVIEW-SOC2-P6-4`.
+- **SOC2-P6.5**: replace the proposed links from `SG-PRIVACYRIGHTS-001`, `SG-CROSSBORDERTRANSFER-001` using `SG-REVIEW-SOC2-P6-5`.
+- **SOC2-P6.6**: replace the proposed links from `SG-PRIVACYRIGHTS-001` using `SG-REVIEW-SOC2-P6-6`.
+- **SOC2-P6.7**: replace the proposed links from `SG-DETECTION-001` using `SG-REVIEW-SOC2-P6-7`.
+- **ISO27001-A.5.13**: replace the proposed links from `SG-DATAINVENTORY-001` using `SG-REVIEW-ISO27001-A-5-13`.
+- **ISO27001-A.5.28**: replace the proposed links from `SG-INCIDENTHANDLING-001` using `SG-REVIEW-ISO27001-A-5-28`.
+- **ISO27001-A.6.7**: replace the proposed links from `SG-IDENTITY-001` using `SG-REVIEW-ISO27001-A-6-7`.
+- **ISO27001-A.7.7**: replace the proposed links from `SG-PHYSICAL-001` using `SG-REVIEW-ISO27001-A-7-7`.
+- **ISO27001-A.8.11**: replace the proposed links from `SG-DATAPROTECTION-001` using `SG-REVIEW-ISO27001-A-8-11`.
+- **ISO27001-A.8.17**: replace the proposed links from `SG-LOGGING-001` using `SG-REVIEW-ISO27001-A-8-17`.
+- **ISO27001-A.8.6**: replace the proposed links from `SG-AVAILABILITY-001`, `SG-AICOMPUTE-001` using `SG-REVIEW-ISO27001-A-8-6`.
+- **ISO42001-10.2**: replace the proposed links from `SG-AIPROVENANCE-001` using `SG-REVIEW-ISO42001-10-2`.
+- **ISO42001-4.6**: replace the proposed links from `SG-AIOVERSIGHT-001` using `SG-REVIEW-ISO42001-4-6`.
+- **ISO42001-6.1.3**: replace the proposed links from `SG-RISKMANAGEMENT-001` using `SG-REVIEW-ISO42001-6-1-3`.
+- **ISO42001-6.2.8**: replace the proposed links from `SG-AIGOVERNANCE-001`, `SG-AIRUNTIMEACCESS-001` using `SG-REVIEW-ISO42001-6-2-8`.
+- **ISO42001-8.2**: replace the proposed links from `SG-DATAINVENTORY-001`, `SG-AITRANSPARENCY-001` using `SG-REVIEW-ISO42001-8-2`.
+- **SOC2-CC1.1**: replace the proposed links from `SG-GOVERNANCE-002` using `SG-REVIEW-SOC2-CC1-1`.
+- **SOC2-CC1.2**: replace the proposed links from `SG-GOVERNANCE-002` using `SG-REVIEW-SOC2-CC1-2`.
+- **SOC2-CC1.4**: replace the proposed links from `SG-GOVERNANCE-002` using `SG-REVIEW-SOC2-CC1-4`.
+- **SOC2-CC1.5**: replace the proposed links from `SG-GOVERNANCE-002` using `SG-REVIEW-SOC2-CC1-5`.
+- **SOC2-CC2.1**: replace the proposed links from `SG-GOVERNANCE-002` using `SG-REVIEW-SOC2-CC2-1`.
+- **SOC2-CC2.2**: replace the proposed links from `SG-GOVERNANCE-002` using `SG-REVIEW-SOC2-CC2-2`.
+- **SOC2-CC2.3**: replace the proposed links from `SG-GOVERNANCE-002` using `SG-REVIEW-SOC2-CC2-3`.
+- **SOC2-CC3.1**: replace the proposed links from `SG-GOVERNANCE-002` using `SG-REVIEW-SOC2-CC3-1`.
+- **SOC2-CC4.2**: replace the proposed links from `SG-GOVERNANCE-002` using `SG-REVIEW-SOC2-CC4-2`.
+- **SOC2-CC5.1**: replace the proposed links from `SG-GOVERNANCE-002` using `SG-REVIEW-SOC2-CC5-1`.
+- **SOC2-CC5.2**: replace the proposed links from `SG-GOVERNANCE-002` using `SG-REVIEW-SOC2-CC5-2`.
+- **SOC2-CC5.3**: replace the proposed links from `SG-GOVERNANCE-002` using `SG-REVIEW-SOC2-CC5-3`.
+- **SOC2-CC1.3**: replace the proposed links from `SG-GOVERNANCE-002` using `SG-REVIEW-SOC2-CC1-3`.
+- **ISO27001-A.5.11**: add a proposal for a previously unmapped requirement using `SG-REVIEW-ISO27001-A-5-11`.
+- **ISO27001-A.5.3**: add a proposal for a previously unmapped requirement using `SG-REVIEW-ISO27001-A-5-3`.
+- **ISO27001-A.5.32**: add a proposal for a previously unmapped requirement using `SG-REVIEW-ISO27001-A-5-32`.
+- **ISO27001-A.5.37**: add a proposal for a previously unmapped requirement using `SG-REVIEW-ISO27001-A-5-37`.
+- **ISO27001-A.5.6**: add a proposal for a previously unmapped requirement using `SG-REVIEW-ISO27001-A-5-6`.
+- **ISO27001-A.6.1**: add a proposal for a previously unmapped requirement using `SG-REVIEW-ISO27001-A-6-1`.
+- **ISO27001-A.6.2**: add a proposal for a previously unmapped requirement using `SG-REVIEW-ISO27001-A-6-2`.
+- **ISO27001-A.6.4**: add a proposal for a previously unmapped requirement using `SG-REVIEW-ISO27001-A-6-4`.
+- **ISO27001-A.6.5**: add a proposal for a previously unmapped requirement using `SG-REVIEW-ISO27001-A-6-5`.
+- **ISO27001-A.6.6**: add a proposal for a previously unmapped requirement using `SG-REVIEW-ISO27001-A-6-6`.
+- **ISO27001-A.8.1**: add a proposal for a previously unmapped requirement using `SG-REVIEW-ISO27001-A-8-1`.
+- **ISO27001-A.8.34**: add a proposal for a previously unmapped requirement using `SG-REVIEW-ISO27001-A-8-34`.
+- **ISO42001-10.4**: add a proposal for a previously unmapped requirement using `SG-REVIEW-ISO42001-10-4`.
+- **ISO42001-2.3**: add a proposal for a previously unmapped requirement using `SG-REVIEW-ISO42001-2-3`.
+- **ISO42001-A.6.1.3**: add a proposal for a previously unmapped requirement using `SG-REVIEW-ISO42001-A-6-1-3`.
 
 The [35-proposal decision receipt](../../controls/reviews/2026-10-15-soc2-iso-repairs.json) records msaad00's approval of the [archived focused packet](2026-10-15-repaired-proposals.json). Other candidates remain unchanged. The decision does not supply operating evidence, an independent review, or normative source text.
 
@@ -322,6 +337,14 @@ For acceptable use of information and other associated assets, compare each cand
 
 Source locators: CCF 64 (BI70), CCF 67 (BI73), CCF 69 (BI75), CCF 73 (BI79), CCF 85 (BI91), CCF 88 (BI94), CCF 165 (BI171), CCF 166 (BI172), CCF 167 (BI173).
 
+**ISO27001-A.5.11** — Return of assets
+
+Candidates: `SG-REVIEW-ISO27001-A-5-11`.
+
+Requirement-specific proposal: verify the issued-asset register reconciled to leavers and role changes, return responsibilities and deadlines, notifications, dated custody receipts, inventory updates, and escalation and recovery actions for unreturned assets. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Cisco provides a return-of-property workflow; local timing, worker scope and exceptions must be justified.
+
+Source locators: CCF 67 (BI73), CCF 227 (BI233), CCF 228 (BI234), CCF 229 (BI235).
+
 **ISO27001-A.5.12** — Classification of information
 
 Candidates: `SG-DATAINVENTORY-001`.
@@ -378,6 +401,8 @@ For addressing information security within supplier agreements, compare each can
 
 Source locators: CCF 100 (BI106), CCF 122 (BI128), CCF 124 (BI130), CCF 165 (BI171), CCF 166 (BI172), CCF 329 (BI335), CCF 331 (BI337), CCF 339 (BI345), CCF 340 (BI346).
 
+### iso-27001-2022-review-002
+
 **ISO27001-A.5.21** — Managing information security in the ICT supply chain
 
 Candidates: `SG-AIPROVENANCE-001`, `SG-THIRDPARTYRISK-001`.
@@ -385,8 +410,6 @@ Candidates: `SG-AIPROVENANCE-001`, `SG-THIRDPARTYRISK-001`.
 For managing information security in the ict supply chain, compare each candidate (Third-party model and dataset provenance (AI-BOM); Vendor and third-party risk) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.
 
 Source locators: CCF 165 (BI171), CCF 166 (BI172), CCF 329 (BI335), CCF 331 (BI337), CCF 339 (BI345).
-
-### iso-27001-2022-review-002
 
 **ISO27001-A.5.22** — Monitoring, review and change management of supplier services
 
@@ -444,6 +467,14 @@ For information security during disruption, compare each candidate (Backup and a
 
 Source locators: CCF 10 (BI16), CCF 25 (BI31), CCF 122 (BI128), CCF 124 (BI130), CCF 161 (BI167), CCF 335 (BI341), CCF 336 (BI342).
 
+**ISO27001-A.5.3** — Segregation of duties
+
+Candidates: `SG-REVIEW-ISO27001-A-5-3`.
+
+Requirement-specific proposal: verify the documented incompatible-duty matrix, actual production and administrative entitlements, independent change approvals, attempted self-approval tests, periodic conflict reviews, and approved compensating controls with owners and expiry dates. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Production change separation is one example; the assessor must also identify other incompatible duties in scope.
+
+Source locators: CCF 39 (BI45), CCF 226 (BI232).
+
 **ISO27001-A.5.30** — ICT readiness for business continuity
 
 Candidates: `SG-AVAILABILITY-001`.
@@ -451,6 +482,8 @@ Candidates: `SG-AVAILABILITY-001`.
 For ict readiness for business continuity, compare each candidate (Backup and availability) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.
 
 Source locators: CCF 10 (BI16), CCF 11 (BI17), CCF 12 (BI18), CCF 25 (BI31), CCF 122 (BI128), CCF 124 (BI130), CCF 161 (BI167).
+
+### iso-27001-2022-review-003
 
 **ISO27001-A.5.31** — Legal, statutory, regulatory and contractual requirements
 
@@ -460,6 +493,14 @@ For legal, statutory, regulatory and contractual requirements, compare each cand
 
 Source locators: CCF 1 (BI7), CCF 8 (BI14), CCF 96 (BI102), CCF 100 (BI106), CCF 130 (BI136), CCF 162 (BI168), CCF 165 (BI171), CCF 340 (BI346).
 
+**ISO27001-A.5.32** — Intellectual property rights
+
+Candidates: `SG-REVIEW-ISO27001-A-5-32`.
+
+Requirement-specific proposal: verify the inventory of licensed software and protected material, acquisition and use rights, entitlement counts reconciled to actual use, restrictions on copying or distribution, periodic checks and remediation of unauthorized use. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Software licensing guidance is narrower than all intellectual property rights; non-software material needs separate evidence.
+
+Source locators: CCF 165 (BI171), CCF 166 (BI172), CCF 167 (BI173), CCF 173 (BI179), CCF 329 (BI335), CCF 331 (BI337), CCF 339 (BI345), CCF 366 (BI372).
+
 **ISO27001-A.5.33** — Protection of records
 
 Candidates: `SG-DATARETENTION-001`.
@@ -467,8 +508,6 @@ Candidates: `SG-DATARETENTION-001`.
 For protection of records, compare each candidate (Data retention and secure disposal) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.
 
 Source locators: CCF 69 (BI75), CCF 73 (BI79), CCF 96 (BI102), CCF 99 (BI105), CCF 100 (BI106).
-
-### iso-27001-2022-review-003
 
 **ISO27001-A.5.34** — Privacy and protection of PII
 
@@ -494,6 +533,14 @@ For compliance with policies, rules and standards for information security, comp
 
 Source locators: CCF 1 (BI7), CCF 127 (BI133), CCF 129 (BI135), CCF 147 (BI153), CCF 161 (BI167).
 
+**ISO27001-A.5.37** — Documented operating procedures
+
+Candidates: `SG-REVIEW-ISO27001-A-5-37`.
+
+Requirement-specific proposal: verify the inventory of operational procedures, accountable owners, approved current versions accessible to operators, dependencies and failure handling, sampled execution records, and change-driven review of procedures for critical operations. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. SDLC and key-management procedures illustrate operating documentation; they do not establish completeness of all operating procedures.
+
+Source locators: CCF 30 (BI36), CCF 81 (BI87), CCF 96 (BI102).
+
 **ISO27001-A.5.4** — Management responsibilities
 
 Candidates: `SG-GOVERNANCE-002`.
@@ -509,6 +556,16 @@ Candidates: `SG-INCIDENTNOTIFICATION-001`.
 For contact with authorities, compare each candidate (Incident and breach notification within deadlines) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.
 
 Source locators: CCF 171 (BI177), CCF 317 (BI323), CCF 329 (BI335), CCF 364 (BI370).
+
+**ISO27001-A.5.6** — Contact with special interest groups
+
+Candidates: `SG-REVIEW-ISO27001-A-5-6`.
+
+Requirement-specific proposal: verify the relevant professional and security groups or advisory channels, designated contacts, active subscriptions or participation records, triage and distribution of received information, and tracked decisions responding to relevant security developments. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Subscription records alone do not demonstrate active use of advice or complete coverage of relevant groups.
+
+Source locators: CCF 122 (BI128), CCF 124 (BI130), CCF 128 (BI134), CCF 129 (BI135), CCF 356 (BI362), CCF 357 (BI363).
+
+### iso-27001-2022-review-004
 
 **ISO27001-A.5.7** — Threat intelligence
 
@@ -526,6 +583,22 @@ For inventory of information and other associated assets, compare each candidate
 
 Source locators: CCF 64 (BI70), CCF 67 (BI73), CCF 70 (BI76), CCF 100 (BI106).
 
+**ISO27001-A.6.1** — Screening
+
+Candidates: `SG-REVIEW-ISO27001-A-6-1`.
+
+Requirement-specific proposal: verify the role-based screening policy and lawful jurisdictional scope, joiner population reconciled to personnel records, screening completion before relevant access, authorized exceptions, and protections and retention limits for sensitive screening records. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Cisco describes pre-employment screening; local law, proportionality and applicable contractor scope need assessor confirmation.
+
+Source locators: CCF 162 (BI168).
+
+**ISO27001-A.6.2** — Terms and conditions of employment
+
+Candidates: `SG-REVIEW-ISO27001-A-6-2`.
+
+Requirement-specific proposal: verify the approved employment and contractor terms defining security responsibilities, signed acceptance reconciled to the onboarding population, communication before access, updates after role changes, and documented handling of missing or outdated agreements. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Confidentiality agreements are examples within employment terms; they do not establish every security obligation.
+
+Source locators: CCF 165 (BI171), CCF 166 (BI172), CCF 167 (BI173), CCF 339 (BI345).
+
 **ISO27001-A.6.3** — Information security awareness, education and training
 
 Candidates: `SG-TRAINING-001`.
@@ -533,6 +606,30 @@ Candidates: `SG-TRAINING-001`.
 For information security awareness, education and training, compare each candidate (Security awareness and training) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.
 
 Source locators: CCF 168 (BI174), CCF 173 (BI179), CCF 174 (BI180).
+
+**ISO27001-A.6.4** — Disciplinary process
+
+Candidates: `SG-REVIEW-ISO27001-A-6-4`.
+
+Requirement-specific proposal: verify the documented response to security policy breaches, communication and acknowledgement of consequences, fair and authorized investigation steps, restricted case records, consistent application to sampled cases, and recorded escalation and closure decisions. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Published consequences and acknowledgements alone do not establish that the disciplinary process operated appropriately.
+
+Source locators: CCF 160 (BI166).
+
+**ISO27001-A.6.5** — Responsibilities after termination or change of employment
+
+Candidates: `SG-REVIEW-ISO27001-A-6-5`.
+
+Requirement-specific proposal: verify the leaver and role-change population, documented continuing security obligations, handover and notice records, approvals for changed duties, dated removal or adjustment of access, and reconciliation of unresolved exceptions against personnel records. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Access revocation and review support only part of continuing responsibilities; confidentiality and other surviving duties need separate evidence.
+
+Source locators: CCF 53 (BI59), CCF 194 (BI200), CCF 227 (BI233), CCF 228 (BI234).
+
+**ISO27001-A.6.6** — Confidentiality or non-disclosure agreements
+
+Candidates: `SG-REVIEW-ISO27001-A-6-6`.
+
+Requirement-specific proposal: verify the inventory of confidentiality agreements and protected information, employee and external-party applicability, approved terms and duration, signed agreements before relevant disclosure, periodic review, and handling of missing signatures or changed obligations. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Vendor examples cover employee and supplier agreements; enforceability and the local information scope require separate review.
+
+Source locators: CCF 165 (BI171), CCF 166 (BI172), CCF 339 (BI345).
 
 **ISO27001-A.6.8** — Information security event reporting
 
@@ -550,7 +647,7 @@ For physical security perimeters, compare each candidate (Physical and environme
 
 Source locators: CCF 47 (BI53).
 
-### iso-27001-2022-review-004
+### iso-27001-2022-review-005
 
 **ISO27001-A.7.10** — Storage media
 
@@ -632,7 +729,7 @@ For working in secure areas, compare each candidate (Physical and environmental 
 
 Source locators: CCF 47 (BI53), CCF 68 (BI74).
 
-### iso-27001-2022-review-005
+### iso-27001-2022-review-006
 
 **ISO27001-A.7.8** — Equipment siting and protection
 
@@ -649,6 +746,14 @@ Candidates: `SG-PHYSICAL-001`.
 For security of assets off-premises, compare each candidate (Physical and environmental security) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.
 
 Source locators: CCF 64 (BI70), CCF 67 (BI73), CCF 99 (BI105), CCF 191 (BI197).
+
+**ISO27001-A.8.1** — User endpoint devices
+
+Candidates: `SG-REVIEW-ISO27001-A-8-1`.
+
+Requirement-specific proposal: verify the endpoint inventory reconciled to users and access records, approved configurations, encryption and management enrollment, access restrictions for unmanaged devices, monitoring of deviations, and dated remediation or time-limited exceptions. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Mobile-device enrollment and encryption are partial examples; all applicable endpoint classes and configurations must be assessed.
+
+Source locators: CCF 67 (BI73), CCF 99 (BI105), CCF 165 (BI171), CCF 166 (BI172), CCF 167 (BI173), CCF 170 (BI176), CCF 191 (BI197), CCF 197 (BI203), CCF 198 (BI204).
 
 **ISO27001-A.8.10** — Information deletion
 
@@ -706,6 +811,8 @@ For security of network services, compare each candidate (Network security contr
 
 Source locators: CCF 47 (BI53), CCF 100 (BI106), CCF 120 (BI126), CCF 191 (BI197), CCF 197 (BI203), CCF 198 (BI204), CCF 243 (BI249), CCF 244 (BI250), CCF 252 (BI258).
 
+### iso-27001-2022-review-007
+
 **ISO27001-A.8.22** — Segregation of networks
 
 Candidates: `SG-NETWORK-001`.
@@ -713,8 +820,6 @@ Candidates: `SG-NETWORK-001`.
 For segregation of networks, compare each candidate (Network security controls) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.
 
 Source locators: CCF 191 (BI197), CCF 192 (BI198), CCF 197 (BI203), CCF 198 (BI204), CCF 252 (BI258).
-
-### iso-27001-2022-review-006
 
 **ISO27001-A.8.23** — Web filtering
 
@@ -788,6 +893,8 @@ For separation of development, test and production environments, compare each ca
 
 Source locators: CCF 30 (BI36), CCF 32 (BI38), CCF 39 (BI45), CCF 40 (BI46), CCF 83 (BI89), CCF 243 (BI249), CCF 252 (BI258), CCF 254 (BI260).
 
+### iso-27001-2022-review-008
+
 **ISO27001-A.8.33** — Test information
 
 Candidates: `SG-SECUREDEV-001`.
@@ -796,7 +903,13 @@ For test information, compare each candidate (Secure development) separately wit
 
 Source locators: CCF 69 (BI75), CCF 83 (BI89).
 
-### iso-27001-2022-review-007
+**ISO27001-A.8.34** — Protection of information systems during audit testing
+
+Candidates: `SG-REVIEW-ISO27001-A-8-34`.
+
+Requirement-specific proposal: verify the authorization and risk review for audit tests, agreed scope and timing, least-privilege test access, protection of copied data, monitoring and recovery arrangements, and removal of temporary access and test artifacts. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Cisco cites this target in broad audit and risk controls but does not specify all audit-test protections; these original checks require direct requirement review.
+
+Source locators: CCF 1 (BI7), CCF 129 (BI135), CCF 161 (BI167).
 
 **ISO27001-A.8.4** — Access to source code
 
@@ -833,6 +946,22 @@ Source locators: CCF 32 (BI38), CCF 35 (BI41), CCF 119 (BI125), CCF 360 (BI366).
 ## iso-42001-2023
 
 ### iso-42001-2023-review-001
+
+**ISO42001-10.4** — Customers
+
+Candidates: `SG-REVIEW-ISO42001-10-4`.
+
+Requirement-specific proposal: verify the customer-facing allocation of AI responsibilities, communicated intended uses and limits, agreed oversight and incident channels, delivery and acknowledgement records, and sampled follow-up when customer obligations or system behavior change. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Oracle describes shared provider and customer responsibilities, not a clause-level customer-control crosswalk.
+
+Source locators: Oracle implementation context; no published clause crosswalk.
+
+**ISO42001-2.3** — Alignment with other organizational policies
+
+Candidates: `SG-REVIEW-ISO42001-2-3`.
+
+Requirement-specific proposal: verify the AI policy cross-reference to security, privacy, risk, quality and other applicable organizational policies, identified conflicts, accountable resolution and approval, communicated changes, and scheduled or event-triggered checks of continuing alignment. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Oracle describes corporate governance integration, not normative requirements for policy alignment.
+
+Source locators: Oracle implementation context; no published clause crosswalk.
 
 **ISO42001-3.3** — Reporting of concerns
 
@@ -898,6 +1027,8 @@ For objectives for responsible development of ai system, compare each candidate 
 
 Source locators: Oracle implementation context; no published clause crosswalk.
 
+### iso-42001-2023-review-002
+
 **ISO42001-6.2.2** — AI system requirements and specification
 
 Candidates: `SG-AIGOVERNANCE-001`, `SG-AISYSTEMSPEC-001`.
@@ -913,8 +1044,6 @@ Candidates: `SG-AIGOVERNANCE-001`, `SG-AISYSTEMSPEC-001`.
 For documentation of ai system design and development, compare each candidate (AI governance and model inventory; AI system requirements and design documentation) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.
 
 Source locators: Oracle implementation context; no published clause crosswalk.
-
-### iso-42001-2023-review-002
 
 **ISO42001-6.2.4** — AI system verification and validation
 
@@ -980,6 +1109,8 @@ For data preparation, compare each candidate (AI training and evaluation data go
 
 Source locators: Oracle implementation context; no published clause crosswalk.
 
+### iso-42001-2023-review-003
+
 **ISO42001-8.3** — External reporting
 
 Candidates: `SG-AIFEEDBACK-001`.
@@ -995,8 +1126,6 @@ Candidates: `SG-AIINCIDENT-001`, `SG-INCIDENTNOTIFICATION-001`, `SG-INCIDENTRESP
 For communication of incidents, compare each candidate (AI incident handling and reporting; Incident and breach notification within deadlines; Privacy breach notification) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.
 
 Source locators: Oracle implementation context; no published clause crosswalk.
-
-### iso-42001-2023-review-003
 
 **ISO42001-8.5** — Information for interested parties
 
@@ -1019,5 +1148,13 @@ Source locators: Oracle implementation context; no published clause crosswalk.
 Candidates: `SG-AIGOVERNANCE-001`.
 
 For objectives for responsible use of ai system, compare each candidate (AI governance and model inventory) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.
+
+Source locators: Oracle implementation context; no published clause crosswalk.
+
+**ISO42001-A.6.1.3** — Processes for responsible design and development of AI systems
+
+Candidates: `SG-REVIEW-ISO42001-A-6-1-3`.
+
+Requirement-specific proposal: verify the documented AI design and development process, assigned lifecycle roles, risk and impact review gates, requirements traceability, verification and validation records, release approvals, and treatment of deviations and subsequent design changes. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Oracle describes lifecycle governance examples, not a published clause crosswalk or complete responsible-development process.
 
 Source locators: Oracle implementation context; no published clause crosswalk.

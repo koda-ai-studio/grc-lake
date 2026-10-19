@@ -92,15 +92,15 @@ rest of that control.
 
 | Category                     | Family                    | ID                         | Safeguards | NIST SP 800-53 families | CIS Controls |
 | ---------------------------- | ------------------------- | -------------------------- | ---------: | ----------------------- | ------------ |
-| Governance and risk          | Risk management           | `risk-management`          |         30 | RA, CA, PM              | 18           |
-| Governance and risk          | Governance                | `governance`               |         21 | PL, PM                  | —            |
-| Identity and access          | Identity and access       | `identity`                 |        138 | AC, IA                  | 5, 6         |
+| Governance and risk          | Risk management           | `risk-management`          |         31 | RA, CA, PM              | 18           |
+| Governance and risk          | Governance                | `governance`               |         24 | PL, PM                  | —            |
+| Identity and access          | Identity and access       | `identity`                 |        139 | AC, IA                  | 5, 6         |
 | Data protection and privacy  | Data protection           | `data-protection`          |          6 | SC, MP                  | 1, 3         |
 | Data protection and privacy  | Privacy                   | `privacy`                  |          8 | PT                      | —            |
 | Secure engineering           | Change management         | `change-management`        |          4 | CM                      | —            |
 | Secure engineering           | Secure development        | `secure-development`       |          4 | SA                      | 16           |
 | Secure engineering           | Secure architecture       | `secure-architecture`      |          4 | SA, SC                  | —            |
-| Infrastructure security      | Configuration management  | `configuration-management` |         36 | CM                      | 2, 4         |
+| Infrastructure security      | Configuration management  | `configuration-management` |         38 | CM                      | 2, 4         |
 | Infrastructure security      | Vulnerability management  | `vulnerability-management` |          3 | RA, SI                  | 7            |
 | Infrastructure security      | Network security          | `network-security`         |          1 | SC                      | 12           |
 | Detection and response       | Detection                 | `detection`                |          3 | SI                      | 10, 13       |
@@ -110,15 +110,15 @@ rest of that control.
 | Resilience and integrity     | System maintenance        | `system-maintenance`       |         27 | MA                      | —            |
 | Resilience and integrity     | Processing integrity      | `processing-integrity`     |         90 | SI                      | —            |
 | Third-party and supply chain | Third-party risk          | `third-party-risk`         |          6 | SR, SA                  | 15           |
-| People and physical          | People security           | `people-security`          |          3 | AT, PS                  | 14           |
+| People and physical          | People security           | `people-security`          |          8 | AT, PS                  | 14           |
 | People and physical          | Physical security         | `physical-security`        |          4 | PE                      | —            |
-| AI governance                | AI governance             | `ai-governance`            |         18 | —                       | —            |
+| AI governance                | AI governance             | `ai-governance`            |         21 | —                       | —            |
 
 ## Where it stands
 
 ```
 $ grc-lake frameworks safeguards --format table
-517 safeguards map 1803 of 2252 requirements (80.1%) — 1163 maintainer-reviewed, 0 org-reviewed (51.6% attestable), 640 proposed; 0 mapping(s) rejected by the org
+532 safeguards map 1818 of 2252 requirements (80.7%) — 1163 maintainer-reviewed, 0 org-reviewed (51.6% attestable), 655 proposed; 0 mapping(s) rejected by the org
 ```
 
 A mapping is **reviewed** once a human has confirmed the requirements are the
@@ -150,10 +150,10 @@ cannot become a false certification claim.
 | nist-rmf-800-37r2   |           47 |     46 |  97.9% |
 | nist-ai-rmf         |           72 |     69 |  95.8% |
 | nist-csf-2.0        |          106 |    106 | 100.0% |
-| iso-42001-2023      |           40 |     37 |  92.5% |
+| iso-42001-2023      |           40 |     40 | 100.0% |
 | iso-27017-2015      |           47 |     44 |  93.6% |
 | fedramp-moderate    |          287 |    262 |  91.3% |
-| iso-27001-2022      |           93 |     81 |  87.1% |
+| iso-27001-2022      |           93 |     93 | 100.0% |
 | nist-800-171-rev3   |           97 |     85 |  87.6% |
 | cis-controls-v8.1   |           18 |     15 |  83.3% |
 | cis_aws             |           62 |     51 |  82.3% |

@@ -31,9 +31,9 @@ def test_complete_family_expansion_reaches_mapped_target_without_review_credit()
     before = coverage_by_framework({**payload, "safeguards": [e for e in payload["safeguards"] if e not in new]})
     after = coverage_by_framework(payload)
     assert after["controls"] == before["controls"] == 2252
-    assert after["covered"] == before["covered"] + 381 == 1803
+    assert after["covered"] == before["covered"] + 381 == 1818
     assert after["reviewed"] == before["reviewed"] == 339
-    assert after["coverage_pct"] == 80.1
+    assert after["coverage_pct"] == 80.7
 
 
 def test_each_obligation_has_its_own_source_and_typed_assessment_contract():

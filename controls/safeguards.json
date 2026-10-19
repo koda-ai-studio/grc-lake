@@ -33749,6 +33749,474 @@
           "maintainer_review_ref": "controls/reviews/2026-10-15-soc2-iso-repairs.json"
         }
       ]
+    },
+    {
+      "safeguard_id": "SG-REVIEW-ISO27001-A-5-11",
+      "title": "Return of assets",
+      "risk_domain": "configuration-management",
+      "objective": "Assess the requirement “Return of assets” within the declared system, period, and population.",
+      "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test the issued-asset register reconciled to leavers and role changes, return responsibilities and deadlines, notifications, dated custody receipts, inventory updates, and escalation and recovery actions for unreturned assets. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["review_iso27001_a_5_11"],
+      "satisfies": [
+        {
+          "control_id": "ISO27001-A.5.11",
+          "framework_id": "iso-27001-2022",
+          "role": "primary",
+          "control_version": "1.0.0",
+          "review_status": "proposed",
+          "mapping_basis": "vendor_guided_proposal",
+          "mapping_source": {
+            "name": "Cisco Cloud Controls Framework 4.0",
+            "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
+            "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
+            "locator": "CCF 229; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Cisco provides a return-of-property workflow; local timing, worker scope and exceptions must be justified."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-REVIEW-ISO27001-A-5-3",
+      "title": "Segregation of duties",
+      "risk_domain": "identity",
+      "objective": "Assess the requirement “Segregation of duties” within the declared system, period, and population.",
+      "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test the documented incompatible-duty matrix, actual production and administrative entitlements, independent change approvals, attempted self-approval tests, periodic conflict reviews, and approved compensating controls with owners and expiry dates. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["review_iso27001_a_5_3"],
+      "satisfies": [
+        {
+          "control_id": "ISO27001-A.5.3",
+          "framework_id": "iso-27001-2022",
+          "role": "primary",
+          "control_version": "1.0.0",
+          "review_status": "proposed",
+          "mapping_basis": "vendor_guided_proposal",
+          "mapping_source": {
+            "name": "Cisco Cloud Controls Framework 4.0",
+            "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
+            "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
+            "locator": "CCF 39; CCF 226; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Production change separation is one example; the assessor must also identify other incompatible duties in scope."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-REVIEW-ISO27001-A-5-32",
+      "title": "Intellectual property rights",
+      "risk_domain": "governance",
+      "objective": "Assess the requirement “Intellectual property rights” within the declared system, period, and population.",
+      "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test the inventory of licensed software and protected material, acquisition and use rights, entitlement counts reconciled to actual use, restrictions on copying or distribution, periodic checks and remediation of unauthorized use. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["review_iso27001_a_5_32"],
+      "satisfies": [
+        {
+          "control_id": "ISO27001-A.5.32",
+          "framework_id": "iso-27001-2022",
+          "role": "primary",
+          "control_version": "1.0.0",
+          "review_status": "proposed",
+          "mapping_basis": "vendor_guided_proposal",
+          "mapping_source": {
+            "name": "Cisco Cloud Controls Framework 4.0",
+            "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
+            "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
+            "locator": "CCF 366; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Software licensing guidance is narrower than all intellectual property rights; non-software material needs separate evidence."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-REVIEW-ISO27001-A-5-37",
+      "title": "Documented operating procedures",
+      "risk_domain": "governance",
+      "objective": "Assess the requirement “Documented operating procedures” within the declared system, period, and population.",
+      "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test the inventory of operational procedures, accountable owners, approved current versions accessible to operators, dependencies and failure handling, sampled execution records, and change-driven review of procedures for critical operations. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["review_iso27001_a_5_37"],
+      "satisfies": [
+        {
+          "control_id": "ISO27001-A.5.37",
+          "framework_id": "iso-27001-2022",
+          "role": "primary",
+          "control_version": "1.0.0",
+          "review_status": "proposed",
+          "mapping_basis": "vendor_guided_proposal",
+          "mapping_source": {
+            "name": "Cisco Cloud Controls Framework 4.0",
+            "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
+            "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
+            "locator": "CCF 30; CCF 96; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. SDLC and key-management procedures illustrate operating documentation; they do not establish completeness of all operating procedures."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-REVIEW-ISO27001-A-5-6",
+      "title": "Contact with special interest groups",
+      "risk_domain": "governance",
+      "objective": "Assess the requirement “Contact with special interest groups” within the declared system, period, and population.",
+      "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test the relevant professional and security groups or advisory channels, designated contacts, active subscriptions or participation records, triage and distribution of received information, and tracked decisions responding to relevant security developments. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["review_iso27001_a_5_6"],
+      "satisfies": [
+        {
+          "control_id": "ISO27001-A.5.6",
+          "framework_id": "iso-27001-2022",
+          "role": "primary",
+          "control_version": "1.0.0",
+          "review_status": "proposed",
+          "mapping_basis": "vendor_guided_proposal",
+          "mapping_source": {
+            "name": "Cisco Cloud Controls Framework 4.0",
+            "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
+            "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
+            "locator": "CCF 357; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Subscription records alone do not demonstrate active use of advice or complete coverage of relevant groups."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-REVIEW-ISO27001-A-6-1",
+      "title": "Screening",
+      "risk_domain": "people-security",
+      "objective": "Assess the requirement “Screening” within the declared system, period, and population.",
+      "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test the role-based screening policy and lawful jurisdictional scope, joiner population reconciled to personnel records, screening completion before relevant access, authorized exceptions, and protections and retention limits for sensitive screening records. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["review_iso27001_a_6_1"],
+      "satisfies": [
+        {
+          "control_id": "ISO27001-A.6.1",
+          "framework_id": "iso-27001-2022",
+          "role": "primary",
+          "control_version": "1.0.0",
+          "review_status": "proposed",
+          "mapping_basis": "vendor_guided_proposal",
+          "mapping_source": {
+            "name": "Cisco Cloud Controls Framework 4.0",
+            "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
+            "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
+            "locator": "CCF 162; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Cisco describes pre-employment screening; local law, proportionality and applicable contractor scope need assessor confirmation."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-REVIEW-ISO27001-A-6-2",
+      "title": "Terms and conditions of employment",
+      "risk_domain": "people-security",
+      "objective": "Assess the requirement “Terms and conditions of employment” within the declared system, period, and population.",
+      "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test the approved employment and contractor terms defining security responsibilities, signed acceptance reconciled to the onboarding population, communication before access, updates after role changes, and documented handling of missing or outdated agreements. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["review_iso27001_a_6_2"],
+      "satisfies": [
+        {
+          "control_id": "ISO27001-A.6.2",
+          "framework_id": "iso-27001-2022",
+          "role": "primary",
+          "control_version": "1.0.0",
+          "review_status": "proposed",
+          "mapping_basis": "vendor_guided_proposal",
+          "mapping_source": {
+            "name": "Cisco Cloud Controls Framework 4.0",
+            "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
+            "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
+            "locator": "CCF 165; CCF 166; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Confidentiality agreements are examples within employment terms; they do not establish every security obligation."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-REVIEW-ISO27001-A-6-4",
+      "title": "Disciplinary process",
+      "risk_domain": "people-security",
+      "objective": "Assess the requirement “Disciplinary process” within the declared system, period, and population.",
+      "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test the documented response to security policy breaches, communication and acknowledgement of consequences, fair and authorized investigation steps, restricted case records, consistent application to sampled cases, and recorded escalation and closure decisions. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["review_iso27001_a_6_4"],
+      "satisfies": [
+        {
+          "control_id": "ISO27001-A.6.4",
+          "framework_id": "iso-27001-2022",
+          "role": "primary",
+          "control_version": "1.0.0",
+          "review_status": "proposed",
+          "mapping_basis": "vendor_guided_proposal",
+          "mapping_source": {
+            "name": "Cisco Cloud Controls Framework 4.0",
+            "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
+            "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
+            "locator": "CCF 160; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Published consequences and acknowledgements alone do not establish that the disciplinary process operated appropriately."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-REVIEW-ISO27001-A-6-5",
+      "title": "Responsibilities after termination or change of employment",
+      "risk_domain": "people-security",
+      "objective": "Assess the requirement “Responsibilities after termination or change of employment” within the declared system, period, and population.",
+      "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test the leaver and role-change population, documented continuing security obligations, handover and notice records, approvals for changed duties, dated removal or adjustment of access, and reconciliation of unresolved exceptions against personnel records. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["review_iso27001_a_6_5"],
+      "satisfies": [
+        {
+          "control_id": "ISO27001-A.6.5",
+          "framework_id": "iso-27001-2022",
+          "role": "primary",
+          "control_version": "1.0.0",
+          "review_status": "proposed",
+          "mapping_basis": "vendor_guided_proposal",
+          "mapping_source": {
+            "name": "Cisco Cloud Controls Framework 4.0",
+            "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
+            "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
+            "locator": "CCF 194; CCF 227; CCF 228; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Access revocation and review support only part of continuing responsibilities; confidentiality and other surviving duties need separate evidence."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-REVIEW-ISO27001-A-6-6",
+      "title": "Confidentiality or non-disclosure agreements",
+      "risk_domain": "people-security",
+      "objective": "Assess the requirement “Confidentiality or non-disclosure agreements” within the declared system, period, and population.",
+      "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test the inventory of confidentiality agreements and protected information, employee and external-party applicability, approved terms and duration, signed agreements before relevant disclosure, periodic review, and handling of missing signatures or changed obligations. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["review_iso27001_a_6_6"],
+      "satisfies": [
+        {
+          "control_id": "ISO27001-A.6.6",
+          "framework_id": "iso-27001-2022",
+          "role": "primary",
+          "control_version": "1.0.0",
+          "review_status": "proposed",
+          "mapping_basis": "vendor_guided_proposal",
+          "mapping_source": {
+            "name": "Cisco Cloud Controls Framework 4.0",
+            "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
+            "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
+            "locator": "CCF 165; CCF 166; CCF 339; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Vendor examples cover employee and supplier agreements; enforceability and the local information scope require separate review."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-REVIEW-ISO27001-A-8-1",
+      "title": "User endpoint devices",
+      "risk_domain": "configuration-management",
+      "objective": "Assess the requirement “User endpoint devices” within the declared system, period, and population.",
+      "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test the endpoint inventory reconciled to users and access records, approved configurations, encryption and management enrollment, access restrictions for unmanaged devices, monitoring of deviations, and dated remediation or time-limited exceptions. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["cloud_policy", "cloud_resource", "service"],
+      "required_evidence_types": ["review_iso27001_a_8_1"],
+      "satisfies": [
+        {
+          "control_id": "ISO27001-A.8.1",
+          "framework_id": "iso-27001-2022",
+          "role": "primary",
+          "control_version": "1.0.0",
+          "review_status": "proposed",
+          "mapping_basis": "vendor_guided_proposal",
+          "mapping_source": {
+            "name": "Cisco Cloud Controls Framework 4.0",
+            "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
+            "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
+            "locator": "CCF 99; CCF 170; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Mobile-device enrollment and encryption are partial examples; all applicable endpoint classes and configurations must be assessed."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-REVIEW-ISO27001-A-8-34",
+      "title": "Protection of information systems during audit testing",
+      "risk_domain": "risk-management",
+      "objective": "Assess the requirement “Protection of information systems during audit testing” within the declared system, period, and population.",
+      "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test the authorization and risk review for audit tests, agreed scope and timing, least-privilege test access, protection of copied data, monitoring and recovery arrangements, and removal of temporary access and test artifacts. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["cloud_policy", "cloud_resource", "service"],
+      "required_evidence_types": ["review_iso27001_a_8_34"],
+      "satisfies": [
+        {
+          "control_id": "ISO27001-A.8.34",
+          "framework_id": "iso-27001-2022",
+          "role": "primary",
+          "control_version": "1.0.0",
+          "review_status": "proposed",
+          "mapping_basis": "vendor_guided_proposal",
+          "mapping_source": {
+            "name": "Cisco Cloud Controls Framework 4.0",
+            "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
+            "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
+            "locator": "CCF 1; CCF 161; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Cisco cites this target in broad audit and risk controls but does not specify all audit-test protections; these original checks require direct requirement review."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-REVIEW-ISO42001-10-4",
+      "title": "Customers",
+      "risk_domain": "ai-governance",
+      "objective": "Assess the requirement “Customers” within the declared system, period, and population.",
+      "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test the customer-facing allocation of AI responsibilities, communicated intended uses and limits, agreed oversight and incident channels, delivery and acknowledgement records, and sampled follow-up when customer obligations or system behavior change. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": [
+        "ai_agent",
+        "ai_model",
+        "audit_log",
+        "data_store",
+        "service"
+      ],
+      "required_evidence_types": ["review_iso42001_10_4"],
+      "satisfies": [
+        {
+          "control_id": "ISO42001-10.4",
+          "framework_id": "iso-42001-2023",
+          "role": "primary",
+          "control_version": "1.0.0",
+          "review_status": "proposed",
+          "mapping_basis": "vendor_guided_proposal",
+          "mapping_source": {
+            "name": "Oracle ISO 42001 implementation practice, June 2026",
+            "url": "https://www.oracle.com/es/corporate/iso-42001-principles-into-practice/",
+            "sha256": "2ae1aaa8f783a1a5536bff151d5b40410002b9591a4de64d2743ba921f0f658a",
+            "locator": "ISO/IEC 42001 under the SaaS shared responsibility model; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Oracle describes shared provider and customer responsibilities, not a clause-level customer-control crosswalk."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-REVIEW-ISO42001-2-3",
+      "title": "Alignment with other organizational policies",
+      "risk_domain": "ai-governance",
+      "objective": "Assess the requirement “Alignment with other organizational policies” within the declared system, period, and population.",
+      "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test the AI policy cross-reference to security, privacy, risk, quality and other applicable organizational policies, identified conflicts, accountable resolution and approval, communicated changes, and scheduled or event-triggered checks of continuing alignment. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": [
+        "ai_agent",
+        "ai_model",
+        "audit_log",
+        "data_store",
+        "service"
+      ],
+      "required_evidence_types": ["review_iso42001_2_3"],
+      "satisfies": [
+        {
+          "control_id": "ISO42001-2.3",
+          "framework_id": "iso-42001-2023",
+          "role": "primary",
+          "control_version": "1.0.0",
+          "review_status": "proposed",
+          "mapping_basis": "vendor_guided_proposal",
+          "mapping_source": {
+            "name": "Oracle ISO 42001 implementation practice, June 2026",
+            "url": "https://www.oracle.com/es/corporate/iso-42001-principles-into-practice/",
+            "sha256": "2ae1aaa8f783a1a5536bff151d5b40410002b9591a4de64d2743ba921f0f658a",
+            "locator": "Oracle’s AI management system: Responsible AI embedded in the product lifecycle; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Oracle describes corporate governance integration, not normative requirements for policy alignment."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-REVIEW-ISO42001-A-6-1-3",
+      "title": "Processes for responsible design and development of AI systems",
+      "risk_domain": "ai-governance",
+      "objective": "Assess the requirement “Processes for responsible design and development of AI systems” within the declared system, period, and population.",
+      "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test the documented AI design and development process, assigned lifecycle roles, risk and impact review gates, requirements traceability, verification and validation records, release approvals, and treatment of deviations and subsequent design changes. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": [
+        "ai_agent",
+        "ai_model",
+        "audit_log",
+        "data_store",
+        "service"
+      ],
+      "required_evidence_types": ["review_iso42001_a_6_1_3"],
+      "satisfies": [
+        {
+          "control_id": "ISO42001-A.6.1.3",
+          "framework_id": "iso-42001-2023",
+          "role": "primary",
+          "control_version": "1.0.0",
+          "review_status": "proposed",
+          "mapping_basis": "vendor_guided_proposal",
+          "mapping_source": {
+            "name": "Oracle ISO 42001 implementation practice, June 2026",
+            "url": "https://www.oracle.com/es/corporate/iso-42001-principles-into-practice/",
+            "sha256": "2ae1aaa8f783a1a5536bff151d5b40410002b9591a4de64d2743ba921f0f658a",
+            "locator": "Oracle’s AI management system: Responsible AI embedded in the product lifecycle; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Oracle describes lifecycle governance examples, not a published clause crosswalk or complete responsible-development process."
+          }
+        }
+      ]
     }
   ]
 }
