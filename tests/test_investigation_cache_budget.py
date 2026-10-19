@@ -9,7 +9,10 @@ from security_lakehouse import investigation_cache as cache
 
 
 def model(label="one"):
-    return {"node": {"label": label}}, {}, {}, label
+    from security_lakehouse.investigation_index import build_indexes
+
+    nodes = {"node": {"id": "node", "kind": "asset", "label": label}}
+    return nodes, {}, {}, label, build_indexes(nodes, {}, lambda: None)
 
 
 def test_lru_byte_count_entry_count_and_same_lake_replacement():

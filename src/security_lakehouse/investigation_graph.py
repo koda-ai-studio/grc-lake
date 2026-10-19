@@ -6,7 +6,7 @@ The browser receives a bounded slice; hidden neighbors stay explicitly counted.
 
 import hashlib
 import json
-from collections import Counter, defaultdict
+from collections import defaultdict
 from collections.abc import Callable, Iterable, Mapping
 from copy import deepcopy
 from itertools import islice
@@ -20,6 +20,7 @@ from security_lakehouse.domain_identity import source_asset_key
 from security_lakehouse.event_status import FAIL_STATUSES, normalize_event_status
 from security_lakehouse.generations import generation_identity, generation_reader, pinned_path
 from security_lakehouse.investigation_cache import Key, Model, ModelCache
+from security_lakehouse.investigation_index import build_indexes, default_root
 from security_lakehouse.investigation_repository import add_repository_context
 from security_lakehouse.io import canonical_sha256, file_version, read_json, read_jsonl
 from security_lakehouse.mapping_review import effective_safeguards
@@ -67,7 +68,8 @@ def _model(lake: Path, vendors: list[dict[str, Any]] | None, check: Callable[[],
 
     def build() -> Model:
         nodes, edges, frameworks = _build_model(lake, vendors, check)
-        return nodes, edges, frameworks, _graph_version(nodes.values(), edges.values(), check)
+        version = _graph_version(nodes.values(), edges.values(), check)
+        return nodes, edges, frameworks, version, build_indexes(nodes, edges, check)
 
     if key is None:
         return build()
@@ -331,63 +333,51 @@ def investigation_graph(
     validate_bounds(view=view, depth=depth, limit=limit, root_offset=root_offset, control_offset=control_offset)
     check = checkpoint or (lambda: None)
     check()
-    nodes, edges, frameworks, version = _model(lake, vendors, check)
+    nodes, _edges, frameworks, version, indexes = _model(lake, vendors, check)
 
     check()
     if expected_version and version != expected_version:
         raise ValueError("graph version changed; refresh before expanding")
-    eligible = {key for key, n in nodes.items() if not layers or n["kind"] in layers}
-    outgoing: dict[str, set[str]] = defaultdict(set)
-    incoming: dict[str, set[str]] = defaultdict(set)
-    check()
-    for e in edges.values():
-        if e["source"] in eligible and e["target"] in eligible:
-            outgoing[e["source"]].add(e["target"])
-            incoming[e["target"]].add(e["source"])
+    # Unfiltered reads use membership views and preordered roots directly. Layer
+    # filters alter degree ordering, so only that query rebuilds the root order.
+    eligible = {key for key, n in nodes.items() if n["kind"] in layers} if layers else nodes.keys()
+    outgoing, incoming = indexes.outgoing, indexes.incoming
+
+    def linked(links: dict[str, tuple[str, ...]], key: str) -> set[str]:
+        if layers and key not in eligible:
+            return set()
+        result = set(links.get(key, ()))
+        return result & eligible if layers else result
 
     def neighbors(key: str) -> set[str]:
-        return outgoing.get(key, set()) | incoming.get(key, set())
+        return linked(outgoing, key) | linked(incoming, key)
 
-    root_kinds = (
-        {"control", "safeguard", "ccf_category", "ccf_family", "framework"}
-        if view == "controls"
-        else (
-            {"environment", "account", "repository", "asset"}
-            if view == "environment"
-            else {"finding", "source", "vendor", "evidence_type"}
-        )
-    )
-    choices = sorted(
-        (
-            n
-            for n in nodes.values()
-            if n["kind"] in root_kinds
-            and n["id"] in eligible
-            and search.casefold() in (n["label"] + " " + n["id"]).casefold()
-        ),
-        key=lambda n: (
-            n["kind"] != ("environment" if view == "environment" else "control"),
-            -len(neighbors(n["id"])),
-            n.get("source_account_id", ""),
-            n["id"],
-        ),
-    )
+    choices: tuple[dict[str, Any], ...] | list[dict[str, Any]] = indexes.roots[view]
+    if layers or search:
+        folded = search.casefold()
+        choices = [n for n in choices if n["id"] in eligible and folded in (n["label"] + " " + n["id"]).casefold()]
+        if layers:
+            choices.sort(
+                key=lambda n: (
+                    n["kind"] != ("environment" if view == "environment" else "control"),
+                    -len(neighbors(n["id"])),
+                    n.get("source_account_id", ""),
+                    n["id"],
+                )
+            )
     if root is None:
-        observed_controls = [
-            n
-            for n in choices
-            if n["kind"] == "control"
-            and any(nodes[target]["kind"] == "evidence_type" for target in outgoing.get(n["id"], ()))
-        ]
-        preferred = next((n for n in observed_controls if n["id"] == "control:SOC2-CC6.1"), None)
-        root = (preferred or (observed_controls[0] if observed_controls else choices[0]))["id"] if choices else None
-    selected = {root} if root in eligible else set()
+        root = (
+            default_root(choices, lambda key: any(nodes[t]["kind"] == "evidence_type" for t in linked(outgoing, key)))
+            if layers or search
+            else indexes.defaults[view]
+        )
+    selected = {root} if root is not None and root in eligible else set()
     ordered = list(selected)
     # A control path walks upstream and downstream independently: reaching a
     # shared framework or safeguard must not turn back into sibling controls.
     walks = (outgoing, incoming) if view == "controls" else (None,)
     for links in walks:
-        frontier = {root} if root in eligible else set()
+        frontier = {root} if root is not None and root in eligible else set()
         visited = set(frontier)
         for _ in range(depth):
             following = set()
@@ -395,7 +385,7 @@ def investigation_graph(
             for key in frontier:
                 if view != "controls" and key != root and nodes[key]["kind"] in {"framework", "control", "safeguard"}:
                     continue
-                following.update((links.get(key, set()) if links is not None else neighbors(key)) - visited)
+                following.update((linked(links, key) if links is not None else neighbors(key)) - visited)
             visited.update(following)
             ordered.extend(sorted(following - selected))
             selected.update(following)
@@ -407,7 +397,7 @@ def investigation_graph(
     if root in nodes and nodes[root]["kind"] == "safeguard":
         # Count the full direct mapping set before the response cap. Return only
         # one framework page, keeping original nodes and recorded edge endpoints.
-        for key in sorted(incoming.get(root, ())):
+        for key in sorted(linked(incoming, root)):
             if nodes[key]["kind"] == "control":
                 grouped_controls[nodes[key]["framework_id"]].append(key)
         framework_groups = [
@@ -429,10 +419,18 @@ def investigation_graph(
         selected = set(ordered)
     check()
     kept = set(ordered[:limit])
+    # Inspect only outgoing edges of returned nodes, preserving canonical edge
+    # insertion order (including reciprocal and differently typed edges).
+    edge_ordinals = []
+    for key in kept:
+        check()
+        for ordinal in indexes.edge_ordinals.get(key, ()):
+            if indexes.edge_rows[ordinal]["target"] in kept:
+                edge_ordinals.append(ordinal)
     return {
         "nodes": [deepcopy(nodes[k]) for k in ordered[:limit]],
-        "edges": [deepcopy(e) for e in edges.values() if e["source"] in kept and e["target"] in kept],
-        "counts": dict(Counter(n["kind"] for n in nodes.values())),
+        "edges": [deepcopy(indexes.edge_rows[i]) for i in sorted(edge_ordinals)],
+        "counts": dict(indexes.counts),
         "version": version,
         "root": root,
         "root_missing": root is not None and root not in eligible,

@@ -62,3 +62,42 @@ def test_reciprocal_edges_count_one_neighbor_and_keep_both_directions(tmp_path, 
     pair = graph.investigation_graph(tmp_path, view="environment", root="a", depth=1)
     assert {row["id"] for row in pair["nodes"]} == {"a", "b"}
     assert {(row["source"], row["target"]) for row in pair["edges"]} == {("a", "b"), ("b", "a")}
+
+
+def test_filtered_degrees_reorder_roots_and_edges_keep_insertion_order(tmp_path, monkeypatch):
+    nodes = {key: {"id": key, "label": key, "kind": "asset"} for key in "abcd"}
+    nodes["x"] = {"id": "x", "label": "x", "kind": "source"}
+    edges = {
+        str(i): {"id": str(i), "source": source, "target": target, "kind": kind}
+        for i, (source, target, kind) in enumerate(
+            [
+                ("b", "c", "one"),
+                ("a", "x", "one"),
+                ("a", "d", "one"),
+                ("b", "c", "two"),
+                ("c", "b", "reverse"),
+                ("b", "b", "self"),
+            ]
+        )
+    }
+    monkeypatch.setattr(graph, "_build_model", lambda *args: (nodes, edges, {}))
+    all_layers = graph.investigation_graph(tmp_path, view="environment", root="b", depth=1)
+    filtered = graph.investigation_graph(tmp_path, view="environment", root="b", depth=1, layers={"asset"})
+    assert [n["id"] for n in all_layers["roots"]][:2] == ["a", "b"]
+    assert [n["id"] for n in filtered["roots"]][:2] == ["b", "a"]
+    assert [e["id"] for e in filtered["edges"]] == ["0", "3", "4", "5"]
+    assert filtered["counts"] == {"asset": 4, "source": 1}
+    assert filtered["version"] == all_layers["version"]
+
+
+def test_hidden_safeguard_has_no_framework_pages(tmp_path, monkeypatch):
+    nodes = {
+        "sg": {"id": "sg", "label": "Safeguard", "kind": "safeguard"},
+        "control:c": {"id": "control:c", "label": "Control", "kind": "control", "framework_id": "soc2"},
+    }
+    edges = {"e": {"id": "e", "source": "control:c", "target": "sg", "kind": "maps"}}
+    monkeypatch.setattr(graph, "_build_model", lambda *args: (nodes, edges, {}))
+    result = graph.investigation_graph(tmp_path, root="sg", layers={"control"})
+    assert result["root_missing"]
+    assert result["nodes"] == result["edges"] == result["framework_groups"] == []
+    assert result["control_count"] == 0
