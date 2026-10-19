@@ -68,9 +68,23 @@ def validate_plan(plan: dict[str, Any]) -> tuple[datetime, datetime, datetime]:
     seen = set()
     for control in plan["controls"]:
         text_fields = {"safeguard_id", "activity", "owner", "system", "frequency", "procedure", "sampling_rationale"}
-        fields(control, text_fields | {"cadence_days", "sample_per_window", "design_event_ids"}, {"assessment_context"})
+        fields(
+            control,
+            text_fields | {"cadence_days", "sample_per_window", "design_event_ids"},
+            {"assessment_context", "required_evidence_types"},
+        )
         if "assessment_context" in control:
             validate_assessment_context(control["assessment_context"])
+        if "required_evidence_types" in control:
+            kinds = control["required_evidence_types"]
+            if not isinstance(kinds, list) or not 1 <= len(kinds) <= 20:
+                raise ValueError("required_evidence_types requires 1 to 20 distinct types")
+            for kind in kinds:
+                nonempty(kind)
+                if kind != kind.strip() or len(kind) > 128:
+                    raise ValueError("invalid required evidence type")
+            if len(kinds) != len(set(kinds)):
+                raise ValueError("duplicate required evidence types")
         for key in text_fields:
             nonempty(control[key])
         if control["safeguard_id"] in seen:
@@ -116,7 +130,7 @@ def evidence_reference(row: dict[str, Any]) -> dict[str, Any]:
     return {
         key: row[key]
         for key in ("event_id", "tenant_id", "asset_id", "event_time", "evidence_collected_at", "raw_sha256")
-    }
+    } | {"evidence_types": sorted(set(row.get("evidence_types", [])))}
 
 
 def _valid_at(row: dict[str, Any], as_of: datetime) -> bool:
@@ -218,6 +232,10 @@ def assess_control_plan(
             or row["asset_type"] not in catalog[sid].get("asset_types", [])
             or normalize_event_status(row["status"]) not in PASS_STATUSES | FAIL_STATUSES
         )
+        # A plan may add evidence obligations, never weaken the catalog contract.
+        required_types = sorted(
+            set(catalog[sid].get("required_evidence_types", [])) | set(control.get("required_evidence_types", []))
+        )
         samples: list[dict[str, Any]] = []
         gaps = []
         for account, asset in assets:
@@ -231,19 +249,28 @@ def assess_control_plan(
                     and row["asset_type"] in catalog[sid].get("asset_types", [])
                     and normalize_event_status(row["status"]) in PASS_STATUSES | FAIL_STATUSES
                 ]
-                if len(eligible) < control["sample_per_window"]:
+                by_type = {
+                    kind: [row for row in eligible if kind in row.get("evidence_types", [])] for kind in required_types
+                }
+                missing_types = sorted(
+                    kind for kind, rows in by_type.items() if len(rows) < control["sample_per_window"]
+                )
+                if missing_types or len(eligible) < control["sample_per_window"]:
                     gaps.append(
                         {
                             "source_tenant_id": account,
                             "asset_id": asset,
                             "start": begin.isoformat(),
                             "end": finish.isoformat(),
+                            "missing_evidence_types": missing_types,
                         }
                     )
-                selected = sorted(eligible, key=lambda row: canonical_sha256([plan_hash, row["event_id"]]))[
-                    : control["sample_per_window"]
-                ]
-                samples.extend(evidence_reference(row) for row in selected)
+                selected = {}
+                for candidates in by_type.values() if required_types else [eligible]:
+                    ranked = sorted(candidates, key=lambda row: canonical_sha256([plan_hash, row["event_id"]]))
+                    for row in ranked[: control["sample_per_window"]]:
+                        selected[row["event_id"]] = row
+                samples.extend(evidence_reference(row) for row in selected.values())
         status = (
             "sample_fail" if deviations else "insufficient_evidence" if not assets or gaps or invalid else "sample_pass"
         )
@@ -272,7 +299,12 @@ def assess_control_plan(
                     "gaps": gaps,
                     "deviation_event_ids": deviations,
                     "invalid_event_ids": invalid,
-                    "sampling_method": "sha256-ranked-per-asset-window; all observed deviations retained",
+                    "required_evidence_types": required_types,
+                    "sampling_method": (
+                        "sha256-ranked-per-asset-window-type; all observed deviations retained"
+                        if required_types
+                        else "sha256-ranked-per-asset-window; all observed deviations retained"
+                    ),
                 },
                 "conclusion": "pending_human_review",
                 **({"assessment_context": assessment_context} if assessment_context is not None else {}),

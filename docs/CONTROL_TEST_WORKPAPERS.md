@@ -24,7 +24,7 @@ claims about this repository or a real organization.
   366 days, and was collected by the assessment cutoff. A reviewer must still
   assess whether the design addresses the risk and inspect the underlying source.
 - **Sample pass:** each expected asset has enough valid observations in every
-  cadence window, and there are no observed deviations or unknown outcomes in the
+  cadence window for each required evidence type, and there are no observed deviations or unknown outcomes in the
   period. Sample ranking uses SHA-256 over the plan digest and event ID, making
   selection reproducible. All observed failures remain visible even if unselected.
 - **Sample fail:** at least one observed in-period outcome failed.
@@ -62,3 +62,52 @@ references cannot satisfy a design requirement or period window. Eligible
 operating samples must also match the asset type, timing and pass/fail status
 contract; inventory-only `observed` events do not supply operating verdicts.
 Ineligible samples remain gaps rather than silently becoming passing results.
+
+## Separate identity evidence obligations
+
+A test plan control can declare `required_evidence_types`, for example:
+
+```json
+{
+  "required_evidence_types": [
+    "identity.mfa",
+    "identity.privileged_access",
+    "identity.access_review"
+  ],
+  "sample_per_window": 1
+}
+```
+
+These are distinct assessor evidence types in the example, not automatic claims
+that an MFA enrollment event proves policy enforcement, privileged authorization,
+or completion of an access review. Record each actual test outcome and reference
+its evidence. A review decision to remove access also requires follow-up evidence
+that access was removed before claiming successful remediation.
+
+The plan's types are added to the pinned safeguard's required types; a plan cannot
+remove catalog obligations. For each source tenant, asset and cadence window,
+`sample_per_window` applies separately to every required type. Missing types are
+listed on the gap record. Selection is deterministic within each type; a record
+that explicitly supplies several types is retained once. Samples include their
+normalized evidence types and source hashes. All observed failures and invalid
+outcomes still count, including records outside the selected samples.
+
+```sh
+grc-lake pipeline run --raw examples/control-assurance/identity-events.jsonl --out build/identity-assurance
+grc-lake assessment test-plan --lake build/identity-assurance --plan examples/control-assurance/identity-plan.json
+```
+
+This synthetic example has two principals and two daily windows. One principal
+is missing the second access-review observation. Its workpaper must report
+`insufficient_evidence`; the other principal's complete records cannot fill that
+gap. Supplying the missing observation as `observed` or collecting it after the
+cutoff still does not satisfy the window.
+
+Required types are bounded to 20 distinct nonempty names. Omitting the plan field
+preserves catalog requirements; if neither declares types, sampling uses the
+existing per-asset/window count. Types can arrive from different evidence sources
+for the same asset, but not from another asset or source tenant. Current posture,
+control-test API responses used by the console, and CCF requirement assessment
+apply the same asset boundary when checking required evidence freshness. Frozen
+snapshots and their OSCAL results preserve the original incomplete assessment
+after later evidence completes the current one.

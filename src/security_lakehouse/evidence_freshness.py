@@ -157,19 +157,19 @@ def summarize_control_freshness(
         default_slo_minutes=default_slo_minutes,
         connectors=connectors,
     )
+    current = _current_observations(freshness_rows)
     latest_by_type: dict[str, list[dict[str, Any]]] = defaultdict(list)
-    for row in _current_observations(freshness_rows):
+    for row in current:
         for event_type in _record_evidence_types(row):
             latest_by_type[event_type].append(row)
 
     required = [str(item) for item in required_evidence_types]
     if not required:
-        return _untyped_control_freshness(_current_observations(freshness_rows), default_slo_minutes)
-    missing = [
-        item
-        for item in required
-        if item not in latest_by_type or any(row["status"] == "missing" for row in latest_by_type[item])
-    ]
+        return _untyped_control_freshness(current, default_slo_minutes)
+    missing = sorted(
+        _missing_required_types(freshness_rows, current, set(required))
+        | {item for item in required if any(row["status"] == "missing" for row in latest_by_type[item])}
+    )
     stale = [item for item in required if any(row["status"] == "stale" for row in latest_by_type[item])]
     expired = [item for item in required if any(row["status"] == "expired" for row in latest_by_type[item])]
     if len(missing) == len(required):
@@ -180,7 +180,10 @@ def summarize_control_freshness(
         status = "stale"
     else:
         status = "fresh"
-    scores = [min((STATUS_SCORES[str(row["status"])] for row in latest_by_type[item]), default=0) for item in required]
+    scores = [
+        0 if item in missing else min((STATUS_SCORES[str(row["status"])] for row in latest_by_type[item]), default=0)
+        for item in required
+    ]
     relevant = [row for item in required for row in latest_by_type[item]]
     latest = max(relevant, key=_observation_time, default=None)
     return {
@@ -275,8 +278,31 @@ def current_evidence_is_stale(records: list[dict[str, Any]], *, required_types: 
     required = set(required_types or [])
     current = _current_observations(records, verdict_only=True)
     relevant = [row for row in current if not required or required.intersection(_record_evidence_types(row))]
-    observed = {kind for row in relevant for kind in _record_evidence_types(row)}
-    return bool(required - observed) or any(row["status"] in STALE_STATUSES for row in relevant)
+    return bool(_missing_required_types(records, relevant, required)) or any(
+        row["status"] in STALE_STATUSES for row in relevant
+    )
+
+
+def _missing_required_types(
+    records: list[dict[str, Any]], current: list[dict[str, Any]], required: set[str]
+) -> set[str]:
+    """A different source may complete an asset, but another asset or tenant cannot.
+
+    Include populations with only observations or unrelated evidence so that
+    filtering ineligible rows cannot silently remove an incomplete asset.
+    """
+    if not required:
+        return set()
+    populations: dict[tuple[str, str], set[str]] = {
+        (str(row.get("tenant_id") or ""), str(row.get("asset_id") or "")): set() for row in records
+    }
+    for row in current:
+        key = str(row.get("tenant_id") or ""), str(row.get("asset_id") or "")
+        populations[key].update(_record_evidence_types(row))
+    missing = set()
+    for observed in populations.values():
+        missing.update(required - observed)
+    return missing if populations else required
 
 
 def _freshness_record(
