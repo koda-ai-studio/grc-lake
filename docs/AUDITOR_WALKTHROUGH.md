@@ -22,6 +22,44 @@ no external scripts or fonts, and a manifest of file hashes. A missing manifest
 or mismatching file fails verification. Hash consistency detects changes relative
 to the manifest; it is not an independently authenticated signature.
 
+## Verify a handoff against retained content
+
+From a source checkout containing this feature, retain the `content SHA-256`
+printed by the export command in a separately controlled review record **before
+transferring the bundle**. A recipient can compare the received export against
+that retained value:
+
+```sh
+# Paste the digest from the separately retained record, not the received manifest.
+expected_digest='<64-character content SHA-256>'
+uv run grc-lake assessment verify-workpaper --dir build/auditor-workpaper \
+  --expected-content-sha256 "$expected_digest"
+```
+
+The content digest covers the tenant, period, plan, declared population,
+generation, evidence references, outcomes, narrative, and remediation snapshot.
+File hashes and deterministic HTML rendering must also pass. The JSON verdict
+separates `bundle_integrity_verified` from `expected_content_matches`; `ok` is
+true only when both pass. Exit code `0` means verified, `1` means verification
+failed, and `2` means the supplied digest is not exactly 64 hexadecimal characters.
+Uppercase hexadecimal is accepted. A missing or unreadable content document can
+produce a null digest comparison and never passes.
+
+| Received bundle                                               | Consistency-only check | Check with the original retained digest |
+| ------------------------------------------------------------- | ---------------------- | --------------------------------------- |
+| Original export                                               | Pass                   | Pass                                    |
+| Changed HTML with the original manifest                       | Fail                   | Fail                                    |
+| Changed content, regenerated HTML and manifest                | Pass                   | Fail                                    |
+| Different tenant or assessment period, with regenerated files | Pass                   | Fail                                    |
+
+The separately retained digest is the trust boundary. Reading the expected value
+from the received bundle does not detect wholesale replacement. This is content
+pinning, not a digital signature, timestamp authority, source authentication, or
+proof that the controls passed. Review identity still requires the authenticated
+server record. Verification is offline and does not change the bundle or record
+an approval. Existing commands without the new option retain consistency-only
+behavior.
+
 For a repeatable access/change failure matrix with retained JSON results and
 draft workpapers, run the [scoped workflow qualification](CONTROL_WORKFLOW_QUALIFICATION.md).
 

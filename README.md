@@ -40,7 +40,9 @@ This loopback demo uses synthetic data and disables authentication.
 **First task:** find a failing control, inspect its evidence and mapping, then
 export the frozen result. Follow the [sample-data tutorial](docs/TUTORIAL_5_MIN.md);
 continue with the [synthetic workpaper example](docs/AUDITOR_WALKTHROUGH.md)
-to inspect a scoped test plan, population gaps, and a verified export.
+to inspect a scoped test plan, population gaps, and a verified export. The source
+walkthrough also shows how to verify a workpaper handoff against a separately
+retained content digest, including detection of a self-consistent replacement.
 Installation time depends on your machine and connection.
 
 <details>

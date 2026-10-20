@@ -67,8 +67,15 @@ under `tampered-workpaper`; use `workpaper` for review. A failed expectation or
 execution error makes the overall command exit nonzero. Results are retained;
 exception messages are omitted to avoid copying operator data into reports.
 
+Each case also verifies the original export against its retained content digest,
+then creates `replacement-workpaper` with changed narrative and regenerated HTML
+and manifest. That replacement must pass consistency-only verification and fail
+verification against the original digest. `handoff-verification.json` records
+both checks separately. These deliberately altered copies remain synthetic and
+unreviewed; the runner does not authenticate an external custodian of the digest.
+
 CI runs the matrix in the required pipeline-smoke path and retains the report,
-case inputs, result receipts, and original workpapers for 14 days, including
+case inputs, result receipts, original workpapers, and replacement probes for 14 days, including
 on failures. Download the `control-workflow-qualification` artifact for the
 exact PR or main revision under review. Local runs additionally retain lakes
 and tampered copies.

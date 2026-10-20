@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import html
 import json
+import re
 from collections import Counter
 from pathlib import Path
 from typing import Any
@@ -169,7 +170,21 @@ def export_workpaper(content: dict[str, Any], out: Path) -> None:
         stream.write(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
 
 
-def verify_workpaper_export(out: Path) -> dict[str, Any]:
+def validate_content_sha256(value: str) -> str:
+    """Validate an independently supplied content pin, without silently trimming it."""
+    if not re.fullmatch(r"[0-9a-fA-F]{64}", value):
+        raise ValueError("expected content SHA-256 must contain exactly 64 hexadecimal characters")
+    return value.lower()
+
+
+def verify_workpaper_export(out: Path, *, expected_content_sha256: str | None = None) -> dict[str, Any]:
+    """Check bundle consistency and optionally a separately trusted content digest.
+
+    A pin read from the received manifest is not an independent trust anchor.
+    Neither mode authenticates a reviewer or proves evidence source accuracy.
+    """
+    expected_digest = validate_content_sha256(expected_content_sha256) if expected_content_sha256 is not None else None
+    content_digest = None
     try:
         expected = {"manifest.json", "index.html", "workpaper.json"}
         if (
@@ -189,8 +204,23 @@ def verify_workpaper_export(out: Path) -> dict[str, Any]:
         )
         valid = valid and all(file_sha256(out / name) == digest for name, digest in manifest["files"].items())
         content = read_json(out / "workpaper.json")
-        valid = valid and canonical_sha256(content) == manifest["content_sha256"]
+        content_digest = canonical_sha256(content)
+        valid = valid and content_digest == manifest["content_sha256"]
         valid = valid and (out / "index.html").read_text(encoding="utf-8") == render_workpaper(content)
     except (OSError, ValueError, KeyError, TypeError):
         valid = False
-    return {"ok": bool(valid), "authentication": "hash_consistency_only; review identity requires server record"}
+    result: dict[str, Any] = {
+        "ok": bool(valid),
+        "authentication": "hash_consistency_only; review identity requires server record",
+    }
+    if expected_digest is not None:
+        matches = content_digest == expected_digest if content_digest is not None else None
+        result.update(
+            ok=bool(valid and matches),
+            verification_scope="bundle_consistency_and_expected_content",
+            bundle_integrity_verified=bool(valid),
+            expected_content_matches=matches,
+            content_sha256=content_digest,
+            expected_content_sha256=expected_digest,
+        )
+    return result

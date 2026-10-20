@@ -123,6 +123,9 @@ def run_case(out: Path, safeguard: str, scenario: str) -> dict:
         checks = result["checks"]
         checks["expected_outcomes"] = result["observed"] == result["expected"]
         checks["export_verified"] = verify_workpaper_export(out / "workpaper")["ok"] is True
+        checks["pinned_export_verified"] = (
+            verify_workpaper_export(out / "workpaper", expected_content_sha256=result["content_sha256"])["ok"] is True
+        )
         checks["same_generation_replay"] = content == build_workpaper(lake, plan=plan, baseline=baseline)
         checks["human_review_pending"] = (
             content["assurance"]["review_status"] == control["conclusion"] == "pending_human_review"
@@ -150,6 +153,23 @@ def run_case(out: Path, safeguard: str, scenario: str) -> dict:
         with (out / "tampered-workpaper/index.html").open("a") as stream:
             stream.write("\nSynthetic tamper probe\n")
         checks["tampered_export_rejected"] = verify_workpaper_export(out / "tampered-workpaper")["ok"] is False
+        # A replacement can recompute its own manifest and HTML. Only the
+        # original digest retained outside that replacement detects substitution.
+        replacement = copy.deepcopy(content)
+        replacement["narrative"]["text"] = "Synthetic replacement: the original narrative was removed."
+        export_workpaper(replacement, out / "replacement-workpaper")
+        checks["replacement_export_self_consistent"] = (
+            verify_workpaper_export(out / "replacement-workpaper")["ok"] is True
+        )
+        receipt = verify_workpaper_export(
+            out / "replacement-workpaper", expected_content_sha256=result["content_sha256"]
+        )
+        write_json(out / "handoff-verification.json", receipt)
+        checks["replacement_export_rejected_by_pin"] = (
+            receipt["ok"] is False
+            and receipt["bundle_integrity_verified"] is True
+            and receipt["expected_content_matches"] is False
+        )
         result["status"] = "passed" if all(checks.values()) else "failed"
     except (OSError, ValueError, RuntimeError, KeyError, TypeError) as exc:
         # Exception messages may contain operator paths or credentials. Keep the type only.

@@ -134,7 +134,14 @@ the stored JSON and recorded as `trustops.workpaper_html.v1`. Older bundles whos
 HTML cannot be reproduced from their JSON fail this stronger check; retain the
 original and create a new export from verified evidence when needed.
 
+`assessment verify-workpaper --expected-content-sha256 <digest>` additionally
+compares the recomputed content hash with a value retained independently of the
+received export. A self-consistent replacement fails when its content differs
+from that pin. See the [handoff walkthrough](AUDITOR_WALKTHROUGH.md#verify-a-handoff-against-retained-content)
+for the trust boundary and machine-readable verdict.
+
 These checks establish local consistency. An operator able to rewrite every
 artifact and its ledger or manifest can create a new self-consistent history.
-External tamper-proof anchoring and independent review identity authentication
-are separate from portable bundle verification.
+The optional content pin depends on the recipient protecting the retained digest;
+GRC Lake does not provide an external anchoring service. Independent review
+identity authentication remains separate from portable bundle verification.
