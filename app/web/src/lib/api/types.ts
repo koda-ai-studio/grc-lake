@@ -456,6 +456,17 @@ export interface AuditReadiness {
   state: "audit_ready" | "on_track" | "needs_work" | string;
   audit_score: number;
   evaluated_at: string;
+  readiness_decision?: {
+    gates: {
+      id: string;
+      label: string;
+      passed: boolean;
+      detail: string;
+      href: string;
+    }[];
+    scope: string;
+    boundary: string;
+  };
   posture: {
     score: number;
     open_violations: number;
@@ -526,6 +537,7 @@ export interface AuditReadinessFramework {
   total_controls: number | null;
   coverage_pct: number | null;
   ready: boolean;
+  blocking_reasons?: string[];
 }
 
 export interface AiGovernanceFramework {

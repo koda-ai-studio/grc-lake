@@ -227,6 +227,7 @@ Upgrading from TrustOps? Read the [migration guide](docs/REBRANDING.md).
 - **20 framework packs, 2,252 catalogued requirements (1,965 distinct; FedRAMP Moderate's 287 rows restate NIST SP 800-53 controls),** linked through 1165 safeguards, including source-native assessment contracts. 2,166 requirements have safeguard mappings; 1,163 have reviewed mappings and the other 1,003 are proposed. Of the reviewed, 381 are source-native self-maps (written from that requirement's own pinned source) and 782 rest on reviewed crosswalk mappings; 339 rest only on legacy reviews with no recorded reviewer. The blended total is not a per-framework readiness figure.
 - **24 read-only source adapters (6 in preview)**, plus OCSF presets for existing security lakes.
 - **Evidence stays scoped:** missing or stale evidence leaves gaps; a passing sample does not prove complete population coverage. Proposed mappings are not attestable.
+- **Explainable audit readiness:** the API and audit room show score, evaluated-framework, and blocking-gap gates. A high index cannot hide an unresolved framework assessment. See the [decision contract and reproducible regression](docs/AUDIT_READINESS.md#explain-the-readiness-decision).
 - **One engine, four surfaces:** console, REST API, CLI, and MCP server. Agents propose; humans approve.
 
 <!-- END README AT A GLANCE -->

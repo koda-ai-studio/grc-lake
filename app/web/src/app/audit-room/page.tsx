@@ -26,6 +26,7 @@ import { PaginatedCollection } from "@/components/ui/paginated-collection";
 import { EvidenceFreshnessSlaPanel } from "@/components/evidence/EvidenceFreshnessSlaPanel";
 import { AuditSnapshotTimeline } from "@/components/audit-room/AuditSnapshotTimeline";
 import { IngestionLoopStrip } from "@/components/audit-room/IngestionLoopStrip";
+import { ReadinessDecision } from "@/components/audit-room/ReadinessDecision";
 import { FrameworkMark } from "@/components/framework/FrameworkMark";
 import { PageHeader } from "@/components/PageHeader";
 import { QueryState } from "@/components/QueryState";
@@ -43,6 +44,11 @@ const AUDIT_ROOM_TABS = [
 ];
 
 const GAP_CONTEXT: Record<string, { impact: string; action: string }> = {
+  framework_readiness: {
+    impact:
+      "Every evaluated framework must meet both score and assessment coverage thresholds. Unknown coverage needs a defined catalog scope.",
+    action: "Review framework assessments",
+  },
   failing_controls: {
     impact:
       "Observed tests failed. Review the affected controls and their evidence.",
@@ -98,6 +104,13 @@ const GAP_CONTEXT: Record<string, { impact: string; action: string }> = {
   },
 };
 
+const FRAMEWORK_BLOCKERS: Record<string, string> = {
+  unknown_coverage: "Coverage unknown",
+  insufficient_coverage: "Below assessment coverage threshold",
+  score_below_threshold: "Below framework score threshold",
+  assessment_not_ready: "Assessment needs attention",
+};
+
 function consoleHref(href: string) {
   return href.startsWith("/console") ? href.replace(/^\/console/, "") : href;
 }
@@ -106,7 +119,7 @@ export default function AuditRoomPage() {
   const audit = useAuditReadiness();
   const data = audit.data;
   return (
-    <div className="page-shell grid gap-5">
+    <div className="page-shell grid grid-cols-1 gap-5">
       <PageHeader
         title={ROUTE_LABELS["/audit-room"]}
         description="Resolve evidence gaps, review observed scope, and prepare a frozen audit export."
@@ -129,6 +142,7 @@ export default function AuditRoomPage() {
               </div>
               <span>Evaluated {formatDateTime(data.evaluated_at)}</span>
             </div>
+            <ReadinessDecision decision={data.readiness_decision} />
             <DetailTabs defaultValue="priorities">
               <DetailTabList label="Audit room view" items={AUDIT_ROOM_TABS} />
               <DetailTab value="priorities">
@@ -230,7 +244,9 @@ export default function AuditRoomPage() {
                     </CardHeader>
                     <CardContent className="grid gap-4">
                       <div
-                        className="grid gap-3 max-h-64 overflow-y-auto"
+                        className="grid gap-3 max-h-64 overflow-y-auto rounded outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                        role="region"
+                        tabIndex={0}
                         aria-label="Evaluated framework scope"
                       >
                         {data.frameworks?.map((row) => (
@@ -252,6 +268,17 @@ export default function AuditRoomPage() {
                                 {row.total_controls ?? "unknown"} controls
                                 assessed
                               </div>
+                              {row.blocking_reasons?.length ? (
+                                <p className="mt-1 text-xs text-serious-fg">
+                                  {row.blocking_reasons
+                                    .map(
+                                      (reason) =>
+                                        FRAMEWORK_BLOCKERS[reason] ??
+                                        displayLabel(reason),
+                                    )
+                                    .join(" · ")}
+                                </p>
+                              ) : null}
                             </div>
                           </div>
                         ))}
@@ -264,6 +291,16 @@ export default function AuditRoomPage() {
                       <p className="text-xs text-muted">
                         Counts describe the evidence in this workspace;
                         unobserved assets and vendors may be missing.
+                        {data.framework_ready_criteria && (
+                          <>
+                            {" "}
+                            Framework thresholds: score{" "}
+                            {data.framework_ready_criteria.min_score}/100 and at
+                            least{" "}
+                            {data.framework_ready_criteria.min_coverage_pct}% of
+                            catalog controls assessed.
+                          </>
+                        )}
                       </p>
                       <div className="border-t border-line pt-4">
                         <div className="flex items-center gap-2 text-sm font-semibold">

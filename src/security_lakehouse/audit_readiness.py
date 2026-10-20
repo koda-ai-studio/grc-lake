@@ -121,6 +121,7 @@ def _workflow_checklist(*, posture_score: int, framework_total: int) -> list[dic
 IDENTITY_CONNECTOR_IDS = frozenset({"okta-identity", "okta-system-log"})
 
 FRAMEWORK_READY_SCORE = 100
+AUDIT_READY_SCORE = 85
 
 
 def _framework_readiness(frameworks: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -142,6 +143,15 @@ def _framework_readiness(frameworks: list[dict[str, Any]]) -> list[dict[str, Any
         # Outside the catalog the denominator is unknown; never infer full coverage.
         total = max(catalog_total, observed) if catalog_total else None
         coverage_pct, sufficient = readiness_coverage(assessed, total)
+        blocking_reasons = []
+        if coverage_pct is None:
+            blocking_reasons.append("unknown_coverage")
+        elif not sufficient:
+            blocking_reasons.append("insufficient_coverage")
+        if not score >= FRAMEWORK_READY_SCORE:
+            blocking_reasons.append("score_below_threshold")
+        if row.get("state", "ready") != "ready":
+            blocking_reasons.append("assessment_not_ready")
         out.append(
             {
                 "framework": name,
@@ -150,10 +160,8 @@ def _framework_readiness(frameworks: list[dict[str, Any]]) -> list[dict[str, Any
                 "observed_controls": observed,
                 "total_controls": total,
                 "coverage_pct": coverage_pct,
-                "ready": coverage_pct is not None
-                and score >= FRAMEWORK_READY_SCORE
-                and row.get("state", "ready") == "ready"
-                and sufficient,
+                "ready": not blocking_reasons,
+                "blocking_reasons": blocking_reasons,
             }
         )
     return out
@@ -268,6 +276,21 @@ def build_audit_readiness(
     latest_snapshot = snapshot_rows[-1][1] if snapshot_rows else None
 
     gaps: list[dict[str, str]] = []
+    # A weighted average must never erase an unresolved framework gate.
+    # This scope is the current evaluation, not every registered catalog pack.
+    framework_scope_met = framework_total > 0 and frameworks_ready == framework_total
+    if not framework_scope_met:
+        gaps.append(
+            {
+                "id": "framework_readiness",
+                "label": (
+                    f"{framework_total - frameworks_ready} evaluated framework(s) below readiness thresholds"
+                    if framework_total
+                    else "No framework assessment available"
+                ),
+                "href": "/console/frameworks",
+            }
+        )
     if int(summary.get("enabled_connectors") or 0) == 0 and evidence_sources == 0:
         gaps.append(
             {"id": "connectors", "label": "Connect at least one evidence source", "href": "/console/connectors"}
@@ -384,11 +407,41 @@ def build_audit_readiness(
         / 0.9
     )
 
-    state = "audit_ready" if audit_score >= 85 and not gaps else ("on_track" if audit_score >= 60 else "needs_work")
+    gates = [
+        {
+            "id": "score",
+            "label": "Readiness index",
+            "passed": audit_score >= AUDIT_READY_SCORE,
+            "detail": f"{audit_score}/100; minimum {AUDIT_READY_SCORE}",
+            "href": "/console/audit-room",
+        },
+        {
+            "id": "frameworks",
+            "label": "Evaluated frameworks",
+            "passed": framework_scope_met,
+            "detail": f"{frameworks_ready} of {framework_total} meet score and coverage thresholds",
+            "href": "/console/frameworks",
+        },
+        {
+            "id": "blocking_gaps",
+            "label": "Outstanding gaps",
+            "passed": not gaps,
+            "detail": f"{len(gaps)} unresolved; none permitted",
+            "href": "/console/audit-room",
+        },
+    ]
+    state = (
+        "audit_ready" if all(gate["passed"] for gate in gates) else ("on_track" if audit_score >= 60 else "needs_work")
+    )
 
     return {
         "state": state,
         "audit_score": audit_score,
+        "readiness_decision": {
+            "gates": gates,
+            "scope": "Current evaluated frameworks only; unobserved frameworks are not assessed.",
+            "boundary": "Product readiness thresholds, not complete framework coverage or certification.",
+        },
         "evaluated_at": datetime.now(UTC).isoformat(),
         "posture": {
             "score": posture_score,
