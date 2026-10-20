@@ -108,7 +108,7 @@ export const SCORE_COPY = {
   auditReadiness: {
     label: "Audit readiness index",
     definition:
-      "Audit-prep sub-indicator, not a second assessment score: a weighted blend of the assessment score (4 parts), control test pass rate (3 parts), and the share of evaluated frameworks that are ready (2 parts).",
+      "Audit-prep sub-indicator: a weighted blend of the assessment score (4 parts), control test pass rate (3 parts), and the share of evaluated frameworks that are ready (2 parts). A high index cannot override an unresolved framework or blocking gap.",
   },
   frameworksReady: {
     label: "Evaluated frameworks ready",

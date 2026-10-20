@@ -73,11 +73,48 @@ marked `scored: false` and never contributes to the score.
 
 State:
 
-- `audit_ready` — score ≥ 85 and no blocking gaps
+- `audit_ready` — score ≥ 85, at least one evaluated framework, every evaluated
+  framework meeting its score and coverage thresholds, and no blocking gaps
 - `on_track` — score ≥ 60
 - `needs_work` — otherwise
 
 Blocking gaps include: no connectors and no evidence from any source, failing controls, open evidence requests, no active access review, no auditor share, overdue or missing vendor diligence, unattested published policies.
+
+An absent framework assessment or any evaluated framework below its thresholds
+also creates a blocking gap. A high weighted score cannot compensate for that
+gap: two ready frameworks and a third with unknown coverage can produce a
+93/100 index, but the state remains `on_track`.
+
+### Explain the readiness decision
+
+The API and live stream return `readiness_decision.gates`, which the audit room
+renders under **Why this status**. Each gate has an `id`, `label`, `passed`
+boolean, observed `detail`, and an action `href`:
+
+| Gate            | Required condition                                                   |
+| --------------- | -------------------------------------------------------------------- |
+| `score`         | Audit readiness index at least 85/100                                |
+| `frameworks`    | At least one evaluated framework, and all evaluated frameworks ready |
+| `blocking_gaps` | No unresolved blocking gaps                                          |
+
+Each framework includes `blocking_reasons`: `unknown_coverage`,
+`insufficient_coverage`, `score_below_threshold`, or `assessment_not_ready`.
+Multiple reasons can apply. Controls with no verdict do not count as assessed.
+The API is the decision authority; the console displays its gate results rather
+than independently calculating readiness.
+
+These are product thresholds over the current evaluation. The 50% assessment
+coverage floor does **not** mean complete framework coverage. Registered packs
+with no observed controls are outside this evaluation, and an `audit_ready`
+state is neither an auditor opinion nor certification. Company scope, control
+applicability, evidence sufficiency, and operating effectiveness still require
+review.
+
+Reproduce the high-score/blocked-scope case and tenant-isolation check with:
+
+```bash
+uv run pytest tests/test_audit_readiness_decision.py -q
+```
 
 ## Exports and continuous eval
 

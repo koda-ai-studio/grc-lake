@@ -231,6 +231,8 @@ Upgrading from TrustOps? Read the [migration guide](docs/REBRANDING.md).
 
 <!-- END README AT A GLANCE -->
 
+**Explainable audit readiness:** the API and audit room show score, evaluated-framework, and blocking-gap gates. A high index cannot hide an unresolved framework assessment. See the [decision contract and reproducible regression](docs/AUDIT_READINESS.md#explain-the-readiness-decision).
+
 Catalog counts above are generated from source. Reviewed counts record maintainer
 mapping decisions; see the [review method and limits](docs/COMMON_CONTROL_FRAMEWORK.md#maintainer-source-batch-review).
 Mapping-review decisions do not change access at a provider.
