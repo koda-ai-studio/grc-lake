@@ -1,25 +1,39 @@
-# NIST 800-53 assessment expansion
+# NIST 800-53 assessment contracts
 
-This expansion added 381 **source-native safeguards**, initially proposed, for
-previously unmapped NIST SP 800-53 Rev. 5 obligations. Catalog mapping coverage is
-1,803 of 2,252 requirements (80.1%). After the maintainer approved the 33
-source-review batches, reviewed coverage reached 1,128 (50.1%). Current totals
-include later decisions in the [coverage matrix](FRAMEWORK_COVERAGE.md).
-It does not establish 381 cross-framework equivalences or completed assessments.
+All **1,014 active NIST SP 800-53 controls and enhancements** have an individual
+source-native assessment contract, across all 20 families in the pinned 5.2.0
+catalog. The expansion adds 633 contracts to the existing 381. Of these, 348
+requirements previously had no safeguard mapping; 285 already had crosswalk
+mappings and now also have a direct assessment path.
 
-The scope closes the remaining catalog gaps in nine NIST families:
+The original 381 source-native mapping reviews are preserved. The 633 additions
+remain **proposed**. NIST mapped coverage is 1,014/1,014; reviewed coverage remains
+495/1,014 (381 source-native and 114 crosswalk-reviewed). These figures measure
+catalog and mapping support, not automated testing or a company's compliance.
+See the [coverage matrix](FRAMEWORK_COVERAGE.md) for the other frameworks.
 
-| Family                                        | New mapped requirements |
-| --------------------------------------------- | ----------------------: |
-| Access Control (AC)                           |                      96 |
-| Identification and Authentication (IA)        |                      35 |
-| Audit and Accountability (AU)                 |                      40 |
-| Configuration Management (CM)                 |                      32 |
-| System and Information Integrity (SI)         |                      87 |
-| Incident Response (IR)                        |                      27 |
-| Contingency Planning (CP)                     |                      26 |
-| Maintenance (MA)                              |                      23 |
-| Assessment, Authorization and Monitoring (CA) |                      15 |
+| NIST family | Assessment contracts |
+| ----------- | -------------------: |
+| AC          |                  131 |
+| AT          |                   15 |
+| AU          |                   56 |
+| CA          |                   25 |
+| CM          |                   56 |
+| CP          |                   49 |
+| IA          |                   59 |
+| IR          |                   40 |
+| MA          |                   28 |
+| MP          |                   20 |
+| PE          |                   51 |
+| PL          |                   11 |
+| PM          |                   37 |
+| PS          |                   17 |
+| PT          |                   21 |
+| RA          |                   22 |
+| SA          |                  108 |
+| SC          |                  139 |
+| SI          |                  102 |
+| SR          |                   27 |
 
 ## Source and derivation
 
@@ -56,7 +70,9 @@ The command verifies the complete source digest and version, rejects withdrawn o
 missing targets and unresolved parameters, and compares the resulting definitions
 with the checked-in safeguards, excluding human review metadata from that
 source-contract comparison. Without `--check`, it regenerates only this
-expansion. It refuses to overwrite definitions that have recorded human reviews.
+expansion. Exact existing definitions retain their review metadata. It refuses
+to change or remove a contract with a recorded human review; new entries remain
+proposed. Repeated generation with the same source is idempotent.
 Catalog lock, coverage documents and golden artifacts must then be regenerated
 with their owning commands.
 
@@ -79,7 +95,6 @@ approve, needs-changes or reject with a rationale. Approval of a source-native
 mapping establishes that contract's mapping, not a cross-framework equivalence,
 the assessed organization's implementation, population completeness or certification.
 The [maintainer decision receipt](../controls/reviews/2026-10-14-source-batches.json)
-records the approval of all 33 prepared source-review batches, including these
-381 safeguards. Overall reviewed coverage exceeds the 1,126-requirement (50%)
-target. Stale version pins still prevent review credit for 17 other approved
+records the approval of all 33 prepared source-review batches, including the original
+381 safeguards. That receipt does not approve the 633 later additions. Stale version pins still prevent review credit for 17 other approved
 requirements. Unrelated PR approvals do not supply mapping decisions.

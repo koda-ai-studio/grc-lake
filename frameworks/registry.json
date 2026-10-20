@@ -13,7 +13,8 @@
       "pulled_at": null,
       "implementation_status": "implemented_full_pack",
       "copyright_guardrail": "Do not reproduce licensed criteria text. Store local control IDs, short internal titles, evidence requirements, and official source references only.",
-      "sync_cadence_days": 30
+      "sync_cadence_days": 30,
+      "coverage_boundary": "All 61 Trust Services Criteria identifiers are catalogued. Mapping coverage does not establish control effectiveness, system-description completeness, or completion of a SOC 2 examination."
     },
     {
       "framework_id": "nist-ai-rmf",
@@ -43,7 +44,8 @@
       "pulled_at": null,
       "implementation_status": "implemented_full_pack",
       "copyright_guardrail": "ISO standard text is licensed; reproduce only control identifiers and short internal titles. Customers must hold their own license for the official PDF.",
-      "sync_cadence_days": 90
+      "sync_cadence_days": 90,
+      "coverage_boundary": "All 93 Annex A control identifiers are catalogued. Clauses 4-10 of the management system are not catalogued; Annex A mapping coverage is not full ISO/IEC 27001 conformity or certification."
     },
     {
       "framework_id": "fedramp-moderate",

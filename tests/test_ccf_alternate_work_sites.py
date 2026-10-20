@@ -45,11 +45,18 @@ def test_alternate_work_site_safeguards_close_two_gaps_without_overstating_attes
     without_crosswalk = coverage_by_framework(payload)
     coverage = coverage_by_framework()
 
+    # NIST obligations retain their independent source-native assessment
+    # contracts when this crosswalk is removed; count each requirement once.
+    assert (
+        coverage["frameworks"]["nist-800-53-rev5"]["covered"]
+        == without_crosswalk["frameworks"]["nist-800-53-rev5"]["covered"]
+        == 1014
+    )
     assert coverage["safeguards"] == without_crosswalk["safeguards"] + 1
-    assert coverage["covered"] == without_crosswalk["covered"] + 3
-    assert coverage["uncovered"] == without_crosswalk["uncovered"] - 3
+    assert coverage["covered"] == without_crosswalk["covered"] + 2
+    assert coverage["uncovered"] == without_crosswalk["uncovered"] - 2
     assert coverage["reviewed"] == without_crosswalk["reviewed"]
-    assert coverage["proposed"] == without_crosswalk["proposed"] + 3
+    assert coverage["proposed"] == without_crosswalk["proposed"] + 2
     assert (
         coverage["frameworks"]["cmmc-2-level2"]["covered"]
         == without_crosswalk["frameworks"]["cmmc-2-level2"]["covered"] + 1

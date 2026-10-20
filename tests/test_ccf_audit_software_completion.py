@@ -71,11 +71,18 @@ def test_audit_and_software_lane_closes_three_gaps_without_attestation() -> None
     without_lane = coverage_by_framework(payload)
     coverage = coverage_by_framework()
 
+    # NIST obligations retain their independent source-native assessment
+    # contracts when this crosswalk is removed; count each requirement once.
+    assert (
+        coverage["frameworks"]["nist-800-53-rev5"]["covered"]
+        == without_lane["frameworks"]["nist-800-53-rev5"]["covered"]
+        == 1014
+    )
     assert coverage["safeguards"] == without_lane["safeguards"] + 2
-    assert coverage["covered"] == without_lane["covered"] + 4
-    assert coverage["uncovered"] == without_lane["uncovered"] - 4
+    assert coverage["covered"] == without_lane["covered"] + 3
+    assert coverage["uncovered"] == without_lane["uncovered"] - 3
     assert coverage["reviewed"] == without_lane["reviewed"]
-    assert coverage["proposed"] == without_lane["proposed"] + 4
+    assert coverage["proposed"] == without_lane["proposed"] + 3
     assert (
         coverage["frameworks"]["cmmc-2-level2"]["covered"] == without_lane["frameworks"]["cmmc-2-level2"]["covered"] + 2
     )

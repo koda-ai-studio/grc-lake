@@ -7,7 +7,7 @@ retain `evaluatable` and `attestable` names for compatibility.
 
 Framework packs: 20 with catalogued requirements (2 more registry entries planned or superseded)
 Requirements catalogued: 2252 (all source-cited)
-Mapped (touched by a safeguard): 1818 (80.7%)
+Mapped (touched by a safeguard): 2166 (96.2%)
 Reviewed safeguard mappings: 1163 (51.6%), of which 381 are source-native self-maps and 782 are crosswalk-reviewed (34.7%); 339 rest only on legacy reviews with no recorded reviewer
 Asset types modeled: 20
 
@@ -30,7 +30,7 @@ Asset types modeled: 20
 | ISO/IEC 42001:2023 AI management system | [ISO/IEC 42001:2023](https://www.iso.org/standard/42001) | implemented_full_pack | 40 | 40 | 40 | 14 | 35.0% | 0 | 14 | 35.0% | 9 | never pulled |
 | NIS2 Directive (EU) 2022/2555 | [EUR-Lex, Directive (EU) 2022/2555 (CELEX 32022L2555)](https://eur-lex.europa.eu/eli/dir/2022/2555/oj) | implemented_limited_mapping | 17 | 17 | 17 | 17 | 100.0% | 0 | 17 | 100.0% | 0 | fresh |
 | NIST SP 800-171 Rev 3 (Protecting CUI in Nonfederal Systems) | [NIST SP 800-171 Rev. 3 (OSCAL catalog, usnistgov/oscal-content)](https://csrc.nist.gov/pubs/sp/800/171/r3/final) | implemented_limited_mapping | 97 | 97 | 85 | 85 | 87.6% | 0 | 85 | 87.6% | 0 | fresh |
-| NIST SP 800-53 Rev 5 Security and Privacy Controls | [NIST SP 800-53 Rev 5 (OSCAL catalog, usnistgov/oscal-content)](https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final) | implemented_limited_mapping | 1014 | 1014 | 666 | 495 | 48.8% | 381 | 114 | 11.2% | 96 | fresh |
+| NIST SP 800-53 Rev 5 Security and Privacy Controls | [NIST SP 800-53 Rev 5 (OSCAL catalog, usnistgov/oscal-content)](https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final) | implemented_limited_mapping | 1014 | 1014 | 1014 | 495 | 48.8% | 381 | 114 | 11.2% | 96 | fresh |
 | NIST AI Risk Management Framework | [NIST Artificial Intelligence Risk Management Framework (AI RMF 1.0)](https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-ai-rmf-10) | implemented_full_pack | 72 | 72 | 69 | 53 | 73.6% | 0 | 53 | 73.6% | 0 | never pulled |
 | NIST Cybersecurity Framework (CSF) 2.0 | [NIST Cybersecurity Framework 2.0](https://www.nist.gov/cyberframework) | implemented_limited_mapping | 106 | 106 | 106 | 72 | 67.9% | 0 | 72 | 67.9% | 0 | never pulled |
 | NIST Risk Management Framework (SP 800-37 Rev 2) | [NIST SP 800-37 Rev. 2](https://csrc.nist.gov/pubs/sp/800/37/r2/final) | implemented_limited_mapping | 47 | 47 | 46 | 46 | 97.9% | 0 | 46 | 97.9% | 0 | fresh |

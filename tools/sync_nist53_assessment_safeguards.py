@@ -93,6 +93,17 @@ def build_entries(raw: bytes, plan: dict[str, Any], catalog: dict[str, Any]) -> 
     selected = plan["control_ids"]
     if len(set(selected)) != len(selected):
         raise ValueError("duplicate expansion target")
+    if plan.get("coverage_scope") == "all_active_controls":
+        active = {
+            cid
+            for cid, control in controls.items()
+            if not any(p.get("name") == "status" and p.get("value") == "withdrawn" for p in control.get("props", []))
+        }
+        if set(selected) != active:
+            raise ValueError("complete expansion must contain exactly the active source controls")
+        catalog_ids = {cid for cid, control in catalog.items() if control["framework_id"] == "nist-800-53-rev5"}
+        if catalog_ids != {"NIST-800-53-" + cid for cid in active}:
+            raise ValueError("catalog does not match the active source controls")
     url = (
         f"https://raw.githubusercontent.com/usnistgov/oscal-content/{pin['oscal_commit']}"
         f"/nist.gov/SP800-53/rev5/json/{pin['catalog_file']}"
@@ -180,6 +191,33 @@ def source_contract(entry: dict) -> dict:
     return contract
 
 
+def reconcile_entries(existing: list[dict], generated: list[dict]) -> list[dict]:
+    """Extend source contracts without changing the basis of a human decision.
+
+    Exact existing contracts retain their review metadata. A reviewed contract
+    may neither disappear nor change through source regeneration; that requires
+    explicit reconciliation of its review basis outside this generator.
+    """
+    old = {entry["safeguard_id"]: entry for entry in existing}
+    new = {entry["safeguard_id"]: entry for entry in generated}
+    if len(old) != len(existing) or len(new) != len(generated):
+        raise ValueError("duplicate NIST assessment safeguard")
+    for sid, entry in old.items():
+        reviewed = bool(entry.get("reviewed_by") or entry.get("reviewed_at")) or any(
+            member.get("review_status") != "proposed"
+            or any(member.get(field) for field in ("reviewed_by", "reviewed_at", "maintainer_review_ref"))
+            for member in entry["satisfies"]
+        )
+        if reviewed and (sid not in new or source_contract(entry) != new[sid]):
+            raise ValueError(f"refusing to change or remove reviewed contract: {sid}")
+    return [
+        deepcopy(old[entry["safeguard_id"]])
+        if entry["safeguard_id"] in old and source_contract(old[entry["safeguard_id"]]) == entry
+        else deepcopy(entry)
+        for entry in generated
+    ]
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source", type=Path, required=True)
@@ -193,9 +231,15 @@ def main() -> None:
         if [source_contract(entry) for entry in existing] != entries:
             raise SystemExit("NIST assessment safeguards differ from their pinned source")
     else:
-        if any(e.get("reviewed_by") or any(m["review_status"] != "proposed" for m in e["satisfies"]) for e in existing):
-            raise SystemExit("refusing to overwrite human-reviewed safeguards; reconcile their review basis explicitly")
-        payload["safeguards"] = [e for e in payload["safeguards"] if not e["safeguard_id"].startswith(PREFIX)] + entries
+        merged = reconcile_entries(existing, entries)
+        # Keep this generated group at its existing position so regenerating
+        # other contract groups does not continually reorder the catalog.
+        position = next(
+            (i for i, entry in enumerate(payload["safeguards"]) if entry["safeguard_id"].startswith(PREFIX)),
+            len(payload["safeguards"]),
+        )
+        others = [entry for entry in payload["safeguards"] if not entry["safeguard_id"].startswith(PREFIX)]
+        payload["safeguards"] = others[:position] + merged + others[position:]
         SAFEGUARDS_PATH.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n")
     print(f"Verified {len(entries)} obligation-specific source contracts against the pinned NIST source")
 
