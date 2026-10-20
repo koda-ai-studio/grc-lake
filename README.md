@@ -147,8 +147,8 @@ content, freshness, or a passing control. See [AI inventory semantics](docs/AIBO
   <img src="docs/images/grc-lake-demo-ai-governance.png" alt="AI model and agent worklist showing owners, governance signals, and next actions" width="100%" loading="lazy">
 </picture>
 
-_Screens use the bundled synthetic company, captured for v0.3.3 from source
-`27b21b16` on 2026-10-12. They show recorded relationships and demo workflows,
+_Screens use the bundled synthetic company, captured for v0.3.9 from source
+`84a6544c` on 2026-10-19 (America/New_York). They show recorded relationships and demo workflows,
 not a customer deployment or an audit opinion._
 
 [Try the five-minute console tour](docs/PRODUCT_WALKTHROUGH.md#five-minute-tour) ·
