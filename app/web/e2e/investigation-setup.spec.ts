@@ -169,12 +169,13 @@ test("selected investigation highlights direct relationships and clears selectio
       .filter({ hasText: "Branch protection" }),
   });
   await expect(branchEvidence.locator(".opacity-50")).toHaveCount(0);
-  // Assets two hops away remain present but dimmed while the control is selected.
-  await expect
-    .poll(() =>
-      page.locator('.react-flow__node[data-id^="asset:"] .opacity-50').count(),
-    )
-    .toBeGreaterThan(0);
+  // Keep downstream context readable; selection emphasizes links and the root card.
+  await expect(
+    page.locator('.react-flow__node[data-id^="asset:"]').first(),
+  ).toBeVisible();
+  await expect(
+    page.locator('.react-flow__node[data-id^="asset:"] .opacity-50'),
+  ).toHaveCount(0);
   await expect(page.locator(".react-flow__edge-text")).toHaveCount(0);
   await expect(page.getByLabel("Mapping review states")).toContainText(
     "maintainer reviewed",
@@ -220,7 +221,7 @@ test("graph expands, drills into a record and rolls back to its parent", async (
   ).toBeVisible();
 });
 
-test("recorded graph edges reach the visible icons without broken segments", async ({
+test("recorded graph edges reach card boundaries without broken segments", async ({
   page,
   request,
 }) => {
@@ -242,14 +243,10 @@ test("recorded graph edges reach the visible icons without broken segments", asy
               `.react-flow__edge[data-id="${edge.id}"] .react-flow__edge-path`,
             )!;
             const source = document
-              .querySelector(
-                `[data-id="${edge.source}"] [data-testid="graph-node-icon"]`,
-              )!
+              .querySelector(`.react-flow__node[data-id="${edge.source}"]`)!
               .getBoundingClientRect();
             const target = document
-              .querySelector(
-                `[data-id="${edge.target}"] [data-testid="graph-node-icon"]`,
-              )!
+              .querySelector(`.react-flow__node[data-id="${edge.target}"]`)!
               .getBoundingClientRect();
             const start = path
               .getPointAtLength(0)

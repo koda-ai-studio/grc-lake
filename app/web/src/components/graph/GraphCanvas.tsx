@@ -63,6 +63,7 @@ interface GraphNodeData extends Record<string, unknown> {
   severity?: string;
   kind: GraphNodeKind;
   layout: LayoutDir;
+  compact?: boolean;
   provider?: string;
   bank?: "left" | "right";
   relationshipLabel?: string;
@@ -237,6 +238,94 @@ function GraphNodeCard({ id, data, selected }: NodeProps<FlowGraphNode>) {
             side="top"
           >
             {data.label}
+            <Tooltip.Arrow className="fill-surface" />
+          </Tooltip.Content>
+        </Tooltip.Portal>
+      </Tooltip.Root>
+    );
+  }
+  if (data.compact) {
+    return (
+      <Tooltip.Root delayDuration={120}>
+        <Tooltip.Trigger asChild>
+          <div
+            className={`flex h-[92px] w-[220px] items-center gap-3 rounded-xl border bg-surface px-3 shadow-sm transition-colors ${selected ? "border-brand ring-2 ring-brand/25" : "border-line-strong"}`}
+          >
+            <Handle
+              type="target"
+              position={Position.Left}
+              className="!opacity-0"
+            />
+            <Handle
+              type="source"
+              position={Position.Right}
+              className="!opacity-0"
+            />
+            <div
+              data-testid="graph-node-icon"
+              className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border"
+              style={{
+                color: tone.border,
+                borderColor: `color-mix(in srgb, ${tone.border} 45%, transparent)`,
+                background: `color-mix(in srgb, ${tone.border} 10%, var(--color-surface))`,
+              }}
+            >
+              {data.kind === "framework" && data.framework_id ? (
+                <FrameworkBadge
+                  frameworkId={data.framework_id}
+                  variant="mark-only"
+                  size={28}
+                />
+              ) : repositoryConnector ||
+                (data.kind === "source" && connectorId) ? (
+                <>
+                  <ConnectorMark
+                    connectorId={repositoryConnector ?? connectorId!}
+                    size="sm"
+                  />
+                  {repositoryConnector && (
+                    <span
+                      className="absolute -bottom-1 -right-1 rounded border border-line bg-surface p-0.5"
+                      aria-hidden="true"
+                    >
+                      <GitBranch className="h-3 w-3" />
+                    </span>
+                  )}
+                </>
+              ) : (
+                <Icon className="h-5 w-5" />
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <div
+                data-testid="graph-node-label"
+                className="line-clamp-2 break-words text-base font-semibold leading-5 text-ink"
+              >
+                {displayLabel}
+              </div>
+              <div
+                className={`mt-1 text-sm leading-4 ${isEvidence && evidenceState.tone === "critical" ? "text-danger-fg" : isEvidence && evidenceState.tone === "ready" ? "text-success-fg" : "text-muted"}`}
+              >
+                {isEvidence
+                  ? evidenceState.label
+                  : data.kind === "finding"
+                    ? [statusLabel(data.severity), statusLabel(data.status)]
+                        .filter(Boolean)
+                        .join(" · ") || "Finding"
+                    : data.kind.replaceAll("_", " ")}
+              </div>
+            </div>
+          </div>
+        </Tooltip.Trigger>
+        <Tooltip.Portal>
+          <Tooltip.Content
+            className="z-[80] max-w-xs rounded-lg border border-line bg-surface p-3 text-xs text-ink shadow-hero"
+            side="top"
+          >
+            <p className="font-semibold">{data.label}</p>
+            {data.subtitle && (
+              <p className="mt-1 text-muted">{data.subtitle}</p>
+            )}
             <Tooltip.Arrow className="fill-surface" />
           </Tooltip.Content>
         </Tooltip.Portal>
@@ -484,31 +573,34 @@ function layoutGraph(
     }));
     return { nodes, edges };
   }
+  const compact = rfNodes[0]?.data.compact;
+  const width = compact ? 220 : NODE_W;
+  const height = compact ? 92 : NODE_H;
   const g = new dagre.graphlib.Graph();
   g.setDefaultEdgeLabel(() => ({}));
   g.setGraph({
     rankdir,
-    nodesep: 32,
-    ranksep: rankdir === "LR" ? 140 : 58,
+    nodesep: compact ? 16 : 32,
+    ranksep: compact ? 64 : rankdir === "LR" ? 140 : 58,
     marginx: 8,
     marginy: 8,
   });
 
-  rfNodes.forEach((node) =>
-    g.setNode(node.id, { width: NODE_W, height: NODE_H }),
-  );
+  rfNodes.forEach((node) => g.setNode(node.id, { width, height }));
   rfEdges.forEach((edge) => g.setEdge(edge.source, edge.target));
   dagre.layout(g);
 
   const positions = new Map(
     rfNodes.map((node) => {
       const pos = g.node(node.id);
-      return [node.id, { x: pos.x - NODE_W / 2, y: pos.y - NODE_H / 2 }];
+      return [node.id, { x: pos.x - width / 2, y: pos.y - height / 2 }];
     }),
   );
-  wrapWideRanks(positions, rankdir, rankLimit);
+  wrapWideRanks(positions, rankdir, rankLimit, width, height, compact ? 8 : 6);
   const laidOut = rfNodes.map((node) => ({
     ...node,
+    width,
+    height,
     position: positions.get(node.id) ?? { x: 0, y: 0 },
   }));
   return { nodes: laidOut, edges: rfEdges };
@@ -526,12 +618,15 @@ function wrapWideRanks(
   positions: Map<string, { x: number; y: number }>,
   rankdir: LayoutDir,
   rankLimit?: number,
+  width = NODE_W,
+  height = NODE_H,
+  rankFloor = 6,
 ) {
   const horizontal = rankdir === "LR";
   const limit = Math.min(
     rankLimit ?? 16,
     Math.max(
-      Math.min(6, rankLimit ?? 6),
+      Math.min(rankFloor, rankLimit ?? rankFloor),
       Math.round(Math.sqrt(positions.size) * 1.2),
     ),
   );
@@ -542,8 +637,8 @@ function wrapWideRanks(
   });
   if (![...ranks.values()].some((ids) => ids.length > limit)) return;
 
-  const crossStep = (horizontal ? NODE_H : NODE_W) + 10;
-  const rowStep = (horizontal ? NODE_W : NODE_H) + 14;
+  const crossStep = (horizontal ? height : width) + 10;
+  const rowStep = (horizontal ? width : height) + 14;
   const rankGap = 40;
   const ordered = [...ranks.entries()].sort((a, b) => a[0] - b[0]);
   if (rankdir === "BT") ordered.reverse();
@@ -588,6 +683,7 @@ interface Props {
   rankLimit?: number;
   neighborhoodRoot?: string;
   showEdgeLabels?: boolean;
+  compactCards?: boolean;
   heightClassName?: string;
   pathFrom: string | null;
   pathTo: string | null;
@@ -628,6 +724,7 @@ function InnerGraphCanvas({
   rankLimit,
   neighborhoodRoot,
   showEdgeLabels = true,
+  compactCards = false,
   heightClassName = "h-[clamp(400px,calc(100dvh-300px),650px)] min-h-[400px]",
   pathFrom,
   pathTo,
@@ -849,6 +946,7 @@ function InnerGraphCanvas({
           label: n.label,
           subtitle: n.subtitle ?? "",
           kind: n.kind,
+          compact: compactCards && layout === "LR" && !neighborhoodRoot,
           layout,
           provider: n.provider,
           status: n.status,
@@ -872,7 +970,9 @@ function InnerGraphCanvas({
         const dimmed =
           (matchSet && !matchSet.has(e.source) && !matchSet.has(e.target)) ||
           (pathSet && !onPath) ||
-          (highlightSet && !onHighlight);
+          (highlightSet &&
+            !onHighlight &&
+            (!compactCards || hoveredId !== null));
         return {
           id: e.id,
           data: { relationshipKind: e.kind },
@@ -896,7 +996,9 @@ function InnerGraphCanvas({
               ? "var(--color-warning)"
               : onHighlight
                 ? "var(--color-ink)"
-                : "var(--color-line-strong)",
+                : compactCards
+                  ? "var(--color-muted)"
+                  : "var(--color-line-strong)",
             strokeWidth: onPath ? 2.5 : 1.5,
             strokeDasharray:
               e.review_state &&
@@ -909,6 +1011,7 @@ function InnerGraphCanvas({
       });
     return layoutGraph(list, edges, layout, rankLimit, neighborhoodRoot);
   }, [
+    compactCards,
     neighborhoodRoot,
     rankLimit,
     showEdgeLabels,
@@ -920,6 +1023,7 @@ function InnerGraphCanvas({
     pathSet,
     highlightSet,
     activeId,
+    hoveredId,
     selectedId,
     focusId,
     scopeIds,
@@ -943,6 +1047,33 @@ function InnerGraphCanvas({
   const focusX = focusNode ? focusNode.position.x : null;
   const focusY = focusNode ? focusNode.position.y : null;
 
+  const mobileAnchor =
+    focusNode ??
+    rfNodes.find((node) => node.data.kind === "control") ??
+    rfNodes[0];
+  const mobileX = mobileAnchor
+    ? mobileAnchor.position.x + (mobileAnchor.width ?? NODE_W) / 2
+    : null;
+  const mobileY = mobileAnchor
+    ? mobileAnchor.position.y + (mobileAnchor.height ?? NODE_H) / 2
+    : null;
+  const fitReadableView = useCallback(
+    (duration = 0) => {
+      if (
+        compactCards &&
+        !neighborhoodRoot &&
+        (wrapperRef.current?.clientWidth ?? 0) < 600 &&
+        mobileX !== null &&
+        mobileY !== null
+      ) {
+        setCenter(mobileX, mobileY, { zoom: 0.85, duration });
+      } else {
+        fitView({ maxZoom: 1, padding: 0.06, duration });
+      }
+    },
+    [compactCards, neighborhoodRoot, mobileX, mobileY, setCenter, fitView],
+  );
+
   useEffect(() => {
     if (rfNodes.length === 0) return;
     const frame = window.requestAnimationFrame(() => {
@@ -950,16 +1081,12 @@ function InnerGraphCanvas({
       if (focusX !== null && focusY !== null && !scopeIds) {
         setCenter(focusX + 73, focusY + 29, { zoom: 0.9, duration: 300 });
       } else {
-        fitView({
-          maxZoom: 1,
-          padding: 0.06,
-          duration: 180,
-        });
+        fitReadableView(180);
       }
     });
     return () => window.cancelAnimationFrame(frame);
   }, [
-    fitView,
+    fitReadableView,
     setCenter,
     focusX,
     focusY,
@@ -979,16 +1106,14 @@ function InnerGraphCanvas({
     let frame = 0;
     const observer = new ResizeObserver(() => {
       cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() =>
-        fitView({ maxZoom: 1, padding: 0.06 }),
-      );
+      frame = requestAnimationFrame(() => fitReadableView());
     });
     observer.observe(wrapper);
     return () => {
       observer.disconnect();
       cancelAnimationFrame(frame);
     };
-  }, [fitView, scopeIds, hydrated]);
+  }, [fitReadableView, scopeIds, hydrated]);
 
   // When the search has exactly one match, recentre the viewport on it so the
   // user sees the result immediately.

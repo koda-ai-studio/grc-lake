@@ -121,9 +121,12 @@ test("authenticated evidence request persists in the local store", async ({
   expect(response.ok()).toBeTruthy();
   const created = (await response.json()).data;
   try {
-    await expect(page.getByRole("main").getByRole("status")).toContainText(
-      "Evidence request saved.",
-    );
+    await expect(
+      page
+        .getByRole("main")
+        .getByRole("status")
+        .filter({ hasText: "Evidence request saved." }),
+    ).toBeVisible();
     const stored = await (
       await request.get("/api/v1/remediation/evidence-requests")
     ).json();

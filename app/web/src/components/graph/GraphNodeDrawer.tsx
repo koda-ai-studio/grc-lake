@@ -149,10 +149,14 @@ export function GraphNodeDrawer({
     >
       <div className="sticky top-0 z-10 flex items-start gap-3 border-b border-line bg-surface p-4">
         <div className="min-w-0 flex-1">
-          <p className="mb-1 text-xs font-semibold text-muted">Selected node</p>
-          <h2 className="break-words text-base font-semibold">{node.label}</h2>
+          <p className="mb-1 text-xs font-semibold text-muted">
+            {displayLabel(node.kind)} details
+          </p>
+          <h2 className="break-words text-lg font-semibold leading-6">
+            {node.label}
+          </h2>
           {node.subtitle && (
-            <p className="mt-1 break-words text-sm text-muted">
+            <p className="mt-2 break-words text-sm leading-6 text-muted">
               {node.subtitle}
             </p>
           )}
@@ -206,7 +210,7 @@ export function GraphNodeDrawer({
         )}
 
         {(isEvidence || ["control", "safeguard"].includes(node.kind)) && (
-          <div className="rounded-lg border border-line p-3 text-sm">
+          <div className="rounded-lg border border-line bg-surface-2 p-3 text-sm">
             <Badge tone={outcome.tone}>{outcome.label}</Badge>
             <p className="mt-2 text-xs leading-5 text-muted">
               {outcome.action}
@@ -266,9 +270,6 @@ export function GraphNodeDrawer({
             <b>Next action:</b> {node.next_action}
           </p>
         )}
-        {onFocusPath && (
-          <Button onClick={onFocusPath}>Focus this evidence path</Button>
-        )}
         {isPublicGap && (
           <div className="flex items-start gap-2 rounded-xl border border-warning/40 bg-warning-bg p-3 text-sm text-warning-fg">
             <AlertTriangle className="mt-0.5 h-4 w-4 flex-none" />
@@ -288,11 +289,13 @@ export function GraphNodeDrawer({
             </Link>
           </Button>
         )}
-        <dl className="grid grid-cols-[120px_minmax(0,1fr)] gap-x-3 gap-y-1.5 text-sm">
+        {onFocusPath && (
+          <Button onClick={onFocusPath}>Focus this evidence path</Button>
+        )}
+        <dl className="grid grid-cols-[100px_minmax(0,1fr)] gap-x-3 gap-y-2 border-t border-line pt-4 text-sm">
           {(
             [
-              ["Status", node.status],
-              ["Severity", node.severity],
+              ["Status", node.status ? displayLabel(node.status) : undefined],
               ["Source account", node.source_account_id],
               ["Observed", node.observed_at],
             ] as const
@@ -307,7 +310,7 @@ export function GraphNodeDrawer({
           {node.owner && (
             <>
               <dt className="text-muted">Owner</dt>
-              <dd className="font-semibold">{node.owner}</dd>
+              <dd className="break-words font-semibold">{node.owner}</dd>
             </>
           )}
           {node.environment && (
@@ -319,7 +322,7 @@ export function GraphNodeDrawer({
           {node.evidence_id && (
             <>
               <dt className="text-muted">Evidence id</dt>
-              <dd className="font-semibold">{node.evidence_id}</dd>
+              <dd className="break-all font-semibold">{node.evidence_id}</dd>
             </>
           )}
           {node.evidence_ref && (
@@ -331,7 +334,7 @@ export function GraphNodeDrawer({
           {node.event_type && (
             <>
               <dt className="text-muted">Event type</dt>
-              <dd className="font-semibold">{node.event_type}</dd>
+              <dd className="break-all font-semibold">{node.event_type}</dd>
             </>
           )}
           {node.freshness_status && (

@@ -648,6 +648,7 @@ export function InvestigationExplorer() {
                       graph={canvasGraph}
                       scopeIds={scopeIds}
                       showEdgeLabels={false}
+                      compactCards
                       neighborhoodRoot={
                         repositoryRoot && repositoryView === "evidence"
                           ? currentRoot
@@ -669,9 +670,7 @@ export function InvestigationExplorer() {
                       searchQuery=""
                       pathFrom={null}
                       pathTo={null}
-                      rankLimit={
-                        repositoryRoot && repositoryView === "all" ? 8 : 5
-                      }
+                      rankLimit={8}
                       focusId={selectedNode?.id}
                       onSelectNode={setSelected}
                       onExploreNode={exploreNode}
@@ -692,6 +691,10 @@ export function InvestigationExplorer() {
                     }
                   />
                 </div>
+                <p className="text-xs leading-5 text-muted sm:hidden">
+                  Drag the canvas to follow connections. Use Fit view for the
+                  full map.
+                </p>
                 <details className="rounded-xl border border-line p-3">
                   <summary className="cursor-pointer text-sm font-semibold">
                     Selected relationships and mapping review state
@@ -740,7 +743,7 @@ export function InvestigationExplorer() {
                     {mappingStates
                       .map((state) => state.replaceAll("_", " "))
                       .join(" · ")}
-                    . Details below.
+                    . Expand the relationship list above for details.
                   </p>
                 )}
               </section>
