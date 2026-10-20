@@ -16,6 +16,9 @@ def test_complete_matrix_exports_reviewable_evidence_without_claiming_live_quali
     assert json.loads((output / "report.json").read_text()) == report
     for case in report["cases"]:
         assert all(case["checks"].values())
+        assert case["checks"]["pinned_export_verified"] is True
+        assert case["checks"]["replacement_export_self_consistent"] is True
+        assert case["checks"]["replacement_export_rejected_by_pin"] is True
         assert case["observed"] == case["expected"]
         bundle = output / case["directory"] / "workpaper"
         content = json.loads((bundle / "workpaper.json").read_text())

@@ -210,7 +210,10 @@ def test_workpaper_cli_exports_and_verifies(workpaper_env, tmp_path, capsys):
         ]
     )
     assert exit_code == 0
-    capsys.readouterr()
+    from security_lakehouse.io import canonical_sha256
+
+    exported = json.loads((out / "workpaper.json").read_text())
+    assert canonical_sha256(exported) in capsys.readouterr().out
     exit_code = main(["assessment", "verify-workpaper", "--dir", str(out)])
     assert exit_code == 0
     assert json.loads(capsys.readouterr().out)["ok"] is True

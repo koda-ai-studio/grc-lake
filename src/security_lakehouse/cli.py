@@ -431,6 +431,11 @@ def _parser() -> argparse.ArgumentParser:
     workpaper.set_defaults(func=_assessment_workpaper)
     verify_workpaper = assessment_sub.add_parser("verify-workpaper", help="verify exported workpaper file hashes")
     verify_workpaper.add_argument("--dir", required=True)
+    verify_workpaper.add_argument(
+        "--expected-content-sha256",
+        type=_workpaper_content_digest,
+        help="compare against a content digest retained independently of the received bundle",
+    )
     verify_workpaper.set_defaults(func=_assessment_verify_workpaper)
     restore = assessment_sub.add_parser(
         "restore-snapshots", help="recover ledger-named historical exports without changing the ledger"
@@ -1834,7 +1839,7 @@ def _workflow_run(args: argparse.Namespace) -> int:
 
 def _assessment_workpaper(args: argparse.Namespace) -> int:
     from security_lakehouse.audit_workpapers import build_workpaper, export_workpaper
-    from security_lakehouse.io import read_json
+    from security_lakehouse.io import canonical_sha256, read_json
 
     lake, out = Path(args.lake).resolve(), Path(args.out).resolve()
     if out.is_relative_to(lake):
@@ -1842,13 +1847,23 @@ def _assessment_workpaper(args: argparse.Namespace) -> int:
     content = build_workpaper(lake, plan=read_json(Path(args.plan)), baseline=read_json(Path(args.baseline)))
     export_workpaper(content, out)
     print(f"wrote draft auditor workpaper: {out / 'index.html'}")
+    print(f"content SHA-256 (retain independently): {canonical_sha256(content)}")
     return 0
+
+
+def _workpaper_content_digest(value: str) -> str:
+    from security_lakehouse.audit_workpapers import validate_content_sha256
+
+    try:
+        return validate_content_sha256(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError(str(exc)) from exc
 
 
 def _assessment_verify_workpaper(args: argparse.Namespace) -> int:
     from security_lakehouse.audit_workpapers import verify_workpaper_export
 
-    result = verify_workpaper_export(Path(args.dir))
+    result = verify_workpaper_export(Path(args.dir), expected_content_sha256=args.expected_content_sha256)
     print(json.dumps(result, indent=2))
     return 0 if result["ok"] else 1
 
