@@ -115,6 +115,16 @@ def test_committed_coverage_doc_matches_generator() -> None:
     assert committed == render_framework_coverage_doc(), "run `make coverage-doc` and commit"
 
 
+def test_complete_mappings_do_not_imply_full_standard_or_company_assurance() -> None:
+    rows = {r["framework_id"]: r for r in build_framework_coverage()}
+    assert "Clauses 4-10" in rows["iso-27001-2022"]["coverage_boundary"]
+    assert "61" in rows["soc2"]["coverage_boundary"]
+    for fid in ("soc2", "iso-27001-2022", "nist-csf-2.0", "nist-800-53-rev5"):
+        row = rows[fid]
+        assert row["evaluatable_requirement_count"] == row["seeded_control_count"]
+        assert row["attestable_requirement_count"] < row["seeded_control_count"]
+
+
 def test_mcp_framework_coverage_tool_reports_attestable() -> None:
     """The MCP tool gives agents the same honest attestable ledger as the CLI."""
     import inspect

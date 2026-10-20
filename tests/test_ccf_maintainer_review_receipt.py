@@ -55,11 +55,11 @@ def test_review_credit_is_distinct_and_does_not_expand_mapping_coverage():
             if member.get("maintainer_review_ref") == RECEIPT:
                 member["review_status"] = "proposed"
     old, new = coverage_by_framework(before), coverage_by_framework(payload)
-    assert old["covered"] == new["covered"] == 1818
+    assert old["covered"] == new["covered"] == 2166
     assert old["controls"] == new["controls"] == 2252
     assert old["reviewed"] == 339
     assert new["reviewed"] == 1128
-    assert new["coverage_pct"] == 80.7
+    assert new["coverage_pct"] == 96.2
     assert new["reviewed_pct"] == 50.1
 
 

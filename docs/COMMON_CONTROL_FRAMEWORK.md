@@ -92,33 +92,33 @@ rest of that control.
 
 | Category                     | Family                    | ID                         | Safeguards | NIST SP 800-53 families | CIS Controls |
 | ---------------------------- | ------------------------- | -------------------------- | ---------: | ----------------------- | ------------ |
-| Governance and risk          | Risk management           | `risk-management`          |         31 | RA, CA, PM              | 18           |
-| Governance and risk          | Governance                | `governance`               |         24 | PL, PM                  | —            |
-| Identity and access          | Identity and access       | `identity`                 |        139 | AC, IA                  | 5, 6         |
-| Data protection and privacy  | Data protection           | `data-protection`          |          6 | SC, MP                  | 1, 3         |
-| Data protection and privacy  | Privacy                   | `privacy`                  |          8 | PT                      | —            |
+| Governance and risk          | Risk management           | `risk-management`          |         63 | RA, CA, PM              | 18           |
+| Governance and risk          | Governance                | `governance`               |         72 | PL, PM                  | —            |
+| Identity and access          | Identity and access       | `identity`                 |        198 | AC, IA                  | 5, 6         |
+| Data protection and privacy  | Data protection           | `data-protection`          |        165 | SC, MP                  | 1, 3         |
+| Data protection and privacy  | Privacy                   | `privacy`                  |         29 | PT                      | —            |
 | Secure engineering           | Change management         | `change-management`        |          4 | CM                      | —            |
-| Secure engineering           | Secure development        | `secure-development`       |          4 | SA                      | 16           |
+| Secure engineering           | Secure development        | `secure-development`       |        112 | SA                      | 16           |
 | Secure engineering           | Secure architecture       | `secure-architecture`      |          4 | SA, SC                  | —            |
-| Infrastructure security      | Configuration management  | `configuration-management` |         38 | CM                      | 2, 4         |
+| Infrastructure security      | Configuration management  | `configuration-management` |         62 | CM                      | 2, 4         |
 | Infrastructure security      | Vulnerability management  | `vulnerability-management` |          3 | RA, SI                  | 7            |
 | Infrastructure security      | Network security          | `network-security`         |          1 | SC                      | 12           |
 | Detection and response       | Detection                 | `detection`                |          3 | SI                      | 10, 13       |
-| Detection and response       | Audit logging             | `logging`                  |         43 | AU                      | 8            |
-| Detection and response       | Incident response         | `incident-response`        |         37 | IR                      | 17           |
-| Resilience and integrity     | Availability and recovery | `availability`             |         31 | CP                      | 11           |
-| Resilience and integrity     | System maintenance        | `system-maintenance`       |         27 | MA                      | —            |
-| Resilience and integrity     | Processing integrity      | `processing-integrity`     |         90 | SI                      | —            |
-| Third-party and supply chain | Third-party risk          | `third-party-risk`         |          6 | SR, SA                  | 15           |
-| People and physical          | People security           | `people-security`          |          8 | AT, PS                  | 14           |
-| People and physical          | Physical security         | `physical-security`        |          4 | PE                      | —            |
+| Detection and response       | Audit logging             | `logging`                  |         59 | AU                      | 8            |
+| Detection and response       | Incident response         | `incident-response`        |         50 | IR                      | 17           |
+| Resilience and integrity     | Availability and recovery | `availability`             |         54 | CP                      | 11           |
+| Resilience and integrity     | System maintenance        | `system-maintenance`       |         32 | MA                      | —            |
+| Resilience and integrity     | Processing integrity      | `processing-integrity`     |        105 | SI                      | —            |
+| Third-party and supply chain | Third-party risk          | `third-party-risk`         |         33 | SR, SA                  | 15           |
+| People and physical          | People security           | `people-security`          |         40 | AT, PS                  | 14           |
+| People and physical          | Physical security         | `physical-security`        |         55 | PE                      | —            |
 | AI governance                | AI governance             | `ai-governance`            |         21 | —                       | —            |
 
 ## Where it stands
 
 ```
 $ grc-lake frameworks safeguards --format table
-532 safeguards map 1818 of 2252 requirements (80.7%) — 1163 maintainer-reviewed, 0 org-reviewed (51.6% attestable), 655 proposed; 0 mapping(s) rejected by the org
+1165 safeguards map 2166 of 2252 requirements (96.2%) — 1163 maintainer-reviewed, 0 org-reviewed (51.6% attestable), 1003 proposed; 0 mapping(s) rejected by the org
 ```
 
 A mapping is **reviewed** once a human has confirmed the requirements are the
@@ -159,7 +159,7 @@ cannot become a false certification claim.
 | cis_aws             |           62 |     51 |  82.3% |
 | iso-27701-2025      |           10 |      8 |  80.0% |
 | dora-2022-2554      |           99 |     79 |  79.8% |
-| nist-800-53-rev5    |         1014 |    666 |  65.7% |
+| nist-800-53-rev5    |         1014 |   1014 | 100.0% |
 
 ### Broadest safeguards
 
@@ -345,7 +345,7 @@ see the [source and derivation record](NIST53_ASSESSMENTS.md#source-and-derivati
 
 Automated checks verify the recorded mapping identities and hashes, reconcile
 distinct requirement counts, and exclude stale versions from coverage. Source
-extraction checks compare the 381 added NIST contracts with the authoritative
+extraction checks compare all 1,014 NIST assessment contracts with the authoritative
 catalog. These checks establish record consistency, not mapping correctness or
 operating effectiveness. The timestamp records the batch decision, not individual
 inspection times.
