@@ -6,7 +6,9 @@ import pytest
 from PIL import Image
 
 IMAGES = Path(__file__).resolve().parents[1] / "docs" / "images"
-SCALE = 2
+DESKTOP_WIDTH = 1440
+# New captures use CSS pixels. Retain existing 2x assets until their next capture.
+CAPTURE_SCALES = (1, 2)
 RAIL_WIDTH = 248
 # A capture ends 40px below the page content, or 32px below the last rail nav
 # group when the rail is taller. On the shortest pages the rail sets the
@@ -22,7 +24,7 @@ def _width(path: Path) -> int:
         return image.width
 
 
-FULL_WIDTH_PAGES = [path for path in SCREENSHOTS if _width(path) == 1440 * SCALE]
+FULL_WIDTH_PAGES = [path for path in SCREENSHOTS if _width(path) in {DESKTOP_WIDTH * s for s in CAPTURE_SCALES}]
 
 
 def test_screenshots_exist() -> None:
@@ -40,8 +42,8 @@ def test_crop_policy_keeps_the_app_shell(path: Path) -> None:
     stem = path.stem.removesuffix("-dark")
     if stem in DRAWER_CROPS:
         return
-    expected = 390 if stem in MOBILE_PAGES else 1440
-    assert _width(path) == expected * SCALE, f"{path.name} is cropped"
+    expected = 390 if stem in MOBILE_PAGES else DESKTOP_WIDTH
+    assert _width(path) in {expected * s for s in CAPTURE_SCALES}, f"{path.name} is cropped"
 
 
 def test_mapping_review_and_mobile_captures_exist() -> None:
@@ -70,14 +72,17 @@ def test_light_and_dark_pairs_share_dimensions(dark: Path) -> None:
 def _blank_rows_at_bottom(image: Image.Image) -> int:
     """Rows at the bottom of the main column (right of the rail) that are one flat color."""
     width, height = image.size
-    column = image.convert("RGB").crop(((RAIL_WIDTH + 1) * SCALE, 0, width, height))
+    scale = width // DESKTOP_WIDTH
+    if scale not in CAPTURE_SCALES or width != DESKTOP_WIDTH * scale:
+        raise ValueError("Expected a full-width desktop capture")
+    column = image.convert("RGB").crop(((RAIL_WIDTH + 1) * scale, 0, width, height))
     background = column.getpixel((0, height - 1))
     rows = 0
     for y in range(height - 1, -1, -1):
         if column.crop((0, y, column.width, y + 1)).getcolors(maxcolors=1) != [(column.width, background)]:
             break
         rows += 1
-    return rows // SCALE
+    return rows // scale
 
 
 @pytest.mark.parametrize("path", FULL_WIDTH_PAGES, ids=lambda path: path.name)
@@ -85,3 +90,13 @@ def test_page_captures_end_near_their_content(path: Path) -> None:
     with Image.open(path) as image:
         blank = _blank_rows_at_bottom(image)
     assert blank <= MAX_BLANK_BOTTOM, f"{path.name} ends in {blank}px of empty page"
+
+
+@pytest.mark.parametrize("scale", CAPTURE_SCALES)
+@pytest.mark.parametrize("blank", [40, MAX_BLANK_BOTTOM + 1])
+def test_bottom_space_is_measured_in_css_pixels_at_each_capture_scale(scale: int, blank: int) -> None:
+    image = Image.new("RGB", (DESKTOP_WIDTH * scale, 400 * scale), "white")
+    # A rail extending to the bottom must not hide excessive blank main content.
+    image.paste("black", (0, 0, RAIL_WIDTH * scale, image.height))
+    image.paste("black", ((RAIL_WIDTH + 1) * scale, 0, image.width, (400 - blank) * scale))
+    assert _blank_rows_at_bottom(image) == blank
