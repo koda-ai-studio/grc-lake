@@ -75,6 +75,11 @@ def test_spdx_jsonld_import_and_export(tmp_path: Path) -> None:
         },
     )
     assert import_aibom(input_path=source, lake=tmp_path / "lake")["format"] == "spdx-3.0.1"
+    # A model classification alone supplies no model-card documentation.
+    assert list_ai_inventory(lake=tmp_path / "lake")[0]["model_card"] is False
+    cdx_output = tmp_path / "spdx-as-cdx.json"
+    export_aibom(lake=tmp_path / "lake", output_path=cdx_output, output_format="cyclonedx-1.7")
+    assert "modelCard" not in json.loads(cdx_output.read_text())["components"][0]
     output = tmp_path / "export.spdx.json"
     export_aibom(lake=tmp_path / "lake", output_path=output, output_format="spdx-3.0.1")
     document = json.loads(output.read_text())

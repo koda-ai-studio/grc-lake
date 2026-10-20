@@ -108,6 +108,8 @@ function EvidencePageContent() {
   const sourceFilter = searchParams.get("source") ?? "";
   const controlFilter = searchParams.get("control") ?? "";
   const assetFilter = searchParams.get("asset") ?? "";
+  // null means no scope filter; an empty value selects legacy unscoped evidence.
+  const accountFilter = searchParams.get("account");
   const clearControlFilter = () => {
     const params = new URLSearchParams(searchParams.toString());
     params.delete("control");
@@ -164,9 +166,15 @@ function EvidencePageContent() {
   const selected = useMemo(
     () =>
       selectedId
-        ? (rows.find((row) => row.event_id === selectedId) ?? null)
+        ? (rows.find(
+            (row) =>
+              row.event_id === selectedId &&
+              (accountFilter === null ||
+                (row.source_account_id ?? row.tenant_id ?? "") ===
+                  accountFilter),
+          ) ?? null)
         : null,
-    [rows, selectedId],
+    [rows, selectedId, accountFilter],
   );
 
   const staleCount = useMemo(
@@ -182,6 +190,11 @@ function EvidencePageContent() {
     return rows.filter((e) => {
       if (sourceFilter && e.source !== sourceFilter) return false;
       if (assetFilter && e.asset_id !== assetFilter) return false;
+      if (
+        accountFilter !== null &&
+        (e.source_account_id ?? e.tenant_id ?? "") !== accountFilter
+      )
+        return false;
       if (activeTagId && !taggedIds.has(e.event_id)) return false;
       if (controlFilter && !e.control_ids.includes(controlFilter)) return false;
       if (filters.framework !== "all") {
@@ -205,6 +218,7 @@ function EvidencePageContent() {
     controlFilter,
     sourceFilter,
     assetFilter,
+    accountFilter,
   ]);
 
   const activeFilters = [
@@ -215,6 +229,7 @@ function EvidencePageContent() {
     Boolean(filters.query.trim()),
     Boolean(controlFilter),
     Boolean(assetFilter),
+    accountFilter !== null,
   ].filter(Boolean).length;
 
   const columns: SortableColumnDefs<EvidenceRow> = [
@@ -440,16 +455,27 @@ function EvidencePageContent() {
           <span className="[overflow-wrap:anywhere]">
             Asset:{" "}
             <strong>
-              {rows.find((row) => row.asset_id === assetFilter)?.asset_name ||
-                assetFilter}
+              {rows.find(
+                (row) =>
+                  row.asset_id === assetFilter &&
+                  (accountFilter === null ||
+                    (row.source_account_id ?? row.tenant_id ?? "") ===
+                      accountFilter),
+              )?.asset_name || assetFilter}
             </strong>
           </span>
+          {accountFilter !== null && (
+            <span>
+              Source account: <strong>{accountFilter || "Not recorded"}</strong>
+            </span>
+          )}
           <Button
             size="sm"
             variant="ghost"
             onClick={() => {
               const params = new URLSearchParams(searchParams.toString());
               params.delete("asset");
+              params.delete("account");
               router.replace(`/evidence/${params.size ? `?${params}` : ""}`, {
                 scroll: false,
               });

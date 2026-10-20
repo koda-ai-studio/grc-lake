@@ -1,66 +1,50 @@
-# Dual Lakehouse Architecture
+# Warehouse sources and export destinations
+
+Snowflake and ClickHouse are optional integration boundaries. Evaluation runs in
+GRC Lake; these adapters do not move control decisions into warehouse SQL or
+replace the operational database and committed generation store.
 
 ```mermaid
 flowchart TB
-  subgraph Sources["Security + Compliance Sources"]
-    Cloud["Cloud CSPM"]
-    Vuln["Vulnerability Scans"]
-    Runtime["Runtime Gateway"]
-    Idp["Identity Provider"]
-    Audit["Audit Log"]
-    Siem["SIEM Alerts"]
-    Tickets["Remediation Tickets"]
-    Models["AI Model Registry"]
+  subgraph Inputs["Read-only evidence inputs"]
+    Direct["Cloud, identity, code and runtime connectors"]
+    SnowRead["Snowflake source reader"]
+    ClickRead["ClickHouse source reader"]
   end
-
-  subgraph Local["Portable Local Pipeline"]
-    Raw["Raw JSONL"]
-    Bronze["Bronze<br/>raw + sha256"]
-    Silver["Silver<br/>normalized_events"]
-    Gold["Gold<br/>control_posture<br/>asset_risk<br/>metrics"]
-    SQLite["SQLite Mart<br/>demo + tests"]
+  subgraph Application["GRC Lake assessment engine"]
+    Raw["Materialized raw observations"]
+    Normalize["Validate, hash and normalize"]
+    Evaluate["Versioned controls and CCF evaluation"]
+    Commit["Seal artifacts and publish generation"]
+    Reads["Pinned assessment reads"]
   end
-
-  subgraph Snowflake["Snowflake Governed Evidence Lake"]
-    SnowRaw["SECURITY_BRONZE.RAW_EVENTS"]
-    SnowEvents["SECURITY_SILVER.NORMALIZED_EVENTS"]
-    SnowControls["SECURITY_GOLD.CONTROL_POSTURE"]
-    SnowAssets["SECURITY_GOLD.ASSET_RISK"]
-    SnowViews["Audit / GRC Views"]
+  subgraph Destinations["Optional operator-configured exports"]
+    SnowWrite["Snowflake result tables"]
+    ClickWrite["ClickHouse result tables"]
   end
-
-  subgraph ClickHouse["ClickHouse Telemetry Analytics Lake"]
-    ChEvents["security.normalized_events"]
-    ChControls["security.control_posture"]
-    ChAssets["security.asset_risk"]
-    ChDash["Dashboard Aggregates"]
-  end
-
-  subgraph Apps["Consumption Layer"]
-    Dashboard["Static Dashboard"]
-    SQL["SQL Query CLI"]
-    Agent["Compliance Analytics Agent Skill"]
-    Auditor["Evidence Review"]
-    SecOps["SecOps Investigation"]
-  end
-
-  Sources --> Raw
-  Raw --> Bronze --> Silver --> Gold --> SQLite
-  Gold --> Dashboard
-  SQLite --> SQL
-  SQLite --> Agent
-
-  Bronze --> SnowRaw --> SnowEvents --> SnowControls --> SnowViews --> Auditor
-  SnowEvents --> SnowAssets --> SnowViews
-
-  Silver --> ChEvents --> ChDash --> SecOps
-  Gold --> ChControls
-  Gold --> ChAssets
-  ChDash --> Dashboard
+  Clients["Console, API, CLI and MCP"]
+  Workpaper["Snapshots and verified workpaper exports"]
+  Direct --> Raw
+  SnowRead --> Raw
+  ClickRead --> Raw
+  Raw --> Normalize --> Evaluate --> Commit --> Reads
+  Reads --> Clients
+  Reads --> Workpaper
+  Commit -->|after local publication| SnowWrite
+  Commit -->|after local publication| ClickWrite
 ```
 
-## Backend Split
+Source credentials authorize reads. Destination credentials authorize the
+explicit export. The source and destination can be different systems; configuring
+a reader does not authorize writing back to it. Result-table exports are
+projections, not in-warehouse evaluation pipelines.
 
-Snowflake carries the governed evidence story. ClickHouse carries the telemetry
-speed story. The local file-backed pipeline proves the transformation and model
-without needing either service running.
+Publication and warehouse export have separate outcomes. A failed export does
+not roll back an already committed local assessment, and there is no transaction
+across the application and the destination warehouse. Process-configured sinks
+are restricted to local operator runs; hosted execution does not inherit them.
+
+For application storage, use [filesystem or distributed deployment](deployment-models.md).
+For reader formats and qualification, see [bring your own lake](../BRING_YOUR_OWN_LAKE.md).
+For sink authority and failure handling, see the
+[assessment export boundary](../ARCHITECTURE.md#assessment-ownership-and-export-boundary).

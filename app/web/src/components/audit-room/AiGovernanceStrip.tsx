@@ -245,7 +245,10 @@ export function AiGovernanceStrip() {
                 </span>
                 {sample.map((item) => (
                   <div
-                    key={item.asset_id}
+                    key={JSON.stringify([
+                      item.source_account_id ?? "",
+                      item.asset_id,
+                    ])}
                     className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-line bg-surfaceMuted px-3 py-2 text-xs"
                   >
                     <div className="min-w-0 [overflow-wrap:anywhere]">

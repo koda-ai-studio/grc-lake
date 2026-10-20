@@ -105,6 +105,9 @@ export interface ControlTest {
 }
 
 export interface NormalizedEvent {
+  source_account_id?: string;
+  /** Legacy source-account identity; never platform authorization. */
+  tenant_id?: string;
   event_id: string;
   event_time: string;
   source: string;
@@ -604,6 +607,7 @@ export interface AiGovernance {
 }
 
 export interface AiInventoryItem {
+  source_account_id?: string;
   asset_id: string;
   asset_name?: string;
   asset_type: string;
