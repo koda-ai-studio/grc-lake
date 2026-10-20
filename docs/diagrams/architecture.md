@@ -13,54 +13,35 @@ from the CLI or behind the authenticated API and bundled console.
   [dual lakehouse](dual-lakehouse.md).
 
 ```mermaid
-flowchart LR
-  subgraph Sources["Security Evidence Sources"]
-    CSPM["Cloud CSPM"]
-    Vuln["Vulnerability Scanner"]
-    Runtime["Runtime Gateway"]
-    IDP["Identity Provider"]
-    SIEM["SIEM"]
-    Tickets["Ticketing"]
-    Registry["Model Registry"]
+flowchart TB
+  Sources["Read-only connectors and existing-lake readers"]
+  subgraph Writer["One writable application replica"]
+    Raw["Validated raw observations"]
+    Bronze["Bronze: replay records and SHA-256"]
+    Silver["Silver: normalized evidence and source identity"]
+    Evaluate["Versioned controls, CCF mappings and freshness"]
+    Stage["Gold outputs and derived SQLite mart"]
+    Publish["Seal hashes and atomically switch current generation"]
   end
-
-  subgraph Lake["File-Backed Security Lake"]
-    Bronze["Bronze<br/>raw JSONL + SHA-256"]
-    Silver["Silver<br/>normalized events"]
-    Gold["Gold<br/>metrics, controls, assets"]
-  end
-
-  subgraph Mart["Analytics Mart"]
-    SQLite["SQLite + optional DuckDB<br/>normalized_events<br/>control_posture<br/>asset_risk<br/>metrics"]
-  end
-
-  subgraph Consumption["Consumption"]
-    Dashboard["Static dashboard"]
-    SQL["SQL query CLI"]
-    Agent["Agent skill"]
-    Audit["Evidence package"]
-  end
-
-  CSPM --> Bronze
-  Vuln --> Bronze
-  Runtime --> Bronze
-  IDP --> Bronze
-  SIEM --> Bronze
-  Tickets --> Bronze
-  Registry --> Bronze
-  Bronze --> Silver
-  Silver --> Gold
-  Gold --> SQLite
-  Gold --> Dashboard
-  SQLite --> SQL
-  SQLite --> Agent
-  Gold --> Audit
+  Catalog["Pinned control catalog and reviewed mappings"]
+  Storage["Retained assessment generations"]
+  Authority["Authentication, tenant routing and scopes"]
+  API["API: pin and read committed generation"]
+  UI["Console and remote MCP"]
+  CLI["Trusted local CLI and offline report"]
+  Export["Snapshot and workpaper export verification"]
+  Sources --> Raw --> Bronze --> Silver --> Evaluate --> Stage --> Publish
+  Catalog --> Evaluate
+  Publish --> Storage
+  Authority --> API
+  Storage --> API --> UI
+  Storage --> CLI
+  Storage --> Export
 ```
 
 ## Why This Design
 
-The pipeline mirrors a real security analytics platform without requiring a
-cloud account:
+The local pipeline can be inspected with synthetic inputs without a cloud account:
 
 - raw records remain replayable and hash-linked
 - transformations are deterministic and testable

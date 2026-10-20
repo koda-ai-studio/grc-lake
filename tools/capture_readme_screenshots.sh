@@ -52,4 +52,7 @@ GRC_LAKE_SCREENSHOT_NOW="${GRC_LAKE_SCREENSHOT_NOW:-$(date -u +%Y-%m-%dT%H:%M:%S
 echo "==> Optimize PNGs"
 uv run python tools/optimize_screenshots.py
 
+echo "==> Validate capture dimensions, theme pairs, and content boundaries"
+uv run python -m pytest -q tests/test_doc_screenshots.py
+
 echo "==> Done. PNGs in docs/images/grc-lake-demo-*.png"

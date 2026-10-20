@@ -288,3 +288,149 @@ def test_inferred_model_inventory_is_not_reported_as_missing(tmp_path: Path) -> 
     data = build_ai_governance_status(lake=tmp_path)
     assert data["inventory"]["models"] == 1
     assert "model_inventory" not in {gap["id"] for gap in data["gaps"]}
+
+
+@pytest.mark.parametrize("signal", ["false", "true", "unknown", 1, {"present": False}, [True]])
+def test_inventory_requires_explicit_boolean_signals(tmp_path: Path, signal) -> None:
+    _write_jsonl(
+        tmp_path / "silver" / "normalized_events.jsonl",
+        [
+            {
+                "asset_id": "model:unverified",
+                "asset_type": "model",
+                "event_type": "model.inventory",
+                "attributes": {"model_card": signal, "lineage_complete": signal},
+            }
+        ],
+    )
+    item = list_ai_inventory(lake=tmp_path)[0]
+    assert item["model_card"] is False
+    assert item["lineage_complete"] is False
+    status = build_ai_governance_status(lake=tmp_path)
+    assert status["inventory"]["with_model_card"] == 0
+    assert status["inventory"]["with_lineage"] == 0
+
+
+def test_event_inventory_preserves_matching_imported_model_card(tmp_path: Path) -> None:
+    import json
+
+    from security_lakehouse.aibom import import_aibom
+
+    source = tmp_path / "bom.json"
+    source.write_text(
+        json.dumps(
+            {
+                "bomFormat": "CycloneDX",
+                "specVersion": "1.7",
+                "components": [
+                    {
+                        "type": "machine-learning-model",
+                        "bom-ref": "model:documented",
+                        "name": "Documented model",
+                        "modelCard": {"bom-ref": "card:documented"},
+                    }
+                ],
+            }
+        )
+    )
+    import_aibom(input_path=source, lake=tmp_path)
+    _write_jsonl(
+        tmp_path / "silver" / "normalized_events.jsonl",
+        [
+            {
+                "asset_id": "model:documented",
+                "asset_type": "model",
+                "event_type": "model.lineage",
+                "source": "registry",
+                "asset_owner": "ML team",
+                "control_ids": ["NIST-AI-RMF-MAP-1.5"],
+            },
+            {"asset_id": "model:other", "asset_type": "model", "event_type": "model.inventory"},
+        ],
+    )
+    items = {row["asset_id"]: row for row in list_ai_inventory(lake=tmp_path)}
+    assert items["model:documented"]["model_card"] is True
+    assert items["model:documented"]["owner"] == "ML team"
+    assert set(items["model:documented"]["sources"]) == {"registry", "cyclonedx-1.7"}
+    assert set(items["model:documented"]["event_types"]) == {"model.lineage", "aibom.inventory"}
+    assert items["model:other"]["model_card"] is False
+    status = build_ai_governance_status(lake=tmp_path)
+    assert status["inventory"]["with_model_card"] == 1
+    assert status["inventory"]["models"] == 2
+
+
+def test_inventory_keeps_colliding_source_account_assets_separate(tmp_path: Path) -> None:
+    _write_jsonl(
+        tmp_path / "silver" / "normalized_events.jsonl",
+        [
+            {
+                "asset_id": "model:shared",
+                "asset_type": "model",
+                "event_type": "model.inventory",
+                "tenant_id": "source-a",
+                "source_account_id": "source-a",
+                "asset_owner": "Team A",
+                "attributes": {"model_card": True},
+                "control_ids": ["control-a"],
+            },
+            {
+                "asset_id": "model:shared",
+                "asset_type": "model",
+                "event_type": "model.inventory",
+                "tenant_id": "source-b",
+                "source_account_id": "source-b",
+                "asset_owner": "Team B",
+                "attributes": {"model_card": False},
+                "control_ids": ["control-b"],
+            },
+        ],
+    )
+    _write_jsonl(
+        tmp_path / "gold" / "asset_risk.jsonl",
+        [
+            {"asset_id": "model:shared", "asset_name": "Unscoped display name"},
+        ],
+    )
+    rows = list_ai_inventory(lake=tmp_path)
+    assert len(rows) == 2
+    by_account = {row["source_account_id"]: row for row in rows}
+    assert by_account["source-a"]["model_card"] is True
+    assert by_account["source-b"]["model_card"] is False
+    assert by_account["source-b"]["owner"] == "Team B"
+    assert by_account["source-b"]["control_ids"] == ["control-b"]
+    assert all("asset_name" not in row for row in rows)
+    assert build_ai_governance_status(lake=tmp_path)["inventory"]["models"] == 2
+
+
+def test_unscoped_import_cannot_document_a_source_account_model(tmp_path: Path) -> None:
+    import json
+
+    from security_lakehouse.aibom import import_aibom
+
+    source = tmp_path / "bom.json"
+    source.write_text(
+        json.dumps(
+            {
+                "bomFormat": "CycloneDX",
+                "specVersion": "1.7",
+                "components": [
+                    {
+                        "type": "machine-learning-model",
+                        "bom-ref": "model:same",
+                        "name": "Model",
+                        "modelCard": {"bom-ref": "card:same"},
+                    }
+                ],
+            }
+        )
+    )
+    import_aibom(input_path=source, lake=tmp_path)
+    _write_jsonl(
+        tmp_path / "silver" / "normalized_events.jsonl",
+        [
+            {"asset_id": "model:same", "asset_type": "model", "event_type": "model.inventory", "tenant_id": "source-a"},
+        ],
+    )
+    rows = list_ai_inventory(lake=tmp_path)
+    assert len(rows) == 2
+    assert {row["source_account_id"]: row["model_card"] for row in rows} == {"": True, "source-a": False}

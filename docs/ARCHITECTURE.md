@@ -110,6 +110,57 @@ boundaries and recovery procedures.
 | API                             | JSON contracts for humans and agents                     | rendering-only state                             |
 | UI                              | interactive workflow                                     | control truth                                    |
 
+## Implementation and test map
+
+Follow these boundaries when reviewing an assessment. Links point to executable
+source and failure-focused tests; they are not a claim that every deployment or
+provider has been qualified.
+
+| Layer                        | Owning implementation                                                                                                            | Contract to challenge                                                                                                     | Representative tests                                                                                                                  |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Source collection            | [Ingestion](../src/security_lakehouse/ingestion/), [collection completeness](COLLECTION_COMPLETENESS.md)                         | Read-only source access; incomplete collection remains visible                                                            | [Collection receipts](../tests/test_collection_completeness.py)                                                                       |
+| Normalization and provenance | [Pipeline](../src/security_lakehouse/pipeline.py), [raw validation](../src/security_lakehouse/validation.py)                     | Raw observations become hashed, normalized records; provider account identity is not platform authority                   | [Pipeline](../tests/test_pipeline.py), [tenant scope](../tests/test_evaluation_tenant_scope.py)                                       |
+| Deterministic evaluation     | [Control verdicts](../src/security_lakehouse/control_verdict.py), [CCF evaluation](../src/security_lakehouse/ccf_evaluation.py)  | Required evidence must belong to the same applicable asset and scope; missing evidence cannot borrow another asset's pass | [Evidence completeness](../tests/test_identity_evidence_completeness.py), [CCF assessments](../tests/test_ccf_control_assessments.py) |
+| Assessment publication       | [Assessment service](../src/security_lakehouse/services/assessments.py), [generations](../src/security_lakehouse/generations.py) | Readers pin a sealed generation; failed publication preserves the previous view                                           | [Publication failures](../tests/test_generations.py), [service outcomes](../tests/test_assessment_service.py)                         |
+| Authority and execution      | [Authentication](../src/security_lakehouse/auth/), [operation jobs](../src/security_lakehouse/operation_jobs.py)                 | Authenticated tenant and scopes precede business operations; bounded jobs retain outcomes                                 | [Tenant isolation](../tests/test_tenant_isolation.py), [SSO](../tests/test_sso_sessions.py), [jobs](../tests/test_operation_jobs.py)  |
+| Human review and export      | [Control assurance](../src/security_lakehouse/control_assurance.py), [workpapers](../src/security_lakehouse/audit_workpapers.py) | Design, sampled operation, population completeness, and human review stay separate                                        | [Workpapers](../tests/test_audit_workpapers.py), [export verification](../tests/test_workpaper_export_validation.py)                  |
+| Console and integrations     | [Console](../app/web/src/), [AI inventory](../src/security_lakehouse/ai_governance.py)                                           | Consumers present evidence and outcomes without inventing control truth                                                   | [AI inventory](../tests/test_ai_governance.py), [console worklist](../app/web/e2e/ai-worklist.spec.ts)                                |
+
+### Trace one assessment end to end
+
+1. A connector or imported file supplies raw observations with source and evidence
+   references. Validate shape and retain collection-completeness information.
+2. Normalize the observations into the selected tenant's lake. Bind evaluation
+   to that platform tenant; retain source-account identity as provenance.
+3. Evaluate versioned rules and reviewed safeguard mappings. Evaluate freshness,
+   evidence types, and asset applicability; preserve unknown and missing states.
+4. Stage and seal a generation, verify its artifacts, then publish the current
+   pointer or distributed manifest. Readers use that committed generation.
+5. Inspect a control's evidence and record the scoped assessment plan and
+   population baseline. Build a workpaper from retained inputs; a passing sample
+   and an incomplete population can coexist.
+6. Export and verify the workpaper and snapshot chain. Keep human review pending
+   until an authorized reviewer acts; retain integrity checkpoints separately.
+
+Reproduce these steps with the [control workflow qualification](CONTROL_WORKFLOW_QUALIFICATION.md).
+Its negative cases alter evidence, omit sampling windows, introduce conflicting
+observations, and attempt foreign-tenant access and export tampering.
+
+### Tradeoffs and operating limits
+
+The filesystem mode offers inspectable artifacts and atomic generation changes,
+but requires one writer and retention management. Distributed mode adds database
+coordination and object storage; it does not split one tenant's evaluation across
+workers. Evaluation materializes rows in memory. Graph caches trade memory for
+repeat-read latency, and each process has its own cache. Hashes detect changes
+relative to trusted retained records; they cannot establish provider truth or
+survive an attacker deleting both history and every local checkpoint.
+
+Use the [threat model](THREAT_MODEL.md), [measured workloads](BENCHMARKS.md), and
+[deployment qualification](CURRENT_STATE.md) to assess these tradeoffs. Provider
+permissions, representative load, backup recovery, and failover need evidence
+from the intended environment before setting production objectives.
+
 ## Design Rules
 
 - The evaluation engine must run without the UI.

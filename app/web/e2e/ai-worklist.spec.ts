@@ -12,6 +12,7 @@ test("model worklist exposes evidence gaps and follows only the selected asset",
         data: [
           {
             asset_id: "model:review",
+            source_account_id: "source-a",
             asset_name: "Review model",
             asset_type: "model",
             owner: "Risk team",
@@ -70,13 +71,17 @@ test("model worklist exposes evidence gaps and follows only the selected asset",
           {
             ...base,
             event_id: "selected-model-event",
+            source_account_id: "source-a",
+            tenant_id: "source-a",
             asset_id: "model:review",
             asset_name: "Review model",
           },
           {
             ...base,
             event_id: "other-model-event",
-            asset_id: "model:documented",
+            asset_id: "model:review",
+            source_account_id: "source-b",
+            tenant_id: "source-b",
             asset_name: "Documented model",
           },
         ],
@@ -126,3 +131,53 @@ for (const width of [390, 768, 1440]) {
     ).toBeVisible();
   });
 }
+
+test("canonical AI agents show runtime actions and stay out of model-card gaps", async ({
+  page,
+}) => {
+  await page.route("**/api/v1/stream", (route) =>
+    route.fulfill({ status: 200, contentType: "text/event-stream", body: "" }),
+  );
+  await page.route("**/api/v1/platform/ai-governance/inventory**", (route) =>
+    route.fulfill({
+      json: {
+        data: [
+          {
+            asset_id: "agent:finance-research",
+            asset_name: "Finance research agent",
+            asset_type: "ai_agent",
+            owner: "Risk team",
+            environment: "test",
+            model_card: false,
+            lineage_complete: false,
+            last_seen_at: "2026-10-10T12:00:00Z",
+            sources: ["runtime-gateway"],
+            control_ids: [],
+            event_types: ["runtime.tool_call"],
+          },
+        ],
+      },
+    }),
+  );
+  await page.goto("/console/ai-governance/");
+  const worklist = page.getByRole("region", { name: "Models and agents" });
+  await expect(
+    worklist.getByText("Runtime recorded", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    worklist.getByText("Review tool activity", { exact: true }),
+  ).toBeVisible();
+  await worklist
+    .getByLabel("Filter AI inventory")
+    .selectOption("documentation");
+  await expect(
+    worklist.getByText("No observed assets match this filter."),
+  ).toBeVisible();
+  await worklist.getByLabel("Filter AI inventory").selectOption("agents");
+  await worklist
+    .getByRole("button", { name: "Inspect Finance research agent" })
+    .click();
+  await expect(
+    worklist.getByRole("link", { name: "View agent evidence" }),
+  ).toBeVisible();
+});

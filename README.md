@@ -18,7 +18,7 @@ Read evidence from existing systems and security lakes, evaluate versioned rules
 and preserve the evidence and review decisions behind each result.
 
 [Quick start](#quick-start) · [Product tour](#product-tour) · [Self-host](#self-host) ·
-[Coverage](docs/CURRENT_STATE.md) · [Documentation](docs/README.md)
+[Engineering review](#engineering-review) · [Coverage](docs/CURRENT_STATE.md) · [Documentation](docs/README.md)
 
 ## Quick start
 
@@ -136,13 +136,19 @@ The model and agent worklist brings owners, environments, governance signals,
 and next actions together. Open an asset's linked controls or filtered evidence;
 recorded lineage remains distinct from freshly evaluated controls.
 
+A **model card** documents a model's intended use, limitations, and evaluation.
+**Model card not observed** means no card signal was collected for that asset;
+the document may exist elsewhere. The synthetic demo includes inventory and
+lineage observations without model-card signals. **Recorded** means evidence presence, not verified
+content, freshness, or a passing control. See [AI inventory semantics](docs/AIBOM.md#model-card-evidence).
+
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/images/grc-lake-demo-ai-governance-dark.png">
   <img src="docs/images/grc-lake-demo-ai-governance.png" alt="AI model and agent worklist showing owners, governance signals, and next actions" width="100%" loading="lazy">
 </picture>
 
-_Screens use the bundled synthetic company, captured for v0.3.3 from source
-`27b21b16` on 2026-10-12. They show recorded relationships and demo workflows,
+_Screens use the bundled synthetic company, captured for v0.3.9 from source
+`0823048b` on 2026-10-19 (America/New_York). They show recorded relationships and demo workflows,
 not a customer deployment or an audit opinion._
 
 [Try the five-minute console tour](docs/PRODUCT_WALKTHROUGH.md#five-minute-tour) ·
@@ -172,6 +178,27 @@ Queued assessments retain tenant-scoped result receipts. Pagination, queue
 admission, response storage, and retries have explicit bounds. See the
 [assessment contract](docs/ASSESSMENT_APPLICATION_CONTRACT.md) and
 [architecture guide](docs/ARCHITECTURE.md) for recovery behavior and API limits.
+
+## Engineering review
+
+Start with one control and follow its source evidence through a retained
+assessment into a verified workpaper. The [synthetic access/change workflow](docs/CONTROL_WORKFLOW_QUALIFICATION.md)
+runs passing, failing, missing, stale, conflicting, and incomplete-population
+cases with explicit expectations and retained inputs.
+
+| Review question                                                  | Implementation and evidence                                                                                                   |
+| ---------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| How do the layers fit together?                                  | [Architecture and source map](docs/ARCHITECTURE.md#implementation-and-test-map), [data flow](docs/DATA_FLOW.md)               |
+| What makes a result pass, fail, or remain unknown?               | [Evaluation semantics](docs/EVIDENCE_EVALUATION_SEMANTICS.md), [population reconciliation](docs/POPULATION_RECONCILIATION.md) |
+| What prevents cross-tenant access and unauthorized decisions?    | [Trust boundaries](docs/THREAT_MODEL.md), [identity and scopes](docs/SERVER_AUTH.md)                                          |
+| What happens after partial writes, retries, or interrupted jobs? | [Generation publication](docs/ASSESSMENT_GENERATIONS.md), [operation contracts](docs/ASSESSMENT_APPLICATION_CONTRACT.md)      |
+| How are integrity and reproducibility checked?                   | [Workpaper qualification](docs/CONTROL_WORKFLOW_QUALIFICATION.md), [backup and restore](docs/runbooks/BACKUP_RESTORE.md)      |
+| What performance has actually been measured?                     | [Pipeline measurements](docs/benchmarks/CCF_PIPELINE.md), [graph latency and memory](docs/benchmarks/INVESTIGATION_CACHE.md)  |
+
+Run checks from the revision being reviewed; the CI badge above tracks `main`.
+Benchmark receipts identify their own revisions and workloads. A local synthetic
+pass does not establish provider completeness, production capacity, or an audit
+opinion. [Current qualification](docs/CURRENT_STATE.md) records those boundaries.
 
 ## Self-host
 

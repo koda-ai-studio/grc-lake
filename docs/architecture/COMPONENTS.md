@@ -57,11 +57,16 @@ and board reporting.
 
 ## Lake Adapters
 
-Storage is an adapter boundary:
+Application state and warehouse integration have separate ownership:
 
-- local evidence files with SQLite or PostgreSQL for one writable replica
-- PostgreSQL coordination and S3-compatible evidence objects for distributed mode
-- Snowflake for governed evidence
-- ClickHouse for telemetry analytics
+- Filesystem mode keeps sealed evidence generations on local storage. SQLite or
+  PostgreSQL holds operational records; one writable replica owns each lake.
+- Distributed mode uses PostgreSQL for coordination and committed manifests,
+  with S3-compatible objects for evidence. Replica scratch directories are disposable.
+- Snowflake and ClickHouse can supply read-only evidence or receive optional
+  post-assessment exports. They do not replace the application state store.
+- The sealed SQLite analytics mart is a derived read projection, distinct from
+  the operational database. Evaluation rebuilds it from generation inputs.
 
-No product logic should depend on one warehouse.
+See the [implementation and test map](../ARCHITECTURE.md#implementation-and-test-map)
+and [storage compatibility](../DEPLOYMENT.md#deployment-and-lake-compatibility).

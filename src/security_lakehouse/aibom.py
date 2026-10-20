@@ -186,7 +186,9 @@ def _spdx_items(document: dict[str, Any]) -> list[dict[str, Any]]:
                 "description": _text(element.get("description") or element.get("comment")),
                 "purl": _text(element.get("software_packageUrl") or element.get("packageUrl"), limit=2048),
                 "licenses": licenses.get(element_id, []),
-                "model_card": item_type == "machine-learning-model",
+                # SPDX model classification is inventory, not a model-card signal.
+                # This importer does not project SPDX documentation relationships.
+                "model_card": False,
             }
         )
     return rows

@@ -31,6 +31,6 @@ def dedupe_by_key(
     for row in rows:
         k = key(row)
         existing = chosen.get(k)
-        if existing is None or recency is not None and recency(row) >= recency(existing):
+        if existing is None or recency is not None and recency(row) > recency(existing):
             chosen[k] = row
     return list(chosen.values())

@@ -23,8 +23,16 @@ import { SCORE_COPY } from "@/lib/console-copy";
 import { readinessCoverage } from "@/lib/readiness-coverage";
 import { aiFrameworkDetail, aiFrameworkSummary } from "./AiGovernanceStrip";
 
+function isAgent(item: AiInventoryItem): boolean {
+  return item.asset_type === "ai_agent" || item.asset_type === "agent";
+}
+
+function inventoryKey(item: AiInventoryItem): string {
+  return JSON.stringify([item.source_account_id ?? "", item.asset_id]);
+}
+
 function nextStep(item: AiInventoryItem): string {
-  if (item.asset_type === "agent")
+  if (isAgent(item))
     return item.event_types.includes("runtime.tool_call")
       ? "Review tool activity"
       : "Collect runtime evidence";
@@ -36,7 +44,8 @@ function nextStep(item: AiInventoryItem): string {
 function InventoryRow({ item }: { item: AiInventoryItem }) {
   const [open, setOpen] = useState(false);
   const name = assetLabel(item);
-  const agent = item.asset_type === "agent";
+  const detailId = `ai-detail-${encodeURIComponent(inventoryKey(item))}`;
+  const agent = isAgent(item);
   const recordedLineage =
     item.lineage_complete || item.event_types.includes("model.lineage");
   const runtime = item.event_types.includes("runtime.tool_call");
@@ -55,6 +64,9 @@ function InventoryRow({ item }: { item: AiInventoryItem }) {
             <p className="mt-1 text-xs text-muted [overflow-wrap:anywhere]">
               {item.owner || "Owner not assigned"} ·{" "}
               {item.environment || "Environment unknown"}
+            </p>
+            <p className="mt-1 text-xs text-muted [overflow-wrap:anywhere]">
+              Source account: {item.source_account_id || "Not recorded"}
             </p>
           </div>
         </div>
@@ -82,7 +94,7 @@ function InventoryRow({ item }: { item: AiInventoryItem }) {
           type="button"
           aria-label={`Inspect ${name}`}
           aria-expanded={open}
-          aria-controls={`ai-detail-${item.asset_id}`}
+          aria-controls={detailId}
           onClick={() => setOpen(!open)}
           className="inline-flex items-center justify-self-start gap-1 rounded-md px-2 py-2 text-xs font-semibold text-brand hover:bg-brand/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
         >
@@ -98,7 +110,7 @@ function InventoryRow({ item }: { item: AiInventoryItem }) {
       </p>
       {open && (
         <section
-          id={`ai-detail-${item.asset_id}`}
+          id={detailId}
           aria-label={`${name} details`}
           className="mx-4 mb-4 grid gap-4 rounded-lg border border-line bg-surfaceMuted p-4"
         >
@@ -110,7 +122,7 @@ function InventoryRow({ item }: { item: AiInventoryItem }) {
                   ? "Review the recorded tools, permissions and outcomes before assessing agent behavior."
                   : "Runtime evidence is needed to inspect tool use and permissions. Connect the agent activity source if this agent is in scope."
                 : !item.model_card
-                  ? "Purpose, limitations and intended use are not documented in the observed model-card evidence. Collect a model card from the owner or source repository, then review the linked controls."
+                  ? "Purpose, limitations and intended use belong in a model card. No model-card signal was collected for this asset; the document may exist elsewhere. Ask the owner for the card and collect its evidence, then review the linked controls."
                   : !item.lineage_complete
                     ? "Check the recorded inputs, transformations and model version. A lineage event alone does not establish complete traceability."
                     : "Documentation and lineage signals are present. Review the evidence and current control results before drawing an assurance conclusion."}
@@ -157,7 +169,7 @@ function InventoryRow({ item }: { item: AiInventoryItem }) {
               . Evidence presence is not a control verdict.
             </p>
             <Link
-              href={`/evidence/?asset=${encodeURIComponent(item.asset_id)}`}
+              href={`/evidence/?asset=${encodeURIComponent(item.asset_id)}${item.source_account_id !== undefined ? `&account=${encodeURIComponent(item.source_account_id)}` : ""}`}
               className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-brand hover:underline"
             >
               {agent ? "View agent evidence" : "View model evidence"}{" "}
@@ -181,8 +193,8 @@ export function AiGovernanceWorkspace() {
     (item) =>
       filter === "all" ||
       (filter === "agents"
-        ? item.asset_type === "agent"
-        : item.asset_type !== "agent" && !item.model_card),
+        ? isAgent(item)
+        : !isAgent(item) && !item.model_card),
   );
   const data = governance.data;
   return (
@@ -291,17 +303,15 @@ export function AiGovernanceWorkspace() {
                 </label>
               </div>
               <div className="border-y border-line bg-surfaceMuted px-4 py-2 text-xs leading-5 text-muted">
-                {items.some(
-                  (item) => item.asset_type !== "agent" && !item.model_card,
-                )
-                  ? "Start with documentation: establish intended use and limitations, then check the linked controls."
+                {items.some((item) => !isAgent(item) && !item.model_card)
+                  ? "A model card documents intended use, limitations and evaluation results. “Not observed” means no model-card signal was collected for this asset; the document may exist elsewhere."
                   : "Review the recorded signals and their linked control results."}{" "}
                 Missing evidence is not a failed check.
               </div>
               {visible.length ? (
                 <ul>
                   {visible.map((item) => (
-                    <InventoryRow key={item.asset_id} item={item} />
+                    <InventoryRow key={inventoryKey(item)} item={item} />
                   ))}
                 </ul>
               ) : (

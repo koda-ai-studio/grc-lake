@@ -240,3 +240,9 @@ def test_okta_client_retries_on_429_then_succeeds(monkeypatch: pytest.MonkeyPatc
     users = OktaClient("https://org.okta.com", token="t").users()
     assert [u["id"] for u in users] == ["u1", "u2"]
     assert calls["n"] == 2  # one 429, one success
+
+
+def test_dedupe_recency_ties_preserve_first_observation() -> None:
+    rows = [{"id": "a", "value": "first", "ts": 1}, {"id": "a", "value": "conflicting", "ts": 1}]
+    assert dedupe_by_key(rows, key=lambda r: r["id"], recency=lambda r: r["ts"]) == [rows[0]]
+    assert dedupe_by_key(rows * 2, key=lambda r: r["id"], recency=lambda r: r["ts"]) == [rows[0]]

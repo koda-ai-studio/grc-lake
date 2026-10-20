@@ -8,6 +8,7 @@ the event-backed inventory and lineage evidence model.
 
 from __future__ import annotations
 
+from collections import Counter
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -15,6 +16,7 @@ from typing import Any
 from security_lakehouse.aibom import aibom_status, list_aibom_items
 from security_lakehouse.asset_names import load_asset_names, with_asset_names
 from security_lakehouse.catalog import load_control_catalog
+from security_lakehouse.domain_identity import source_asset_key
 from security_lakehouse.evidence_freshness import build_evidence_freshness, stale_control_ids
 from security_lakehouse.io import read_jsonl
 from security_lakehouse.mapping_review import effective_safeguards
@@ -183,7 +185,7 @@ def _framework_score(frameworks: list[dict[str, Any]]) -> int:
 
 
 def _inventory_items(events: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    by_asset: dict[str, dict[str, Any]] = {}
+    by_asset: dict[tuple[str, str], dict[str, Any]] = {}
     for row in events:
         if not _is_ai_event(row):
             continue
@@ -194,10 +196,12 @@ def _inventory_items(events: list[dict[str, Any]]) -> list[dict[str, Any]]:
         if asset_type not in AI_ASSET_TYPES and str(row.get("event_type") or "") not in INVENTORY_EVENT_TYPES:
             continue
         attrs = _attributes(row)
+        account, _ = source_asset_key({**row, "asset_id": asset_id})
         item = by_asset.setdefault(
-            asset_id,
+            (account, asset_id),
             {
                 "asset_id": asset_id,
+                "source_account_id": account,
                 "asset_type": asset_type or "ai_model",
                 "owner": _asset_owner(row),
                 "environment": _environment(row),
@@ -218,9 +222,9 @@ def _inventory_items(events: list[dict[str, Any]]) -> list[dict[str, Any]]:
         for control_id in _control_ids(row):
             if control_id not in item["control_ids"]:
                 item["control_ids"].append(control_id)
-        if attrs.get("model_card"):
+        if attrs.get("model_card") is True:
             item["model_card"] = True
-        if attrs.get("lineage_complete"):
+        if attrs.get("lineage_complete") is True:
             item["lineage_complete"] = True
         event_time = str(row.get("event_time") or "")
         if instant_sort_key(event_time) > instant_sort_key(item["last_seen_at"]):
@@ -238,6 +242,7 @@ def _aibom_inventory_items(*, lake: Path) -> list[dict[str, Any]]:
         rows.append(
             {
                 "asset_id": str(item.get("id") or item.get("name")),
+                "source_account_id": "",
                 "asset_type": "model" if item.get("type") == "machine-learning-model" else str(item.get("type")),
                 "owner": "",
                 "environment": "",
@@ -252,6 +257,25 @@ def _aibom_inventory_items(*, lake: Path) -> list[dict[str, Any]]:
     return rows
 
 
+def _merged_inventory(*, lake: Path, events: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Combine recorded presence signals for exact source-account/asset pairs.
+
+    Event metadata owns owner/environment/last-seen fields. An event without a
+    card signal must not erase imported documentation; neither source proves
+    document quality, freshness, or a control verdict.
+    """
+    by_id = {source_asset_key(row): row for row in _aibom_inventory_items(lake=lake)}
+    for item in _inventory_items(events):
+        key = source_asset_key(item)
+        imported = by_id.get(key)
+        if imported is not None:
+            item["model_card"] = item["model_card"] or imported["model_card"]
+            for field in ("sources", "event_types"):
+                item[field] = sorted(set(item[field]) | set(imported[field]))
+        by_id[key] = item
+    return sorted(by_id.values(), key=source_asset_key)
+
+
 def build_ai_governance_status(*, lake: Path) -> dict[str, Any]:
     """Aggregate AI inventory, lineage, artifacts, and framework coverage."""
     events = read_jsonl(lake / "silver" / "normalized_events.jsonl", missing_ok=True)
@@ -263,9 +287,7 @@ def build_ai_governance_status(*, lake: Path) -> dict[str, Any]:
     agent_events = [row for row in ai_events if str(row.get("event_type") or "") in AGENT_EVENT_TYPES]
     repo_artifacts = [row for row in ai_events if str(row.get("event_type") or "") in REPO_ARTIFACT_EVENT_TYPES]
 
-    inventory_by_id = {row["asset_id"]: row for row in _aibom_inventory_items(lake=lake)}
-    inventory_by_id.update({row["asset_id"]: row for row in _inventory_items(ai_events)})
-    inventory = sorted(inventory_by_id.values(), key=lambda row: row["asset_id"])
+    inventory = _merged_inventory(lake=lake, events=ai_events)
     models = [row for row in inventory if row["asset_type"] in {"ai_model", "model"}]
     agents = [row for row in inventory if row["asset_type"] == "ai_agent"]
     with_model_card = sum(1 for row in inventory if row["model_card"])
@@ -379,12 +401,12 @@ def list_ai_inventory(*, lake: Path, limit: int = 100, offset: int = 0) -> list[
     """Return paginated AI model/agent inventory rows from normalized events."""
     events = read_jsonl(lake / "silver" / "normalized_events.jsonl", missing_ok=True)
     ai_events = [row for row in events if _is_ai_event(row)]
-    by_id = {row["asset_id"]: row for row in _aibom_inventory_items(lake=lake)}
-    by_id.update({row["asset_id"]: row for row in _inventory_items(ai_events)})
-    items = sorted(by_id.values(), key=lambda row: row["asset_id"])
+    items = _merged_inventory(lake=lake, events=ai_events)
     start = max(offset, 0)
     end = start + max(limit, 1)
-    return with_asset_names(items[start:end], load_asset_names(lake))
+    counts = Counter(item["asset_id"] for item in items)
+    names = {asset: name for asset, name in load_asset_names(lake).items() if counts[asset] == 1}
+    return with_asset_names(items[start:end], names)
 
 
 __all__ = ["build_ai_governance_status", "list_ai_inventory"]
