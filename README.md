@@ -138,8 +138,8 @@ recorded lineage remains distinct from freshly evaluated controls.
 
 A **model card** documents a model's intended use, limitations, and evaluation.
 **Model card not observed** means no card signal was collected for that asset;
-the document may exist elsewhere. The synthetic models below have lineage events
-but no model-card signals. **Recorded** means evidence presence, not verified
+the document may exist elsewhere. The synthetic demo includes inventory and
+lineage observations without model-card signals. **Recorded** means evidence presence, not verified
 content, freshness, or a passing control. See [AI inventory semantics](docs/AIBOM.md#model-card-evidence).
 
 <picture>

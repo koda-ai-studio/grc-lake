@@ -51,13 +51,13 @@ const shots = [
     route: "/ai-governance/",
     dark: true,
     viewport: TALL,
-    endAt: (page) => page.getByRole("region", { name: "AI framework coverage" }),
+    endAt: (page) => page.getByTestId("ai-governance-strip"),
   },
   {
     file: "grc-lake-demo-ai-governance-mobile.png",
     route: "/ai-governance/",
     dark: true,
-    viewport: MOBILE,
+    viewport: { width: 390, height: 2200 },
     endAt: (page) => page.getByRole("region", { name: "Models and agents" }),
   },
   {

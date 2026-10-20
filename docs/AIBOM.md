@@ -76,7 +76,7 @@ presence signals, not a current-state revocation or document-review ledger.
 Repository AI-artifact counts are broader discovery signals and do not attach a
 card to a model without an explicit asset binding.
 
-The golden demo's four models have `model.lineage` events and no model-card
-signals. Its documentation gaps are deliberate synthetic inputs. Model-card
+The golden demo includes `model.lineage` and `ai.model_inventory` observations
+without model-card signals. Its documentation gaps are deliberate synthetic inputs. Model-card
 presence and lineage remain separate from evaluated framework controls and
 human acceptance of the evidence.
