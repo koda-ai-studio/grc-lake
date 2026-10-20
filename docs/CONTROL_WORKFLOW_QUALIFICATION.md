@@ -75,7 +75,7 @@ both checks separately. These deliberately altered copies remain synthetic and
 unreviewed; the runner does not authenticate an external custodian of the digest.
 
 CI runs the matrix in the required pipeline-smoke path and retains the report,
-case inputs, result receipts, and original workpapers for 14 days, including
+case inputs, result receipts, original workpapers, and replacement probes for 14 days, including
 on failures. Download the `control-workflow-qualification` artifact for the
 exact PR or main revision under review. Local runs additionally retain lakes
 and tampered copies.
