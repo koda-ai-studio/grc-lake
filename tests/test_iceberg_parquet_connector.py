@@ -74,11 +74,17 @@ def _api_spec(table: str = "sec.cloud_trail_mgmt", **source: Any) -> Any:
     return resolve_mapping_ref({"preset": "ocsf/api_activity", "source": {"table": table, **source}})
 
 
+def _reader(catalog: Any) -> ice.IcebergCatalogReader:
+    # Fixed September evidence must not age out of the default first-sync window
+    # as wall-clock time advances. The production 30-day window stays enabled.
+    return ice.IcebergCatalogReader(catalog, now=lambda: datetime(2026, 9, 24, tzinfo=UTC))
+
+
 # --- Iceberg ---------------------------------------------------------------------
 
 
 def test_iceberg_reader_pushes_filters_and_watermark_and_orders_rows(sql_catalog: Any) -> None:
-    reader = ice.IcebergCatalogReader(sql_catalog)
+    reader = _reader(sql_catalog)
     spec = _api_spec(lookback_minutes=0)
     rows = reader.fetch_mapping_rows(spec, since="2026-09-21T00:00:00Z", limit=10)
     # class 3002 is filtered by class_uid, day 20 by the watermark; order is by time_dt
@@ -87,7 +93,7 @@ def test_iceberg_reader_pushes_filters_and_watermark_and_orders_rows(sql_catalog
 
 
 def test_iceberg_reader_limit_keeps_the_oldest_rows(sql_catalog: Any) -> None:
-    rows = ice.IcebergCatalogReader(sql_catalog).fetch_mapping_rows(_api_spec(), since=None, limit=2)
+    rows = _reader(sql_catalog).fetch_mapping_rows(_api_spec(), since=None, limit=2)
     assert [row["metadata"]["uid"] for row in rows] == ["a", "d"]
 
 
@@ -95,7 +101,7 @@ def test_iceberg_reader_tolerates_columns_the_table_lacks(sql_catalog: Any) -> N
     # api_activity also reads actor and src_endpoint, which this table does not have
     spec = _api_spec()
     assert "actor" in spec.top_level_columns()
-    rows = ice.IcebergCatalogReader(sql_catalog).fetch_mapping_rows(spec, since=None, limit=10)
+    rows = _reader(sql_catalog).fetch_mapping_rows(spec, since=None, limit=10)
     assert "actor" not in rows[0]
 
 
@@ -108,7 +114,7 @@ def test_iceberg_reader_requires_the_watermark_column(sql_catalog: Any) -> None:
         }
     )
     with pytest.raises(ValueError, match="event_time"):
-        ice.IcebergCatalogReader(sql_catalog).fetch_mapping_rows(spec, since=None, limit=10)
+        _reader(sql_catalog).fetch_mapping_rows(spec, since=None, limit=10)
 
 
 def test_iceberg_reader_applies_the_initial_window_on_the_first_sync(sql_catalog: Any) -> None:
@@ -119,7 +125,7 @@ def test_iceberg_reader_applies_the_initial_window_on_the_first_sync(sql_catalog
 
 def test_iceberg_sync_end_to_end_through_the_mapping_layer(sql_catalog: Any) -> None:
     events = ice.collect_iceberg_evidence(
-        ice.IcebergCatalogReader(sql_catalog), [_api_spec()], since=None, collected_at=datetime(2026, 9, 24, tzinfo=UTC)
+        _reader(sql_catalog), [_api_spec()], since=None, collected_at=datetime(2026, 9, 24, tzinfo=UTC)
     )
     assert validate_raw_events(events) == []
     assert sorted(event["attributes"]["api_operation"] for event in events) == ["PutBucketPolicy"] * 3
