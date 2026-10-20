@@ -488,7 +488,8 @@ async function capture(shot, theme, frame) {
     );
     frame = { viewport, clip: { x: 0, y: 0, width: viewport.width, height } };
   }
-  await page.screenshot({ path: target, clip: frame.clip });
+  // Match the documented CSS dimensions and keep README assets bounded.
+  await page.screenshot({ path: target, clip: frame.clip, scale: "css" });
   await context.close();
   return { file, frame };
 }

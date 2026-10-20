@@ -116,6 +116,7 @@ cloud = [
 # kubernetes-cluster collection; fixture mode needs nothing extra.
 kubernetes = [
     "kubernetes>=36.0.3",
+    "aiohttp>=3.14.4",  # Security floor for the Kubernetes client's HTTP dependency.
 ]
 # Agent-native front door: the Model Context Protocol server that exposes the
 # read surface over stdio so an agent can query posture headlessly.
