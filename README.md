@@ -148,7 +148,7 @@ content, freshness, or a passing control. See [AI inventory semantics](docs/AIBO
 </picture>
 
 _Screens use the bundled synthetic company, captured for v0.3.9 from source
-`84a6544c` on 2026-10-19 (America/New_York). They show recorded relationships and demo workflows,
+`0823048b` on 2026-10-19 (America/New_York). They show recorded relationships and demo workflows,
 not a customer deployment or an audit opinion._
 
 [Try the five-minute console tour](docs/PRODUCT_WALKTHROUGH.md#five-minute-tour) ·
