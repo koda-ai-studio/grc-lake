@@ -65,6 +65,16 @@ export const FRAMEWORK_VISUALS: Record<string, FrameworkVisual> = {
     gradient: "linear-gradient(135deg, #06b6d4 0%, #0e7490 100%)",
     icon: "lock",
   },
+  "iso-27001-isms-2022": {
+    badge: "/console/frameworks/badges/iso.svg",
+    label: "ISO/IEC 27001 management clauses",
+    mark: "ISMS",
+    accent: "#0891b2",
+    bg: "#ecfeff",
+    ring: "#a5f3fc",
+    gradient: "linear-gradient(135deg, #06b6d4 0%, #0e7490 100%)",
+    icon: "lock",
+  },
   "iso-42001-2023": {
     badge: "/console/frameworks/badges/iso.svg",
     label: "ISO/IEC 42001:2023",
@@ -256,6 +266,8 @@ const NAME_TO_ID: Record<string, string> = {
   "NIST AI Risk Management Framework": "nist-ai-rmf",
   "ISO 27001": "iso-27001-2022",
   "ISO 27001:2022": "iso-27001-2022",
+  "ISO 27001 ISMS clauses": "iso-27001-isms-2022",
+  "ISO/IEC 27001 ISMS management clauses": "iso-27001-isms-2022",
   "ISO 42001": "iso-42001-2023",
   "ISO 42001:2023": "iso-42001-2023",
   FedRAMP: "fedramp-moderate",
@@ -298,6 +310,8 @@ export function frameworkIdFromControlId(controlId: string): string {
   const id = controlId.toUpperCase();
   if (id.startsWith("SOC2-")) return "soc2";
   if (id.startsWith("NIST-AI-RMF-")) return "nist-ai-rmf";
+  if (/^ISO27001-(?:[4-9]|10)\.\d+(?:\.\d+)?$/.test(id))
+    return "iso-27001-isms-2022";
   if (id.startsWith("ISO27001-")) return "iso-27001-2022";
   if (id.startsWith("ISO42001-")) return "iso-42001-2023";
   if (id.startsWith("FEDRAMP-")) return "fedramp-moderate";

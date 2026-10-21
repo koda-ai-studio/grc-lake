@@ -72,10 +72,11 @@ Do not extend the 33-batch approval to these remaining proposals.
 ISO 27701:2025 is a limited pack (10 of 78 Annex A controls). SOC 1 is planned
 without an official catalog. NIST 800-171 Rev 3, NIS2, DORA and NIST RMF now have
 reviewed mappings; gaps remain as shown in the [coverage matrix](docs/FRAMEWORK_COVERAGE.md).
-ISO 27701 still needs mapping review. CIS Azure/GCP benchmarks and ISO 27001
-clauses 4–10 remain gaps.
+ISO 27701 still needs mapping review. CIS Azure/GCP benchmarks remain gaps.
+ISO 27001 management-clause mappings still need review. The [ISMS companion pack](docs/ISO27001_ISMS_ASSESSMENTS.md)
+now catalogues 30 clause identifiers with proposed assessor contracts; it grants no new review credit.
 
-1,486 of 2,725 safeguard-to-requirement mapping rows are proposed, so 1,003 of the 2,166 mapped requirements have no reviewed mapping.
+1,516 of 2,755 safeguard-to-requirement mapping rows are proposed, so 1,033 of the 2,196 mapped requirements have no reviewed mapping.
 
 Mapping counts are effective review states: a mapping marked reviewed against an
 older control version counts as proposed until it is re-reviewed.

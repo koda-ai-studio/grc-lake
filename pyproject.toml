@@ -205,6 +205,7 @@ where = ["src"]
     "frameworks/packs/data/gdpr_2016_679.json",
     "frameworks/packs/data/hipaa_security_rule.json",
     "frameworks/packs/data/iso_27001_2022.json",
+    "frameworks/packs/data/iso_27001_isms_2022.json",
     "frameworks/packs/data/iso_27017_2015.json",
     "frameworks/packs/data/iso_27701_2025.json",
     "frameworks/packs/data/iso_42001_2023.json",

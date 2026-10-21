@@ -15,9 +15,9 @@ operating effectiveness or an auditor acceptance decision. The API retains
 
 ## Why the catalog alone is not a CCF
 
-`controls/catalog.json` is framework-first: 2252 requirements, each carrying its
-own `framework_id` **and its own `evidence_requirement`** — 2252 distinct evidence
-statements for 2252 controls, none shared.
+`controls/catalog.json` is framework-first: 2282 requirements, each carrying its
+own `framework_id` **and its own `evidence_requirement`** — 2282 distinct evidence
+statements for 2282 controls, none shared.
 
 That last number is the whole problem. Because no two requirements share an
 evidence statement, answering SOC 2, ISO 27001, and FedRAMP means answering the
@@ -92,12 +92,12 @@ rest of that control.
 
 | Category                     | Family                    | ID                         | Safeguards | NIST SP 800-53 families | CIS Controls |
 | ---------------------------- | ------------------------- | -------------------------- | ---------: | ----------------------- | ------------ |
-| Governance and risk          | Risk management           | `risk-management`          |         63 | RA, CA, PM              | 18           |
-| Governance and risk          | Governance                | `governance`               |         72 | PL, PM                  | —            |
+| Governance and risk          | Risk management           | `risk-management`          |         71 | RA, CA, PM              | 18           |
+| Governance and risk          | Governance                | `governance`               |         91 | PL, PM                  | —            |
 | Identity and access          | Identity and access       | `identity`                 |        198 | AC, IA                  | 5, 6         |
 | Data protection and privacy  | Data protection           | `data-protection`          |        165 | SC, MP                  | 1, 3         |
 | Data protection and privacy  | Privacy                   | `privacy`                  |         29 | PT                      | —            |
-| Secure engineering           | Change management         | `change-management`        |          4 | CM                      | —            |
+| Secure engineering           | Change management         | `change-management`        |          5 | CM                      | —            |
 | Secure engineering           | Secure development        | `secure-development`       |        112 | SA                      | 16           |
 | Secure engineering           | Secure architecture       | `secure-architecture`      |          4 | SA, SC                  | —            |
 | Infrastructure security      | Configuration management  | `configuration-management` |         62 | CM                      | 2, 4         |
@@ -110,7 +110,7 @@ rest of that control.
 | Resilience and integrity     | System maintenance        | `system-maintenance`       |         32 | MA                      | —            |
 | Resilience and integrity     | Processing integrity      | `processing-integrity`     |        105 | SI                      | —            |
 | Third-party and supply chain | Third-party risk          | `third-party-risk`         |         33 | SR, SA                  | 15           |
-| People and physical          | People security           | `people-security`          |         40 | AT, PS                  | 14           |
+| People and physical          | People security           | `people-security`          |         42 | AT, PS                  | 14           |
 | People and physical          | Physical security         | `physical-security`        |         55 | PE                      | —            |
 | AI governance                | AI governance             | `ai-governance`            |         21 | —                       | —            |
 
@@ -118,11 +118,12 @@ rest of that control.
 
 ```
 $ grc-lake frameworks safeguards --format table
-1165 safeguards map 2166 of 2252 requirements (96.2%) — 1163 maintainer-reviewed, 0 org-reviewed (51.6% attestable), 1003 proposed; 0 mapping(s) rejected by the org
+1195 safeguards map 2196 of 2282 requirements (96.2%) — 1163 maintainer-reviewed, 0 org-reviewed (51.0% attestable), 1033 proposed; 0 mapping(s) rejected by the org
 ```
 
 A mapping is **reviewed** once a human has confirmed the requirements are the
-same obligation. **Proposed** mappings were matched by title theme and are
+same obligation. **Proposed** mappings are unapproved candidates, including
+source-native assessment contracts and crosswalk proposals, and are
 reported separately, because a compliance product must never count unconfirmed
 work as attested coverage. `safeguards_by_requirement(reviewed_only=True)` is
 what attestation should read — so "SOC 2 is fully mapped" and "SOC 2 is fully
@@ -140,26 +141,27 @@ cannot become a false certification claim.
 
 | Framework           | Requirements | Mapped |    Pct |
 | ------------------- | -----------: | -----: | -----: |
-| cmmc-2-level2       |          110 |    110 | 100.0% |
-| eu-ai-act-2024-1689 |           16 |     16 | 100.0% |
-| gdpr-2016-679       |           20 |     20 | 100.0% |
-| hipaa-security-rule |           24 |     19 |  79.2% |
-| nis2-2022-2555      |           17 |     17 | 100.0% |
-| pci-dss-v4          |           12 |     11 |  91.7% |
-| soc2                |           61 |     61 | 100.0% |
-| nist-rmf-800-37r2   |           47 |     46 |  97.9% |
-| nist-ai-rmf         |           72 |     69 |  95.8% |
-| nist-csf-2.0        |          106 |    106 | 100.0% |
-| iso-42001-2023      |           40 |     40 | 100.0% |
-| iso-27017-2015      |           47 |     44 |  93.6% |
-| fedramp-moderate    |          287 |    262 |  91.3% |
-| iso-27001-2022      |           93 |     93 | 100.0% |
-| nist-800-171-rev3   |           97 |     85 |  87.6% |
 | cis-controls-v8.1   |           18 |     15 |  83.3% |
 | cis_aws             |           62 |     51 |  82.3% |
-| iso-27701-2025      |           10 |      8 |  80.0% |
+| cmmc-2-level2       |          110 |    110 | 100.0% |
 | dora-2022-2554      |           99 |     79 |  79.8% |
+| eu-ai-act-2024-1689 |           16 |     16 | 100.0% |
+| fedramp-moderate    |          287 |    262 |  91.3% |
+| gdpr-2016-679       |           20 |     20 | 100.0% |
+| hipaa-security-rule |           24 |     19 |  79.2% |
+| iso-27001-2022      |           93 |     93 | 100.0% |
+| iso-27001-isms-2022 |           30 |     30 | 100.0% |
+| iso-27017-2015      |           47 |     44 |  93.6% |
+| iso-27701-2025      |           10 |      8 |  80.0% |
+| iso-42001-2023      |           40 |     40 | 100.0% |
+| nis2-2022-2555      |           17 |     17 | 100.0% |
+| nist-800-171-rev3   |           97 |     85 |  87.6% |
 | nist-800-53-rev5    |         1014 |   1014 | 100.0% |
+| nist-ai-rmf         |           72 |     69 |  95.8% |
+| nist-csf-2.0        |          106 |    106 | 100.0% |
+| nist-rmf-800-37r2   |           47 |     46 |  97.9% |
+| pci-dss-v4          |           12 |     11 |  91.7% |
+| soc2                |           61 |     61 | 100.0% |
 
 ### Broadest safeguards
 
@@ -199,7 +201,7 @@ reviewer. Generated by `tools/sync_ccf_doc.py`.
 ### What a safeguard applies to
 
 Evaluation targets resources, not frameworks. The catalog already records
-`asset_types` on all 2252 requirements — `iam_role`, `data_store`, `ai_model`,
+`asset_types` on all 2282 requirements — `iam_role`, `data_store`, `ai_model`,
 `audit_log`, `cloud_resource` and 15 more — and a safeguard carries the union of
 what its members apply to. `safeguards_for_asset_type("iam_role")` returns the
 19 safeguards that bear on IAM roles.

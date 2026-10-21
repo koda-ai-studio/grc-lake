@@ -58,7 +58,7 @@ REVIEWED_BY = "internal-trust-team"
 REVIEWED_DATE = "2026-06-30"
 # Packs whose identifier mappings are generated from a pinned official source
 # and have not been human-reviewed; rows stay ``proposed`` until promoted.
-PROPOSED_SOURCE_FRAMEWORKS = frozenset({"nist-csf-2.0", "nist-800-53-rev5", "nist-rmf-800-37r2"})
+PROPOSED_SOURCE_FRAMEWORKS = frozenset({"nist-csf-2.0", "nist-800-53-rev5", "nist-rmf-800-37r2", "iso-27001-isms-2022"})
 NIST_800_53_SOURCE = "https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final"
 NIST_800_171_R3_SOURCE = "https://csrc.nist.gov/pubs/sp/800/171/r3/final"
 SOURCE_RECONCILED_BY = "automated-source-reconciliation"

@@ -153,22 +153,25 @@ def _framework_lines(top: int) -> str:
     )
 
 
+def _cloud_symbols() -> str:
+    symbols = []
+    for name in ("aws", "azure", "gcp"):
+        source = (ROOT / "docs/images/vendor" / f"{name}.svg").read_text()
+        view_box = re.search(r'viewBox="([^"]+)"', source)
+        assert view_box is not None
+        body = source[source.index(">") + 1 : source.rindex("</svg>")]
+        fill = ' fill="#ffffff"' if name == "aws" else ""
+        symbols.append(f'<symbol id="{name}" viewBox="{view_box[1]}"{fill}>{body}</symbol>')
+    return "\n".join(symbols)
+
+
 def _brand_symbols() -> str:
     # Compact, self-contained brand marks keep GitHub rendering deterministic.
     mark = '<symbol id="mark" viewBox="0 0 64 64">' + _mark_body() + "</symbol>"
     return (
         mark
-        + """    <symbol id="aws" viewBox="0 0 24 24">
-      <text x="12" y="13.5" text-anchor="middle" font-size="10" font-weight="850" fill="currentColor">aws</text>
-      <path d="M5 16.5c4.1 2.7 9.2 2.8 13.4.2M16.5 15.6l2.4.2-.8 2.2" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
-    </symbol>
-    <symbol id="azure" viewBox="0 0 24 24">
-      <path d="M8.3 2h6.5l6.6 19H15l-1.6-4.7H7.2L5.6 21H.9L8.3 2Zm.3 10.2h3.5l-1.6-5.1-1.9 5.1Zm3.8 2 3.2 6.8-8.4-4.7h6.1l-.9-2.1Z" fill="currentColor"/>
-    </symbol>
-    <symbol id="gcp" viewBox="0 0 24 24">
-      <path d="M12.19 2.38a9.344 9.344 0 0 0-9.234 6.893c-3.875 2.551-3.922 8.11-.247 10.941a6.717 6.717 0 0 0 4.077 1.356h10.394c6.687.053 9.376-8.605 3.835-12.35a9.365 9.365 0 0 0-8.825-6.893Zm-.358 4.146a5.186 5.186 0 0 1 5.348 5.228v.518c3.53-.07 3.53 5.262 0 5.193H6.785a2.597 2.597 0 1 1 2.371-3.698l3.013-3.012A6.747 6.747 0 0 0 8.11 8.24a5.186 5.186 0 0 1 3.722-1.714Z" fill="currentColor"/>
-    </symbol>
-    <symbol id="github" viewBox="0 0 24 24">
+        + _cloud_symbols()
+        + """    <symbol id="github" viewBox="0 0 24 24">
       <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577l-.015-2.04c-3.338.724-4.042-1.61-4.042-1.61-.546-1.385-1.335-1.755-1.335-1.755-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23a10.49 10.49 0 0 1 6 0c2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22l-.015 3.286c0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12Z" fill="currentColor"/>
     </symbol>
     <symbol id="gitlab" viewBox="0 0 24 24">
