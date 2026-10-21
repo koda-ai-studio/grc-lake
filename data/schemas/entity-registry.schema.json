@@ -257,6 +257,28 @@
           }
         }
       ]
+    },
+    "binding_history": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["revision", "record_hash", "recorded_at", "mode"],
+      "properties": {
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "record_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "recorded_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "mode": {
+          "enum": ["current_evidence", "recorded_binding_evidence"]
+        }
+      }
     }
   },
   "title": "entity-registry"

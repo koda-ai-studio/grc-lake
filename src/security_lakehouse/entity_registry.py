@@ -171,8 +171,15 @@ def register(subparsers: Any) -> None:
     from security_lakehouse.io import read_json
 
     def export(args: Any) -> int:
-        bindings = read_json(args.bindings) if args.bindings else None
-        result = entity_registry(Path(args.lake), platform_tenant_id=args.tenant_id, bindings=bindings)
+        if args.revision is not None and not args.stored_bindings:
+            raise ValueError("--revision requires --stored-bindings")
+        if args.stored_bindings:
+            from security_lakehouse.entity_history import stored_entity_registry
+
+            result = stored_entity_registry(Path(args.lake), platform_tenant_id=args.tenant_id, revision=args.revision)
+        else:
+            bindings = read_json(args.bindings) if args.bindings else None
+            result = entity_registry(Path(args.lake), platform_tenant_id=args.tenant_id, bindings=bindings)
         print(json.dumps(result, indent=2, sort_keys=True))
         return 0
 
@@ -181,5 +188,14 @@ def register(subparsers: Any) -> None:
     export_parser = actions.add_parser("export", help="export observed identities and caller-asserted aliases as JSON")
     export_parser.add_argument("--lake", required=True, help="local lake already scoped to the platform tenant")
     export_parser.add_argument("--tenant-id", required=True, help="platform tenant namespace, not a source account")
-    export_parser.add_argument("--bindings", help="optional versioned JSON alias claims; never auto-inferred")
+    selection = export_parser.add_mutually_exclusive_group()
+    selection.add_argument("--bindings", help="optional versioned JSON alias claims; never auto-inferred")
+    selection.add_argument("--stored-bindings", action="store_true", help="use the verified persisted binding history")
+    export_parser.add_argument(
+        "--revision", type=int, help="export recorded binding evidence for a historical revision"
+    )
     export_parser.set_defaults(func=export)
+
+    from security_lakehouse.entity_history import register_history
+
+    register_history(actions)

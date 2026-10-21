@@ -1,9 +1,10 @@
-# Canonical entity registry export
+# Canonical entity registry and binding history
 
 `grc-lake entities export` produces a read-only, versioned JSON projection of
 source identities and explicitly supplied canonical entity bindings. It is an
-experimental local export. It does not change findings, assessments, workflow
-identities, or the investigation graph.
+experimental local export. `entities record` optionally persists complete binding
+revisions in a separate operational ledger. Neither command changes findings,
+assessments, workflow identities, or the investigation graph.
 
 ```bash
 grc-lake entities export --lake build/lake --tenant-id customer-a > entities.json
@@ -12,7 +13,7 @@ grc-lake entities export --lake build/lake --tenant-id customer-a > entities.jso
 The caller must select a lake belonging to the named platform tenant. The CLI
 argument namespaces the output; it does not authorize access or establish lake
 ownership. Source account IDs remain separate from this platform namespace.
-Distributed mode rejects this local command through the existing CLI boundary.
+Distributed mode rejects these local commands through the existing CLI boundary.
 
 ## Identity and cardinality
 
@@ -91,7 +92,8 @@ preserved separately.
 Output conforms to [`entity-registry.schema.json`](../data/schemas/entity-registry.schema.json).
 Rows and claims are ordered deterministically. Duplicate evidence deliveries
 and reordered inputs produce the same content hash. `content_sha256` hashes the
-canonical JSON payload excluding itself and the optional `generation` metadata.
+canonical JSON payload excluding itself and the optional `generation` and
+`binding_history` metadata.
 A sealed lake supplies the pinned generation ID and manifest hash separately;
 a legacy unsealed lake supplies `generation: null`.
 
@@ -99,9 +101,9 @@ a legacy unsealed lake supplies `generation: null`.
 input, in UTC. They do not mean creation, deletion, resolution, or continuous
 existence. Reused provider identifiers, renamed source types, and reassigned
 accounts require an explicit identity migration; this exporter cannot infer
-those transitions. Changing or removing a binding changes the next export;
-there is no persisted alias approval/revocation history in this version. Retain
-manifests and exports when an audit trail is needed.
+those transitions. Recorded revisions describe assertion history in append
+order, not provider-valid-time intervals. Caller-supplied assertion timestamps
+do not override revision order or schedule future activation.
 
 Missing identity/provenance fields, source-account alias disagreement, unknown
 manifest fields, invalid or timezone-free timestamps, mismatched tenant
@@ -109,3 +111,65 @@ namespaces, missing evidence, and conflicting bindings fail the whole export.
 No partial JSON result is printed. The local command caps evidence deliveries
 and binding assertions at 100,000 each; this is a work bound, not a capacity
 qualification. Missing files fail rather than producing an empty inventory.
+
+## Persisted revisions, supersession and revocation
+
+Record a **complete replacement** binding manifest after reviewing it. Omitting
+an existing alias revokes it in the new revision. An empty `entities` array
+revokes all aliases. Records retain the operation actor/reason separately from
+the actor/reason on each source assertion; both are caller supplied.
+
+```bash
+grc-lake entities record --lake build/lake --tenant-id customer-a \
+  --bindings entity-bindings.json --actor operator-1 \
+  --reason "Verified device enrollment references" \
+  --expected-revision 0 --request-id enrollment-import-1
+
+grc-lake entities history --lake build/lake --tenant-id customer-a
+
+grc-lake entities export --lake build/lake --tenant-id customer-a \
+  --stored-bindings > current-entities.json
+
+grc-lake entities export --lake build/lake --tenant-id customer-a \
+  --stored-bindings --revision 1 > recorded-bindings-v1.json
+```
+
+The first write requires `--expected-revision 0`; later writes must match the
+latest recorded revision. The check and append share an OS file lock, so a
+concurrent editor cannot silently overwrite a newer revision. Repeating the
+same request ID with the same manifest, actor, reason, and expected revision
+returns the original receipt, even after source evidence changes. Reusing that
+ID with a different request fails. A reordered manifest is a different write
+request even when its exported registry content would be equivalent.
+
+The ledger lives at `entities/bindings.jsonl`, outside sealed assessment
+generations. Rows follow
+[`entity-binding-revision.schema.json`](../data/schemas/entity-binding-revision.schema.json).
+Each row includes its full binding manifest, the exact normalized observations
+referenced by those bindings, pinned generation metadata when available, and
+added/removed/changed source-entity IDs. Unbound inventory observations are not
+copied into the ledger. Evidence hashes in historical exports can therefore be
+recomputed from retained rows even when the live generation has changed or
+been removed. Raw evidence objects are not copied or independently verified.
+
+`--stored-bindings` without a revision checks the latest bindings against current
+evidence and includes the current inventory. If referenced observations are no
+longer present, it fails until bindings are explicitly refreshed or revoked.
+`--stored-bindings --revision N` exports only that revision's recorded binding
+evidence, with `binding_history.mode: recorded_binding_evidence`; it is not a
+complete inventory snapshot or a claim about current state. An empty replacement
+can be recorded without the source file, allowing revocation after evidence loss.
+Canonical keys cannot change entity type, including after revocation.
+
+Readers and writers verify the entire hash chain and revision sequence before
+using it. Altered content, reordered entries, and torn appends fail closed. The
+chain is unkeyed: it does not authenticate operators or prevent a filesystem
+owner from rewriting the entire history or deleting a valid suffix. Retain
+receipts/tip hashes and backups outside the lake for independent comparison.
+No automatic history pruning or repair is performed.
+
+This local implementation caps a revision at 1,000 source aliases and the
+ledger at 1,000 revisions or 32 MiB, whichever is reached first. Writes exceeding
+those bounds fail without pruning prior records. Those limits bound local
+resource use; they are not a capacity qualification. Authenticated approval,
+provider-valid-time lifecycles, and graph consumption are outside this version.

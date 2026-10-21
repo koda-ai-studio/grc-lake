@@ -65,6 +65,10 @@ compatibility contract. New governance records are available through authenticat
 server APIs; they are not automatically injected into workpapers or evaluated
 results, and do not yet have a dedicated console editor.
 
+Entity binding revisions persist separately in `entities/bindings.jsonl`. They
+retain referenced observations and supersession/revocation history without
+changing evaluated results; see [entity history](ENTITY_REGISTRY.md#persisted-revisions-supersession-and-revocation).
+
 ## Upgrade and rollback
 
 Database migration `0030` adds governance tables without altering existing risk or
