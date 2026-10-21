@@ -1,4 +1,4 @@
-ca-certificates-bundle=20260909-r2
+ca-certificates-bundle=20260909-r3
 gdbm=1.26-r7
 glibc-2.44=2.44-r8
 glibc-2.44-locale-posix=2.44-r8
