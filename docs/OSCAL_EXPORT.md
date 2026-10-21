@@ -2,15 +2,15 @@
 
 `grc-lake oscal export` maps GRC Lake's own control model — the CCF
 safeguards in `controls/safeguards.json` and the evaluated control posture in
-a lake's `gold/control_posture.jsonl` — into two of NIST's
+a lake's `gold/control_posture.jsonl` — into NIST's
 [OSCAL](https://pages.nist.gov/OSCAL/) (Open Security Controls Assessment
-Language) layer models: **Component Definition** and **Assessment Results**.
+Language) layer models: **Component Definition**, **Catalog** (portable bundle), and **Assessment Results**.
 OSCAL is the control/assessment interchange format auditor and GRC tooling
 ecosystems consume; this export is read-only and one-way (GRC Lake's model
 stays the source of truth, OSCAL is never imported back in).
 
 This is an optional export format. JSONL and the `/api/v1` contract remain the
-working data formats. XML/YAML OSCAL serializations, the OSCAL Catalog,
+working data formats. XML/YAML OSCAL serializations, the OSCAL
 Profile, System Security Plan, Assessment Plan, and POA&M layer models are not
 implemented by this export.
 
@@ -59,7 +59,7 @@ is silently dropped); it simply carries no `control-implementations`.
 
 With `--lake` (CLI) or through the API, the export also includes mappings your
 organization approved and leaves out any it rejected. Every implemented
-requirement carries a `grc-lake-review-state` prop (`maintainer-reviewed` or
+requirement carries a `trustops-review-state` prop (`maintainer-reviewed` or
 `org-reviewed`), and org-reviewed ones name the reviewer, decision time, and
 decision id. See [Mapping review](MAPPING_REVIEW.md).
 
@@ -67,7 +67,7 @@ GRC Lake control ids are not always valid OSCAL tokens — HIPAA ids carry
 parentheses (`HIPAA-164.308(a)(1)(ii)(A)`), which the OSCAL token grammar
 forbids. The export sanitizes these into a valid token
 (`HIPAA-164.308-a-1-ii-A`) and always records the original id verbatim in a
-`grc-lake-control-id` prop, so nothing is lost to the sanitization.
+`trustops-control-id` prop, so nothing is lost to the sanitization.
 
 ## Assessment Results: control posture → finding
 
@@ -87,25 +87,22 @@ OSCAL only has two objective states. A control with stale evidence or no
 active control definition is reported `not-satisfied`, never `satisfied` — an
 auditor reading the export must never see an unconfirmed or unevaluated
 control reported as passing. The original GRC Lake status is preserved
-verbatim in a `grc-lake-status` prop on the finding.
+verbatim in a `trustops-status` prop on the finding.
 
-`--snapshot <id>` pins the result's `evaluated_at` and content version to a
-point-in-time snapshot written by `grc-lake assessment snapshot`.
-The findings themselves always come from the lake's _current_
-`gold/control_posture.jsonl`: snapshots persist aggregate framework scores and
-open violations, not a full per-control row set, so there is no frozen
-per-control detail to reconstruct for an older snapshot. Without `--snapshot`,
-this distinction does not apply — the export reflects the current posture
-throughout.
+`--snapshot <id>` reads frozen per-control detail from the snapshot's verified
+generation, or from its embedded control rows. A snapshot without frozen detail
+fails closed; current posture never substitutes for historical evidence.
+Without `--snapshot`, the export reads the current pinned generation.
 
 `import-ap.href` references the content-addressed catalog bundle
 (`urn:grc-lake:catalog-bundle:<sha256>`) that was in force for the
 assessment — GRC Lake has no separate OSCAL Assessment Plan document, so this
-is the closest equivalent of "what was assessed against".
+identifies the assessment basis but is not a resolvable OSCAL Assessment Plan.
+Consumers requiring that model need an external assessment-plan integration.
 
 ## Validation
 
-`tests/test_oscal.py` validates both models structurally against the vendored
+`tests/test_oscal.py` and `tests/test_oscal_bundle.py` validate the three models structurally against the vendored
 OSCAL v1.2.3 JSON Schema in `controls/oscal/` (see
 `controls/oscal/README.md` for provenance), and explicitly asserts that a
 `proposed` safeguard mapping is never emitted as an
@@ -125,3 +122,42 @@ case and prefixes); `trustops-control-id` retains the local identifier. The
 legacy `fedramp-moderate` pack points to the NIST Moderate foundation profile;
 it does not claim to include FedRAMP overlays. Frameworks without a configured
 OSCAL source retain their official source link or local URN fallback.
+
+## Portable CCF and framework bundle
+
+Use the bundle when handing reviewed mappings to another tool or reviewer who
+needs references that resolve offline:
+
+```bash
+grc-lake oscal export --component-bundle --out build/ccf-oscal.zip
+# Include only this organization's mapping review decisions:
+grc-lake oscal export --component-bundle --lake ./lake --out build/org-ccf-oscal.zip
+```
+
+Unzip it and open `component-definition.json` as the entrypoint. Its
+`control-implementations[].source` values point to bundled `catalogs/*.json`.
+Every `implemented-requirements[].control-id` resolves in the named catalog.
+Native NIST identifiers are retained; every requirement also records the
+original GRC Lake control ID. Ambiguous sanitized identifiers fail the export.
+
+`manifest.json` identifies the entrypoint, hashes each document with SHA-256,
+and separates **catalogued controls**, **unique requirements with reviewed
+mappings**, and **reviewed mapping count** for each framework. Two safeguards
+mapped to one requirement count as two mappings and one reviewed requirement.
+Hashes detect file changes; they are not signatures or third-party attestations.
+The CLI refuses to overwrite an existing bundle. It makes no network requests.
+
+Catalogs include all requirements in the installed GRC Lake catalog, including
+ones with proposed mappings only. These are **GRC Lake-authored projections**,
+not official standards publications or reproductions of licensed standards.
+Only eligible maintainer-reviewed or org-reviewed mappings appear as component
+implementations; proposals, rejections, ambiguous mappings, and unknown targets
+remain excluded. Organization review receipts are preserved when `--lake` is
+supplied. The ZIP carries review identities; share it with the intended reviewer.
+
+Catalog and mapping exports do not establish organization-specific control
+implementation, assessed compliance, certification, or complete normative
+coverage. This bundle does not contain lake evidence, assessment results, or an
+Assessment Plan, and does not change the existing single-document API exports.
+Validation covers OSCAL 1.2.3 schemas and offline reference integrity; it is not
+qualification against a particular third-party GRC product.

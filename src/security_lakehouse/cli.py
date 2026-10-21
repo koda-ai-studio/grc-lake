@@ -356,12 +356,17 @@ def _parser() -> argparse.ArgumentParser:
     oscal = sub.add_parser("oscal", help="NIST OSCAL export commands")
     oscal_sub = oscal.add_subparsers(dest="oscal_command", required=True)
     oscal_export = oscal_sub.add_parser(
-        "export", help="export an OSCAL component-definition or assessment-results JSON document"
+        "export", help="export an OSCAL document or portable component/catalog ZIP bundle"
     )
     oscal_export.add_argument(
         "--component-definition",
         action="store_true",
         help="emit an OSCAL component-definition from the CCF safeguards + control catalog",
+    )
+    oscal_export.add_argument(
+        "--component-bundle",
+        action="store_true",
+        help="export a portable ZIP with CCF components, framework catalogs, and integrity manifest (requires --out)",
     )
     oscal_export.add_argument(
         "--assessment-results",
@@ -377,9 +382,11 @@ def _parser() -> argparse.ArgumentParser:
     oscal_export.add_argument(
         "--lake",
         default=None,
-        help="with --component-definition, include this lake's org-reviewed mappings (and withhold org rejections)",
+        help="with --component-definition or --component-bundle, include this lake's org-reviewed mappings (and withhold org rejections)",
     )
-    oscal_export.add_argument("--out", default=None, help="write JSON to this path (default stdout)")
+    oscal_export.add_argument(
+        "--out", default=None, help="write JSON or bundle ZIP to this path (JSON defaults to stdout)"
+    )
     oscal_export.set_defaults(func=_oscal_export)
 
     dashboard = sub.add_parser("dashboard", help="render static dashboard HTML")
@@ -1473,8 +1480,19 @@ def _catalog_verify(args: argparse.Namespace) -> int:
 def _oscal_export(args: argparse.Namespace) -> int:
     from security_lakehouse.oscal import build_assessment_results, build_component_definition
 
-    if bool(args.component_definition) == bool(args.assessment_results):
-        raise SystemExit("pass exactly one of --component-definition or --assessment-results")
+    if sum(map(bool, (args.component_definition, args.assessment_results, args.component_bundle))) != 1:
+        raise SystemExit("pass exactly one of --component-definition, --component-bundle or --assessment-results")
+    if args.component_bundle:
+        from security_lakehouse.oscal_bundle import build_component_bundle, write_component_bundle
+
+        if not args.out or args.snapshot:
+            raise SystemExit("--component-bundle requires --out and does not accept --snapshot")
+        try:
+            write_component_bundle(args.out, build_component_bundle(lake_dir=args.lake))
+        except (ValueError, OSError) as exc:
+            raise SystemExit(str(exc)) from exc
+        print(f"wrote portable OSCAL bundle: {args.out}")
+        return 0
     if args.component_definition:
         if args.snapshot:
             raise SystemExit("--snapshot only applies to --assessment-results")

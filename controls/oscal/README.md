@@ -1,20 +1,25 @@
 # Vendored OSCAL JSON Schemas
 
-`oscal_component_schema.json` and `oscal_assessment-results_schema.json` are
+`oscal_component_schema.json`, `oscal_assessment-results_schema.json`, and
+`oscal_catalog_schema.json` are
 the NIST OSCAL v1.2.3 JSON Schema (draft-07) release artifacts for the
-`component-definition` and `assessment-results` models, fetched from the
+`component-definition`, `assessment-results`, and `catalog` models, fetched from the
 [usnistgov/OSCAL](https://github.com/usnistgov/OSCAL) `v1.2.3` GitHub release:
 
 - <https://github.com/usnistgov/OSCAL/releases/download/v1.2.3/oscal_component_schema.json>
 - <https://github.com/usnistgov/OSCAL/releases/download/v1.2.3/oscal_assessment-results_schema.json>
 
-They are used only by `tests/test_oscal.py` to structurally validate the JSON
+- <https://github.com/usnistgov/OSCAL/releases/download/v1.2.3/oscal_catalog_schema.json>
+
+Whitespace is normalized by the repository formatters; schema content is unchanged.
+
+They are used only by `tests/test_oscal.py` and `tests/test_oscal_bundle.py` to structurally validate the JSON
 that `security_lakehouse.oscal` generates — never fetched at runtime. OSCAL is
 published by NIST, a U.S. government agency; the schema documents are public
 domain U.S. government work, same policy as the NIST catalogs referenced in
 `src/security_lakehouse/framework_enrich.py`.
 
-Re-fetch and replace both files, bump `OSCAL_VERSION` in
+Re-fetch and replace all three files, bump `OSCAL_VERSION` in
 `src/security_lakehouse/oscal.py`, and re-run `tests/test_oscal.py` to pick up
 a newer OSCAL release.
 
