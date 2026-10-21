@@ -176,3 +176,8 @@ readme-header: ## Regenerate the README header graphic.
 QUALIFICATION_OUT ?= build/control-workflow-qualification
 qualify-control-workflow: ## Retain synthetic access/change qualification reports and draft workpapers.
 	PYTHONPATH=src $(PYTHON) tools/qualify_control_workflow.py --out "$(QUALIFICATION_OUT)"
+
+.PHONY: qualify-connector-workflow
+CONNECTOR_QUALIFICATION_OUT ?= build/connector-workflow-qualification
+qualify-connector-workflow: ## Retain offline GitHub/Okta/Jira collection-to-export qualification evidence.
+	$(PYTHON) tools/qualify_connector_workflow.py --out $(CONNECTOR_QUALIFICATION_OUT)

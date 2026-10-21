@@ -33,6 +33,7 @@ SOURCE_CONNECTOR_ALIASES = {
     "google_workspace": "google-workspace-identity",
     "google-workspace": "google-workspace-identity",
     "identity-provider": "identity-provider",
+    "jira": "jira-ticketing",
     "model-registry": "object-storage-evidence",
     "okta": "okta-identity",
     "runtime-gateway": "runtime-gateway",

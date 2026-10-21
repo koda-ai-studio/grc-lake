@@ -525,7 +525,7 @@ def _parser() -> argparse.ArgumentParser:
     fixtures_load.add_argument(
         "--rebase-times",
         action="store_true",
-        help="shift fixture timestamps so the newest event is three hours old (demo posture stays stable for about a day)",
+        help="shift fixture timestamps so the newest event is nine hours old (demo posture stays stable for a working day)",
     )
     fixtures_load.add_argument(
         "--no-demo-records",
