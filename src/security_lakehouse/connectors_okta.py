@@ -14,13 +14,14 @@ Two clients sit behind one interface, mirroring ``repo_audit``:
   ``policies.json`` from a fixture directory so collection is fully testable
   in CI without a live Okta org.
 
-The collector is strictly read-only and least-privilege: it only ever issues
-GET requests against ``users``, ``users/{id}/factors``, and ``policies`` and
-never mutates Okta state.
+The collector issues only GET requests and never mutates Okta state. Optional
+non-human identity collection additionally reads ``apps`` and ``api-tokens``
+metadata, using the application's existing identity and explicitly enabled scope.
 """
 
 from __future__ import annotations
 
+import hashlib
 import json
 import urllib.error
 import urllib.parse
@@ -30,6 +31,7 @@ from pathlib import Path
 from typing import Any
 
 from security_lakehouse import netguard
+from security_lakehouse.connector_errors import CollectionGapError
 from security_lakehouse.connector_ids import stable_id_slug
 from security_lakehouse.ingestion import backoff
 from security_lakehouse.ingestion.paginate import next_link_url, object_rows
@@ -75,6 +77,12 @@ class OktaClient:
 
     def policies(self) -> list[dict[str, Any]]:
         return self._json_list(f"{self.org_url}/api/v1/policies?type=MFA_ENROLL")
+
+    def list_oauth2_service_apps(self) -> list[dict[str, Any]]:
+        return self._json_list(f"{self.org_url}/api/v1/apps?limit=200")
+
+    def list_api_tokens(self) -> list[dict[str, Any]]:
+        return self._json_list(f"{self.org_url}/api/v1/api-tokens?limit=200")
 
     def logs(self, *, since: str | None = None) -> list[dict[str, Any]]:
         query = f"{self.org_url}/api/v1/logs?limit=100"
@@ -149,6 +157,12 @@ class OktaFixtureClient:
     def policies(self) -> list[dict[str, Any]]:
         return self._read_list("policies.json")
 
+    def list_oauth2_service_apps(self) -> list[dict[str, Any]]:
+        return read_json(self.fixture / "apps.json")
+
+    def list_api_tokens(self) -> list[dict[str, Any]]:
+        return read_json(self.fixture / "api_tokens.json")
+
     def logs(self, *, since: str | None = None) -> list[dict[str, Any]]:
         rows = self._read_list("logs.json")
         if not since:
@@ -171,6 +185,7 @@ def collect_okta_evidence(
     *,
     collected_at: datetime | None = None,
     tenant_id: str = "customer-managed",
+    include_non_human_identities: bool = False,
 ) -> list[dict[str, Any]]:
     """Collect normalized raw identity evidence from an Okta org.
 
@@ -201,6 +216,8 @@ def collect_okta_evidence(
             continue
         rows.append(_policy_event(client.org_url, org, policy, now, tenant_id))
 
+    if include_non_human_identities:
+        rows.extend(_non_human_identity_events(client, now, tenant_id))
     return rows
 
 
@@ -405,6 +422,151 @@ def _stable_suffix(*, org: str, signal: str, asset_id: str, dedupe_key: str | No
     """
     seed = f"{org}:{signal}:{dedupe_key or asset_id}".lower()
     return stable_id_slug(seed, fallback="okta")
+
+
+# Filtering and strict listing validation ported from agent-bom (Apache-2.0),
+# src/agent_bom/identity/okta_nhi.py at 95bc4a9c8e50d4bfbce59b91db8f68429cfbf9e5.
+# Copyright 2024-2026 Mohamed Wagdy Saad. See NOTICE for attribution.
+_SERVICE_SIGN_ON_MODES = frozenset({"OPENID_CONNECT"})
+_SERVICE_GRANT_TYPES = frozenset({"client_credentials"})
+
+
+def _validated_listing(value: Any) -> list[dict[str, Any]]:
+    if not isinstance(value, list) or any(
+        not isinstance(row, dict) or not isinstance(row.get("id"), str) or not row["id"].strip() for row in value
+    ):
+        raise ValueError("Invalid Okta metadata collection")
+    for row in value:
+        for key in ("settings", "credentials"):
+            if key not in row:
+                continue
+            block = row[key]
+            if not isinstance(block, dict) or ("oauthClient" in block and not isinstance(block["oauthClient"], dict)):
+                raise ValueError("Invalid Okta client configuration")
+            oauth = block.get("oauthClient", {})
+            if "grant_types" in oauth and (
+                not isinstance(oauth["grant_types"], list) or any(not isinstance(g, str) for g in oauth["grant_types"])
+            ):
+                raise ValueError("Invalid Okta grant-type metadata")
+    return value
+
+
+def _is_service_app(app: dict[str, Any]) -> bool:
+    """A non-human OAuth2 app: OIDC service sign-on with client-credentials grant."""
+    sign_on = str(app.get("signOnMode") or "").upper()
+    if sign_on not in _SERVICE_SIGN_ON_MODES:
+        return False
+    settings = app.get("settings")
+    oauth = settings.get("oauthClient", {}) if isinstance(settings, dict) else {}
+    app_type = str(oauth.get("application_type") or "").lower()
+    grants = {str(g).lower() for g in (oauth.get("grant_types") or [])}
+    return app_type == "service" or bool(grants & _SERVICE_GRANT_TYPES)
+
+
+def _oauth_grant_types(app: dict[str, Any]) -> tuple[str, ...]:
+    settings = app.get("settings")
+    oauth = settings.get("oauthClient", {}) if isinstance(settings, dict) else {}
+    grants = oauth.get("grant_types") or []
+    return tuple(str(g) for g in grants if str(g).strip())
+
+
+def _nhi_text(value: Any) -> str | None:
+    if not isinstance(value, str):
+        return None
+    return value.strip()[:512] or None
+
+
+def _non_human_identity_events(
+    client: OktaClient | OktaFixtureClient, collected_at: datetime, tenant_id: str
+) -> list[dict[str, Any]]:
+    """Adapt Agent-Bom's metadata projection to GRC's evidence and gap records."""
+    org = _org_slug(client.org_url)
+    rows: list[dict[str, Any]] = []
+    for kind, fetch, endpoint, permission in (
+        ("service_account", client.list_oauth2_service_apps, "apps", "okta.apps.read"),
+        ("api_token", client.list_api_tokens, "api-tokens", "okta.apiTokens.read"),
+    ):
+        try:
+            listing = _validated_listing(fetch())
+        except Exception:  # noqa: BLE001 - provider failures become static coverage gaps, never credential text
+            gap = CollectionGapError(
+                "Okta non-human identity listing unavailable; coverage is incomplete",
+                collection=endpoint,
+                reason="listing_failed",
+                api=endpoint,
+                permission=permission,
+            )
+            rows.append(
+                _event(
+                    org=org,
+                    org_url=client.org_url,
+                    collected_at=collected_at,
+                    tenant_id=tenant_id,
+                    signal=f"nhi_{endpoint}_gap",
+                    event_type="okta.collection_gap",
+                    asset_id=f"okta:org:{org}",
+                    asset_type="identity_population",
+                    controls=[],
+                    status="not_evaluated",
+                    severity="info",
+                    evidence_ref=f"{client.org_url}/api/v1/{endpoint}",
+                    attributes=gap.attributes(),
+                )
+            )
+            continue
+        for item in listing:
+            if kind == "service_account" and not _is_service_app(item):
+                continue
+            identity_id = item["id"].strip()
+            attributes: dict[str, Any] = {
+                "identity_id": identity_id,
+                "identity_type": kind,
+                "source_scope": client.org_url.rstrip("/"),
+                "name": _nhi_text(item.get("label") or item.get("name")) or identity_id,
+                "lifecycle_status": _nhi_text(item.get("status")),
+                "created_at": _nhi_text(item.get("created")),
+                "last_updated_at": _nhi_text(item.get("lastUpdated")),
+                # lastUpdated is not a last-use observation; grants are not scopes.
+                "last_used_at": None,
+                "scopes": [],
+                "scope_coverage": "not_collected",
+            }
+            if kind == "service_account":
+                oauth = item.get("settings", {}).get("oauthClient", {})
+                credentials = item.get("credentials", {}).get("oauthClient", {})
+                dpop = oauth.get("dpop_bound_access_tokens")
+                attributes.update(
+                    {
+                        "client_id": _nhi_text(credentials.get("client_id")) or _nhi_text(oauth.get("client_id")),
+                        "client_authentication": _nhi_text(credentials.get("token_endpoint_auth_method")),
+                        "dpop_bound_access_tokens": dpop if isinstance(dpop, bool) else None,
+                        "grant_types": list(_oauth_grant_types(item)),
+                    }
+                )
+            else:
+                attributes.update(
+                    {"owner": _nhi_text(item.get("userId")), "credential_expires_at": _nhi_text(item.get("expiresAt"))}
+                )
+            rows.append(
+                _event(
+                    org=org,
+                    org_url=client.org_url,
+                    collected_at=collected_at,
+                    tenant_id=tenant_id,
+                    signal=f"nhi_{kind}",
+                    event_type=f"okta.identity.{kind}",
+                    asset_id=f"okta:{org}:{kind}:{identity_id}",
+                    asset_type="non_human_identity",
+                    controls=[],
+                    status="observed",
+                    severity="info",
+                    evidence_ref=f"{client.org_url}/api/v1/{endpoint}/{urllib.parse.quote(identity_id, safe='')}",
+                    attributes=attributes,
+                    # Preserve case and punctuation that the readable event-ID slug folds away.
+                    dedupe_key=hashlib.sha256(identity_id.encode("utf-8")).hexdigest(),
+                )
+            )
+    return rows
 
 
 SYSTEM_LOG_CONTROLS = ["SOC2-CC6.1", "FEDRAMP-AC-7"]
