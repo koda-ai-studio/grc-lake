@@ -1,0 +1,35 @@
+[
+  {
+    "id": "service-app-1",
+    "label": "Synthetic build service",
+    "status": "ACTIVE",
+    "signOnMode": "OPENID_CONNECT",
+    "created": "2026-01-01T00:00:00Z",
+    "lastUpdated": "2026-06-01T00:00:00Z",
+    "settings": {
+      "oauthClient": {
+        "application_type": "service",
+        "grant_types": ["client_credentials", "read_file"],
+        "dpop_bound_access_tokens": true
+      }
+    },
+    "credentials": {
+      "oauthClient": {
+        "client_id": "synthetic-client-1",
+        "token_endpoint_auth_method": "private_key_jwt",
+        "client_secret": "never-export-client-secret"
+      }
+    }
+  },
+  { "id": "human-sso-1", "signOnMode": "SAML_2_0", "settings": {} },
+  {
+    "id": "human-browser-1",
+    "signOnMode": "OPENID_CONNECT",
+    "settings": {
+      "oauthClient": {
+        "application_type": "web",
+        "grant_types": ["authorization_code"]
+      }
+    }
+  }
+]

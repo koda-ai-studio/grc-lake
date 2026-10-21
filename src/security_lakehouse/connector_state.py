@@ -493,7 +493,7 @@ def _missing_required_config(
     if connector_id == "azure-posture":
         return ["subscription_id"] if not _has_value(credentials, "subscription_id") else []
 
-    if connector_id == "intune-devices":
+    if connector_id in {"intune-devices", "entra-identity"}:
         return ["tenant_id"] if not _has_value(credentials, "tenant_id") else []
 
     if connector_id in {"jamf-devices", "crowdstrike-falcon"}:
