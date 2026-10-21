@@ -78,3 +78,15 @@ def test_broken_provenance_cannot_report_success(tmp_path, monkeypatch):
     report = qualification.qualify(tmp_path / "qualification")
     assert report["status"] == "failed"
     assert report["checks"]["raw_to_silver_hashes_verified"] is False
+
+
+def test_cli_environment_error_exits_without_success_output(tmp_path, monkeypatch, capsys):
+    monkeypatch.setenv("GRC_LAKE_COMMERCIAL_HOSTED", "1")
+    out = tmp_path / "qualification"
+    with pytest.raises(SystemExit) as exc:
+        qualification.main(["--out", str(out)])
+    assert exc.value.code == 2
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert "unset hosted mode" in captured.err
+    assert not out.exists()
