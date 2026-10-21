@@ -222,6 +222,53 @@ function formatWhen(value: string | null | undefined) {
   }).format(new Date(parsed));
 }
 
+function ConnectorRunRow({
+  run,
+  connector,
+  compact = false,
+}: {
+  run: ConnectorRun;
+  connector: ConnectorView;
+  compact?: boolean;
+}) {
+  return (
+    <div
+      className={
+        compact ? "text-xs" : "rounded-lg border border-line p-3 text-xs"
+      }
+    >
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <span>
+          <Badge tone={toneForResult(run.result)}>
+            {displayLabel(run.result)}
+          </Badge>{" "}
+          <Badge>{displayLabel(run.kind)}</Badge>
+        </span>
+        <span className="text-muted">{formatWhen(run.occurred_at)}</span>
+      </div>
+      {!compact && (
+        <div className="mt-1 text-muted">
+          actor <b className="text-ink">{run.actor}</b>
+          {run.duration_ms !== null && <> · {run.duration_ms} ms</>}
+          {run.evidence_count !== null && (
+            <>
+              {" "}
+              · {run.evidence_count}{" "}
+              {run.kind === "sync" ? "evidence row(s)" : "object(s)"}
+            </>
+          )}
+        </div>
+      )}
+      {run.error && (
+        <div className="mt-1 text-danger-fg">
+          {runErrorDetail(run, connector)}
+        </div>
+      )}
+      <RunCoverageGaps run={run} />
+    </div>
+  );
+}
+
 function SnowflakeSetupHint({
   canDiscover,
   discovered,
@@ -737,6 +784,79 @@ export function ConnectorDrawer({
     }
   };
 
+  const renderSetupField = (
+    field: FieldDef,
+    kind: "required" | "scope" | "advanced",
+  ) => {
+    const credential = credentialFields.includes(field);
+    const error =
+      kind === "required" && !hasStagedServerCredentials
+        ? credentialFieldError(field.name, field.label, field.required)
+        : null;
+    const candidates =
+      kind === "scope"
+        ? stringCandidates(discoveryMetadata, candidateKeyForField(field.name))
+        : null;
+    const suffix =
+      kind === "required" && hasStagedServerCredentials
+        ? " (replace only if needed)"
+        : kind !== "advanced" && field.required
+          ? " *"
+          : "";
+    return (
+      <label key={field.name} className="grid gap-1 text-sm">
+        <span className="font-medium">
+          {field.label}
+          {suffix}
+        </span>
+        <input
+          type={field.secret ? "password" : "text"}
+          value={(credential ? creds : options)[field.name] ?? ""}
+          onBlur={
+            kind === "required" ? () => markTouched(field.name) : undefined
+          }
+          aria-invalid={kind === "required" ? Boolean(error) : undefined}
+          list={candidates ? `scope-${field.name}` : undefined}
+          onChange={(event) => {
+            const value = event.target.value;
+            setAccessValidated(false);
+            (credential ? setCreds : setOptions)((current) => {
+              const next = { ...current, [field.name]: value };
+              if (kind === "scope" && isSnowflake) {
+                if (field.name === "database") delete next.schema;
+                if (["database", "schema"].includes(field.name))
+                  for (const key of [
+                    "audit_events",
+                    "control_posture",
+                    "asset_risk",
+                    "evidence_bundles",
+                  ])
+                    delete next[key];
+              }
+              return next;
+            });
+          }}
+          className="ui-input"
+          placeholder={field.placeholder}
+        />
+        {candidates && (
+          <datalist id={`scope-${field.name}`}>
+            {candidates.map((value) => (
+              <option key={value} value={value} />
+            ))}
+          </datalist>
+        )}
+        {kind === "required" && (error || field.hint) && (
+          <span
+            className={`text-xs ${error ? "text-danger-fg" : "text-muted"}`}
+          >
+            {error || field.hint}
+          </span>
+        )}
+      </label>
+    );
+  };
+
   return (
     <Drawer
       open={true}
@@ -925,35 +1045,11 @@ export function ConnectorDrawer({
               </div>
               <div className="mt-2 grid gap-2">
                 {operationalRuns.slice(0, 8).map((run) => (
-                  <div
+                  <ConnectorRunRow
                     key={run.occurred_at + run.kind}
-                    className="rounded-lg border border-line p-2 text-xs"
-                  >
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <span>
-                        <Badge tone={toneForResult(run.result)}>
-                          {displayLabel(run.result)}
-                        </Badge>{" "}
-                        <Badge>{displayLabel(run.kind)}</Badge>
-                      </span>
-                      <span className="text-muted">
-                        {formatWhen(run.occurred_at)}
-                      </span>
-                    </div>
-                    <div className="mt-1 text-muted">
-                      {run.actor}
-                      {run.duration_ms !== null && <> · {run.duration_ms} ms</>}
-                      {run.evidence_count !== null && (
-                        <> · {run.evidence_count} evidence</>
-                      )}
-                    </div>
-                    {run.error && (
-                      <div className="mt-1 text-danger-fg">
-                        {runErrorDetail(run, connector)}
-                      </div>
-                    )}
-                    <RunCoverageGaps run={run} />
-                  </div>
+                    run={run}
+                    connector={connector}
+                  />
                 ))}
                 {operationalRuns.length === 0 && (
                   <div className="text-xs text-muted">
@@ -1315,39 +1411,11 @@ export function ConnectorDrawer({
                 <div className="mt-3 max-h-80 overflow-auto pr-1">
                   <div className="grid gap-2">
                     {runHistoryRows.slice(0, 8).map((r) => (
-                      <div
+                      <ConnectorRunRow
                         key={r.occurred_at + r.kind}
-                        className="rounded-lg border border-line p-3 text-xs"
-                      >
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <span>
-                            <Badge tone={toneForResult(r.result)}>
-                              {displayLabel(r.result)}
-                            </Badge>{" "}
-                            <Badge>{displayLabel(r.kind)}</Badge>
-                          </span>
-                          <span className="text-muted">
-                            {formatWhen(r.occurred_at)}
-                          </span>
-                        </div>
-                        <div className="mt-1 text-muted">
-                          actor <b className="text-ink">{r.actor}</b>
-                          {r.duration_ms !== null && <> · {r.duration_ms} ms</>}
-                          {r.evidence_count !== null && (
-                            <>
-                              {" "}
-                              ·{" "}
-                              {r.kind === "sync"
-                                ? `${r.evidence_count} evidence row(s)`
-                                : `${r.evidence_count} object(s)`}
-                            </>
-                          )}
-                        </div>
-                        {r.error && (
-                          <div className="mt-1 text-danger-fg">{r.error}</div>
-                        )}
-                        <RunCoverageGaps run={r} />
-                      </div>
+                        run={r}
+                        connector={connector}
+                      />
                     ))}
                   </div>
                 </div>
@@ -1378,52 +1446,7 @@ export function ConnectorDrawer({
                     )}
                     {requiredFirst(credentialFields)
                       .filter((field) => field.required)
-                      .map((field) => {
-                        const error = credentialFieldError(
-                          field.name,
-                          field.label,
-                          field.required,
-                        );
-                        return (
-                          <label
-                            key={field.name}
-                            className="grid gap-1 text-sm"
-                          >
-                            <span className="font-medium">
-                              {field.label}
-                              {hasStagedServerCredentials
-                                ? " (replace only if needed)"
-                                : " *"}
-                            </span>
-                            <input
-                              type={field.secret ? "password" : "text"}
-                              value={creds[field.name] ?? ""}
-                              onBlur={() => markTouched(field.name)}
-                              aria-invalid={
-                                Boolean(error) && !hasStagedServerCredentials
-                              }
-                              onChange={(e) => {
-                                setAccessValidated(false);
-                                setCreds((c) => ({
-                                  ...c,
-                                  [field.name]: e.target.value,
-                                }));
-                              }}
-                              className="ui-input"
-                              placeholder={field.placeholder}
-                            />
-                            {(error && !hasStagedServerCredentials) ||
-                            field.hint ? (
-                              <span
-                                className={`text-xs ${error && !hasStagedServerCredentials ? "text-danger-fg" : "text-muted"}`}
-                              >
-                                {(!hasStagedServerCredentials && error) ||
-                                  field.hint}
-                              </span>
-                            ) : null}
-                          </label>
-                        );
-                      })}
+                      .map((field) => renderSetupField(field, "required"))}
                     {credentialFields.length === 0 && (
                       <p className="text-sm text-muted">
                         Uses the runtime’s ambient identity.
@@ -1436,57 +1459,9 @@ export function ConnectorDrawer({
                       />
                     )}
                     {showSnowflakeScopeFields &&
-                      coreScopeFields.map((field) => {
-                        const candidates = stringCandidates(
-                          discoveryMetadata,
-                          candidateKeyForField(field.name),
-                        );
-                        return (
-                          <label
-                            key={field.name}
-                            className="grid gap-1 text-sm"
-                          >
-                            <span className="font-medium">
-                              {field.label}
-                              {field.required ? " *" : ""}
-                            </span>
-                            <input
-                              list={`scope-${field.name}`}
-                              value={options[field.name] ?? ""}
-                              onChange={(e) => {
-                                setAccessValidated(false);
-                                setOptions((c) => {
-                                  const next = {
-                                    ...c,
-                                    [field.name]: e.target.value,
-                                  };
-                                  if (isSnowflake && field.name === "database")
-                                    delete next.schema;
-                                  if (
-                                    isSnowflake &&
-                                    ["database", "schema"].includes(field.name)
-                                  )
-                                    for (const key of [
-                                      "audit_events",
-                                      "control_posture",
-                                      "asset_risk",
-                                      "evidence_bundles",
-                                    ])
-                                      delete next[key];
-                                  return next;
-                                });
-                              }}
-                              className="ui-input"
-                              placeholder={field.placeholder}
-                            />
-                            <datalist id={`scope-${field.name}`}>
-                              {candidates.map((value) => (
-                                <option key={value} value={value} />
-                              ))}
-                            </datalist>
-                          </label>
-                        );
-                      })}
+                      coreScopeFields.map((field) =>
+                        renderSetupField(field, "scope"),
+                      )}
                     <details className="rounded-lg border border-line p-3">
                       <summary className="cursor-pointer text-sm font-medium">
                         Advanced identity and scope
@@ -1497,33 +1472,7 @@ export function ConnectorDrawer({
                             (field) => !field.required,
                           ),
                           ...advancedScopeFields,
-                        ].map((field) => {
-                          const credential = credentialFields.includes(field);
-                          return (
-                            <label
-                              key={field.name}
-                              className="grid gap-1 text-sm"
-                            >
-                              {field.label}
-                              <input
-                                type={field.secret ? "password" : "text"}
-                                value={
-                                  (credential ? creds : options)[field.name] ??
-                                  ""
-                                }
-                                onChange={(e) => {
-                                  setAccessValidated(false);
-                                  (credential ? setCreds : setOptions)((c) => ({
-                                    ...c,
-                                    [field.name]: e.target.value,
-                                  }));
-                                }}
-                                className="ui-input"
-                                placeholder={field.placeholder}
-                              />
-                            </label>
-                          );
-                        })}
+                        ].map((field) => renderSetupField(field, "advanced"))}
                       </div>
                     </details>
                   </>
@@ -1639,22 +1588,12 @@ export function ConnectorDrawer({
                       </summary>
                       <div className="mt-3 grid gap-3">
                         {runHistoryRows.slice(0, 8).map((run) => (
-                          <div
+                          <ConnectorRunRow
                             key={run.occurred_at + run.kind}
-                            className="text-xs"
-                          >
-                            <Badge tone={toneForResult(run.result)}>
-                              {displayLabel(run.result)}
-                            </Badge>{" "}
-                            {displayLabel(run.kind)} ·{" "}
-                            {formatWhen(run.occurred_at)}
-                            {run.error && (
-                              <p className="mt-1 text-danger-fg">
-                                {runErrorDetail(run, connector)}
-                              </p>
-                            )}
-                            <RunCoverageGaps run={run} />
-                          </div>
+                            run={run}
+                            connector={connector}
+                            compact
+                          />
                         ))}
                         {!runHistoryRows.length && (
                           <p className="text-xs text-muted">

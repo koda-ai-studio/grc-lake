@@ -7,18 +7,12 @@ shape for append-mode sync with watermark cursors.
 
 from __future__ import annotations
 
-import json
 import re
-import urllib.error
-import urllib.parse
-import urllib.request
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from security_lakehouse import netguard
-from security_lakehouse.ingestion import backoff
-from security_lakehouse.ingestion.paginate import object_rows, paginate
+from security_lakehouse.ingestion.http_export import CursorExportClient
 from security_lakehouse.io import read_json
 from security_lakehouse.models import parse_event_time, utc_iso
 from security_lakehouse.runtime_environment import runtime_env
@@ -35,8 +29,14 @@ BLOCKED_STATUSES = frozenset({"blocked", "denied", "rejected"})
 IDENTIFIER = re.compile(r"^[A-Za-z0-9_.:-]+$")
 
 
-class RuntimeGatewayClient:
+class RuntimeGatewayClient(CursorExportClient):
     """Read-only runtime gateway export client."""
+
+    item_keys = ITEM_KEYS
+    item_label = "runtime"
+    error_label = "runtime gateway"
+    url_label = "runtime gateway url"
+    max_pages = MAX_PAGES
 
     def __init__(
         self,
@@ -46,10 +46,8 @@ class RuntimeGatewayClient:
         stream: str = "runtime-events",
         timeout: int = DEFAULT_TIMEOUT,
     ) -> None:
-        self.base_url = host.rstrip("/")
-        self.token = token
+        super().__init__(host, token=token, timeout=timeout)
         self.stream = _safe_scope(stream)
-        self.timeout = timeout
 
     def events(self, *, since: str | None = None) -> list[dict[str, Any]]:
         base = f"{self.base_url}/api/v1/streams/{self.stream}/events"
@@ -109,68 +107,6 @@ class RuntimeGatewayClient:
             "selectors": selectors,
             "recommended_options": {"stream": selected},
         }
-
-    def _fetch_json(self, url: str) -> Any:
-        request = urllib.request.Request(
-            url,
-            headers={
-                "accept": "application/json",
-                "authorization": f"Bearer {self.token}",
-                "user-agent": "grc-lake",
-            },
-        )
-
-        def _fetch() -> Any:
-            with netguard.open_public(request, timeout=self.timeout, label="runtime gateway url") as resp:
-                return json.loads(resp.read().decode("utf-8"))
-
-        try:
-            # Retry transient 429/5xx (honoring Retry-After); a terminal 4xx or an
-            # exhausted retry surfaces as a sanitized error rather than failing loud.
-            return backoff.http_retry(_fetch)
-        except urllib.error.HTTPError as exc:  # pragma: no cover - live only
-            raise ValueError(exc.__class__.__name__) from exc
-
-    @staticmethod
-    def _extract_items(payload: Any, url: str) -> list[dict[str, Any]]:
-        if isinstance(payload, list):
-            return object_rows(payload, label="runtime")
-        if isinstance(payload, dict):
-            for key in ITEM_KEYS:
-                value = payload.get(key)
-                if isinstance(value, list):
-                    return object_rows(value, label="runtime")
-        raise ValueError(f"runtime gateway returned non-list JSON for {url}")
-
-    def _json_list(self, url: str) -> list[dict[str, Any]]:
-        return self._extract_items(self._fetch_json(url), url)
-
-    def _json_list_paginated(self, base_url: str, params: dict[str, str]) -> list[dict[str, Any]]:
-        """Follow the export's ``next_cursor`` envelope until it is exhausted.
-
-        A bare-list (or cursor-less object) response yields exactly one page, so
-        this is backward compatible with an export that does not paginate.
-        ``since`` and any other params ride on every page.
-        """
-
-        def fetch_page(cursor: str | None) -> tuple[str, Any]:
-            query = dict(params)
-            if cursor:
-                query["cursor"] = cursor
-            url = f"{base_url}?{urllib.parse.urlencode(query)}" if query else base_url
-            return url, self._fetch_json(url)
-
-        def extract_items(page: tuple[str, Any]) -> list[dict[str, Any]]:
-            url, payload = page
-            return self._extract_items(payload, url)
-
-        def next_cursor(page: tuple[str, Any]) -> str | None:
-            _url, payload = page
-            if isinstance(payload, dict):
-                return str(payload.get("next_cursor") or "") or None
-            return None
-
-        return list(paginate(fetch_page, extract_items, next_cursor, max_pages=MAX_PAGES))
 
 
 class RuntimeGatewayFixtureClient:
