@@ -568,6 +568,49 @@ Okta System Log is a polled API. Modeling them separately keeps each control on
 the right freshness/cost path instead of over-provisioning the whole connector to
 the strictest SLO.
 
+### Optional non-human identity metadata
+
+Enable **Collect non-human identities** in the Okta Identity drawer to include
+OAuth service applications and API-token metadata. It is off by default and
+leaves the existing user/MFA/policy collection unchanged. The equivalent CLI
+configuration is:
+
+```bash
+grc-lake connectors probe --lake ./lake --connector-id okta-identity \
+  --credentials-json '{"org_url":"https://your-org.okta.com","credential_ref":"GRC_LAKE_OKTA_TOKEN"}' \
+  --options-json '{"include_non_human_identities":true}'
+grc-lake connectors configure --lake ./lake --connector-id okta-identity \
+  --state enabled \
+  --credentials-json '{"org_url":"https://your-org.okta.com","credential_ref":"GRC_LAKE_OKTA_TOKEN"}' \
+  --options-json '{"include_non_human_identities":true}'
+grc-lake connectors sync --lake ./lake --connector-id okta-identity
+```
+
+Supply the API token through the named environment variable or your existing
+secret-reference policy. The additional reads are `GET /api/v1/apps` and
+`GET /api/v1/api-tokens`, including pagination. They require application and
+API-token read authority (`okta.apps.read` and `okta.apiTokens.read` in Okta's
+[scope catalog](https://developer.okta.com/docs/api/oauth2)); an SSWS API token
+inherits its administrator's authority and is not itself OAuth-scoped.
+No write endpoints or credential-value endpoints are called.
+Configuration/contract-only probes do not establish provider access; inspect
+the first sync and any coverage gaps.
+
+The collector retains identity IDs, labels, owner references, lifecycle and
+creation/expiry metadata, and service-app authentication/grant settings. Human
+SSO applications are excluded. Client secrets and token values are excluded;
+grant types are not treated as permissions, `lastUpdated` is not last use, and
+uncollected scopes remain explicitly unknown. The additional rows are scoped
+observations with no automatic control bindings or passing-control claims.
+Denied or malformed sub-collections produce visible coverage gaps while other
+readable evidence is retained.
+
+Filtering and metadata validation reuse the tested implementation from
+[Agent-Bom at revision 95bc4a9](https://github.com/koda-ai-studio/agent-bom/blob/95bc4a9c8e50d4bfbce59b91db8f68429cfbf9e5/src/agent_bom/identity/okta_nhi.py),
+adapted to GRC Lake's evidence contract. The products remain independent;
+GRC Lake does not install or invoke Agent-Bom. Fixture tests demonstrate this
+path locally; they do not establish credentialed provider qualification.
+
 ## Google Workspace: two credential shapes
 
 `google-workspace-identity` accepts either an already-minted access token or the

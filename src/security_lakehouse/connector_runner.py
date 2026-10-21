@@ -616,11 +616,17 @@ def _build_gitlab(inputs: SyncInputs) -> list[dict[str, Any]]:
 
 
 def _build_okta(inputs: SyncInputs) -> list[dict[str, Any]]:
+    include_nhi = inputs.options.get("include_non_human_identities", False)
+    if not isinstance(include_nhi, bool):
+        if include_nhi not in ("true", "false"):
+            raise ConnectorConfigError("include_non_human_identities must be true or false")
+        include_nhi = include_nhi == "true"
     return _collect_okta(
         fixture_dir=inputs.fixture_dir,
         token_env=inputs.token_env,
         env=inputs.env,
         credentials=inputs.credentials,
+        include_non_human_identities=include_nhi,
     )
 
 
@@ -914,6 +920,7 @@ def _collect_okta(
     token_env: str,
     env: dict[str, str],
     credentials: dict[str, Any] | None = None,
+    include_non_human_identities: bool = False,
 ) -> list[dict[str, Any]]:
     env = runtime_env(env)
     client: OktaClient | OktaFixtureClient
@@ -931,7 +938,7 @@ def _collect_okta(
             )
         netguard.assert_url_is_public(org_url, label="okta org url")
         client = OktaClient(org_url, token=token)
-    return collect_okta_evidence(client)
+    return collect_okta_evidence(client, include_non_human_identities=include_non_human_identities)
 
 
 def _collect_okta_system_log(

@@ -810,15 +810,27 @@ export function ConnectorDrawer({
           {suffix}
         </span>
         <input
-          type={field.secret ? "password" : "text"}
-          value={(credential ? creds : options)[field.name] ?? ""}
+          type={field.type ?? (field.secret ? "password" : "text")}
+          checked={
+            field.type === "checkbox"
+              ? options[field.name] === "true"
+              : undefined
+          }
+          value={
+            field.type === "checkbox"
+              ? undefined
+              : ((credential ? creds : options)[field.name] ?? "")
+          }
           onBlur={
             kind === "required" ? () => markTouched(field.name) : undefined
           }
           aria-invalid={kind === "required" ? Boolean(error) : undefined}
           list={candidates ? `scope-${field.name}` : undefined}
           onChange={(event) => {
-            const value = event.target.value;
+            const value =
+              field.type === "checkbox"
+                ? String(event.target.checked)
+                : event.target.value;
             setAccessValidated(false);
             (credential ? setCreds : setOptions)((current) => {
               const next = { ...current, [field.name]: value };
@@ -836,7 +848,11 @@ export function ConnectorDrawer({
               return next;
             });
           }}
-          className="ui-input"
+          className={
+            field.type === "checkbox"
+              ? "h-4 w-4 rounded border-line"
+              : "ui-input"
+          }
           placeholder={field.placeholder}
         />
         {candidates && (
@@ -846,13 +862,14 @@ export function ConnectorDrawer({
             ))}
           </datalist>
         )}
-        {kind === "required" && (error || field.hint) && (
-          <span
-            className={`text-xs ${error ? "text-danger-fg" : "text-muted"}`}
-          >
-            {error || field.hint}
-          </span>
-        )}
+        {(kind === "required" || field.type === "checkbox") &&
+          (error || field.hint) && (
+            <span
+              className={`text-xs ${error ? "text-danger-fg" : "text-muted"}`}
+            >
+              {error || field.hint}
+            </span>
+          )}
       </label>
     );
   };

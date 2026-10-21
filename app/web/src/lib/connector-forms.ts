@@ -7,6 +7,7 @@ export interface ConnectorFieldDef {
   secret?: boolean;
   required?: boolean;
   hint?: string;
+  type?: "checkbox";
 }
 
 export const CONNECTOR_CREDENTIAL_FIELDS: Record<string, ConnectorFieldDef[]> =
@@ -400,7 +401,7 @@ export const CONNECTOR_CREDENTIAL_FIELDS: Record<string, ConnectorFieldDef[]> =
         label: "API token env var",
         placeholder: "OKTA_API_TOKEN",
         required: true,
-        hint: "Read-only Okta API token (okta.users.read, okta.policies.read).",
+        hint: "API token with user, factor, and policy read authority. SSWS tokens inherit their administrator's permissions.",
       },
     ],
     "okta-system-log": [
@@ -515,6 +516,15 @@ export const CONNECTOR_CREDENTIAL_FIELDS: Record<string, ConnectorFieldDef[]> =
   };
 
 export const CONNECTOR_SCOPE_FIELDS: Record<string, ConnectorFieldDef[]> = {
+  "okta-identity": [
+    {
+      name: "include_non_human_identities",
+      label: "Collect non-human identities",
+      placeholder: "",
+      type: "checkbox",
+      hint: "Also read service-account and API-token metadata. Requires app and API-token read permissions; credential values are excluded.",
+    },
+  ],
   "aws-posture": [
     {
       name: "region",

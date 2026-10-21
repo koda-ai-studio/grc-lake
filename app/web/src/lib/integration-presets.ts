@@ -248,16 +248,17 @@ const PRESETS: Record<string, IntegrationPreset> = {
     connectorId: "okta-identity",
     title: "Okta identity",
     authLabel: "Okta API token reference",
-    badges: ["Okta API token reference", "Read-only scopes"],
+    badges: ["Okta API token reference", "Read-only authority"],
     summary:
-      "Use a scoped Okta token reference to read users, factors, and MFA policy evidence.",
+      "Read users, factors, and MFA policy evidence, with optional non-human identity metadata.",
     providerSetup:
-      "Create a read-only Okta API token with users, factors, and policy read scopes.",
+      "Create an API token from an administrator with the required user, factor, and policy read permissions.",
     trustOpsInput: "Okta org URL and the runtime secret reference name.",
     advancedTitle: "System Log option",
     advancedDetails: [
       "Use Okta System Log as a separate event-stream connector when login events are needed.",
       "GRC Lake stores the reference name, not the token value.",
+      "Optional non-human identity collection also needs application and API-token metadata read authority.",
     ],
   },
   "okta-system-log": {

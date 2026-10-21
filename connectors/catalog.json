@@ -175,7 +175,7 @@
         "okta.userFactors.read",
         "okta.policies.read"
       ],
-      "evidence_types": ["identity", "mfa", "policy"],
+      "evidence_types": ["identity", "mfa", "policy", "non_human_identity"],
       "default_route": "dual",
       "freshness_slo_minutes": 60,
       "is_implemented": true,
@@ -184,8 +184,8 @@
       "native_connector": false,
       "data_shape": "current_state",
       "vendor": "Okta",
-      "description": "Users, MFA factors, and MFA enrollment policies.",
-      "setup_hint": "Read-only API token plus Okta org URL."
+      "description": "Users, MFA factors, enrollment policies, and optional service-account/API-token metadata.",
+      "setup_hint": "API token with identity read authority plus Okta org URL."
     },
     {
       "connector_id": "okta-system-log",
