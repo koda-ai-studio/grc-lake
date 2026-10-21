@@ -430,6 +430,17 @@ def _parser() -> argparse.ArgumentParser:
 
     assessment = sub.add_parser("assessment", help="continuous compliance assessment commands")
     assessment_sub = assessment.add_subparsers(dest="assessment_command", required=True)
+    framework_report = assessment_sub.add_parser(
+        "framework-report", help="export frozen framework coverage and gaps as an offline HTML/JSON ZIP"
+    )
+    framework_report.add_argument("--lake", required=True)
+    framework_report.add_argument("--tenant-id", required=True, help="must match the assessment tenant")
+    framework_report.add_argument(
+        "--framework", action="append", default=[], help="framework ID; repeatable; defaults to all frozen frameworks"
+    )
+    framework_report.add_argument("--generation-id", default=None, help="reject if the current generation has changed")
+    framework_report.add_argument("--out", required=True, help="new ZIP path outside the lake")
+    framework_report.set_defaults(func=_assessment_framework_report)
     workpaper = assessment_sub.add_parser("workpaper", help="export a reproducible auditor workpaper (JSON and HTML)")
     workpaper.add_argument("--lake", required=True)
     workpaper.add_argument("--plan", required=True)
@@ -1852,6 +1863,34 @@ def _workflow_run(args: argparse.Namespace) -> int:
 
     run = run_workflow(args.lake, workflow_id=args.workflow_id, actor=args.actor)
     print(json.dumps(run, indent=2, sort_keys=True))
+    return 0
+
+
+def _assessment_framework_report(args: argparse.Namespace) -> int:
+    from security_lakehouse.framework_report import build_framework_report, export_framework_report
+
+    try:
+        lake, target = Path(args.lake).resolve(), Path(args.out).absolute()
+        if target.resolve().is_relative_to(lake):
+            raise ValueError("framework report output must be outside the lake")
+        report = build_framework_report(
+            lake, tenant_id=args.tenant_id, framework_ids=args.framework, expected_generation=args.generation_id
+        )
+        manifest = export_framework_report(report, target)
+    except (ValueError, OSError) as exc:
+        raise SystemExit(str(exc)) from exc
+    print(
+        json.dumps(
+            {
+                "output": str(target),
+                "generation": manifest["generation"],
+                "frameworks": len(report["frameworks"]),
+                "requirements": len(report["requirements"]),
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
     return 0
 
 

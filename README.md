@@ -173,6 +173,10 @@ flowchart LR
 
 For an offline standards handoff, export a [portable CCF/OSCAL bundle](docs/OSCAL_EXPORT.md#portable-ccf-and-framework-bundle) with resolvable framework catalogs, reviewed mappings, and document checksums.
 
+For a review across SOC 2, ISO, and NIST, the current-source
+[framework coverage report](docs/FRAMEWORK_COVERAGE_REPORT.md) exports frozen
+catalog counts, mapping-review gaps, and evidence results as an offline HTML/JSON bundle.
+
 Use [direct connectors](docs/CONNECTOR_CREDENTIALS.md) or
 [read an existing lake](docs/BRING_YOUR_OWN_LAKE.md). Both materialize assessment
 evidence into storage you operate. Reader compatibility, schema mapping, and
