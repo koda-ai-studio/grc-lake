@@ -223,7 +223,7 @@ class AzureClient:
             payload = as_dict()
             if isinstance(payload, dict):
                 return payload
-        return {}
+        raise ValueError("Azure SDK returned a non-object collection record")
 
 
 class AzureCliClient:
@@ -246,8 +246,8 @@ class AzureCliClient:
         self._az = resolved
 
     def subscription(self) -> dict[str, Any]:
-        rows = self._run_json(["account", "show"])
-        return rows[0] if rows else {}
+        rows = self._run_json(["account", "show"], single_object=True)
+        return rows[0]
 
     def role_assignments(self) -> list[dict[str, Any]]:
         return self._run_json(["role", "assignment", "list", "--include-inherited"])
@@ -261,7 +261,7 @@ class AzureCliClient:
     def resources(self) -> list[dict[str, Any]]:
         return self._run_json(["resource", "list"])
 
-    def _run_json(self, args: list[str]) -> list[dict[str, Any]]:
+    def _run_json(self, args: list[str], *, single_object: bool = False) -> list[dict[str, Any]]:
         cmd = [self._az, *args, "--subscription", self.subscription_id, "--output", "json"]
         try:
             completed = subprocess.run(
@@ -287,17 +287,22 @@ class AzureCliClient:
             raise RuntimeError(f"azure CLI command failed during azure-posture collection: {detail}") from exc
 
         try:
-            payload = json.loads(completed.stdout or "[]")
+            payload = json.loads(completed.stdout)
         except json.JSONDecodeError as exc:
             raise ConnectorAccessError("azure CLI returned invalid JSON during azure-posture collection") from exc
-        if isinstance(payload, list):
-            return [item for item in payload if isinstance(item, dict)]
-        if isinstance(payload, dict):
-            value = payload.get("value")
-            if isinstance(value, list):
-                return [item for item in value if isinstance(item, dict)]
+        if single_object:
+            if not isinstance(payload, dict) or not isinstance(payload.get("id"), str) or not payload["id"].strip():
+                raise ValueError("Azure subscription response must be an object with an identity")
             return [payload]
-        return []
+        if isinstance(payload, dict):
+            # A paged REST envelope is not an exhausted CLI inventory. Never
+            # publish its first page as the complete subscription snapshot.
+            if payload.get("nextLink") or payload.get("next_link"):
+                raise ValueError("Azure collection returned an unconsumed continuation")
+            payload = payload.get("value")
+        if not isinstance(payload, list) or any(not isinstance(item, dict) for item in payload):
+            raise ValueError("Azure collection response must contain only object records")
+        return payload
 
 
 class AzureFixtureClient:

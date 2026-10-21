@@ -926,3 +926,14 @@ ignored. The grace period defaults to 1 day; set
 work email and matched account ids) are marked `data_sensitivity: confidential`.
 The derive step runs under the same raw-file lock as connector writes, so
 concurrent HR and IdP syncs cannot each derive from a partial view.
+
+### Azure response integrity
+
+Azure CLI inventory reads reject scalar responses, malformed rows, empty stdout,
+and REST envelopes with an unconsumed continuation. A valid empty JSON array
+still represents an empty collection. The subscription probe requires an object
+with an identity; SDK records must serialize to objects. Collection errors are
+recorded as failed syncs before the prior raw inventory is replaced. These
+contracts are exercised offline by
+[`test_azure_collection_integrity.py`](../tests/test_azure_collection_integrity.py);
+they do not establish live subscription coverage or credential qualification.
