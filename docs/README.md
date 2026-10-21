@@ -91,7 +91,7 @@ Every guide in `docs/`, grouped by task. New here? Start with the
 | [Security data lakes](HERO_DATA_LAKES.md)                            | Supported lakes and warehouses                           |
 | [Iceberg REST](ICEBERG_REST.md)                                      | Iceberg REST evidence publication                        |
 | [Parquet export](PARQUET_EXPORT.md)                                  | Portable evidence with Parquet                           |
-| [OSCAL export](OSCAL_EXPORT.md)                                      | Component definitions and assessment results             |
+| [OSCAL export](OSCAL_EXPORT.md)                                      | Portable CCF bundles and assessment results              |
 | [Webhooks](WEBHOOKS.md)                                              | Outbound event delivery                                  |
 | [CI gate](CI_GATE.md)                                                | Failing a pipeline on posture                            |
 | [CI posture gate playbook](playbooks/CI_POSTURE_GATE.md)             | Setting up the gate in CI                                |
