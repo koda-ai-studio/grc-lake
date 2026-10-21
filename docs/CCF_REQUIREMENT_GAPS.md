@@ -59,3 +59,7 @@ state, never inferred coverage. Retry reads the latest assessment.
 The explanation does not change verdicts, approve mappings or verify integrity
 again. Complete asset inventory remains unestablished; a recorded pass with no
 blockers is not a certification or an estate-wide coverage claim.
+
+For a private offline handoff across multiple frameworks, export the
+[portable framework coverage report](FRAMEWORK_COVERAGE_REPORT.md). It verifies
+and pins a generation, preserving all catalogued requirements in the denominator.
