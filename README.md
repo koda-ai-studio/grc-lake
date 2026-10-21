@@ -171,6 +171,8 @@ flowchart LR
   Assessments --> Export["Snapshots · workpapers · OSCAL"]
 ```
 
+For an offline standards handoff, export a [portable CCF/OSCAL bundle](docs/OSCAL_EXPORT.md#portable-ccf-and-framework-bundle) with resolvable framework catalogs, reviewed mappings, and document checksums.
+
 Use [direct connectors](docs/CONNECTOR_CREDENTIALS.md) or
 [read an existing lake](docs/BRING_YOUR_OWN_LAKE.md). Both materialize assessment
 evidence into storage you operate. Reader compatibility, schema mapping, and
