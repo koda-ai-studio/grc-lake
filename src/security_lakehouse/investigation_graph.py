@@ -15,6 +15,7 @@ from typing import Any
 
 from security_lakehouse import catalog
 from security_lakehouse import safeguards as safeguard_catalog
+from security_lakehouse.asset_names import asset_name_for, names_from_assets
 from security_lakehouse.catalog import control_catalog_view, framework_registry_view
 from security_lakehouse.domain_identity import source_asset_key
 from security_lakehouse.event_status import FAIL_STATUSES, normalize_event_status
@@ -189,15 +190,7 @@ def _build_model(
     for decision in sorted(list_events(lake), key=lambda r: instant_sort_key(r.get("occurred_at"))):
         triage[decision["violation_id"]] = decision
     events = read_jsonl(lake / "silver/normalized_events.jsonl", missing_ok=True, base_dir=lake)
-    asset_names = {
-        row["asset_id"]: row.get("asset_name")
-        for row in read_jsonl(lake / "gold/asset_risk.jsonl", missing_ok=True, base_dir=lake)
-    }
-    asset_scopes = defaultdict(set)
-    for event in events:
-        check()
-        account, asset = source_asset_key({**event, "asset_id": event.get("asset_id") or ""})
-        asset_scopes[asset].add(account)
+    asset_names = names_from_assets(read_jsonl(lake / "gold/asset_risk.jsonl", missing_ok=True, base_dir=lake))
     evidence_by_event = defaultdict(list)
     check()
     ordered_events = sorted(((canonical_sha256(event), event) for event in events), key=lambda item: item[0])
@@ -235,7 +228,7 @@ def _build_model(
             node(
                 kind,
                 aid,
-                event.get("asset_name") or (asset_names.get(asset) if len(asset_scopes[asset]) == 1 else None) or asset,
+                event.get("asset_name") or asset_name_for(event, asset_names) or asset,
                 **observed,
                 asset_id=asset,
                 subtitle=event.get("asset_type"),

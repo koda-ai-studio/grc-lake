@@ -139,9 +139,10 @@ TABLE_SPECS: tuple[TableSpec, ...] = (
         artifact=("gold", "asset_risk.jsonl"),
         schema="SECURITY_GOLD",
         table="ASSET_RISK",
-        key=("tenant_id", "asset_id"),
+        key=("tenant_id", "source_account_id", "asset_id"),
         columns=(
             "tenant_id",
+            "source_account_id",
             "asset_id",
             "asset_type",
             "asset_owner",
@@ -152,7 +153,7 @@ TABLE_SPECS: tuple[TableSpec, ...] = (
             "event_count",
             "latest_event_time",
         ),
-        defaults={"tenant_id": DEFAULT_TENANT},
+        defaults={"tenant_id": DEFAULT_TENANT, "source_account_id": ""},
     ),
 )
 

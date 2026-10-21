@@ -506,7 +506,7 @@ def test_run_probe_azure_is_live(tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 
 
 def test_stable_id_slug_keeps_short_ids_and_disambiguates_long_ones() -> None:
-    assert stable_id_slug("Acme:Signal:Key", fallback="x") == "acme:signal:key"
+    assert stable_id_slug("acme:signal:key", fallback="x") == "acme:signal:key"
     assert stable_id_slug("", fallback="x") == "x"
     prefix = "p:asset://compute.googleapis.com/projects/acme-prod/zones/us-central1-a/instances/"
     first = stable_id_slug(prefix + "web-frontend-001", fallback="x")

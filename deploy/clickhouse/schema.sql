@@ -96,6 +96,7 @@ order by (tenant_id, program_id, framework, result, control_id);
 create table if not exists security.asset_risk
 (
   tenant_id LowCardinality(String),
+  source_account_id String,
   asset_id String,
   asset_type LowCardinality(String),
   asset_owner LowCardinality(String),
@@ -109,7 +110,7 @@ create table if not exists security.asset_risk
 )
 engine = ReplacingMergeTree(loaded_at)
 partition by tenant_id
-order by (tenant_id, environment, asset_owner, asset_id);
+order by (tenant_id, source_account_id, asset_id);
 
 create view if not exists security.control_test_readiness as
 select

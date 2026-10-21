@@ -6,6 +6,7 @@ import re
 from datetime import UTC, datetime
 from typing import Any
 
+from security_lakehouse.asset_names import entity_asset_id
 from security_lakehouse.event_identity import event_identity
 from security_lakehouse.strict_json import InvalidJSON, validate
 from security_lakehouse.vocabulary import Severity
@@ -53,6 +54,11 @@ def validate_raw_event(row: dict[str, Any], *, index: int | None = None) -> list
             errors.append(f"{prefix}event_time must be a timezone-qualified ISO-8601 timestamp")
     if not isinstance(row.get("entity"), dict):
         errors.append(f"{prefix}entity must be an object")
+    else:
+        try:
+            entity_asset_id(row["entity"])
+        except ValueError as exc:
+            errors.append(f"{prefix}{exc}")
     if "connector_id" in row and (not isinstance(row["connector_id"], str) or not row["connector_id"].strip()):
         errors.append(f"{prefix}connector_id must be a nonempty string")
     severity = row.get("severity", "info")

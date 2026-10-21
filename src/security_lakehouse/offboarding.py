@@ -12,7 +12,9 @@ Outcomes per terminated employee:
 * ``active_after_termination`` — an account can still authenticate more than
   the grace period after termination: open, high.
 * ``within_grace_period`` — still active, but inside the grace period: observed.
-* ``deprovisioned`` — every matched account is disabled: pass.
+* ``deprovisioned`` — every matched account explicitly reports disabled: pass.
+* ``account_state_unknown`` — no confirmed active account, but a matched account
+  has unavailable or malformed authentication state: not evaluated.
 * ``no_idp_account_matched`` — no IdP account shares the work email: observed,
   never a pass, because absence of a match proves nothing.
 
@@ -21,12 +23,12 @@ No rows are produced unless both HR and IdP evidence are present.
 
 from __future__ import annotations
 
-import re
 from collections.abc import Iterable, Mapping
 from datetime import date, datetime
 from typing import Any
 
 from security_lakehouse.hris import PERSONNEL_SENSITIVITY, parse_hr_date
+from security_lakehouse.io import canonical_sha256
 from security_lakehouse.models import utc_iso
 from security_lakehouse.runtime_environment import runtime_env
 
@@ -92,7 +94,7 @@ def correlate_offboarding(
                     {
                         "source": str(row.get("source") or ""),
                         "account_id": str(entity.get("asset_id") or ""),
-                        "can_authenticate": attributes.get("can_authenticate") is True,
+                        "can_authenticate": attributes.get("can_authenticate"),
                     }
                 )
     if not hr_rows or not accounts:
@@ -106,10 +108,14 @@ def correlate_offboarding(
             continue
         email = _email(attributes.get("work_email"))
         matched = accounts.get(email, []) if email else []
-        active = [{"source": a["source"], "account_id": a["account_id"]} for a in matched if a["can_authenticate"]]
+        active = [
+            {"source": a["source"], "account_id": a["account_id"]} for a in matched if a["can_authenticate"] is True
+        ]
         days = (as_of - terminated_on).days
         if not matched:
             status, severity, outcome = "observed", "low", "no_idp_account_matched"
+        elif not active and any(a["can_authenticate"] is not False for a in matched):
+            status, severity, outcome = "not_evaluated", "info", "account_state_unknown"
         elif not active:
             status, severity, outcome = "pass", "info", "deprovisioned"
         elif days > grace_days:
@@ -150,10 +156,11 @@ def _event(
 ) -> dict[str, Any]:
     entity = _mapping(hr_row.get("entity"))
     asset_id = str(entity.get("asset_id") or "")
-    stable = re.sub(r"[^a-z0-9_.:-]+", "-", f"offboarding:{asset_id}".lower()).strip("-")[:96]
+    source_account = str(hr_row.get("tenant_id") or tenant_id)
+    stable = "offboarding-v2:" + canonical_sha256([source_account, asset_id])
     return {
         "event_id": f"correlation-{stable}",
-        "tenant_id": tenant_id,
+        "tenant_id": source_account,
         "workspace_id": "default",
         "event_time": utc_iso(collected_at),
         "source": OFFBOARDING_SOURCE,

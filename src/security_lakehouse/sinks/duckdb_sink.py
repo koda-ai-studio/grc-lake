@@ -141,9 +141,10 @@ TABLE_SPECS: tuple[DuckTableSpec, ...] = (
     DuckTableSpec(
         artifact=("gold", "asset_risk.jsonl"),
         table="asset_risk",
-        key=("tenant_id", "asset_id"),
+        key=("tenant_id", "source_account_id", "asset_id"),
         columns=(
             "tenant_id",
+            "source_account_id",
             "asset_id",
             "asset_type",
             "asset_owner",
@@ -156,12 +157,12 @@ TABLE_SPECS: tuple[DuckTableSpec, ...] = (
         ),
         ddl=(
             "CREATE TABLE IF NOT EXISTS asset_risk ("
-            "tenant_id VARCHAR, asset_id VARCHAR, asset_type VARCHAR, asset_owner VARCHAR, environment VARCHAR, "
+            "tenant_id VARCHAR, source_account_id VARCHAR, asset_id VARCHAR, asset_type VARCHAR, asset_owner VARCHAR, environment VARCHAR, "
             "risk_score DOUBLE, critical_open BIGINT, high_open BIGINT, event_count BIGINT, "
-            "latest_event_time TIMESTAMP, PRIMARY KEY (tenant_id, asset_id))"
+            "latest_event_time TIMESTAMP, PRIMARY KEY (tenant_id, source_account_id, asset_id))"
         ),
         datetime_columns=("latest_event_time",),
-        defaults={"tenant_id": DEFAULT_TENANT},
+        defaults={"tenant_id": DEFAULT_TENANT, "source_account_id": ""},
     ),
 )
 
@@ -247,6 +248,13 @@ class DuckDBSink:
             conn.execute("BEGIN TRANSACTION")
             transaction_started = True
             self._claim_owner(conn, Path(lake_dir))
+            tables = {row[0] for row in conn.execute("SHOW TABLES").fetchall()}
+            if "asset_risk" in tables:
+                schema_columns = {row[1] for row in conn.execute("PRAGMA table_info('asset_risk')").fetchall()}
+                if "source_account_id" not in schema_columns:
+                    raise ValueError(
+                        "legacy asset_risk projection: use a new DuckDB destination and retain the old database"
+                    )
             for spec in TABLE_SPECS:
                 conn.execute(spec.ddl)
                 rows = rows_for_spec(spec, lake_dir)

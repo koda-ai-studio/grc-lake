@@ -44,6 +44,7 @@ erDiagram
   }
 
   ASSET_RISK {
+    string source_account_id PK
     string asset_id PK
     string asset_type
     string asset_owner
@@ -69,10 +70,10 @@ erDiagram
 | Field          | Purpose                                                 |
 | -------------- | ------------------------------------------------------- |
 | `event_id`     | Source-stable event identifier                          |
-| `tenant_id`    | Boundary for multi-tenant analytics                     |
+| `tenant_id`    | Legacy source-account identity; not platform ownership  |
 | `source`       | Tool or system that produced the evidence               |
 | `event_type`   | Normalized event family such as `vulnerability.finding` |
-| `asset_id`     | Canonical asset key for joins and rollups               |
+| `asset_id`     | Source identifier; joins also require source_account_id |
 | `control_ids`  | Framework controls affected by this event               |
 | `evidence_ref` | Pointer to the retained artifact                        |
 | `raw_sha256`   | Replay and tamper-evidence link to bronze data          |
