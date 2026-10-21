@@ -25,6 +25,23 @@ separates application storage from source readers and optional exports.
 
 Headless setup (curl, CLI, MCP): [playbooks/HEADLESS_CONNECTOR_SETUP.md](playbooks/HEADLESS_CONNECTOR_SETUP.md).
 
+## Connection hub: the next evidence step
+
+The console's **Connections** page separates enabled sources from sources with
+recent evidence. Each source names its next step: configure access, enable,
+collect, review a failed or empty collection, refresh stale evidence, or inspect
+the collected rows. The first action opens that source's existing configuration
+and run history; it does not start a collection automatically.
+
+A successful probe is not evidence collection. Configuration-only and skipped
+probes are labelled separately from live read-access checks. A failed latest
+sync stays visible even when older evidence is still fresh. Zero-row syncs,
+unknown counts, and invalid timestamps do not count as recent evidence.
+
+These counters describe recorded collection activity, including demo sources.
+They do not prove provider qualification or framework coverage. Run control
+evaluation and inspect its evidence before making an assessment claim.
+
 ## Access modes (pick one)
 
 | Mode                             | When to use                                                            | Boundary                          |
