@@ -25,7 +25,7 @@ mutates GCP state.
 from __future__ import annotations
 
 import re
-from collections.abc import Mapping
+from collections.abc import Iterator, Mapping
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -156,6 +156,46 @@ def _collection_error(exc: Exception, collection: _Collection, project_id: str) 
     return ConnectorAccessError(_READ_FAILED[collection.key])
 
 
+def _items(payload: Any, collection: _Collection) -> Iterator[Any]:
+    """Iterate SDK rows without mistaking an envelope for a collection."""
+    if payload is None or isinstance(payload, (str, bytes, Mapping)):
+        raise ConnectorAccessError(_READ_FAILED[collection.key])
+    return iter(payload)
+
+
+def _text(value: Any) -> bool:
+    return isinstance(value, str) and bool(value.strip())
+
+
+def _validated_records(payload: Any, collection: _Collection) -> list[dict[str, Any]]:
+    """Reject the whole read when a record cannot be represented faithfully."""
+    if not isinstance(payload, list):
+        raise ConnectorAccessError(_READ_FAILED[collection.key])
+    for item in payload:
+        valid = isinstance(item, dict)
+        if valid and collection == IAM_COLLECTION:
+            members = item.get("members")
+            condition = item.get("condition")
+            valid = (
+                _text(item.get("role"))
+                and isinstance(members, list)
+                and all(_text(member) for member in members)
+                and (
+                    condition is None
+                    or isinstance(condition, dict)
+                    and (not condition or _text(condition.get("expression")))
+                    and all(isinstance(value, str) for value in condition.values())
+                )
+            )
+        elif valid and collection == ORG_POLICY_COLLECTION:
+            valid = _text(item.get("constraint") or item.get("name"))
+        elif valid and collection == ASSET_COLLECTION:
+            valid = _text(item.get("name"))
+        if not valid:
+            raise ConnectorAccessError(_READ_FAILED[collection.key])
+    return payload
+
+
 class GCPClient:
     """Authenticated, read-only GCP posture client.
 
@@ -195,24 +235,26 @@ class GCPClient:
             policy = self._projects.get_iam_policy(
                 request={"resource": f"projects/{self.project_id}", "options": {"requested_policy_version": 3}}
             )
+            bindings: list[dict[str, Any]] = []
+            for binding in _items(getattr(policy, "bindings", None), IAM_COLLECTION):
+                item = {
+                    "role": getattr(binding, "role", None),
+                    "members": list(_items(getattr(binding, "members", None), IAM_COLLECTION)),
+                }
+                condition = getattr(binding, "condition", None)
+                expression = getattr(condition, "expression", None) if condition is not None else ""
+                if not isinstance(expression, str):
+                    raise ConnectorAccessError(_READ_FAILED[IAM_COLLECTION.key])
+                if expression:
+                    item["condition"] = {
+                        key: getattr(condition, key, "")
+                        for key in ("expression", "title", "description", "location")
+                        if getattr(condition, key, "")
+                    }
+                bindings.append(item)
+            return _validated_records(bindings, IAM_COLLECTION)
         except Exception as exc:  # noqa: BLE001 - classified into an operator-safe error
             raise _collection_error(exc, IAM_COLLECTION, self.project_id) from None
-        bindings: list[dict[str, Any]] = []
-        for binding in getattr(policy, "bindings", []):
-            item = {
-                "role": getattr(binding, "role", ""),
-                "members": list(getattr(binding, "members", [])),
-            }
-            condition = getattr(binding, "condition", None)
-            expression: str = getattr(condition, "expression", "")
-            if expression:
-                item["condition"] = {
-                    key: str(getattr(condition, key, ""))
-                    for key in ("expression", "title", "description", "location")
-                    if getattr(condition, key, "")
-                }
-            bindings.append(item)
-        return bindings
 
     def org_policies(self) -> list[dict[str, Any]]:
         if self._org_policies is None:
@@ -224,7 +266,7 @@ class GCPClient:
         policies: list[dict[str, Any]] = []
         try:
             listing = self._org_policies.list_policies(parent=f"projects/{self.project_id}")
-            for policy in listing:
+            for policy in _items(listing, ORG_POLICY_COLLECTION):
                 spec = getattr(policy, "spec", None)
                 rules = getattr(spec, "rules", []) if spec is not None else []
                 # Only an explicit unconditional boolean rule establishes the
@@ -248,13 +290,13 @@ class GCPClient:
                 )
         except Exception as exc:  # noqa: BLE001 - provider details must not enter stored errors
             raise _collection_error(exc, ORG_POLICY_COLLECTION, self.project_id) from None
-        return policies
+        return _validated_records(policies, ORG_POLICY_COLLECTION)
 
     def assets(self) -> list[dict[str, Any]]:
         assets: list[dict[str, Any]] = []
         try:
             listing = self._assets.list_assets(request={"parent": f"projects/{self.project_id}"})
-            for asset in listing:
+            for asset in _items(listing, ASSET_COLLECTION):
                 assets.append(
                     {
                         "name": getattr(asset, "name", ""),
@@ -263,7 +305,7 @@ class GCPClient:
                 )
         except Exception as exc:  # noqa: BLE001 - provider details must not enter stored errors
             raise _collection_error(exc, ASSET_COLLECTION, self.project_id) from None
-        return assets
+        return _validated_records(assets, ASSET_COLLECTION)
 
 
 class GCPFixtureClient:
@@ -274,29 +316,24 @@ class GCPFixtureClient:
         self.project_id = project_id
 
     def iam_bindings(self) -> list[dict[str, Any]]:
-        payload = self._read("iam_bindings.json")
-        if isinstance(payload, dict):
-            payload = payload.get("bindings", [])
-        return [item for item in payload if isinstance(item, dict)]
+        return self._read_collection(IAM_COLLECTION, "bindings")
 
     def org_policies(self) -> list[dict[str, Any]]:
-        return self._read_list("org_policies.json")
+        return self._read_collection(ORG_POLICY_COLLECTION)
 
     def assets(self) -> list[dict[str, Any]]:
-        payload = self._read("assets.json")
-        if isinstance(payload, dict):
-            payload = payload.get("assets", [])
-        return [item for item in payload if isinstance(item, dict)]
+        return self._read_collection(ASSET_COLLECTION, "assets")
 
-    def _read(self, name: str) -> Any:
-        path = self.fixture / name
-        return read_json(path) if path.exists() else []
-
-    def _read_list(self, name: str) -> list[dict[str, Any]]:
-        payload = self._read(name)
-        if isinstance(payload, list):
-            return [item for item in payload if isinstance(item, dict)]
-        return []
+    def _read_collection(self, collection: _Collection, key: str | None = None) -> list[dict[str, Any]]:
+        try:
+            payload = read_json(self.fixture / f"{collection.key}.json")
+            if isinstance(payload, dict) and key is not None:
+                if payload.get("nextPageToken"):
+                    raise ConnectorAccessError(_READ_FAILED[collection.key])
+                payload = payload.get(key)
+            return _validated_records(payload, collection)
+        except (OSError, ValueError):
+            raise ConnectorAccessError(_READ_FAILED[collection.key]) from None
 
 
 def probe_gcp_access(*, credentials: dict[str, Any], options: dict[str, Any]) -> dict[str, Any]:
@@ -350,29 +387,20 @@ def collect_gcp_evidence(
     rows: list[dict[str, Any]] = []
     gaps: list[CollectionGapError] = []
 
-    def read(method: Any) -> list[dict[str, Any]]:
+    def read(method: Any, collection: _Collection) -> list[dict[str, Any]]:
         try:
-            return list(method())
+            return _validated_records(method(), collection)
         except CollectionGapError as gap:
             gaps.append(gap)
             return []
 
-    for binding in read(client.iam_bindings):
-        role = str(binding.get("role") or "").strip()
-        if not role:
-            continue
+    for binding in read(client.iam_bindings, IAM_COLLECTION):
         rows.append(_iam_event(project, binding, now, tenant_id))
 
-    for policy in read(client.org_policies):
-        constraint = str(policy.get("constraint") or policy.get("name") or "").strip()
-        if not constraint:
-            continue
+    for policy in read(client.org_policies, ORG_POLICY_COLLECTION):
         rows.append(_policy_event(project, policy, now, tenant_id))
 
-    for asset in read(client.assets):
-        name = str(asset.get("name") or "").strip()
-        if not name:
-            continue
+    for asset in read(client.assets, ASSET_COLLECTION):
         rows.append(_asset_event(project, asset, now, tenant_id))
 
     if len(gaps) == 3:

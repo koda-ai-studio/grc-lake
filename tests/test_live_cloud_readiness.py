@@ -521,6 +521,8 @@ def test_gcp_long_asset_names_do_not_collapse_into_one_event(tmp_path: Path) -> 
     fixture.mkdir()
     base = "//compute.googleapis.com/projects/acme-prod/zones/us-central1-a/instances/"
     assets = [{"name": f"{base}web-frontend-{i:03d}", "asset_type": "compute.Instance"} for i in range(25)]
+    (fixture / "iam_bindings.json").write_text("[]", encoding="utf-8")
+    (fixture / "org_policies.json").write_text("[]", encoding="utf-8")
     (fixture / "assets.json").write_text(json.dumps(assets), encoding="utf-8")
     rows = collect_gcp_evidence(GCPFixtureClient(fixture, project_id=PROJECT), collected_at=NOW)
     assert validate_raw_events(rows) == []
