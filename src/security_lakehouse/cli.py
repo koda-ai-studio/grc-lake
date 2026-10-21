@@ -55,6 +55,9 @@ def _parser() -> argparse.ArgumentParser:
     from security_lakehouse.distributed.commands import register
 
     register(sub)
+    from security_lakehouse.entity_registry import register as register_entities
+
+    register_entities(sub)
 
     validate = sub.add_parser("validate", help="validate raw JSONL evidence")
     validate.add_argument("--raw", required=True, help="raw security events JSONL")

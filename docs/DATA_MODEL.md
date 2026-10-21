@@ -86,3 +86,11 @@ require reevaluation. Admission failures leave the current generation in place.
 - [Workpapers](CONTROL_TEST_WORKPAPERS.md)
 - [Governed decisions and remediation](GOVERNED_REMEDIATION.md)
 - [CCF reads](CCF_READS.md) and [scale limits](AUDIT_SCALE.md)
+
+## Explicit canonical entity export
+
+The experimental [entity registry](ENTITY_REGISTRY.md) preserves provider, source
+account, native type, and native ID as a source identity, and links it to a
+canonical entity only through an explicit, evidence-referenced caller assertion.
+Its versioned JSON export preserves unbound source records and rejects conflicting
+aliases. It does not modify the existing asset-risk or compliance projections.
