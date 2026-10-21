@@ -1,5 +1,9 @@
 # Connector And Access Model
 
+Already have an Agent-Bom scan? [Import its JSON report](AGENT_BOM_IMPORT.md)
+through the current-source CLI with explicit tenant scope and optional control
+bindings. This offline evidence path does not add a qualified live connector.
+
 GRC Lake should collect evidence with the smallest viable access boundary.
 
 For ingestion idempotency, unique event IDs, headless/agent vs console surfaces,

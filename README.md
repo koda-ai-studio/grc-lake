@@ -76,6 +76,10 @@ See [headless GRC](docs/HEADLESS_GRC.md) for agent credentials and authority.
 
 </details>
 
+Already have an Agent-Bom JSON scan report? The current-source
+[report importer](docs/AGENT_BOM_IMPORT.md) brings findings into scoped GRC evidence
+with explicit control bindings and retained scan provenance.
+
 ## Product tour
 
 **Collect → Evaluate → Resolve → Export.** Read source evidence, run version-pinned
