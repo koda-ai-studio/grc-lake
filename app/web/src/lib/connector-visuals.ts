@@ -150,6 +150,13 @@ export const CONNECTOR_VISUALS: Record<string, ConnectorVisual> = {
     bg: "#eff6ff",
     categoryLabel: "Cloud posture",
   },
+  "entra-identity": {
+    vendor: "Microsoft Entra",
+    mark: "ID",
+    accent: "#0078D4",
+    bg: "#eff6ff",
+    categoryLabel: "Identity",
+  },
   "intune-devices": {
     vendor: "Microsoft Intune",
     mark: "IN",

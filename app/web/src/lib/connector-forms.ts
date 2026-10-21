@@ -10,6 +10,33 @@ export interface ConnectorFieldDef {
   type?: "checkbox";
 }
 
+const GRAPH_APP_FIELDS: ConnectorFieldDef[] = [
+  {
+    name: "client_id",
+    label: "App registration client ID",
+    placeholder: "00000000-0000-0000-0000-000000000000",
+    hint: "Your Entra app registration. Required on hosted GRC Lake, with one of the three references below.",
+  },
+  {
+    name: "client_secret_ref",
+    label: "Client secret env var",
+    placeholder: "GRC_LAKE_TENANT_<ID>__AZURE_CLIENT_SECRET",
+    hint: "Environment variable holding the app's client secret; do not paste the secret.",
+  },
+  {
+    name: "client_certificate_ref",
+    label: "Client certificate env var",
+    placeholder: "GRC_LAKE_TENANT_<ID>__AZURE_CLIENT_CERT",
+    hint: "PEM certificate with its private key, inline or mounted via <NAME>_FILE.",
+  },
+  {
+    name: "federated_token_file_ref",
+    label: "Federated token file env var",
+    placeholder: "GRC_LAKE_TENANT_<ID>__AZURE_TOKEN_FILE",
+    hint: "Path to a workload identity token that the app's federated credential trusts.",
+  },
+];
+
 export const CONNECTOR_CREDENTIAL_FIELDS: Record<string, ConnectorFieldDef[]> =
   {
     "clickhouse-telemetry-lake": [
@@ -170,30 +197,19 @@ export const CONNECTOR_CREDENTIAL_FIELDS: Record<string, ConnectorFieldDef[]> =
         required: true,
         hint: "Tenant whose Intune devices GRC Lake reads. The app registration or managed identity needs the Graph application permission DeviceManagementManagedDevices.Read.All.",
       },
+      ...GRAPH_APP_FIELDS,
+    ],
+    "entra-identity": [
       {
-        name: "client_id",
-        label: "App registration client ID",
+        name: "tenant_id",
+        label: "Microsoft Entra tenant ID",
         placeholder: "00000000-0000-0000-0000-000000000000",
-        hint: "Your Entra app registration. Required on hosted GRC Lake, with one of the three references below.",
+        required: true,
+        hint: "Tenant whose machine identities GRC Lake reads. The app needs Microsoft Graph Application.Read.All with admin consent.",
       },
-      {
-        name: "client_secret_ref",
-        label: "Client secret env var",
-        placeholder: "GRC_LAKE_TENANT_<ID>__AZURE_CLIENT_SECRET",
-        hint: "Environment variable holding the app's client secret; do not paste the secret.",
-      },
-      {
-        name: "client_certificate_ref",
-        label: "Client certificate env var",
-        placeholder: "GRC_LAKE_TENANT_<ID>__AZURE_CLIENT_CERT",
-        hint: "PEM certificate with its private key, inline or mounted via <NAME>_FILE.",
-      },
-      {
-        name: "federated_token_file_ref",
-        label: "Federated token file env var",
-        placeholder: "GRC_LAKE_TENANT_<ID>__AZURE_TOKEN_FILE",
-        hint: "Path to a workload identity token that the app's federated credential trusts.",
-      },
+      ...GRAPH_APP_FIELDS.map((field) =>
+        field.name === "client_id" ? { ...field, required: true } : field,
+      ),
     ],
     "bamboohr-personnel": [
       {

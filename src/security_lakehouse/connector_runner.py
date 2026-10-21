@@ -70,6 +70,7 @@ from security_lakehouse.connectors_databricks import (
     DatabricksFixtureClient,
     collect_databricks_evidence,
 )
+from security_lakehouse.connectors_entra import EntraClient, EntraFixtureClient, collect_entra_evidence
 from security_lakehouse.connectors_gcp import (
     GCPClient,
     GCPFixtureClient,
@@ -670,6 +671,16 @@ def _build_intune(inputs: SyncInputs) -> list[dict[str, Any]]:
     return _collect_intune(fixture_dir=inputs.fixture_dir, env=inputs.env, credentials=inputs.credentials)
 
 
+def _build_entra(inputs: SyncInputs) -> list[dict[str, Any]]:
+    scope = str(inputs.credentials.get("tenant_id") or "").strip()
+    if inputs.fixture_dir:
+        return collect_entra_evidence(EntraFixtureClient(inputs.fixture_dir, tenant_id=scope or "fixture-tenant"))
+    if not scope:
+        raise ConnectorConfigError("entra-identity requires the Entra tenant_id")
+    delegated = azure_credential(inputs.credentials, inputs.env, label="entra-identity")
+    return collect_entra_evidence(EntraClient(scope, credential=delegated))
+
+
 def _build_bamboohr(inputs: SyncInputs) -> list[dict[str, Any]]:
     return _collect_bamboohr(fixture_dir=inputs.fixture_dir, env=inputs.env, credentials=inputs.credentials)
 
@@ -801,6 +812,7 @@ REGISTRY: dict[str, ConnectorBuilder] = {
     "azure-posture": _build_azure,
     "jira-ticketing": _build_jira,
     "intune-devices": _build_intune,
+    "entra-identity": _build_entra,
     "bamboohr-personnel": _build_bamboohr,
     "rippling-personnel": _build_rippling,
     "workday-personnel": _build_workday,

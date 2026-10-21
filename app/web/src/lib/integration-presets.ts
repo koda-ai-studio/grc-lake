@@ -60,6 +60,23 @@ const PRESETS: Record<string, IntegrationPreset> = {
       "No Azure password or client secret is stored in GRC Lake.",
     ],
   },
+  "entra-identity": {
+    connectorId: "entra-identity",
+    title: "Entra machine identities",
+    authLabel: "Graph read-only permission",
+    badges: ["Application.Read.All", "Metadata only"],
+    summary:
+      "Read service principals, managed identities, and application credential-expiry metadata in your Entra tenant.",
+    providerSetup:
+      "An Entra administrator grants Application.Read.All admin consent to your app registration. Azure subscription Reader access does not grant this directory permission.",
+    trustOpsInput:
+      "Entra tenant ID and your app registration's credential reference.",
+    advancedTitle: "Evidence boundaries",
+    advancedDetails: [
+      "Credential values are excluded from evidence. Expiry is metadata, not a last-use observation or a passing control.",
+      "Uncollected owners, permissions and usage remain unknown; denied listings appear as coverage gaps.",
+    ],
+  },
   "intune-devices": {
     connectorId: "intune-devices",
     title: "Intune devices",

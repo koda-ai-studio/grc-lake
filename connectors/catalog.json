@@ -470,6 +470,27 @@
       "setup_hint": "Entra app or managed identity with the Graph application permission DeviceManagementManagedDevices.Read.All."
     },
     {
+      "connector_id": "entra-identity",
+      "name": "Microsoft Entra Identities",
+      "category": "identity",
+      "collection_mode": "direct_api_read",
+      "access_boundary": "scoped_token",
+      "credential_type": "azure_default_credential_reader",
+      "minimum_permissions": ["Application.Read.All"],
+      "evidence_types": ["non_human_identity", "credential_metadata"],
+      "default_route": "dual",
+      "freshness_slo_minutes": 240,
+      "is_implemented": true,
+      "production_status": "supported_connector",
+      "velocity": "low_current_state",
+      "native_connector": false,
+      "data_shape": "current_state",
+      "vendor": "Microsoft Entra",
+      "description": "Service principals, managed identities, and application credential-expiry metadata.",
+      "setup_hint": "Tenant-bound Entra app with Microsoft Graph Application.Read.All admin consent.",
+      "release_stage": "preview"
+    },
+    {
       "connector_id": "bamboohr-personnel",
       "name": "BambooHR Personnel",
       "category": "personnel",
@@ -488,7 +509,7 @@
       "native_connector": false,
       "data_shape": "current_state",
       "vendor": "BambooHR",
-      "description": "Employment status, hire and termination dates, department, and manager — no names or sensitive HR fields.",
+      "description": "Employment status, hire and termination dates, department, and manager \u2014 no names or sensitive HR fields.",
       "setup_hint": "API key of a dedicated user whose access level can only view the employment fields TrustOps requests."
     },
     {
