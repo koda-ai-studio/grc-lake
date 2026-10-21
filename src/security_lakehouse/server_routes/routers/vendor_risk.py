@@ -23,7 +23,6 @@ from security_lakehouse.server_routes.schemas.workflows import (
     CreateVendorAssessmentRequest,
     UpdateVendorAssessmentRequest,
 )
-from security_lakehouse.services import NotFound, ValidationError
 from security_lakehouse.services import vendor_risk as vendor_risk_services
 
 _require_control_manage = require_scope("control_manage")
@@ -113,10 +112,7 @@ def build_vendor_risk_router(
 
     @router.get("/api/v1/vendor-questionnaires/{template_id}")
     def get_vendor_questionnaire(template_id: str, identity: Identity = Depends(_require_read)) -> JSONResponse:
-        try:
-            data = vendor_risk_services.get_template(template_id)
-        except NotFound as exc:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+        data = vendor_risk_services.get_template(template_id)
         return JSONResponse(api_v1.envelope("vendor-questionnaires", _redact_payload(data, identity)))
 
     @router.get("/api/v1/vendor-assessments")
@@ -144,29 +140,20 @@ def build_vendor_risk_router(
         identity: Identity = Depends(_require_control_manage),
         session: Session = Depends(get_session),
     ) -> JSONResponse:
-        try:
-            assessment = vendor_risk_services.create_assessment(
-                session,
-                identity.tenant_id,
-                vendor_name=body.vendor_name,
-                template_id=body.template_id,
-                owner=body.owner,
-                control_id=body.control_id,
-                due_at=_parse_dt(body.due_at),
-                created_by=identity.email,
-            )
-        except ValidationError as exc:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+        assessment = vendor_risk_services.create_assessment(
+            session,
+            identity.tenant_id,
+            **body.model_dump(exclude={"due_at"}),
+            due_at=_parse_dt(body.due_at),
+            created_by=identity.email,
+        )
         return JSONResponse(api_v1.envelope("vendor-assessments", assessment), status_code=status.HTTP_201_CREATED)
 
     @router.get("/api/v1/vendor-assessments/{assessment_id}")
     def get_vendor_assessment(
         assessment_id: str, identity: Identity = Depends(_require_read), session: Session = Depends(get_session)
     ) -> JSONResponse:
-        try:
-            data = vendor_risk_services.get_assessment(session, identity.tenant_id, assessment_id)
-        except NotFound as exc:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+        data = vendor_risk_services.get_assessment(session, identity.tenant_id, assessment_id)
         return JSONResponse(api_v1.envelope("vendor-assessments", _redact_payload(data, identity)))
 
     @router.patch("/api/v1/vendor-assessments/{assessment_id}")
@@ -179,14 +166,7 @@ def build_vendor_risk_router(
         changes = body.model_dump(exclude_unset=True)
         if "due_at" in changes:
             changes["due_at"] = _parse_dt(changes["due_at"])
-        try:
-            assessment = vendor_risk_services.update_assessment(
-                session, identity.tenant_id, assessment_id, changes=changes
-            )
-        except ValidationError as exc:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
-        except NotFound as exc:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+        assessment = vendor_risk_services.update_assessment(session, identity.tenant_id, assessment_id, changes=changes)
         return JSONResponse(api_v1.envelope("vendor-assessments", assessment))
 
     @router.post("/api/v1/vendor-assessments/{assessment_id}/submit")
@@ -195,12 +175,7 @@ def build_vendor_risk_router(
         identity: Identity = Depends(_require_control_manage),
         session: Session = Depends(get_session),
     ) -> JSONResponse:
-        try:
-            assessment = vendor_risk_services.submit_assessment(session, identity.tenant_id, assessment_id)
-        except ValidationError as exc:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
-        except NotFound as exc:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+        assessment = vendor_risk_services.submit_assessment(session, identity.tenant_id, assessment_id)
         return JSONResponse(api_v1.envelope("vendor-assessments", assessment))
 
     # --- remediation guidance ---

@@ -31,7 +31,6 @@ from security_lakehouse.server_routes.schemas.workflows import (
     UpdateTaskRequest,
     VerifyTaskRequest,
 )
-from security_lakehouse.services import NotFound, ValidationError
 from security_lakehouse.services import grc as grc_services
 
 _require_control_manage = require_scope("control_manage")
@@ -77,21 +76,13 @@ def build_remediation_router(*, lake_for: Callable[[Identity], Path]) -> APIRout
     def create_task(
         body: CreateTaskRequest, identity: Identity = Depends(_require_write), session: Session = Depends(get_session)
     ) -> JSONResponse:
-        try:
-            task = grc_services.create_task(
-                session,
-                identity.tenant_id,
-                title=body.title,
-                description=body.description,
-                control_id=body.control_id,
-                violation_id=body.violation_id,
-                owner=body.owner,
-                priority=body.priority,
-                due_at=_parse_dt(body.due_at),
-                created_by=identity.email,
-            )
-        except ValidationError as exc:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+        task = grc_services.create_task(
+            session,
+            identity.tenant_id,
+            **body.model_dump(exclude={"due_at"}),
+            due_at=_parse_dt(body.due_at),
+            created_by=identity.email,
+        )
         return JSONResponse(api_v1.envelope("remediation.tasks", task), status_code=status.HTTP_201_CREATED)
 
     @router.get("/api/v1/remediation/tasks/{task_id}")
@@ -115,12 +106,7 @@ def build_remediation_router(*, lake_for: Callable[[Identity], Path]) -> APIRout
         changes = body.model_dump(exclude_unset=True)
         if "due_at" in changes:
             changes["due_at"] = _parse_dt(changes["due_at"])
-        try:
-            task = grc_services.update_task(session, identity.tenant_id, task_id, changes=changes)
-        except ValidationError as exc:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
-        except NotFound as exc:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+        task = grc_services.update_task(session, identity.tenant_id, task_id, changes=changes)
         return JSONResponse(api_v1.envelope("remediation.tasks", task))
 
     @router.post("/api/v1/remediation/tasks/{task_id}/verify")
@@ -185,9 +171,7 @@ def build_remediation_router(*, lake_for: Callable[[Identity], Path]) -> APIRout
             req = remediation.create_evidence_request(
                 session,
                 tenant_id=identity.tenant_id,
-                control_id=body.control_id,
-                requested_from=body.requested_from,
-                note=body.note,
+                **body.model_dump(exclude={"due_at"}),
                 due_at=_parse_dt(body.due_at),
                 created_by=identity.email,
             )
@@ -248,8 +232,7 @@ def build_remediation_router(*, lake_for: Callable[[Identity], Path]) -> APIRout
             exc_row = remediation.create_exception(
                 session,
                 tenant_id=identity.tenant_id,
-                control_id=body.control_id,
-                reason=body.reason,
+                **body.model_dump(exclude={"expires_at"}),
                 requested_by_id=identity.user_id,
                 expires_at=_parse_dt(body.expires_at),
                 created_by=identity.email,

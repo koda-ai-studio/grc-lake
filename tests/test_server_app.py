@@ -18,6 +18,7 @@ pytest.importorskip("httpx")
 from fastapi.testclient import TestClient
 
 from security_lakehouse.server_app import create_app
+from security_lakehouse.services import NotFound, ValidationError
 from test_api_v1 import _request, _seed_lake, _spin
 
 # Resources whose payloads are pure functions of seeded lake files, so the two
@@ -103,6 +104,29 @@ def test_server_mode_error_envelopes(client: TestClient) -> None:
     resp = client.get("/api/v1/not-real")
     assert resp.status_code == HTTPStatus.NOT_FOUND
     assert resp.json()["errors"][0]["code"] == "not_found"
+
+
+@pytest.mark.parametrize("error,status,code", [(NotFound, 404, "not_found"), (ValidationError, 400, "bad_request")])
+def test_service_errors_use_http_envelope(client: TestClient, error, status: int, code: str) -> None:
+    @client.app.get("/service-error-contract")
+    def fail():
+        raise error("workflow rejected")
+
+    response = client.get("/service-error-contract")
+    assert response.status_code == status
+    assert response.json()["data"] is None
+    assert response.json()["errors"] == [{"code": code, "detail": "workflow rejected"}]
+    assert response.headers["X-Correlation-ID"]
+
+
+@pytest.mark.parametrize("error", [RuntimeError, ValueError])
+def test_unexpected_service_failures_are_not_client_errors(client: TestClient, error) -> None:
+    @client.app.get("/service-error-contract")
+    def fail():
+        raise error("unexpected failure")
+
+    with pytest.raises(error, match="unexpected failure"):
+        client.get("/service-error-contract")
 
 
 @pytest.mark.parametrize("route", ["/api/v1/snapshots", "/api/snapshots"])

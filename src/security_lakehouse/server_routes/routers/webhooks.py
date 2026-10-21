@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import secrets
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, Request, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
@@ -14,7 +14,6 @@ from security_lakehouse.auth.rbac import Identity
 from security_lakehouse.db.base import MAX_PAGE_LIMIT
 from security_lakehouse.server_routes.payloads import _applied_filters, _page_meta, _page_window, _pagination, _params
 from security_lakehouse.server_routes.schemas.workflows import CreateWebhookRequest, UpdateWebhookRequest
-from security_lakehouse.services import NotFound, ValidationError
 from security_lakehouse.services import webhooks as webhook_services
 
 _require_connector_manage = require_scope("connector_manage")
@@ -59,19 +58,13 @@ def build_webhooks_router() -> APIRouter:
         session: Session = Depends(get_session),
     ) -> JSONResponse:
         secret = body.secret or secrets.token_urlsafe(32)
-        try:
-            subscription = webhook_services.create_subscription(
-                session,
-                identity.tenant_id,
-                url=body.url,
-                secret=secret,
-                event_types=body.event_types,
-                description=body.description,
-                enabled=body.enabled,
-                created_by=identity.email,
-            )
-        except ValidationError as exc:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+        subscription = webhook_services.create_subscription(
+            session,
+            identity.tenant_id,
+            **body.model_dump(exclude={"secret"}),
+            secret=secret,
+            created_by=identity.email,
+        )
         # The secret is included here, in full, exactly once -- the caller must
         # store it now; every later read of this subscription omits it.
         return JSONResponse(api_v1.envelope("webhooks", subscription), status_code=status.HTTP_201_CREATED)
@@ -82,10 +75,7 @@ def build_webhooks_router() -> APIRouter:
         identity: Identity = Depends(_require_read),
         session: Session = Depends(get_session),
     ) -> JSONResponse:
-        try:
-            data = webhook_services.get_subscription(session, identity.tenant_id, subscription_id)
-        except NotFound as exc:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+        data = webhook_services.get_subscription(session, identity.tenant_id, subscription_id)
         return JSONResponse(api_v1.envelope("webhooks", data))
 
     @router.patch("/api/v1/webhooks/{subscription_id}", tags=["webhooks"])
@@ -96,12 +86,7 @@ def build_webhooks_router() -> APIRouter:
         session: Session = Depends(get_session),
     ) -> JSONResponse:
         changes = body.model_dump(exclude_unset=True)
-        try:
-            data = webhook_services.update_subscription(session, identity.tenant_id, subscription_id, changes=changes)
-        except ValidationError as exc:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
-        except NotFound as exc:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+        data = webhook_services.update_subscription(session, identity.tenant_id, subscription_id, changes=changes)
         return JSONResponse(api_v1.envelope("webhooks", data))
 
     @router.delete("/api/v1/webhooks/{subscription_id}", tags=["webhooks"])
@@ -110,10 +95,7 @@ def build_webhooks_router() -> APIRouter:
         identity: Identity = Depends(_require_connector_manage),
         session: Session = Depends(get_session),
     ) -> JSONResponse:
-        try:
-            result = webhook_services.delete_subscription(session, identity.tenant_id, subscription_id)
-        except NotFound as exc:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+        result = webhook_services.delete_subscription(session, identity.tenant_id, subscription_id)
         return JSONResponse(api_v1.envelope("webhooks", result))
 
     @router.get("/api/v1/webhooks/{subscription_id}/deliveries", tags=["webhooks"])
@@ -123,10 +105,7 @@ def build_webhooks_router() -> APIRouter:
         identity: Identity = Depends(_require_read),
         session: Session = Depends(get_session),
     ) -> JSONResponse:
-        try:
-            webhook_services.get_subscription(session, identity.tenant_id, subscription_id)
-        except NotFound as exc:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+        webhook_services.get_subscription(session, identity.tenant_id, subscription_id)
         limit, offset = _pagination(_params(request))
         data = webhook_services.list_deliveries(
             session, identity.tenant_id, subscription_id=subscription_id, limit=limit, offset=offset

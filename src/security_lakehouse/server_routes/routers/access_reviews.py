@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, Request, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
@@ -20,7 +20,6 @@ from security_lakehouse.server_routes.schemas.workflows import (
     CreateCampaignRequest,
     ReviewDecisionRequest,
 )
-from security_lakehouse.services import NotFound, ValidationError
 from security_lakehouse.services import access_reviews as access_review_services
 
 _require_control_manage = require_scope("control_manage")
@@ -56,19 +55,13 @@ def build_access_reviews_router(*, lake_for: Callable[[Identity], Path]) -> APIR
         identity: Identity = Depends(_require_control_manage),
         session: Session = Depends(get_session),
     ) -> JSONResponse:
-        try:
-            campaign = access_review_services.create_campaign(
-                session,
-                identity.tenant_id,
-                name=body.name,
-                description=body.description,
-                scope=body.scope,
-                control_id=body.control_id,
-                due_at=_parse_dt(body.due_at),
-                created_by=identity.email,
-            )
-        except ValidationError as exc:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+        campaign = access_review_services.create_campaign(
+            session,
+            identity.tenant_id,
+            **body.model_dump(exclude={"due_at"}),
+            due_at=_parse_dt(body.due_at),
+            created_by=identity.email,
+        )
         return JSONResponse(api_v1.envelope("access-reviews", campaign), status_code=status.HTTP_201_CREATED)
 
     # Registered before the ``/{campaign_id}`` route so the static segment wins.
@@ -85,10 +78,7 @@ def build_access_reviews_router(*, lake_for: Callable[[Identity], Path]) -> APIR
     def get_access_review(
         campaign_id: str, identity: Identity = Depends(_require_read), session: Session = Depends(get_session)
     ) -> JSONResponse:
-        try:
-            data = access_review_services.get_campaign(session, identity.tenant_id, campaign_id)
-        except NotFound as exc:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+        data = access_review_services.get_campaign(session, identity.tenant_id, campaign_id)
         return JSONResponse(api_v1.envelope("access-reviews", _redact_payload(data, identity)))
 
     @router.patch("/api/v1/access-reviews/{campaign_id}")
@@ -98,14 +88,9 @@ def build_access_reviews_router(*, lake_for: Callable[[Identity], Path]) -> APIR
         identity: Identity = Depends(_require_control_manage),
         session: Session = Depends(get_session),
     ) -> JSONResponse:
-        try:
-            campaign = access_review_services.set_campaign_status(
-                session, identity.tenant_id, campaign_id, status=body.status
-            )
-        except ValidationError as exc:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
-        except NotFound as exc:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+        campaign = access_review_services.set_campaign_status(
+            session, identity.tenant_id, campaign_id, status=body.status
+        )
         return JSONResponse(api_v1.envelope("access-reviews", campaign))
 
     @router.get("/api/v1/access-reviews/{campaign_id}/items")
@@ -117,17 +102,14 @@ def build_access_reviews_router(*, lake_for: Callable[[Identity], Path]) -> APIR
     ) -> JSONResponse:
         params = _params(request)
         limit, offset = _pagination(params)
-        try:
-            data = access_review_services.list_items(
-                session,
-                identity.tenant_id,
-                campaign_id,
-                decision=api_v1.first_param(params, "decision"),
-                limit=limit,
-                offset=offset,
-            )
-        except NotFound as exc:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+        data = access_review_services.list_items(
+            session,
+            identity.tenant_id,
+            campaign_id,
+            decision=api_v1.first_param(params, "decision"),
+            limit=limit,
+            offset=offset,
+        )
         return JSONResponse(
             api_v1.envelope(
                 "access-reviews.items", _redact_payload(data, identity), meta=_page_meta(limit, offset, len(data))
@@ -141,18 +123,12 @@ def build_access_reviews_router(*, lake_for: Callable[[Identity], Path]) -> APIR
         identity: Identity = Depends(_require_control_manage),
         session: Session = Depends(get_session),
     ) -> JSONResponse:
-        try:
-            item = access_review_services.add_item(
-                session,
-                identity.tenant_id,
-                campaign_id,
-                subject_id=body.subject_id,
-                subject_name=body.subject_name,
-                source=body.source,
-                access_summary=body.access_summary,
-            )
-        except ValidationError as exc:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+        item = access_review_services.add_item(
+            session,
+            identity.tenant_id,
+            campaign_id,
+            **body.model_dump(),
+        )
         return JSONResponse(api_v1.envelope("access-reviews.items", item), status_code=status.HTTP_201_CREATED)
 
     @router.post("/api/v1/access-reviews/{campaign_id}/seed")
@@ -161,14 +137,9 @@ def build_access_reviews_router(*, lake_for: Callable[[Identity], Path]) -> APIR
         identity: Identity = Depends(_require_control_manage),
         session: Session = Depends(get_session),
     ) -> JSONResponse:
-        try:
-            result = access_review_services.seed_campaign_from_evidence(
-                session, lake_for(identity), identity.tenant_id, campaign_id
-            )
-        except ValidationError as exc:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
-        except NotFound as exc:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+        result = access_review_services.seed_campaign_from_evidence(
+            session, lake_for(identity), identity.tenant_id, campaign_id
+        )
         return JSONResponse(api_v1.envelope("access-reviews", result))
 
     @router.post("/api/v1/access-reviews/items/{item_id}/decision")
@@ -179,19 +150,14 @@ def build_access_reviews_router(*, lake_for: Callable[[Identity], Path]) -> APIR
         session: Session = Depends(get_session),
     ) -> JSONResponse:
         require_human(identity)
-        try:
-            item = access_review_services.record_decision(
-                session,
-                identity.tenant_id,
-                item_id,
-                decision=body.decision,
-                reviewer=identity.email,
-                note=body.note,
-            )
-        except ValidationError as exc:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
-        except NotFound as exc:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+        item = access_review_services.record_decision(
+            session,
+            identity.tenant_id,
+            item_id,
+            decision=body.decision,
+            reviewer=identity.email,
+            note=body.note,
+        )
         return JSONResponse(api_v1.envelope("access-reviews.items", _redact_payload(item, identity)))
 
     return router
