@@ -139,9 +139,10 @@ TABLE_SPECS: tuple[CHTableSpec, ...] = (
     CHTableSpec(
         artifact=("gold", "asset_risk.jsonl"),
         table="asset_risk",
-        key=("tenant_id", "asset_id"),
+        key=("tenant_id", "source_account_id", "asset_id"),
         columns=(
             "tenant_id",
+            "source_account_id",
             "asset_id",
             "asset_type",
             "asset_owner",
@@ -153,7 +154,7 @@ TABLE_SPECS: tuple[CHTableSpec, ...] = (
             "latest_event_time",
         ),
         datetime_columns=("latest_event_time",),
-        defaults={"tenant_id": DEFAULT_TENANT},
+        defaults={"tenant_id": DEFAULT_TENANT, "source_account_id": ""},
     ),
 )
 

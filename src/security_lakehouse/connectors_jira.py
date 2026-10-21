@@ -488,5 +488,5 @@ def _stable_suffix(*, site: str, signal: str, asset_id: str, dedupe_key: str | N
     The pipeline computes the canonical raw evidence hash after collection. These
     IDs only need to be stable for connector upserts and evidence-room links.
     """
-    seed = f"{site}:{signal}:{dedupe_key or asset_id}".lower()
+    seed = f"{site}:{signal}:{dedupe_key or asset_id}"
     return stable_id_slug(seed, fallback="jira")

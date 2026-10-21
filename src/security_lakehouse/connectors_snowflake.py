@@ -663,7 +663,7 @@ def _slug(value: Any) -> str:
 
 
 def _stable_suffix(*, account: str, signal: str, asset_id: str, dedupe_key: str | None) -> str:
-    seed = f"{account}:{signal}:{dedupe_key or asset_id}".lower()
+    seed = f"{account}:{signal}:{dedupe_key or asset_id}"
     return stable_id_slug(seed, fallback="snowflake")
 
 

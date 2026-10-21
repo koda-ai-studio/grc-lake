@@ -16,11 +16,12 @@ export interface FrameworkPosture {
 export type Severity = "critical" | "high" | "medium" | "low" | "info";
 
 export interface Violation {
+  source_account_id?: string;
   violation_id: string;
   control_id: string;
   event_id: string;
   asset_id: string;
-  /** Display name from the source, when it has one; asset_id stays the key. */
+  /** Display name; identity is scoped by source_account_id and asset_id. */
   asset_name?: string;
   asset_owner: string;
   environment: string;
@@ -52,6 +53,7 @@ export interface PostureBlock {
 }
 
 export interface AssetRisk {
+  source_account_id?: string;
   asset_id: string;
   asset_name?: string;
   asset_owner: string;

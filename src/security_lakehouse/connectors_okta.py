@@ -234,7 +234,11 @@ def _user_event(
     if not isinstance(profile, dict):
         profile = {}
     login = profile.get("login") or profile.get("email")
-    is_active = status in ACTIVE_USER_STATUSES
+    is_active = (
+        True
+        if status in ACTIVE_USER_STATUSES
+        else (False if status in {"SUSPENDED", "DEPROVISIONED", "STAGED", "LOCKED_OUT"} else None)
+    )
     evidence_ref = f"{org_url}/api/v1/users/{user_id}"
     return _event(
         org=org,
@@ -247,7 +251,7 @@ def _user_event(
         asset_type="identity_account",
         controls=IDENTITY_CONTROLS,
         # Lifecycle states that cannot authenticate are the noteworthy ones.
-        status="observed" if is_active else "open",
+        status="not_evaluated" if is_active is None else "observed" if is_active else "open",
         severity="info" if is_active else "low",
         evidence_ref=evidence_ref,
         attributes={
@@ -420,7 +424,7 @@ def _stable_suffix(*, org: str, signal: str, asset_id: str, dedupe_key: str | No
     The pipeline computes the canonical raw evidence hash after collection. These
     IDs only need to be stable for connector upserts and evidence-room links.
     """
-    seed = f"{org}:{signal}:{dedupe_key or asset_id}".lower()
+    seed = f"{org}:{signal}:{dedupe_key or asset_id}"
     return stable_id_slug(seed, fallback="okta")
 
 

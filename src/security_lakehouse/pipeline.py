@@ -12,9 +12,10 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
-from security_lakehouse.asset_names import asset_names_from_raw, entity_asset_id
+from security_lakehouse.asset_names import AssetNames, asset_name_for, asset_names_from_raw, entity_asset_id
 from security_lakehouse.control_verdict import evaluate_evidence_verdict
 from security_lakehouse.controls import expand_controls, load_control_map
+from security_lakehouse.domain_identity import source_asset_key
 from security_lakehouse.evaluation_budget import bounded_raw_events
 from security_lakehouse.event_identity import event_identity
 from security_lakehouse.event_status import FAIL_STATUSES, normalize_event_status
@@ -45,9 +46,9 @@ DASHBOARD_DETAIL_CAP = 100
 
 RAW_EVENT_SCHEMA_VERSION = "trustops.raw_event.v1"
 NORMALIZED_EVENT_SCHEMA_VERSION = "trustops.normalized_event.v1"
-NORMALIZATION_TRANSFORM_VERSION = "trustops.normalization.v5"
+NORMALIZATION_TRANSFORM_VERSION = "trustops.normalization.v6"
 CONTROL_EVALUATION_VERSION = "trustops.control_evaluation.v9"
-MART_SCHEMA_VERSION = "trustops.mart.v2"
+MART_SCHEMA_VERSION = "trustops.mart.v3"
 
 
 @serialized_publication
@@ -314,15 +315,15 @@ def _write_generation(
     # needs names, a count, and the first ten risk-ranked rows. The source digest
     # prevents reusing this projection after a legacy lake's assets change.
     dashboard_data["posture_assets"] = {
-        "schema_version": "trustops.posture_assets.v1",
+        "schema_version": "trustops.posture_assets.v2",
         "source_sha256": file_sha256(gold_dir / "asset_risk.jsonl"),
         "asset_count": len(asset_rows),
         "top_risk_assets": asset_rows[:10],
-        "asset_names": {
-            str(row["asset_id"]): str(row["asset_name"])
+        "asset_names": [
+            {key: row[key] for key in ("source_account_id", "asset_id", "asset_name")}
             for row in asset_rows
-            if row.get("asset_id") and row.get("asset_name")
-        },
+            if row.get("asset_name")
+        ],
     }
     write_json(gold_dir / "metrics.json", metrics)
     write_json(gold_dir / "dashboard_data.json", dashboard_data)
@@ -701,20 +702,21 @@ def _build_control_rows(
 def _build_asset_rows(
     silver_rows: list[dict[str, Any]],
     applicability: dict[str, list[str]] | None = None,
-    asset_names: dict[str, str] | None = None,
+    asset_names: AssetNames | None = None,
 ) -> list[dict[str, Any]]:
     applies = applicability or {}
     names = asset_names or {}
-    grouped: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    grouped: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
     for row in silver_rows:
-        grouped[row["asset_id"]].append(row)
+        grouped[source_asset_key(row)].append(row)
     assets: list[dict[str, Any]] = []
-    for asset_id, rows in grouped.items():
+    for (account, asset_id), rows in grouped.items():
         sev = Counter(row["severity"] for row in rows if row["status"] in FAIL_STATUSES)
         risk_score = max((row["severity_score"] for row in rows), default=0) + min(20, len(rows) * 2)
         asset_type = rows[0]["asset_type"]
         asset = {
             "asset_id": asset_id,
+            "source_account_id": account,
             "asset_type": asset_type,
             "asset_owner": rows[0]["asset_owner"],
             "environment": rows[0]["environment"],
@@ -725,10 +727,10 @@ def _build_asset_rows(
             "applicable_control_ids": applies.get(asset_type, []),
             "latest_event_time": max((row["event_time"] for row in rows), key=parse_event_time),
         }
-        if asset_id in names:
-            asset["asset_name"] = names[asset_id]
+        if name := asset_name_for(asset, names):
+            asset["asset_name"] = name
         assets.append(asset)
-    return sorted(assets, key=lambda item: (-int(item["risk_score"]), item["asset_id"]))
+    return sorted(assets, key=lambda item: (-int(item["risk_score"]), item["source_account_id"], item["asset_id"]))
 
 
 def _build_metrics(
@@ -926,7 +928,8 @@ def _write_sqlite_mart(
             """
             CREATE TABLE asset_risk (
                 tenant_id TEXT NOT NULL,
-                asset_id TEXT PRIMARY KEY,
+                source_account_id TEXT NOT NULL,
+                asset_id TEXT NOT NULL,
                 asset_type TEXT NOT NULL,
                 asset_owner TEXT NOT NULL,
                 environment TEXT NOT NULL,
@@ -934,7 +937,8 @@ def _write_sqlite_mart(
                 critical_open INTEGER NOT NULL,
                 high_open INTEGER NOT NULL,
                 event_count INTEGER NOT NULL,
-                latest_event_time TEXT NOT NULL
+                latest_event_time TEXT NOT NULL,
+                PRIMARY KEY (source_account_id, asset_id)
             )
             """
         )
@@ -1023,7 +1027,7 @@ def _write_sqlite_mart(
             ],
         )
         conn.executemany(
-            "INSERT INTO asset_risk VALUES (:tenant_id,:asset_id,:asset_type,:asset_owner,:environment,:risk_score,:critical_open,:high_open,:event_count,:latest_event_time)",
+            "INSERT INTO asset_risk VALUES (:tenant_id,:source_account_id,:asset_id,:asset_type,:asset_owner,:environment,:risk_score,:critical_open,:high_open,:event_count,:latest_event_time)",
             [
                 {
                     "tenant_id": tenant_id,
@@ -1194,6 +1198,7 @@ _DUCKDB_TABLES: dict[str, tuple[tuple[str, str], ...]] = {
     ),
     "asset_risk": (
         ("tenant_id", "VARCHAR"),
+        ("source_account_id", "VARCHAR"),
         ("asset_id", "VARCHAR"),
         ("asset_type", "VARCHAR"),
         ("asset_owner", "VARCHAR"),
@@ -1415,6 +1420,7 @@ def _write_duckdb_mart_if_available(
             [
                 (
                     tenant_id,
+                    row["source_account_id"],
                     row["asset_id"],
                     row["asset_type"],
                     row["asset_owner"],
