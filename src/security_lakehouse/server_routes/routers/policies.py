@@ -15,7 +15,6 @@ from security_lakehouse.server_routes.schemas.workflows import (
     RecordPolicyAcknowledgmentRequest,
     UpdatePolicyDocumentRequest,
 )
-from security_lakehouse.services import NotFound, ValidationError
 from security_lakehouse.services import policy_documents as policy_document_services
 
 _require_control_manage = require_scope("control_manage")
@@ -35,10 +34,7 @@ def build_policies_router() -> APIRouter:
 
     @router.get("/api/v1/policy-templates/{template_id}")
     def get_policy_template(template_id: str, identity: Identity = Depends(_require_read)) -> JSONResponse:
-        try:
-            data = policy_document_services.get_template(template_id)
-        except NotFound as exc:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+        data = policy_document_services.get_template(template_id)
         return JSONResponse(api_v1.envelope("policy-templates", _redact_payload(data, identity)))
 
     @router.get("/api/v1/policies/coverage")
@@ -80,27 +76,19 @@ def build_policies_router() -> APIRouter:
         identity: Identity = Depends(_require_control_manage),
         session: Session = Depends(get_session),
     ) -> JSONResponse:
-        try:
-            document = policy_document_services.adopt_template(
-                session,
-                identity.tenant_id,
-                template_id=body.template_id,
-                variables=body.variables,
-                owner=body.owner,
-                created_by=identity.email,
-            )
-        except ValidationError as exc:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+        document = policy_document_services.adopt_template(
+            session,
+            identity.tenant_id,
+            **body.model_dump(),
+            created_by=identity.email,
+        )
         return JSONResponse(api_v1.envelope("policies", document), status_code=status.HTTP_201_CREATED)
 
     @router.get("/api/v1/policies/{document_id}")
     def get_policy(
         document_id: str, identity: Identity = Depends(_require_read), session: Session = Depends(get_session)
     ) -> JSONResponse:
-        try:
-            data = policy_document_services.get_document(session, identity.tenant_id, document_id)
-        except NotFound as exc:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+        data = policy_document_services.get_document(session, identity.tenant_id, document_id)
         return JSONResponse(api_v1.envelope("policies", _redact_payload(data, identity)))
 
     @router.patch("/api/v1/policies/{document_id}")
@@ -110,17 +98,12 @@ def build_policies_router() -> APIRouter:
         identity: Identity = Depends(_require_control_manage),
         session: Session = Depends(get_session),
     ) -> JSONResponse:
-        try:
-            document = policy_document_services.update_document(
-                session,
-                identity.tenant_id,
-                document_id,
-                changes=body.model_dump(exclude_unset=True),
-            )
-        except ValidationError as exc:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
-        except NotFound as exc:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+        document = policy_document_services.update_document(
+            session,
+            identity.tenant_id,
+            document_id,
+            changes=body.model_dump(exclude_unset=True),
+        )
         return JSONResponse(api_v1.envelope("policies", document))
 
     @router.post("/api/v1/policies/{document_id}/publish")
@@ -129,22 +112,14 @@ def build_policies_router() -> APIRouter:
         identity: Identity = Depends(_require_control_manage),
         session: Session = Depends(get_session),
     ) -> JSONResponse:
-        try:
-            document = policy_document_services.publish_document(session, identity.tenant_id, document_id)
-        except ValidationError as exc:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
-        except NotFound as exc:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+        document = policy_document_services.publish_document(session, identity.tenant_id, document_id)
         return JSONResponse(api_v1.envelope("policies", document))
 
     @router.get("/api/v1/policies/{document_id}/acknowledgments")
     def list_policy_acknowledgments(
         document_id: str, identity: Identity = Depends(_require_read), session: Session = Depends(get_session)
     ) -> JSONResponse:
-        try:
-            data = policy_document_services.list_acknowledgments(session, identity.tenant_id, document_id)
-        except NotFound as exc:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+        data = policy_document_services.list_acknowledgments(session, identity.tenant_id, document_id)
         return JSONResponse(
             api_v1.envelope("policies.acknowledgments", _redact_payload(data, identity), meta={"count": len(data)})
         )
@@ -163,16 +138,13 @@ def build_policies_router() -> APIRouter:
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="acknowledgments must be recorded by the employee themselves",
             )
-        try:
-            row = policy_document_services.record_acknowledgment(
-                session,
-                identity.tenant_id,
-                document_id,
-                user_email=target_email,
-                display_name=body.display_name,
-            )
-        except ValidationError as exc:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+        row = policy_document_services.record_acknowledgment(
+            session,
+            identity.tenant_id,
+            document_id,
+            user_email=target_email,
+            display_name=body.display_name,
+        )
         return JSONResponse(api_v1.envelope("policies.acknowledgments", row), status_code=status.HTTP_201_CREATED)
 
     return router

@@ -133,6 +133,7 @@ from security_lakehouse.server_routes.schemas.base import (
     TokenStr,
 )
 from security_lakehouse.server_routes.schemas.base import StrictModel as _StrictModel
+from security_lakehouse.services import NotFound, ValidationError
 from security_lakehouse.services.snapshot_events import snapshot_written_hook as _snapshot_written_hook
 from security_lakehouse.web import web_dist_dir, web_dist_index
 
@@ -1270,6 +1271,13 @@ def create_app(lake_dir: str | Path, *, require_auth: bool = True) -> FastAPI:
             api_v1.error_envelope(code, str(exc.detail)),
             status_code=exc.status_code,
             headers=getattr(exc, "headers", None),
+        )
+
+    @app.exception_handler(NotFound)
+    @app.exception_handler(ValidationError)
+    async def _service_error_envelope(request: Request, exc: NotFound | ValidationError) -> JSONResponse:
+        return await _error_envelope(
+            request, StarletteHTTPException(status_code=404 if isinstance(exc, NotFound) else 400, detail=str(exc))
         )
 
     @app.exception_handler(SnapshotIntegrityError)

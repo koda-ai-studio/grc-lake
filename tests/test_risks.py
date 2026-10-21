@@ -148,6 +148,35 @@ def test_risk_bad_status_is_400(env) -> None:
     assert resp.status_code == HTTPStatus.BAD_REQUEST
 
 
+def test_risk_patch_distinguishes_omitted_null_and_invalid_dates(env) -> None:
+    _app, client, tokens = env
+    headers = _bearer(tokens["contributor"])
+    created = client.post(
+        "/api/v1/risks", json={"title": "Review", "due_at": "2026-11-01T12:00:00+00:00"}, headers=headers
+    ).json()["data"]
+    path = f"/api/v1/risks/{created['id']}"
+    saved_due_at = client.get("/api/v1/risks", headers=headers).json()["data"][0]["due_at"]
+    unchanged = client.patch(path, json={"owner": "alice"}, headers=headers)
+    assert unchanged.json()["data"]["due_at"] == saved_due_at
+    invalid = client.patch(path, json={"owner": "bob", "due_at": "tomorrow"}, headers=headers)
+    assert invalid.status_code == 400
+    assert invalid.json()["errors"] == [{"code": "bad_request", "detail": "invalid datetime: 'tomorrow'"}]
+    persisted = client.get("/api/v1/risks", headers=headers).json()["data"][0]
+    assert persisted["owner"] == "alice"
+    assert persisted["due_at"] == saved_due_at
+    cleared = client.patch(path, json={"due_at": None}, headers=headers)
+    assert cleared.json()["data"]["due_at"] is None
+
+
+@pytest.mark.parametrize("field", ["tenant_id", "created_by"])
+def test_risk_body_cannot_override_identity(env, field: str) -> None:
+    _app, client, tokens = env
+    headers = _bearer(tokens["contributor"])
+    response = client.post("/api/v1/risks", json={"title": "Review", field: "someone-else"}, headers=headers)
+    assert response.status_code == 422
+    assert client.get("/api/v1/risks", headers=headers).json()["data"] == []
+
+
 def test_risk_unknown_field_rejected(env) -> None:
     _app, client, tokens = env
     resp = client.post(
