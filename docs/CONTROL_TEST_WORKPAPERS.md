@@ -19,6 +19,12 @@ claims about this repository or a real organization.
 
 ## What the conclusions mean
 
+Selecting a record as design evidence does not remove it from operating tests
+unless it meets the design eligibility rules. A failing, unavailable, future-collected,
+or mid-period record remains in the operating population when its observation
+falls within that period. Invalid selections leave design evidence insufficient;
+they cannot hide deviations, uncertainty, or an additional observed asset.
+
 - **Design documented:** each declared design record exists, explicitly binds to
   the safeguard, reports a passing outcome, predates the test period by at most
   366 days, and was collected by the assessment cutoff. A reviewer must still
