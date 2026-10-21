@@ -124,12 +124,11 @@ def _shift(node: Any, delta: timedelta) -> Any:
 
 
 # How old the newest demo row is right after a rebase. Demo sources use
-# freshness SLOs of 5, 10, 60 minutes and 24 hours, and the golden rows span
-# about 40 minutes. Three hours back puts every sub-hour-SLO row past twice its
-# SLO (expired) and keeps every daily-SLO row well inside it (fresh), so no row
-# changes status for roughly 20 hours. Anchoring nearer ``now`` puts rows on the
-# 60-minute boundaries and the demo's counts change minute to minute.
-DEMO_NEWEST_EVIDENCE_AGE = timedelta(hours=3)
+# freshness SLOs up to four hours (Jira) as well as daily SLOs, and the golden
+# rows span about 40 minutes. Nine hours back puts every short-cadence row past
+# twice its SLO (expired) while daily-SLO rows remain fresh for a working day.
+# This only dates synthetic fixtures; it never changes a provider's real SLO.
+DEMO_NEWEST_EVIDENCE_AGE = timedelta(hours=9)
 
 
 def rebase_fixture_times(
