@@ -225,6 +225,12 @@
       "fixture_tests": ["tests/test_bigquery_connector.py"],
       "live_record": null,
       "owner": null
+    },
+    {
+      "connector_id": "entra-identity",
+      "fixture_tests": ["tests/test_entra_connector.py"],
+      "owner": null,
+      "live_record": null
     }
   ]
 }

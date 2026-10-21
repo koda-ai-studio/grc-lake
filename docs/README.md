@@ -67,6 +67,7 @@ Every guide in `docs/`, grouped by task. New here? Start with the
 | [CCF risk monitoring](CCF_RISK_MONITORING.md)                         | Risk prioritization and ongoing monitoring                        |
 | [CCF AI context](CCF_AI_CONTEXT.md)                                   | AI inventory and deployment context                               |
 | [Framework packs](FRAMEWORK_PACKS.md)                                 | Pack contents, manifests, and gaps                                |
+| [Portable framework coverage report](FRAMEWORK_COVERAGE_REPORT.md)    | Frozen catalog counts, mapping review and assessment gaps         |
 | [Framework coverage](FRAMEWORK_COVERAGE.md)                           | Generated per-framework coverage matrix                           |
 | [ISO 27001 ISMS assessments](ISO27001_ISMS_ASSESSMENTS.md)            | Management-clause contracts, evidence, and review boundaries      |
 | [Mapping review](MAPPING_REVIEW.md)                                   | Reviewing proposed safeguard mappings                             |

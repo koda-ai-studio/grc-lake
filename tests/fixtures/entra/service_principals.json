@@ -1,0 +1,24 @@
+[
+  {
+    "id": "sp-1",
+    "appId": "client-1",
+    "displayName": "Synthetic build identity",
+    "servicePrincipalType": "Application",
+    "accountEnabled": true,
+    "passwordCredentials": [],
+    "keyCredentials": []
+  },
+  {
+    "id": "managed-1",
+    "appId": "managed-client",
+    "servicePrincipalType": "ManagedIdentity",
+    "accountEnabled": false,
+    "passwordCredentials": [],
+    "keyCredentials": []
+  },
+  {
+    "id": "legacy-1",
+    "servicePrincipalType": "Legacy",
+    "appId": "legacy-client"
+  }
+]

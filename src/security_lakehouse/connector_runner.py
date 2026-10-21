@@ -70,6 +70,7 @@ from security_lakehouse.connectors_databricks import (
     DatabricksFixtureClient,
     collect_databricks_evidence,
 )
+from security_lakehouse.connectors_entra import EntraClient, EntraFixtureClient, collect_entra_evidence
 from security_lakehouse.connectors_gcp import (
     GCPClient,
     GCPFixtureClient,
@@ -616,11 +617,17 @@ def _build_gitlab(inputs: SyncInputs) -> list[dict[str, Any]]:
 
 
 def _build_okta(inputs: SyncInputs) -> list[dict[str, Any]]:
+    include_nhi = inputs.options.get("include_non_human_identities", False)
+    if not isinstance(include_nhi, bool):
+        if include_nhi not in ("true", "false"):
+            raise ConnectorConfigError("include_non_human_identities must be true or false")
+        include_nhi = include_nhi == "true"
     return _collect_okta(
         fixture_dir=inputs.fixture_dir,
         token_env=inputs.token_env,
         env=inputs.env,
         credentials=inputs.credentials,
+        include_non_human_identities=include_nhi,
     )
 
 
@@ -662,6 +669,16 @@ def _build_azure(inputs: SyncInputs) -> list[dict[str, Any]]:
 
 def _build_intune(inputs: SyncInputs) -> list[dict[str, Any]]:
     return _collect_intune(fixture_dir=inputs.fixture_dir, env=inputs.env, credentials=inputs.credentials)
+
+
+def _build_entra(inputs: SyncInputs) -> list[dict[str, Any]]:
+    scope = str(inputs.credentials.get("tenant_id") or "").strip()
+    if inputs.fixture_dir:
+        return collect_entra_evidence(EntraFixtureClient(inputs.fixture_dir, tenant_id=scope or "fixture-tenant"))
+    if not scope:
+        raise ConnectorConfigError("entra-identity requires the Entra tenant_id")
+    delegated = azure_credential(inputs.credentials, inputs.env, label="entra-identity")
+    return collect_entra_evidence(EntraClient(scope, credential=delegated))
 
 
 def _build_bamboohr(inputs: SyncInputs) -> list[dict[str, Any]]:
@@ -795,6 +812,7 @@ REGISTRY: dict[str, ConnectorBuilder] = {
     "azure-posture": _build_azure,
     "jira-ticketing": _build_jira,
     "intune-devices": _build_intune,
+    "entra-identity": _build_entra,
     "bamboohr-personnel": _build_bamboohr,
     "rippling-personnel": _build_rippling,
     "workday-personnel": _build_workday,
@@ -914,6 +932,7 @@ def _collect_okta(
     token_env: str,
     env: dict[str, str],
     credentials: dict[str, Any] | None = None,
+    include_non_human_identities: bool = False,
 ) -> list[dict[str, Any]]:
     env = runtime_env(env)
     client: OktaClient | OktaFixtureClient
@@ -931,7 +950,7 @@ def _collect_okta(
             )
         netguard.assert_url_is_public(org_url, label="okta org url")
         client = OktaClient(org_url, token=token)
-    return collect_okta_evidence(client)
+    return collect_okta_evidence(client, include_non_human_identities=include_non_human_identities)
 
 
 def _collect_okta_system_log(

@@ -9,7 +9,7 @@ description = "Open-source, self-hosted GRC: read-only security evidence, versio
 readme = "README.md"
 requires-python = ">=3.11"
 license = "Apache-2.0"
-license-files = ["LICENSE"]
+license-files = ["LICENSE", "NOTICE"]
 authors = [{ name = "Mohamed Saad" }]
 keywords = [
     "compliance", "soc2", "nist", "fedramp", "hipaa", "pci-dss", "iso27001",

@@ -40,6 +40,7 @@ REAL_ADAPTERS = {
     "azure-posture",
     "jira-ticketing",
     "intune-devices",
+    "entra-identity",
     "bamboohr-personnel",
     "rippling-personnel",
     "workday-personnel",
@@ -51,6 +52,7 @@ REAL_ADAPTERS = {
     "bigquery-evidence-lake",
 }
 PREVIEW_CONNECTORS = {
+    "entra-identity",
     "jamf-devices",
     "crowdstrike-falcon",
     "kubernetes-cluster",
@@ -279,6 +281,7 @@ def test_unknown_connector_id_raises_no_runner_registered(tmp_path: Path) -> Non
         ("azure-posture", "azure", {}),
         ("jira-ticketing", "jira", {}),
         ("intune-devices", "intune", {}),
+        ("entra-identity", "entra", {}),
         ("bamboohr-personnel", "bamboohr", {}),
         ("jamf-devices", "jamf", {}),
         ("crowdstrike-falcon", "crowdstrike", {}),
