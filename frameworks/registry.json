@@ -45,7 +45,7 @@
       "implementation_status": "implemented_full_pack",
       "copyright_guardrail": "ISO standard text is licensed; reproduce only control identifiers and short internal titles. Customers must hold their own license for the official PDF.",
       "sync_cadence_days": 90,
-      "coverage_boundary": "All 93 Annex A control identifiers are catalogued. Clauses 4-10 of the management system are not catalogued; Annex A mapping coverage is not full ISO/IEC 27001 conformity or certification."
+      "coverage_boundary": "All 93 Annex A control identifiers are catalogued. Clauses 4-10 (30 leaf identifiers) are reported separately in iso-27001-isms-2022. Mapping coverage does not establish full ISO/IEC 27001 conformity or certification."
     },
     {
       "framework_id": "fedramp-moderate",
@@ -392,6 +392,22 @@
       ],
       "next_step": "Define the service-specific control objectives and review licensed AICPA guidance before seeding a source-linked pack.",
       "sync_cadence_days": 90
+    },
+    {
+      "framework_id": "iso-27001-isms-2022",
+      "family": "security",
+      "name": "ISO/IEC 27001 ISMS management clauses",
+      "version": "2022 clauses 4-10; Amd 1:2024 context considerations",
+      "effective_date": "2024-02-23",
+      "superseded_by": null,
+      "official_source_name": "ISO/IEC 27001:2022 and Amd 1:2024",
+      "official_source_url": "https://www.iso.org/standard/27001",
+      "source_sha256": null,
+      "pulled_at": null,
+      "implementation_status": "implemented_limited_mapping",
+      "copyright_guardrail": "ISO standard text is licensed. Identifiers and original internal labels only; GRC Lake assessment prompts are proposals, not normative text.",
+      "sync_cadence_days": 90,
+      "coverage_boundary": "30 leaf clause identifiers across clauses 4-10, with proposed assessor contracts. Annex A is reported separately in iso-27001-2022 (93 controls). Public source references do not establish complete normative testing, review approval, or certification."
     }
   ]
 }

@@ -243,8 +243,10 @@ def test_review_report_groups_frameworks_categories_and_source_gaps(proposed_sou
         "eu-ai-act-2024-1689",
         "soc2",
         "iso-27001-2022",
+        "iso-27001-isms-2022",
         "iso-42001-2023",
     }
+    assert report["source_backed_by_framework"]["iso-27001-isms-2022"] == 30
 
 
 def test_review_queue_falls_back_to_safeguard_level_provenance(proposed_source_catalog) -> None:

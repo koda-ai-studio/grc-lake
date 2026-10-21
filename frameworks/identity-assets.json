@@ -164,6 +164,13 @@
       "display_mode": "neutral_icon",
       "asset_path": null,
       "restriction": "AICPA SOC logos require entity-specific registration or licensing and are not bundled for generic software use."
+    },
+    "iso-27001-isms-2022": {
+      "official_name": "ISO/IEC 27001:2022 management clauses",
+      "official_source_url": "https://www.iso.org/standard/27001",
+      "display_mode": "neutral_icon",
+      "asset_path": null,
+      "restriction": "ISO prohibits third-party use or copying of its logo without written permission."
     }
   }
 }

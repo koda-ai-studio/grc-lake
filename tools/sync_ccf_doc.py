@@ -60,9 +60,26 @@ def main():
         text = re.sub(
             pattern, lambda match, row=row: f"{match[1]} {row['safeguard_count']:10d}{match[2]}", text, flags=re.M
         )
-    for name, row in coverage["frameworks"].items():
-        line = f"| {name:19s} | {row['controls']:12d} | {row['covered']:6d} | {row['coverage_pct']:5.1f}% |"
-        text = re.sub(r"^\| " + re.escape(name) + r"\s+\|.*$", lambda _, line=line: line, text, flags=re.M)
+    header = ["Framework", "Requirements", "Mapped", "Pct"]
+    rows = [
+        [name, str(row["controls"]), str(row["covered"]), f"{row['coverage_pct']:.1f}%"]
+        for name, row in sorted(coverage["frameworks"].items())
+    ]
+    widths = [max(len(row[i]) for row in [header, *rows]) for i in range(4)]
+
+    def table_line(row):
+        return (
+            "| "
+            + " | ".join(
+                cell.ljust(width) if i == 0 else cell.rjust(width)
+                for i, (cell, width) in enumerate(zip(row, widths, strict=True))
+            )
+            + " |"
+        )
+
+    rule = "| " + " | ".join("-" * w if i == 0 else "-" * (w - 1) + ":" for i, w in enumerate(widths)) + " |"
+    table = "\n".join([table_line(header), rule, *(table_line(row) for row in rows)]) + "\n"
+    text = re.sub(r"^\| Framework\s+\| Requirements[^\n]*\n(?:\|[^\n]*\n)+", lambda _: table, text, flags=re.M)
     text = re.sub(r"\b\d+ requirements, each carrying", f"{coverage['controls']} requirements, each carrying", text)
     text = re.sub(r"\b\d+ distinct evidence", f"{coverage['controls']} distinct evidence", text)
     text = re.sub(r"statements for \d+ controls", f"statements for {coverage['controls']} controls", text)

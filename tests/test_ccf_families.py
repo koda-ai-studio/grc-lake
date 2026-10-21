@@ -26,14 +26,20 @@ def test_no_catch_all_family() -> None:
     # Reusable safeguards retain their anti-catch-all guard. Source-native
     # contracts follow the standard's obligation counts, not an equal quota:
     # AC and IA contain many clauses; SOC 2 governance has distinct criteria.
+    # ISMS management clauses are also explicit single-clause contracts, checked
+    # against their manifest below; the prefix alone grants no exemption.
     # Only the explicit repair plan can exempt vendor-guided contracts. A new
     # SG-REVIEW prefix alone must not bypass the reusable-family guard.
     repairs = json.loads((ROOT / "controls/soc2_iso_review_plan.json").read_text())["repairs"]
     scoped = {"SG-REVIEW-" + repair["control_id"].replace(".", "-"): repair for repair in repairs}
+    isms_rows = json.loads((ROOT / "frameworks/packs/data/iso_27001_isms_2022.json").read_text())["rows"]
+    isms = {"SG-ISMS-" + row["id"].replace(".", "-"): row for row in isms_rows}
     common = [
         entry
         for entry in entries
-        if not entry["safeguard_id"].startswith("SG-NIST53-") and entry["safeguard_id"] not in scoped
+        if not entry["safeguard_id"].startswith("SG-NIST53-")
+        and entry["safeguard_id"] not in scoped
+        and entry["safeguard_id"] not in isms
     ]
     used = Counter(entry["risk_domain"] for entry in common)
     total = sum(used.values())
@@ -44,6 +50,13 @@ def test_no_catch_all_family() -> None:
             assert len(entry["satisfies"]) == 1
             assert entry["satisfies"][0]["control_id"] == "NIST-800-53-" + source_id
             assert source_id.split("-")[0] in taxonomy[entry["risk_domain"]]["nist_800_53_families"]
+        elif entry["safeguard_id"] in isms:
+            clause = isms[entry["safeguard_id"]]
+            assert entry["risk_domain"] == clause["risk_domain"]
+            assert len(entry["satisfies"]) == 1
+            assert entry["satisfies"][0]["control_id"] == "ISO27001-" + clause["id"]
+            assert entry["satisfies"][0]["mapping_basis"] == "internal_assessment_proposal"
+            assert entry["required_evidence_types"] == clause["required_evidence_types"]
         elif entry["safeguard_id"] in scoped:
             repair = scoped[entry["safeguard_id"]]
             assert entry["risk_domain"] == repair["risk_domain"]

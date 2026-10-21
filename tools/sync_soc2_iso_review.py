@@ -199,7 +199,17 @@ def repaired_payload(payload: dict, plan: dict, index: dict, catalog: dict) -> d
             # Removing a proposed relationship must not change the operated
             # scope or invalidate reviews of other mappings on this safeguard.
         generated.append(entry)
-    result["safeguards"] = [e for e in result["safeguards"] if not e["safeguard_id"].startswith(PREFIX)] + generated
+    # Replace this generator's entries in place. Appending a different pack
+    # must not make a replay reorder unrelated safeguards or churn its lock.
+    replacements = {entry["safeguard_id"]: entry for entry in generated}
+    reconciled = []
+    for entry in result["safeguards"]:
+        sid = entry["safeguard_id"]
+        if sid in replacements:
+            reconciled.append(replacements.pop(sid))
+        elif not sid.startswith(PREFIX):
+            reconciled.append(entry)
+    result["safeguards"] = reconciled + list(replacements.values())
     problems = validate_safeguards(result)
     if problems:
         raise ValueError("; ".join(problems))

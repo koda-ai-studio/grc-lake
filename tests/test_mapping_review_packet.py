@@ -20,8 +20,8 @@ def test_packet_is_deterministic_read_only_and_deduplicates_requirements(tmp_pat
     rows = [row for batch in first["batches"] for row in batch["requirements"]]
     assert len(rows) == len({row["control_id"] for row in rows})
     assert len(rows) == first["summary"]["distinct_requirements_in_packet"]
-    assert first["summary"]["reviewed_target"] == 1126
-    assert first["summary"]["additional_reviewed_needed"] == 787
+    assert first["summary"]["reviewed_target"] == 1141
+    assert first["summary"]["additional_reviewed_needed"] == 802
     assert all(c["decision"] is c["reviewer"] is c["rationale"] is None for row in rows for c in row["candidates"])
     assert all(c["review_basis_sha256"] for row in rows for c in row["candidates"])
     assert all(batch["requirement_count"] <= 25 for batch in first["batches"])
@@ -32,7 +32,7 @@ def test_framework_filter_does_not_change_the_global_milestone_denominator():
     rows = [row for batch in packet["batches"] for row in batch["requirements"]]
     assert len(rows) == 106
     assert {row["framework_id"] for row in rows} == {"nist-csf-2.0"}
-    assert packet["summary"]["catalog_requirements"] == 2252
+    assert packet["summary"]["catalog_requirements"] == 2282
 
 
 def test_missing_sources_are_visible_and_do_not_become_approved_or_verified():

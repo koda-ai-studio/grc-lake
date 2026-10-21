@@ -98,7 +98,7 @@ def test_repairs_preserve_distinct_coverage_without_adding_reviews():
     payload = without_repair_approvals(load_safeguards())
     assert validate_safeguards(payload) == []
     coverage = coverage_by_framework(payload)
-    assert (coverage["controls"], coverage["covered"], coverage["reviewed"]) == (2252, 2166, 1128)
+    assert (coverage["controls"], coverage["covered"], coverage["reviewed"]) == (2282, 2196, 1128)
 
 
 @pytest.mark.parametrize("framework", GENERATOR["FRAMEWORKS"])

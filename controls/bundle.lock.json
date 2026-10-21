@@ -1,14 +1,14 @@
 {
   "schema_version": "trustops.catalog_bundle.v1",
   "as_of": null,
-  "framework_count": 22,
-  "control_count": 2252,
-  "crosswalk_count": 2252,
+  "framework_count": 23,
+  "control_count": 2282,
+  "crosswalk_count": 2282,
   "components": {
-    "frameworks": "e23c13e92c8de82f224ed23f6721727b18dec9e08bb4855f648009bf8d64cce3",
-    "controls": "16549bbfe1a6603e14a99e4030023e7729afe0ae2157859ff2d7e80f0eb2ab6a",
-    "crosswalk": "f1158c6fc8cf14cecb3c9dd432c96f5bf690f26eb99c2f418ff164eb536178b0",
-    "safeguards": "de05137f9aee09510cb6ad0b53f7a4c6e7ae0dff64906fbd2a8324393a86f404"
+    "frameworks": "38590e35a19602135663e64155b395f038c183364ae0e8f3eedaad093dc7cf95",
+    "controls": "68fe185fa57902775f66c22d687cb0950f07b131237f986091e7245534787776",
+    "crosswalk": "233d66f343b9c08aee346b5b6ef6c001b42d275a199586f8f4974f54eeb83ea1",
+    "safeguards": "4dffd88b698a03373bf3b4ba2d17a9117781aeb8fae1ae853f68f62c066d6d20"
   },
   "framework_versions": [
     {
@@ -71,6 +71,13 @@
       "framework_id": "iso-27001-2022",
       "version": "2022 edition (Annex A revised)",
       "effective_date": "2022-10-25",
+      "superseded_by": null,
+      "source_sha256": null
+    },
+    {
+      "framework_id": "iso-27001-isms-2022",
+      "version": "2022 clauses 4-10; Amd 1:2024 context considerations",
+      "effective_date": "2024-02-23",
       "superseded_by": null,
       "source_sha256": null
     },
@@ -4617,6 +4624,216 @@
       "framework_id": "hipaa-security-rule",
       "version": "1.0.0",
       "valid_from": "2026-10-05",
+      "lifecycle_status": "active"
+    },
+    {
+      "control_id": "ISO27001-10.1",
+      "framework_id": "iso-27001-isms-2022",
+      "version": "1.0.0",
+      "valid_from": "2026-10-20",
+      "lifecycle_status": "active"
+    },
+    {
+      "control_id": "ISO27001-10.2",
+      "framework_id": "iso-27001-isms-2022",
+      "version": "1.0.0",
+      "valid_from": "2026-10-20",
+      "lifecycle_status": "active"
+    },
+    {
+      "control_id": "ISO27001-4.1",
+      "framework_id": "iso-27001-isms-2022",
+      "version": "1.0.0",
+      "valid_from": "2026-10-20",
+      "lifecycle_status": "active"
+    },
+    {
+      "control_id": "ISO27001-4.2",
+      "framework_id": "iso-27001-isms-2022",
+      "version": "1.0.0",
+      "valid_from": "2026-10-20",
+      "lifecycle_status": "active"
+    },
+    {
+      "control_id": "ISO27001-4.3",
+      "framework_id": "iso-27001-isms-2022",
+      "version": "1.0.0",
+      "valid_from": "2026-10-20",
+      "lifecycle_status": "active"
+    },
+    {
+      "control_id": "ISO27001-4.4",
+      "framework_id": "iso-27001-isms-2022",
+      "version": "1.0.0",
+      "valid_from": "2026-10-20",
+      "lifecycle_status": "active"
+    },
+    {
+      "control_id": "ISO27001-5.1",
+      "framework_id": "iso-27001-isms-2022",
+      "version": "1.0.0",
+      "valid_from": "2026-10-20",
+      "lifecycle_status": "active"
+    },
+    {
+      "control_id": "ISO27001-5.2",
+      "framework_id": "iso-27001-isms-2022",
+      "version": "1.0.0",
+      "valid_from": "2026-10-20",
+      "lifecycle_status": "active"
+    },
+    {
+      "control_id": "ISO27001-5.3",
+      "framework_id": "iso-27001-isms-2022",
+      "version": "1.0.0",
+      "valid_from": "2026-10-20",
+      "lifecycle_status": "active"
+    },
+    {
+      "control_id": "ISO27001-6.1.1",
+      "framework_id": "iso-27001-isms-2022",
+      "version": "1.0.0",
+      "valid_from": "2026-10-20",
+      "lifecycle_status": "active"
+    },
+    {
+      "control_id": "ISO27001-6.1.2",
+      "framework_id": "iso-27001-isms-2022",
+      "version": "1.0.0",
+      "valid_from": "2026-10-20",
+      "lifecycle_status": "active"
+    },
+    {
+      "control_id": "ISO27001-6.1.3",
+      "framework_id": "iso-27001-isms-2022",
+      "version": "1.0.0",
+      "valid_from": "2026-10-20",
+      "lifecycle_status": "active"
+    },
+    {
+      "control_id": "ISO27001-6.2",
+      "framework_id": "iso-27001-isms-2022",
+      "version": "1.0.0",
+      "valid_from": "2026-10-20",
+      "lifecycle_status": "active"
+    },
+    {
+      "control_id": "ISO27001-6.3",
+      "framework_id": "iso-27001-isms-2022",
+      "version": "1.0.0",
+      "valid_from": "2026-10-20",
+      "lifecycle_status": "active"
+    },
+    {
+      "control_id": "ISO27001-7.1",
+      "framework_id": "iso-27001-isms-2022",
+      "version": "1.0.0",
+      "valid_from": "2026-10-20",
+      "lifecycle_status": "active"
+    },
+    {
+      "control_id": "ISO27001-7.2",
+      "framework_id": "iso-27001-isms-2022",
+      "version": "1.0.0",
+      "valid_from": "2026-10-20",
+      "lifecycle_status": "active"
+    },
+    {
+      "control_id": "ISO27001-7.3",
+      "framework_id": "iso-27001-isms-2022",
+      "version": "1.0.0",
+      "valid_from": "2026-10-20",
+      "lifecycle_status": "active"
+    },
+    {
+      "control_id": "ISO27001-7.4",
+      "framework_id": "iso-27001-isms-2022",
+      "version": "1.0.0",
+      "valid_from": "2026-10-20",
+      "lifecycle_status": "active"
+    },
+    {
+      "control_id": "ISO27001-7.5.1",
+      "framework_id": "iso-27001-isms-2022",
+      "version": "1.0.0",
+      "valid_from": "2026-10-20",
+      "lifecycle_status": "active"
+    },
+    {
+      "control_id": "ISO27001-7.5.2",
+      "framework_id": "iso-27001-isms-2022",
+      "version": "1.0.0",
+      "valid_from": "2026-10-20",
+      "lifecycle_status": "active"
+    },
+    {
+      "control_id": "ISO27001-7.5.3",
+      "framework_id": "iso-27001-isms-2022",
+      "version": "1.0.0",
+      "valid_from": "2026-10-20",
+      "lifecycle_status": "active"
+    },
+    {
+      "control_id": "ISO27001-8.1",
+      "framework_id": "iso-27001-isms-2022",
+      "version": "1.0.0",
+      "valid_from": "2026-10-20",
+      "lifecycle_status": "active"
+    },
+    {
+      "control_id": "ISO27001-8.2",
+      "framework_id": "iso-27001-isms-2022",
+      "version": "1.0.0",
+      "valid_from": "2026-10-20",
+      "lifecycle_status": "active"
+    },
+    {
+      "control_id": "ISO27001-8.3",
+      "framework_id": "iso-27001-isms-2022",
+      "version": "1.0.0",
+      "valid_from": "2026-10-20",
+      "lifecycle_status": "active"
+    },
+    {
+      "control_id": "ISO27001-9.1",
+      "framework_id": "iso-27001-isms-2022",
+      "version": "1.0.0",
+      "valid_from": "2026-10-20",
+      "lifecycle_status": "active"
+    },
+    {
+      "control_id": "ISO27001-9.2.1",
+      "framework_id": "iso-27001-isms-2022",
+      "version": "1.0.0",
+      "valid_from": "2026-10-20",
+      "lifecycle_status": "active"
+    },
+    {
+      "control_id": "ISO27001-9.2.2",
+      "framework_id": "iso-27001-isms-2022",
+      "version": "1.0.0",
+      "valid_from": "2026-10-20",
+      "lifecycle_status": "active"
+    },
+    {
+      "control_id": "ISO27001-9.3.1",
+      "framework_id": "iso-27001-isms-2022",
+      "version": "1.0.0",
+      "valid_from": "2026-10-20",
+      "lifecycle_status": "active"
+    },
+    {
+      "control_id": "ISO27001-9.3.2",
+      "framework_id": "iso-27001-isms-2022",
+      "version": "1.0.0",
+      "valid_from": "2026-10-20",
+      "lifecycle_status": "active"
+    },
+    {
+      "control_id": "ISO27001-9.3.3",
+      "framework_id": "iso-27001-isms-2022",
+      "version": "1.0.0",
+      "valid_from": "2026-10-20",
       "lifecycle_status": "active"
     },
     {
@@ -15932,5 +16149,5 @@
       "lifecycle_status": "active"
     }
   ],
-  "bundle_sha256": "588cfad6c521e93db39d3233ac11c86c2df1534d1e25a44ffc4976b22f116342"
+  "bundle_sha256": "4e70e8df7c4b39585fefd15f302fb7ea3c4b5da250a45998d3861a1c147b8820"
 }

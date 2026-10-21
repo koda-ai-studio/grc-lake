@@ -1,0 +1,35 @@
+{
+  "purpose": "Identify supported evidence sources in technical documentation; no endorsement or certification claim.",
+  "assets": [
+    {
+      "id": "aws",
+      "file": "aws.svg",
+      "owner": "Amazon Web Services",
+      "source_url": "https://aws.amazon.com/",
+      "locator": "Inline SVG in the desktop navigation home link; geometry retained unchanged. Monochrome mark displayed in white on the dark documentation tile.",
+      "terms_url": "https://aws.amazon.com/trademark-guidelines/",
+      "sha256": "91e6c5f43a2b19df80d788481eed1fdffc2c9f0bf6dce4dbdd6370b690574af7",
+      "retrieved_at": "2026-10-20"
+    },
+    {
+      "id": "azure",
+      "file": "azure.svg",
+      "owner": "Microsoft",
+      "source_url": "https://arch-center.azureedge.net/icons/Azure_Public_Service_Icons_V24.zip",
+      "locator": "Azure_Public_Service_Icons/Icons/other/10018-icon-service-Azure-A.svg",
+      "terms_url": "https://learn.microsoft.com/en-us/azure/architecture/icons/",
+      "sha256": "dcc1d690bc18e7c7401fb545c51790b4974a69c9d997b27c4fbd9f1f26fe6815",
+      "retrieved_at": "2026-10-20"
+    },
+    {
+      "id": "gcp",
+      "file": "gcp.svg",
+      "owner": "Google",
+      "source_url": "https://github.com/msaad00/agent-bom/blob/6eaa9215169d759a851e8de38ef2f5aa08f2f532/ui/public/logos/gcp.svg",
+      "locator": "Exact native four-color mark retained from Agent-Bom docs/images/vendor/google-cloud-mark.svg; repository provenance, not a new drawing.",
+      "terms_url": "https://about.google/brand-resource-center/products-and-services/",
+      "sha256": "4b01381301db013f41a5daac9bae641116d31de9d4fae43ac9d235169b5aeffe",
+      "retrieved_at": "2026-10-20"
+    }
+  ]
+}

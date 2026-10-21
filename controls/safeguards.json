@@ -52869,6 +52869,906 @@
           }
         }
       ]
+    },
+    {
+      "safeguard_id": "SG-ISMS-4-1",
+      "title": "Business context",
+      "risk_domain": "governance",
+      "objective": "Maintain reviewable evidence for the scoped ISMS activity: Business context.",
+      "evidence_requirement": "A scoped assessor record explicitly bound to this safeguard and asset must identify the assessor, assessment period, population, applicability, evidence references, tests, and exceptions. GRC Lake proposes inspection of: context register, business dependencies, review dates, and a documented climate relevance decision. Validate the procedure against the applicable standard and amendment before approval. An imported pass does not establish semantic completeness, approve the mapping, or certify conformity.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_4_1_assessment"],
+      "satisfies": [
+        {
+          "control_id": "ISO27001-4.1",
+          "framework_id": "iso-27001-isms-2022",
+          "role": "primary",
+          "review_status": "proposed",
+          "control_version": "1.0.0",
+          "mapping_basis": "internal_assessment_proposal",
+          "mapping_source": {
+            "name": "ISO/IEC 27001:2022 management clauses, with Amd 1:2024 context considerations",
+            "url": "https://gso-sims-preview-doc-aws.s3-eu-west-1.amazonaws.com/iso-iec-27001-2022-en.html",
+            "sha256": "42951f3478a7d533a4e56c4c4dccfa1609ed58395934943968aa216d598485c1",
+            "locator": "Clause 4.1; identifier reference only. Original GRC Lake evidence prompt; no normative text or equivalence approval."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-ISMS-4-2",
+      "title": "Stakeholder obligations",
+      "risk_domain": "governance",
+      "objective": "Maintain reviewable evidence for the scoped ISMS activity: Stakeholder obligations.",
+      "evidence_requirement": "A scoped assessor record explicitly bound to this safeguard and asset must identify the assessor, assessment period, population, applicability, evidence references, tests, and exceptions. GRC Lake proposes inspection of: stakeholder register, obligation owners, tracked commitments, and relevant climate-related expectations. Validate the procedure against the applicable standard and amendment before approval. An imported pass does not establish semantic completeness, approve the mapping, or certify conformity.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_4_2_assessment"],
+      "satisfies": [
+        {
+          "control_id": "ISO27001-4.2",
+          "framework_id": "iso-27001-isms-2022",
+          "role": "primary",
+          "review_status": "proposed",
+          "control_version": "1.0.0",
+          "mapping_basis": "internal_assessment_proposal",
+          "mapping_source": {
+            "name": "ISO/IEC 27001:2022 management clauses, with Amd 1:2024 context considerations",
+            "url": "https://gso-sims-preview-doc-aws.s3-eu-west-1.amazonaws.com/iso-iec-27001-2022-en.html",
+            "sha256": "42951f3478a7d533a4e56c4c4dccfa1609ed58395934943968aa216d598485c1",
+            "locator": "Clause 4.2; identifier reference only. Original GRC Lake evidence prompt; no normative text or equivalence approval."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-ISMS-4-3",
+      "title": "ISMS boundaries",
+      "risk_domain": "governance",
+      "objective": "Maintain reviewable evidence for the scoped ISMS activity: ISMS boundaries.",
+      "evidence_requirement": "A scoped assessor record explicitly bound to this safeguard and asset must identify the assessor, assessment period, population, applicability, evidence references, tests, and exceptions. GRC Lake proposes inspection of: approved scope, included locations, system boundaries, interfaces, and exclusion rationale. Validate the procedure against the applicable standard and amendment before approval. An imported pass does not establish semantic completeness, approve the mapping, or certify conformity.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_4_3_assessment"],
+      "satisfies": [
+        {
+          "control_id": "ISO27001-4.3",
+          "framework_id": "iso-27001-isms-2022",
+          "role": "primary",
+          "review_status": "proposed",
+          "control_version": "1.0.0",
+          "mapping_basis": "internal_assessment_proposal",
+          "mapping_source": {
+            "name": "ISO/IEC 27001:2022 management clauses, with Amd 1:2024 context considerations",
+            "url": "https://gso-sims-preview-doc-aws.s3-eu-west-1.amazonaws.com/iso-iec-27001-2022-en.html",
+            "sha256": "42951f3478a7d533a4e56c4c4dccfa1609ed58395934943968aa216d598485c1",
+            "locator": "Clause 4.3; identifier reference only. Original GRC Lake evidence prompt; no normative text or equivalence approval."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-ISMS-4-4",
+      "title": "ISMS process inventory",
+      "risk_domain": "governance",
+      "objective": "Maintain reviewable evidence for the scoped ISMS activity: ISMS process inventory.",
+      "evidence_requirement": "A scoped assessor record explicitly bound to this safeguard and asset must identify the assessor, assessment period, population, applicability, evidence references, tests, and exceptions. GRC Lake proposes inspection of: process owners, dependency map, operating records, and tracked process improvements. Validate the procedure against the applicable standard and amendment before approval. An imported pass does not establish semantic completeness, approve the mapping, or certify conformity.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_4_4_assessment"],
+      "satisfies": [
+        {
+          "control_id": "ISO27001-4.4",
+          "framework_id": "iso-27001-isms-2022",
+          "role": "primary",
+          "review_status": "proposed",
+          "control_version": "1.0.0",
+          "mapping_basis": "internal_assessment_proposal",
+          "mapping_source": {
+            "name": "ISO/IEC 27001:2022 management clauses, with Amd 1:2024 context considerations",
+            "url": "https://gso-sims-preview-doc-aws.s3-eu-west-1.amazonaws.com/iso-iec-27001-2022-en.html",
+            "sha256": "42951f3478a7d533a4e56c4c4dccfa1609ed58395934943968aa216d598485c1",
+            "locator": "Clause 4.4; identifier reference only. Original GRC Lake evidence prompt; no normative text or equivalence approval."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-ISMS-5-1",
+      "title": "Executive sponsorship",
+      "risk_domain": "governance",
+      "objective": "Maintain reviewable evidence for the scoped ISMS activity: Executive sponsorship.",
+      "evidence_requirement": "A scoped assessor record explicitly bound to this safeguard and asset must identify the assessor, assessment period, population, applicability, evidence references, tests, and exceptions. GRC Lake proposes inspection of: leadership decisions, resource commitments, accountable sponsors, and follow-through records. Validate the procedure against the applicable standard and amendment before approval. An imported pass does not establish semantic completeness, approve the mapping, or certify conformity.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_5_1_assessment"],
+      "satisfies": [
+        {
+          "control_id": "ISO27001-5.1",
+          "framework_id": "iso-27001-isms-2022",
+          "role": "primary",
+          "review_status": "proposed",
+          "control_version": "1.0.0",
+          "mapping_basis": "internal_assessment_proposal",
+          "mapping_source": {
+            "name": "ISO/IEC 27001:2022 management clauses, with Amd 1:2024 context considerations",
+            "url": "https://gso-sims-preview-doc-aws.s3-eu-west-1.amazonaws.com/iso-iec-27001-2022-en.html",
+            "sha256": "42951f3478a7d533a4e56c4c4dccfa1609ed58395934943968aa216d598485c1",
+            "locator": "Clause 5.1; identifier reference only. Original GRC Lake evidence prompt; no normative text or equivalence approval."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-ISMS-5-2",
+      "title": "Security policy governance",
+      "risk_domain": "governance",
+      "objective": "Maintain reviewable evidence for the scoped ISMS activity: Security policy governance.",
+      "evidence_requirement": "A scoped assessor record explicitly bound to this safeguard and asset must identify the assessor, assessment period, population, applicability, evidence references, tests, and exceptions. GRC Lake proposes inspection of: approved policy version, distribution records, accountable owner, and review history. Validate the procedure against the applicable standard and amendment before approval. An imported pass does not establish semantic completeness, approve the mapping, or certify conformity.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_5_2_assessment"],
+      "satisfies": [
+        {
+          "control_id": "ISO27001-5.2",
+          "framework_id": "iso-27001-isms-2022",
+          "role": "primary",
+          "review_status": "proposed",
+          "control_version": "1.0.0",
+          "mapping_basis": "internal_assessment_proposal",
+          "mapping_source": {
+            "name": "ISO/IEC 27001:2022 management clauses, with Amd 1:2024 context considerations",
+            "url": "https://gso-sims-preview-doc-aws.s3-eu-west-1.amazonaws.com/iso-iec-27001-2022-en.html",
+            "sha256": "42951f3478a7d533a4e56c4c4dccfa1609ed58395934943968aa216d598485c1",
+            "locator": "Clause 5.2; identifier reference only. Original GRC Lake evidence prompt; no normative text or equivalence approval."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-ISMS-5-3",
+      "title": "Accountability assignments",
+      "risk_domain": "governance",
+      "objective": "Maintain reviewable evidence for the scoped ISMS activity: Accountability assignments.",
+      "evidence_requirement": "A scoped assessor record explicitly bound to this safeguard and asset must identify the assessor, assessment period, population, applicability, evidence references, tests, and exceptions. GRC Lake proposes inspection of: responsibility matrix, delegated authority, role communication, and unresolved ownership gaps. Validate the procedure against the applicable standard and amendment before approval. An imported pass does not establish semantic completeness, approve the mapping, or certify conformity.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_5_3_assessment"],
+      "satisfies": [
+        {
+          "control_id": "ISO27001-5.3",
+          "framework_id": "iso-27001-isms-2022",
+          "role": "primary",
+          "review_status": "proposed",
+          "control_version": "1.0.0",
+          "mapping_basis": "internal_assessment_proposal",
+          "mapping_source": {
+            "name": "ISO/IEC 27001:2022 management clauses, with Amd 1:2024 context considerations",
+            "url": "https://gso-sims-preview-doc-aws.s3-eu-west-1.amazonaws.com/iso-iec-27001-2022-en.html",
+            "sha256": "42951f3478a7d533a4e56c4c4dccfa1609ed58395934943968aa216d598485c1",
+            "locator": "Clause 5.3; identifier reference only. Original GRC Lake evidence prompt; no normative text or equivalence approval."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-ISMS-6-1-1",
+      "title": "ISMS planning decisions",
+      "risk_domain": "risk-management",
+      "objective": "Maintain reviewable evidence for the scoped ISMS activity: ISMS planning decisions.",
+      "evidence_requirement": "A scoped assessor record explicitly bound to this safeguard and asset must identify the assessor, assessment period, population, applicability, evidence references, tests, and exceptions. GRC Lake proposes inspection of: planning register, selected actions, accountable owners, and effectiveness review criteria. Validate the procedure against the applicable standard and amendment before approval. An imported pass does not establish semantic completeness, approve the mapping, or certify conformity.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_6_1_1_assessment"],
+      "satisfies": [
+        {
+          "control_id": "ISO27001-6.1.1",
+          "framework_id": "iso-27001-isms-2022",
+          "role": "primary",
+          "review_status": "proposed",
+          "control_version": "1.0.0",
+          "mapping_basis": "internal_assessment_proposal",
+          "mapping_source": {
+            "name": "ISO/IEC 27001:2022 management clauses, with Amd 1:2024 context considerations",
+            "url": "https://gso-sims-preview-doc-aws.s3-eu-west-1.amazonaws.com/iso-iec-27001-2022-en.html",
+            "sha256": "42951f3478a7d533a4e56c4c4dccfa1609ed58395934943968aa216d598485c1",
+            "locator": "Clause 6.1.1; identifier reference only. Original GRC Lake evidence prompt; no normative text or equivalence approval."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-ISMS-6-1-2",
+      "title": "Risk assessment method",
+      "risk_domain": "risk-management",
+      "objective": "Maintain reviewable evidence for the scoped ISMS activity: Risk assessment method.",
+      "evidence_requirement": "A scoped assessor record explicitly bound to this safeguard and asset must identify the assessor, assessment period, population, applicability, evidence references, tests, and exceptions. GRC Lake proposes inspection of: risk methodology, scoring rules, acceptance criteria, asset scope, and repeatability checks. Validate the procedure against the applicable standard and amendment before approval. An imported pass does not establish semantic completeness, approve the mapping, or certify conformity.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_6_1_2_assessment"],
+      "satisfies": [
+        {
+          "control_id": "ISO27001-6.1.2",
+          "framework_id": "iso-27001-isms-2022",
+          "role": "primary",
+          "review_status": "proposed",
+          "control_version": "1.0.0",
+          "mapping_basis": "internal_assessment_proposal",
+          "mapping_source": {
+            "name": "ISO/IEC 27001:2022 management clauses, with Amd 1:2024 context considerations",
+            "url": "https://gso-sims-preview-doc-aws.s3-eu-west-1.amazonaws.com/iso-iec-27001-2022-en.html",
+            "sha256": "42951f3478a7d533a4e56c4c4dccfa1609ed58395934943968aa216d598485c1",
+            "locator": "Clause 6.1.2; identifier reference only. Original GRC Lake evidence prompt; no normative text or equivalence approval."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-ISMS-6-1-3",
+      "title": "Risk treatment decisions",
+      "risk_domain": "risk-management",
+      "objective": "Maintain reviewable evidence for the scoped ISMS activity: Risk treatment decisions.",
+      "evidence_requirement": "A scoped assessor record explicitly bound to this safeguard and asset must identify the assessor, assessment period, population, applicability, evidence references, tests, and exceptions. GRC Lake proposes inspection of: treatment plans, risk-owner decisions, applicability statement, control selections, and residual risks. Validate the procedure against the applicable standard and amendment before approval. An imported pass does not establish semantic completeness, approve the mapping, or certify conformity.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_6_1_3_assessment"],
+      "satisfies": [
+        {
+          "control_id": "ISO27001-6.1.3",
+          "framework_id": "iso-27001-isms-2022",
+          "role": "primary",
+          "review_status": "proposed",
+          "control_version": "1.0.0",
+          "mapping_basis": "internal_assessment_proposal",
+          "mapping_source": {
+            "name": "ISO/IEC 27001:2022 management clauses, with Amd 1:2024 context considerations",
+            "url": "https://gso-sims-preview-doc-aws.s3-eu-west-1.amazonaws.com/iso-iec-27001-2022-en.html",
+            "sha256": "42951f3478a7d533a4e56c4c4dccfa1609ed58395934943968aa216d598485c1",
+            "locator": "Clause 6.1.3; identifier reference only. Original GRC Lake evidence prompt; no normative text or equivalence approval."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-ISMS-6-2",
+      "title": "Security objectives tracking",
+      "risk_domain": "governance",
+      "objective": "Maintain reviewable evidence for the scoped ISMS activity: Security objectives tracking.",
+      "evidence_requirement": "A scoped assessor record explicitly bound to this safeguard and asset must identify the assessor, assessment period, population, applicability, evidence references, tests, and exceptions. GRC Lake proposes inspection of: objective register, measurable targets, assigned resources, due dates, and progress reviews. Validate the procedure against the applicable standard and amendment before approval. An imported pass does not establish semantic completeness, approve the mapping, or certify conformity.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_6_2_assessment"],
+      "satisfies": [
+        {
+          "control_id": "ISO27001-6.2",
+          "framework_id": "iso-27001-isms-2022",
+          "role": "primary",
+          "review_status": "proposed",
+          "control_version": "1.0.0",
+          "mapping_basis": "internal_assessment_proposal",
+          "mapping_source": {
+            "name": "ISO/IEC 27001:2022 management clauses, with Amd 1:2024 context considerations",
+            "url": "https://gso-sims-preview-doc-aws.s3-eu-west-1.amazonaws.com/iso-iec-27001-2022-en.html",
+            "sha256": "42951f3478a7d533a4e56c4c4dccfa1609ed58395934943968aa216d598485c1",
+            "locator": "Clause 6.2; identifier reference only. Original GRC Lake evidence prompt; no normative text or equivalence approval."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-ISMS-6-3",
+      "title": "ISMS change planning",
+      "risk_domain": "change-management",
+      "objective": "Maintain reviewable evidence for the scoped ISMS activity: ISMS change planning.",
+      "evidence_requirement": "A scoped assessor record explicitly bound to this safeguard and asset must identify the assessor, assessment period, population, applicability, evidence references, tests, and exceptions. GRC Lake proposes inspection of: planned system changes, impact review, owners, sequencing, and retained implementation decisions. Validate the procedure against the applicable standard and amendment before approval. An imported pass does not establish semantic completeness, approve the mapping, or certify conformity.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_6_3_assessment"],
+      "satisfies": [
+        {
+          "control_id": "ISO27001-6.3",
+          "framework_id": "iso-27001-isms-2022",
+          "role": "primary",
+          "review_status": "proposed",
+          "control_version": "1.0.0",
+          "mapping_basis": "internal_assessment_proposal",
+          "mapping_source": {
+            "name": "NEN ISO/IEC 27001:2022 revision overview, 17 November 2022",
+            "url": "https://www.nen.nl/en/nieuws/wijzigingen-iso-iec-27001-2022-ten-opzichte-van-2013/",
+            "sha256": "5c8e26abaab7ed9823528c507a031d28c181b28db70098a250605198cc1a7cce",
+            "locator": "Clause 6.3; identifier reference only. Original GRC Lake evidence prompt; no normative text or equivalence approval."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-ISMS-7-1",
+      "title": "ISMS resource allocation",
+      "risk_domain": "governance",
+      "objective": "Maintain reviewable evidence for the scoped ISMS activity: ISMS resource allocation.",
+      "evidence_requirement": "A scoped assessor record explicitly bound to this safeguard and asset must identify the assessor, assessment period, population, applicability, evidence references, tests, and exceptions. GRC Lake proposes inspection of: resource plan, budget decisions, staffing allocations, and unresolved capacity constraints. Validate the procedure against the applicable standard and amendment before approval. An imported pass does not establish semantic completeness, approve the mapping, or certify conformity.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_7_1_assessment"],
+      "satisfies": [
+        {
+          "control_id": "ISO27001-7.1",
+          "framework_id": "iso-27001-isms-2022",
+          "role": "primary",
+          "review_status": "proposed",
+          "control_version": "1.0.0",
+          "mapping_basis": "internal_assessment_proposal",
+          "mapping_source": {
+            "name": "ISO/IEC 27001:2022 management clauses, with Amd 1:2024 context considerations",
+            "url": "https://gso-sims-preview-doc-aws.s3-eu-west-1.amazonaws.com/iso-iec-27001-2022-en.html",
+            "sha256": "42951f3478a7d533a4e56c4c4dccfa1609ed58395934943968aa216d598485c1",
+            "locator": "Clause 7.1; identifier reference only. Original GRC Lake evidence prompt; no normative text or equivalence approval."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-ISMS-7-2",
+      "title": "Role capability evidence",
+      "risk_domain": "people-security",
+      "objective": "Maintain reviewable evidence for the scoped ISMS activity: Role capability evidence.",
+      "evidence_requirement": "A scoped assessor record explicitly bound to this safeguard and asset must identify the assessor, assessment period, population, applicability, evidence references, tests, and exceptions. GRC Lake proposes inspection of: role requirements, capability assessments, training outcomes, and retained qualification records. Validate the procedure against the applicable standard and amendment before approval. An imported pass does not establish semantic completeness, approve the mapping, or certify conformity.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_7_2_assessment"],
+      "satisfies": [
+        {
+          "control_id": "ISO27001-7.2",
+          "framework_id": "iso-27001-isms-2022",
+          "role": "primary",
+          "review_status": "proposed",
+          "control_version": "1.0.0",
+          "mapping_basis": "internal_assessment_proposal",
+          "mapping_source": {
+            "name": "ISO/IEC 27001:2022 management clauses, with Amd 1:2024 context considerations",
+            "url": "https://gso-sims-preview-doc-aws.s3-eu-west-1.amazonaws.com/iso-iec-27001-2022-en.html",
+            "sha256": "42951f3478a7d533a4e56c4c4dccfa1609ed58395934943968aa216d598485c1",
+            "locator": "Clause 7.2; identifier reference only. Original GRC Lake evidence prompt; no normative text or equivalence approval."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-ISMS-7-3",
+      "title": "Workforce policy awareness",
+      "risk_domain": "people-security",
+      "objective": "Maintain reviewable evidence for the scoped ISMS activity: Workforce policy awareness.",
+      "evidence_requirement": "A scoped assessor record explicitly bound to this safeguard and asset must identify the assessor, assessment period, population, applicability, evidence references, tests, and exceptions. GRC Lake proposes inspection of: awareness material, participation evidence, knowledge checks, and follow-up actions. Validate the procedure against the applicable standard and amendment before approval. An imported pass does not establish semantic completeness, approve the mapping, or certify conformity.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_7_3_assessment"],
+      "satisfies": [
+        {
+          "control_id": "ISO27001-7.3",
+          "framework_id": "iso-27001-isms-2022",
+          "role": "primary",
+          "review_status": "proposed",
+          "control_version": "1.0.0",
+          "mapping_basis": "internal_assessment_proposal",
+          "mapping_source": {
+            "name": "ISO/IEC 27001:2022 management clauses, with Amd 1:2024 context considerations",
+            "url": "https://gso-sims-preview-doc-aws.s3-eu-west-1.amazonaws.com/iso-iec-27001-2022-en.html",
+            "sha256": "42951f3478a7d533a4e56c4c4dccfa1609ed58395934943968aa216d598485c1",
+            "locator": "Clause 7.3; identifier reference only. Original GRC Lake evidence prompt; no normative text or equivalence approval."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-ISMS-7-4",
+      "title": "ISMS communications",
+      "risk_domain": "governance",
+      "objective": "Maintain reviewable evidence for the scoped ISMS activity: ISMS communications.",
+      "evidence_requirement": "A scoped assessor record explicitly bound to this safeguard and asset must identify the assessor, assessment period, population, applicability, evidence references, tests, and exceptions. GRC Lake proposes inspection of: audience matrix, message owners, channels, schedules, and communication records. Validate the procedure against the applicable standard and amendment before approval. An imported pass does not establish semantic completeness, approve the mapping, or certify conformity.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_7_4_assessment"],
+      "satisfies": [
+        {
+          "control_id": "ISO27001-7.4",
+          "framework_id": "iso-27001-isms-2022",
+          "role": "primary",
+          "review_status": "proposed",
+          "control_version": "1.0.0",
+          "mapping_basis": "internal_assessment_proposal",
+          "mapping_source": {
+            "name": "ISO/IEC 27001:2022 management clauses, with Amd 1:2024 context considerations",
+            "url": "https://gso-sims-preview-doc-aws.s3-eu-west-1.amazonaws.com/iso-iec-27001-2022-en.html",
+            "sha256": "42951f3478a7d533a4e56c4c4dccfa1609ed58395934943968aa216d598485c1",
+            "locator": "Clause 7.4; identifier reference only. Original GRC Lake evidence prompt; no normative text or equivalence approval."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-ISMS-7-5-1",
+      "title": "ISMS record inventory",
+      "risk_domain": "governance",
+      "objective": "Maintain reviewable evidence for the scoped ISMS activity: ISMS record inventory.",
+      "evidence_requirement": "A scoped assessor record explicitly bound to this safeguard and asset must identify the assessor, assessment period, population, applicability, evidence references, tests, and exceptions. GRC Lake proposes inspection of: required document register, record owners, coverage gaps, and evidence retention locations. Validate the procedure against the applicable standard and amendment before approval. An imported pass does not establish semantic completeness, approve the mapping, or certify conformity.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_7_5_1_assessment"],
+      "satisfies": [
+        {
+          "control_id": "ISO27001-7.5.1",
+          "framework_id": "iso-27001-isms-2022",
+          "role": "primary",
+          "review_status": "proposed",
+          "control_version": "1.0.0",
+          "mapping_basis": "internal_assessment_proposal",
+          "mapping_source": {
+            "name": "ISO/IEC 27001:2022 management clauses, with Amd 1:2024 context considerations",
+            "url": "https://gso-sims-preview-doc-aws.s3-eu-west-1.amazonaws.com/iso-iec-27001-2022-en.html",
+            "sha256": "42951f3478a7d533a4e56c4c4dccfa1609ed58395934943968aa216d598485c1",
+            "locator": "Clause 7.5.1; identifier reference only. Original GRC Lake evidence prompt; no normative text or equivalence approval."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-ISMS-7-5-2",
+      "title": "Document publication workflow",
+      "risk_domain": "governance",
+      "objective": "Maintain reviewable evidence for the scoped ISMS activity: Document publication workflow.",
+      "evidence_requirement": "A scoped assessor record explicitly bound to this safeguard and asset must identify the assessor, assessment period, population, applicability, evidence references, tests, and exceptions. GRC Lake proposes inspection of: version identifiers, authors, review decisions, approvals, and publication history. Validate the procedure against the applicable standard and amendment before approval. An imported pass does not establish semantic completeness, approve the mapping, or certify conformity.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_7_5_2_assessment"],
+      "satisfies": [
+        {
+          "control_id": "ISO27001-7.5.2",
+          "framework_id": "iso-27001-isms-2022",
+          "role": "primary",
+          "review_status": "proposed",
+          "control_version": "1.0.0",
+          "mapping_basis": "internal_assessment_proposal",
+          "mapping_source": {
+            "name": "ISO/IEC 27001:2022 management clauses, with Amd 1:2024 context considerations",
+            "url": "https://gso-sims-preview-doc-aws.s3-eu-west-1.amazonaws.com/iso-iec-27001-2022-en.html",
+            "sha256": "42951f3478a7d533a4e56c4c4dccfa1609ed58395934943968aa216d598485c1",
+            "locator": "Clause 7.5.2; identifier reference only. Original GRC Lake evidence prompt; no normative text or equivalence approval."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-ISMS-7-5-3",
+      "title": "Document custody controls",
+      "risk_domain": "governance",
+      "objective": "Maintain reviewable evidence for the scoped ISMS activity: Document custody controls.",
+      "evidence_requirement": "A scoped assessor record explicitly bound to this safeguard and asset must identify the assessor, assessment period, population, applicability, evidence references, tests, and exceptions. GRC Lake proposes inspection of: access restrictions, retention rules, change history, availability checks, and disposal records. Validate the procedure against the applicable standard and amendment before approval. An imported pass does not establish semantic completeness, approve the mapping, or certify conformity.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_7_5_3_assessment"],
+      "satisfies": [
+        {
+          "control_id": "ISO27001-7.5.3",
+          "framework_id": "iso-27001-isms-2022",
+          "role": "primary",
+          "review_status": "proposed",
+          "control_version": "1.0.0",
+          "mapping_basis": "internal_assessment_proposal",
+          "mapping_source": {
+            "name": "ISO/IEC 27001:2022 management clauses, with Amd 1:2024 context considerations",
+            "url": "https://gso-sims-preview-doc-aws.s3-eu-west-1.amazonaws.com/iso-iec-27001-2022-en.html",
+            "sha256": "42951f3478a7d533a4e56c4c4dccfa1609ed58395934943968aa216d598485c1",
+            "locator": "Clause 7.5.3; identifier reference only. Original GRC Lake evidence prompt; no normative text or equivalence approval."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-ISMS-8-1",
+      "title": "Operational process execution",
+      "risk_domain": "governance",
+      "objective": "Maintain reviewable evidence for the scoped ISMS activity: Operational process execution.",
+      "evidence_requirement": "A scoped assessor record explicitly bound to this safeguard and asset must identify the assessor, assessment period, population, applicability, evidence references, tests, and exceptions. GRC Lake proposes inspection of: operating criteria, execution records, change exceptions, and outsourced-process oversight. Validate the procedure against the applicable standard and amendment before approval. An imported pass does not establish semantic completeness, approve the mapping, or certify conformity.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_8_1_assessment"],
+      "satisfies": [
+        {
+          "control_id": "ISO27001-8.1",
+          "framework_id": "iso-27001-isms-2022",
+          "role": "primary",
+          "review_status": "proposed",
+          "control_version": "1.0.0",
+          "mapping_basis": "internal_assessment_proposal",
+          "mapping_source": {
+            "name": "ISO/IEC 27001:2022 management clauses, with Amd 1:2024 context considerations",
+            "url": "https://gso-sims-preview-doc-aws.s3-eu-west-1.amazonaws.com/iso-iec-27001-2022-en.html",
+            "sha256": "42951f3478a7d533a4e56c4c4dccfa1609ed58395934943968aa216d598485c1",
+            "locator": "Clause 8.1; identifier reference only. Original GRC Lake evidence prompt; no normative text or equivalence approval."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-ISMS-8-2",
+      "title": "Repeated risk assessments",
+      "risk_domain": "risk-management",
+      "objective": "Maintain reviewable evidence for the scoped ISMS activity: Repeated risk assessments.",
+      "evidence_requirement": "A scoped assessor record explicitly bound to this safeguard and asset must identify the assessor, assessment period, population, applicability, evidence references, tests, and exceptions. GRC Lake proposes inspection of: dated reassessments, change triggers, assessed scope, findings, and escalation decisions. Validate the procedure against the applicable standard and amendment before approval. An imported pass does not establish semantic completeness, approve the mapping, or certify conformity.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_8_2_assessment"],
+      "satisfies": [
+        {
+          "control_id": "ISO27001-8.2",
+          "framework_id": "iso-27001-isms-2022",
+          "role": "primary",
+          "review_status": "proposed",
+          "control_version": "1.0.0",
+          "mapping_basis": "internal_assessment_proposal",
+          "mapping_source": {
+            "name": "ISO/IEC 27001:2022 management clauses, with Amd 1:2024 context considerations",
+            "url": "https://gso-sims-preview-doc-aws.s3-eu-west-1.amazonaws.com/iso-iec-27001-2022-en.html",
+            "sha256": "42951f3478a7d533a4e56c4c4dccfa1609ed58395934943968aa216d598485c1",
+            "locator": "Clause 8.2; identifier reference only. Original GRC Lake evidence prompt; no normative text or equivalence approval."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-ISMS-8-3",
+      "title": "Treatment implementation evidence",
+      "risk_domain": "risk-management",
+      "objective": "Maintain reviewable evidence for the scoped ISMS activity: Treatment implementation evidence.",
+      "evidence_requirement": "A scoped assessor record explicitly bound to this safeguard and asset must identify the assessor, assessment period, population, applicability, evidence references, tests, and exceptions. GRC Lake proposes inspection of: completed treatment actions, implementation evidence, residual gaps, and responsible owners. Validate the procedure against the applicable standard and amendment before approval. An imported pass does not establish semantic completeness, approve the mapping, or certify conformity.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_8_3_assessment"],
+      "satisfies": [
+        {
+          "control_id": "ISO27001-8.3",
+          "framework_id": "iso-27001-isms-2022",
+          "role": "primary",
+          "review_status": "proposed",
+          "control_version": "1.0.0",
+          "mapping_basis": "internal_assessment_proposal",
+          "mapping_source": {
+            "name": "ISO/IEC 27001:2022 management clauses, with Amd 1:2024 context considerations",
+            "url": "https://gso-sims-preview-doc-aws.s3-eu-west-1.amazonaws.com/iso-iec-27001-2022-en.html",
+            "sha256": "42951f3478a7d533a4e56c4c4dccfa1609ed58395934943968aa216d598485c1",
+            "locator": "Clause 8.3; identifier reference only. Original GRC Lake evidence prompt; no normative text or equivalence approval."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-ISMS-9-1",
+      "title": "Security performance analysis",
+      "risk_domain": "governance",
+      "objective": "Maintain reviewable evidence for the scoped ISMS activity: Security performance analysis.",
+      "evidence_requirement": "A scoped assessor record explicitly bound to this safeguard and asset must identify the assessor, assessment period, population, applicability, evidence references, tests, and exceptions. GRC Lake proposes inspection of: measurement definitions, source data, calculation checks, reporting cadence, and resulting decisions. Validate the procedure against the applicable standard and amendment before approval. An imported pass does not establish semantic completeness, approve the mapping, or certify conformity.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_9_1_assessment"],
+      "satisfies": [
+        {
+          "control_id": "ISO27001-9.1",
+          "framework_id": "iso-27001-isms-2022",
+          "role": "primary",
+          "review_status": "proposed",
+          "control_version": "1.0.0",
+          "mapping_basis": "internal_assessment_proposal",
+          "mapping_source": {
+            "name": "ISO/IEC 27001:2022 management clauses, with Amd 1:2024 context considerations",
+            "url": "https://gso-sims-preview-doc-aws.s3-eu-west-1.amazonaws.com/iso-iec-27001-2022-en.html",
+            "sha256": "42951f3478a7d533a4e56c4c4dccfa1609ed58395934943968aa216d598485c1",
+            "locator": "Clause 9.1; identifier reference only. Original GRC Lake evidence prompt; no normative text or equivalence approval."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-ISMS-9-2-1",
+      "title": "Internal audit execution",
+      "risk_domain": "risk-management",
+      "objective": "Maintain reviewable evidence for the scoped ISMS activity: Internal audit execution.",
+      "evidence_requirement": "A scoped assessor record explicitly bound to this safeguard and asset must identify the assessor, assessment period, population, applicability, evidence references, tests, and exceptions. GRC Lake proposes inspection of: audit scope, objective criteria, independent assignments, findings, and reporting records. Validate the procedure against the applicable standard and amendment before approval. An imported pass does not establish semantic completeness, approve the mapping, or certify conformity.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_9_2_1_assessment"],
+      "satisfies": [
+        {
+          "control_id": "ISO27001-9.2.1",
+          "framework_id": "iso-27001-isms-2022",
+          "role": "primary",
+          "review_status": "proposed",
+          "control_version": "1.0.0",
+          "mapping_basis": "internal_assessment_proposal",
+          "mapping_source": {
+            "name": "ISO/IEC 27001:2022 management clauses, with Amd 1:2024 context considerations",
+            "url": "https://gso-sims-preview-doc-aws.s3-eu-west-1.amazonaws.com/iso-iec-27001-2022-en.html",
+            "sha256": "42951f3478a7d533a4e56c4c4dccfa1609ed58395934943968aa216d598485c1",
+            "locator": "Clause 9.2.1; identifier reference only. Original GRC Lake evidence prompt; no normative text or equivalence approval."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-ISMS-9-2-2",
+      "title": "Internal audit scheduling",
+      "risk_domain": "risk-management",
+      "objective": "Maintain reviewable evidence for the scoped ISMS activity: Internal audit scheduling.",
+      "evidence_requirement": "A scoped assessor record explicitly bound to this safeguard and asset must identify the assessor, assessment period, population, applicability, evidence references, tests, and exceptions. GRC Lake proposes inspection of: audit programme, risk-based priorities, schedules, auditor assignments, and completion tracking. Validate the procedure against the applicable standard and amendment before approval. An imported pass does not establish semantic completeness, approve the mapping, or certify conformity.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_9_2_2_assessment"],
+      "satisfies": [
+        {
+          "control_id": "ISO27001-9.2.2",
+          "framework_id": "iso-27001-isms-2022",
+          "role": "primary",
+          "review_status": "proposed",
+          "control_version": "1.0.0",
+          "mapping_basis": "internal_assessment_proposal",
+          "mapping_source": {
+            "name": "ISO/IEC 27001:2022 management clauses, with Amd 1:2024 context considerations",
+            "url": "https://gso-sims-preview-doc-aws.s3-eu-west-1.amazonaws.com/iso-iec-27001-2022-en.html",
+            "sha256": "42951f3478a7d533a4e56c4c4dccfa1609ed58395934943968aa216d598485c1",
+            "locator": "Clause 9.2.2; identifier reference only. Original GRC Lake evidence prompt; no normative text or equivalence approval."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-ISMS-9-3-1",
+      "title": "Executive review cadence",
+      "risk_domain": "governance",
+      "objective": "Maintain reviewable evidence for the scoped ISMS activity: Executive review cadence.",
+      "evidence_requirement": "A scoped assessor record explicitly bound to this safeguard and asset must identify the assessor, assessment period, population, applicability, evidence references, tests, and exceptions. GRC Lake proposes inspection of: dated management meetings, attendees, review scope, and recorded deliberations. Validate the procedure against the applicable standard and amendment before approval. An imported pass does not establish semantic completeness, approve the mapping, or certify conformity.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_9_3_1_assessment"],
+      "satisfies": [
+        {
+          "control_id": "ISO27001-9.3.1",
+          "framework_id": "iso-27001-isms-2022",
+          "role": "primary",
+          "review_status": "proposed",
+          "control_version": "1.0.0",
+          "mapping_basis": "internal_assessment_proposal",
+          "mapping_source": {
+            "name": "ISO/IEC 27001:2022 management clauses, with Amd 1:2024 context considerations",
+            "url": "https://gso-sims-preview-doc-aws.s3-eu-west-1.amazonaws.com/iso-iec-27001-2022-en.html",
+            "sha256": "42951f3478a7d533a4e56c4c4dccfa1609ed58395934943968aa216d598485c1",
+            "locator": "Clause 9.3.1; identifier reference only. Original GRC Lake evidence prompt; no normative text or equivalence approval."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-ISMS-9-3-2",
+      "title": "Executive review evidence",
+      "risk_domain": "governance",
+      "objective": "Maintain reviewable evidence for the scoped ISMS activity: Executive review evidence.",
+      "evidence_requirement": "A scoped assessor record explicitly bound to this safeguard and asset must identify the assessor, assessment period, population, applicability, evidence references, tests, and exceptions. GRC Lake proposes inspection of: review packs, prior actions, risk updates, performance trends, and stakeholder feedback. Validate the procedure against the applicable standard and amendment before approval. An imported pass does not establish semantic completeness, approve the mapping, or certify conformity.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_9_3_2_assessment"],
+      "satisfies": [
+        {
+          "control_id": "ISO27001-9.3.2",
+          "framework_id": "iso-27001-isms-2022",
+          "role": "primary",
+          "review_status": "proposed",
+          "control_version": "1.0.0",
+          "mapping_basis": "internal_assessment_proposal",
+          "mapping_source": {
+            "name": "ISO/IEC 27001:2022 management clauses, with Amd 1:2024 context considerations",
+            "url": "https://gso-sims-preview-doc-aws.s3-eu-west-1.amazonaws.com/iso-iec-27001-2022-en.html",
+            "sha256": "42951f3478a7d533a4e56c4c4dccfa1609ed58395934943968aa216d598485c1",
+            "locator": "Clause 9.3.2; identifier reference only. Original GRC Lake evidence prompt; no normative text or equivalence approval."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-ISMS-9-3-3",
+      "title": "Executive review decisions",
+      "risk_domain": "governance",
+      "objective": "Maintain reviewable evidence for the scoped ISMS activity: Executive review decisions.",
+      "evidence_requirement": "A scoped assessor record explicitly bound to this safeguard and asset must identify the assessor, assessment period, population, applicability, evidence references, tests, and exceptions. GRC Lake proposes inspection of: approved decisions, action owners, deadlines, resource changes, and follow-up tracking. Validate the procedure against the applicable standard and amendment before approval. An imported pass does not establish semantic completeness, approve the mapping, or certify conformity.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_9_3_3_assessment"],
+      "satisfies": [
+        {
+          "control_id": "ISO27001-9.3.3",
+          "framework_id": "iso-27001-isms-2022",
+          "role": "primary",
+          "review_status": "proposed",
+          "control_version": "1.0.0",
+          "mapping_basis": "internal_assessment_proposal",
+          "mapping_source": {
+            "name": "ISO/IEC 27001:2022 management clauses, with Amd 1:2024 context considerations",
+            "url": "https://gso-sims-preview-doc-aws.s3-eu-west-1.amazonaws.com/iso-iec-27001-2022-en.html",
+            "sha256": "42951f3478a7d533a4e56c4c4dccfa1609ed58395934943968aa216d598485c1",
+            "locator": "Clause 9.3.3; identifier reference only. Original GRC Lake evidence prompt; no normative text or equivalence approval."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-ISMS-10-1",
+      "title": "ISMS improvement tracking",
+      "risk_domain": "governance",
+      "objective": "Maintain reviewable evidence for the scoped ISMS activity: ISMS improvement tracking.",
+      "evidence_requirement": "A scoped assessor record explicitly bound to this safeguard and asset must identify the assessor, assessment period, population, applicability, evidence references, tests, and exceptions. GRC Lake proposes inspection of: improvement backlog, prioritization decisions, implemented changes, and outcome comparisons. Validate the procedure against the applicable standard and amendment before approval. An imported pass does not establish semantic completeness, approve the mapping, or certify conformity.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_10_1_assessment"],
+      "satisfies": [
+        {
+          "control_id": "ISO27001-10.1",
+          "framework_id": "iso-27001-isms-2022",
+          "role": "primary",
+          "review_status": "proposed",
+          "control_version": "1.0.0",
+          "mapping_basis": "internal_assessment_proposal",
+          "mapping_source": {
+            "name": "ISO/IEC 27001:2022 management clauses, with Amd 1:2024 context considerations",
+            "url": "https://gso-sims-preview-doc-aws.s3-eu-west-1.amazonaws.com/iso-iec-27001-2022-en.html",
+            "sha256": "42951f3478a7d533a4e56c4c4dccfa1609ed58395934943968aa216d598485c1",
+            "locator": "Clause 10.1; identifier reference only. Original GRC Lake evidence prompt; no normative text or equivalence approval."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-ISMS-10-2",
+      "title": "Corrective-action follow-through",
+      "risk_domain": "risk-management",
+      "objective": "Maintain reviewable evidence for the scoped ISMS activity: Corrective-action follow-through.",
+      "evidence_requirement": "A scoped assessor record explicitly bound to this safeguard and asset must identify the assessor, assessment period, population, applicability, evidence references, tests, and exceptions. GRC Lake proposes inspection of: issue records, cause analysis, corrective actions, repeat-occurrence checks, and closure evidence. Validate the procedure against the applicable standard and amendment before approval. An imported pass does not establish semantic completeness, approve the mapping, or certify conformity.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment schedule and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_10_2_assessment"],
+      "satisfies": [
+        {
+          "control_id": "ISO27001-10.2",
+          "framework_id": "iso-27001-isms-2022",
+          "role": "primary",
+          "review_status": "proposed",
+          "control_version": "1.0.0",
+          "mapping_basis": "internal_assessment_proposal",
+          "mapping_source": {
+            "name": "ISO/IEC 27001:2022 management clauses, with Amd 1:2024 context considerations",
+            "url": "https://gso-sims-preview-doc-aws.s3-eu-west-1.amazonaws.com/iso-iec-27001-2022-en.html",
+            "sha256": "42951f3478a7d533a4e56c4c4dccfa1609ed58395934943968aa216d598485c1",
+            "locator": "Clause 10.2; identifier reference only. Original GRC Lake evidence prompt; no normative text or equivalence approval."
+          }
+        }
+      ]
     }
   ]
 }
