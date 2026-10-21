@@ -67,6 +67,7 @@ Every guide in `docs/`, grouped by task. New here? Start with the
 | [CCF AI context](CCF_AI_CONTEXT.md)                                   | AI inventory and deployment context                               |
 | [Framework packs](FRAMEWORK_PACKS.md)                                 | Pack contents, manifests, and gaps                                |
 | [Framework coverage](FRAMEWORK_COVERAGE.md)                           | Generated per-framework coverage matrix                           |
+| [ISO 27001 ISMS assessments](ISO27001_ISMS_ASSESSMENTS.md)            | Management-clause contracts, evidence, and review boundaries      |
 | [Mapping review](MAPPING_REVIEW.md)                                   | Reviewing proposed safeguard mappings                             |
 | [SOC 2 and ISO review batches](reviews/SOC2_ISO_REVIEW.md)            | Source-guided proposals, operating contracts and review questions |
 | [NIST assessment expansion](NIST53_ASSESSMENTS.md)                    | Source-native assessment contracts and review boundaries          |
