@@ -70,3 +70,16 @@ Agent-Bom’s `docs/images/vendor/simple-icons/snowflake.svg`. The path is embed
 by `tools/render_readme_header.py` so the header renders without external assets.
 Simple Icons artwork is CC0 1.0; Snowflake retains its trademark. The mark
 identifies the Snowflake integration and implies no endorsement. Asset owner: GRC Lake maintainers. Updated October 18, 2026.
+
+## README cloud provider marks
+
+The README header embeds retained SVG assets from `docs/images/vendor/`.
+AWS uses its website's logo vector; Azure uses Microsoft's published Azure A
+asset; Google Cloud reuses Agent-Bom's native four-color mark. No lettering or
+provider geometry is redrawn. Native Azure gradients and Google Cloud colors
+are retained; AWS's monochrome mark is white on the dark tile. Only the outer
+SVG container changes to an embedded symbol, keeping the header self-contained.
+
+Source URLs, retrieval dates, source locations, owners, and exact file hashes are
+in [the provenance manifest](images/vendor/provenance.json). The marks identify
+the supported providers and do not imply endorsement or certification.

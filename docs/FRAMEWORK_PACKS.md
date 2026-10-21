@@ -66,6 +66,13 @@ listed under `unmapped`: eight sit on narrow Rev 2 crosswalk lanes that tests pi
 to their current members. Evidence types and connector hints are set per family
 (`framework_family_connectors["nist-800-171-rev3"]`, keyed `03.01` … `03.17`).
 
+## ISO 27001 management clauses
+
+The companion `iso-27001-isms` pack adds 30 leaf identifiers for clauses 4–10,
+separate from the 93 Annex A controls. All new CCF assessment contracts are
+proposed. The [ISMS assessment contract](ISO27001_ISMS_ASSESSMENTS.md) explains
+source limitations, climate context, generation, and human review.
+
 ## Sync packs into the catalog
 
 ```bash

@@ -13,6 +13,7 @@ Edge kinds:
 
 from __future__ import annotations
 
+import re
 from collections import Counter
 from collections.abc import Mapping
 from pathlib import Path
@@ -728,6 +729,8 @@ def _add_governance_signal(
 
 def _framework_from_control(control_id: str) -> str | None:
     """Resolve framework_id from control_id prefix conventions."""
+    if re.fullmatch(r"ISO27001-(?:[4-9]|10)\.\d+(?:\.\d+)?", control_id):
+        return "iso-27001-isms-2022"
     prefixes = (
         ("SOC2-", "soc2"),
         ("ISO27001-", "iso-27001-2022"),

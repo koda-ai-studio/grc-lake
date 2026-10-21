@@ -29,6 +29,7 @@ from pathlib import Path
 _FORMAT_PATTERNS: dict[str, str] = {
     "soc2": r"^(CC\d|A\d|C\d|PI\d|P\d)",
     "iso-27001-2022": r"^A\.\d",
+    "iso-27001-isms-2022": r"^(?:[4-9]|10)\.\d+(?:\.\d+)?$",
     "iso-27017-2015": r"^(CLD\.)?\d+(\.\d+)+$",
     "gdpr-2016-679": r"^Art\.\d+$",
     "nist-ai-rmf": r"^(GOVERN|MAP|MEASURE|MANAGE)-\d",

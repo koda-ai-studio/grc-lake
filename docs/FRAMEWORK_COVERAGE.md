@@ -5,10 +5,10 @@ Regenerate with `make coverage-doc`. Mapping coverage measures catalog curation,
 not operating effectiveness, assessment completion, or certification. API fields
 retain `evaluatable` and `attestable` names for compatibility.
 
-Framework packs: 20 with catalogued requirements (2 more registry entries planned or superseded)
-Requirements catalogued: 2252 (all source-cited)
-Mapped (touched by a safeguard): 2166 (96.2%)
-Reviewed safeguard mappings: 1163 (51.6%), of which 381 are source-native self-maps and 782 are crosswalk-reviewed (34.7%); 339 rest only on legacy reviews with no recorded reviewer
+Framework packs: 21 with catalogued requirements (2 more registry entries planned or superseded)
+Requirements catalogued: 2282 (all source-cited)
+Mapped (touched by a safeguard): 2196 (96.2%)
+Reviewed safeguard mappings: 1163 (51.0%), of which 381 are source-native self-maps and 782 are crosswalk-reviewed (34.3%); 339 rest only on legacy reviews with no recorded reviewer
 Asset types modeled: 20
 
 > `Source-cited` = the requirement has an official source link. `Mapped` = a safeguard claims it (reviewed or proposed). `Reviewed` = a human has confirmed the safeguard-to-requirement mapping. `Source-native self-maps` = requirements reviewed only through a safeguard that maps that one requirement and cites the framework's own pinned source (registry SHA-256); review confirms extraction fidelity, not a cross-framework judgement. `Crosswalk reviewed` = requirements with at least one reviewed mapping from a reusable or cross-framework safeguard. The blended total spans uneven frameworks; read coverage per row. `No recorded reviewer` = reviewed requirements whose only reviewed mappings predate decision receipts and name no reviewer (controls/reviews/legacy-unattributed.json). An assessment still needs scoped evidence and tests of operating effectiveness.
@@ -24,6 +24,7 @@ Asset types modeled: 20
 | GDPR - EU General Data Protection Regulation (2016/679) | [EUR-Lex - Regulation (EU) 2016/679](https://eur-lex.europa.eu/eli/reg/2016/679/oj) | implemented_limited_mapping | 20 | 20 | 20 | 2 | 10.0% | 0 | 2 | 10.0% | 2 | never pulled |
 | HIPAA Security Rule (45 CFR Parts 160, 162, 164) | [U.S. HHS HIPAA Security Rule](https://www.hhs.gov/hipaa/for-professionals/security/index.html) | implemented_limited_mapping | 24 | 24 | 19 | 4 | 16.7% | 0 | 4 | 16.7% | 4 | never pulled |
 | ISO/IEC 27001:2022 Information security management systems | [ISO/IEC 27001:2022](https://www.iso.org/standard/27001) | implemented_full_pack | 93 | 93 | 93 | 17 | 18.3% | 0 | 17 | 18.3% | 10 | never pulled |
+| ISO/IEC 27001 ISMS management clauses | [ISO/IEC 27001:2022 and Amd 1:2024](https://www.iso.org/standard/27001) | implemented_limited_mapping | 30 | 30 | 30 | 0 | 0.0% | 0 | 0 | 0.0% | 0 | never pulled |
 | ISO/IEC 27017:2015 Cloud security controls | [ISO/IEC 27017:2015](https://www.iso.org/standard/43757.html) | implemented_full_pack | 47 | 47 | 44 | 18 | 38.3% | 0 | 18 | 38.3% | 18 | never pulled |
 | ISO/IEC 27701:2019 Privacy information management | [ISO/IEC 27701:2019](https://www.iso.org/standard/71670.html) | planned | 0 | 0 | 0 | 0 | 0.0% | 0 | 0 | 0.0% | 0 | never pulled |
 | ISO/IEC 27701:2025 Privacy information management | [ISO/IEC 27701:2025](https://www.iso.org/standard/27701) | implemented_limited_mapping | 10 | 10 | 8 | 0 | 0.0% | 0 | 0 | 0.0% | 0 | fresh |
@@ -44,8 +45,8 @@ Every seeded control declares the asset types it applies to. The pipeline joins 
 
 | Asset type | Applicable controls |
 | --- | ---: |
-| `service` | 1789 |
-| `audit_log` | 763 |
+| `service` | 1819 |
+| `audit_log` | 793 |
 | `cloud_resource` | 650 |
 | `cloud_policy` | 636 |
 | `iam_role` | 405 |

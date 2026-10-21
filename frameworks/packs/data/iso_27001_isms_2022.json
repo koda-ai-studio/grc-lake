@@ -1,0 +1,331 @@
+{
+  "schema": "trustops.framework_pack_manifest.v1",
+  "source": {
+    "name": "ISO/IEC 27001:2022 management clauses, with Amd 1:2024 context considerations",
+    "url": "https://www.iso.org/standard/27001",
+    "copyright": "Identifiers and original internal labels only. The assessment prompts are GRC Lake proposals, not reproduced normative requirements.",
+    "scope": "30 leaf clause identifiers across clauses 4-10; parent headings excluded; Annex A is a separate pack.",
+    "preview_url": "https://gso-sims-preview-doc-aws.s3-eu-west-1.amazonaws.com/iso-iec-27001-2022-en.html",
+    "preview_sha256": "42951f3478a7d533a4e56c4c4dccfa1609ed58395934943968aa216d598485c1",
+    "pulled_at": "2026-10-20",
+    "source_limit": "The public contents preview omits 6.3; NEN's published revision overview confirms it. Public metadata and guidance establish identifiers and context, not a complete normative assessment or mapping approval."
+  },
+  "references": [
+    {
+      "url": "https://www.nen.nl/en/nieuws/wijzigingen-iso-iec-27001-2022-ten-opzichte-van-2013/",
+      "name": "NEN ISO/IEC 27001:2022 revision overview, 17 November 2022",
+      "locator": "Section Plannen van wijzigingen, clause 6.3",
+      "verification": "Retrieved HTML bytes SHA-256 pinned; retain this snapshot for replay.",
+      "sha256": "5c8e26abaab7ed9823528c507a031d28c181b28db70098a250605198cc1a7cce",
+      "pulled_at": "2026-10-20"
+    },
+    {
+      "url": "https://www.iso.org/files/live/sites/isoorg/files/standards/popular_standards/management_systems/ISO-IAF%20Joint%20Communique%20Feb%202024.pdf",
+      "name": "ISO/IAF Joint Communique, 22 February 2024",
+      "locator": "Clauses 4.1 and 4.2 climate considerations",
+      "verification": "Publication text checked; downloadable bytes not pinned."
+    }
+  ],
+  "rows": [
+    {
+      "id": "4.1",
+      "title": "Business context",
+      "risk_domain": "governance",
+      "owner": "security-assurance",
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_4_1_assessment"],
+      "source_reconciled_at": "2026-10-20",
+      "evidence_checks": "context register, business dependencies, review dates, and a documented climate relevance decision"
+    },
+    {
+      "id": "4.2",
+      "title": "Stakeholder obligations",
+      "risk_domain": "governance",
+      "owner": "security-assurance",
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_4_2_assessment"],
+      "source_reconciled_at": "2026-10-20",
+      "evidence_checks": "stakeholder register, obligation owners, tracked commitments, and relevant climate-related expectations"
+    },
+    {
+      "id": "4.3",
+      "title": "ISMS boundaries",
+      "risk_domain": "governance",
+      "owner": "security-assurance",
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_4_3_assessment"],
+      "source_reconciled_at": "2026-10-20",
+      "evidence_checks": "approved scope, included locations, system boundaries, interfaces, and exclusion rationale"
+    },
+    {
+      "id": "4.4",
+      "title": "ISMS process inventory",
+      "risk_domain": "governance",
+      "owner": "security-assurance",
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_4_4_assessment"],
+      "source_reconciled_at": "2026-10-20",
+      "evidence_checks": "process owners, dependency map, operating records, and tracked process improvements"
+    },
+    {
+      "id": "5.1",
+      "title": "Executive sponsorship",
+      "risk_domain": "governance",
+      "owner": "security-assurance",
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_5_1_assessment"],
+      "source_reconciled_at": "2026-10-20",
+      "evidence_checks": "leadership decisions, resource commitments, accountable sponsors, and follow-through records"
+    },
+    {
+      "id": "5.2",
+      "title": "Security policy governance",
+      "risk_domain": "governance",
+      "owner": "security-assurance",
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_5_2_assessment"],
+      "source_reconciled_at": "2026-10-20",
+      "evidence_checks": "approved policy version, distribution records, accountable owner, and review history"
+    },
+    {
+      "id": "5.3",
+      "title": "Accountability assignments",
+      "risk_domain": "governance",
+      "owner": "security-assurance",
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_5_3_assessment"],
+      "source_reconciled_at": "2026-10-20",
+      "evidence_checks": "responsibility matrix, delegated authority, role communication, and unresolved ownership gaps"
+    },
+    {
+      "id": "6.1.1",
+      "title": "ISMS planning decisions",
+      "risk_domain": "risk-management",
+      "owner": "security-assurance",
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_6_1_1_assessment"],
+      "source_reconciled_at": "2026-10-20",
+      "evidence_checks": "planning register, selected actions, accountable owners, and effectiveness review criteria"
+    },
+    {
+      "id": "6.1.2",
+      "title": "Risk assessment method",
+      "risk_domain": "risk-management",
+      "owner": "security-assurance",
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_6_1_2_assessment"],
+      "source_reconciled_at": "2026-10-20",
+      "evidence_checks": "risk methodology, scoring rules, acceptance criteria, asset scope, and repeatability checks"
+    },
+    {
+      "id": "6.1.3",
+      "title": "Risk treatment decisions",
+      "risk_domain": "risk-management",
+      "owner": "security-assurance",
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_6_1_3_assessment"],
+      "source_reconciled_at": "2026-10-20",
+      "evidence_checks": "treatment plans, risk-owner decisions, applicability statement, control selections, and residual risks"
+    },
+    {
+      "id": "6.2",
+      "title": "Security objectives tracking",
+      "risk_domain": "governance",
+      "owner": "security-assurance",
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_6_2_assessment"],
+      "source_reconciled_at": "2026-10-20",
+      "evidence_checks": "objective register, measurable targets, assigned resources, due dates, and progress reviews"
+    },
+    {
+      "id": "6.3",
+      "title": "ISMS change planning",
+      "risk_domain": "change-management",
+      "owner": "security-assurance",
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_6_3_assessment"],
+      "source_reconciled_at": "2026-10-20",
+      "evidence_checks": "planned system changes, impact review, owners, sequencing, and retained implementation decisions"
+    },
+    {
+      "id": "7.1",
+      "title": "ISMS resource allocation",
+      "risk_domain": "governance",
+      "owner": "security-assurance",
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_7_1_assessment"],
+      "source_reconciled_at": "2026-10-20",
+      "evidence_checks": "resource plan, budget decisions, staffing allocations, and unresolved capacity constraints"
+    },
+    {
+      "id": "7.2",
+      "title": "Role capability evidence",
+      "risk_domain": "people-security",
+      "owner": "security-assurance",
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_7_2_assessment"],
+      "source_reconciled_at": "2026-10-20",
+      "evidence_checks": "role requirements, capability assessments, training outcomes, and retained qualification records"
+    },
+    {
+      "id": "7.3",
+      "title": "Workforce policy awareness",
+      "risk_domain": "people-security",
+      "owner": "security-assurance",
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_7_3_assessment"],
+      "source_reconciled_at": "2026-10-20",
+      "evidence_checks": "awareness material, participation evidence, knowledge checks, and follow-up actions"
+    },
+    {
+      "id": "7.4",
+      "title": "ISMS communications",
+      "risk_domain": "governance",
+      "owner": "security-assurance",
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_7_4_assessment"],
+      "source_reconciled_at": "2026-10-20",
+      "evidence_checks": "audience matrix, message owners, channels, schedules, and communication records"
+    },
+    {
+      "id": "7.5.1",
+      "title": "ISMS record inventory",
+      "risk_domain": "governance",
+      "owner": "security-assurance",
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_7_5_1_assessment"],
+      "source_reconciled_at": "2026-10-20",
+      "evidence_checks": "required document register, record owners, coverage gaps, and evidence retention locations"
+    },
+    {
+      "id": "7.5.2",
+      "title": "Document publication workflow",
+      "risk_domain": "governance",
+      "owner": "security-assurance",
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_7_5_2_assessment"],
+      "source_reconciled_at": "2026-10-20",
+      "evidence_checks": "version identifiers, authors, review decisions, approvals, and publication history"
+    },
+    {
+      "id": "7.5.3",
+      "title": "Document custody controls",
+      "risk_domain": "governance",
+      "owner": "security-assurance",
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_7_5_3_assessment"],
+      "source_reconciled_at": "2026-10-20",
+      "evidence_checks": "access restrictions, retention rules, change history, availability checks, and disposal records"
+    },
+    {
+      "id": "8.1",
+      "title": "Operational process execution",
+      "risk_domain": "governance",
+      "owner": "security-assurance",
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_8_1_assessment"],
+      "source_reconciled_at": "2026-10-20",
+      "evidence_checks": "operating criteria, execution records, change exceptions, and outsourced-process oversight"
+    },
+    {
+      "id": "8.2",
+      "title": "Repeated risk assessments",
+      "risk_domain": "risk-management",
+      "owner": "security-assurance",
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_8_2_assessment"],
+      "source_reconciled_at": "2026-10-20",
+      "evidence_checks": "dated reassessments, change triggers, assessed scope, findings, and escalation decisions"
+    },
+    {
+      "id": "8.3",
+      "title": "Treatment implementation evidence",
+      "risk_domain": "risk-management",
+      "owner": "security-assurance",
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_8_3_assessment"],
+      "source_reconciled_at": "2026-10-20",
+      "evidence_checks": "completed treatment actions, implementation evidence, residual gaps, and responsible owners"
+    },
+    {
+      "id": "9.1",
+      "title": "Security performance analysis",
+      "risk_domain": "governance",
+      "owner": "security-assurance",
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_9_1_assessment"],
+      "source_reconciled_at": "2026-10-20",
+      "evidence_checks": "measurement definitions, source data, calculation checks, reporting cadence, and resulting decisions"
+    },
+    {
+      "id": "9.2.1",
+      "title": "Internal audit execution",
+      "risk_domain": "risk-management",
+      "owner": "security-assurance",
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_9_2_1_assessment"],
+      "source_reconciled_at": "2026-10-20",
+      "evidence_checks": "audit scope, objective criteria, independent assignments, findings, and reporting records"
+    },
+    {
+      "id": "9.2.2",
+      "title": "Internal audit scheduling",
+      "risk_domain": "risk-management",
+      "owner": "security-assurance",
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_9_2_2_assessment"],
+      "source_reconciled_at": "2026-10-20",
+      "evidence_checks": "audit programme, risk-based priorities, schedules, auditor assignments, and completion tracking"
+    },
+    {
+      "id": "9.3.1",
+      "title": "Executive review cadence",
+      "risk_domain": "governance",
+      "owner": "security-assurance",
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_9_3_1_assessment"],
+      "source_reconciled_at": "2026-10-20",
+      "evidence_checks": "dated management meetings, attendees, review scope, and recorded deliberations"
+    },
+    {
+      "id": "9.3.2",
+      "title": "Executive review evidence",
+      "risk_domain": "governance",
+      "owner": "security-assurance",
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_9_3_2_assessment"],
+      "source_reconciled_at": "2026-10-20",
+      "evidence_checks": "review packs, prior actions, risk updates, performance trends, and stakeholder feedback"
+    },
+    {
+      "id": "9.3.3",
+      "title": "Executive review decisions",
+      "risk_domain": "governance",
+      "owner": "security-assurance",
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_9_3_3_assessment"],
+      "source_reconciled_at": "2026-10-20",
+      "evidence_checks": "approved decisions, action owners, deadlines, resource changes, and follow-up tracking"
+    },
+    {
+      "id": "10.1",
+      "title": "ISMS improvement tracking",
+      "risk_domain": "governance",
+      "owner": "security-assurance",
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_10_1_assessment"],
+      "source_reconciled_at": "2026-10-20",
+      "evidence_checks": "improvement backlog, prioritization decisions, implemented changes, and outcome comparisons"
+    },
+    {
+      "id": "10.2",
+      "title": "Corrective-action follow-through",
+      "risk_domain": "risk-management",
+      "owner": "security-assurance",
+      "asset_types": ["audit_log", "service"],
+      "required_evidence_types": ["isms_10_2_assessment"],
+      "source_reconciled_at": "2026-10-20",
+      "evidence_checks": "issue records, cause analysis, corrective actions, repeat-occurrence checks, and closure evidence"
+    }
+  ]
+}

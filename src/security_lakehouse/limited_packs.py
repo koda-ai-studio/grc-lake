@@ -214,7 +214,27 @@ def dora_limited_pack_specs() -> Iterable[PackControlSpec]:
     )
 
 
+def iso_27001_isms_specs() -> list[PackControlSpec]:
+    """Original assessment prompts for management clauses, separate from Annex A."""
+    return pack_from_manifest(
+        PACK_DATA_DIR / "iso_27001_isms_2022.json",
+        transform=lambda row: _limited_row_transform(
+            row,
+            framework_id="iso-27001-isms-2022",
+            framework="ISO 27001 ISMS clauses",
+            control_id_prefix="ISO27001",
+            framework_ref=lambda ref: f"ISO/IEC 27001:2022 clause {ref}",
+            source_url="https://www.iso.org/standard/27001",
+            evidence_requirement=lambda ref, title: (
+                f"Scoped assessor evidence for {ref}: {row.extra['evidence_checks']}. "
+                "GRC Lake assessment proposal; validate against the applicable standard before review."
+            ),
+        ),
+    )
+
+
 LIMITED_PACK_BUILDERS = {
+    "iso-27001-isms": iso_27001_isms_specs,
     "gdpr": gdpr_limited_pack_specs,
     "hipaa": hipaa_limited_pack_specs,
     "pci-dss": pci_dss_limited_pack_specs,
@@ -227,6 +247,7 @@ LIMITED_PACK_BUILDERS = {
 
 # Expected minimum seeded counts after limited pack sync (existing + new).
 LIMITED_PACK_MINIMUMS = {
+    "iso-27001-isms-2022": 30,
     "gdpr-2016-679": 20,
     "hipaa-security-rule": 18,
     "pci-dss-v4": 12,
