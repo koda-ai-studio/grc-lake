@@ -211,3 +211,13 @@ def test_control_freshness_without_required_types_or_evidence_is_missing() -> No
 
     assert summary["status"] == "missing"
     assert summary["score"] == 0
+
+
+def test_jira_evidence_breaches_its_four_hour_slo():
+    records = build_evidence_freshness(
+        [_event(source="jira", event_type="jira.workflow.ticket", status="open")],
+        now=datetime(2026, 5, 24, 5, tzinfo=UTC),
+    )
+    assert records[0]["connector_id"] == "jira-ticketing"
+    assert records[0]["freshness_slo_minutes"] == 240
+    assert records[0]["status"] == "stale"
