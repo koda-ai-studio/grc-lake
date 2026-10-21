@@ -280,6 +280,28 @@ def _parser() -> argparse.ArgumentParser:
     ingestion_plan.add_argument("--catalog", default=None, help="optional connector catalog JSON")
     ingestion_plan.add_argument("--json", action="store_true", help="emit machine-readable JSON")
     ingestion_plan.set_defaults(func=_ingestion_plan)
+    agent_bom_import = ingestion_sub.add_parser(
+        "import-agent-bom", help="convert an Agent-Bom AI-BOM 1.0 report into canonical raw JSONL"
+    )
+    agent_bom_import.add_argument("--report", required=True, help="local Agent-Bom JSON report (maximum 32 MiB)")
+    agent_bom_import.add_argument(
+        "--out", required=True, help="new raw JSONL path; existing files are never overwritten"
+    )
+    agent_bom_import.add_argument("--tenant-id", required=True, help="caller-selected tenant scope")
+    agent_bom_import.add_argument(
+        "--asset-id", required=True, help="caller-selected report asset scope, for example repo:example"
+    )
+    agent_bom_import.add_argument(
+        "--control",
+        action="append",
+        default=[],
+        help="explicit GRC control binding for vulnerability observations; repeatable",
+    )
+    agent_bom_import.add_argument(
+        "--synthetic", action="store_true", help="mark all imported observations as synthetic or demo evidence"
+    )
+    agent_bom_import.set_defaults(func=_ingestion_import_agent_bom)
+
     ingestion_normalize = ingestion_sub.add_parser(
         "normalize",
         help="normalize canonical raw evidence into bronze/silver/gold lake zones",
@@ -1351,6 +1373,24 @@ def _ingestion_plan(args: argparse.Namespace) -> int:
     for p in plans:
         print(f"{p.connector_id:28} {p.velocity:18} {p.method:32} {p.freshness_slo:>6}")
         print(f"{'':28} └ {p.cost_note}")
+    return 0
+
+
+def _ingestion_import_agent_bom(args: argparse.Namespace) -> int:
+    from security_lakehouse.agent_bom_import import import_agent_bom_report
+
+    try:
+        receipt = import_agent_bom_report(
+            args.report,
+            args.out,
+            tenant_id=args.tenant_id,
+            asset_id=args.asset_id,
+            controls=args.control,
+            synthetic=args.synthetic,
+        )
+    except (ValueError, OSError) as exc:
+        raise SystemExit(str(exc)) from exc
+    print(json.dumps(receipt, indent=2, sort_keys=True))
     return 0
 
 

@@ -84,6 +84,7 @@ Every guide in `docs/`, grouped by task. New here? Start with the
 | Guide                                                                | Covers                                                   |
 | -------------------------------------------------------------------- | -------------------------------------------------------- |
 | [Connectors](CONNECTORS.md)                                          | Connector catalog, release stages, and access model      |
+| [Agent-Bom report import](AGENT_BOM_IMPORT.md)                       | Offline scan findings, explicit bindings, and provenance |
 | [Adding connectors](ADDING_CONNECTORS.md)                            | Writing a connector adapter                              |
 | [AWS connector architecture](aws-connector-architecture.md)          | How the AWS connector collects                           |
 | [Repository governance connector](REPO_GOVERNANCE_CONNECTOR.md)      | GitHub and GitLab governance and public repository audit |
