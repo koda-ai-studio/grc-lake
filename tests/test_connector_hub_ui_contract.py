@@ -21,8 +21,9 @@ def test_connector_hub_uses_compact_interactive_filters_and_grid() -> None:
     assert "All categories" in page
     # The card header already counts sources; no second "N available" pill.
     assert "{totals.runnable} available" not in page
-    # Unconfigured sources are all "disabled"; that default is not a badge.
-    assert 'connector.state !== "disabled"' in page
+    # Readiness replaces raw state badges and is shared with setup guidance.
+    assert "connectionReadiness(connector)" in page
+    assert "{progress.label}" in page
     assert "{connector.state}</Badge>" not in page
     assert "line-clamp-2" in page
     assert "if (!isRunnableConnector(c)) return false;" in page

@@ -1,5 +1,7 @@
 "use client";
 
+import { connectionReadiness } from "@/lib/connection-readiness";
+
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
@@ -308,35 +310,8 @@ function LatestSyncProof({
   compact?: boolean;
 }) {
   const sync = connector.last_sync;
-  const enabled = connector.state === "enabled";
-  const ok = sync?.result === "ok";
   const failed = sync?.result === "error";
-  const evidenceCount = sync?.evidence_count ?? 0;
-  const tone = ok
-    ? "ready"
-    : failed
-      ? "critical"
-      : enabled
-        ? "attention"
-        : "default";
-  const title = !runnable
-    ? "Sync not available yet"
-    : ok
-      ? "Evidence sync complete"
-      : failed
-        ? "Latest sync failed"
-        : enabled
-          ? "Ready to sync evidence"
-          : "Enable before syncing";
-  const detail = !runnable
-    ? "This connector is an access contract only. Probes validate configuration; a collection adapter is required before evidence sync."
-    : ok
-      ? `${evidenceCount} raw evidence row(s) landed. Eval schedule or dashboard control eval refreshes posture.`
-      : failed
-        ? (sync?.error ?? "Review the connector run log for the error.")
-        : enabled
-          ? "Run sync to land evidence, refresh posture, and update trust views."
-          : "Test access, enable the connector, then run the first sync.";
+  const { tone, label: title, detail } = connectionReadiness(connector);
 
   return (
     <section
