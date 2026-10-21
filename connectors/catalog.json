@@ -387,7 +387,7 @@
         "iam.roles.list",
         "cloudasset.assets.listResource"
       ],
-      "evidence_types": ["cloud", "iam", "posture"],
+      "evidence_types": ["cloud", "iam", "posture", "non_human_identity"],
       "default_route": "dual",
       "freshness_slo_minutes": 240,
       "is_implemented": true,
@@ -396,7 +396,7 @@
       "native_connector": false,
       "data_shape": "current_state",
       "vendor": "Google Cloud",
-      "description": "Project IAM, roles, and Cloud Asset inventory.",
+      "description": "Project IAM, roles, and Cloud Asset inventory, with optional service-account metadata.",
       "setup_hint": "Read-only service account or workload identity federation."
     },
     {

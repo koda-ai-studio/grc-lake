@@ -41,6 +41,7 @@ const PRESETS: Record<string, IntegrationPreset> = {
     advancedDetails: [
       "Apply the same reader module across projects from Terraform or your platform workspace.",
       "GRC Lake probes the configured project before sync lands IAM and asset posture evidence.",
+      "Optional service-account inventory also needs iam.serviceAccounts.list and the IAM API. Project-role bindings retain their conditions; effective permissions and last use are not collected.",
     ],
   },
   "azure-posture": {

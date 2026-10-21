@@ -611,6 +611,37 @@ adapted to GRC Lake's evidence contract. The products remain independent;
 GRC Lake does not install or invoke Agent-Bom. Fixture tests demonstrate this
 path locally; they do not establish credentialed provider qualification.
 
+## GCP: optional service-account inventory
+
+On an existing GCP connection, open **Config** and enable **Collect service
+accounts** under **Schedule and scope**, then test and save the changed options.
+The option is off by default; user-facing posture collection keeps its existing
+permission requirements. The equivalent option is
+`{"include_non_human_identities":true}` in the CLI/API `options` object.
+
+Install `grc-lake[cloud]` for live collection; it includes `google-cloud-iam`.
+The additional read uses the IAM API (`iam.googleapis.com`) and requires
+[`iam.serviceAccounts.list`](https://docs.cloud.google.com/iam/docs/reference/rest/v1/projects.serviceAccounts/list)
+on the configured project. The existing GCP probe verifies project IAM-policy
+access; it does not establish access to this optional listing. Inspect the first
+sync and its coverage gaps. GRC uses the same delegated service-account
+credential as the rest of the connector, with bounded pagination.
+
+The inventory projection and member-to-role joins are adapted from
+[Agent-Bom's GCP inventory](https://github.com/koda-ai-studio/agent-bom/blob/95bc4a9c8e50d4bfbce59b91db8f68429cfbf9e5/src/agent_bom/cloud/gcp_inv/iam.py).
+Records retain the provider's unique ID (falling back to email), display name,
+email, and observed enabled/disabled state. Project-role bindings retain their
+conditions. They are not effective-permission decisions, and do not include
+inherited policies. An unavailable project policy is explicitly unknown.
+Keys, last-use telemetry, and effective permissions are not collected.
+
+Denied, unavailable, or malformed inventory produces a coverage gap while
+existing readable posture evidence is retained. The extra records are
+observations without automatic control bindings or passing-control claims.
+The fixture `tests/fixtures/gcp/service_accounts.json` exercises this path
+offline; it does not establish live-provider qualification. Agent-Bom remains
+an independent product and is not installed or invoked by GRC Lake.
+
 ## Microsoft Entra identity metadata (preview)
 
 `entra-identity` reads service principals of type `Application` or
