@@ -1,9 +1,9 @@
 """Transport-agnostic legacy ``/api/*`` surface (UI-compatible, unversioned).
 
-The Next.js console talks to these routes. Extracting the dispatch here — the
-same pattern as :mod:`security_lakehouse.api_v1` — lets both the zero-dependency
-stdlib server and the optional FastAPI server serve the *identical* surface, so
-the console works the same in local mode and authenticated server mode.
+These compatibility routes preserve their unversioned response shapes across
+the stdlib and authenticated FastAPI servers. Shared mutations delegate to
+:mod:`security_lakehouse.api_v1`; collection reads keep the historical
+unpaginated contract.
 
 Handlers return ``(HTTPStatus, body)``. Transports apply read redaction and
 authenticate callers; this module centralizes route dispatch and mutation
@@ -12,6 +12,7 @@ scope requirements so local mode and server mode cannot drift.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from http import HTTPStatus
 from pathlib import Path
 from typing import Any
@@ -42,20 +43,13 @@ from security_lakehouse.mappings import (
 )
 from security_lakehouse.readiness import build_readiness_view
 from security_lakehouse.scheduler import tick as scheduler_tick
-from security_lakehouse.tracking import ALLOWED_STATES, append_event, latest_state, list_events
-from security_lakehouse.trust_share import create_share, list_shares, revoke_share
-from security_lakehouse.verification import NO_SILVER_RECORD, verify_event
+from security_lakehouse.tracking import latest_state, list_events
+from security_lakehouse.trust_share import list_shares
 from security_lakehouse.workflows import (
     action_catalog,
-    approve_workflow_run,
     get_workflow,
     get_workflow_run,
     list_workflows,
-    reject_workflow_run,
-    retry_workflow_run,
-    run_action,
-    run_workflow,
-    save_workflow,
 )
 from security_lakehouse.workflows import (
     list_runs as list_workflow_runs,
@@ -155,42 +149,34 @@ def handle_get(
         return HTTPStatus.OK, {"count": len(rows), "evidence": rows}
     if path == "/api/assets":
         return HTTPStatus.OK, {"assets": read_jsonl(lake / "gold" / "asset_risk.jsonl", base_dir=lake)}
-    if path == "/api/snapshots":
-        snapshots = api_v1.list_snapshots(lake)
-        return HTTPStatus.OK, {"count": len(snapshots), "snapshots": snapshots}
-    if path == "/api/connectors":
-        view = build_catalog_view(lake)
-        return HTTPStatus.OK, {"count": len(view), "connectors": view}
-    if path == "/api/frameworks":
-        view = build_framework_view()
-        return HTTPStatus.OK, {"count": len(view), "frameworks": view}
     framework_detail = _suffix_match(path, "/api/frameworks/", "/detail")
     if framework_detail is not None:
         detail = build_framework_detail(framework_detail, lake)
         if detail is None:
             return HTTPStatus.NOT_FOUND, {"error": "not_found"}
         return HTTPStatus.OK, detail
-    if path == "/api/graph":
-        return HTTPStatus.OK, build_compliance_graph(lake)
-    if path == "/api/repo-graph":
-        return HTTPStatus.OK, build_repository_graph(lake)
-    if path == "/api/crosswalk":
-        return HTTPStatus.OK, build_framework_crosswalk()
-    if path == "/api/crosswalk/reviewed":
-        return HTTPStatus.OK, build_reviewed_crosswalk()
-    if path == "/api/mappings/equivalence":
-        return HTTPStatus.OK, build_framework_equivalence()
-    if path == "/api/mappings":
-        mappings = load_control_article_mappings()
-        return HTTPStatus.OK, {"count": len(mappings), "mappings": list(mappings.values())}
-    if path == "/api/readiness":
-        view = build_readiness_view()
-        return HTTPStatus.OK, {"count": len(view), "frameworks": view}
-    if path == "/api/workflows":
-        rows = list_workflows(lake)
-        return HTTPStatus.OK, {"count": len(rows), "workflows": rows}
-    if path == "/api/workflows/actions":
-        return HTTPStatus.OK, {"actions": action_catalog()}
+    reads: dict[str, tuple[str | None, bool, Callable[[Path], Any]]] = {
+        "/api/snapshots": ("snapshots", True, api_v1.list_snapshots),
+        "/api/connectors": ("connectors", True, build_catalog_view),
+        "/api/frameworks": ("frameworks", True, lambda _lake: build_framework_view()),
+        "/api/graph": (None, False, build_compliance_graph),
+        "/api/repo-graph": (None, False, build_repository_graph),
+        "/api/crosswalk": (None, False, lambda _lake: build_framework_crosswalk()),
+        "/api/crosswalk/reviewed": (None, False, lambda _lake: build_reviewed_crosswalk()),
+        "/api/mappings/equivalence": (None, False, lambda _lake: build_framework_equivalence()),
+        "/api/mappings": ("mappings", True, lambda _lake: list(load_control_article_mappings().values())),
+        "/api/readiness": ("frameworks", True, lambda _lake: build_readiness_view()),
+        "/api/workflows": ("workflows", True, list_workflows),
+        "/api/workflows/actions": ("actions", False, lambda _lake: action_catalog()),
+    }
+    simple = reads.get(path)
+    if simple is not None:
+        key, counted, loader = simple
+        data = loader(lake)
+        response = {key: data} if key else data
+        if counted:
+            response["count"] = len(data)
+        return HTTPStatus.OK, response
     workflow_run_id = _workflow_run_id_match(path)
     if workflow_run_id is not None:
         run = get_workflow_run(lake, workflow_run_id)
@@ -259,31 +245,6 @@ def handle_post(
         reason = str(body.get("reason") or "api_request")
         snapshot_path = write_assessment_snapshot(lake, reason=reason, on_snapshot_written=on_snapshot_written)
         return HTTPStatus.CREATED, {"snapshot_path": str(snapshot_path), "reason": reason}
-    triage = _suffix_match(path, "/api/violations/", "/triage")
-    if triage is not None:
-        state = str(body.get("state") or "").lower()
-        if state not in ALLOWED_STATES:
-            return HTTPStatus.BAD_REQUEST, {
-                "error": "bad_request",
-                "reason": f"state must be one of {sorted(ALLOWED_STATES)}",
-            }
-        record = append_event(
-            lake,
-            violation_id=triage,
-            actor=str(body.get("actor") or "anonymous"),
-            state=state,
-            assignee=body.get("assignee"),
-            due_at=body.get("due_at"),
-            note=body.get("note"),
-            idempotency_key=body.get("idempotency_key"),
-        )
-        return HTTPStatus.CREATED, {"event": record}
-    verify = _suffix_match(path, "/api/evidence/", "/verify")
-    if verify is not None:
-        result = verify_event(lake, verify)
-        if result["reason"] == NO_SILVER_RECORD:
-            return HTTPStatus.NOT_FOUND, {"error": "not_found", "reason": "unknown evidence event"}
-        return HTTPStatus.OK, result
     configure = _suffix_match(path, "/api/connectors/", "/configure")
     if configure is not None:
         state = str(body.get("state") or "enabled").lower()
@@ -339,91 +300,45 @@ def handle_post(
             options=body.get("options") if "options" in body else None,
         )
         return HTTPStatus.CREATED, {"run": record}
-    if path == "/api/workflows":
-        try:
-            record = save_workflow(
-                lake,
-                workflow_id=body.get("workflow_id"),
-                name=str(body.get("name") or ""),
-                description=str(body.get("description") or ""),
-                nodes=body.get("nodes") or [],
-                edges=body.get("edges") or [],
-                actor=str(body.get("actor") or "console"),
-            )
-        except ValueError:
-            return HTTPStatus.BAD_REQUEST, {"error": "bad_request", "reason": "invalid request"}
-        return HTTPStatus.CREATED, {"workflow": record}
     if path == "/api/scheduler/tick":
         results = scheduler_tick(lake)
         return HTTPStatus.CREATED, {"fired": len(results), "results": results}
-    if path == "/api/workflows/actions/run":
-        try:
-            output = run_action(lake, node_type=str(body.get("node_type") or ""), params=body.get("params") or {})
-        except ValueError:
-            return HTTPStatus.BAD_REQUEST, {"error": "bad_request", "reason": "invalid request"}
-        return HTTPStatus.CREATED, {"output": output}
-    workflow_run = _suffix_match(path, "/api/workflows/", "/run")
-    if workflow_run is not None and workflow_run != "actions":
-        try:
-            run = run_workflow(
-                lake,
-                workflow_id=workflow_run,
-                actor=str(body.get("actor") or "console"),
-                dry_run=bool(body.get("dry_run")),
-            )
-        except ValueError:
-            return HTTPStatus.BAD_REQUEST, {"error": "bad_request", "reason": "invalid request"}
-        return HTTPStatus.CREATED, {"run": run}
-    workflow_retry = _suffix_match(path, "/api/workflows/runs/", "/retry")
-    if workflow_retry is not None:
-        try:
-            run = retry_workflow_run(lake, run_id=workflow_retry, actor=str(body.get("actor") or "console"))
-        except ValueError:
-            return HTTPStatus.BAD_REQUEST, {"error": "bad_request", "reason": "invalid request"}
-        return HTTPStatus.CREATED, {"run": run}
-    workflow_approve = _suffix_match(path, "/api/workflows/runs/", "/approve")
-    if workflow_approve is not None:
-        try:
-            run = approve_workflow_run(
-                lake,
-                run_id=workflow_approve,
-                actor=str(body.get("actor") or "console"),
-                note=str(body.get("note") or ""),
-            )
-        except ValueError:
-            return HTTPStatus.BAD_REQUEST, {"error": "bad_request", "reason": "invalid request"}
-        return HTTPStatus.CREATED, {"run": run}
-    workflow_reject = _suffix_match(path, "/api/workflows/runs/", "/reject")
-    if workflow_reject is not None:
-        try:
-            run = reject_workflow_run(
-                lake,
-                run_id=workflow_reject,
-                actor=str(body.get("actor") or "console"),
-                note=str(body.get("note") or ""),
-            )
-        except ValueError:
-            return HTTPStatus.BAD_REQUEST, {"error": "bad_request", "reason": "invalid request"}
-        return HTTPStatus.CREATED, {"run": run}
-    if path == "/api/trust-shares":
-        try:
-            share = create_share(
-                lake,
-                role=str(body.get("role") or "auditor"),
-                scope=str(body.get("scope") or "posture_full"),
-                expires_in_hours=int(body.get("expires_in_hours") or 24),
-                created_by=str(body.get("created_by") or "console"),
-                framework_id=body.get("framework_id"),
-                sensitivity_ceiling=str(body.get("sensitivity_ceiling") or "public"),
-                idempotency_key=body.get("idempotency_key"),
-            )
-        except ValueError:
-            return HTTPStatus.BAD_REQUEST, {"error": "bad_request", "reason": "invalid request"}
-        return HTTPStatus.CREATED, {"share": share}
-    revoke = _suffix_match(path, "/api/trust-shares/", "/revoke")
-    if revoke is not None:
-        revoked = revoke_share(lake, revoke, additional_lakes=share_lakes)
-        if revoked is None:
-            return HTTPStatus.NOT_FOUND, {"error": "not_found"}
-        return HTTPStatus.OK, {"share": revoked}
-    return HTTPStatus.NOT_FOUND, {"error": "not_found"}
+    key = _post_response_key(path)
+    if key is False:
+        return HTTPStatus.NOT_FOUND, {"error": "not_found"}
+    status, response = api_v1.handle_post("/api/v1/" + path[len("/api/") :], body, lake, share_lakes=share_lakes)
+    if status >= HTTPStatus.BAD_REQUEST:
+        if status == HTTPStatus.NOT_FOUND:
+            not_found = {"error": "not_found"}
+            if key is None:
+                not_found["reason"] = "unknown evidence event"
+            return status, not_found
+        # Legacy approvals predate the v1 conflict response. Preserve their 400
+        # and generic error while retaining v1's claim/version checks.
+        detail = response["errors"][0]["detail"] if key == "event" else "invalid request"
+        return HTTPStatus.BAD_REQUEST, {"error": "bad_request", "reason": detail}
+    data = response["data"]
+    return status, {key: data} if isinstance(key, str) else data
+
+
+def _post_response_key(path: str) -> str | bool | None:
+    """Whitelist legacy mutations and their historical success-body keys."""
+    fixed = {
+        "/api/workflows": "workflow",
+        "/api/workflows/actions/run": "output",
+        "/api/trust-shares": "share",
+    }
+    if path in fixed:
+        return fixed[path]
+    for prefix, suffix, key in (
+        ("/api/violations/", "/triage", "event"),
+        ("/api/evidence/", "/verify", None),
+        ("/api/workflows/", "/run", "run"),
+        ("/api/workflows/runs/", "/retry", "run"),
+        ("/api/workflows/runs/", "/approve", "run"),
+        ("/api/workflows/runs/", "/reject", "run"),
+        ("/api/trust-shares/", "/revoke", "share"),
+    ):
+        if _suffix_match(path, prefix, suffix) is not None:
+            return key
+    return False

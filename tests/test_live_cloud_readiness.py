@@ -548,5 +548,6 @@ def test_console_run_log_shows_partial_sync_coverage_gaps() -> None:
     )
     assert "function RunCoverageGaps" in drawer
     assert "coverage_gaps" in drawer
-    # Rendered in cloud setup, connected cloud, and shared provider result logs.
-    assert drawer.count("<RunCoverageGaps run=") == 3
+    # Every history uses the shared row; the gap renderer remains in that row.
+    row = drawer[drawer.index("function ConnectorRunRow(") : drawer.index("function SnowflakeSetupHint(")]
+    assert "<RunCoverageGaps run={run} />" in row

@@ -185,3 +185,33 @@ def test_legacy_post_enforces_route_specific_scopes(tmp_path: Path) -> None:
         client.post("/api/snapshots", json={"reason": "audit"}, headers=_bearer(tokens["security_admin"])).status_code
         == HTTPStatus.CREATED
     )
+
+
+@pytest.mark.parametrize(
+    "path", ["/api/ingestion/eval", "/api/repositories/public-audit", "/api/workflows/runs/x/reconcile"]
+)
+def test_legacy_adapter_does_not_expose_additional_v1_mutations(tmp_path: Path, path: str) -> None:
+    status, body = api_legacy.handle_post(path, {}, tmp_path)
+    assert status == HTTPStatus.NOT_FOUND
+    assert body == {"error": "not_found"}
+
+
+def test_legacy_collections_keep_all_rows_and_their_original_filters(tmp_path: Path) -> None:
+    import json
+
+    gold = tmp_path / "gold"
+    gold.mkdir()
+    rows = [{"control_id": "A", "result": "pass", "event_id": str(i)} for i in range(120)]
+    rows.append({"control_id": "B", "result": "fail", "event_id": "other"})
+    (gold / "control_tests.jsonl").write_text("".join(json.dumps(row) + "\n" for row in rows))
+    status, body = api_legacy.handle_get(
+        "/api/control-tests", {"control_id": ["A"], "result": ["pass"], "limit": ["1"]}, tmp_path
+    )
+    assert status == HTTPStatus.OK
+    assert body == {"count": 120, "control_tests": rows[:-1]}
+
+
+def test_legacy_approval_errors_keep_historical_status_and_do_not_leak_details(tmp_path: Path) -> None:
+    status, body = api_legacy.handle_post("/api/workflows/runs/missing/approve", {}, tmp_path)
+    assert status == HTTPStatus.BAD_REQUEST
+    assert body == {"error": "bad_request", "reason": "invalid request"}

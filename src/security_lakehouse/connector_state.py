@@ -1288,7 +1288,7 @@ def run_probe(
     """
     catalog = load_connector_catalog()
     if connector_id not in catalog:
-        record = append_run_event(
+        return append_run_event(
             lake_dir,
             connector_id=connector_id,
             kind="probe",
@@ -1296,12 +1296,33 @@ def run_probe(
             actor=actor,
             error=f"unknown connector_id {connector_id!r}",
         )
-        return record
-    base = catalog[connector_id]
     has_staged_payload = credentials is not None or options is not None
     staged_access_fingerprint = (
         _access_fingerprint(credentials, options, lake_dir=lake_dir) if has_staged_payload else None
     )
+
+    def record(
+        result: str,
+        *,
+        error: str | None = None,
+        metadata: dict[str, Any] | None = None,
+        evidence_count: int | None = None,
+        duration_ms: int | None = None,
+        access_fingerprint: str | None = staged_access_fingerprint,
+    ) -> dict[str, Any]:
+        return append_run_event(
+            lake_dir,
+            connector_id=connector_id,
+            kind="probe",
+            result=result,
+            actor=actor,
+            error=error,
+            metadata=metadata,
+            evidence_count=evidence_count,
+            duration_ms=duration_ms,
+            access_fingerprint=access_fingerprint,
+        )
+
     if has_staged_payload:
         error = configure_payload_error(
             connector_id=connector_id,
@@ -1310,351 +1331,80 @@ def run_probe(
             options=options or {},
         )
         if error:
-            return append_run_event(
-                lake_dir,
-                connector_id=connector_id,
-                kind="probe",
-                result="error",
-                actor=actor,
-                error=error,
-                access_fingerprint=staged_access_fingerprint,
-            )
+            return record("error", error=error)
+        effective_credentials, effective_options = credentials or {}, options or {}
     else:
         config = latest_config(lake_dir, connector_id)
         if not config or config.get("state") != "enabled":
-            record = append_run_event(
-                lake_dir,
-                connector_id=connector_id,
-                kind="probe",
-                result="skipped",
-                actor=actor,
-                error="connector is not enabled — configure credentials first",
-            )
-            return record
-    permissions = base.get("minimum_permissions") or []
-    if not permissions:
-        record = append_run_event(
-            lake_dir,
-            connector_id=connector_id,
-            kind="probe",
-            result="error",
-            actor=actor,
-            error="connector catalog is missing minimum_permissions",
-        )
-        return record
+            return record("skipped", error="connector is not enabled — configure credentials first")
+        effective_credentials = dict(config.get("credentials") or {})
+        effective_options = dict(config.get("options") or {})
+    if not catalog[connector_id].get("minimum_permissions"):
+        return record("error", error="connector catalog is missing minimum_permissions", access_fingerprint=None)
     if not has_adapter(connector_id):
-        return append_run_event(
-            lake_dir,
-            connector_id=connector_id,
-            kind="probe",
-            result="skipped",
-            actor=actor,
+        return record(
+            "skipped",
             error="access contract validated; no collection adapter is implemented for this connector yet",
-            access_fingerprint=staged_access_fingerprint,
             metadata={"probe_mode": "contract_only"},
         )
+
+    # Build this dispatch from current functions so provider overrides and tests
+    # use the same entry points. Counts and scope errors remain provider-specific.
+    export_probes = {
+        CLICKHOUSE_CONNECTOR_ID: (probe_clickhouse_access, "row_count", "table", "normalized_events", "ClickHouse"),
+        S3_CONNECTOR_ID: (probe_s3_access, "object_count", "bucket", "bucket", "S3"),
+        SIEM_CONNECTOR_ID: (probe_siem_access, "alert_count", "index", "alerts", "SIEM"),
+        RUNTIME_GATEWAY_CONNECTOR_ID: (
+            probe_runtime_gateway_access,
+            "event_count",
+            "stream",
+            "runtime-events",
+            "Runtime gateway",
+        ),
+    }
+    provider_probe: Callable[..., dict[str, Any]]
+    extra: dict[str, Any] = {}
     if connector_id == AWS_CONNECTOR_ID:
-        if has_staged_payload:
-            effective_credentials = credentials or {}
-            effective_options = options or {}
-        else:
-            config = latest_config(lake_dir, connector_id) or {}
-            effective_credentials = dict(config.get("credentials") or {})
-            effective_options = dict(config.get("options") or {})
-        try:
-            probe = probe_aws_access(
-                credentials=effective_credentials,
-                options=effective_options,
-                allow_ambient_credentials=allow_ambient_credentials,
-            )
-        except Exception as exc:  # noqa: BLE001 - cloud SDK failures are persisted safely
-            return append_run_event(
-                lake_dir,
-                connector_id=connector_id,
-                kind="probe",
-                result="error",
-                actor=actor,
-                error=_safe_run_error(exc, include_provider_message=True),
-                access_fingerprint=staged_access_fingerprint,
-            )
-        return append_run_event(
-            lake_dir,
-            connector_id=connector_id,
-            kind="probe",
-            result="ok",
-            actor=actor,
-            duration_ms=12,
-            evidence_count=int(probe.get("principal_count") or 0),
-            access_fingerprint=staged_access_fingerprint,
-            metadata={**probe, "probe_mode": "live"},
-        )
-    if connector_id in LIVE_CLOUD_PROBES:
-        if has_staged_payload:
-            effective_credentials = credentials or {}
-            effective_options = options or {}
-        else:
-            config = latest_config(lake_dir, connector_id) or {}
-            effective_credentials = dict(config.get("credentials") or {})
-            effective_options = dict(config.get("options") or {})
-        try:
-            probe = LIVE_CLOUD_PROBES[connector_id](credentials=effective_credentials, options=effective_options)
-        except Exception as exc:  # noqa: BLE001 - only operator errors surface their message
-            return append_run_event(
-                lake_dir,
-                connector_id=connector_id,
-                kind="probe",
-                result="error",
-                actor=actor,
-                error=_safe_run_error(exc),
-                access_fingerprint=staged_access_fingerprint,
-            )
-        return append_run_event(
-            lake_dir,
-            connector_id=connector_id,
-            kind="probe",
-            result="ok",
-            actor=actor,
-            duration_ms=12,
-            access_fingerprint=staged_access_fingerprint,
-            metadata={**probe, "probe_mode": "live"},
-        )
-    if connector_id == CLICKHOUSE_CONNECTOR_ID:
-        if has_staged_payload:
-            effective_credentials = credentials or {}
-            effective_options = options or {}
-        else:
-            config = latest_config(lake_dir, connector_id) or {}
-            effective_credentials = dict(config.get("credentials") or {})
-            effective_options = dict(config.get("options") or {})
-        try:
-            probe = probe_clickhouse_access(
-                credentials=effective_credentials,
-                options=effective_options,
-            )
-        except ValueError as exc:
-            return append_run_event(
-                lake_dir,
-                connector_id=connector_id,
-                kind="probe",
-                result="error",
-                actor=actor,
-                error=_safe_run_error(exc),
-                access_fingerprint=staged_access_fingerprint,
-            )
-        if not probe.get("ok"):
-            return append_run_event(
-                lake_dir,
-                connector_id=connector_id,
-                kind="probe",
-                result="error",
-                actor=actor,
-                error=f"ClickHouse read scope is not ready: {probe.get('table') or 'normalized_events'}",
-                access_fingerprint=staged_access_fingerprint,
-                metadata={**probe, "probe_mode": "live"},
-            )
-        return append_run_event(
-            lake_dir,
-            connector_id=connector_id,
-            kind="probe",
-            result="ok",
-            actor=actor,
-            duration_ms=12,
-            evidence_count=int(probe.get("row_count") or 0),
-            access_fingerprint=staged_access_fingerprint,
-            metadata={**probe, "probe_mode": "live"},
-        )
-    if connector_id == S3_CONNECTOR_ID:
-        if has_staged_payload:
-            effective_credentials = credentials or {}
-            effective_options = options or {}
-        else:
-            config = latest_config(lake_dir, connector_id) or {}
-            effective_credentials = dict(config.get("credentials") or {})
-            effective_options = dict(config.get("options") or {})
-        try:
-            probe = probe_s3_access(
-                credentials=effective_credentials,
-                options=effective_options,
-            )
-        except ValueError as exc:
-            return append_run_event(
-                lake_dir,
-                connector_id=connector_id,
-                kind="probe",
-                result="error",
-                actor=actor,
-                error=_safe_run_error(exc),
-                access_fingerprint=staged_access_fingerprint,
-            )
-        if not probe.get("ok"):
-            return append_run_event(
-                lake_dir,
-                connector_id=connector_id,
-                kind="probe",
-                result="error",
-                actor=actor,
-                error=f"S3 read scope is not ready: {probe.get('bucket') or 'bucket'}/{probe.get('prefix') or ''}",
-                access_fingerprint=staged_access_fingerprint,
-                metadata={**probe, "probe_mode": "live"},
-            )
-        return append_run_event(
-            lake_dir,
-            connector_id=connector_id,
-            kind="probe",
-            result="ok",
-            actor=actor,
-            duration_ms=12,
-            evidence_count=int(probe.get("object_count") or 0),
-            access_fingerprint=staged_access_fingerprint,
-            metadata={**probe, "probe_mode": "live"},
-        )
-    if connector_id == SIEM_CONNECTOR_ID:
-        if has_staged_payload:
-            effective_credentials = credentials or {}
-            effective_options = options or {}
-        else:
-            config = latest_config(lake_dir, connector_id) or {}
-            effective_credentials = dict(config.get("credentials") or {})
-            effective_options = dict(config.get("options") or {})
-        try:
-            probe = probe_siem_access(
-                credentials=effective_credentials,
-                options=effective_options,
-            )
-        except ValueError as exc:
-            return append_run_event(
-                lake_dir,
-                connector_id=connector_id,
-                kind="probe",
-                result="error",
-                actor=actor,
-                error=_safe_run_error(exc),
-                access_fingerprint=staged_access_fingerprint,
-            )
-        if not probe.get("ok"):
-            return append_run_event(
-                lake_dir,
-                connector_id=connector_id,
-                kind="probe",
-                result="error",
-                actor=actor,
-                error=f"SIEM read scope is not ready: {probe.get('index') or 'alerts'}",
-                access_fingerprint=staged_access_fingerprint,
-                metadata={**probe, "probe_mode": "live"},
-            )
-        return append_run_event(
-            lake_dir,
-            connector_id=connector_id,
-            kind="probe",
-            result="ok",
-            actor=actor,
-            duration_ms=12,
-            evidence_count=int(probe.get("alert_count") or 0),
-            access_fingerprint=staged_access_fingerprint,
-            metadata={**probe, "probe_mode": "live"},
-        )
-    if connector_id == RUNTIME_GATEWAY_CONNECTOR_ID:
-        if has_staged_payload:
-            effective_credentials = credentials or {}
-            effective_options = options or {}
-        else:
-            config = latest_config(lake_dir, connector_id) or {}
-            effective_credentials = dict(config.get("credentials") or {})
-            effective_options = dict(config.get("options") or {})
-        try:
-            probe = probe_runtime_gateway_access(
-                credentials=effective_credentials,
-                options=effective_options,
-            )
-        except ValueError as exc:
-            return append_run_event(
-                lake_dir,
-                connector_id=connector_id,
-                kind="probe",
-                result="error",
-                actor=actor,
-                error=_safe_run_error(exc),
-                access_fingerprint=staged_access_fingerprint,
-            )
-        if not probe.get("ok"):
-            return append_run_event(
-                lake_dir,
-                connector_id=connector_id,
-                kind="probe",
-                result="error",
-                actor=actor,
-                error=f"Runtime gateway read scope is not ready: {probe.get('stream') or 'runtime-events'}",
-                access_fingerprint=staged_access_fingerprint,
-                metadata={**probe, "probe_mode": "live"},
-            )
-        return append_run_event(
-            lake_dir,
-            connector_id=connector_id,
-            kind="probe",
-            result="ok",
-            actor=actor,
-            duration_ms=12,
-            evidence_count=int(probe.get("event_count") or 0),
-            access_fingerprint=staged_access_fingerprint,
-            metadata={**probe, "probe_mode": "live"},
-        )
-    if connector_id == SNOWFLAKE_CONNECTOR_ID:
-        if has_staged_payload:
-            effective_credentials = credentials or {}
-            effective_options = options or {}
-        else:
-            config = latest_config(lake_dir, connector_id) or {}
-            effective_credentials = dict(config.get("credentials") or {})
-            effective_options = dict(config.get("options") or {})
-        try:
-            probe = probe_snowflake_access(credentials=effective_credentials, options=effective_options)
-        except ValueError as exc:
-            return append_run_event(
-                lake_dir,
-                connector_id=connector_id,
-                kind="probe",
-                result="error",
-                actor=actor,
-                error=_safe_run_error(exc),
-                access_fingerprint=staged_access_fingerprint,
-            )
+        provider_probe = probe_aws_access
+        extra["allow_ambient_credentials"] = allow_ambient_credentials
+    elif connector_id in LIVE_CLOUD_PROBES:
+        provider_probe = LIVE_CLOUD_PROBES[connector_id]
+    elif connector_id == SNOWFLAKE_CONNECTOR_ID:
+        provider_probe = probe_snowflake_access
+    elif connector_id in export_probes:
+        provider_probe = export_probes[connector_id][0]
+    else:
+        # An adapter can exist without a live access probe.
+        return record("ok", duration_ms=12, metadata={"probe_mode": "config_only"})
+    try:
+        probe = provider_probe(credentials=effective_credentials, options=effective_options, **extra)
+    except Exception as exc:
+        if connector_id not in {AWS_CONNECTOR_ID, *LIVE_CLOUD_PROBES} and not isinstance(exc, ValueError):
+            raise
+        return record("error", error=_safe_run_error(exc, include_provider_message=connector_id == AWS_CONNECTOR_ID))
+
+    evidence_count = None
+    if connector_id == AWS_CONNECTOR_ID:
+        evidence_count = int(probe.get("principal_count") or 0)
+    elif connector_id == SNOWFLAKE_CONNECTOR_ID:
         failed = [
             str(view.get("view") or view.get("purpose") or "unknown")
             for view in probe.get("views", [])
             if isinstance(view, dict) and view.get("ok") is not True
         ]
         if failed:
-            return append_run_event(
-                lake_dir,
-                connector_id=connector_id,
-                kind="probe",
-                result="error",
-                actor=actor,
-                error="Snowflake read scope is not ready: " + ", ".join(failed),
-                access_fingerprint=staged_access_fingerprint,
-                metadata=probe,
+            return record("error", error="Snowflake read scope is not ready: " + ", ".join(failed), metadata=probe)
+        evidence_count = len(probe.get("views", []))
+    elif connector_id in export_probes:
+        _handler, count_key, scope_key, default_scope, label = export_probes[connector_id]
+        if not probe.get("ok"):
+            scope = str(probe.get(scope_key) or default_scope)
+            if connector_id == S3_CONNECTOR_ID:
+                scope += "/" + str(probe.get("prefix") or "")
+            return record(
+                "error",
+                error=f"{label} read scope is not ready: {scope}",
+                metadata={**probe, "probe_mode": "live"},
             )
-        return append_run_event(
-            lake_dir,
-            connector_id=connector_id,
-            kind="probe",
-            result="ok",
-            actor=actor,
-            duration_ms=12,
-            evidence_count=len(probe.get("views", [])),
-            access_fingerprint=staged_access_fingerprint,
-            metadata={**probe, "probe_mode": "live"},
-        )
-
-    # Adapter available and the access contract is valid. The generic probe
-    # validates configuration only — collecting evidence is the sync's job.
-    return append_run_event(
-        lake_dir,
-        connector_id=connector_id,
-        kind="probe",
-        result="ok",
-        actor=actor,
-        duration_ms=12,
-        access_fingerprint=staged_access_fingerprint,
-        metadata={"probe_mode": "config_only"},
-    )
+        evidence_count = int(probe.get(count_key) or 0)
+    return record("ok", duration_ms=12, evidence_count=evidence_count, metadata={**probe, "probe_mode": "live"})
