@@ -180,22 +180,23 @@ def assess_control_plan(
                 "effect": "context_only_no_verdict_or_score_change",
             }
         design = [by_id[event_id] for event_id in control["design_event_ids"] if event_id in by_id]
-        design_valid = (
-            bool(design)
-            and len(design) == len(control["design_event_ids"])
-            and all(
-                sid in row["safeguard_ids"]
-                and evidence_available(row)
-                and _valid_at(row, as_of)
-                and start - timedelta(days=366) <= timestamp(row["event_time"]) <= start
-                and normalize_event_status(row["status"]) in PASS_STATUSES
-                for row in design
-            )
-        )
+        valid_design_ids = {
+            row["event_id"]
+            for row in design
+            if sid in row["safeguard_ids"]
+            and evidence_available(row)
+            and _valid_at(row, as_of)
+            and start - timedelta(days=366) <= timestamp(row["event_time"]) <= start
+            and normalize_event_status(row["status"]) in PASS_STATUSES
+        }
+        design_valid = bool(design) and len(valid_design_ids) == len(control["design_event_ids"])
+        # Selection is not evidence classification. Only eligible design records
+        # may be excluded; invalid selections must retain operating failures,
+        # uncertainty, and observed assets within the assessment period.
         operating = [
             row
             for row in bound[sid]
-            if row["event_id"] not in control["design_event_ids"] and start <= timestamp(row["event_time"]) < end
+            if row["event_id"] not in valid_design_ids and start <= timestamp(row["event_time"]) < end
         ]
         observed_assets = {(row["tenant_id"], row["asset_id"]) for row in operating}
         # Applicability cannot depend on having evidence bound to this control:

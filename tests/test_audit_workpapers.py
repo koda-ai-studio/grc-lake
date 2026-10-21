@@ -139,6 +139,20 @@ def test_local_bundle_is_reproducible_and_never_overwrites(workpaper_env, tmp_pa
     assert verify_workpaper_export(out)["ok"] is False
 
 
+def test_workpaper_api_cannot_hide_failure_by_selecting_it_as_design(workpaper_env):
+    _, client, headers, _, body = workpaper_env
+    body["plan"]["controls"][1]["design_event_ids"].append("day2-1")
+    response = client.post("/api/v1/audit-workpapers", json=body, headers=headers["author"])
+    assert response.status_code == 201
+    row = response.json()["data"]
+    control = row["content"]["assurance"]["controls"][1]
+    assert control["design"]["status"] == "insufficient_evidence"
+    assert control["operating"]["status"] == "sample_fail"
+    assert "day2-1" in control["operating"]["deviation_event_ids"]
+    assert row["content"]["evidence"]["day2-1"]["status"] == "failed"
+    assert client.get(f"/api/v1/audit-workpapers/{row['id']}", headers=headers["foreign"]).status_code == 404
+
+
 def test_foreign_scope_and_tampered_stored_content_fail_closed(workpaper_env):
     from security_lakehouse.db.models import AuditWorkpaper
 
