@@ -1,5 +1,6 @@
 """Regression contract for clear cloud-account linking in the console."""
 
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).parents[1]
@@ -122,7 +123,7 @@ def test_aws_linking_accepts_account_id_or_role_arn() -> None:
     assert "awsRoleArnFromIdentifier(awsRoleIdentifier, awsRoleName)" in panel
     assert "awsRoleIdentifierError(awsRoleIdentifier)" in panel
     assert 'placeholder="AWS account ID or role ARN"' in panel
-    assert 'placeholder="030225640638"' not in panel
+    assert not re.search(r'placeholder="[0-9]{12}"', panel)
     assert 'placeholder="arn:aws:iam::123456789012:role/CustomGrcLakeRole"' not in panel
 
 
