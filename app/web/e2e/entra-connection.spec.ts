@@ -1,5 +1,17 @@
 import { expect, test } from "@playwright/test";
 
+// These specs share a demo lake with the onboarding tests. Restore the
+// disabled baseline even when an assertion fails after enabling the source.
+test.afterEach(async ({ request }) => {
+  const reset = await request.post(
+    "/api/v1/connectors/entra-identity/configure",
+    {
+      data: { state: "disabled", actor: "e2e", credentials: {}, options: {} },
+    },
+  );
+  expect(reset.ok()).toBe(true);
+});
+
 for (const width of [1280, 390]) {
   test(`Entra preview setup saves tenant-bound identity references at ${width}px`, async ({
     page,
