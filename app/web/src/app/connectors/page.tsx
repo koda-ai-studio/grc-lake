@@ -20,7 +20,8 @@ import { EvidencePathPanel } from "@/components/connectors/EvidencePathPanel";
 import { OnboardingGuideBanner } from "@/components/onboarding/OnboardingGuideBanner";
 import { connectorNotify } from "@/lib/connector-notify";
 import { CONNECT_FLOW, PREVIEW_COPY, ROUTE_LABELS } from "@/lib/console-copy";
-import { displayLabel } from "@/lib/display";
+import { connectionReadiness } from "@/lib/connection-readiness";
+import { ConnectionProgressPanel } from "@/components/connectors/ConnectionProgressPanel";
 import { PreviewBadge } from "@/components/ui/preview-badge";
 import { useConnectors } from "@/lib/api/hooks";
 import type { ConnectorView } from "@/lib/api/types";
@@ -28,17 +29,12 @@ import type { ConnectorView } from "@/lib/api/types";
 const isRunnableConnector = (connector: ConnectorView) =>
   Boolean(connector.is_implemented);
 
-type Health = {
-  label: string;
-  tone: "ready" | "attention" | "critical" | "default";
-};
-
 type ViewFilter = "all" | "connected" | "setup" | "attention";
 type CategoryFilter = "all" | "cloud" | "identity" | "data" | "dev" | "ops";
 
 const VIEW_TABS: Array<{ id: ViewFilter; label: string }> = [
   { id: "all", label: "All" },
-  { id: "connected", label: "Connected" },
+  { id: "connected", label: "Enabled" },
   { id: "setup", label: "Needs setup" },
   { id: "attention", label: "Needs attention" },
 ];
@@ -67,58 +63,9 @@ function connectorCategory(connector: ConnectorView): CategoryFilter {
   return "ops";
 }
 
-function syncHealth(connector: ConnectorView): Health | null {
-  if (connector.state !== "enabled") return null;
-
-  const freshness = connector.freshness_state;
-  if (freshness === "fresh") return { label: "healthy", tone: "ready" };
-  if (freshness === "stale") return { label: "stale sync", tone: "attention" };
-  if (freshness === "never_synced") {
-    const failedAttempt =
-      connector.last_sync?.result === "error" &&
-      connector.last_successful_sync?.result === "ok";
-    if (failedAttempt) {
-      return { label: "last sync failed", tone: "attention" };
-    }
-    return { label: "never synced", tone: "attention" };
-  }
-
-  const successAt =
-    connector.last_sync_at ??
-    connector.last_successful_sync?.occurred_at ??
-    (connector.last_sync?.result === "ok"
-      ? connector.last_sync.occurred_at
-      : null);
-  if (!successAt) {
-    if (connector.last_sync?.result === "error") {
-      return { label: "last sync failed", tone: "attention" };
-    }
-    return { label: "never synced", tone: "attention" };
-  }
-  const ageMinutes = (Date.now() - Date.parse(successAt)) / 60000;
-  const slo = connector.freshness_slo_minutes || 1440;
-  if (ageMinutes <= slo) return { label: "healthy", tone: "ready" };
-  if (ageMinutes <= slo * 3) return { label: "stale sync", tone: "attention" };
-  return { label: "silent", tone: "critical" };
-}
-
 function needsAttention(connector: ConnectorView) {
-  const health = syncHealth(connector);
-  return (
-    (health !== null && health.tone !== "ready") ||
-    connector.last_probe?.result === "error" ||
-    connector.last_sync?.result === "error"
-  );
+  return connectionReadiness(connector).attention;
 }
-
-const toneForProbe = (result?: string) =>
-  result === "ok"
-    ? "ready"
-    : result === "error"
-      ? "critical"
-      : result === "skipped"
-        ? "attention"
-        : "default";
 
 function ConnectorRow({
   connector,
@@ -127,17 +74,12 @@ function ConnectorRow({
   connector: ConnectorView;
   onSelect: () => void;
 }) {
-  const probe = connector.last_probe;
-  const health = syncHealth(connector);
+  const progress = connectionReadiness(connector);
   const runnable = isRunnableConnector(connector);
   const preview = connector.release_stage === "preview";
-  // "Disabled" is the default for every unconfigured source; only show state
-  // once it differs.
-  const showState = connector.state !== "disabled";
-  const hasBadges = preview || showState || Boolean(health);
   return (
     <div
-      className={`relative grid w-full min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-3 overflow-hidden rounded-lg border bg-surface p-3 text-left transition-colors focus-within:border-brand hover:border-brand hover:shadow-card ${
+      className={`relative grid w-full min-w-0 grid-cols-[auto_minmax(0,1fr)] items-start gap-3 overflow-hidden rounded-lg border bg-surface p-3 text-left transition-colors focus-within:border-brand hover:border-brand hover:shadow-card ${
         runnable
           ? "border-line"
           : "border-dashed border-warning/40 bg-warning-bg "
@@ -161,29 +103,20 @@ function ConnectorRow({
         <span className="block truncate font-semibold text-ink">
           {connector.name}
         </span>
-        {hasBadges ? (
-          <span className="mt-1 flex flex-wrap items-center gap-1.5">
-            {showState ? (
-              <Badge tone={connector.state === "enabled" ? "ready" : "default"}>
-                {displayLabel(connector.state)}
-              </Badge>
-            ) : null}
-            {preview ? (
-              <PreviewBadge className="pointer-events-auto relative z-10" />
-            ) : null}
-            {health ? (
-              <Badge tone={health.tone}>{displayLabel(health.label)}</Badge>
-            ) : null}
-          </span>
-        ) : null}
+        <span className="mt-1 flex flex-wrap items-center gap-1.5">
+          <Badge tone={progress.tone}>{progress.label}</Badge>
+          {preview ? (
+            <PreviewBadge className="pointer-events-auto relative z-10" />
+          ) : null}
+        </span>
         <span className="mt-1 line-clamp-2 text-xs leading-5 text-muted">
-          {connector.setup_hint ?? `Read-only ${connector.category} evidence`}
+          {connector.state === "disabled" && !connector.last_probe
+            ? (connector.setup_hint ?? progress.detail)
+            : progress.detail}
         </span>
       </span>
-      <span className="pointer-events-none shrink-0 text-right">
-        <Badge tone={probe ? toneForProbe(probe.result) : "default"}>
-          {probe ? `Probe ${displayLabel(probe.result)}` : "Connect"}
-        </Badge>
+      <span className="pointer-events-none col-start-2 text-xs font-semibold text-brand">
+        {progress.action} →
       </span>
     </div>
   );
@@ -247,10 +180,8 @@ export default function ConnectorsPage() {
 
   const totals = {
     enabled: data.filter((c) => c.state === "enabled").length,
-    unhealthy: data.filter((c) => {
-      const h = syncHealth(c);
-      return h !== null && h.tone !== "ready";
-    }).length,
+    unhealthy: data.filter((c) => isRunnableConnector(c) && needsAttention(c))
+      .length,
   };
 
   const selectedLive = selected
@@ -295,6 +226,9 @@ export default function ConnectorsPage() {
         }
       />
 
+      {connectors.isSuccess && (
+        <ConnectionProgressPanel connectors={data} onSelect={setSelected} />
+      )}
       <EvidencePathPanel connectors={connectors.data ?? []} />
 
       <div className="grid min-w-0 gap-2 overflow-hidden rounded-lg border border-line bg-surface p-2 shadow-card">
