@@ -196,6 +196,7 @@ def main(argv: list[str] | None = None) -> int:
     else:
         print(json.dumps({"status": report["status"], "report": str(args.out / "report.json")}))
         return 0 if report["status"] == "passed" else 1
+    return 2
 
 
 if __name__ == "__main__":
