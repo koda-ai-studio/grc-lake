@@ -92,6 +92,7 @@ cluster by (tenant_id, program_id, framework);
 
 create table if not exists SECURITY_GOLD.ASSET_RISK (
   tenant_id string not null,
+  source_account_id string not null,
   asset_id string not null,
   asset_type string not null,
   asset_owner string not null,
@@ -102,7 +103,7 @@ create table if not exists SECURITY_GOLD.ASSET_RISK (
   event_count number not null,
   latest_event_time timestamp_tz not null,
   loaded_at timestamp_tz default current_timestamp(),
-  primary key (tenant_id, asset_id)
+  primary key (tenant_id, source_account_id, asset_id)
 )
 cluster by (tenant_id, environment);
 

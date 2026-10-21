@@ -34,7 +34,8 @@ runtime validator. Strict JSON parsing rejects duplicate keys, nonfinite numbers
 invalid Unicode, and excessive nesting.
 
 Raw required fields are `event_id`, `tenant_id`, `event_time`, `source`,
-`event_type`, and an object `entity`. Timestamps require an explicit timezone.
+`event_type`, and an object `entity` with a nonempty string `asset_id`, `id`,
+or legacy `name`. Timestamps require an explicit timezone.
 Provider-specific attributes are allowed; arbitrary extra properties are not
 silently treated as evaluated evidence.
 
@@ -59,6 +60,10 @@ Booleans as 0/1; DuckDB uses Boolean columns. Legacy materializer inputs with
 unknown availability or eligibility remain SQL NULL, not an inferred success.
 DuckDB timestamps store UTC wall time; JSONL preserves the normalized text form.
 
+`trustops.mart.v3` adds `source_account_id` to asset risk and uses it with
+`asset_id` as the generation-local asset key. Destination asset-risk keys also
+include platform `tenant_id`; see [upgrade guidance](DATA_MODEL.md#upgrade-and-rollback).
+
 The mart version is recorded in the manifest and included in dependency
 invalidation. The next incremental evaluation rebuilds an old projection into a
 new generation even when raw evidence is unchanged. Historical generations keep
@@ -67,7 +72,8 @@ their original schema. Named-column queries are preferable to positional
 
 Normalized schema v1 remains compatible with older rows; transformation versions
 identify added fields: v2 safeguard bindings, v3 optional connector identity,
-v4 availability, and v5 source account identity. The JSON schema validates new
+v4 availability, v5 source account identity, and v6 strict entity admission
+with scoped asset projections. The JSON schema validates new
 fields when present; version-aware portable export validates the fields required
 by the recorded transformation. This compatibility does not authorize editing
 retained evidence to fabricate missing fields.

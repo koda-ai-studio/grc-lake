@@ -72,10 +72,42 @@ exception records. Back up the database before upgrading. Export new records and
 reviews before downgrading: downgrade removes these new tables. Restoring a
 backup is the recovery path for their history; a downgrade cannot reconstruct it.
 
-Normal evaluation rebuilds derived artifacts with normalization v5, evaluation v9
+Normal evaluation rebuilds derived artifacts with normalization v6, evaluation v9
 and CCF projection v2. Existing sealed generations remain unchanged. Projection
 v1 remains readable through the existing full-results API; compact/link reads
 require reevaluation. Admission failures leave the current generation in place.
+
+Asset risk rows, names, violations and mart v3 retain `source_account_id`.
+The asset-risk primary key is `(source_account_id, asset_id)` inside a generation;
+destination sinks also include platform `tenant_id`. Compact posture asset
+projection v2 carries scoped name records. Historical unscoped names are not
+used to label scoped evidence.
+
+New raw input must supply a nonempty string `entity.asset_id`, `entity.id`, or
+legacy `entity.name`. Missing identifiers fail admission before publication;
+the pipeline does not group them under a synthetic `unknown` asset.
+
+Connector IDs escape punctuation and preserve case before shortening. Previously
+safe lowercase IDs remain unchanged; lossy or shortened IDs can change. Native
+current-state connectors replace their own prior rows on the next complete
+snapshot collection. Historical sealed evidence and event-linked workflow
+records retain their old identifiers; no alias or workflow reassignment is
+inferred. Recollect affected source records before evaluating the new snapshot.
+
+For existing destination projections, preserve the old destination and provision
+a fresh DuckDB file or warehouse schema/database from the current deployment
+DDL, then load the new generation. `CREATE TABLE IF NOT EXISTS` does not migrate
+existing tables. DuckDB refuses a legacy asset-risk table before replacing any
+rows. Source-account scope cannot be reconstructed from already merged legacy
+gold rows; rebuild from source evidence. Warehouse schema upgrades and provider
+compatibility require separate operator validation.
+
+Derived offboarding IDs use a digest of the HR source account and asset ID;
+the derived observation retains that source-account scope.
+
+Offboarding only reports deprovisioning when every matched account explicitly
+reports `can_authenticate=false`. Unknown or malformed account state remains
+`not_evaluated`; a confirmed active account beyond the grace period still fails.
 
 ## Related contracts
 
