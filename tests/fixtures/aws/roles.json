@@ -1,0 +1,13 @@
+[
+  {
+    "RoleName": "evidence-reader",
+    "Arn": "arn:aws:iam::123456789012:role/team/evidence-reader",
+    "RoleId": "AROAEXAMPLE1",
+    "SecretAccessKey": "excluded-fixture-sentinel"
+  },
+  {
+    "RoleName": "empty-role",
+    "Arn": "arn:aws:iam::123456789012:role/empty-role",
+    "RoleId": "AROAEXAMPLE2"
+  }
+]

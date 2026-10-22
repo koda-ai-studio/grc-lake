@@ -24,7 +24,7 @@ and [Databricks #734](https://github.com/koda-ai-studio/grc-lake/issues/734).
 
 | Connector | Catalog stage | Offline test pointers | Historical live record | Qualification owner |
 | --- | --- | --- | --- | --- |
-| `aws-posture` | Implemented | [aws_connector](../tests/test_aws_connector.py); [collection_completeness](../tests/test_collection_completeness.py) | [2026-10-11; source basis `ccd9d9c3`](../docs/CURRENT_STATE.md#earlier-bounded-provider-qualification): IAM/posture, 12 raw records; one bounded read-only collection, not an account-wide completeness claim. | Unassigned |
+| `aws-posture` | Implemented | [aws_connector](../tests/test_aws_connector.py); [collection_completeness](../tests/test_collection_completeness.py); [aws_role_policies](../tests/test_aws_role_policies.py) | [2026-10-11; source basis `ccd9d9c3`](../docs/CURRENT_STATE.md#earlier-bounded-provider-qualification): IAM/posture, 12 raw records; one bounded read-only collection, not an account-wide completeness claim. | Unassigned |
 | `azure-posture` | Implemented | [azure_connector](../tests/test_azure_connector.py) | [2026-10-11; source basis `ccd9d9c3`](../docs/CURRENT_STATE.md#earlier-bounded-provider-qualification): Subscription posture, 26 raw records; bounded scope, not tenant-wide coverage. | Unassigned |
 | `bamboohr-personnel` | Implemented | [bamboohr_connector](../tests/test_bamboohr_connector.py); [collection_completeness](../tests/test_collection_completeness.py) | No scoped live record linked | Unassigned |
 | `bigquery-evidence-lake` | Preview | [bigquery_connector](../tests/test_bigquery_connector.py) | No scoped live record linked | Unassigned |

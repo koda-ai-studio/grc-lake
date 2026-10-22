@@ -87,3 +87,30 @@ output "role_arn" {
   description = "ARN to configure as the AWS posture connector's read-only role."
   value       = aws_iam_role.trustops_posture_readonly.arn
 }
+
+variable "include_role_policies" {
+  description = "Grant optional IAM role identity-policy reads."
+  type        = bool
+  default     = false
+}
+
+resource "aws_iam_role_policy" "role_policy_readonly" {
+  count = var.include_role_policies ? 1 : 0
+  name  = "GrcLakeRolePolicyReadOnly"
+  role  = aws_iam_role.trustops_posture_readonly.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Action = [
+        "iam:ListRoles",
+        "iam:ListAttachedRolePolicies",
+        "iam:ListRolePolicies",
+        "iam:GetPolicy",
+        "iam:GetPolicyVersion",
+        "iam:GetRolePolicy"
+      ]
+      Resource = "*"
+    }]
+  })
+}
