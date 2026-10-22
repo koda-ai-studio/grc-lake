@@ -19,7 +19,36 @@ Parameters:
     Default: GrcLakePostureReadOnlyRole
     AllowedPattern: "^[A-Za-z0-9+=,.@_-]{1,64}$"
 
+  IncludeRolePolicies:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: Grant optional IAM role identity-policy reads.
+
+Conditions:
+  CollectRolePolicies:
+    Fn::Equals: [{ Ref: IncludeRolePolicies }, "true"]
+
 Resources:
+  GrcLakeRolePolicyReadOnly:
+    Type: AWS::IAM::Policy
+    Condition: CollectRolePolicies
+    Properties:
+      PolicyName: GrcLakeRolePolicyReadOnly
+      Roles:
+        - Ref: GrcLakePostureReadOnlyRole
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - iam:ListRoles
+              - iam:ListAttachedRolePolicies
+              - iam:ListRolePolicies
+              - iam:GetPolicy
+              - iam:GetPolicyVersion
+              - iam:GetRolePolicy
+            Resource: "*"
   GrcLakePostureReadOnlyRole:
     Type: AWS::IAM::Role
     Properties:
