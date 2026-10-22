@@ -86,6 +86,8 @@ const REPO_KINDS: GraphNodeKind[] = [
 ];
 
 const KIND_LABEL: Record<GraphNodeKind, string> = {
+  canonical_entity: "Canonical entities",
+  entity_alias: "Alias assertions",
   ccf_category: "CCF categories",
   ccf_family: "CCF families",
   safeguard: "Safeguards",
@@ -121,6 +123,8 @@ const KIND_LABEL: Record<GraphNodeKind, string> = {
 const KIND_SWATCH: Record<GraphNodeKind, string> = GRAPH_KIND_COLOR;
 
 const KIND_ICON: Record<GraphNodeKind, LucideIcon> = {
+  canonical_entity: Boxes,
+  entity_alias: ClipboardCheck,
   ccf_category: BookOpen,
   ccf_family: FolderTree,
   safeguard: ShieldCheck,
