@@ -85,10 +85,12 @@ present.
 ### AWS Live Proof
 
 AWS uses the standard `boto3` credential chain. Prefer CloudShell, SSO, an
-assumed role, or workload identity. Do not create root access keys.
+assumed role, or workload identity. Do not create root access keys. Set
+`AWS_ACCOUNT_ID` privately to the authorized target account before running
+these examples; never commit personal account or subscription identifiers.
 
 ```bash
-AWS_ACCOUNT_ID=030225640638 \
+AWS_ACCOUNT_ID="${AWS_ACCOUNT_ID:?Set AWS_ACCOUNT_ID for your authorized account}" \
 grc-lake scenario run live-cloud-posture \
   --lake build/scenarios/aws-live \
   --connector aws-posture \
@@ -146,8 +148,8 @@ runtime secret manager. Raw credentials are not persisted in the lake.
 After Azure, AWS, and Snowflake are configured, run all three into one lake:
 
 ```bash
-AZURE_SUBSCRIPTION_ID=8e134453-ac1f-46fb-8047-0af5d5e86427 \
-AWS_ACCOUNT_ID=030225640638 \
+AZURE_SUBSCRIPTION_ID="${AZURE_SUBSCRIPTION_ID:?Set AZURE_SUBSCRIPTION_ID for your authorized subscription}" \
+AWS_ACCOUNT_ID="${AWS_ACCOUNT_ID:?Set AWS_ACCOUNT_ID for your authorized account}" \
 SNOWFLAKE_ACCOUNT="$SNOWFLAKE_ACCOUNT" \
 SNOWFLAKE_USER=GRC_LAKE_INGEST_SVC \
 SNOWFLAKE_AUTHENTICATOR=SNOWFLAKE_JWT \
