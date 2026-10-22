@@ -1297,6 +1297,23 @@ wheels = [
 ]
 
 [[package]]
+name = "google-cloud-iam"
+version = "2.26.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "google-api-core", extra = ["grpc"] },
+    { name = "google-auth" },
+    { name = "grpc-google-iam-v1" },
+    { name = "grpcio" },
+    { name = "proto-plus" },
+    { name = "protobuf" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/42/08/4f88586e9e1cc65754200fc60adf25c2ca7b7da0407a6dcf13362e69e63a/google_cloud_iam-2.26.0.tar.gz", hash = "sha256:d44a86e5cb0bbc904c459b1367bd0124eef802fe0af72ac378f87f7f8e5b2d42", size = 613465, upload-time = "2026-10-01T18:16:49.524Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e8/62/bee32ed798f52c1188c57c5ef9ec584db3829ee02b8a3b2469c6d0dcf314/google_cloud_iam-2.26.0-py3-none-any.whl", hash = "sha256:77bb8d9d8a9c94b1632196fd4d88c52c0f2ceb35075514eb91af25ed6857b300", size = 564869, upload-time = "2026-10-01T18:10:35.8Z" },
+]
+
+[[package]]
 name = "google-cloud-org-policy"
 version = "1.18.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1429,6 +1446,7 @@ cloud = [
     { name = "boto3" },
     { name = "clickhouse-connect" },
     { name = "google-cloud-asset" },
+    { name = "google-cloud-iam" },
     { name = "google-cloud-org-policy" },
     { name = "google-cloud-resource-manager" },
     { name = "snowflake-connector-python", extra = ["pandas"] },
@@ -1510,6 +1528,7 @@ requires-dist = [
     { name = "fastapi", marker = "extra == 'server'", specifier = ">=0.141.1" },
     { name = "google-cloud-asset", marker = "extra == 'cloud'", specifier = ">=3.20" },
     { name = "google-cloud-bigquery", marker = "extra == 'bigquery'", specifier = ">=3.45,<4" },
+    { name = "google-cloud-iam", marker = "extra == 'cloud'", specifier = ">=2.19" },
     { name = "google-cloud-org-policy", marker = "extra == 'cloud'", specifier = ">=1.11" },
     { name = "google-cloud-resource-manager", marker = "extra == 'cloud'", specifier = ">=1.12" },
     { name = "httpx", marker = "extra == 'dev'", specifier = ">=0.28.1" },

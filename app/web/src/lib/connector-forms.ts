@@ -532,6 +532,15 @@ export const CONNECTOR_CREDENTIAL_FIELDS: Record<string, ConnectorFieldDef[]> =
   };
 
 export const CONNECTOR_SCOPE_FIELDS: Record<string, ConnectorFieldDef[]> = {
+  "gcp-posture": [
+    {
+      name: "include_non_human_identities",
+      label: "Collect service accounts",
+      placeholder: "",
+      type: "checkbox",
+      hint: "Also list service-account metadata and observed project-role bindings. Requires iam.serviceAccounts.list; keys and last-use telemetry are excluded.",
+    },
+  ],
   "okta-identity": [
     {
       name: "include_non_human_identities",

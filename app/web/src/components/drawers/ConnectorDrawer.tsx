@@ -1365,26 +1365,9 @@ export function ConnectorDrawer({
                     Schedule and scope
                   </div>
                   <div className="mt-2 grid gap-1.5">
-                    {[...scopeFields, ...schedulerFields].map((field) => (
-                      <label
-                        key={field.name}
-                        className="grid gap-1 text-xs font-semibold uppercase tracking-wide text-muted"
-                      >
-                        {field.label}
-                        <input
-                          value={options[field.name] ?? ""}
-                          onChange={(event) => {
-                            setAccessValidated(false);
-                            setOptions((current) => ({
-                              ...current,
-                              [field.name]: event.target.value,
-                            }));
-                          }}
-                          placeholder={field.placeholder}
-                          className="rounded-lg border border-line bg-surface px-2.5 py-1.5 text-sm normal-case tracking-normal text-ink focus:outline-none focus:ring-1 focus:ring-brand"
-                        />
-                      </label>
-                    ))}
+                    {[...scopeFields, ...schedulerFields].map((field) =>
+                      renderSetupField(field, "scope"),
+                    )}
                   </div>
                 </section>
 

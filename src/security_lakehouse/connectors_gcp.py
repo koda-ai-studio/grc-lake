@@ -39,6 +39,7 @@ from security_lakehouse.connector_errors import (
 from security_lakehouse.connector_ids import stable_id_slug
 from security_lakehouse.delegation import gcp_credentials
 from security_lakehouse.identity import classify_identity_type
+from security_lakehouse.ingestion.paginate import paginate
 from security_lakehouse.io import canonical_sha256, read_json
 from security_lakehouse.models import utc_iso
 
@@ -99,10 +100,14 @@ ASSET_COLLECTION = _Collection(
     "cloudasset.googleapis.com",
     "cloudasset.assets.listResource",
 )
+SERVICE_ACCOUNT_COLLECTION = _Collection(
+    "service_accounts", "service accounts", "IAM API", "iam.googleapis.com", "iam.serviceAccounts.list"
+)
 _READ_FAILED = {
     "iam_bindings": "GCP collection incomplete: project IAM policy read failed",
     "org_policies": "GCP collection incomplete: organization policy read failed",
     "assets": "GCP collection incomplete: asset inventory read failed",
+    "service_accounts": "GCP collection incomplete: service-account inventory read failed",
 }
 _SERVICE_NAME = re.compile(r"^[a-z0-9-]+(\.[a-z0-9-]+)*\.googleapis\.com$")
 _PERMISSION_NAME = re.compile(r"^[a-z][a-zA-Z0-9]*(\.[a-zA-Z0-9]+){2,}$")
@@ -207,6 +212,7 @@ class GCPClient:
 
     def __init__(self, project_id: str, *, credentials: Any = None) -> None:
         self.project_id = project_id
+        self._credentials = credentials
         try:
             from google.cloud import (
                 asset_v1,
@@ -229,6 +235,40 @@ class GCPClient:
             self._org_policies = orgpolicy_v2.OrgPolicyClient(credentials=credentials)
         except ImportError:  # pragma: no cover - optional dependency
             self._org_policies = None
+
+    def service_accounts(self) -> list[dict[str, Any]]:
+        """Port Agent-Bom's IAM inventory read; keep GRC credentials and page bounds."""
+        try:
+            from google.cloud import iam_admin_v1
+        except ImportError:
+            raise _service_account_gap("client_unavailable") from None
+        try:
+            client = iam_admin_v1.IAMClient(credentials=self._credentials)
+
+            def fetch(token: str | None) -> Any:
+                request = iam_admin_v1.ListServiceAccountsRequest(
+                    name=f"projects/{self.project_id}", page_size=100, page_token=token or ""
+                )
+                # The public pager exposes its first response without advancing
+                # another request; GRC owns cursor-loop and page-budget checks.
+                return next(iter(client.list_service_accounts(request=request).pages))
+
+            accounts = paginate(fetch, lambda page: page.accounts, lambda page: page.next_page_token or None)
+            return [
+                {
+                    "email": account.email,
+                    "uniqueId": account.unique_id,
+                    "displayName": account.display_name,
+                    "projectId": account.project_id,
+                    "disabled": account.disabled,
+                }
+                for account in accounts
+            ]
+        except Exception as exc:  # noqa: BLE001 - optional inventory cannot expose provider exception text
+            error = _collection_error(exc, SERVICE_ACCOUNT_COLLECTION, self.project_id)
+            if isinstance(error, CollectionGapError):
+                raise error from None
+            raise _service_account_gap("listing_failed") from None
 
     def iam_bindings(self) -> list[dict[str, Any]]:
         try:
@@ -318,6 +358,9 @@ class GCPFixtureClient:
     def iam_bindings(self) -> list[dict[str, Any]]:
         return self._read_collection(IAM_COLLECTION, "bindings")
 
+    def service_accounts(self) -> list[dict[str, Any]]:
+        return read_json(self.fixture / "service_accounts.json")
+
     def org_policies(self) -> list[dict[str, Any]]:
         return self._read_collection(ORG_POLICY_COLLECTION)
 
@@ -369,6 +412,7 @@ def collect_gcp_evidence(
     project_id: str | None = None,
     collected_at: datetime | None = None,
     tenant_id: str = "customer-managed",
+    include_non_human_identities: bool = False,
 ) -> list[dict[str, Any]]:
     """Collect normalized raw posture evidence from a GCP project.
 
@@ -394,7 +438,8 @@ def collect_gcp_evidence(
             gaps.append(gap)
             return []
 
-    for binding in read(client.iam_bindings, IAM_COLLECTION):
+    bindings = read(client.iam_bindings, IAM_COLLECTION)
+    for binding in bindings:
         rows.append(_iam_event(project, binding, now, tenant_id))
 
     for policy in read(client.org_policies, ORG_POLICY_COLLECTION):
@@ -405,7 +450,98 @@ def collect_gcp_evidence(
 
     if len(gaps) == 3:
         raise ConnectorAccessError("GCP collection failed: " + "; ".join(gap.message for gap in gaps))
+    if include_non_human_identities:
+        binding_available = not any(gap.collection == "iam_bindings" for gap in gaps)
+        rows.extend(_service_account_events(client, project, bindings, binding_available, now, tenant_id))
     rows.extend(_gap_event(project, gap, now, tenant_id) for gap in gaps)
+    return rows
+
+
+# Adapted from agent-bom/cloud/gcp_inv/iam.py:_discover_service_accounts,
+# revision 95bc4a9c8e50d4bfbce59b91db8f68429cfbf9e5 (Apache-2.0).
+# Copyright 2024-2026 Mohamed Wagdy Saad. See NOTICE.
+def _service_account_gap(reason: str) -> CollectionGapError:
+    return CollectionGapError(
+        "GCP service-account metadata unavailable; coverage is incomplete",
+        collection="service_accounts",
+        reason=reason,
+        api="iam.googleapis.com",
+        permission="iam.serviceAccounts.list",
+    )
+
+
+def _service_account_events(
+    client: GCPClient | GCPFixtureClient,
+    project: str,
+    bindings: list[dict[str, Any]],
+    binding_available: bool,
+    now: datetime,
+    tenant_id: str,
+) -> list[dict[str, Any]]:
+    try:
+        accounts = client.service_accounts()
+        if not isinstance(accounts, list) or any(
+            not isinstance(row, dict)
+            or not isinstance(row.get("email"), str)
+            or "@" not in row["email"]
+            or (row.get("projectId") is not None and row["projectId"] != client.project_id)
+            or (row.get("uniqueId") is not None and not isinstance(row["uniqueId"], str))
+            or (row.get("displayName") is not None and not isinstance(row["displayName"], str))
+            for row in accounts
+        ):
+            raise ValueError("Invalid GCP service-account metadata")
+        identity_ids = [(row.get("uniqueId") or "").strip() or row["email"].strip() for row in accounts]
+        if len(set(identity_ids)) != len(identity_ids):
+            raise ValueError("Duplicate GCP service-account identity")
+    except CollectionGapError as gap:
+        return [_gap_event(project, gap, now, tenant_id)]
+    except Exception:  # noqa: BLE001 - malformed or denied optional metadata becomes a static coverage gap
+        return [_gap_event(project, _service_account_gap("listing_failed"), now, tenant_id)]
+    by_member: dict[str, dict[str, dict[str, Any]]] = {}
+    for binding in bindings:
+        for member in binding.get("members", []):
+            prefix, _, email = str(member).partition(":")
+            if prefix == "serviceAccount":
+                entry = {"role": binding.get("role"), "condition": binding.get("condition") or None}
+                by_member.setdefault(email.lower(), {})[canonical_sha256(entry)] = entry
+    rows = []
+    for account, identity_id in zip(accounts, identity_ids, strict=True):
+        email = account["email"].strip()
+        project_bindings = by_member.get(email.lower(), {})
+        disabled = account.get("disabled")
+        rows.append(
+            _event(
+                project=project,
+                collected_at=now,
+                tenant_id=tenant_id,
+                signal="service_account",
+                dedupe_key=canonical_sha256(identity_id),
+                event_type="gcp.identity.service_account",
+                asset_id=f"gcp:{project}:service_account:{identity_id}",
+                asset_type="non_human_identity",
+                controls=[],
+                status="observed",
+                severity="info",
+                evidence_ref=f"//iam.googleapis.com/projects/{project}/serviceAccounts/{email}",
+                attributes={
+                    "identity_id": identity_id,
+                    "identity_type": "service_account",
+                    "source_scope": client.project_id,
+                    "email": email,
+                    "name": account.get("displayName") or email,
+                    "lifecycle_status": "inactive"
+                    if disabled is True
+                    else "active"
+                    if disabled is False
+                    else "unknown",
+                    "project_bindings": [project_bindings[key] for key in sorted(project_bindings)],
+                    "binding_coverage": "project_policy_observed" if binding_available else "unavailable",
+                    "permission_coverage": "not_collected",
+                    "last_used_at": None,
+                    "usage_coverage": "not_collected",
+                },
+            )
+        )
     return rows
 
 
