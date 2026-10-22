@@ -616,18 +616,22 @@ def _build_gitlab(inputs: SyncInputs) -> list[dict[str, Any]]:
     )
 
 
-def _build_okta(inputs: SyncInputs) -> list[dict[str, Any]]:
-    include_nhi = inputs.options.get("include_non_human_identities", False)
+def _include_non_human_identities(options: dict[str, Any]) -> bool:
+    include_nhi = options.get("include_non_human_identities", False)
     if not isinstance(include_nhi, bool):
         if include_nhi not in ("true", "false"):
             raise ConnectorConfigError("include_non_human_identities must be true or false")
         include_nhi = include_nhi == "true"
+    return include_nhi
+
+
+def _build_okta(inputs: SyncInputs) -> list[dict[str, Any]]:
     return _collect_okta(
         fixture_dir=inputs.fixture_dir,
         token_env=inputs.token_env,
         env=inputs.env,
         credentials=inputs.credentials,
-        include_non_human_identities=include_nhi,
+        include_non_human_identities=_include_non_human_identities(inputs.options),
     )
 
 
@@ -660,7 +664,12 @@ def _build_google_workspace(inputs: SyncInputs) -> list[dict[str, Any]]:
 
 
 def _build_gcp(inputs: SyncInputs) -> list[dict[str, Any]]:
-    return _collect_gcp(fixture_dir=inputs.fixture_dir, env=inputs.env, credentials=inputs.credentials)
+    return _collect_gcp(
+        fixture_dir=inputs.fixture_dir,
+        env=inputs.env,
+        credentials=inputs.credentials,
+        include_non_human_identities=_include_non_human_identities(inputs.options),
+    )
 
 
 def _build_azure(inputs: SyncInputs) -> list[dict[str, Any]]:
@@ -1102,12 +1111,16 @@ def _collect_gcp(
     fixture_dir: str | Path | None,
     env: dict[str, str],
     credentials: dict[str, Any] | None = None,
+    include_non_human_identities: bool = False,
 ) -> list[dict[str, Any]]:
     env = runtime_env(env)
     stored_project = str((credentials or {}).get("project_id") or "").strip()
     if fixture_dir:
         fixture_project = env.get(GCP_PROJECT_ID_ENV) or stored_project or "fixture-project"
-        return collect_gcp_evidence(GCPFixtureClient(fixture_dir, project_id=fixture_project))
+        return collect_gcp_evidence(
+            GCPFixtureClient(fixture_dir, project_id=fixture_project),
+            include_non_human_identities=include_non_human_identities,
+        )
     # Prefer the env override, else the project_id captured at configure time so an
     # enabled connector syncs without re-exporting GCP_PROJECT_ID.
     project_id = env.get(GCP_PROJECT_ID_ENV) or stored_project
@@ -1120,7 +1133,9 @@ def _collect_gcp(
         )
     delegated = gcp_credentials(credentials or {})
     client = GCPClient(project_id, credentials=delegated) if delegated is not None else GCPClient(project_id)
-    return collect_gcp_evidence(client, project_id=project_id)
+    return collect_gcp_evidence(
+        client, project_id=project_id, include_non_human_identities=include_non_human_identities
+    )
 
 
 def _collect_azure(

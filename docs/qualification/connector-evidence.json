@@ -122,7 +122,10 @@
     },
     {
       "connector_id": "gcp-posture",
-      "fixture_tests": ["tests/test_gcp_connector.py"],
+      "fixture_tests": [
+        "tests/test_gcp_connector.py",
+        "tests/test_gcp_non_human_identities.py"
+      ],
       "live_record": {
         "date": "2026-10-11",
         "source_basis": "ccd9d9c3",

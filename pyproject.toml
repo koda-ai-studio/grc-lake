@@ -109,6 +109,7 @@ cloud = [
     "google-cloud-asset>=3.20",
     "google-cloud-resource-manager>=1.12",
     "google-cloud-org-policy>=1.11",
+    "google-cloud-iam>=2.19",
     "snowflake-connector-python[pandas]>=4.7.1",
     "clickhouse-connect>=0.7",
 ]
