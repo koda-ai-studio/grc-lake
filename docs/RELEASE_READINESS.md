@@ -1,5 +1,19 @@
 # Release readiness
 
+Source version **0.3.10** is prepared for qualification and is not yet published.
+The versioned Compose, Helm and CI examples on this branch target that candidate;
+use the verified v0.3.9 templates below until publication completes. The candidate
+requires independent review, green CI on its merged main commit, and fresh
+AMD64/ARM64 vulnerability and authenticated runtime checks before tagging.
+
+There are no new database migrations between v0.3.9 and this candidate. The
+experimental canonical-entity ledger is additive and does not migrate existing
+findings or assessments. The KnowBe4 preview connector is retired: remove external
+sync jobs and revoke unused credentials separately. AWS role-policy collection
+is off by default and requires six additional read-only IAM grants when enabled.
+Published-artifact hashes, signatures and installation checks must be recorded
+after publication; historical v0.3.9 receipts do not qualify 0.3.10.
+
 GRC Lake **0.3.9 is published and verified** on
 [PyPI](https://pypi.org/project/grc-lake/0.3.9/),
 [GitHub](https://github.com/koda-ai-studio/grc-lake/releases/tag/v0.3.9), and as
