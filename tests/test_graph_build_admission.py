@@ -389,3 +389,27 @@ def test_invalid_tenant_limit_stops_startup(tmp_path: Path, monkeypatch: pytest.
     monkeypatch.setenv("GRC_LAKE_GRAPH_TENANT_CONCURRENCY", "5")
     with pytest.raises(ValueError, match="GRC_LAKE_GRAPH_TENANT_CONCURRENCY"):
         create_app(tmp_path)
+
+
+def test_graph_uses_authenticated_tenant_and_busy_history_is_retryable(tmp_path, monkeypatch):
+    from sqlalchemy import select
+
+    from security_lakehouse.db.models import Tenant
+    from security_lakehouse.entity_history import EntityHistoryBusy
+
+    app, client, token = _env(tmp_path, monkeypatch)
+    with session_scope(app.state.sessionmaker) as session:
+        tenant_id = session.execute(select(Tenant).where(Tenant.slug == "acme")).scalar_one().id
+    observed = []
+
+    def busy(*args, **kwargs):
+        observed.append(kwargs["platform_tenant_id"])
+        raise EntityHistoryBusy("busy")
+
+    monkeypatch.setattr(graph_module, "investigation_graph", busy)
+    response = client.get(URL + "?platform_tenant_id=attacker", headers=_bearer(token))
+    assert observed == [tenant_id]
+    assert response.status_code == 503
+    assert response.headers["retry-after"] == "1"
+    assert "entity_history_busy" in response.text
+    assert app.state.graph_build_slots.active == 0

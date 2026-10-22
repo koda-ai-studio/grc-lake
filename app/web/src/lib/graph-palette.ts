@@ -19,6 +19,8 @@ export const GRAPH_LAYER = {
  */
 export const GRAPH_KIND_COLOR = {
   ...GRAPH_LAYER,
+  canonical_entity: "var(--color-info)",
+  entity_alias: "var(--color-chart-6)",
   ccf_category: "var(--color-chart-1)",
   ccf_family: "var(--color-chart-2)",
   safeguard: "var(--color-success)",

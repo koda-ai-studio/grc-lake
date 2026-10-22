@@ -19,3 +19,18 @@ test("control and safeguard outcomes distinguish fail, pass, stale and unknown",
     graphEvidenceState({ kind: "evidence_type", status: "open" }).label,
   ).toBe("Failing evidence");
 });
+
+test("identity assertions never receive passing or failing verdict labels", () => {
+  expect(
+    graphEvidenceState({ kind: "canonical_entity", status: "caller_asserted" })
+      .label,
+  ).toBe("Caller asserted");
+  expect(
+    graphEvidenceState({ kind: "entity_alias", status: "evidence_missing" })
+      .label,
+  ).toBe("Missing evidence");
+  expect(
+    graphEvidenceState({ kind: "entity_alias", status: "evidence_stale" })
+      .label,
+  ).toBe("Stale evidence");
+});

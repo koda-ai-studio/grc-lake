@@ -3,6 +3,18 @@ import type { GraphNode } from "@/lib/api/types";
 /** Describe the source outcome without turning an observation into a verdict. */
 export function graphEvidenceState(node: Pick<GraphNode, "kind" | "status">) {
   const status = (node.status ?? "").toLowerCase();
+  if (["canonical_entity", "entity_alias"].includes(node.kind))
+    return {
+      label:
+        status === "evidence_missing"
+          ? "Missing evidence"
+          : status === "evidence_stale"
+            ? "Stale evidence"
+            : "Caller asserted",
+      tone: "attention" as const,
+      action:
+        "Review the recorded assertion and its exact source evidence. Caller attribution does not establish authenticated approval.",
+    };
   const assessment = ["control", "safeguard"].includes(node.kind);
   const subject = assessment ? node.kind : "evidence";
   if (status === "stale")
