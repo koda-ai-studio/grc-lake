@@ -367,16 +367,12 @@ def test_connected_cloud_drawer_is_compact_and_non_redundant() -> None:
 
 
 def _ts_string_array(source: str, name: str) -> list[str]:
-    import re
-
     match = re.search(rf"export const {name} = \[(.*?)\] as const;", source, re.S)
     assert match, name
     return re.findall(r'"([^"]*)"', match.group(1))
 
 
 def _ts_regex(source: str, name: str) -> str:
-    import re
-
     match = re.search(rf"const {name} =\s*/(.*?)/;", source, re.S)
     assert match, name
     return match.group(1)

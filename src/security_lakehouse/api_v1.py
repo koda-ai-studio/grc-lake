@@ -1960,8 +1960,13 @@ def record_mapping_review(
             auth_method=auth_method,
             evidence_ref=payload.get("evidence_ref") if isinstance(payload.get("evidence_ref"), str) else None,
         )
-    except MappingReviewError as exc:
-        return HTTPStatus.BAD_REQUEST, error_envelope("bad_request", str(exc), resource=resource)
+    except MappingReviewError:
+        return HTTPStatus.BAD_REQUEST, error_envelope(
+            "bad_request",
+            "mapping review rejected; check reviewer, rationale and decision; "
+            "if the definition or history changed, refresh the queue and review again",
+            resource=resource,
+        )
     return HTTPStatus.CREATED, envelope(
         resource,
         records,
@@ -2028,8 +2033,10 @@ def handle_post(
 
         try:
             repo = validate_request(payload)
-        except ValueError as exc:
-            return HTTPStatus.BAD_REQUEST, error_envelope("bad_request", str(exc))
+        except ValueError:
+            return HTTPStatus.BAD_REQUEST, error_envelope(
+                "bad_request", "provide a public GitHub repository URL of at most 220 characters without credentials"
+            )
         try:
             public_result, public_outcome, public_succeeded = collect(
                 lake, repo, actor=str(payload.get("actor") or "console")
@@ -2093,8 +2100,10 @@ def handle_post(
                 ),
                 on_snapshot_written=on_snapshot_written,
             )
-        except GenerationConflict as exc:
-            return HTTPStatus.CONFLICT, error_envelope("generation_conflict", str(exc))
+        except GenerationConflict:
+            return HTTPStatus.CONFLICT, error_envelope(
+                "generation_conflict", "evidence generation changed; refresh the assessment before retrying"
+            )
         return HTTPStatus.CREATED, envelope(
             "snapshots", assessment_result.data, meta={"outcome": assessment_result.outcome}
         )
@@ -2368,8 +2377,10 @@ def handle_post(
                     actor=str(payload.get("actor") or "console"), expected_generation=payload.get("expected_generation")
                 ),
             )
-        except GenerationConflict as exc:
-            return HTTPStatus.CONFLICT, error_envelope("generation_conflict", str(exc))
+        except GenerationConflict:
+            return HTTPStatus.CONFLICT, error_envelope(
+                "generation_conflict", "evidence generation changed; refresh the assessment before retrying"
+            )
         return (
             HTTPStatus.CREATED if assessment_result.succeeded else HTTPStatus.INTERNAL_SERVER_ERROR,
             envelope("ingestion.eval", assessment_result.data, meta={"outcome": assessment_result.outcome}),
@@ -2397,8 +2408,12 @@ def handle_post(
                 tenant_id=tenant_id,
                 public_url=public_url,
             )
-        except ValueError as exc:
-            return HTTPStatus.BAD_REQUEST, error_envelope("bad_request", str(exc), resource="connector.link.start")
+        except ValueError:
+            return HTTPStatus.BAD_REQUEST, error_envelope(
+                "bad_request",
+                "cloud link could not start; check the connector and public URL configuration",
+                resource="connector.link.start",
+            )
         return HTTPStatus.CREATED, envelope("connector.link.start", session)
     link_complete = _connector_link_action(path, "complete")
     if link_complete is not None:
@@ -2429,7 +2444,12 @@ def handle_post(
             return HTTPStatus.NOT_FOUND, error_envelope(
                 "not_found", "cloud link session not found", resource="connector.link.complete"
             )
-        except ValueError as exc:
-            return HTTPStatus.BAD_REQUEST, error_envelope("bad_request", str(exc), resource="connector.link.complete")
+        except ValueError:
+            return HTTPStatus.BAD_REQUEST, error_envelope(
+                "bad_request",
+                "cloud link could not complete; check the session, provider identifiers and delegation settings; "
+                "hosted Azure requires client_id and tenant-scoped secret references from the link setup",
+                resource="connector.link.complete",
+            )
         return HTTPStatus.CREATED, envelope("connector.link.complete", link_result)
     return HTTPStatus.NOT_FOUND, error_envelope("not_found", "unknown route")
