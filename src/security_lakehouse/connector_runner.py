@@ -999,9 +999,16 @@ def _collect_aws(
     env = runtime_env(env)
     creds = credentials or {}
     scope = options or {}
+    include_roles = scope.get("include_role_policies", False)
+    if isinstance(include_roles, str) and include_roles.strip().lower() in {"true", "false"}:
+        include_roles = include_roles.strip().lower() == "true"
+    if not isinstance(include_roles, bool):
+        raise ConnectorConfigError("include_role_policies must be true or false")
     if fixture_dir:
         fixture_account = env.get(AWS_ACCOUNT_ID_ENV) or str(creds.get("account_id") or "") or "000000000000"
-        return collect_aws_evidence(AWSFixtureClient(fixture_dir), account_id=fixture_account)
+        return collect_aws_evidence(
+            AWSFixtureClient(fixture_dir), account_id=fixture_account, include_role_policies=include_roles
+        )
     # account_id and (optional) cross-account assume-role config come from the
     # connector's stored credentials, with env overrides for operators.
     account_id = env.get(AWS_ACCOUNT_ID_ENV) or str(creds.get("account_id") or "").strip()
@@ -1021,7 +1028,7 @@ def _collect_aws(
     client = AWSClient(region_name=default_region, role_arn=role_arn, external_id=external_id)
     # Never label one account's evidence with another account's id.
     verify_aws_account(client, account_id)
-    rows = collect_aws_evidence(client, account_id=account_id)
+    rows = collect_aws_evidence(client, account_id=account_id, include_role_policies=include_roles)
     raw_regions = scope.get("regions") or [default_region]
     regions = (
         [str(item).strip() for item in raw_regions]

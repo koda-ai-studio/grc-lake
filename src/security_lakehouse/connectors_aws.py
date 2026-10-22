@@ -17,16 +17,20 @@ Two clients sit behind one interface, mirroring ``connectors_okta``:
 
 The collector is strictly read-only and least-privilege: it only ever issues
 ``ListUsers`` / ``ListMFADevices`` / ``GetAccountPasswordPolicy`` /
-``GetAccountSummary`` calls and never mutates AWS state.
+``GetAccountSummary`` and optional IAM role/policy reads; it never mutates AWS state.
 """
 
 from __future__ import annotations
 
+import json
 import re
+from dataclasses import asdict
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from security_lakehouse.aws_iam_policy import normalize_iam_policy_document
+from security_lakehouse.aws_role_policies import iam_gap, iam_rows, read_role_policies
 from security_lakehouse.connector_errors import (
     CollectionGapError,
     ConnectorAccessError,
@@ -35,7 +39,7 @@ from security_lakehouse.connector_errors import (
 from security_lakehouse.connector_ids import stable_id_slug
 from security_lakehouse.delegation import require_aws_delegation
 from security_lakehouse.identity import classify_identity_type
-from security_lakehouse.io import read_json
+from security_lakehouse.io import canonical_sha256, read_json
 from security_lakehouse.models import utc_iso
 
 CONNECTOR_ID = "aws-posture"
@@ -152,6 +156,12 @@ class AWSClient:
     def caller_identity(self) -> dict[str, Any]:
         """``sts:GetCallerIdentity`` for the identity this client reads as."""
         return dict(self.service_client("sts").get_caller_identity())
+
+    def roles(self) -> list[dict[str, Any]]:
+        return iam_rows(self._iam, "list_roles", "Roles")
+
+    def role_policies(self, role_name: str) -> list[dict[str, Any]]:
+        return read_role_policies(self._iam, role_name)
 
     def users(self) -> list[dict[str, Any]]:
         users: list[dict[str, Any]] = []
@@ -274,6 +284,12 @@ class AWSFixtureClient:
 
     def __init__(self, fixture_dir: str | Path) -> None:
         self.fixture = Path(fixture_dir)
+
+    def roles(self) -> list[dict[str, Any]]:
+        return self._read("roles.json")
+
+    def role_policies(self, role_name: str) -> list[dict[str, Any]]:
+        return self._read("role_policies.json")[role_name]
 
     def users(self) -> list[dict[str, Any]]:
         return self._read_list("iam_users.json")
@@ -401,6 +417,7 @@ def collect_aws_evidence(
     account_id: str,
     collected_at: datetime | None = None,
     tenant_id: str = "customer-managed",
+    include_role_policies: bool = False,
 ) -> list[dict[str, Any]]:
     """Collect normalized raw posture evidence from an AWS account.
 
@@ -430,6 +447,114 @@ def collect_aws_evidence(
             rows.append(_access_key_event(account, user_name, user, keys, now, tenant_id, console_access=console))
 
     rows.append(_policy_event(account, client.password_policy(), now, tenant_id))
+    if include_role_policies:
+        rows.extend(_role_policy_events(client, account, now, tenant_id))
+    return rows
+
+
+def _role_policy_events(client: Any, account: str, now: datetime, tenant_id: str) -> list[dict[str, Any]]:
+    rows = []
+    try:
+        inventory = client.roles()
+        if not isinstance(inventory, list):
+            raise ValueError("invalid roles")
+        seen = set()
+        for role in inventory:
+            if (
+                not isinstance(role, dict)
+                or not isinstance(arn := role.get("Arn"), str)
+                or not any(
+                    arn.startswith(f"arn:{partition}:iam::{account}:role/")
+                    for partition in ("aws", "aws-us-gov", "aws-cn")
+                )
+                or not isinstance(name := role.get("RoleName"), str)
+                or not name
+                or arn.rsplit("/", 1)[-1] != name
+                or arn in seen
+            ):
+                raise ValueError("invalid role scope")
+            seen.add(arn)
+    except Exception as exc:  # noqa: BLE001 - optional provider inventory becomes a safe gap
+        inventory_gap = exc if isinstance(exc, CollectionGapError) else iam_gap("list_roles", reason="invalid_data")
+        return [_gap_event(account, inventory_gap, now, tenant_id)]
+
+    for role in sorted(inventory, key=lambda item: item["Arn"]):
+        arn = role["Arn"]
+        policies = []
+        coverage = "complete"
+        gap = None
+        try:
+            raw = client.role_policies(role["RoleName"])
+            if not isinstance(raw, list):
+                raise ValueError("invalid policies")
+            seen_policies = set()
+            for entry in raw:
+                if (
+                    not isinstance(entry, dict)
+                    or entry.get("policy_type") not in ("inline", "managed")
+                    or not isinstance(pid := entry.get("policy_id"), str)
+                    or not pid
+                    or (entry["policy_type"], pid) in seen_policies
+                ):
+                    raise ValueError("invalid policy identity")
+                seen_policies.add((entry["policy_type"], pid))
+                policy = json.loads(
+                    json.dumps(
+                        asdict(
+                            normalize_iam_policy_document(
+                                entry.get("document"),
+                                source_policy_arn=pid if entry["policy_type"] == "managed" else None,
+                            )
+                        )
+                    )
+                )
+                policies.append(
+                    {
+                        "policy_type": entry["policy_type"],
+                        "policy_id": pid,
+                        "policy_version": entry.get("policy_version")
+                        if isinstance(entry.get("policy_version"), str)
+                        else None,
+                        **policy,
+                    }
+                )
+                if policy["completeness"] != "complete":
+                    gap = iam_gap(
+                        "get_policy_version" if entry["policy_type"] == "managed" else "get_role_policy",
+                        reason="invalid_data",
+                    )
+            if any(policy["completeness"] != "complete" for policy in policies):
+                coverage = "partial" if any(policy["statements"] for policy in policies) else "unavailable"
+        except Exception as exc:  # noqa: BLE001 - one role cannot erase other posture evidence
+            policies = []
+            coverage = "unavailable"
+            gap = exc if isinstance(exc, CollectionGapError) else iam_gap("get_role_policy", reason="invalid_data")
+        if gap:
+            gap.collection = f"{gap.collection}:{canonical_sha256(arn)}"
+            rows.append(_gap_event(account, gap, now, tenant_id))
+        rows.append(
+            _event(
+                account=account,
+                collected_at=now,
+                tenant_id=tenant_id,
+                signal="role_policies",
+                event_type="aws.iam.role_policies",
+                asset_id=arn,
+                asset_type="iam_role",
+                controls=[],
+                status="observed",
+                severity="info",
+                evidence_ref=arn,
+                dedupe_key=canonical_sha256(arn),
+                attributes={
+                    "role_name": role["RoleName"],
+                    "policy_coverage": coverage,
+                    "policies": sorted(policies, key=lambda policy: (policy["policy_type"], policy["policy_id"])),
+                    "authorization_coverage": "not_evaluated",
+                    "usage_coverage": "not_collected",
+                },
+            )
+        )
     return rows
 
 

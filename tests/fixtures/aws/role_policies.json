@@ -1,0 +1,38 @@
+{
+  "evidence-reader": [
+    {
+      "policy_type": "managed",
+      "policy_id": "arn:aws:iam::aws:policy/ReadOnlyAccess",
+      "document": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Effect": "Allow",
+            "Action": "s3:GetObject",
+            "Resource": "arn:aws:s3:::example/*"
+          }
+        ]
+      }
+    },
+    {
+      "policy_type": "inline",
+      "policy_id": "transport-guard",
+      "document": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Effect": "Deny",
+            "NotAction": "s3:GetObject",
+            "NotResource": "arn:aws:s3:::example/*",
+            "Condition": {
+              "Bool": {
+                "aws:SecureTransport": false
+              }
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "empty-role": []
+}
