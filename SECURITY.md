@@ -20,6 +20,19 @@ Do not include real credentials or customer evidence. We will acknowledge the
 report, work on a fix in the private advisory, and credit you when the advisory
 is published unless you ask us not to.
 
+## Public repository data
+
+Keep personal credentials, account and subscription identifiers, tenant URLs,
+private infrastructure details, and raw provider receipts out of source, docs,
+tests, screenshots, issues, and pull requests. Use clearly synthetic fixtures
+and placeholders; supply live values through private runtime configuration.
+Do not include real identifiers even in assertions that check they are absent.
+
+Secret scanning runs in pre-commit and across Git history in CI. It does not
+identify every personal account detail, so review examples and evidence before
+publishing them. If a real credential is exposed, revoke or rotate it; deleting
+it from the latest revision does not remove it from Git history.
+
 ## Supported versions
 
 Security fixes go into the latest release of the current minor line and ship
