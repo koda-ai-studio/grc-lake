@@ -123,27 +123,28 @@ Every guide in `docs/`, grouped by task. New here? Start with the
 Several pages describe the architecture at different depths; start with
 [Architecture](ARCHITECTURE.md).
 
-| Guide                                                    | Covers                                                  |
-| -------------------------------------------------------- | ------------------------------------------------------- |
-| [Architecture](ARCHITECTURE.md)                          | Component map, module boundaries, design rules          |
-| [Components](architecture/COMPONENTS.md)                 | Component reference                                     |
-| [Data flow](DATA_FLOW.md)                                | Where evidence is stored and how it moves               |
-| [Data model](DATA_MODEL.md)                              | Evidence, controls, tests, and snapshots                |
-| [Product artifacts](PRODUCT_ARTIFACTS.md)                | Files and outputs GRC Lake produces                     |
-| [Evidence investigation graph](INVESTIGATION_GRAPH.md)   | Exact bindings, graph navigation, relationship meanings |
-| [Console UX](CONSOLE_UX.md)                              | Console operator and contributor guide                  |
-| [Visual system](VISUAL_SYSTEM.md)                        | Console layout and components                           |
-| [Brand](BRAND.md)                                        | Name, voice, and brand constants                        |
-| [Diagram index](diagrams/README.md)                      | All diagrams                                            |
-| [Architecture: local mode](diagrams/architecture.md)     | File-backed architecture                                |
-| [ASCII system map](diagrams/ascii-system-map.md)         | Text system map                                         |
-| [Agent workflow](diagrams/agent-workflow.md)             | Persisted agent harness flow                            |
-| [Identity and auth](diagrams/auth-identity.md)           | Identity and auth boundary                              |
-| [Connector ingestion](diagrams/connector-ingestion.md)   | Read-only connection model                              |
-| [Core GRC loop](diagrams/core-grc-loop.md)               | Sync to auditor-ready proof                             |
-| [Data model diagram](diagrams/data-model.md)             | Analytics lake in local mode                            |
-| [Deployment models](diagrams/deployment-models.md)       | Deployment options                                      |
-| [Dual lakehouse](diagrams/dual-lakehouse.md)             | Snowflake and ClickHouse roles                          |
-| [Evaluation lifecycle](diagrams/evaluation-lifecycle.md) | Evaluation stages                                       |
-| [Hosting](diagrams/hosting.md)                           | Hosting model                                           |
-| [Unified data model](diagrams/unified-data-model.md)     | Single-page data model                                  |
+| Guide                                                    | Covers                                                                     |
+| -------------------------------------------------------- | -------------------------------------------------------------------------- |
+| [Architecture](ARCHITECTURE.md)                          | Component map, module boundaries, design rules                             |
+| [Components](architecture/COMPONENTS.md)                 | Component reference                                                        |
+| [Data flow](DATA_FLOW.md)                                | Where evidence is stored and how it moves                                  |
+| [Data model](DATA_MODEL.md)                              | Evidence, controls, tests, and snapshots                                   |
+| [Entity registry](ENTITY_REGISTRY.md)                    | Explicit source identities, canonical aliases and binding revision history |
+| [Product artifacts](PRODUCT_ARTIFACTS.md)                | Files and outputs GRC Lake produces                                        |
+| [Evidence investigation graph](INVESTIGATION_GRAPH.md)   | Exact bindings, graph navigation, relationship meanings                    |
+| [Console UX](CONSOLE_UX.md)                              | Console operator and contributor guide                                     |
+| [Visual system](VISUAL_SYSTEM.md)                        | Console layout and components                                              |
+| [Brand](BRAND.md)                                        | Name, voice, and brand constants                                           |
+| [Diagram index](diagrams/README.md)                      | All diagrams                                                               |
+| [Architecture: local mode](diagrams/architecture.md)     | File-backed architecture                                                   |
+| [ASCII system map](diagrams/ascii-system-map.md)         | Text system map                                                            |
+| [Agent workflow](diagrams/agent-workflow.md)             | Persisted agent harness flow                                               |
+| [Identity and auth](diagrams/auth-identity.md)           | Identity and auth boundary                                                 |
+| [Connector ingestion](diagrams/connector-ingestion.md)   | Read-only connection model                                                 |
+| [Core GRC loop](diagrams/core-grc-loop.md)               | Sync to auditor-ready proof                                                |
+| [Data model diagram](diagrams/data-model.md)             | Analytics lake in local mode                                               |
+| [Deployment models](diagrams/deployment-models.md)       | Deployment options                                                         |
+| [Dual lakehouse](diagrams/dual-lakehouse.md)             | Snowflake and ClickHouse roles                                             |
+| [Evaluation lifecycle](diagrams/evaluation-lifecycle.md) | Evaluation stages                                                          |
+| [Hosting](diagrams/hosting.md)                           | Hosting model                                                              |
+| [Unified data model](diagrams/unified-data-model.md)     | Single-page data model                                                     |

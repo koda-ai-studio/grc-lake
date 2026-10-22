@@ -89,6 +89,8 @@ const KIND_STYLE: Partial<
 
 const KIND_ICON: Partial<Record<GraphNodeKind, LucideIcon>> = {
   framework: BookOpen,
+  canonical_entity: Boxes,
+  entity_alias: ClipboardCheck,
   ccf_category: BookOpen,
   ccf_family: FolderTree,
   safeguard: ShieldCheck,
@@ -142,6 +144,8 @@ function GraphNodeCard({ id, data, selected }: NodeProps<FlowGraphNode>) {
   }, [id, data.bank, data.neighborhoodRoot, updateNodeInternals]);
   const state = graphEvidenceState(data);
   const hasOutcome = [
+    "canonical_entity",
+    "entity_alias",
     "control",
     "safeguard",
     "evidence",
@@ -175,6 +179,8 @@ function GraphNodeCard({ id, data, selected }: NodeProps<FlowGraphNode>) {
   const displayLabel = graphRecordLabel(data);
   const evidenceState = graphEvidenceState(data);
   const isEvidence = [
+    "canonical_entity",
+    "entity_alias",
     "control",
     "safeguard",
     "evidence",

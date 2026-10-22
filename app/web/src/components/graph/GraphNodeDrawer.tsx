@@ -35,6 +35,8 @@ const KIND_TONE: Record<
   GraphNodeKind,
   "info" | "ready" | "attention" | "critical"
 > = {
+  canonical_entity: "info",
+  entity_alias: "attention",
   framework: "info",
   ccf_category: "info",
   ccf_family: "info",
@@ -298,6 +300,12 @@ export function GraphNodeDrawer({
               ["Status", node.status ? displayLabel(node.status) : undefined],
               ["Source account", node.source_account_id],
               ["Observed", node.observed_at],
+              ["Asserted by", node.asserted_by],
+              ["Asserted at", node.asserted_at],
+              ["Reason", node.assertion_reason],
+              ["Revision", node.binding_revision?.toString()],
+              ["Evidence hash", node.evidence_sha256],
+              ["Revision hash", node.binding_record_hash],
             ] as const
           )
             .filter(([, value]) => value)
