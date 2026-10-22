@@ -63,6 +63,7 @@ def main() -> None:
                         time.sleep(0.1)
                 with urlopen(base + "/console/", timeout=5) as response:
                     assert response.status == 200
+                    assert response.url == base + "/console/dashboard/"
                 with urlopen(base + "/api/v1/snapshots/integrity", timeout=5) as response:
                     assert response.status == 200
                     assert json.load(response)["data"]["ok"] is True

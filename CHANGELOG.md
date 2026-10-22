@@ -5,6 +5,8 @@ Python package, Helm chart, and bundled web console.
 
 ## 0.3.10 - 2026-10-22
 
+- Redirect every console entry URL to the packaged dashboard in both server modes, including `/console/`, instead of serving the static export's unsupported root redirect.
+
 - Preserve account-scoped asset identities and reject unknown identity types rather than treating them as human or machine evidence. Add an experimental canonical entity export with explicit, evidence-referenced aliases and an auditable binding-revision ledger; bindings do not rewrite assessment results or establish identity equivalence automatically.
 
 - Import Agent-Bom reports as scoped observations. Reuse attributed Agent-Bom collection logic for Okta and Entra non-human identities, GCP service-account inventory, and optional AWS role identity policies without a runtime dependency. AWS role policies preserve denies, conditions, literal strings and partial coverage; this does not evaluate effective permissions or establish credentialed provider qualification.
