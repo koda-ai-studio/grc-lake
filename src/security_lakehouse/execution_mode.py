@@ -91,9 +91,15 @@ def server_tenant_id(lake_dir: str | Path | None = None) -> str | None:
     return None
 
 
+def application_database_configured(root: Path) -> bool:
+    """Detect application state without importing optional database dependencies."""
+    return (root / "server/app.db").is_file() or bool(in_server_mode() and runtime_env().get("GRC_LAKE_DATABASE_URL"))
+
+
 __all__ = [
     "COMMERCIAL_HOSTED_ENV",
     "ServerContext",
+    "application_database_configured",
     "in_server_mode",
     "run_in_server_mode",
     "server_execution",

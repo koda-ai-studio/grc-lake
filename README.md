@@ -22,21 +22,25 @@ and preserve the evidence and review decisions behind each result.
 
 ## Quick start
 
-The tour and catalog counts describe current source; see [release status](docs/RELEASE_READINESS.md)
-for changes since the published package.
+Version **0.3.10** is published on PyPI, GitHub and GHCR; see the
+[verified release record](docs/RELEASE_READINESS.md#verified-0310-publication).
+The tour and catalog counts describe current source; later fixes are listed under
+[Unreleased](CHANGELOG.md#unreleased).
 
-Install published v0.3.9 with Python 3.11+ on macOS or Linux:
+Install published v0.3.10 with Python 3.11+ on macOS or Linux:
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install "grc-lake[server]==0.3.9"
+pip install "grc-lake[server]==0.3.10"
 grc-lake fixtures load --company golden --out ./lake --rebase-times
 grc-lake serve --server --allow-insecure-no-auth --lake ./lake --host 127.0.0.1 --port 8787
 ```
 
 Open [localhost:8787/console/dashboard/](http://127.0.0.1:8787/console/dashboard/).
 This loopback demo uses synthetic data and disables authentication.
+Keep the `[server]` extra for 0.3.10: the published bare package has a
+[local-pipeline dependency issue](docs/RELEASE_READINESS.md#known-0310-package-limitation).
 **First task:** find a failing control, inspect its evidence and mapping, then
 export the frozen result. Follow the [sample-data tutorial](docs/TUTORIAL_5_MIN.md);
 continue with the [synthetic workpaper example](docs/AUDITOR_WALKTHROUGH.md)
@@ -51,7 +55,7 @@ Installation time depends on your machine and connection.
 The public Docker image needs no registry login. Use the published templates:
 
 ```bash
-git clone --branch v0.3.9 --depth 1 https://github.com/koda-ai-studio/grc-lake.git
+git clone --branch v0.3.10 --depth 1 https://github.com/koda-ai-studio/grc-lake.git
 cd grc-lake
 docker compose up
 ```
@@ -68,7 +72,7 @@ make demo-local
 For MCP over stdio:
 
 ```bash
-pip install "grc-lake[mcp]==0.3.9"
+pip install "grc-lake[server,mcp]==0.3.10"
 GRC_LAKE_LAKE=./lake grc-lake-mcp
 ```
 

@@ -3,6 +3,12 @@
 All notable GRC Lake changes are summarized here. Versions follow semver for the
 Python package, Helm chart, and bundled web console.
 
+## Unreleased
+
+- Bring selected graph node details into view on phones and tablets where the inspector sits below the canvas. Preserve the adjacent desktop inspector.
+- Restore local fixture loading, pipeline replay and snapshots without optional server dependencies. Detect configured application databases before importing SQLAlchemy; retain schema checks and remediation reconciliation for server-backed lakes. Add a base-only installed-wheel gate on each supported CI Python version.
+- Update installation examples and publication records for verified 0.3.10 artifacts, including the published bare-install workaround. Keep historical screenshot and scan provenance scoped to their original versions.
+
 ## 0.3.10 - 2026-10-22
 
 - Redirect every console entry URL to the packaged dashboard in both server modes, including `/console/`, instead of serving the static export's unsupported root redirect.

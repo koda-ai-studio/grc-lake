@@ -10,7 +10,7 @@ to preserve volumes, release names, secrets and compatibility aliases.
 
 ## Runtime boundary
 
-The 0.3.9 container uses a shell-free Wolfi runtime with matching Python and system libraries. Use the Python CLI
+The 0.3.10 container uses a shell-free Wolfi runtime with matching Python and system libraries. Use the Python CLI
 directly (`docker exec <container> grc-lake ...`); `/bin/sh`, Bash, package managers,
 `readline`, curses, and the optional system-libuuid Python backend are absent.
 Standard Python `uuid` operations remain supported. Install additional libraries

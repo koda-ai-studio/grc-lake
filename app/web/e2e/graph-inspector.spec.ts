@@ -1,5 +1,31 @@
 import { expect, test } from "@playwright/test";
 
+for (const view of ["investigation", "framework"] as const) {
+  test(`mobile ${view} selection brings node details into view`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/console/graph/?focus=control%3ASOC2-CC6.1");
+    if (view === "framework") {
+      await page
+        .getByRole("button", { name: "Framework and repository maps" })
+        .click();
+    }
+    await page
+      .locator('.react-flow__node[data-id="control:SOC2-CC6.1"]')
+      .click();
+    const inspector = page.getByRole("complementary", {
+      name: "Selected graph node",
+    });
+    await expect(
+      inspector.getByRole("heading", { name: "SOC2-CC6.1", exact: true }),
+    ).toBeInViewport();
+    await expect(
+      inspector.getByRole("button", { name: "Close node details" }),
+    ).toBeInViewport();
+  });
+}
+
 test("selected evidence path keeps an adjacent inspector and restores context", async ({
   page,
 }) => {

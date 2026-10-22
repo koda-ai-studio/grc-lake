@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useRef } from "react";
 import {
   AlertTriangle,
   ArrowRight,
@@ -120,6 +121,13 @@ export function GraphNodeDrawer({
   graph,
   onInspectNode,
 }: Props) {
+  const inspectorRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    // Stacked layouts put details below the tall canvas; reveal the selection.
+    if (node?.id && window.matchMedia("(max-width: 1279px)").matches) {
+      inspectorRef.current?.scrollIntoView({ block: "start" });
+    }
+  }, [node?.id]);
   const action = node ? primaryHref(node) : null;
   const isPublicGap =
     node?.kind === "signal_gap" &&
@@ -146,8 +154,9 @@ export function GraphNodeDrawer({
   const related = graph?.nodes.filter((item) => relatedIds.has(item.id)) ?? [];
   return (
     <aside
+      ref={inspectorRef}
       aria-label="Selected graph node"
-      className="min-w-0 self-start rounded-xl border border-line bg-surface xl:max-h-[650px] xl:overflow-auto"
+      className="min-w-0 scroll-mt-20 self-start rounded-xl border border-line bg-surface xl:max-h-[650px] xl:overflow-auto"
     >
       <div className="sticky top-0 z-10 flex items-start gap-3 border-b border-line bg-surface p-4">
         <div className="min-w-0 flex-1">

@@ -56,6 +56,21 @@ back to an unpinned version. Python dependencies continue to use `uv.lock` and
 hash-verified installation. This build configuration does not alter existing
 published release images or their scan results below.
 
+### 0.3.10 release qualification scans
+
+The [0.3.10 release workflow](https://github.com/koda-ai-studio/grc-lake/actions/runs/39790934886)
+qualified AMD64 and emulated ARM64 on source
+`60d1b6a0292ab2e2ec4084082e2e15201a7d31cf`. Each unfiltered Trivy report contains
+29 recognized Wolfi and 111 Python packages, with zero reported vulnerabilities.
+No suppression or applicability exception was added. Anonymous registry downloads
+were hash-verified, and their filesystem layers and runtime settings match the
+scanned images. Signed provenance and authenticated runtime checks passed; see
+[publication verification](RELEASE_READINESS.md#verified-0310-publication).
+
+These artifact checks do not cover every application path. In particular, the
+[published bare-package limitation](RELEASE_READINESS.md#known-0310-package-limitation)
+requires the server extra until a fixed package is published.
+
 ### 0.3.9 release qualification scans
 
 The [0.3.9 release workflow](https://github.com/koda-ai-studio/grc-lake/actions/runs/39160555436)
