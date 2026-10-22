@@ -174,12 +174,9 @@ def register(subparsers: Any) -> None:
         if args.revision is not None and not args.stored_bindings:
             raise ValueError("--revision requires --stored-bindings")
         if args.stored_bindings:
-            from security_lakehouse.entity_history import stored_entity_registry
-
-            result = stored_entity_registry(Path(args.lake), platform_tenant_id=args.tenant_id, revision=args.revision)
-        else:
-            bindings = read_json(args.bindings) if args.bindings else None
-            result = entity_registry(Path(args.lake), platform_tenant_id=args.tenant_id, bindings=bindings)
+            raise ValueError("--stored-bindings export is not available from this command path")
+        bindings = read_json(args.bindings) if args.bindings else None
+        result = entity_registry(Path(args.lake), platform_tenant_id=args.tenant_id, bindings=bindings)
         print(json.dumps(result, indent=2, sort_keys=True))
         return 0
 
