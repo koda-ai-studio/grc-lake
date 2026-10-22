@@ -16,6 +16,7 @@ from security_lakehouse import api_v1, remediation_guidance
 from security_lakehouse.auth.dependencies import get_session, require_scope
 from security_lakehouse.auth.rbac import Identity
 from security_lakehouse.catalog import load_control_catalog
+from security_lakehouse.entity_history import EntityHistoryBusy
 from security_lakehouse.graph_admission import BuildToken, GraphBuildAborted, GraphBuildSlots
 from security_lakehouse.server_routes.deps import parse_dt as _parse_dt
 from security_lakehouse.server_routes.payloads import _page_meta, _pagination, _params, _redact_payload
@@ -84,7 +85,13 @@ def build_vendor_risk_router(
 
         def build() -> dict[str, Any]:
             vendors = vendor_risk_services.list_assessments(session, identity.tenant_id)
-            data = graph.investigation_graph(lake_for(identity), vendors=vendors, checkpoint=token.check, **bounds)
+            data = graph.investigation_graph(
+                lake_for(identity),
+                platform_tenant_id=identity.tenant_id,
+                vendors=vendors,
+                checkpoint=token.check,
+                **bounds,
+            )
             return api_v1.envelope("graph.investigation", _redact_payload(data, identity))
 
         watcher = asyncio.create_task(_cancel_on_disconnect(request, token))
@@ -92,6 +99,8 @@ def build_vendor_risk_router(
             # The default worker-thread call defers cancellation until the build
             # returns, so the slot is released only once the thread has stopped.
             payload = await run_in_threadpool(build)
+        except EntityHistoryBusy:
+            return _unavailable("entity_history_busy", "entity binding history is busy; retry shortly", retry_after=1)
         except GraphBuildAborted as exc:
             if exc.reason == "deadline":
                 return _unavailable("graph_build_timeout", "graph build exceeded its time budget", retry_after=5)

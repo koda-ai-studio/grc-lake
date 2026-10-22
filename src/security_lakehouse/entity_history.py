@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import json
+from collections.abc import Callable
 from copy import deepcopy
 from pathlib import Path
 from typing import Any
@@ -74,7 +74,9 @@ def _check_types(types: dict[str, str], registry: dict[str, Any]) -> None:
         types[key] = kind
 
 
-def _verify(rows: list[dict[str, Any]], tenant: str) -> tuple[dict[str, Any], dict[str, str]]:
+def _verify(
+    rows: list[dict[str, Any]], tenant: str, checkpoint: Callable[[], None] | None = None
+) -> tuple[dict[str, Any], dict[str, str]]:
     if len(rows) > MAX_REVISIONS:
         raise ValueError("entity history revision limit exceeded")
     previous = None
@@ -82,6 +84,8 @@ def _verify(rows: list[dict[str, Any]], tenant: str) -> tuple[dict[str, Any], di
     types: dict[str, str] = {}
     requests: set[str] = set()
     for index, row in enumerate(rows, 1):
+        if checkpoint:
+            checkpoint()
         _object(row, _RECORD_FIELDS)
         if (
             row["schema_version"] != "1.0"
@@ -128,12 +132,12 @@ def _summary(row: dict[str, Any]) -> dict[str, Any]:
     return {key: value for key, value in row.items() if key not in {"bindings", "evidence"}}
 
 
-def _read(lake: Path, tenant: str) -> list[dict[str, Any]]:
+def _read(lake: Path, tenant: str, checkpoint: Callable[[], None] | None = None) -> list[dict[str, Any]]:
     path = _path(lake)
-    with chain_lock(path, shared=True):
+    with chain_lock(path, shared=True, blocking=checkpoint is None):
         _check_size(path)
         rows = read_jsonl(path, missing_ok=True)
-        _verify(rows, tenant)
+        _verify(rows, tenant, checkpoint)
         return rows
 
 
@@ -258,38 +262,19 @@ def stored_entity_registry(lake: Path, *, platform_tenant_id: str, revision: int
     }
 
 
-def register_history(actions: Any) -> None:
-    from security_lakehouse.io import read_json
+class EntityHistoryBusy(ValueError):
+    """A graph read must retry instead of waiting on an operational writer."""
 
-    def record(args: Any) -> int:
-        result = record_bindings(
-            Path(args.lake),
-            platform_tenant_id=args.tenant_id,
-            bindings=read_json(args.bindings),
-            actor=args.actor,
-            reason=args.reason,
-            expected_revision=args.expected_revision,
-            request_id=args.request_id,
-        )
-        print(json.dumps(result, indent=2, sort_keys=True))
-        return 0
 
-    def history(args: Any) -> int:
-        print(json.dumps(binding_history(Path(args.lake), platform_tenant_id=args.tenant_id), indent=2, sort_keys=True))
-        return 0
-
-    for name, handler in (("record", record), ("history", history)):
-        command = actions.add_parser(
-            name, help="record a complete binding revision" if name == "record" else "verify and list binding revisions"
-        )
-        command.add_argument("--lake", required=True)
-        command.add_argument("--tenant-id", required=True)
-        command.set_defaults(func=handler)
-        if name == "record":
-            command.add_argument(
-                "--bindings", required=True, help="complete replacement manifest; omitted aliases are revoked"
-            )
-            command.add_argument("--actor", required=True, help="caller identity; not authenticated approval")
-            command.add_argument("--reason", required=True)
-            command.add_argument("--expected-revision", required=True, type=int, help="0 for the first revision")
-            command.add_argument("--request-id", required=True, help="unique retry key for this exact request")
+def graph_binding_snapshot(lake: Path, tenant: str, checkpoint: Callable[[], None]) -> dict[str, Any] | None:
+    """One verified revision for a bounded graph read; never infer platform tenancy."""
+    checkpoint()
+    path = Path(lake) / "entities/bindings.jsonl"
+    if not path.exists() and not path.is_symlink() and not path.parent.is_symlink():
+        return None
+    try:
+        rows = _read(lake, _text(tenant, "platform_tenant_id"), checkpoint)
+    except BlockingIOError as exc:
+        raise EntityHistoryBusy("entity binding history is busy; retry shortly") from exc
+    checkpoint()
+    return rows[-1] if rows else None

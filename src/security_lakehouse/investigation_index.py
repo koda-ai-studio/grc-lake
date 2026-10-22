@@ -6,7 +6,7 @@ from typing import Any, NamedTuple
 
 ROOT_KINDS = {
     "controls": frozenset({"control", "safeguard", "ccf_category", "ccf_family", "framework"}),
-    "environment": frozenset({"environment", "account", "repository", "asset"}),
+    "environment": frozenset({"environment", "account", "repository", "asset", "canonical_entity", "entity_alias"}),
     "investigation": frozenset({"finding", "source", "vendor", "evidence_type"}),
 }
 

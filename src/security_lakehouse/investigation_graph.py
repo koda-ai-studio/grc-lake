@@ -45,36 +45,46 @@ _MODEL_FILES = (
 )
 
 
-def _model_key(lake: Path, vendors: list[dict[str, Any]] | None, check: Callable[[], None]) -> Key | None:
+def _model_key(
+    lake: Path, vendors: list[dict[str, Any]] | None, check: Callable[[], None], platform_tenant_id: str | None = None
+) -> Key | None:
     identity = generation_identity(lake)
     if identity is None or not all(pinned_path(lake / relative).is_file() for relative in _MODEL_FILES[:2]):
         # Legacy live catalogs include mutable org mapping decisions. Never
         # treat their absence as an immutable empty catalog.
         return None
     versions = []
-    for relative in _MODEL_FILES:
+    for relative in (*_MODEL_FILES, *(("entities/bindings.jsonl",) if platform_tenant_id is not None else ())):
         check()
         versions.append(file_version(lake / relative, base_dir=lake))
     for path in (catalog.DEFAULT_FRAMEWORK_REGISTRY, safeguard_catalog.DEFAULT_FAMILIES):
         check()
         versions.append(file_version(path))
-    return str(lake.resolve()), canonical_sha256([identity, versions, vendors or []])
+    return str(lake.resolve()), canonical_sha256([identity, versions, vendors or [], platform_tenant_id])
 
 
-def _model(lake: Path, vendors: list[dict[str, Any]] | None, check: Callable[[], None]) -> Model:
+def _model(
+    lake: Path, vendors: list[dict[str, Any]] | None, check: Callable[[], None], platform_tenant_id: str | None = None
+) -> Model:
     # Vendor records originate outside the generation. Own the supplied snapshot
     # so subsequent caller mutations cannot alter a cached graph.
     vendors = deepcopy(vendors)
-    key = _model_key(lake, vendors, check)
+    key = _model_key(lake, vendors, check, platform_tenant_id)
 
     def build() -> Model:
-        nodes, edges, frameworks = _build_model(lake, vendors, check)
+        nodes, edges, frameworks = (
+            _build_model(lake, vendors, check)
+            if platform_tenant_id is None
+            else _build_model(lake, vendors, check, platform_tenant_id)
+        )
         version = _graph_version(nodes.values(), edges.values(), check)
         return nodes, edges, frameworks, version, build_indexes(nodes, edges, check)
 
     if key is None:
         return build()
-    return _MODEL_CACHE.get_or_build(key, build, lambda: _model_key(lake, vendors, check) == key, check)
+    return _MODEL_CACHE.get_or_build(
+        key, build, lambda: _model_key(lake, vendors, check, platform_tenant_id) == key, check
+    )
 
 
 def _id(kind: str, *parts: str) -> str:
@@ -115,7 +125,7 @@ def validate_bounds(
 
 
 def _build_model(
-    lake: Path, vendors: list[dict[str, Any]] | None, check: Callable[[], None]
+    lake: Path, vendors: list[dict[str, Any]] | None, check: Callable[[], None], platform_tenant_id: str | None = None
 ) -> tuple[dict[str, dict[str, Any]], dict[str, dict[str, Any]], Mapping[str, Mapping[str, Any]]]:
     """Release source rows and temporary bindings before fingerprinting and traversal."""
     nodes: dict[str, dict[str, Any]] = {}
@@ -276,6 +286,10 @@ def _build_model(
             edge("safeguard:" + sid, eid, "has_evidence")
 
     check()
+    if platform_tenant_id is not None:
+        from security_lakehouse.investigation_entities import add_entity_bindings
+
+        add_entity_bindings(lake, platform_tenant_id, nodes, node, edge, check)
     add_repository_context(lake, node, edge, _id, evidence_by_event)
     check()
 
@@ -309,6 +323,7 @@ def _build_model(
 def investigation_graph(
     lake: Path,
     *,
+    platform_tenant_id: str | None = None,
     root: str | None = None,
     view: str = "controls",
     depth: int = 2,
@@ -326,7 +341,7 @@ def investigation_graph(
     validate_bounds(view=view, depth=depth, limit=limit, root_offset=root_offset, control_offset=control_offset)
     check = checkpoint or (lambda: None)
     check()
-    nodes, _edges, frameworks, version, indexes = _model(lake, vendors, check)
+    nodes, _edges, frameworks, version, indexes = _model(lake, vendors, check, platform_tenant_id)
 
     check()
     if expected_version and version != expected_version:

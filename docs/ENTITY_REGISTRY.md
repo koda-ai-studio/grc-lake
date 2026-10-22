@@ -4,7 +4,8 @@
 source identities and explicitly supplied canonical entity bindings. It is an
 experimental local export. `entities record` optionally persists complete binding
 revisions in a separate operational ledger. Neither command changes findings,
-assessments, workflow identities, or the investigation graph.
+assessments, or workflow identities. Recorded bindings can be inspected in the
+authenticated investigation graph.
 
 ```bash
 grc-lake entities export --lake build/lake --tenant-id customer-a > entities.json
@@ -172,4 +173,26 @@ This local implementation caps a revision at 1,000 source aliases and the
 ledger at 1,000 revisions or 32 MiB, whichever is reached first. Writes exceeding
 those bounds fail without pruning prior records. Those limits bound local
 resource use; they are not a capacity qualification. Authenticated approval,
-provider-valid-time lifecycles, and graph consumption are outside this version.
+and provider-valid-time lifecycles are outside this version.
+
+## Investigation graph
+
+The environment view includes recorded canonical entities and alias assertions.
+Select a canonical entity to inspect its aliases and their exact normalized
+observation hashes. Assertions show the caller-supplied actor, timestamp, reason,
+and ledger revision. Dashed assertion links express a claimed identity, not an
+approved mapping or a compliance result. Existing asset and finding identities
+remain unchanged.
+
+Only aliases whose exact observation exists in the selected generation and is
+not classified stale receive identity links. Missing and stale anchors remain
+visible as disconnected assertions requiring review. Revoked aliases disappear
+from the current graph; ledger changes invalidate cached graph versions. No
+name, email, hostname, or shared native ID is used to infer equivalence.
+
+The HTTP route takes the platform namespace from the authenticated tenant.
+Unscoped library calls omit the canonical layer. Invalid or mismatched history
+fails the graph request; a busy writer produces a retryable response. History
+verification observes graph cancellation checkpoints and retains the ledger
+bounds above. This does not qualify production capacity or authenticated
+approval of CLI assertions.
