@@ -75,12 +75,22 @@ jobs:
           set -euo pipefail
           wheel=$(realpath dist/*.whl)
           smoke=$(realpath tools/smoke_installed_package.py)
+          core_smoke=$(realpath tools/smoke_core_package.py)
           install_root=$(mktemp -d)
           # Lock runtime dependencies and hash the wheel built by this job.
           requirements="$install_root/requirements.txt"
           uv export --frozen --no-dev --extra server --no-emit-project --output-file "$requirements"
           wheel_hash=$(sha256sum "$wheel" | cut -d ' ' -f1)
           printf '%s[server] --hash=sha256:%s\n' "$wheel" "$wheel_hash" >> "$requirements"
+          # Test the advertised zero-dependency local mode before adding extras.
+          python -m venv "$install_root/core"
+          printf '%s --hash=sha256:%s\n' "$wheel" "$wheel_hash" > "$install_root/core-requirements.txt"
+          uv pip install --python "$install_root/core/bin/python" --no-deps --require-hashes -r "$install_root/core-requirements.txt"
+          (
+            cd "$install_root"
+            unset PYTHONPATH GRC_LAKE_DATA_DIR
+            "$install_root/core/bin/python" "$core_smoke" "$install_root/core"
+          )
           python -m venv "$install_root/venv"
           uv pip install --python "$install_root/venv/bin/python" --require-hashes -r "$requirements"
           cd "$install_root"

@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import threading
+from contextlib import nullcontext
 
 import pytest
 
 from security_lakehouse.execution_mode import (
     COMMERCIAL_HOSTED_ENV,
+    application_database_configured,
     in_server_mode,
     run_in_server_mode,
     server_execution,
@@ -21,6 +23,27 @@ def _no_hosted_flag(monkeypatch: pytest.MonkeyPatch) -> None:
 def test_local_by_default() -> None:
     assert in_server_mode() is False
     assert server_tenant_id() is None
+
+
+@pytest.mark.parametrize(
+    ("database_url", "server", "local_database", "configured"),
+    [
+        ("", False, False, False),
+        ("postgresql://example.test/lake", False, False, False),
+        ("postgresql://example.test/lake", True, False, True),
+        ("", True, False, False),
+        ("", False, True, True),
+    ],
+)
+def test_application_database_detection_preserves_local_and_hosted_boundaries(
+    tmp_path, monkeypatch, database_url, server, local_database, configured
+):
+    monkeypatch.setenv("GRC_LAKE_DATABASE_URL", database_url)
+    if local_database:
+        (tmp_path / "server").mkdir()
+        (tmp_path / "server/app.db").touch()
+    with server_execution("tenant-a") if server else nullcontext():
+        assert application_database_configured(tmp_path) is configured
 
 
 def test_server_execution_scopes_the_flag_and_tenant() -> None:

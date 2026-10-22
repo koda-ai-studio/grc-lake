@@ -182,7 +182,7 @@ def run_pipeline_incremental(
 
 
 def _materialize_from_rows(**kwargs) -> PipelineResult:
-    from security_lakehouse.remediation_verification import application_database_configured
+    from security_lakehouse.execution_mode import application_database_configured
 
     lake = Path(kwargs["out_dir"]).resolve()
     root = lake.parent.parent if lake.parent.name == "tenants" else lake

@@ -18,9 +18,9 @@ from security_lakehouse.assessment import build_current_posture
 from security_lakehouse.db import remediation
 from security_lakehouse.db.identity_aliases import identity_aliases
 from security_lakehouse.db.models import RemediationTask, _as_aware
+from security_lakehouse.execution_mode import application_database_configured
 from security_lakehouse.generations import generation_identity, generation_reader
 from security_lakehouse.io import read_json, read_jsonl
-from security_lakehouse.runtime_environment import runtime_env
 from security_lakehouse.verification import verify_lake_integrity
 
 
@@ -128,13 +128,6 @@ def verify_task(
         raise ValueError("task changed during verification; reload it before retrying")
     session.refresh(task)
     return task
-
-
-def application_database_configured(root: Path) -> bool:
-    """True when publication under ``root`` must reconcile application-database tasks."""
-    from security_lakehouse.execution_mode import in_server_mode
-
-    return (root / "server/app.db").is_file() or bool(in_server_mode() and runtime_env().get("GRC_LAKE_DATABASE_URL"))
 
 
 def reconcile_published_tasks(lake: Path, *, tenant_id: str) -> int:
