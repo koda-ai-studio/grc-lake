@@ -266,3 +266,53 @@ def test_fixture_role_metadata_is_allowlisted():
     rows = collect(AWSFixtureClient(FIXTURE))
     assert len(roles(rows)) == 2
     assert "excluded-fixture-sentinel" not in json.dumps(rows)
+
+
+@pytest.mark.parametrize("value", ["", " ", " team "])
+def test_condition_string_literals_are_preserved(value):
+    client = Client(FIXTURE)
+    document = {
+        "Statement": {
+            "Effect": "Allow",
+            "Action": "s3:ListBucket",
+            "Resource": "arn:aws:s3:::example",
+            "Condition": {"StringEquals": {"s3:prefix": value}},
+        }
+    }
+    client.role_policies = lambda _: [{"policy_type": "inline", "policy_id": "read", "document": document}]
+    rows = collect(client)
+    attrs = roles(rows)[0]["attributes"]
+    assert attrs["policy_coverage"] == "complete"
+    assert attrs["policies"][0]["statements"][0]["conditions"] == [["StringEquals", "s3:prefix", [value]]]
+    assert not collection_gaps(rows)
+
+
+@pytest.mark.parametrize("field", ["Resource", "NotResource"])
+def test_resource_string_literals_are_preserved(field):
+    from security_lakehouse.aws_iam_policy import normalize_iam_policy_document
+
+    resource = "arn:aws:s3:::example/object "
+    policy = normalize_iam_policy_document(
+        {"Statement": {"Effect": "Allow", "Action": "s3:GetObject", field: resource}}
+    )
+    assert policy.completeness == "complete"
+    statement = policy.statements[0]
+    assert (statement.resources if field == "Resource" else statement.not_resources) == (resource,)
+
+
+@pytest.mark.parametrize("effect", [[], {}, ["Allow"]])
+def test_malformed_effect_retains_other_readable_statements(effect):
+    client = Client(FIXTURE)
+    client.role_policies = lambda _: [
+        {
+            "policy_type": "inline",
+            "policy_id": "mixed",
+            "document": {"Statement": [POLICY["Statement"][0], {"Effect": effect, "Action": "*", "Resource": "*"}]},
+        }
+    ]
+    rows = collect(client)
+    attrs = roles(rows)[0]["attributes"]
+    assert attrs["policy_coverage"] == "partial"
+    assert attrs["policies"][0]["statements"][0]["actions"] == ["s3:GetObject"]
+    assert attrs["policies"][0]["diagnostics"] == ["statement_1_invalid_effect"]
+    assert collection_gaps(rows)

@@ -19,7 +19,7 @@ class EvidenceCompleteness(StrEnum):
 
 def _strings(value: Any) -> tuple[str, ...]:
     values = value if isinstance(value, list) else [value]
-    return tuple(sorted({item.strip() for item in values if isinstance(item, str) and item.strip()}))
+    return tuple(sorted({item for item in values if isinstance(item, str) and item.strip()}))
 
 
 def _canonical_condition_scalar(item: Any) -> str | None:
@@ -28,8 +28,8 @@ def _canonical_condition_scalar(item: Any) -> str | None:
     if isinstance(item, bool):
         return "true" if item else "false"
     if isinstance(item, str):
-        stripped = item.strip()
-        return stripped or None
+        # Empty prefixes and surrounding spaces are meaningful IAM literals.
+        return item
     if isinstance(item, (int, float)):
         return str(item)
     return None
@@ -55,7 +55,7 @@ def _conditions(value: Any) -> tuple[tuple[str, str, tuple[str, ...]], ...] | No
             items = raw_values if isinstance(raw_values, list) else [raw_values]
             if not items or any(_canonical_condition_scalar(item) is None for item in items):
                 return None
-            normalized.append((operator.strip(), key.strip(), _condition_values(raw_values)))
+            normalized.append((operator, key, _condition_values(raw_values)))
     return tuple(sorted(normalized))
 
 
@@ -109,7 +109,7 @@ def normalize_iam_policy_document(
             diagnostics.append(f"statement_{index}_not_mapping")
             continue
         effect = raw.get("Effect")
-        if effect not in {"Allow", "Deny"}:
+        if effect not in ("Allow", "Deny"):
             diagnostics.append(f"statement_{index}_invalid_effect")
             continue
         forms = ("Action", "NotAction", "Resource", "NotResource")
