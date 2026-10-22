@@ -10405,6 +10405,24 @@
         "summary": "Console"
       }
     },
+    "/console/": {
+      "get": {
+        "operationId": "console_console__get",
+        "responses": {
+          "200": {
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Console"
+      }
+    },
     "/console/trust/{token}": {
       "get": {
         "operationId": "public_trust_page_console_trust__token__get",

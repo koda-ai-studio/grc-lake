@@ -211,19 +211,21 @@ class _Handler(BaseHTTPRequestHandler):
         """Serve Next.js static export files when the React bundle is packaged.
 
         Routes resolve in this order:
-          - /                                     -> dist/index.html (redirects to /console/dashboard/)
-          - /console, /console/                   -> dist/index.html
+          - /, /console, /console/                -> redirect to /console/dashboard/
           - /console/<route>/                     -> dist/<route>/index.html
           - /console/_next/static/<asset>         -> dist/_next/static/<asset>
           - any other /console/<asset>            -> dist/<asset>
 
-        Returns True if the request was handled (200 or 404 served from dist).
+        Returns True if the request was handled or redirected.
         """
         dist = self.web_dist
         if dist is None:
             return False
         if request_path in {"/", "/console", "/console/"}:
-            self._send_file(dist / "index.html", "text/html; charset=utf-8")
+            self.send_response(HTTPStatus.TEMPORARY_REDIRECT)
+            self.send_header("Location", "/console/dashboard/")
+            self.send_header("Content-Length", "0")
+            self.end_headers()
             return True
         if not request_path.startswith("/console/"):
             return False

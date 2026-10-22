@@ -1426,7 +1426,7 @@ grpc = [
 
 [[package]]
 name = "grc-lake"
-version = "0.3.9"
+version = "0.3.10"
 source = { editable = "." }
 
 [package.optional-dependencies]

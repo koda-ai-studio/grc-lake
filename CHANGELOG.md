@@ -3,7 +3,23 @@
 All notable GRC Lake changes are summarized here. Versions follow semver for the
 Python package, Helm chart, and bundled web console.
 
-## Unreleased
+## 0.3.10 - 2026-10-22
+
+- Redirect every console entry URL to the packaged dashboard in both server modes, including `/console/`, instead of serving the static export's unsupported root redirect.
+
+- Preserve account-scoped asset identities and reject unknown identity types rather than treating them as human or machine evidence. Add an experimental canonical entity export with explicit, evidence-referenced aliases and an auditable binding-revision ledger; bindings do not rewrite assessment results or establish identity equivalence automatically.
+
+- Import Agent-Bom reports as scoped observations. Reuse attributed Agent-Bom collection logic for Okta and Entra non-human identities, GCP service-account inventory, and optional AWS role identity policies without a runtime dependency. AWS role policies preserve denies, conditions, literal strings and partial coverage; this does not evaluate effective permissions or establish credentialed provider qualification.
+
+- Reject malformed and incomplete Azure/GCP collections instead of reporting empty success. Guide connector setup through configuration, access testing, sync and evidence review, retaining provider-specific delegation and permission requirements.
+
+- Require complete evidence per asset and sampling window, retain operating deviations even when selected as design evidence, and make readiness holds explicit. Add scoped ISO assessment proposals, a separate ISO 27001 ISMS clause pack, and NIST 800-53 assessment contracts. Proposed mappings remain unapproved and grant no compliance verdict.
+
+- Export portable CCF and framework OSCAL bundles plus frozen coverage, evidence gaps and auditor workpapers. Verify handoff content against retained digests; these checks establish reproducibility and integrity, not source authenticity or sufficient audit evidence. Add synthetic GitHub/Okta/Jira workflow qualification.
+
+- Replace exception-derived API error details with fixed retry/configuration guidance for mapping reviews, public-repository validation, assessment conflicts and cloud linking. Preserve response codes and stale-review rejection; sanitize public cloud-account examples and remove duplicate test imports.
+
+- Refresh locked runtime, console and build dependencies. Container vulnerability scans, authenticated runtime probes and release provenance are required separately for the exact release candidate.
 
 - Bound concurrent investigation reads per authenticated tenant as well as per process. Share limits across credentials, return distinct tenant/process saturation codes, and retain per-tenant rejection counts in the HTTP benchmark. Release both quotas after completion or cancellation.
 

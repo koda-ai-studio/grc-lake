@@ -2802,6 +2802,7 @@ def create_app(lake_dir: str | Path, *, require_auth: bool = True) -> FastAPI:
 
     @app.get("/", response_class=HTMLResponse)
     @app.get("/console", response_class=HTMLResponse)
+    @app.get("/console/", response_class=HTMLResponse)
     def console() -> Response:
         if web_dist is not None:
             return RedirectResponse("/console/dashboard/", status_code=307)

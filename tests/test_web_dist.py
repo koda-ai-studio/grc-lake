@@ -86,7 +86,8 @@ def test_serve_falls_back_to_legacy_when_dist_missing(lake: Path) -> None:
         server.shutdown()
 
 
-def test_serve_prefers_react_index_when_dist_present(tmp_path: Path, lake: Path) -> None:
+@pytest.mark.parametrize("entry", ["/", "/console", "/console/"])
+def test_serve_opens_dashboard_when_dist_present(tmp_path: Path, lake: Path, entry: str) -> None:
     dist = tmp_path / "web_dist"
     dist.mkdir()
     react_index = b"<!doctype html><title>react</title>"
@@ -96,9 +97,9 @@ def test_serve_prefers_react_index_when_dist_present(tmp_path: Path, lake: Path)
 
     server = _spin_handler(lake, dist=dist, legacy_html=b"unused")
     try:
-        status, body, ctype = _get(server, "/console/")
+        status, body, ctype = _get(server, entry)
         assert status == HTTPStatus.OK
-        assert body == react_index
+        assert b"<title>dashboard</title>" in body
         assert ctype.startswith("text/html")
 
         status, body, _ = _get(server, "/console/dashboard/")
@@ -106,6 +107,24 @@ def test_serve_prefers_react_index_when_dist_present(tmp_path: Path, lake: Path)
         assert b"dashboard" in body
     finally:
         server.shutdown()
+
+
+@pytest.mark.parametrize("entry", ["/", "/console", "/console/"])
+def test_server_console_entries_redirect_to_dashboard(tmp_path: Path, monkeypatch, entry: str) -> None:
+    pytest.importorskip("fastapi")
+    from fastapi.testclient import TestClient
+
+    from security_lakehouse import server_app
+
+    dist = tmp_path / "dist"
+    dist.mkdir()
+    (dist / "index.html").write_text("<title>Page not found</title>")
+    monkeypatch.setattr(server_app, "web_dist_dir", lambda: dist)
+    monkeypatch.setattr(server_app, "web_dist_index", lambda: dist / "index.html")
+    with TestClient(server_app.create_app(tmp_path / "lake", require_auth=False)) as client:
+        response = client.get(entry, follow_redirects=False)
+    assert response.status_code == HTTPStatus.TEMPORARY_REDIRECT
+    assert response.headers["location"] == "/console/dashboard/"
 
 
 def test_dist_serving_rejects_directory_traversal(tmp_path: Path, lake: Path) -> None:
