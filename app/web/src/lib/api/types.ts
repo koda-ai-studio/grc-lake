@@ -1337,6 +1337,8 @@ export interface AuditLogEntry {
 // --- Compliance graph -------------------------------------------------------
 
 export type GraphNodeKind =
+  | "canonical_entity"
+  | "entity_alias"
   | "ccf_category"
   | "ccf_family"
   | "safeguard"
@@ -1368,6 +1370,8 @@ export type GraphNodeKind =
   | "evidence";
 
 export type GraphEdgeKind =
+  | "has_alias_assertion"
+  | "assertion_references_evidence"
   | "maps_to"
   | "produces"
   | "has_finding"
@@ -1383,6 +1387,12 @@ export type GraphEdgeKind =
   | "requires_status_check";
 
 export interface GraphNode {
+  asserted_by?: string;
+  asserted_at?: string;
+  assertion_reason?: string;
+  evidence_sha256?: string;
+  binding_revision?: number;
+  binding_record_hash?: string;
   source_account_id?: string;
   observed_at?: string;
   raw_sha256?: string;
