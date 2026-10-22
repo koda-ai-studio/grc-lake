@@ -192,7 +192,3 @@ def register(subparsers: Any) -> None:
         "--revision", type=int, help="export recorded binding evidence for a historical revision"
     )
     export_parser.set_defaults(func=export)
-
-    from security_lakehouse.entity_history import register_history
-
-    register_history(actions)
