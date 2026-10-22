@@ -281,7 +281,8 @@ def test_hosted_link_api_requires_delegation_and_hints_the_tenant_prefix(hosted_
         headers=headers,
     )
     assert wrong_prefix.status_code == HTTPStatus.BAD_REQUEST
-    assert prefix in wrong_prefix.json()["errors"][0]["detail"]
+    # The successful setup supplies the exact prefix; errors use fixed guidance.
+    assert "tenant-scoped secret references" in wrong_prefix.json()["errors"][0]["detail"]
 
     ok = client.post(
         "/api/v1/connectors/azure-posture/link/complete",
