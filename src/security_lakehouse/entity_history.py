@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from security_lakehouse import strict_json
-from security_lakehouse.entity_registry import _digest, _object, _text, _time
+from security_lakehouse.entity_registry import _digest, _object, _text, _time, build_entity_registry, entity_registry
 from security_lakehouse.generations import assert_mutable, generation_identity, generation_reader
 from security_lakehouse.io import canonical_sha256, iter_jsonl, read_jsonl
 from security_lakehouse.ledger import append_chained_jsonl_batch, canonical_record_hash, chain_lock
@@ -75,8 +75,6 @@ def _check_types(types: dict[str, str], registry: dict[str, Any]) -> None:
 
 
 def _verify(rows: list[dict[str, Any]], tenant: str) -> tuple[dict[str, Any], dict[str, str]]:
-    from security_lakehouse.entity_registry import build_entity_registry
-
     if len(rows) > MAX_REVISIONS:
         raise ValueError("entity history revision limit exceeded")
     previous = None
@@ -168,8 +166,6 @@ def record_bindings(
     replay: list[dict[str, Any]] = []
 
     def build(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
-        from security_lakehouse.entity_registry import build_entity_registry, entity_registry
-
         _check_size(path)
         before, types = _verify(rows, tenant)
         for row in rows:
@@ -239,8 +235,6 @@ def binding_history(lake: Path, *, platform_tenant_id: str) -> dict[str, Any]:
 
 def stored_entity_registry(lake: Path, *, platform_tenant_id: str, revision: int | None = None) -> dict[str, Any]:
     """Current reads revalidate live evidence; numbered reads retain recording-time evidence."""
-    from security_lakehouse.entity_registry import build_entity_registry, entity_registry
-
     tenant = _text(platform_tenant_id, "platform_tenant_id")
     rows = _read(lake, tenant)
     if not rows:

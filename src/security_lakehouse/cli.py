@@ -55,7 +55,7 @@ def _parser() -> argparse.ArgumentParser:
     from security_lakehouse.distributed.commands import register
 
     register(sub)
-    from security_lakehouse.entity_registry import register as register_entities
+    from security_lakehouse.entity_cli import register as register_entities
 
     register_entities(sub)
 
