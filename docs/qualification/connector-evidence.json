@@ -65,7 +65,8 @@
       "connector_id": "aws-posture",
       "fixture_tests": [
         "tests/test_aws_connector.py",
-        "tests/test_collection_completeness.py"
+        "tests/test_collection_completeness.py",
+        "tests/test_aws_role_policies.py"
       ],
       "live_record": {
         "date": "2026-10-11",

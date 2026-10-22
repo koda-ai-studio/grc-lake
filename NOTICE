@@ -5,6 +5,9 @@ src/agent_bom/identity/okta_nhi.py in Agent-Bom, revision
 95bc4a9c8e50d4bfbce59b91db8f68429cfbf9e5. Portions of
 src/security_lakehouse/connectors_entra.py are adapted from
 src/agent_bom/identity/entra_nhi.py at the same revision.
+Portions of src/security_lakehouse/aws_iam_policy.py and aws_role_policies.py
+are adapted from src/agent_bom/cloud/aws_iam_evidence.py and
+aws_iam_collector.py at the same revision.
 Agent-Bom's notice follows:
 
 agent-bom

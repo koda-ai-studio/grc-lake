@@ -176,6 +176,35 @@ and agents:
 4. enable only after the probe succeeds,
 5. sync manually or by schedule.
 
+### Optional AWS role policy evidence
+
+Enable **Collect IAM role policies** in AWS Posture's Config tab, or configure
+`options.include_role_policies: true`. It defaults to false. For the additional
+read grants, deploy the CloudFormation role with `IncludeRolePolicies=true` or
+set Terraform `include_role_policies = true`. The six actions are `iam:ListRoles`,
+`iam:ListAttachedRolePolicies`, `iam:ListRolePolicies`, `iam:GetPolicy`,
+`iam:GetPolicyVersion`, and `iam:GetRolePolicy`.
+
+GRC Lake directly adapts Agent-Bom's managed/inline policy reads and policy
+normalization at revision `95bc4a9c8e50d4bfbce59b91db8f68429cfbf9e5` (see
+[NOTICE](../NOTICE)); no Agent-Bom installation or report is required.
+The AWS client uses the existing delegated session and verified account.
+[Managed policy versions](https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetPolicyVersion.html)
+and [inline role policies](https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetRolePolicy.html)
+produce one `aws.iam.role_policies` observation per role, scoped by its ARN.
+
+Evidence retains explicit denies, Action/NotAction, Resource/NotResource, and
+conditions. `policy_coverage` describes the collected identity policies only.
+A successful empty policy list is complete; failed lists/reads and malformed
+policies emit collection gaps. Other roles and existing user posture continue.
+The observation has no mapped controls or authorization verdict. Trust policies,
+permissions boundaries, resource policies, SCPs, effective permissions, and usage
+are outside this collection. No Access Advisor jobs are started.
+
+Offline fixtures `roles.json` and `role_policies.json` exercise persistence,
+replay, scope boundaries, and safe failures. They do not establish credentialed
+AWS qualification.
+
 ### AWS multi-account scale
 
 AWS posture uses the same third-party role pattern for one account or hundreds:

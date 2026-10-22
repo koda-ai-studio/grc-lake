@@ -543,6 +543,13 @@ export const CONNECTOR_SCOPE_FIELDS: Record<string, ConnectorFieldDef[]> = {
   ],
   "aws-posture": [
     {
+      name: "include_role_policies",
+      label: "Collect IAM role policies",
+      placeholder: "",
+      type: "checkbox",
+      hint: "Read managed and inline role policies. Requires six additional IAM read permissions; authorization and usage are not evaluated.",
+    },
+    {
       name: "region",
       label: "Region",
       placeholder: "us-east-1",
