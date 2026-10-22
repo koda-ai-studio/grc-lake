@@ -6,7 +6,7 @@ import hashlib
 import re
 
 _UNSAFE = re.compile(r"[^a-z0-9_.:-]+")
-_DIGEST_CHARS = 12
+_DIGEST_CHARS = 32
 
 
 def stable_id_slug(
@@ -17,24 +17,27 @@ def stable_id_slug(
     keep: str = "head",
     unsafe: re.Pattern[str] = _UNSAFE,
 ) -> str:
-    """Slug ``seed`` into a stable id that stays unique when it must be shortened.
+    """Encode source identifiers without folding case or replacing punctuation.
 
-    Cloud resource names share long common prefixes, so plain truncation maps
-    distinct resources onto one id and the later row silently replaces the
-    earlier one. A slug over ``limit`` keeps its readable head (or tail, with
-    ``keep="tail"``) and appends a digest of the full seed. Seeds that already
-    fit keep their historical id.
+    Safe lowercase seeds retain their identity. Escapes include percent itself;
+    shortened IDs use a reserved tilde and a digest of the original bytes.
+    Snapshot connectors replace older lossy IDs on their next complete refresh.
     """
-    raw = str(seed).lower()
-    slug = unsafe.sub("-", raw).strip("-")
-    if not slug:
+    raw = str(seed)
+    if not raw:
         return fallback
+    if limit <= _DIGEST_CHARS + 1 or keep not in {"head", "tail"}:
+        raise ValueError("invalid connector identity length or retention mode")
+    slug = "".join(
+        "".join(f"%{byte:02x}" for byte in char.encode("utf-8")) if char in "%~" or unsafe.fullmatch(char) else char
+        for char in raw
+    )
     if len(slug) <= limit:
         return slug
     digest = hashlib.sha256(raw.encode("utf-8")).hexdigest()[:_DIGEST_CHARS]
     room = limit - _DIGEST_CHARS - 1
-    kept = slug[-room:].strip("-") if keep == "tail" else slug[:room].rstrip("-")
-    return f"{kept}-{digest}"
+    kept = slug[-room:] if keep == "tail" else slug[:room]
+    return f"{kept}~{digest}"
 
 
 __all__ = ["stable_id_slug"]

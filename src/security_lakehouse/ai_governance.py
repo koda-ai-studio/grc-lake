@@ -8,7 +8,6 @@ the event-backed inventory and lineage evidence model.
 
 from __future__ import annotations
 
-from collections import Counter
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -404,8 +403,7 @@ def list_ai_inventory(*, lake: Path, limit: int = 100, offset: int = 0) -> list[
     items = _merged_inventory(lake=lake, events=ai_events)
     start = max(offset, 0)
     end = start + max(limit, 1)
-    counts = Counter(item["asset_id"] for item in items)
-    names = {asset: name for asset, name in load_asset_names(lake).items() if counts[asset] == 1}
+    names = load_asset_names(lake)
     return with_asset_names(items[start:end], names)
 
 

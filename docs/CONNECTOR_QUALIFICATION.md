@@ -31,6 +31,7 @@ and [Databricks #734](https://github.com/koda-ai-studio/grc-lake/issues/734).
 | `clickhouse-telemetry-lake` | Implemented | [clickhouse_connector](../tests/test_clickhouse_connector.py); [collection_completeness](../tests/test_collection_completeness.py) | No scoped live record linked | Unassigned |
 | `crowdstrike-falcon` | Preview | [crowdstrike_connector](../tests/test_crowdstrike_connector.py); [collection_completeness](../tests/test_collection_completeness.py) | No scoped live record linked | Unassigned |
 | `databricks-evidence-lake` | Preview | [databricks_connector](../tests/test_databricks_connector.py) | No scoped live record linked | Unassigned |
+| `entra-identity` | Preview | [entra_connector](../tests/test_entra_connector.py) | No scoped live record linked | Unassigned |
 | `gcp-posture` | Implemented | [gcp_connector](../tests/test_gcp_connector.py) | [2026-10-11; source basis `ccd9d9c3`](../docs/CURRENT_STATE.md#earlier-bounded-provider-qualification): Project IAM/assets, 181 raw records; no organization-policy rows, inherited/effective policy coverage unestablished. | Unassigned |
 | `github-security` | Implemented | [repo_governance](../tests/test_repo_governance.py); [github_collection_contract](../tests/test_github_collection_contract.py); [connector_runner](../tests/test_connector_runner.py) | No scoped live record linked | Unassigned |
 | `gitlab-security` | Implemented | [repo_governance](../tests/test_repo_governance.py); [collection_completeness](../tests/test_collection_completeness.py) | No scoped live record linked | Unassigned |
@@ -66,6 +67,7 @@ Qualify the actual principal, account, resource scope and provider version separ
 | `clickhouse-telemetry-lake` | `read_only_role` | Read metadata for allowed databases; SELECT on discovered evidence tables or views; SELECT-only grants for selected evidence surfaces |
 | `crowdstrike-falcon` | `scoped_token` | Hosts: Read; Prevention policies: Read; Alerts: Read |
 | `databricks-evidence-lake` | `read_only_role` | CAN USE on the SQL warehouse; USE CATALOG on the evidence catalog; USE SCHEMA on the evidence schema; SELECT on the four TrustOps evidence views |
+| `entra-identity` | `scoped_token` | Application.Read.All |
 | `gcp-posture` | `scoped_token` | resourcemanager.projects.get; iam.roles.list; cloudasset.assets.listResource |
 | `github-security` | `scoped_token` | metadata:read; administration:read; code_scanning_alerts:read; secret_scanning_alerts:read; dependabot_alerts:read |
 | `gitlab-security` | `scoped_token` | read_api; read_repository; read_user |

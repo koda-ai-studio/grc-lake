@@ -60,6 +60,23 @@ const PRESETS: Record<string, IntegrationPreset> = {
       "No Azure password or client secret is stored in GRC Lake.",
     ],
   },
+  "entra-identity": {
+    connectorId: "entra-identity",
+    title: "Entra machine identities",
+    authLabel: "Graph read-only permission",
+    badges: ["Application.Read.All", "Metadata only"],
+    summary:
+      "Read service principals, managed identities, and application credential-expiry metadata in your Entra tenant.",
+    providerSetup:
+      "An Entra administrator grants Application.Read.All admin consent to your app registration. Azure subscription Reader access does not grant this directory permission.",
+    trustOpsInput:
+      "Entra tenant ID and your app registration's credential reference.",
+    advancedTitle: "Evidence boundaries",
+    advancedDetails: [
+      "Credential values are excluded from evidence. Expiry is metadata, not a last-use observation or a passing control.",
+      "Uncollected owners, permissions and usage remain unknown; denied listings appear as coverage gaps.",
+    ],
+  },
   "intune-devices": {
     connectorId: "intune-devices",
     title: "Intune devices",
@@ -248,16 +265,17 @@ const PRESETS: Record<string, IntegrationPreset> = {
     connectorId: "okta-identity",
     title: "Okta identity",
     authLabel: "Okta API token reference",
-    badges: ["Okta API token reference", "Read-only scopes"],
+    badges: ["Okta API token reference", "Read-only authority"],
     summary:
-      "Use a scoped Okta token reference to read users, factors, and MFA policy evidence.",
+      "Read users, factors, and MFA policy evidence, with optional non-human identity metadata.",
     providerSetup:
-      "Create a read-only Okta API token with users, factors, and policy read scopes.",
+      "Create an API token from an administrator with the required user, factor, and policy read permissions.",
     trustOpsInput: "Okta org URL and the runtime secret reference name.",
     advancedTitle: "System Log option",
     advancedDetails: [
       "Use Okta System Log as a separate event-stream connector when login events are needed.",
       "GRC Lake stores the reference name, not the token value.",
+      "Optional non-human identity collection also needs application and API-token metadata read authority.",
     ],
   },
   "okta-system-log": {

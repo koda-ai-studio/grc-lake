@@ -23,6 +23,7 @@ from threading import Lock
 from typing import Any
 
 from security_lakehouse import strict_json
+from security_lakehouse.asset_names import AssetNames, asset_name_for, names_from_assets
 from security_lakehouse.connectors import DEFAULT_CONNECTOR_CATALOG, load_connector_catalog
 from security_lakehouse.event_status import FAIL_STATUSES
 from security_lakehouse.evidence_freshness import (
@@ -125,7 +126,7 @@ def build_current_posture(
     return window.render(evaluated_at)
 
 
-def _posture_assets(lake: Path) -> tuple[list[dict[str, Any]], int, dict[str, str]]:
+def _posture_assets(lake: Path) -> tuple[list[dict[str, Any]], int, AssetNames]:
     """Use the compact generation projection, or stream legacy asset rows."""
     from security_lakehouse.generations import pinned_path
 
@@ -133,19 +134,19 @@ def _posture_assets(lake: Path) -> tuple[list[dict[str, Any]], int, dict[str, st
     projection = pinned_path(lake / "gold/dashboard_data.json")
     if projection.is_file() and projection.stat().st_size <= 16 * 1024 * 1024 and source.is_file():
         data = read_json(projection).get("posture_assets", {})
-        if data.get("schema_version") == "trustops.posture_assets.v1" and data.get("source_sha256") == file_sha256(
+        if data.get("schema_version") == "trustops.posture_assets.v2" and data.get("source_sha256") == file_sha256(
             source
         ):
-            return data["top_risk_assets"], int(data["asset_count"]), data["asset_names"]
+            return data["top_risk_assets"], int(data["asset_count"]), names_from_assets(data["asset_names"])
     top: list[dict[str, Any]] = []
-    names: dict[str, str] = {}
+    names: AssetNames = {}
     count = 0
     for row in iter_jsonl(source, missing_ok=True):
         count += 1
         if len(top) < 10:
             top.append(row)
         if row.get("asset_id") and row.get("asset_name"):
-            names[str(row["asset_id"])] = str(row["asset_name"])
+            names.update(names_from_assets([row]))
     return top, count, names
 
 
@@ -885,7 +886,7 @@ def build_violations(
     *,
     events_path: str | Path | None = None,
     max_violations: int | None = None,
-    asset_names: dict[str, str] | None = None,
+    asset_names: AssetNames | None = None,
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     """Build violation rows plus aggregate counts for audit-scale lakes.
 
@@ -906,7 +907,7 @@ def _build_violations_capped(
     events: Iterable[dict[str, Any]],
     *,
     max_violations: int | None,
-    asset_names: dict[str, str] | None = None,
+    asset_names: AssetNames | None = None,
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     total = 0
     critical = 0
@@ -935,6 +936,7 @@ def _build_violations_capped(
                 "control_id": control_id,
                 "event_id": event["event_id"],
                 "asset_id": event["asset_id"],
+                "source_account_id": event.get("source_account_id", event.get("tenant_id", "")),
                 "asset_owner": event["asset_owner"],
                 "environment": event["environment"],
                 "source": event["source"],
@@ -946,8 +948,8 @@ def _build_violations_capped(
                 "raw_sha256": event["raw_sha256"],
                 "detected_at": event["event_time"],
             }
-            if asset_names and event["asset_id"] in asset_names:
-                row["asset_name"] = asset_names[event["asset_id"]]
+            if asset_names and (name := asset_name_for(event, asset_names)):
+                row["asset_name"] = name
             if max_violations is None:
                 retained.append(row)
                 continue

@@ -1,0 +1,30 @@
+[
+  {
+    "id": "app-1",
+    "appId": "client-1",
+    "displayName": "Synthetic build app",
+    "passwordCredentials": [
+      {
+        "endDateTime": "2026-12-01T00:00:00Z",
+        "secretText": "never-export-secret"
+      }
+    ],
+    "keyCredentials": [
+      {
+        "endDateTime": "2026-11-01T00:00:00Z",
+        "key": "never-export-certificate"
+      }
+    ]
+  },
+  {
+    "id": "orphan-1",
+    "appId": "orphan-client",
+    "displayName": "Synthetic orphan app",
+    "passwordCredentials": [
+      {
+        "endDateTime": "2026-12-02T00:00:00Z"
+      }
+    ],
+    "keyCredentials": []
+  }
+]

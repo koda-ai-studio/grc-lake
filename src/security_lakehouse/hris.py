@@ -15,11 +15,11 @@ them from auditor and public-share roles.
 
 from __future__ import annotations
 
-import re
 from dataclasses import dataclass
 from datetime import date, datetime
 from typing import Any
 
+from security_lakehouse.connector_ids import stable_id_slug
 from security_lakehouse.models import utc_iso
 
 # Controls verified to exist in controls/catalog.json. All are satisfied by
@@ -76,7 +76,7 @@ def employment_event(
     collected_at: datetime,
     tenant_id: str,
 ) -> dict[str, Any]:
-    stable = re.sub(r"[^a-z0-9_.:-]+", "-", f"{org}:employment:{record.employee_id}".lower()).strip("-")[:96]
+    stable = stable_id_slug(f"{org}:employment:{record.employee_id}", fallback="hris")
     return {
         "event_id": f"{vendor}-{stable}",
         "tenant_id": tenant_id,
