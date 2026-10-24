@@ -185,6 +185,13 @@ export const CONNECTOR_VISUALS: Record<string, ConnectorVisual> = {
     bg: "#eff6ff",
     categoryLabel: "Personnel",
   },
+  "training-completion": {
+    vendor: "Training export",
+    mark: "TR",
+    accent: "#0f766e",
+    bg: "#f0fdfa",
+    categoryLabel: "Security training",
+  },
   "jamf-devices": {
     vendor: "Jamf",
     mark: "JF",
@@ -198,6 +205,13 @@ export const CONNECTOR_VISUALS: Record<string, ConnectorVisual> = {
     accent: "#e01f3d",
     bg: "#fff1f2",
     categoryLabel: "Endpoint protection",
+  },
+  "snyk-vulnerabilities": {
+    vendor: "Snyk",
+    mark: "SK",
+    accent: "#4c4a73",
+    bg: "#f3f2f8",
+    categoryLabel: "Vulnerability scanning",
   },
   "kubernetes-cluster": {
     vendor: "Kubernetes",

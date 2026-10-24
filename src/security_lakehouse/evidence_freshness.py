@@ -39,6 +39,7 @@ SOURCE_CONNECTOR_ALIASES = {
     "runtime-gateway": "runtime-gateway",
     "scanner": "object-storage-evidence",
     "siem": "siem-alerts",
+    "snyk": "snyk-vulnerabilities",
     "ticketing": "ticketing",
 }
 

@@ -503,11 +503,19 @@ def _missing_required_config(
 
     if connector_id == "lambda-cloud":
         return ["credential_ref"] if not _has_value(credentials, "credential_ref") else []
+    if connector_id == "snyk-vulnerabilities":
+        # The region defaults to SNYK-US-01 and is checked against the allowlist at sync.
+        return [] if _has_value(credentials, "credential_ref") else ["credential_ref"]
 
     if connector_id == "kubernetes-cluster":
         # The kubeconfig (or in-cluster service account) is resolved at sync
         # time; only the cluster label is required to enable.
         return ["cluster_name"] if not _has_value(credentials, "cluster_name") else []
+
+    if connector_id == "training-completion":
+        # The export is read from a local path confined to the operator's
+        # allowed root (per tenant in hosted mode); there is no provider secret.
+        return ["path"] if not _has_value(credentials, "path") else []
 
     if connector_id == "gcp-posture":
         # Credentials resolve through Application Default Credentials, so only

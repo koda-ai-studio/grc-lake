@@ -12,5 +12,6 @@ not the secret itself.
 - **Snowflake** uses a read-only service identity with a key-pair or OAuth token reference. GRC Lake stores identifiers, not passwords or private-key contents. Snowflake is one of the existing-lake readers.
 - **GitHub** uses a GitHub App installation token, which expires within an hour.
 - **SaaS sources** use scoped API tokens or an integration-user login.
+- **Snyk** uses a read-only API token by reference (`credential_ref`, default `SNYK_TOKEN`), sent only to the allowlisted API host of the configured Snyk region. See [Snyk](CONNECTORS.md#snyk-vulnerability-issues-per-project-preview).
 
 Ship your own connector as a Python package: [adding connectors](ADDING_CONNECTORS.md#shipping-a-connector-as-a-package).

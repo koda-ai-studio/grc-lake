@@ -1097,6 +1097,7 @@ def test_oauth_client_credentials_fallback_matches_the_console_form() -> None:
         ("crowdstrike-falcon", {"client_id": "c"}, "cloud, client_secret_ref"),
         ("kubernetes-cluster", {"context": "prod"}, "cluster_name"),
         ("lambda-cloud", {}, "credential_ref"),
+        ("training-completion", {}, "path"),
     ],
 )
 def test_preview_endpoint_connectors_name_missing_enablement_fields(
@@ -1116,6 +1117,7 @@ def test_preview_endpoint_connectors_name_missing_enablement_fields(
         ("crowdstrike-falcon", {"cloud": "eu-1", "client_id": "c", "client_secret_ref": "CROWDSTRIKE_CLIENT_SECRET"}),
         ("kubernetes-cluster", {"cluster_name": "prod-eks"}),
         ("lambda-cloud", {"credential_ref": "LAMBDA_API_KEY"}),
+        ("training-completion", {"path": "/srv/exports/lms"}),
     ],
 )
 def test_preview_endpoint_connectors_accept_complete_configuration(

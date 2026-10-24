@@ -143,6 +143,23 @@ const PRESETS: Record<string, IntegrationPreset> = {
       "Any other report column is ignored and never stored.",
     ],
   },
+  "training-completion": {
+    connectorId: "training-completion",
+    title: "Training completion export",
+    authLabel: "Local export path",
+    badges: ["CSV or JSON", "No provider credentials"],
+    summary:
+      "Schedule your LMS or training platform to export assignments and completions with the GRC Lake column contract, then point this connector at the file or directory. Results are joined to HR personnel when an HR connector is enabled.",
+    providerSetup:
+      "A training admin schedules a recurring export (CSV or JSON) into the directory GRC Lake may read.",
+    trustOpsInput:
+      "Absolute path of the export file or directory under the allowed local root.",
+    advancedTitle: "Export column contract",
+    advancedDetails: [
+      "person_email or employee_id, course_id, course_name, assigned_at, due_at, completed_at, status, score, required.",
+      "Any other column is ignored and never stored. Malformed or empty exports fail the sync.",
+    ],
+  },
   "jamf-devices": {
     connectorId: "jamf-devices",
     title: "Jamf Pro devices",
@@ -175,6 +192,23 @@ const PRESETS: Record<string, IntegrationPreset> = {
     advancedDetails: [
       "Host ID and name, platform, OS and sensor version, last seen, reduced functionality mode, and prevention policy; unresolved alert counts by severity for the last 30 days.",
       "MAC and IP addresses, serial numbers, user names, and alert details beyond status and severity are never stored.",
+    ],
+  },
+  "snyk-vulnerabilities": {
+    connectorId: "snyk-vulnerabilities",
+    title: "Snyk vulnerabilities",
+    authLabel: "Read-only API token",
+    badges: ["View Organization", "View Project", "Read-only"],
+    summary:
+      "Create a read-only Snyk token, store it as a secret reference, then pick the Snyk region. Sync reads organizations, projects, and their open-source, container, and code vulnerability issues.",
+    providerSetup:
+      "A Snyk group administrator creates a Group Viewer service account, or a user whose role can only view organizations and projects.",
+    trustOpsInput: "Snyk region and the API token reference.",
+    advancedTitle: "What is collected",
+    advancedDetails: [
+      "Per active project: name, type, origin, last test time, and issue counts. Per vulnerability issue: severity, status, ignore flag, problem and CVE IDs, fixability, risk score, and created and resolved times.",
+      "A project passes only when Snyk tested it within the configured window (7 days by default). Ignored issues and untested projects never pass.",
+      "Issue descriptions, code flows, and dependency coordinates are never stored. License, IaC, cloud, and secrets issues are counted, not evaluated.",
     ],
   },
   "kubernetes-cluster": {

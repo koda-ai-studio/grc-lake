@@ -13,95 +13,82 @@
 </p>
 
 **Turn security evidence into traceable control assessments and reviewable audit workpapers.**
-GRC Lake is open-source and self-hosted, running in infrastructure you control.
-Read evidence from existing systems and security lakes, evaluate versioned rules,
-and preserve the evidence and review decisions behind each result.
+Open-source and self-hosted: read evidence from the systems and security lakes you
+already run, evaluate versioned control tests, and keep the evidence and review
+decisions behind every result.
 
-- **Traceable:** every result links to its source records, rule version, and
-  review decision; snapshots form a hash-chained ledger you can re-verify.
-- **Works with what you have:** read cloud, identity, and code systems directly,
-  or query OCSF tables already in your security lake.
+- **Traceable:** each result links to its source records, rule version, and review
+  decision; snapshots form a hash-chained ledger you can re-verify.
+- **Works with what you have:** connect cloud, identity, endpoint, and code systems
+  directly, or query OCSF tables already in your lake.
 - **One control, many frameworks:** reusable safeguards map to SOC 2, ISO 27001,
   NIST, and more, with reviewed and proposed mappings kept apart.
-- **Agent-ready:** console, REST API, CLI, and MCP share one model. Agents
-  propose; humans approve.
 
-**[Open the live demo](https://koda-ai-studio.github.io/grc-lake/)**: click
-through the console in your browser on synthetic sample data. Nothing to
-install; the demo is read-only.
+**[Open the live demo →](https://koda-ai-studio.github.io/grc-lake/)** Click through the
+console on synthetic data. Nothing to install.
 
-[Quick start](#quick-start) · [Product tour](#product-tour) · [Already on OCSF?](#already-on-ocsf) · [Self-host](#self-host) ·
-[Engineering review](#engineering-review) · [Coverage](docs/CURRENT_STATE.md) · [Documentation](docs/README.md)
+[Quick start](#quick-start) · [Product tour](#product-tour) · [Connect evidence](#connect-evidence) ·
+[Already on OCSF?](#already-on-ocsf) · [Frameworks](#frameworks) · [Self-host](#self-host) · [Docs](docs/README.md)
 
 ## Quick start
 
-See the console on a synthetic company with one command (Python 3.11+ and
-[uv](https://docs.astral.sh/uv/)):
+Python 3.11+ and [uv](https://docs.astral.sh/uv/):
 
 ```bash
 uvx --from "grc-lake[server]" grc-lake demo
 ```
 
-Or with pip: `pip install "grc-lake[server]"`, then `grc-lake demo`.
-The demo loads synthetic evidence into a temporary lake, serves
-[localhost:8787](http://127.0.0.1:8787/console/dashboard/) on loopback without
-authentication, and opens your browser. Ctrl+C stops it and deletes the lake.
+This loads a synthetic company into a temporary lake, serves the console on
+[localhost:8787](http://127.0.0.1:8787/console/dashboard/) without authentication,
+and opens your browser. Ctrl+C stops it and deletes the lake. With pip:
+`pip install "grc-lake[server]"`, then `grc-lake demo`.
 
-**First task:** find a failing control, inspect its evidence and mapping, then
-export the frozen result. Follow the [sample-data tutorial](docs/TUTORIAL_5_MIN.md),
-then the [synthetic workpaper example](docs/AUDITOR_WALKTHROUGH.md) for a scoped
-test plan, population gaps, and a verified export.
+**First task:** find a failing control, inspect its evidence and mapping, and export
+the frozen result: follow the [sample-data tutorial](docs/TUTORIAL_5_MIN.md), then the
+[auditor workpaper example](docs/AUDITOR_WALKTHROUGH.md).
 
-To keep a lake between runs, load and serve it explicitly:
+<details>
+<summary>Keep a lake, Docker, source development, or MCP</summary>
+
+Keep a lake between runs:
 
 ```bash
 grc-lake fixtures load --company golden --out ./lake --rebase-times
 grc-lake serve --server --allow-insecure-no-auth --lake ./lake
 ```
 
-Release notes: [changelog](CHANGELOG.md) · [verified release records](docs/RELEASE_READINESS.md).
-
-<details>
-<summary>Docker, source development, or MCP</summary>
-
-The public Docker image needs no registry login. Use the published templates:
+Docker (public image, no registry login):
 
 ```bash
 git clone --branch v0.3.11 --depth 1 https://github.com/koda-ai-studio/grc-lake.git
-cd grc-lake
-docker compose up
+cd grc-lake && docker compose up
 ```
 
-For current source, with [uv](https://docs.astral.sh/uv/) and Node 22+:
+Current source, with uv and Node 22+:
 
 ```bash
 git clone https://github.com/koda-ai-studio/grc-lake.git
-cd grc-lake
-uv sync --frozen --extra dev --extra server
-make demo-local
+cd grc-lake && uv sync --frozen --extra dev --extra server && make demo-local
 ```
 
-For MCP over stdio:
+MCP over stdio ([headless GRC](docs/HEADLESS_GRC.md) covers agent credentials):
 
 ```bash
 pip install "grc-lake[server,mcp]"
 GRC_LAKE_LAKE=./lake grc-lake-mcp
 ```
 
-See [headless GRC](docs/HEADLESS_GRC.md) for agent credentials and authority.
+Release notes: [changelog](CHANGELOG.md) · [verified release records](docs/RELEASE_READINESS.md).
 
 </details>
 
 ## Product tour
 
-**Collect → Evaluate → Resolve → Export.** Read source evidence, run version-pinned
-control tests, investigate findings, and export a scoped assessment.
+**Collect → Evaluate → Resolve → Export.** Screens use the bundled synthetic company.
 
 ### Start with the assessment overview
 
-See assessed coverage, open findings, evidence freshness, and priority actions
-together. Framework posture distinguishes assessed results from requirements
-that still need evidence.
+Assessed coverage, open findings, evidence freshness, and priority actions in one view.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/images/grc-lake-demo-dashboard-dark.png">
@@ -110,9 +97,7 @@ that still need evidence.
 
 ### Explore framework coverage
 
-Browse framework packs and their requirements, compare mapped and reviewed
-coverage, and open the controls or mappings that need attention. Catalogued,
-mapped, reviewed, and assessed requirements remain separate measures.
+Catalogued, mapped, reviewed, and assessed requirements stay separate measures per framework.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/images/grc-lake-demo-frameworks-dark.png">
@@ -121,8 +106,7 @@ mapped, reviewed, and assessed requirements remain separate measures.
 
 ### Inspect control results and evidence
 
-Filter the control worklist by result, owner, or framework. Open a control to
-inspect its evidence, findings, freshness, and test confidence.
+Filter by result, owner, or framework; open a control for its evidence, findings, freshness, and confidence.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/images/grc-lake-demo-controls-dark.png">
@@ -131,17 +115,14 @@ inspect its evidence, findings, freshness, and test confidence.
 
 ### Navigate control families and the CCF
 
-The Common Control Framework (CCF) organizes reusable safeguards into categories
-and control families. Explore their links to framework requirements and see
-reviewed and proposed mappings separately. Proposed mappings are not attestable.
-
+The Common Control Framework (CCF) groups reusable safeguards into families linked to
+framework requirements. Proposed mappings are not attestable.
 [How common safeguards work](docs/COMMON_CONTROL_FRAMEWORK.md).
 
 ### Trace a finding through the evidence graph
 
-Follow exact records between controls, safeguards, evidence, repositories, and
-assets. Select a node to inspect it; drill into its connections or roll up to the
-previous view. Depth and layer controls keep the investigation focused.
+Follow exact records between controls, safeguards, evidence, repositories, and assets;
+drill in or roll up.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/images/grc-lake-demo-graph-dark.png">
@@ -150,39 +131,72 @@ previous view. Depth and layer controls keep the investigation focused.
 
 ### Review AI assets and their next actions
 
-The model and agent worklist brings owners, environments, governance signals,
-and next actions together. Open an asset's linked controls or filtered evidence;
-recorded lineage remains distinct from freshly evaluated controls.
-
-A **model card** documents a model's intended use, limitations, and evaluation.
-**Model card not observed** means no card signal was collected for that asset;
-the document may exist elsewhere. The synthetic demo includes inventory and
-lineage observations without model-card signals. **Recorded** means evidence presence, not verified
-content, freshness, or a passing control. See [AI inventory semantics](docs/AIBOM.md#model-card-evidence).
+Models and agents with owners, environments, governance signals, and next actions.
+Recorded lineage is evidence presence, not a passing control
+([AI inventory semantics](docs/AIBOM.md#model-card-evidence)).
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/images/grc-lake-demo-ai-governance-dark.png">
   <img src="docs/images/grc-lake-demo-ai-governance.png" alt="AI model and agent worklist showing owners, governance signals, and next actions" width="100%" loading="lazy">
 </picture>
 
-_Screens use the bundled synthetic company, captured for v0.3.9 from source
-`0823048b` on 2026-10-19 (America/New_York). They show recorded relationships and demo workflows,
-not a customer deployment or an audit opinion._
-
-[Try the five-minute console tour](docs/PRODUCT_WALKTHROUGH.md#five-minute-tour) ·
+[Five-minute console tour](docs/PRODUCT_WALKTHROUGH.md#five-minute-tour) ·
 [How evidence investigation works](docs/INVESTIGATION_GRAPH.md)
+
+## Architecture
+
+Read-only collection feeds deterministic evaluation; console, REST API, CLI, and MCP
+share one evidence and assessment model.
+
+```mermaid
+flowchart LR
+  Sources["Cloud · identity · code · existing lakes"] --> Collect["Read-only collection"]
+  Collect --> Evaluate["Version-pinned control tests"]
+  Evaluate --> Assessments["Assessment generations"]
+  Assessments --> Review["Console · API · CLI · MCP"]
+  Assessments --> Export["Snapshots · workpapers · OSCAL"]
+```
+
+Exports: [portable CCF/OSCAL bundles](docs/OSCAL_EXPORT.md#portable-ccf-and-framework-bundle),
+[framework coverage reports](docs/FRAMEWORK_COVERAGE_REPORT.md), and verifiable
+[auditor workpapers](docs/AUDITOR_WALKTHROUGH.md). Recovery behavior and API limits:
+[architecture guide](docs/ARCHITECTURE.md) and [assessment contract](docs/ASSESSMENT_APPLICATION_CONTRACT.md).
+
+## Connect evidence
+
+Use [direct connectors](docs/CONNECTOR_CREDENTIALS.md) or
+[read an existing lake](docs/BRING_YOUR_OWN_LAKE.md). Both are read-only and keep
+assessment evidence in storage you operate.
+
+<details>
+<summary>Supported sources</summary>
+
+| Category                | Sources                                                                                                 |
+| ----------------------- | ------------------------------------------------------------------------------------------------------- |
+| Cloud                   | AWS, Microsoft Azure, Google Cloud; Kubernetes (preview, including GPU clouds); Lambda (preview)        |
+| Identity                | Okta (directory and System Log), Google Workspace, Microsoft Entra (preview), generic identity provider |
+| Endpoint                | Microsoft Intune; Jamf, CrowdStrike Falcon (preview)                                                    |
+| Code                    | GitHub, GitLab                                                                                          |
+| Vulnerability scanning  | Snyk (preview)                                                                                          |
+| People and training     | BambooHR, Rippling, Workday; training-completion exports from any LMS (preview)                         |
+| Workflow and detections | Atlassian Jira, ticketing, SIEM alerts, AI runtime gateway                                              |
+| Existing lakes          | Snowflake, ClickHouse, S3 object storage, OCSF presets; Databricks, BigQuery, Iceberg/Parquet (preview) |
+| Imports                 | Agent-Bom scan reports, CycloneDX and SPDX AI bills of materials                                        |
+
+Stages, permissions, and live receipts: [connector catalog](connectors/catalog.json) ·
+[qualification matrix](docs/CONNECTOR_QUALIFICATION.md). Missing a source?
+[Request a connector](https://github.com/koda-ai-studio/grc-lake/issues/new?template=connector_request.yml)
+or [build one](docs/ADDING_CONNECTORS.md).
+
+</details>
 
 ## Already on OCSF?
 
-If your security telemetry is already normalized to
-[OCSF](https://schema.ocsf.io/1.1.0/), for example in Amazon Security Lake or
-OCSF tables on Databricks or Snowflake, point GRC Lake at those tables. You
-don't need a new pipeline. The reader runs read-only queries and keeps a mapped
-copy of the rows it assesses in storage you operate.
-
-Built-in presets bind specific OCSF events to Common Control Framework
-safeguards. Framework requirements then follow from each safeguard's reviewed
-crosswalk:
+If your telemetry is already normalized to [OCSF](https://schema.ocsf.io/1.1.0/), for
+example in Amazon Security Lake or OCSF tables on Databricks or Snowflake, point GRC
+Lake at those tables. No new pipeline: the reader runs read-only queries and keeps a
+mapped copy of the rows it assesses. Built-in presets bind events to CCF safeguards,
+and framework requirements follow each safeguard's reviewed crosswalk:
 
 ```mermaid
 flowchart LR
@@ -197,15 +211,16 @@ flowchart LR
   S4 --> R4["NIST CSF PR.PS-01 · …"]
 ```
 
-The rules state only what an event shows. A successful logon with MFA passes for
-that user, and one without MFA is open. A privilege grant, including adding a
-user to a group, blocks an access-review pass until someone reviews it, but it is
-not reported as a failure. Vulnerability findings and configuration checks keep
-their own open or resolved status. They bind a safeguard only for resource types
-with a clear catalog equivalent. Failed sign-ins, API activity, and detection
-findings remain unbound. Proposed crosswalk mappings are never attested.
+<details>
+<summary>What the rules conclude, and a Databricks example</summary>
 
-For example, to read one OCSF table on Databricks:
+The rules state only what an event shows. A successful logon with MFA passes for that
+user; one without MFA is open. A privilege grant, including adding a user to a group,
+blocks an access-review pass until someone reviews it, but is not a failure.
+Vulnerability findings and configuration checks keep their own status and bind a
+safeguard only for resource types with a clear catalog equivalent. Failed sign-ins,
+API activity, and detection findings stay unbound. Proposed crosswalk mappings are
+never attested.
 
 ```bash
 CREDS='{"host":"dbc-example.cloud.databricks.com","warehouse_id":"abc123","catalog":"security",
@@ -220,52 +235,63 @@ grc-lake connectors sync --lake ./lake --connector-id databricks-evidence-lake
 grc-lake frameworks assessment --lake ./lake
 ```
 
-Preview a preset against sample rows with `grc-lake lake map --dry-run` before
-you connect. See [OCSF events in the CCF](docs/BRING_YOUR_OWN_LAKE.md#ocsf-events-in-the-common-control-framework)
-for the rules and their limits, and the Snowflake, ClickHouse, BigQuery, and
-Iceberg setup.
+Preview a preset against sample rows with `grc-lake lake map --dry-run`. Rules, limits,
+and Snowflake, ClickHouse, BigQuery, and Iceberg setup:
+[OCSF events in the CCF](docs/BRING_YOUR_OWN_LAKE.md#ocsf-events-in-the-common-control-framework).
 
-## Architecture
+</details>
 
-Read-only collection feeds deterministic evaluation. Each published assessment
-retains verified artifact hashes; snapshots form a hash-chained ledger.
-Console, REST API, CLI, and MCP expose the same evidence and assessment model.
+## Frameworks
 
-```mermaid
-flowchart LR
-  Sources["Cloud · identity · code · existing lakes"] --> Collect["Read-only collection"]
-  Collect --> Evaluate["Version-pinned control tests"]
-  Evaluate --> Assessments["Assessment generations"]
-  Assessments --> Review["Console · API · CLI · MCP"]
-  Assessments --> Export["Snapshots · workpapers · OSCAL"]
-```
+<!-- BEGIN README AT A GLANCE -->
 
-For an offline standards handoff, export a [portable CCF/OSCAL bundle](docs/OSCAL_EXPORT.md#portable-ccf-and-framework-bundle) with resolvable framework catalogs, reviewed mappings, and document checksums.
+- **Reviewed requirements by framework:** SOC 2 33/61 (10 with no recorded reviewer), ISO 27001 17/93 (10 with no recorded reviewer), HIPAA 4/24 (4 with no recorded reviewer), PCI DSS 0/12 (top-level), NIST CSF 2.0 72/106, NIST SP 800-53 495/1,014 (381 source-native self-maps; 96 with no recorded reviewer). Every pack is in the [coverage matrix](docs/FRAMEWORK_COVERAGE.md).
+- **21 framework packs, 2,282 catalogued requirements (1,995 distinct; FedRAMP Moderate's 287 rows restate NIST SP 800-53 controls),** linked through 1195 safeguards, including source-native assessment contracts. 2,196 requirements have safeguard mappings; 1,163 have reviewed mappings and the other 1,033 are proposed. Of the reviewed, 381 are source-native self-maps (written from that requirement's own pinned source) and 782 rest on reviewed crosswalk mappings; 339 rest only on legacy reviews with no recorded reviewer. The blended total is not a per-framework readiness figure.
+- **28 read-only source adapters (10 in preview)**, plus OCSF presets for existing security lakes.
+- **Evidence stays scoped:** missing or stale evidence leaves gaps; a passing sample does not prove complete population coverage. Proposed mappings are not attestable.
+- **One engine, four surfaces:** console, REST API, CLI, and MCP server. Agents propose; humans approve.
 
-For a review across SOC 2, ISO, and NIST, the current-source
-[framework coverage report](docs/FRAMEWORK_COVERAGE_REPORT.md) exports frozen
-catalog counts, mapping-review gaps, and evidence results as an offline HTML/JSON bundle.
+<!-- END README AT A GLANCE -->
 
-Use [direct connectors](docs/CONNECTOR_CREDENTIALS.md) or
-[read an existing lake](docs/BRING_YOUR_OWN_LAKE.md). Both materialize assessment
-evidence into storage you operate. Reader compatibility, schema mapping, and
-live qualification vary; check the [connector catalog](connectors/catalog.json).
-Agent-Bom JSON scan reports import as scoped evidence through the
-[report importer](docs/AGENT_BOM_IMPORT.md), with retained scan provenance.
+[Framework coverage](docs/FRAMEWORK_COVERAGE.md) · [Common safeguards](docs/COMMON_CONTROL_FRAMEWORK.md) ·
+[Audit readiness](docs/AUDIT_READINESS.md#explain-the-readiness-decision) · [Qualification](docs/CURRENT_STATE.md)
 
-Queued assessments retain tenant-scoped result receipts. Pagination, queue
-admission, response storage, and retries have explicit bounds. See the
-[assessment contract](docs/ASSESSMENT_APPLICATION_CONTRACT.md) and
-[architecture guide](docs/ARCHITECTURE.md) for recovery behavior and API limits.
+<details>
+<summary>What these numbers mean</summary>
+
+Counts are generated from source. Reviewed counts record maintainer mapping decisions
+([review method and limits](docs/COMMON_CONTROL_FRAMEWORK.md#maintainer-source-batch-review));
+mapping decisions do not change access at a provider. The audit-readiness index shows
+score, evaluated-framework, and blocking-gap gates, so a high score cannot hide an
+unresolved framework assessment. Fixture tests, screenshots, and the demo do not
+establish live-provider accuracy, production capacity, certification, or an audit
+opinion; see the [roadmap](ROADMAP.md) for remaining gaps.
+
+</details>
+
+## Self-host
+
+Deploy with [Docker or Helm](deploy/README.md) on infrastructure you control:
+
+- **Local:** one writable replica with a filesystem lake.
+- **Distributed:** API replicas and tenant workers share PostgreSQL and S3-compatible
+  storage ([distributed guide](docs/DISTRIBUTED.md)).
+- **Production:** [SSO and scoped credentials](docs/SERVER_AUTH.md),
+  [retention](docs/OPERATIONS_CONTRACTS.md), and [backup/restore](docs/runbooks/BACKUP_RESTORE.md).
+
+Releases ship signed provenance and an SBOM ([verify artifacts](docs/RELEASE_READINESS.md#release-gates)).
+Upgrading from TrustOps? Read the [migration guide](docs/REBRANDING.md).
 
 ## Engineering review
 
-Start with one control and follow its source evidence through a retained
-assessment into a verified workpaper. The [synthetic access/change workflow](docs/CONTROL_WORKFLOW_QUALIFICATION.md)
-runs passing, failing, missing, stale, conflicting, and incomplete-population
-cases with explicit expectations and retained inputs.
+Start with one control and follow its evidence into a verified workpaper: the
+[synthetic access/change workflow](docs/CONTROL_WORKFLOW_QUALIFICATION.md) runs passing,
+failing, missing, stale, conflicting, and incomplete-population cases.
 
-| Review question                                                  | Implementation and evidence                                                                                                   |
+<details>
+<summary>Where to look for each review question</summary>
+
+| Question                                                         | Start here                                                                                                                    |
 | ---------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
 | How do the layers fit together?                                  | [Architecture and source map](docs/ARCHITECTURE.md#implementation-and-test-map), [data flow](docs/DATA_FLOW.md)               |
 | What makes a result pass, fail, or remain unknown?               | [Evaluation semantics](docs/EVIDENCE_EVALUATION_SEMANTICS.md), [population reconciliation](docs/POPULATION_RECONCILIATION.md) |
@@ -274,55 +300,10 @@ cases with explicit expectations and retained inputs.
 | How are integrity and reproducibility checked?                   | [Workpaper qualification](docs/CONTROL_WORKFLOW_QUALIFICATION.md), [backup and restore](docs/runbooks/BACKUP_RESTORE.md)      |
 | What performance has actually been measured?                     | [Pipeline measurements](docs/benchmarks/CCF_PIPELINE.md), [graph latency and memory](docs/benchmarks/INVESTIGATION_CACHE.md)  |
 
-Run checks from the revision being reviewed; the CI badge above tracks `main`.
-Benchmark receipts identify their own revisions and workloads. A local synthetic
-pass does not establish provider completeness, production capacity, or an audit
-opinion. [Current qualification](docs/CURRENT_STATE.md) records those boundaries.
+Run checks from the revision under review; the CI badge tracks `main`, and benchmark
+receipts name their own revisions and workloads.
 
-## Self-host
-
-Deploy with [Docker or Helm](deploy/README.md) on your infrastructure:
-
-- **Local:** one writable replica with a filesystem lake.
-- **Distributed:** API replicas and tenant workers share PostgreSQL and
-  S3-compatible storage. CLI assessments use a filesystem lake; MCP uses the
-  authenticated API for distributed deployments.
-- **Production:** configure [SSO and scoped credentials](docs/SERVER_AUTH.md),
-  [retention](docs/OPERATIONS_CONTRACTS.md), and [backup/restore](docs/runbooks/BACKUP_RESTORE.md).
-
-See [deployment compatibility](docs/DEPLOYMENT.md#deployment-and-lake-compatibility)
-and the [distributed guide](docs/DISTRIBUTED.md). Production capacity and provider
-failover require deployment-specific qualification.
-
-Release packages include signed provenance and an SBOM. Follow
-[artifact verification](docs/RELEASE_READINESS.md#release-gates).
-Upgrading from TrustOps? Read the [migration guide](docs/REBRANDING.md).
-
-## Frameworks
-
-<!-- BEGIN README AT A GLANCE -->
-
-- **Reviewed requirements by framework:** SOC 2 33/61 (10 with no recorded reviewer), ISO 27001 17/93 (10 with no recorded reviewer), HIPAA 4/24 (4 with no recorded reviewer), PCI DSS 0/12 (top-level), NIST CSF 2.0 72/106, NIST SP 800-53 495/1,014 (381 source-native self-maps; 96 with no recorded reviewer). Every pack is in the [coverage matrix](docs/FRAMEWORK_COVERAGE.md).
-- **21 framework packs, 2,282 catalogued requirements (1,995 distinct; FedRAMP Moderate's 287 rows restate NIST SP 800-53 controls),** linked through 1195 safeguards, including source-native assessment contracts. 2,196 requirements have safeguard mappings; 1,163 have reviewed mappings and the other 1,033 are proposed. Of the reviewed, 381 are source-native self-maps (written from that requirement's own pinned source) and 782 rest on reviewed crosswalk mappings; 339 rest only on legacy reviews with no recorded reviewer. The blended total is not a per-framework readiness figure.
-- **26 read-only source adapters (8 in preview)**, plus OCSF presets for existing security lakes.
-- **Evidence stays scoped:** missing or stale evidence leaves gaps; a passing sample does not prove complete population coverage. Proposed mappings are not attestable.
-- **One engine, four surfaces:** console, REST API, CLI, and MCP server. Agents propose; humans approve.
-
-<!-- END README AT A GLANCE -->
-
-**Explainable audit readiness:** the API and audit room show score, evaluated-framework, and blocking-gap gates. A high index cannot hide an unresolved framework assessment. See the [decision contract and reproducible regression](docs/AUDIT_READINESS.md#explain-the-readiness-decision).
-
-Catalog counts above are generated from source. Reviewed counts record maintainer
-mapping decisions; see the [review method and limits](docs/COMMON_CONTROL_FRAMEWORK.md#maintainer-source-batch-review).
-Mapping-review decisions do not change access at a provider.
-
-[Framework coverage](docs/FRAMEWORK_COVERAGE.md) ·
-[Common safeguards](docs/COMMON_CONTROL_FRAMEWORK.md) ·
-[Qualification and test coverage](docs/CURRENT_STATE.md)
-
-Fixture tests and screenshots do not establish live-provider accuracy,
-production capacity, or certification. See [audit readiness](docs/AUDIT_READINESS.md)
-for qualification boundaries and [the roadmap](ROADMAP.md) for remaining gaps.
+</details>
 
 ## Documentation
 
@@ -334,6 +315,4 @@ for qualification boundaries and [the roadmap](ROADMAP.md) for remaining gaps.
 | Operate a deployment | [Deployment](docs/DEPLOYMENT.md) · [Operations](docs/OPERATIONS_CONTRACTS.md)                    |
 | Contribute           | [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md)                                        |
 
-[All documentation](docs/README.md). Regenerate the header and counts with
-`make readme-header`; capture demo screens with `make demo-screenshots-full`.
-License: [Apache 2.0](LICENSE).
+[All documentation](docs/README.md) · License: [Apache 2.0](LICENSE)

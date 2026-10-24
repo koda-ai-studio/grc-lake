@@ -288,6 +288,21 @@ export const CONNECTOR_CREDENTIAL_FIELDS: Record<string, ConnectorFieldDef[]> =
         hint: "API client secret, stored as a secret reference. GRC Lake mints short-lived tokens from it.",
       },
     ],
+    "snyk-vulnerabilities": [
+      {
+        name: "region",
+        label: "Snyk region",
+        placeholder: "SNYK-US-01",
+        hint: "SNYK-US-01 (default), SNYK-US-02, SNYK-EU-01, or SNYK-AU-01. A token works only in its own region.",
+      },
+      {
+        name: "credential_ref",
+        label: "API token env var",
+        placeholder: "SNYK_TOKEN",
+        required: true,
+        hint: "Token of a Group Viewer service account, or of a user limited to viewing. Do not paste the token.",
+      },
+    ],
     "kubernetes-cluster": [
       {
         name: "cluster_name",
@@ -345,6 +360,15 @@ export const CONNECTOR_CREDENTIAL_FIELDS: Record<string, ConnectorFieldDef[]> =
         label: "ISU password env var",
         placeholder: "WORKDAY_ISU_PASSWORD",
         required: true,
+      },
+    ],
+    "training-completion": [
+      {
+        name: "path",
+        label: "Export file or directory",
+        placeholder: "/srv/grc-lake/exports/lms",
+        required: true,
+        hint: "Absolute path under the server's allowed local root (on hosted GRC Lake, your tenant's directory). CSV or JSON with the documented column contract.",
       },
     ],
     "databricks-evidence-lake": [

@@ -215,6 +215,15 @@
       "owner": null
     },
     {
+      "connector_id": "snyk-vulnerabilities",
+      "fixture_tests": [
+        "tests/test_snyk_connector.py",
+        "tests/test_collection_completeness.py"
+      ],
+      "live_record": null,
+      "owner": null
+    },
+    {
       "connector_id": "kubernetes-cluster",
       "fixture_tests": [
         "tests/test_kubernetes_connector.py",
@@ -231,6 +240,12 @@
         "tests/test_lambda_cloud_connector.py",
         "tests/test_neocloud_ccf_assessment.py"
       ],
+      "live_record": null,
+      "owner": null
+    },
+    {
+      "connector_id": "training-completion",
+      "fixture_tests": ["tests/test_training_completion_connector.py"],
       "live_record": null,
       "owner": null
     },

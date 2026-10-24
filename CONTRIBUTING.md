@@ -5,7 +5,9 @@ console polish are all welcome. Issues labeled
 [`good first issue`](https://github.com/koda-ai-studio/grc-lake/labels/good%20first%20issue)
 are scoped to be finished in one pull request.
 
-By taking part you agree to the [Code of Conduct](CODE_OF_CONDUCT.md). Report
+By taking part you agree to the [Code of Conduct](CODE_OF_CONDUCT.md).
+[Governance](GOVERNANCE.md) explains roles and how contributors become
+reviewers and maintainers ([current maintainers](MAINTAINERS.md)). Report
 security problems privately, as described in [SECURITY.md](SECURITY.md), not in
 a public issue.
 

@@ -31,6 +31,9 @@ from security_lakehouse import (
     connectors_siem as siem,
 )
 from security_lakehouse import (
+    connectors_snyk as snyk,
+)
+from security_lakehouse import (
     connectors_workday as workday,
 )
 from security_lakehouse.connectors_aws import AWSClient
@@ -56,7 +59,8 @@ class Response:
 
 
 @pytest.mark.parametrize(
-    "provider", ["bamboohr", "rippling", "intune", "workspace", "jamf", "crowdstrike", "siem", "runtime", "workday"]
+    "provider",
+    ["bamboohr", "rippling", "intune", "workspace", "jamf", "crowdstrike", "snyk", "siem", "runtime", "workday"],
 )
 @pytest.mark.parametrize("bad", [[{"id": "good"}, "malformed"], {"not": "an array"}])
 def test_provider_lists_reject_malformed_rows(monkeypatch, provider, bad):
@@ -87,6 +91,13 @@ def test_provider_lists_reject_malformed_rows(monkeypatch, provider, bad):
 
         def collect():
             return crowdstrike._resources({"resources": bad})
+
+    elif provider == "snyk":
+        adapter = snyk.SnykClient("SNYK-US-01", token="fixture")
+        monkeypatch.setattr(adapter, "_get", lambda path, query, **kwargs: {"data": bad, "links": {}})
+
+        def collect():
+            return adapter.orgs()
 
     elif provider == "siem":
 

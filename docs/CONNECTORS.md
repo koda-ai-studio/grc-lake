@@ -148,7 +148,9 @@ kubeconfig). See [Hosted connector credentials](SERVER_AUTH.md#hosted-connector-
 | `databricks-evidence-lake`  | Databricks UC evidence  | executable existing-lake read (preview) |
 | `jamf-devices`              | Jamf Pro device posture | executable (preview)                    |
 | `crowdstrike-falcon`        | CrowdStrike Falcon EDR  | executable (preview)                    |
+| `snyk-vulnerabilities`      | Snyk vulnerabilities    | executable (preview)                    |
 | `kubernetes-cluster`        | Kubernetes config       | executable (preview)                    |
+| `training-completion`       | LMS training export     | executable file read (preview)          |
 | `snowflake-evidence-lake`   | governed evidence lake  | executable existing-lake read           |
 | `clickhouse-telemetry-lake` | telemetry analytics     | executable existing-lake read           |
 | `iceberg-parquet-lake`      | Iceberg / Parquet lake  | executable existing-lake read (preview) |
@@ -976,6 +978,64 @@ assignment are kept. MAC and IP addresses, serial numbers, user names, and tags 
 dropped before storage. From alerts, only ID, status, severity, and creation time are
 used, and only to compute the summary counts.
 
+## Snyk: vulnerability issues per project (preview)
+
+`snyk-vulnerabilities` reads the Snyk REST API (`version=2024-10-15`) for every
+organization the token can see, or only `options.org_ids`, and emits current-state
+vulnerability evidence. Project and issue rows bind
+`SG-VULNERABILITYMANAGEMENT-001`. Framework results come from that safeguard's
+reviewed crosswalk. The rows' tags (SOC2-CC7.1, ISO27001-A.8.8, NIST-800-53-RA-5,
+NIST-800-53-SI-2) all sit inside it.
+
+| Event                        | Outcome                                                                                                                                                                                                  |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `snyk.issue`                 | One per open-source, container, or code vulnerability issue (`package_vulnerability`, `code`). Open is `open` at Snyk's effective severity; resolved is `resolved`; open but ignored is `not_evaluated`. |
+| `snyk.project.test_coverage` | One per active project. `pass` only when Snyk tested the project within `options.max_test_age_days` (default 7, at most 90) and the issue listing was complete; otherwise `not_evaluated`.               |
+| `snyk.org.summary`           | Observation: project and issue counts, including what was skipped.                                                                                                                                       |
+| `snyk.collection_gap`        | An organization, its projects, or its issues could not be read (HTTP 403/404, or the page budget ran out). The sync reports itself partial.                                                              |
+
+Projects are the assets: container OS projects (`apk`, `deb`, `rpm`, `linux`) are
+`container_image`, all other project types are `repo`. Both are in the safeguard's
+scope. An asset passes only with a passing test-coverage row and no open or
+ignored vulnerability. A project without issues therefore passes only when it was
+recently tested. A project that was never tested, was last tested outside the
+window, or whose latest test counted issues that the issues API did not list stays
+`not_evaluated`. The connector does not evaluate remediation deadlines. Issue
+rows carry `created_at`, `resolved_at`, `age_days`, severity, and fixability, so
+deadline rules can be added later.
+
+Not evaluated, only counted on the org summary: inactive projects, license, IaC
+configuration, cloud, custom, and secrets issues, and issues on non-project scan
+items (Snyk environments).
+
+**Least privilege.** Use a read-only token. Snyk documents a **Group Viewer**
+service account as the way to make a token read-only. Service accounts are an
+Enterprise feature, and organization-level service accounts can only be Org
+Admin or Org Collaborator. On other plans, use a user token whose custom role
+holds only **View Organization**, **View Project**, and **View Project History**.
+Store the token and set `credential_ref` (default `SNYK_TOKEN`). Set `region` to
+`SNYK-US-01` (default, `api.snyk.io`), `SNYK-US-02` (`api.us.snyk.io`),
+`SNYK-EU-01` (`api.eu.snyk.io`), or `SNYK-AU-01` (`api.au.snyk.io`). Any other
+value, including a URL, is refused, so the token only ever goes to a Snyk API
+host. A token works only in its own region and gets HTTP 401 elsewhere.
+
+**Calls.** `GET /rest/orgs`, `GET /rest/orgs/{org_id}/projects?meta.latest_issue_counts=true`,
+and `GET /rest/orgs/{org_id}/issues`, 100 per page, with `Authorization: token …`.
+Only the `starting_after` cursor is taken from `links.next`; the request is rebuilt
+on the regional host. Each list stops after `options.max_pages` pages (default 200,
+at most 1,000) and records a gap rather than a shorter success. HTTP 429 (Snyk
+allows 1,620 requests per minute per key) waits for `Retry-After` when sent, else
+backs off exponentially. Malformed pages and a next link without a cursor fail the
+sync.
+
+**Data minimization.** Kept per issue: ID, key, type, title, severity, status,
+ignore flag, created, updated, and resolved times, resolution type, problem and CVE
+IDs, fixability flags, and risk score. Descriptions, code flows, file locations,
+and dependency coordinates are not stored. Kept per project: name, type, origin,
+target file and reference, criticality, lifecycle, environment tags, test
+frequency, and last test time (`meta.latest_issue_counts.updated_at`, which Snyk's
+migration guide maps to the v1 `lastTestedDate`).
+
 ## Kubernetes: cluster configuration baseline (preview)
 
 `kubernetes-cluster` reads cluster configuration with `list` calls only, using the
@@ -1172,6 +1232,88 @@ plus a Lambda Cloud API key for an account with at least one instance and rulese
 Record the run in `docs/qualification/connector-evidence.json` before removing the
 preview label.
 
+## Training completion: LMS exports (preview)
+
+`training-completion` reads security awareness training assignments and
+completions from a CSV or JSON export. Most learning-management and
+security-awareness platforms (for example Workday Learning, Cornerstone, Docebo
+or a security-awareness vendor's reporting export) can schedule one. The reader
+makes no vendor API calls, so it has no provider paging or rate-limit contract.
+The operator owns the export's completeness. Each row keeps the export file's
+SHA-256 as provenance.
+
+Point `credentials.path` at an export file or a directory of `.csv`/`.json` files
+(read non-recursively, at most 50 files of 25 MB each and 200,000 records). The path
+must sit under `GRC_LAKE_LAKE_LOCAL_ROOT`, the same allowed root the Parquet reader
+uses. In hosted mode each tenant reads only `<root>/<tenant_id>`. Symlinks that leave
+the export directory are rejected. To use object storage, sync the export into that
+directory, for example with a scheduled `aws s3 sync`. The object-storage connector
+lists objects but does not read their contents.
+
+| Column         | Required                      | Content                                                                                           |
+| -------------- | ----------------------------- | ------------------------------------------------------------------------------------------------- |
+| `person_email` | one of email or `employee_id` | Work email, the join key to HR records                                                            |
+| `employee_id`  | one of email or `employee_id` | Matches the HR employee ID or employee number                                                     |
+| `course_id`    | yes                           | Course, assignment or campaign ID                                                                 |
+| `course_name`  | no                            | Display name                                                                                      |
+| `assigned_at`  | no                            | `YYYY-MM-DD` or ISO-8601 (naive times are read as UTC)                                            |
+| `due_at`       | no                            | Same format; a past due date on an incomplete assignment makes it overdue                         |
+| `completed_at` | when `status` is `completed`  | Same format; must be empty for any other status and not in the future                             |
+| `status`       | yes                           | `completed`, `in_progress`, `not_started` or `overdue` (also `complete`, `passed`, `past_due`, …) |
+| `score`        | no                            | 0–100                                                                                             |
+| `required`     | no                            | `true`/`false` (default `true`); optional courses never pass or fail anyone                       |
+
+```csv
+person_email,employee_id,course_id,course_name,assigned_at,due_at,completed_at,status,score,required
+ada@example.com,101,SAT-2026,Annual security awareness,2026-01-05,2026-02-05,2026-01-20,completed,92,true
+alan@example.com,103,SAT-2026,Annual security awareness,2026-01-05,2026-02-05,,overdue,,true
+```
+
+JSON exports use the same field names, as a list of objects or `{"records": [...]}`.
+If the export uses other headers, rename them with `options.column_map`, for example
+`{"person_email": "User Email", "completed_at": "Completion Date"}`. Other columns
+are ignored and never stored. When a person has several rows for one course, the
+row with the most recent activity wins.
+
+Validation is strict. An unreadable, non-UTF-8, oversized or empty export fails the
+sync, as does an unknown status or invalid date. The error names files, row numbers
+and columns, never values. The previous evidence and assessment stay in place.
+Attributes are marked `data_sensitivity: confidential`.
+
+**Evaluation.** After a training or HRIS sync, GRC Lake rebuilds one derived row per
+person under the derived id `hris-training-coverage`. It joins the export to
+`hris.personnel.employment` rows from any HR connector on work email, then
+employee ID or number. Only required courses count.
+
+| Person                                                        | Outcome                   | Status          |
+| ------------------------------------------------------------- | ------------------------- | --------------- |
+| Active, every due course completed within the window          | `completed_within_window` | pass            |
+| Any required course overdue                                   | `overdue`                 | open            |
+| Latest completion older than the window                       | `completion_expired`      | open            |
+| Active in HR, no training record, past the onboarding grace   | `no_training_record`      | open            |
+| In the export but not in HR                                   | `not_in_hr_population`    | `not_evaluated` |
+| Email and employee ID point at different HR records           | `identity_conflict`       | `not_evaluated` |
+| No HR evidence at all: a completion                           | `hr_population_missing`   | `not_evaluated` |
+| Terminated, not yet started, inside the grace, or not yet due | counted only              | no row          |
+
+Without HR evidence, overdue training is still open because the training system
+reports it. A completion cannot pass, since the population is unknown. The window
+(`options.completion_window_days`, default 365, 1–1095) and onboarding grace
+(`options.new_hire_grace_days`, default 30, 0–365) are set on the connector.
+`options.system` labels the source (default `training-export`).
+
+Person rows use the `user` asset type and bind `SG-TRAINING-001`. Their framework
+tags are CMMC-3.2.1, FEDRAMP-AT-2, FEDRAMP-AT-4, NIST-800-53-AT-2,
+NIST-800-53-AT-4 and NIST-CSF-PR.AT-01, all maintainer-reviewed members of that
+safeguard's crosswalk. Other requirements, such as ISO27001-A.6.3, follow the
+crosswalk only once their mapping is reviewed. SOC 2 CC1.4 and CC2.2 are not mapped
+to this safeguard. `SG-IDENTITY-001` also accepts `user`, so trained people appear
+there as unassessed assets.
+
+One summary row states the result, for example "4 of 5 active personnel completed
+required training within the last 365 days". It also carries every count above. Its
+`population_completeness` is `hr_population` only when HR evidence exists.
+
 ## Retired connectors
 
 The KnowBe4 preview connector (`knowbe4-training`) is removed in the next release
@@ -1185,10 +1327,11 @@ evidence still ages under the normal freshness rules. Remove any external jobs
 that call this connector, and revoke its Reporting API token in KnowBe4 if it is
 no longer used elsewhere. GRC Lake does not revoke provider credentials.
 
-For training-related controls, use managed local evidence to retain applicable
-training records and reviews. A submitted document does not automatically establish
-training completion or satisfy the control; assessment still requires appropriate
-scope, provenance and review. No replacement provider integration is included.
+For training evidence, use the vendor-neutral
+[`training-completion`](#training-completion-lms-exports-preview) export reader,
+which needs no provider API. Managed local evidence remains available for other
+training records and reviews; a submitted document does not by itself establish
+training completion or satisfy the control.
 
 ## Existing lakes: mappings, Iceberg/Parquet, BigQuery (preview)
 

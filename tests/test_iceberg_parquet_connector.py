@@ -15,6 +15,7 @@ from security_lakehouse.connector_state import append_config_event, configure_pa
 from security_lakehouse.connectors import load_connector_catalog, validate_connector_catalog
 from security_lakehouse.io import read_jsonl
 from security_lakehouse.lake_mapping import resolve_mapping_ref
+from security_lakehouse.local_paths import LOCAL_ROOT_ENV
 from security_lakehouse.validation import validate_raw_events
 
 pa = pytest.importorskip("pyarrow")
@@ -185,7 +186,7 @@ def _write_partitioned(root: Path) -> Path:
 
 def test_parquet_reader_reads_a_local_hive_dataset(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     dataset_root = _write_partitioned(tmp_path)
-    monkeypatch.setenv(ice.LOCAL_ROOT_ENV, str(tmp_path))
+    monkeypatch.setenv(LOCAL_ROOT_ENV, str(tmp_path))
     spec = resolve_mapping_ref(
         {
             "preset": "ocsf/api_activity",
@@ -214,10 +215,10 @@ def test_parquet_reader_reads_a_local_hive_dataset(tmp_path: Path, monkeypatch: 
 
 def test_parquet_local_paths_need_an_explicit_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     dataset_root = _write_partitioned(tmp_path)
-    monkeypatch.delenv(ice.LOCAL_ROOT_ENV, raising=False)
-    with pytest.raises(ValueError, match=ice.LOCAL_ROOT_ENV):
+    monkeypatch.delenv(LOCAL_ROOT_ENV, raising=False)
+    with pytest.raises(ValueError, match=LOCAL_ROOT_ENV):
         ice.ParquetDatasetReader({"ocsf_api": str(dataset_root)})
-    monkeypatch.setenv(ice.LOCAL_ROOT_ENV, str(tmp_path / "elsewhere"))
+    monkeypatch.setenv(LOCAL_ROOT_ENV, str(tmp_path / "elsewhere"))
     with pytest.raises(ValueError, match="outside"):
         ice.ParquetDatasetReader({"ocsf_api": str(dataset_root)})
     with pytest.raises(ValueError, match="outside"):
@@ -238,7 +239,7 @@ def test_parquet_local_paths_need_an_explicit_root(tmp_path: Path, monkeypatch: 
 def test_parquet_rejects_unsupported_or_unsafe_locations(
     uri: str, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
-    monkeypatch.setenv(ice.LOCAL_ROOT_ENV, str(tmp_path))
+    monkeypatch.setenv(LOCAL_ROOT_ENV, str(tmp_path))
     with pytest.raises(ValueError):
         ice.ParquetDatasetReader({"t": uri})
 
@@ -246,7 +247,7 @@ def test_parquet_rejects_unsupported_or_unsafe_locations(
 def test_parquet_reader_without_a_path_for_the_table_fails_clearly(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    monkeypatch.setenv(ice.LOCAL_ROOT_ENV, str(tmp_path))
+    monkeypatch.setenv(LOCAL_ROOT_ENV, str(tmp_path))
     reader = ice.ParquetDatasetReader({"other": str(tmp_path)})
     with pytest.raises(ValueError, match="no Parquet path"):
         reader.fetch_mapping_rows(_api_spec("ocsf_api"), since=None, limit=1)

@@ -1,0 +1,8 @@
+person_email,employee_id,course_id,course_name,assigned_at,due_at,completed_at,status,score,required,manager_name
+ada@example.com,101,SAT-2026,Annual security awareness,2026-01-05,2026-02-05,2026-01-20,completed,92,true,Not stored
+alan@example.com,103,SAT-2026,Annual security awareness,2026-01-05,2026-02-05,,overdue,,true,Not stored
+linus@example.com,104,SAT-2026,Annual security awareness,2025-02-01,2025-03-01,2025-03-01,completed,88,true,Not stored
+barbara@example.com,105,SAT-2026,Annual security awareness,2026-05-01,2026-07-01,,in_progress,,true,Not stored
+grace@example.com,102,SAT-2026,Annual security awareness,2026-01-05,2026-02-05,,overdue,,true,Not stored
+contractor@example.com,,SAT-2026,Annual security awareness,2026-01-05,2026-02-05,2026-01-12T15:30:00Z,complete,100,true,Not stored
+ada@example.com,101,PHISH-101,Phishing refresher,2026-01-05,2026-02-05,,past_due,,false,Not stored

@@ -23,6 +23,7 @@ PROVIDER_EVENT_ALIASES: dict[str, tuple[str, ...]] = {
     "okta.identity.mfa_enrollment": ("identity.access_review",),
     "okta.identity.mfa_policy": ("identity.access_review",),
     "okta.identity.user_access": ("identity.access_review",),
+    "snyk.issue": ("vulnerability.finding",),
     "snowflake.audit.event": ("audit.chain",),
     "snowflake.control.posture": ("cloud.config", "compliance.evidence_bundle"),
     "snowflake.evidence.bundle": ("compliance.evidence_bundle",),

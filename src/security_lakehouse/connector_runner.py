@@ -149,6 +149,19 @@ from security_lakehouse.connectors_snowflake import (
     _probe_query_params,
     collect_snowflake_evidence,
 )
+from security_lakehouse.connectors_snyk import (
+    SnykClient,
+    SnykFixtureClient,
+    collect_snyk_evidence,
+    parse_sync_options,
+)
+from security_lakehouse.connectors_training import (
+    CONNECTOR_ID as TRAINING_CONNECTOR_ID,
+)
+from security_lakehouse.connectors_training import (
+    TrainingExportSettings,
+    collect_training_evidence,
+)
 from security_lakehouse.connectors_workday import (
     WorkdayReportClient,
     WorkdayReportFixtureClient,
@@ -166,6 +179,7 @@ from security_lakehouse.lake_mapping import (
     write_mode_for_options,
 )
 from security_lakehouse.lake_scale import resolve_materialize_strategy, write_lake_scale_state
+from security_lakehouse.local_paths import confine_local_path
 from security_lakehouse.offboarding import (
     OFFBOARDING_CONNECTOR_ID,
     correlate_offboarding,
@@ -177,6 +191,11 @@ from security_lakehouse.repo_governance import sync_repo_governance
 from security_lakehouse.runtime_environment import runtime_env
 from security_lakehouse.secret_refs import resolve_provider_default, resolve_ref_or_default, resolve_secret_ref
 from security_lakehouse.sinks import land_if_configured
+from security_lakehouse.training_coverage import (
+    TRAINING_COVERAGE_CONNECTOR_ID,
+    correlate_training_coverage,
+    is_training_coverage_input,
+)
 from security_lakehouse.validation import validate_raw_events
 
 logger = logging.getLogger(__name__)
@@ -290,6 +309,9 @@ JAMF_CLIENT_SECRET_ENV = "JAMF_CLIENT_SECRET"
 CROWDSTRIKE_CLOUD_ENV = "CROWDSTRIKE_CLOUD"
 CROWDSTRIKE_CLIENT_ID_ENV = "CROWDSTRIKE_CLIENT_ID"
 CROWDSTRIKE_CLIENT_SECRET_ENV = "CROWDSTRIKE_CLIENT_SECRET"
+# The Snyk CLI's own token variable; hosted tenants must set credential_ref.
+SNYK_TOKEN_ENV = "SNYK_TOKEN"
+SNYK_REGION_ENV = "SNYK_REGION"
 KUBECONFIG_ENV = "KUBECONFIG"
 LAMBDA_API_KEY_ENV = "LAMBDA_API_KEY"
 KUBERNETES_SERVICE_HOST_ENV = "KUBERNETES_SERVICE_HOST"
@@ -398,6 +420,8 @@ def run_connector_sync(
         _upsert_raw_events(raw_path, rows, connector_id=connector_id, write_mode=write_mode)
         if any(is_offboarding_input(row) for row in rows):
             _refresh_offboarding(raw_path, env=dict(runtime_env()))
+        if any(is_training_coverage_input(row) for row in rows):
+            _refresh_training_coverage(raw_path)
         cursor = _advance_watermark(lake, connector_id, rows, write_mode=write_mode)
         if materialize:
             _materialize_after_sync(lake, raw_path, connector_id=connector_id)
@@ -727,12 +751,31 @@ def _build_crowdstrike(inputs: SyncInputs) -> list[dict[str, Any]]:
     return _collect_crowdstrike(fixture_dir=inputs.fixture_dir, env=inputs.env, credentials=inputs.credentials)
 
 
+def _build_snyk(inputs: SyncInputs) -> list[dict[str, Any]]:
+    return _collect_snyk(
+        fixture_dir=inputs.fixture_dir, env=inputs.env, credentials=inputs.credentials, options=inputs.options
+    )
+
+
 def _build_kubernetes(inputs: SyncInputs) -> list[dict[str, Any]]:
     return _collect_kubernetes(fixture_dir=inputs.fixture_dir, env=inputs.env, credentials=inputs.credentials)
 
 
 def _build_lambda_cloud(inputs: SyncInputs) -> list[dict[str, Any]]:
     return _collect_lambda_cloud(fixture_dir=inputs.fixture_dir, env=inputs.env, credentials=inputs.credentials)
+
+
+def _build_training(inputs: SyncInputs) -> list[dict[str, Any]]:
+    settings = TrainingExportSettings.from_options(inputs.options)
+    if inputs.fixture_dir:
+        return collect_training_evidence(Path(inputs.fixture_dir), settings=settings)
+    path = str(inputs.credentials.get("path") or "").strip()
+    if not path:
+        raise ValueError(
+            f"{TRAINING_CONNECTOR_ID} sync requires --fixture-dir, or credentials.path naming a training "
+            "export file or directory under the allowed local root"
+        )
+    return collect_training_evidence(confine_local_path(path, inputs.env, label="training export"), settings=settings)
 
 
 def _build_jira(inputs: SyncInputs) -> list[dict[str, Any]]:
@@ -839,8 +882,10 @@ REGISTRY: dict[str, ConnectorBuilder] = {
     "databricks-evidence-lake": _build_databricks,
     "jamf-devices": _build_jamf,
     "crowdstrike-falcon": _build_crowdstrike,
+    "snyk-vulnerabilities": _build_snyk,
     "kubernetes-cluster": _build_kubernetes,
     "lambda-cloud": _build_lambda_cloud,
+    TRAINING_CONNECTOR_ID: _build_training,
     "iceberg-parquet-lake": _build_iceberg,
     "bigquery-evidence-lake": _build_bigquery,
 }
@@ -1353,6 +1398,30 @@ def _collect_crowdstrike(
     return collect_crowdstrike_evidence(CrowdStrikeClient(cloud, client_id=client_id, client_secret=secret))
 
 
+def _collect_snyk(
+    *,
+    fixture_dir: str | Path | None,
+    env: dict[str, str],
+    credentials: dict[str, Any] | None = None,
+    options: dict[str, Any] | None = None,
+) -> list[dict[str, Any]]:
+    env = runtime_env(env)
+    creds = credentials or {}
+    region = str(creds.get("region") or env.get(SNYK_REGION_ENV) or "").strip() or None
+    org_ids, max_test_age, max_pages = parse_sync_options(options or {})
+    if fixture_dir:
+        fixture = SnykFixtureClient(fixture_dir, region=region)
+        return collect_snyk_evidence(fixture, org_ids=org_ids, max_test_age=max_test_age)
+    token = _resolve_provider_secret(str(creds.get("credential_ref") or ""), SNYK_TOKEN_ENV, env)
+    if not token:
+        raise ConnectorConfigError(
+            "snyk-vulnerabilities sync requires --fixture-dir, or a Snyk API token "
+            f"(credential_ref naming the secret, or {SNYK_TOKEN_ENV}) from a read-only service account or user"
+        )
+    client = SnykClient(region, token=token, max_pages=max_pages)  # an unlisted region fails here, before any request
+    return collect_snyk_evidence(client, org_ids=org_ids, max_test_age=max_test_age)
+
+
 def _collect_kubernetes(
     *,
     fixture_dir: str | Path | None,
@@ -1834,29 +1903,50 @@ def _upsert_raw_events(
 
 
 def _refresh_offboarding(raw_path: Path, *, env: dict[str, str]) -> None:
-    """Rebuild the HR-termination ↔ IdP-account rows as a snapshot.
+    """Rebuild the HR-termination ↔ IdP-account rows as a snapshot."""
+    grace_days = grace_days_from_env(runtime_env(env))
+    _refresh_derived(
+        raw_path,
+        connector_id=OFFBOARDING_CONNECTOR_ID,
+        label="offboarding",
+        derive=lambda rows, now: correlate_offboarding(rows, as_of=now.date(), collected_at=now, grace_days=grace_days),
+    )
+
+
+def _refresh_training_coverage(raw_path: Path) -> None:
+    """Rebuild the training-completion ↔ HR-population rows as a snapshot."""
+    _refresh_derived(
+        raw_path,
+        connector_id=TRAINING_COVERAGE_CONNECTOR_ID,
+        label="training coverage",
+        derive=lambda rows, now: correlate_training_coverage(rows, as_of=now.date(), collected_at=now),
+    )
+
+
+def _refresh_derived(
+    raw_path: Path,
+    *,
+    connector_id: str,
+    label: str,
+    derive: Callable[[list[dict[str, Any]], datetime], list[dict[str, Any]]],
+) -> None:
+    """Replace one derived snapshot from the other rows in the raw file.
 
     Read and write happen under the same lock as ``_upsert_raw_events`` so two
-    concurrent HR/IdP syncs cannot each derive from a view missing the other.
+    concurrent source syncs cannot each derive from a view missing the other.
     """
-    env = runtime_env(env)
     lock_path = raw_path.with_suffix(".lock")
     with open(lock_path, "a") as lock_fd:
         fcntl.flock(lock_fd.fileno(), fcntl.LOCK_EX)
         existing = read_jsonl(raw_path) if raw_path.exists() else []
-        now = datetime.now(UTC)
-        derived = correlate_offboarding(
-            (row for row in existing if row.get("connector_id") != OFFBOARDING_CONNECTOR_ID),
-            as_of=now.date(),
-            collected_at=now,
-            grace_days=grace_days_from_env(env),
-        )
+        others = [row for row in existing if row.get("connector_id") != connector_id]
+        derived = derive(others, datetime.now(UTC))
         for row in derived:
-            row["connector_id"] = OFFBOARDING_CONNECTOR_ID
-        merged = [row for row in existing if row.get("connector_id") != OFFBOARDING_CONNECTOR_ID] + derived
+            row["connector_id"] = connector_id
+        merged = others + derived
         errors = validate_raw_events(merged)
         if errors:
-            raise ValueError("offboarding evidence validation failed:\n" + "\n".join(errors))
+            raise ValueError(f"{label} evidence validation failed:\n" + "\n".join(errors))
         write_jsonl(raw_path, merged)
 
 
