@@ -275,7 +275,9 @@ next evaluation.
 
 **Scope is observed assets.** This does not establish a complete asset inventory,
 prove an imported assertion, or certify an organization. Connector observations
-without explicit safeguard outcomes remain unevaluated. Existing framework
+without explicit safeguard outcomes remain unevaluated. Lake mappings can bind
+safeguards per row; the [OCSF presets](BRING_YOUR_OWN_LAKE.md#ocsf-events-in-the-common-control-framework)
+do so for sign-in MFA and privilege grants. Existing framework
 posture, readiness scores, and OSCAL findings continue to describe the separate
 framework-control lane; they are not silently replaced with CCF results.
 
