@@ -398,7 +398,7 @@ def test_live_client_rejects_a_repeated_page_token(monkeypatch: pytest.MonkeyPat
     page = {"data": [], "page_token": "same"}
     client, _ = _client(monkeypatch, {"/api-keys": [page, dict(page), dict(page)]})
     with pytest.raises(RuntimeError, match="repeated pagination cursor"):
-        client.api_keys()
+        client.key_records()
 
 
 def test_live_client_retries_rate_limits_honoring_retry_after(monkeypatch: pytest.MonkeyPatch) -> None:

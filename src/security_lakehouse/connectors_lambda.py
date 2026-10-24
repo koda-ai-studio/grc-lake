@@ -191,7 +191,7 @@ def _project_ssh_key(item: dict[str, Any]) -> dict[str, Any]:
     return {"name": str(item.get("name") or ""), "algorithm": algorithm, "bits": bits, "weak": weak}
 
 
-def _project_api_key(item: dict[str, Any]) -> dict[str, Any]:
+def _project_key_record(item: dict[str, Any]) -> dict[str, Any]:
     return {
         field: item.get(field)
         for field in (
@@ -255,8 +255,8 @@ class LambdaCloudClient:
         data = _data(self._get(SSH_KEYS_PATH, "ssh_keys"), "ssh_keys")
         return [_project_ssh_key(item) for item in _rows(data, "ssh_keys")]
 
-    def api_keys(self) -> list[dict[str, Any]]:
-        return [_project_api_key(item) for item in self._paged(API_KEYS_PATH, "api_keys")]
+    def key_records(self) -> list[dict[str, Any]]:
+        return [_project_key_record(item) for item in self._paged(API_KEYS_PATH, "api_keys")]
 
     def _paged(self, path: str, collection: str) -> list[dict[str, Any]]:
         def fetch(token: str | None) -> Any:
@@ -354,8 +354,8 @@ class LambdaCloudFixtureClient:
     def ssh_keys(self) -> list[dict[str, Any]]:
         return [_project_ssh_key(item) for item in _rows(_data(self._read("ssh_keys"), "ssh_keys"), "ssh_keys")]
 
-    def api_keys(self) -> list[dict[str, Any]]:
-        return [_project_api_key(item) for item in _rows(_data(self._read("api_keys"), "api_keys"), "api_keys")]
+    def key_records(self) -> list[dict[str, Any]]:
+        return [_project_key_record(item) for item in _rows(_data(self._read("api_keys"), "api_keys"), "api_keys")]
 
     def _read(self, collection: str, *, required: bool = False) -> Any:
         path = self.fixture / f"{collection}.json"
@@ -395,7 +395,7 @@ def collect_lambda_cloud_evidence(
     rulesets = optional(client.firewall_rulesets)
     global_ruleset = optional(client.global_firewall_ruleset)
     ssh_keys = optional(client.ssh_keys)
-    api_keys = optional(client.api_keys)
+    key_records = optional(client.key_records)
 
     rows: list[dict[str, Any]] = []
     seen: set[str] = set()
@@ -406,9 +406,9 @@ def collect_lambda_cloud_evidence(
         seen.add(instance_id)
         rows.append(_exposure_event(account_id, instance, rulesets, global_ruleset, now, tenant_id))
         rows.append(_ssh_event(account_id, instance, ssh_keys, now, tenant_id))
-    for key in api_keys or []:
-        if key.get("id") and key.get("identity_id"):
-            rows.append(_api_key_event(account_id, key, now, tenant_id))
+    for record in key_records or []:
+        if record.get("id") and record.get("identity_id"):
+            rows.append(_key_record_event(account_id, record, now, tenant_id))
     rows.extend(_gap_event(account_id, gap, now, tenant_id) for gap in gaps)
     return rows
 
@@ -536,23 +536,23 @@ def _ssh_event(
     )
 
 
-def _api_key_event(account_id: str, key: dict[str, Any], now: datetime, tenant_id: str) -> dict[str, Any]:
-    expires = parse_iso(key.get("expires_at"), lenient=True)
-    last_used = parse_iso(key.get("last_used_at"), lenient=True)
-    created = parse_iso(key.get("created_at"), lenient=True)
+def _key_record_event(account_id: str, record: dict[str, Any], now: datetime, tenant_id: str) -> dict[str, Any]:
+    expires = parse_iso(record.get("expires_at"), lenient=True)
+    last_used = parse_iso(record.get("last_used_at"), lenient=True)
+    created = parse_iso(record.get("created_at"), lenient=True)
     reference = last_used or created
-    if str(key.get("status") or "").lower() == "expired" or (expires is not None and expires <= now):
+    if str(record.get("status") or "").lower() == "expired" or (expires is not None and expires <= now):
         status, severity, reason = "observed", "info", "api_key_expired"
-    elif key.get("expires_at") is None:
+    elif record.get("expires_at") is None:
         status, severity, reason = "open", "medium", "api_key_without_expiration"
     elif reference is not None and now - reference > API_KEY_UNUSED_AFTER:
         status, severity, reason = "open", "low", "api_key_unused"
     else:
         status, severity, reason = "observed", "info", None
-    identity_id = str(key["identity_id"])
+    identity_id = str(record["identity_id"])
     return _event(
         account_id=account_id,
-        key=str(key["id"]),
+        key=str(record["id"]),
         entity={
             "asset_id": f"{SOURCE}:{account_id}:identity:{identity_id}",
             "asset_type": "identity_account",
@@ -566,14 +566,14 @@ def _api_key_event(account_id: str, key: dict[str, Any], now: datetime, tenant_i
         severity=severity,
         attributes={
             "account_id": account_id,
-            "key_id": key.get("id"),
-            "key_name": key.get("name"),
+            "key_id": record.get("id"),
+            "key_name": record.get("name"),
             "identity_id": identity_id,
-            "identity_type": key.get("identity_type"),
-            "created_at": key.get("created_at"),
-            "expires_at": key.get("expires_at"),
-            "last_used_at": key.get("last_used_at"),
-            "key_status": key.get("status"),
+            "identity_type": record.get("identity_type"),
+            "created_at": record.get("created_at"),
+            "expires_at": record.get("expires_at"),
+            "last_used_at": record.get("last_used_at"),
+            "key_status": record.get("status"),
             "unused_after_days": API_KEY_UNUSED_AFTER.days,
             "finding_reason": reason,
         },
