@@ -177,6 +177,7 @@ assessment evidence in storage you operate.
 | Identity                | Okta (directory and System Log), Google Workspace, Microsoft Entra (preview), generic identity provider |
 | Endpoint                | Microsoft Intune; Jamf, CrowdStrike Falcon (preview)                                                    |
 | Code                    | GitHub, GitLab                                                                                          |
+| Vulnerability scanning  | Snyk (preview)                                                                                          |
 | People and training     | BambooHR, Rippling, Workday; training-completion exports from any LMS (preview)                         |
 | Workflow and detections | Atlassian Jira, ticketing, SIEM alerts, AI runtime gateway                                              |
 | Existing lakes          | Snowflake, ClickHouse, S3 object storage, OCSF presets; Databricks, BigQuery, Iceberg/Parquet (preview) |
