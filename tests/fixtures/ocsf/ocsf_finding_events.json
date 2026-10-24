@@ -1,0 +1,426 @@
+[
+  {
+    "metadata": {
+      "uid": "syn-vuln-0001",
+      "version": "1.1.0",
+      "product": { "name": "Inspector", "vendor_name": "AWS" }
+    },
+    "time_dt": "2026-10-20T12:00:00Z",
+    "class_uid": 2002,
+    "class_name": "Vulnerability Finding",
+    "category_uid": 2,
+    "activity_id": 2,
+    "severity_id": 5,
+    "severity": "Critical",
+    "status_id": 1,
+    "status": "New",
+    "finding_info": {
+      "uid": "syn-vuln-0001",
+      "title": "CVE-2024-3094 - example package"
+    },
+    "resource": {
+      "uid": "arn:aws:ec2:us-east-1:111122223333:instance/i-0aaa1111bbbb22223",
+      "type": "AwsEc2Instance"
+    },
+    "vulnerabilities": [
+      {
+        "cve": { "uid": "CVE-2024-3094" },
+        "severity": "Critical",
+        "is_fix_available": true
+      }
+    ],
+    "cloud": {
+      "provider": "AWS",
+      "region": "us-east-1",
+      "account": { "uid": "111122223333" }
+    }
+  },
+  {
+    "metadata": {
+      "uid": "syn-vuln-0002",
+      "version": "1.1.0",
+      "product": { "name": "Inspector", "vendor_name": "AWS" }
+    },
+    "time_dt": "2026-10-20T12:05:00Z",
+    "class_uid": 2002,
+    "class_name": "Vulnerability Finding",
+    "category_uid": 2,
+    "activity_id": 2,
+    "severity_id": 4,
+    "severity": "High",
+    "status_id": 4,
+    "status": "Resolved",
+    "finding_info": {
+      "uid": "syn-vuln-0002",
+      "title": "CVE-2023-4863 - example package"
+    },
+    "resource": {
+      "uid": "arn:aws:ecr:us-east-1:111122223333:repository/api/sha256:5b1f0c",
+      "type": "AwsEcrContainerImage"
+    },
+    "vulnerabilities": [
+      {
+        "cve": { "uid": "CVE-2023-4863" },
+        "severity": "High",
+        "is_fix_available": true
+      }
+    ],
+    "cloud": {
+      "provider": "AWS",
+      "region": "us-east-1",
+      "account": { "uid": "111122223333" }
+    }
+  },
+  {
+    "metadata": {
+      "uid": "syn-vuln-0003",
+      "version": "1.1.0",
+      "product": { "name": "Inspector", "vendor_name": "AWS" }
+    },
+    "time_dt": "2026-10-20T12:10:00Z",
+    "class_uid": 2002,
+    "class_name": "Vulnerability Finding",
+    "category_uid": 2,
+    "activity_id": 2,
+    "severity_id": 3,
+    "severity": "Medium",
+    "status_id": 3,
+    "status": "Suppressed",
+    "finding_info": {
+      "uid": "syn-vuln-0003",
+      "title": "CVE-2023-44487 - example package"
+    },
+    "resource": {
+      "uid": "arn:aws:ec2:us-east-1:111122223333:instance/i-0ccc3333dddd44445",
+      "type": "AwsEc2Instance"
+    },
+    "vulnerabilities": [
+      {
+        "cve": { "uid": "CVE-2023-44487" },
+        "severity": "Medium",
+        "is_fix_available": true
+      }
+    ],
+    "cloud": {
+      "provider": "AWS",
+      "region": "us-east-1",
+      "account": { "uid": "111122223333" }
+    }
+  },
+  {
+    "metadata": {
+      "uid": "syn-vuln-0004",
+      "version": "1.1.0",
+      "product": { "name": "Inspector", "vendor_name": "AWS" }
+    },
+    "time_dt": "2026-10-20T12:15:00Z",
+    "class_uid": 2002,
+    "class_name": "Vulnerability Finding",
+    "category_uid": 2,
+    "activity_id": 2,
+    "severity_id": 4,
+    "severity": "High",
+    "status_id": 1,
+    "status": "New",
+    "finding_info": {
+      "uid": "syn-vuln-0004",
+      "title": "CVE-2024-21626 - example package"
+    },
+    "resource": {
+      "uid": "arn:aws:lambda:us-east-1:111122223333:function:billing-export",
+      "type": "AwsLambdaFunction"
+    },
+    "vulnerabilities": [
+      {
+        "cve": { "uid": "CVE-2024-21626" },
+        "severity": "High",
+        "is_fix_available": true
+      }
+    ],
+    "cloud": {
+      "provider": "AWS",
+      "region": "us-east-1",
+      "account": { "uid": "111122223333" }
+    }
+  },
+  {
+    "metadata": {
+      "uid": "syn-comp-0001",
+      "version": "1.1.0",
+      "product": { "name": "Security Hub", "vendor_name": "AWS" }
+    },
+    "time_dt": "2026-10-20T12:20:00Z",
+    "class_uid": 2003,
+    "class_name": "Compliance Finding",
+    "category_uid": 2,
+    "activity_id": 2,
+    "severity_id": 4,
+    "severity": "High",
+    "status_id": 1,
+    "status": "New",
+    "finding_info": {
+      "uid": "syn-comp-0001",
+      "title": "EC2 instances should use IMDSv2"
+    },
+    "resource": {
+      "uid": "arn:aws:ec2:us-east-1:111122223333:instance/i-0aaa1111bbbb22223",
+      "type": "AwsEc2Instance"
+    },
+    "compliance": {
+      "control": "EC2.8",
+      "status": "Fail",
+      "status_id": 3,
+      "standards": [
+        "standards/aws-foundational-security-best-practices/v/1.0.0"
+      ]
+    },
+    "cloud": {
+      "provider": "AWS",
+      "region": "us-east-1",
+      "account": { "uid": "111122223333" }
+    }
+  },
+  {
+    "metadata": {
+      "uid": "syn-comp-0002",
+      "version": "1.1.0",
+      "product": { "name": "Security Hub", "vendor_name": "AWS" }
+    },
+    "time_dt": "2026-10-20T12:25:00Z",
+    "class_uid": 2003,
+    "class_name": "Compliance Finding",
+    "category_uid": 2,
+    "activity_id": 2,
+    "severity_id": 5,
+    "severity": "Critical",
+    "status_id": 4,
+    "status": "Resolved",
+    "finding_info": {
+      "uid": "syn-comp-0002",
+      "title": "IAM policies should not allow full administrative privileges"
+    },
+    "resource": {
+      "uid": "arn:aws:iam::111122223333:policy/ci-deploy",
+      "type": "AwsIamPolicy"
+    },
+    "compliance": {
+      "control": "IAM.1",
+      "status": "Pass",
+      "status_id": 1,
+      "standards": [
+        "standards/aws-foundational-security-best-practices/v/1.0.0"
+      ]
+    },
+    "cloud": {
+      "provider": "AWS",
+      "region": "us-east-1",
+      "account": { "uid": "111122223333" }
+    }
+  },
+  {
+    "metadata": {
+      "uid": "syn-comp-0003",
+      "version": "1.1.0",
+      "product": { "name": "Security Hub", "vendor_name": "AWS" }
+    },
+    "time_dt": "2026-10-20T12:30:00Z",
+    "class_uid": 2003,
+    "class_name": "Compliance Finding",
+    "category_uid": 2,
+    "activity_id": 2,
+    "severity_id": 3,
+    "severity": "Medium",
+    "status_id": 4,
+    "status": "Resolved",
+    "finding_info": {
+      "uid": "syn-comp-0003",
+      "title": "S3 buckets should block public access"
+    },
+    "resource": {
+      "uid": "arn:aws:s3:::acme-audit-logs",
+      "type": "AwsS3Bucket"
+    },
+    "compliance": {
+      "control": "S3.8",
+      "status": "Pass",
+      "status_id": 1,
+      "standards": [
+        "standards/aws-foundational-security-best-practices/v/1.0.0"
+      ]
+    },
+    "cloud": {
+      "provider": "AWS",
+      "region": "us-east-1",
+      "account": { "uid": "111122223333" }
+    }
+  },
+  {
+    "metadata": {
+      "uid": "syn-comp-0004",
+      "version": "1.1.0",
+      "product": { "name": "Security Hub", "vendor_name": "AWS" }
+    },
+    "time_dt": "2026-10-20T12:35:00Z",
+    "class_uid": 2003,
+    "class_name": "Compliance Finding",
+    "category_uid": 2,
+    "activity_id": 2,
+    "severity_id": 5,
+    "severity": "Critical",
+    "status_id": 1,
+    "status": "New",
+    "finding_info": {
+      "uid": "syn-comp-0004",
+      "title": "Hardware MFA should be enabled for the root user"
+    },
+    "resource": { "uid": "AWS::::Account:111122223333", "type": "AwsAccount" },
+    "compliance": {
+      "control": "IAM.6",
+      "status": "Fail",
+      "status_id": 3,
+      "standards": [
+        "standards/aws-foundational-security-best-practices/v/1.0.0"
+      ]
+    },
+    "cloud": {
+      "provider": "AWS",
+      "region": "us-east-1",
+      "account": { "uid": "111122223333" }
+    }
+  },
+  {
+    "metadata": {
+      "uid": "syn-comp-0005",
+      "version": "1.1.0",
+      "product": { "name": "Security Hub", "vendor_name": "AWS" }
+    },
+    "time_dt": "2026-10-20T12:40:00Z",
+    "class_uid": 2003,
+    "class_name": "Compliance Finding",
+    "category_uid": 2,
+    "activity_id": 2,
+    "severity_id": 3,
+    "severity": "Medium",
+    "status_id": 1,
+    "status": "New",
+    "finding_info": {
+      "uid": "syn-comp-0005",
+      "title": "EC2 instances should not have a public IPv4 address"
+    },
+    "resource": {
+      "uid": "arn:aws:ec2:us-east-1:111122223333:instance/i-0ccc3333dddd44445",
+      "type": "AwsEc2Instance"
+    },
+    "compliance": {
+      "control": "EC2.9",
+      "status": "Warning",
+      "status_id": 2,
+      "standards": [
+        "standards/aws-foundational-security-best-practices/v/1.0.0"
+      ]
+    },
+    "cloud": {
+      "provider": "AWS",
+      "region": "us-east-1",
+      "account": { "uid": "111122223333" }
+    }
+  },
+  {
+    "metadata": {
+      "uid": "syn-comp-0006",
+      "version": "1.1.0",
+      "product": { "name": "Security Hub", "vendor_name": "AWS" }
+    },
+    "time_dt": "2026-10-20T12:42:00Z",
+    "class_uid": 2003,
+    "class_name": "Compliance Finding",
+    "category_uid": 2,
+    "activity_id": 2,
+    "severity_id": 4,
+    "severity": "High",
+    "status_id": 4,
+    "status": "Resolved",
+    "finding_info": {
+      "uid": "syn-comp-0006",
+      "title": "EC2 instances should use IMDSv2"
+    },
+    "resource": {
+      "uid": "arn:aws:ec2:us-east-1:111122223333:instance/i-0eee5555ffff66667",
+      "type": "AwsEc2Instance"
+    },
+    "compliance": {
+      "control": "EC2.8",
+      "status": "Pass",
+      "status_id": 1,
+      "standards": [
+        "standards/aws-foundational-security-best-practices/v/1.0.0"
+      ]
+    },
+    "cloud": {
+      "provider": "AWS",
+      "region": "us-east-1",
+      "account": { "uid": "111122223333" }
+    }
+  },
+  {
+    "metadata": {
+      "uid": "syn-det-0001",
+      "version": "1.1.0",
+      "product": { "name": "GuardDuty", "vendor_name": "AWS" }
+    },
+    "time_dt": "2026-10-20T12:45:00Z",
+    "class_uid": 2004,
+    "class_name": "Detection Finding",
+    "category_uid": 2,
+    "activity_id": 2,
+    "severity_id": 4,
+    "severity": "High",
+    "status_id": 1,
+    "status": "New",
+    "finding_info": {
+      "uid": "syn-det-0001",
+      "title": "EC2 instance is querying a domain associated with cryptocurrency mining"
+    },
+    "resources": [
+      {
+        "uid": "arn:aws:ec2:us-east-1:111122223333:instance/i-0aaa1111bbbb22223",
+        "type": "AwsEc2Instance"
+      }
+    ],
+    "cloud": {
+      "provider": "AWS",
+      "region": "us-east-1",
+      "account": { "uid": "111122223333" }
+    }
+  },
+  {
+    "metadata": {
+      "uid": "syn-api-0001",
+      "version": "1.1.0",
+      "product": { "name": "CloudTrail", "vendor_name": "AWS" }
+    },
+    "time_dt": "2026-10-20T12:50:00Z",
+    "class_uid": 6003,
+    "activity_id": 3,
+    "severity_id": 1,
+    "status_id": 1,
+    "status": "Success",
+    "api": {
+      "operation": "ModifyInstanceMetadataOptions",
+      "service": { "name": "ec2.amazonaws.com" }
+    },
+    "actor": { "user": { "uid": "AIDAEXAMPLEOPS", "name": "ops-admin" } },
+    "src_endpoint": { "ip": "198.51.100.7" },
+    "resources": [
+      {
+        "uid": "arn:aws:ec2:us-east-1:111122223333:instance/i-0aaa1111bbbb22223",
+        "type": "AWS::EC2::Instance"
+      }
+    ],
+    "cloud": {
+      "provider": "AWS",
+      "region": "us-east-1",
+      "account": { "uid": "111122223333" }
+    }
+  }
+]
