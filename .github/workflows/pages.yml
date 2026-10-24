@@ -1,0 +1,91 @@
+name: pages
+
+# Publishes the read-only live demo: the console as a static site that replays
+# API responses recorded from the golden fixture. See
+# docs/PRODUCT_WALKTHROUGH.md#hosted-live-demo.
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    # 05:41 UTC every Monday — re-record so the demo's relative times stay recent
+    - cron: "41 5 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One deployment at a time; never cancel one that is already publishing.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        with:
+          version: "0.13.1" # keep in step with the Dockerfile uv image
+          enable-cache: true
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: app/web/package-lock.json
+      - name: Install Python (frozen)
+        run: uv sync --frozen --extra dev --extra server
+      - name: Install web deps
+        working-directory: app/web
+        run: npm ci --no-audit --no-fund
+      - name: Install Playwright Chromium
+        working-directory: app/web
+        run: npx playwright install chromium --with-deps
+      - name: Replay checks
+        working-directory: app/web
+        run: npm run test:demo
+      - name: Build the packaged console the recorder crawls
+        working-directory: app/web
+        run: npm run build
+      - name: Record the demo snapshot from the golden fixture
+        run: bash tools/record_demo_snapshot.sh
+      # Project site: https://<owner>.github.io/<repo>/console/
+      - name: Build the static demo site
+        working-directory: app/web
+        env:
+          CONSOLE_BASE_PATH: /${{ github.event.repository.name }}/console
+        run: npm run build:demo
+      - name: Click through the demo as Pages serves it
+        working-directory: app/web
+        env:
+          DEMO_SITE_PATH: /${{ github.event.repository.name }}
+        run: npm run test:demo-site
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: app/web/demo-site
+
+  deploy:
+    needs: build
+    # Builds still verify the demo before Pages is enabled; publishing starts
+    # once Settings -> Pages -> Source is set to GitHub Actions.
+    if: github.event.repository.has_pages == true || github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write # publish the Pages deployment
+      id-token: write # prove the deployment came from this workflow
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
