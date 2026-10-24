@@ -17,6 +17,15 @@ GRC Lake is open-source and self-hosted, running in infrastructure you control.
 Read evidence from existing systems and security lakes, evaluate versioned rules,
 and preserve the evidence and review decisions behind each result.
 
+- **Traceable:** every result links to its source records, rule version, and
+  review decision; snapshots form a hash-chained ledger you can re-verify.
+- **Works with what you have:** read cloud, identity, and code systems directly,
+  or query OCSF tables already in your security lake.
+- **One control, many frameworks:** reusable safeguards map to SOC 2, ISO 27001,
+  NIST, and more, with reviewed and proposed mappings kept apart.
+- **Agent-ready:** console, REST API, CLI, and MCP share one model. Agents
+  propose; humans approve.
+
 **[Open the live demo](https://koda-ai-studio.github.io/grc-lake/)**: click
 through the console in your browser on synthetic sample data. Nothing to
 install; the demo is read-only.
@@ -82,10 +91,6 @@ GRC_LAKE_LAKE=./lake grc-lake-mcp
 See [headless GRC](docs/HEADLESS_GRC.md) for agent credentials and authority.
 
 </details>
-
-Already have an Agent-Bom JSON scan report? The current-source
-[report importer](docs/AGENT_BOM_IMPORT.md) brings findings into scoped GRC evidence
-with explicit control bindings and retained scan provenance.
 
 ## Product tour
 
@@ -245,6 +250,8 @@ Use [direct connectors](docs/CONNECTOR_CREDENTIALS.md) or
 [read an existing lake](docs/BRING_YOUR_OWN_LAKE.md). Both materialize assessment
 evidence into storage you operate. Reader compatibility, schema mapping, and
 live qualification vary; check the [connector catalog](connectors/catalog.json).
+Agent-Bom JSON scan reports import as scoped evidence through the
+[report importer](docs/AGENT_BOM_IMPORT.md), with retained scan provenance.
 
 Queued assessments retain tenant-scoped result receipts. Pagination, queue
 admission, response storage, and retries have explicit bounds. See the
