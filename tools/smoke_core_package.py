@@ -6,8 +6,13 @@ import contextlib
 import importlib.util
 import io
 import json
+import socket
 import sys
 import tempfile
+import threading
+import time
+import urllib.error
+import urllib.request
 from pathlib import Path
 
 
@@ -45,7 +50,40 @@ def main() -> None:
         assert before["evidence_set_sha256"] == after["evidence_set_sha256"]
         run("assessment", "snapshot", "--lake", lake, "--reason", "Base installation smoke", parse_json=False)
         assert run("assessment", "verify-snapshots", "--lake", lake)["ok"] is True
-    print(json.dumps({"core_package": "ok", "fixtures": "ok", "replay": "ok", "integrity": "ok", "snapshots": "ok"}))
+        _smoke_local_console(lake)
+    print(
+        json.dumps(
+            {
+                "core_package": "ok",
+                "fixtures": "ok",
+                "replay": "ok",
+                "integrity": "ok",
+                "snapshots": "ok",
+                "console": "ok",
+            }
+        )
+    )
+
+
+def _smoke_local_console(lake: str) -> None:
+    from security_lakehouse.server import serve
+
+    with socket.socket() as probe:
+        probe.bind(("127.0.0.1", 0))
+        port = probe.getsockname()[1]
+    threading.Thread(target=serve, args=(lake,), kwargs={"port": port}, daemon=True).start()
+    for path in ("/console/dashboard/", "/api/v1/controls", "/api/v1/frameworks", "/api/v1/graph"):
+        for _ in range(50):
+            try:
+                with urllib.request.urlopen(f"http://127.0.0.1:{port}{path}", timeout=5) as response:
+                    assert response.status == 200, (path, response.status)
+                break
+            except urllib.error.URLError as exc:
+                if not isinstance(exc.reason, ConnectionRefusedError):
+                    raise
+                time.sleep(0.1)
+        else:
+            raise AssertionError(f"local console did not answer {path}")
 
 
 if __name__ == "__main__":

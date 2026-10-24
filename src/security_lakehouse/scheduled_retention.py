@@ -21,7 +21,6 @@ from typing import Any
 
 from security_lakehouse.generation_retention import archive_generations
 from security_lakehouse.io import append_jsonl
-from security_lakehouse.operational_retention import archive_operational_history
 from security_lakehouse.runtime_environment import runtime_env
 from security_lakehouse.schedule_expr import parse_schedule
 from security_lakehouse.tenancy import root_key
@@ -101,6 +100,13 @@ def _archive_for(policy: RetentionPolicy, lake: Path, kind: str) -> Path | None:
     if kind == GENERATIONS:
         return archive / GENERATIONS / root_key(lake)
     return archive / OPERATIONAL
+
+
+def archive_operational_history(lake: Path, **options: Any) -> dict[str, Any]:
+    # Deferred: operational retention needs the server extra; the core package imports this module.
+    from security_lakehouse.operational_retention import archive_operational_history as archive
+
+    return archive(lake, **options)
 
 
 def run_retention(lake_dir: str | Path, kind: str, policy: RetentionPolicy, *, fired_at: datetime) -> dict[str, Any]:
