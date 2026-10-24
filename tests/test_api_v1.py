@@ -424,7 +424,7 @@ def test_v1_connector_discovery_is_enveloped_and_history_safe(tmp_path: Path) ->
         server.shutdown()
 
 
-def test_v1_connector_configure_requires_matching_ok_probe(tmp_path: Path) -> None:
+def test_v1_connector_configure_requires_matching_ok_probe(tmp_path: Path, github_probe_ok: None) -> None:
     server = _spin(tmp_path)
     try:
         status, body = _request(

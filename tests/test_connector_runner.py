@@ -94,7 +94,8 @@ def test_connector_sync_upserts_stable_event_ids(tmp_path: Path) -> None:
 
 def test_connector_sync_cli_runs_fixture_connector(tmp_path: Path, capsys) -> None:  # type: ignore[no-untyped-def]
     credentials = json.dumps({"token": "fixture-read-token"})
-    options = json.dumps({"repo": "acme/model-service"})
+    # The probe reads the same fixture the sync collects from.
+    options = json.dumps({"repo": "acme/model-service", "fixture_dir": str(FIXTURE)})
     probe = main(
         [
             "connectors",
@@ -152,7 +153,7 @@ def test_connector_sync_cli_runs_fixture_connector(tmp_path: Path, capsys) -> No
     assert len(read_jsonl(tmp_path / CONNECTOR_RAW_FILE)) == 6
 
 
-def test_connector_configure_cli_persists_schedule_options(tmp_path: Path, capsys) -> None:  # type: ignore[no-untyped-def]
+def test_connector_configure_cli_persists_schedule_options(tmp_path: Path, capsys, github_probe_ok) -> None:  # type: ignore[no-untyped-def]
     credentials = json.dumps({"token": "fixture-read-token"})
     options = json.dumps({"org": "acme", "repo": "acme/model-service"})
     assert (
@@ -236,7 +237,7 @@ def test_connector_configure_cli_rejects_enable_without_probe(tmp_path: Path, ca
     assert "Test connection" in capsys.readouterr().err
 
 
-def test_connector_configure_cli_requires_matching_probe(tmp_path: Path, capsys) -> None:  # type: ignore[no-untyped-def]
+def test_connector_configure_cli_requires_matching_probe(tmp_path: Path, capsys, github_probe_ok) -> None:  # type: ignore[no-untyped-def]
     assert (
         main(
             [

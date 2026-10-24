@@ -38,6 +38,21 @@ def _isolate_connector_registry():
             del sys.modules[name]
 
 
+@pytest.fixture
+def github_probe_ok(monkeypatch):
+    """Answer the live github-security probe offline for tests of the probe-gated workflow.
+
+    The probe's own GitHub contract lives in ``test_github_collection_contract``;
+    tests that only use github-security as an example connector need it green.
+    """
+    from security_lakehouse import connector_state
+
+    def probe(*, credentials, options):
+        return {"ok": True, "repo": options.get("repo"), "signals": [], "partial": False}
+
+    monkeypatch.setitem(connector_state.LIVE_CLOUD_PROBES, "github-security", probe)
+
+
 # Minimal Iceberg REST catalog on loopback for REST client hardening tests.
 @pytest.fixture
 def rest_stub():

@@ -112,7 +112,7 @@ def test_legacy_post_hides_unexpected_exception_text(tmp_path: Path, monkeypatch
     assert "secret-token-123" not in resp.text
 
 
-def test_legacy_post_enforces_route_specific_scopes(tmp_path: Path) -> None:
+def test_legacy_post_enforces_route_specific_scopes(tmp_path: Path, github_probe_ok: None) -> None:
     _seed_lake(tmp_path)
     app = create_app(tmp_path)
     client = TestClient(app)

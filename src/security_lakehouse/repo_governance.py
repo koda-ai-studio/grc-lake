@@ -21,6 +21,7 @@ from pathlib import Path
 from typing import Any, Protocol
 
 from security_lakehouse import netguard
+from security_lakehouse.connector_errors import ConnectorAccessError, ConnectorConfigError
 from security_lakehouse.ingestion import backoff
 from security_lakehouse.ingestion.paginate import next_link_url, object_rows, paginate
 from security_lakehouse.io import read_json, write_jsonl
@@ -74,6 +75,18 @@ GITHUB_READ_ONLY_SCOPES = [
     "dependabot_alerts:read",
 ]
 GITLAB_READ_ONLY_SCOPES = ["read_api", "read_repository", "read_user", "read_registry"]
+
+# Alert endpoint per security signal, and whether it pages only by Link cursors.
+# GitHub answers HTTP 400 to `page` on the Dependabot endpoint.
+GITHUB_ALERT_ENDPOINTS = {
+    "code_scanning": ("code-scanning/alerts", False),
+    "secret_scanning": ("secret-scanning/alerts", False),
+    "dependabot": ("dependabot/alerts", True),
+}
+# GitHub's documented 403/404 bodies when a feature is off for the repository:
+# "Advanced Security must be enabled", "no analysis found", "Secret scanning is
+# disabled", "Dependabot alerts are disabled".
+_SIGNAL_NOT_ENABLED = re.compile(r"not enabled|disabled|must be enabled|no analysis found", re.IGNORECASE)
 
 
 @dataclass(frozen=True)
@@ -168,12 +181,24 @@ class GitHubGovernanceClient:
 
     def security_findings(self) -> dict[str, Any]:
         base = f"https://api.github.com/repos/{self.spec.slug}"
-        return {
-            "code_scanning": _safe_call(lambda: self._json_list_paginated(f"{base}/code-scanning/alerts")),
-            "secret_scanning": _safe_call(lambda: self._json_list_paginated(f"{base}/secret-scanning/alerts")),
-            # GitHub answers HTTP 400 to `page` on this endpoint; it pages only by Link cursors.
-            "dependabot": _safe_call(lambda: self._json_list_cursor(f"{base}/dependabot/alerts")),
-        }
+        findings: dict[str, Any] = {}
+        for signal, (path, cursor_only) in GITHUB_ALERT_ENDPOINTS.items():
+            reader = self._json_list_cursor if cursor_only else self._json_list_paginated
+            findings[signal] = _safe_call(lambda reader=reader, path=path: reader(f"{base}/{path}"))
+        return findings
+
+    def probe_signals(self) -> dict[str, dict[str, Any]]:
+        """Read one page of each alert endpoint the sync collects, without following continuations.
+
+        Each request has the sync's shape for that endpoint (page numbers or
+        cursor-only), so a request the sync cannot make fails here as well.
+        """
+        base = f"https://api.github.com/repos/{self.spec.slug}"
+        signals: dict[str, dict[str, Any]] = {}
+        for signal, (path, cursor_only) in GITHUB_ALERT_ENDPOINTS.items():
+            url = f"{base}/{path}?per_page=1" + ("" if cursor_only else "&page=1")
+            signals[signal] = _probe_signal(signal, lambda url=url: object_rows(self._request(url), label="GitHub"))
+        return signals
 
     def _json(self, url: str) -> dict[str, Any]:
         payload = self._request(url)
@@ -436,6 +461,18 @@ class FixtureGovernanceClient:
     def security_findings(self) -> dict[str, Any]:
         return self._read("security_findings.json")
 
+    def probe_signals(self) -> dict[str, dict[str, Any]]:
+        findings = self.security_findings()
+        signals: dict[str, dict[str, Any]] = {}
+        for signal in GITHUB_ALERT_ENDPOINTS:
+            payload = findings.get(signal) if isinstance(findings, dict) else None
+            if isinstance(payload, list):
+                signals[signal] = {"status": "readable"}
+            else:
+                status = payload.get("http_status") if isinstance(payload, dict) else None
+                signals[signal] = {"status": "forbidden", **({"http_status": status} if status else {})}
+        return signals
+
     def _read(self, name: str) -> Any:
         path = self.fixture / name
         return read_json(path) if path.exists() else {"available": False}
@@ -452,14 +489,7 @@ def sync_repo_governance(
     collected_at: datetime | None = None,
 ) -> list[dict[str, Any]]:
     spec = parse_governance_repo_spec(repo, provider=provider)
-    default_env = (
-        "GRC_LAKE_GITLAB_ACCESS_TOKEN" if spec.provider == "gitlab" else "GRC_LAKE_GITHUB_APP_INSTALLATION_TOKEN"
-    )
-    secret = token
-    if not secret:
-        secret = resolve_ref_or_default(
-            token_env, default_env, dict(runtime_env()), field="credential_ref", file_first=False
-        )
+    secret = _resolve_token(spec, token=token, token_env=token_env)
     client: GovernanceClient
     if fixture_dir:
         client = FixtureGovernanceClient(fixture_dir)
@@ -483,6 +513,84 @@ def sync_repo_governance(
     if out:
         write_jsonl(out, rows)
     return rows
+
+
+def _resolve_token(spec: GovernanceRepoSpec, *, token: str | None, token_env: str | None) -> str | None:
+    if token:
+        return token
+    default_env = (
+        "GRC_LAKE_GITLAB_ACCESS_TOKEN" if spec.provider == "gitlab" else "GRC_LAKE_GITHUB_APP_INSTALLATION_TOKEN"
+    )
+    return resolve_ref_or_default(token_env, default_env, dict(runtime_env()), field="credential_ref", file_first=False)
+
+
+def probe_github_access(*, credentials: dict[str, Any], options: dict[str, Any]) -> dict[str, Any]:
+    """Prove the configured token can read the repository and each security signal the sync collects.
+
+    The token is resolved as ``run_connector_sync`` resolves it: the stored
+    ``credential_ref``, else ``options.token_env``, else the provider default
+    variable. A literal ``token`` is never read, because sync never reads one.
+    Repository metadata must be readable. Each alert endpoint then gets one
+    request and reports ``readable``, ``forbidden`` or ``not_enabled``; any
+    other HTTP failure fails the probe, as it fails the sync.
+    """
+    repo = str(options.get("repo") or "").strip()
+    if not repo:
+        raise ConnectorConfigError("github-security probe requires options.repo set to the repository owner and name")
+    spec = parse_governance_repo_spec(repo, provider="github")
+    fixture_dir = options.get("fixture_dir")
+    client: GitHubGovernanceClient | FixtureGovernanceClient
+    if fixture_dir:
+        client = FixtureGovernanceClient(fixture_dir)
+    else:
+        ref = str(credentials.get("credential_ref") or options.get("token_env") or "").strip() or None
+        secret = _resolve_token(spec, token=None, token_env=ref)
+        if not secret:
+            raise ConnectorConfigError(
+                "no GitHub token resolved: set credential_ref to the environment variable or secret "
+                "that holds the installation token"
+            )
+        client = GitHubGovernanceClient(spec, token=secret)
+    try:
+        repo_data = client.repo()
+    except urllib.error.HTTPError as exc:
+        raise ConnectorAccessError(
+            f"GitHub repository metadata is not readable with the configured token (HTTP {exc.code})"
+        ) from None
+    # A list, not a mapping: run records redact any key containing "secret",
+    # which would blank the secret_scanning entry.
+    signals = [{"signal": signal, **access} for signal, access in client.probe_signals().items()]
+    return {
+        "ok": True,
+        "repo": spec.slug,
+        "credential_mode": "fixture" if fixture_dir else "access_token",
+        "default_branch": str(repo_data.get("default_branch") or "") or None,
+        "capabilities": ["metadata:read"],
+        "signals": signals,
+        "partial": any(signal["status"] != "readable" for signal in signals),
+    }
+
+
+def _probe_signal(signal: str, read: Any) -> dict[str, Any]:
+    try:
+        read()
+    except urllib.error.HTTPError as exc:
+        if exc.code not in {401, 403, 404}:
+            raise ConnectorAccessError(
+                f"GitHub {signal} read failed (HTTP {exc.code}); sync would fail the same way"
+            ) from None
+        status = "not_enabled" if _SIGNAL_NOT_ENABLED.search(_http_error_message(exc)) else "forbidden"
+        return {"status": status, "http_status": exc.code}
+    return {"status": "readable"}
+
+
+def _http_error_message(exc: urllib.error.HTTPError) -> str:
+    try:
+        payload = json.loads(exc.read().decode("utf-8"))
+    except (OSError, ValueError, AttributeError):
+        # No readable JSON body; classify on the status code alone.
+        return ""
+    return str(payload.get("message") or "") if isinstance(payload, dict) else ""
 
 
 def _build_events(

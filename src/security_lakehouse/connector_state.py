@@ -53,6 +53,7 @@ from security_lakehouse.connectors_snowflake import discover_snowflake_scope, pr
 from security_lakehouse.io import read_jsonl
 from security_lakehouse.lake_scale import apply_split_schedule_defaults
 from security_lakehouse.models import instant_sort_key, parse_event_time, utc_iso
+from security_lakehouse.repo_governance import probe_github_access
 from security_lakehouse.secret_refs import ref_payload_error
 from security_lakehouse.timeutil import utc_now_iso_z as _utc_now_iso
 
@@ -1225,10 +1226,12 @@ def has_adapter(connector_id: str) -> bool:
     return connector_id in _implemented_adapters()
 
 
-# Cloud posture connectors whose probe makes one fast, read-only provider call.
+# Connectors whose probe makes a few fast, read-only provider calls through the
+# same client and credential resolution as their sync.
 LIVE_CLOUD_PROBES = {
     "gcp-posture": probe_gcp_access,
     "azure-posture": probe_azure_access,
+    "github-security": probe_github_access,
 }
 
 

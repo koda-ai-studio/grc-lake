@@ -273,7 +273,13 @@ page, or contains malformed items. Exhausted transient HTTP failures also fail
 the sync. A 401/403/404 remains an explicitly unavailable signal; inspect those
 gaps before using the evidence. Alert evidence contains aggregate counts only;
 alert details, secret material and tokens are not persisted. The GitHub probe
-validates configuration, not live API access or collection completeness.
+resolves the token the way sync does (`credential_ref`, then
+`options.token_env`, then `GRC_LAKE_GITHUB_APP_INSTALLATION_TOKEN`; a literal
+`token` is never used), reads the repository metadata, and makes one request to
+each alert endpoint. It reports each signal as `readable`, `forbidden` or
+`not_enabled`. An unreadable repository or any other HTTP failure fails the
+probe, as it would fail the sync. A green probe still does not establish
+collection completeness.
 See the [GitHub qualification contract](GITHUB_QUALIFICATION.md) and
 [catalog-wide qualification matrix](CONNECTOR_QUALIFICATION.md).
 
