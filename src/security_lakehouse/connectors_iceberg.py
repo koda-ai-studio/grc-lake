@@ -50,7 +50,6 @@ from security_lakehouse.lake_mapping import (
     resolve_mapping_ref,
     resolve_mappings,
 )
-from security_lakehouse.local_paths import LOCAL_ROOT_ENV as LOCAL_ROOT_ENV  # re-exported for callers
 from security_lakehouse.local_paths import confine_local_path
 from security_lakehouse.runtime_environment import runtime_env
 from security_lakehouse.secret_refs import SecretRefPolicyError, secret_ref_denial
