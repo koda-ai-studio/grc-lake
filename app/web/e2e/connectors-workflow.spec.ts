@@ -1,6 +1,8 @@
 import { test, expect } from "@playwright/test";
 
-const CONNECTOR_ID = "github-security";
+// github-security now makes a live GitHub read when probed, so the generic
+// probe-gated workflow uses gitlab-security, whose probe validates configuration.
+const CONNECTOR_ID = "gitlab-security";
 
 async function ensureConnectorDisabled(
   request: import("@playwright/test").APIRequestContext,
@@ -78,7 +80,7 @@ test.describe("connectors workflow", () => {
     expect((box?.y ?? 0) + (box?.height ?? 0)).toBeLessThanOrEqual(720);
   });
 
-  test("probe-gated enable flow for github-security", async ({
+  test("probe-gated enable flow for gitlab-security", async ({
     page,
     request,
   }) => {
@@ -90,15 +92,17 @@ test.describe("connectors workflow", () => {
     await expect(
       page
         .getByRole("dialog")
-        .getByRole("heading", { name: "GitHub Security" }),
+        .getByRole("heading", { name: "GitLab Security" }),
     ).toBeVisible({ timeout: 15_000 });
 
     // Server mode resolves only tenant-prefixed (or operator-allowlisted) refs;
     // the no-auth e2e server acts for the synthetic "insecure" tenant.
     await page
-      .getByLabel(/GitHub App installation token env/i)
-      .fill("GRC_LAKE_TENANT_INSECURE__GITHUB_TOKEN");
-    await page.getByLabel(/Repository \(owner\/name\)/i).fill("acme/platform");
+      .getByLabel(/GitLab access token env/i)
+      .fill("GRC_LAKE_TENANT_INSECURE__GITLAB_TOKEN");
+    await page
+      .getByLabel(/Project path \(group\/project\)/i)
+      .fill("acme/platform");
 
     const dialog = page.getByRole("dialog");
     await expect(
@@ -113,7 +117,7 @@ test.describe("connectors workflow", () => {
     await expect(enableBtn).toBeEnabled({ timeout: 15_000 });
 
     await enableBtn.click();
-    await expect(page.getByText(/GitHub Security enabled/i)).toBeVisible({
+    await expect(page.getByText(/GitLab Security enabled/i)).toBeVisible({
       timeout: 15_000,
     });
     await expect(
@@ -138,7 +142,7 @@ test.describe("connectors workflow", () => {
 
     const dialog = page.getByRole("dialog");
     await expect(
-      dialog.getByRole("heading", { name: "GitHub Security" }),
+      dialog.getByRole("heading", { name: "GitLab Security" }),
     ).toBeVisible({ timeout: 15_000 });
 
     await dialog.getByRole("button", { name: "Disable", exact: true }).click();
@@ -146,7 +150,7 @@ test.describe("connectors workflow", () => {
       dialog.getByRole("button", { name: "Confirm disable" }),
     ).toBeVisible();
     await expect(
-      dialog.getByText("Disable GitHub Security?", { exact: true }),
+      dialog.getByText("Disable GitLab Security?", { exact: true }),
     ).toBeVisible();
 
     await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
@@ -164,7 +168,7 @@ test.describe("connectors workflow", () => {
 
     await dialog.getByRole("button", { name: "Disable", exact: true }).click();
     await dialog.getByRole("button", { name: "Confirm disable" }).click();
-    await expect(page.getByText(/GitHub Security disabled/i)).toBeVisible({
+    await expect(page.getByText(/GitLab Security disabled/i)).toBeVisible({
       timeout: 15_000,
     });
 
