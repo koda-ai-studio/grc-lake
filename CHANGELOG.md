@@ -10,6 +10,8 @@ Python package, Helm chart, and bundled web console.
 
 ## 0.3.11 - 2026-10-23
 
+- Publish a read-only live demo of the console to GitHub Pages from recorded synthetic API responses. Writes are blocked in the browser, unrecorded views say so, and the packaged console build is unchanged; the copy step refuses demo or non-`/console` builds.
+- Report failed snapshot requests as errors instead of success notices.
 - Add `grc-lake demo`: load the synthetic golden company into a temporary lake, serve the console on loopback without authentication, and open the browser. Falls back to local mode without the `server` extra; refuses a busy port and deletes the lake on exit.
 - Lock dev-only zod 4.6.7 (GHSA-mrhx-c7xc-m3w5) for the console lint toolchain.
 - Lock filelock 4.2.4 (CVE-2026-112907, CVE-2026-112913, CVE-2026-112940) via snowflake-connector-python 5.1.0, which drops its `filelock<4` cap; protobuf resolves to 6.33.6 under the connector's `<7` bound.
