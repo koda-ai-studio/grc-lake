@@ -258,8 +258,9 @@ def test_account_change_flags_successful_privilege_grants_for_review() -> None:
         "syn-acct-0002": ("observed", [], None),  # the grant failed, so nothing changed
         "syn-acct-0003": ("observed", [], None),
     }
-    # the rule leaves framework tags alone
-    assert events["syn-acct-0001"]["controls"] == events["syn-acct-0003"]["controls"]
+    # a grant carries only tags inside SG-IDENTITY-002's crosswalk; other rows keep the preset's
+    assert events["syn-acct-0001"]["controls"] == ["SOC2-CC6.2", "ISO27001-A.5.18"]
+    assert events["syn-acct-0003"]["controls"] == load_preset("ocsf/account_change")["fields"]["controls"]["const"]
 
 
 def test_api_activity_stays_presence_only_logging_evidence() -> None:
@@ -377,6 +378,7 @@ def test_preset_rules_bind_catalog_safeguards_that_apply_to_the_asset_type() -> 
 @pytest.mark.parametrize(
     ("name", "safeguard_id"),
     [
+        ("ocsf/account_change", "SG-IDENTITY-002"),
         ("ocsf/group_management", "SG-IDENTITY-002"),
         ("ocsf/vulnerability_finding", VULN_SG),
         ("ocsf/compliance_finding", BASELINE_SG),
