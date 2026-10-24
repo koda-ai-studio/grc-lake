@@ -185,6 +185,13 @@ export const CONNECTOR_VISUALS: Record<string, ConnectorVisual> = {
     bg: "#eff6ff",
     categoryLabel: "Personnel",
   },
+  "training-completion": {
+    vendor: "Training export",
+    mark: "TR",
+    accent: "#0f766e",
+    bg: "#f0fdfa",
+    categoryLabel: "Security training",
+  },
   "jamf-devices": {
     vendor: "Jamf",
     mark: "JF",

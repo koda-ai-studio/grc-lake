@@ -671,6 +671,29 @@
       "setup_hint": "Lambda Cloud API key referenced by credential_ref; Lambda keys are not scoped, so GRC Lake issues GET requests only."
     },
     {
+      "connector_id": "training-completion",
+      "name": "Training Completion Export",
+      "category": "security_training",
+      "collection_mode": "existing_lake_read",
+      "access_boundary": "read_only_role",
+      "credential_type": "local_export_file",
+      "minimum_permissions": [
+        "read access to the training export file or directory only"
+      ],
+      "evidence_types": ["security_training"],
+      "default_route": "dual",
+      "freshness_slo_minutes": 1440,
+      "is_implemented": true,
+      "production_status": "supported_connector",
+      "release_stage": "preview",
+      "velocity": "low_current_state",
+      "native_connector": true,
+      "data_shape": "current_state",
+      "vendor": "Any LMS (CSV/JSON)",
+      "description": "Security awareness training assignments and completions from an LMS or training-platform export, joined to the HR population.",
+      "setup_hint": "Schedule a CSV or JSON export with the documented column contract into the allowed local root; no provider credentials are stored."
+    },
+    {
       "connector_id": "iceberg-parquet-lake",
       "name": "Iceberg / Parquet Lake",
       "category": "analytics_lake",

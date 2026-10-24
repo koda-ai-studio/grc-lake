@@ -508,6 +508,11 @@ def _missing_required_config(
         # time; only the cluster label is required to enable.
         return ["cluster_name"] if not _has_value(credentials, "cluster_name") else []
 
+    if connector_id == "training-completion":
+        # The export is read from a local path confined to the operator's
+        # allowed root (per tenant in hosted mode); there is no provider secret.
+        return ["path"] if not _has_value(credentials, "path") else []
+
     if connector_id == "gcp-posture":
         # Credentials resolve through Application Default Credentials, so only
         # the project scope is required — no stored credential reference, the

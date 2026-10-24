@@ -235,6 +235,12 @@
       "owner": null
     },
     {
+      "connector_id": "training-completion",
+      "fixture_tests": ["tests/test_training_completion_connector.py"],
+      "live_record": null,
+      "owner": null
+    },
+    {
       "connector_id": "iceberg-parquet-lake",
       "fixture_tests": ["tests/test_iceberg_parquet_connector.py"],
       "live_record": null,
