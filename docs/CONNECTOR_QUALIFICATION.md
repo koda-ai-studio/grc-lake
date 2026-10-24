@@ -52,6 +52,7 @@ and [Databricks #734](https://github.com/koda-ai-studio/grc-lake/issues/734).
 | `runtime-gateway` | Implemented | [runtime_gateway_connector](../tests/test_runtime_gateway_connector.py); [collection_completeness](../tests/test_collection_completeness.py) | No scoped live record linked | Unassigned |
 | `siem-alerts` | Implemented | [siem_connector](../tests/test_siem_connector.py); [collection_completeness](../tests/test_collection_completeness.py) | No scoped live record linked | Unassigned |
 | `snowflake-evidence-lake` | Implemented | [snowflake_connector](../tests/test_snowflake_connector.py) | No scoped live record linked | Unassigned |
+| `snyk-vulnerabilities` | Preview | [snyk_connector](../tests/test_snyk_connector.py); [collection_completeness](../tests/test_collection_completeness.py) | No scoped live record linked | Unassigned |
 | `ticketing` | Configuration boundary | Catalog validation only | Not applicable: no standalone collector | Unassigned |
 | `training-completion` | Preview | [training_completion_connector](../tests/test_training_completion_connector.py) | No scoped live record linked | Unassigned |
 | `workday-personnel` | Implemented | [rippling_workday_connectors](../tests/test_rippling_workday_connectors.py); [collection_completeness](../tests/test_collection_completeness.py) | No scoped live record linked | Unassigned |
@@ -90,6 +91,7 @@ Qualify the actual principal, account, resource scope and provider version separ
 | `runtime-gateway` | `read_only_role` | read runtime event stream; read policy decision logs |
 | `siem-alerts` | `read_only_role` | read alert index; read detection metadata |
 | `snowflake-evidence-lake` | `read_only_role` | USAGE on warehouse; USAGE on database; USAGE on schema; SELECT on evidence views |
+| `snyk-vulnerabilities` | `scoped_token` | View Organization; View Project; View Project History |
 | `ticketing` | `scoped_token` | read project issues; read issue status; read issue labels |
 | `training-completion` | `read_only_role` | read access to the training export file or directory only |
 | `workday-personnel` | `scoped_token` | Get access to a TrustOps employment custom report (RaaS) via an integration system user |

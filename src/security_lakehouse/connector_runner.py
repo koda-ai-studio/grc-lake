@@ -148,6 +148,12 @@ from security_lakehouse.connectors_snowflake import (
     _probe_query_params,
     collect_snowflake_evidence,
 )
+from security_lakehouse.connectors_snyk import (
+    SnykClient,
+    SnykFixtureClient,
+    collect_snyk_evidence,
+    parse_sync_options,
+)
 from security_lakehouse.connectors_training import (
     CONNECTOR_ID as TRAINING_CONNECTOR_ID,
 )
@@ -302,6 +308,9 @@ JAMF_CLIENT_SECRET_ENV = "JAMF_CLIENT_SECRET"
 CROWDSTRIKE_CLOUD_ENV = "CROWDSTRIKE_CLOUD"
 CROWDSTRIKE_CLIENT_ID_ENV = "CROWDSTRIKE_CLIENT_ID"
 CROWDSTRIKE_CLIENT_SECRET_ENV = "CROWDSTRIKE_CLIENT_SECRET"
+# The Snyk CLI's own token variable; hosted tenants must set credential_ref.
+SNYK_TOKEN_ENV = "SNYK_TOKEN"
+SNYK_REGION_ENV = "SNYK_REGION"
 KUBECONFIG_ENV = "KUBECONFIG"
 LAMBDA_API_KEY_ENV = "LAMBDA_API_KEY"
 KUBERNETES_SERVICE_HOST_ENV = "KUBERNETES_SERVICE_HOST"
@@ -741,6 +750,12 @@ def _build_crowdstrike(inputs: SyncInputs) -> list[dict[str, Any]]:
     return _collect_crowdstrike(fixture_dir=inputs.fixture_dir, env=inputs.env, credentials=inputs.credentials)
 
 
+def _build_snyk(inputs: SyncInputs) -> list[dict[str, Any]]:
+    return _collect_snyk(
+        fixture_dir=inputs.fixture_dir, env=inputs.env, credentials=inputs.credentials, options=inputs.options
+    )
+
+
 def _build_kubernetes(inputs: SyncInputs) -> list[dict[str, Any]]:
     return _collect_kubernetes(fixture_dir=inputs.fixture_dir, env=inputs.env, credentials=inputs.credentials)
 
@@ -866,6 +881,7 @@ REGISTRY: dict[str, ConnectorBuilder] = {
     "databricks-evidence-lake": _build_databricks,
     "jamf-devices": _build_jamf,
     "crowdstrike-falcon": _build_crowdstrike,
+    "snyk-vulnerabilities": _build_snyk,
     "kubernetes-cluster": _build_kubernetes,
     "lambda-cloud": _build_lambda_cloud,
     TRAINING_CONNECTOR_ID: _build_training,
@@ -1379,6 +1395,30 @@ def _collect_crowdstrike(
             "Hosts, Prevention policies, and Alerts read scopes"
         )
     return collect_crowdstrike_evidence(CrowdStrikeClient(cloud, client_id=client_id, client_secret=secret))
+
+
+def _collect_snyk(
+    *,
+    fixture_dir: str | Path | None,
+    env: dict[str, str],
+    credentials: dict[str, Any] | None = None,
+    options: dict[str, Any] | None = None,
+) -> list[dict[str, Any]]:
+    env = runtime_env(env)
+    creds = credentials or {}
+    region = str(creds.get("region") or env.get(SNYK_REGION_ENV) or "").strip() or None
+    org_ids, max_test_age, max_pages = parse_sync_options(options or {})
+    if fixture_dir:
+        fixture = SnykFixtureClient(fixture_dir, region=region)
+        return collect_snyk_evidence(fixture, org_ids=org_ids, max_test_age=max_test_age)
+    token = _resolve_provider_secret(str(creds.get("credential_ref") or ""), SNYK_TOKEN_ENV, env)
+    if not token:
+        raise ConnectorConfigError(
+            "snyk-vulnerabilities sync requires --fixture-dir, or a Snyk API token "
+            f"(credential_ref naming the secret, or {SNYK_TOKEN_ENV}) from a read-only service account or user"
+        )
+    client = SnykClient(region, token=token, max_pages=max_pages)  # an unlisted region fails here, before any request
+    return collect_snyk_evidence(client, org_ids=org_ids, max_test_age=max_test_age)
 
 
 def _collect_kubernetes(

@@ -613,6 +613,35 @@
       "setup_hint": "Falcon API client limited to read scopes for hosts, prevention policies, and alerts, in your Falcon cloud region."
     },
     {
+      "connector_id": "snyk-vulnerabilities",
+      "name": "Snyk Vulnerabilities",
+      "category": "developer_platform",
+      "collection_mode": "direct_api_read",
+      "access_boundary": "scoped_token",
+      "credential_type": "snyk_api_token",
+      "minimum_permissions": [
+        "View Organization",
+        "View Project",
+        "View Project History"
+      ],
+      "evidence_types": [
+        "vulnerability_finding",
+        "dependency_alert",
+        "code_scan"
+      ],
+      "default_route": "dual",
+      "freshness_slo_minutes": 1440,
+      "is_implemented": true,
+      "production_status": "supported_connector",
+      "release_stage": "preview",
+      "velocity": "medium_api",
+      "native_connector": false,
+      "data_shape": "current_state",
+      "vendor": "Snyk",
+      "description": "Open-source, container, and code vulnerability issues per Snyk project, with severity, status, ignores, fixability, and last-test time.",
+      "setup_hint": "Read-only API token (a Group Viewer service account, or a user limited to viewing) in your Snyk region."
+    },
+    {
       "connector_id": "kubernetes-cluster",
       "name": "Kubernetes Cluster",
       "category": "cloud",

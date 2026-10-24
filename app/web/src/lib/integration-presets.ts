@@ -194,6 +194,23 @@ const PRESETS: Record<string, IntegrationPreset> = {
       "MAC and IP addresses, serial numbers, user names, and alert details beyond status and severity are never stored.",
     ],
   },
+  "snyk-vulnerabilities": {
+    connectorId: "snyk-vulnerabilities",
+    title: "Snyk vulnerabilities",
+    authLabel: "Read-only API token",
+    badges: ["View Organization", "View Project", "Read-only"],
+    summary:
+      "Create a read-only Snyk token, store it as a secret reference, then pick the Snyk region. Sync reads organizations, projects, and their open-source, container, and code vulnerability issues.",
+    providerSetup:
+      "A Snyk group administrator creates a Group Viewer service account, or a user whose role can only view organizations and projects.",
+    trustOpsInput: "Snyk region and the API token reference.",
+    advancedTitle: "What is collected",
+    advancedDetails: [
+      "Per active project: name, type, origin, last test time, and issue counts. Per vulnerability issue: severity, status, ignore flag, problem and CVE IDs, fixability, risk score, and created and resolved times.",
+      "A project passes only when Snyk tested it within the configured window (7 days by default). Ignored issues and untested projects never pass.",
+      "Issue descriptions, code flows, and dependency coordinates are never stored. License, IaC, cloud, and secrets issues are counted, not evaluated.",
+    ],
+  },
   "kubernetes-cluster": {
     connectorId: "kubernetes-cluster",
     title: "Kubernetes cluster",

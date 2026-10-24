@@ -156,6 +156,12 @@ passes only with an explicit Fixed, Done, or Resolved resolution; cancellation,
 duplication, Won't Do, and unknown resolutions remain unevaluated. Transition
 activity remains an observation. See [Jira resolutions](https://support.atlassian.com/jira-cloud-administration/docs/what-is-a-resolution-in-jira/).
 
+Snyk evidence never passes on absence alone. A project without issues passes
+only when Snyk's last test is inside the configured window and the issue listing
+was complete. An open issue that is ignored in Snyk is `not_evaluated`, not a
+pass, and an incomplete listing turns every project in that organization into
+`not_evaluated` with a coverage gap.
+
 Azure role assignments whose role definitions cannot be resolved remain
 unevaluated. The published Owner, Contributor, and User Access Administrator
 built-in IDs can identify those privileged roles even when their display names
