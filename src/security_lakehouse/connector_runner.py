@@ -107,6 +107,7 @@ from security_lakehouse.connectors_kubernetes import (
     KubernetesClient,
     KubernetesFixtureClient,
     collect_kubernetes_evidence,
+    reject_kubeconfig_command_plugins,
 )
 from security_lakehouse.connectors_lambda import (
     LambdaCloudClient,
@@ -1389,6 +1390,10 @@ def _collect_kubernetes(
             not kubeconfig_path and bool(env.get(KUBERNETES_SERVICE_HOST_ENV))
         )
     context = str(creds.get("context") or "").strip() or None
+    if in_server_mode(env) and kubeconfig_path:
+        # A tenant kubeconfig must not make the server run a local command.
+        # Local mode keeps exec plugins (provider CLIs such as Nebius log in that way).
+        reject_kubeconfig_command_plugins(kubeconfig_path, context=context)
     return collect_kubernetes_evidence(
         KubernetesClient(cluster_name, context=context, kubeconfig_path=kubeconfig_path, in_cluster=in_cluster),
         allowed_registries=allowed_registries,

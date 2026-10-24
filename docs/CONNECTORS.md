@@ -1089,9 +1089,17 @@ The `kubernetes-cluster` connector works unchanged against these clusters. Point
 - **Nebius Managed Kubernetes.** `nebius mk8s cluster get-credentials --id <id>
 --external` (or `--internal` from a Nebius VM) writes a kubeconfig that calls the
   `nebius` CLI as an exec credential plugin. The official Kubernetes client runs that
-  plugin, so the CLI must be installed and signed in where GRC Lake runs. For a
-  hosted deployment, prefer a kubeconfig carrying a service-account token, because an
-  exec plugin runs a local command.
+  plugin, so the CLI must be installed and signed in where GRC Lake runs. Local and
+  CLI runs accept it. Hosted mode rejects it (see below), so give a hosted
+  deployment a kubeconfig carrying a service-account token.
+
+**Hosted mode refuses kubeconfig command plugins.** In hosted server mode, a tenant
+kubeconfig whose selected context's user has an `exec` plugin or an `auth-provider`
+entry is rejected before the client is built. Either one would make the server run a
+local command. GRC Lake parses the file with a safe YAML loader and never executes
+it. A path list is merged the way the Kubernetes client merges it. A kubeconfig that
+cannot be parsed, or whose selected context is missing, also fails closed. Use a
+service-account token or a client certificate instead.
 
 | Event                                       | Asset type            | Result                                                                                                                                                                                                                                                      | Safeguard        |
 | ------------------------------------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |

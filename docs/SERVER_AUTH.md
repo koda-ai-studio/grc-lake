@@ -375,7 +375,9 @@ hosted tenants must set an explicit ref.
 - BigQuery refuses a fully qualified source table in another project than the
   configured `project_id` unless `options.allow_cross_project` is true.
 - Kubernetes requires `kubeconfig_ref` naming the tenant's kubeconfig; the
-  in-cluster service account and the server's `KUBECONFIG` are refused.
+  in-cluster service account and the server's `KUBECONFIG` are refused. A
+  kubeconfig whose selected user has an `exec` or `auth-provider` entry is also
+  refused, because either would run a local command on the server.
 - Azure readers (`azure-posture`, `intune-devices`) authenticate as the
   customer's own Entra app registration: `tenant_id`, `client_id`, and exactly
   one of `client_secret_ref` (the app's client secret),

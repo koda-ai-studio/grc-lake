@@ -57,6 +57,7 @@ from __future__ import annotations
 
 import hashlib
 import ipaddress
+import os
 import re
 import urllib.parse
 from collections.abc import Callable, Iterable, Mapping
@@ -64,7 +65,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from security_lakehouse.connector_errors import CollectionGapError
+from security_lakehouse.connector_errors import CollectionGapError, ConnectorConfigError
 from security_lakehouse.ingestion import backoff
 from security_lakehouse.ingestion.paginate import object_rows, paginate
 from security_lakehouse.io import read_json
@@ -266,6 +267,61 @@ class KubernetesClient:
                 lambda page: object_rows(page.get("items", []), label="Kubernetes"),
                 lambda page: str((page.get("metadata") or {}).get("continue") or "") or None,
             )
+        )
+
+
+def reject_kubeconfig_command_plugins(kubeconfig_path: str, *, context: str | None) -> None:
+    """Fail when the selected context's user would make the client run a local command.
+
+    A kubeconfig ``users[].user.exec`` plugin, or an ``auth-provider`` (whose
+    ``cmd-path`` the client runs), executes on the collecting host. Hosted mode
+    calls this before building the client. It only parses, with a safe loader,
+    and mirrors the client's merge of an ``os.pathsep``-separated path list:
+    missing files are skipped, the first entry for a name wins, and the last
+    ``current-context`` wins. Anything it cannot inspect fails closed.
+    """
+    try:
+        import yaml
+    except ImportError as exc:
+        raise ConnectorConfigError(
+            "kubernetes-cluster live collection requires the kubernetes extra to inspect the kubeconfig"
+        ) from exc
+    contexts: dict[str, Any] = {}
+    users: dict[str, Any] = {}
+    current: str | None = None
+    found = False
+    for raw in kubeconfig_path.split(os.pathsep):
+        path = Path(raw).expanduser() if raw else None
+        if path is None or not path.exists():
+            continue
+        try:
+            config = yaml.safe_load(path.read_text(encoding="utf-8"))
+        except (OSError, UnicodeDecodeError, yaml.YAMLError) as exc:
+            raise ConnectorConfigError("the tenant kubeconfig could not be read as YAML") from exc
+        if not isinstance(config, dict):
+            raise ConnectorConfigError("the tenant kubeconfig is empty or is not a kubeconfig mapping")
+        found = True
+        for key, merged in (("contexts", contexts), ("users", users)):
+            entries = config.get(key) or []
+            if not isinstance(entries, list):
+                raise ConnectorConfigError(f"the tenant kubeconfig {key} entry is not a list")
+            for entry in entries:
+                if isinstance(entry, dict) and "name" in entry:
+                    merged.setdefault(str(entry["name"]), entry)
+        if config.get("current-context"):
+            current = str(config["current-context"])
+    if not found:
+        raise ConnectorConfigError("kubeconfig_ref does not name a readable tenant kubeconfig")
+    selected = context or current
+    context_entry = contexts.get(selected or "")
+    if not isinstance(context_entry, dict) or not isinstance(context_entry.get("context"), dict):
+        raise ConnectorConfigError("the selected kubeconfig context was not found in the tenant kubeconfig")
+    user_entry = users.get(str(context_entry["context"].get("user") or ""))
+    user = user_entry.get("user") if isinstance(user_entry, dict) else None
+    if isinstance(user, dict) and ("exec" in user or "auth-provider" in user):
+        raise ConnectorConfigError(
+            "hosted mode does not accept a kubeconfig whose user runs an exec or auth-provider command; "
+            "use a service account token or client certificate for the tenant kubeconfig"
         )
 
 
