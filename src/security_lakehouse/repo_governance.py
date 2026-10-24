@@ -53,10 +53,6 @@ def _guarded_page(request: urllib.request.Request, *, timeout: int, label: str) 
     return backoff.http_retry(_fetch)
 
 
-def _guarded_request(request: urllib.request.Request, *, timeout: int, label: str) -> object:
-    return _guarded_page(request, timeout=timeout, label=label)[0]
-
-
 GITLAB_RE = re.compile(
     r"^(?:https?://(?:[\w.-]+\.)?gitlab\.com/)?(?P<path>[\w./-]+?)(?:\.git)?/?$",
 )
@@ -175,7 +171,8 @@ class GitHubGovernanceClient:
         return {
             "code_scanning": _safe_call(lambda: self._json_list_paginated(f"{base}/code-scanning/alerts")),
             "secret_scanning": _safe_call(lambda: self._json_list_paginated(f"{base}/secret-scanning/alerts")),
-            "dependabot": _safe_call(lambda: self._json_list_paginated(f"{base}/dependabot/alerts")),
+            # GitHub answers HTTP 400 to `page` on this endpoint; it pages only by Link cursors.
+            "dependabot": _safe_call(lambda: self._json_list_cursor(f"{base}/dependabot/alerts")),
         }
 
     def _json(self, url: str) -> dict[str, Any]:
@@ -208,7 +205,43 @@ class GitHubGovernanceClient:
                 return rows
         raise ValueError("GitHub page limit reached; collection is incomplete")
 
+    def _json_list_cursor(self, url: str, *, max_pages: int = _MAX_PAGES) -> list[dict[str, Any]]:
+        """Read a GitHub list that pages only through ``Link`` cursors (``before``/``after``).
+
+        The next link may use the numeric ``/repositories/{id}`` form, so only the
+        same scheme, host and endpoint tail are accepted before the token is sent.
+        """
+        origin = urllib.parse.urlsplit(url)
+        prefix = f"/repos/{self.spec.slug}"
+        tail = origin.path.removeprefix(prefix)
+        allowed = re.compile(rf"^(?:{re.escape(prefix)}|/repositories/\d+){re.escape(tail)}$")
+        first_url = f"{url}{'&' if '?' in url else '?'}per_page=100"
+        seen_pages: set[str] = set()
+
+        def fetch(cursor: str | None) -> tuple[list[dict[str, Any]], str, str]:
+            current = cursor or first_url
+            target = urllib.parse.urlsplit(current)
+            if (target.scheme, target.netloc) != (origin.scheme, origin.netloc) or not allowed.match(target.path):
+                raise ValueError("GitHub collection incomplete: unexpected pagination endpoint")
+            payload, link = self._request_page(current)
+            rows = object_rows(payload, label="GitHub")
+            fingerprint = _sha(rows)
+            if rows and fingerprint in seen_pages:
+                raise ValueError("GitHub collection incomplete: repeated page")
+            seen_pages.add(fingerprint)
+            return rows, link, current
+
+        def next_cursor(page: tuple[list[dict[str, Any]], str, str]) -> str | None:
+            _rows, link, current = page
+            next_url = next_link_url(link)
+            return urllib.parse.urljoin(current, next_url) if next_url else None
+
+        return list(paginate(fetch, lambda page: page[0], next_cursor, start_cursor=first_url, max_pages=max_pages))
+
     def _request(self, url: str) -> object:
+        return self._request_page(url)[0]
+
+    def _request_page(self, url: str) -> tuple[object, str]:
         request = urllib.request.Request(
             url,
             headers={
@@ -217,7 +250,7 @@ class GitHubGovernanceClient:
                 "user-agent": "grc-lake",
             },
         )
-        return _guarded_request(request, timeout=20, label="github api")
+        return _guarded_page(request, timeout=20, label="github api")
 
 
 class GitLabGovernanceClient:

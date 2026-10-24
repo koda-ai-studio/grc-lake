@@ -61,6 +61,61 @@ def test_malformed_items_cannot_be_silently_dropped(monkeypatch):
         adapter._json_list_paginated("https://api.github.com/repos/acme/model-service/teams")
 
 
+def test_dependabot_alerts_follow_link_cursors_because_github_rejects_page_numbers(monkeypatch):
+    adapter = client()
+    requested = []
+    next_url = "https://api.github.com/repositories/42/dependabot/alerts?per_page=100&after=cursor-1"
+
+    def request_page(url):
+        requested.append(url)
+        if "page" in parse_qs(urlsplit(url).query):
+            raise urllib.error.HTTPError(url, 400, "Pagination using the page parameter is not supported", {}, None)
+        if "dependabot" not in url:
+            return [], ""
+        if "after=" not in url:
+            return page_rows(1), f'<{next_url}>; rel="next"'
+        return [{"id": 100, "state": "open"}], ""
+
+    monkeypatch.setattr(adapter, "_request_page", request_page)
+    monkeypatch.setattr(adapter, "_json_list_paginated", lambda url, **kwargs: [])
+    findings = adapter.security_findings()
+
+    assert len(findings["dependabot"]) == 101
+    assert requested == [
+        "https://api.github.com/repos/acme/model-service/dependabot/alerts?per_page=100",
+        next_url,
+    ]
+
+
+@pytest.mark.parametrize(
+    "next_url",
+    [
+        "https://attacker.example/repositories/42/dependabot/alerts?after=c",
+        "https://api.github.com/repositories/42/collaborators?after=c",
+        "http://api.github.com/repositories/42/dependabot/alerts?after=c",
+    ],
+)
+def test_dependabot_cursor_cannot_redirect_the_token_to_another_endpoint(monkeypatch, next_url):
+    adapter = client()
+    pages = iter([(page_rows(1), f'<{next_url}>; rel="next"')])
+    monkeypatch.setattr(adapter, "_request_page", lambda url: next(pages))
+    with pytest.raises(ValueError, match="unexpected pagination endpoint"):
+        adapter._json_list_cursor("https://api.github.com/repos/acme/model-service/dependabot/alerts")
+
+
+def test_dependabot_repeated_cursor_page_is_not_counted_twice(monkeypatch):
+    adapter = client()
+    pages = iter(
+        [
+            (page_rows(1), '<https://api.github.com/repositories/42/dependabot/alerts?after=a>; rel="next"'),
+            (page_rows(1), '<https://api.github.com/repositories/42/dependabot/alerts?after=b>; rel="next"'),
+        ]
+    )
+    monkeypatch.setattr(adapter, "_request_page", lambda url: next(pages))
+    with pytest.raises(ValueError, match="repeated page"):
+        adapter._json_list_cursor("https://api.github.com/repos/acme/model-service/dependabot/alerts")
+
+
 @pytest.mark.parametrize("status", [429, 503])
 def test_exhausted_http_failure_is_not_reported_as_permission_evidence(monkeypatch, status):
     adapter = client()

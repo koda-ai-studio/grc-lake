@@ -209,12 +209,14 @@ def test_github_security_findings_not_truncated_below_1000(monkeypatch: pytest.M
     """The page cap must not silently drop a repo's alerts at 10 pages (1000 rows)."""
     client = GitHubGovernanceClient(GovernanceRepoSpec(provider="github", owner="acme", repo="api"), token="t")
 
-    def fake_request(url: str) -> object:
+    def fake_request_page(url: str) -> tuple[object, str]:
+        if "dependabot" in url:
+            return [], ""
         # 11 distinct full pages then a short page, beyond the old 10-page cap.
         page = int(url.rsplit("page=", 1)[1])
-        return [{"number": page * 100 + index, "state": "open"} for index in range(100 if page <= 11 else 1)]
+        return [{"number": page * 100 + index, "state": "open"} for index in range(100 if page <= 11 else 1)], ""
 
-    monkeypatch.setattr(client, "_request", fake_request)
+    monkeypatch.setattr(client, "_request_page", fake_request_page)
     findings = client.security_findings()
     assert len(findings["code_scanning"]) == 1101  # 11×100 + 1, past the old 10-page (1000) cap
 
@@ -226,13 +228,17 @@ def test_github_security_findings_paginates_with_a_hard_limit(monkeypatch: pytes
     )
     requested: list[str] = []
 
-    def fake_request(url: str) -> object:
-        requested.append(url)
-        if url.endswith("page=1"):
-            return [{"state": "open"}] * 100
-        return [{"state": "fixed"}]
+    dependabot_next = "https://api.github.com/repositories/7/dependabot/alerts?per_page=100&after=c1"
 
-    monkeypatch.setattr(client, "_request", fake_request)
+    def fake_request_page(url: str) -> tuple[object, str]:
+        requested.append(url)
+        if url.endswith("/dependabot/alerts?per_page=100"):
+            return [{"state": "open"}] * 100, f'<{dependabot_next}>; rel="next"'
+        if url.endswith("page=1"):
+            return [{"state": "open"}] * 100, ""
+        return [{"state": "fixed"}], ""
+
+    monkeypatch.setattr(client, "_request_page", fake_request_page)
     findings = client.security_findings()
 
     assert {key: len(value) for key, value in findings.items()} == {
@@ -242,6 +248,10 @@ def test_github_security_findings_paginates_with_a_hard_limit(monkeypatch: pytes
     }
     assert len(requested) == 6
     assert all("per_page=100" in url for url in requested)
+    assert [url for url in requested if "dependabot" in url] == [
+        "https://api.github.com/repos/acme/private-agent-api/dependabot/alerts?per_page=100",
+        dependabot_next,
+    ]
 
 
 def test_github_security_findings_preserves_partial_permission_results(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -250,12 +260,12 @@ def test_github_security_findings_preserves_partial_permission_results(monkeypat
         token="not-persisted",
     )
 
-    def fake_request(url: str) -> object:
+    def fake_request_page(url: str) -> tuple[object, str]:
         if "secret-scanning" in url:
             raise urllib.error.HTTPError(url, 403, "forbidden", {}, None)
-        return [{"state": "open"}]
+        return [{"state": "open"}], ""
 
-    monkeypatch.setattr(client, "_request", fake_request)
+    monkeypatch.setattr(client, "_request_page", fake_request_page)
     findings = client.security_findings()
 
     assert findings["code_scanning"] == [{"state": "open"}]
