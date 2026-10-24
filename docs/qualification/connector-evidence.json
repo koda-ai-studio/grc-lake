@@ -218,7 +218,18 @@
       "connector_id": "kubernetes-cluster",
       "fixture_tests": [
         "tests/test_kubernetes_connector.py",
+        "tests/test_kubernetes_gpu_evidence.py",
+        "tests/test_neocloud_ccf_assessment.py",
         "tests/test_collection_completeness.py"
+      ],
+      "live_record": null,
+      "owner": null
+    },
+    {
+      "connector_id": "lambda-cloud",
+      "fixture_tests": [
+        "tests/test_lambda_cloud_connector.py",
+        "tests/test_neocloud_ccf_assessment.py"
       ],
       "live_record": null,
       "owner": null

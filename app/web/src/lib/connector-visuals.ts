@@ -206,6 +206,13 @@ export const CONNECTOR_VISUALS: Record<string, ConnectorVisual> = {
     bg: "#eff6ff",
     categoryLabel: "Container platform",
   },
+  "lambda-cloud": {
+    vendor: "Lambda",
+    mark: "λ",
+    accent: "#5b3fd1",
+    bg: "#f3f0ff",
+    categoryLabel: "GPU cloud",
+  },
   "databricks-evidence-lake": {
     vendor: "Databricks",
     mark: "DB",

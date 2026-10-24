@@ -1,0 +1,67 @@
+{
+  "apiVersion": "v1",
+  "kind": "List",
+  "metadata": {
+    "resourceVersion": ""
+  },
+  "items": [
+    {
+      "apiVersion": "serving.kserve.io/v1beta1",
+      "kind": "InferenceService",
+      "metadata": {
+        "name": "llama-chat",
+        "namespace": "inference",
+        "uid": "4c0d5e6f-7a8b-4c9d-8e0f-1a2b3c4d5e01"
+      },
+      "spec": {
+        "predictor": {
+          "model": {
+            "modelFormat": {
+              "name": "huggingface"
+            },
+            "runtime": "kserve-huggingfaceserver",
+            "storageUri": "hf://example-org/llama-chat",
+            "resources": {
+              "limits": {
+                "nvidia.com/gpu": "2"
+              }
+            }
+          }
+        }
+      },
+      "status": {
+        "url": "https://llama-chat-inference.models.example.com"
+      }
+    },
+    {
+      "apiVersion": "serving.kserve.io/v1beta1",
+      "kind": "InferenceService",
+      "metadata": {
+        "name": "reranker",
+        "namespace": "inference",
+        "labels": {
+          "networking.kserve.io/visibility": "cluster-local"
+        },
+        "uid": "4c0d5e6f-7a8b-4c9d-8e0f-1a2b3c4d5e02"
+      },
+      "spec": {
+        "predictor": {
+          "containers": [
+            {
+              "name": "kserve-container",
+              "image": "nvcr.io/nvidia/tritonserver:24.08-py3",
+              "resources": {
+                "limits": {
+                  "nvidia.com/gpu": "1"
+                }
+              }
+            }
+          ]
+        }
+      },
+      "status": {
+        "url": "http://reranker.inference.svc.cluster.local"
+      }
+    }
+  ]
+}

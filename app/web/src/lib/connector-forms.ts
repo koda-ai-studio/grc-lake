@@ -316,6 +316,15 @@ export const CONNECTOR_CREDENTIAL_FIELDS: Record<string, ConnectorFieldDef[]> =
         hint: "Optional, comma-separated. Without it, image sources are recorded as inventory only.",
       },
     ],
+    "lambda-cloud": [
+      {
+        name: "credential_ref",
+        label: "API key env var",
+        placeholder: "LAMBDA_API_KEY",
+        required: true,
+        hint: "Lambda Cloud API key, stored as a secret reference. Lambda keys are not scoped, so GRC Lake only sends GET requests with it.",
+      },
+    ],
     "workday-personnel": [
       {
         name: "report_url",

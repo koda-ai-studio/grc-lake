@@ -1,0 +1,49 @@
+{
+  "data": [
+    {
+      "id": "ak-01",
+      "name": "laptop",
+      "identity_id": "7d2e1f0a3b4c5d6e7f8a9b0c1d2e3f01",
+      "created_at": "2026-03-01T10:00:00Z",
+      "expires_at": null,
+      "last_used_at": "2026-10-20T08:00:00Z",
+      "status": "active",
+      "identity_type": "user",
+      "identity_display_name": "Synthetic Person"
+    },
+    {
+      "id": "ak-02",
+      "name": "ci-deploy",
+      "identity_id": "7d2e1f0a3b4c5d6e7f8a9b0c1d2e3f02",
+      "created_at": "2025-11-01T10:00:00Z",
+      "expires_at": "2027-11-01T10:00:00Z",
+      "last_used_at": "2026-03-01T08:00:00Z",
+      "status": "active",
+      "identity_type": "service",
+      "identity_display_name": "ci-runner"
+    },
+    {
+      "id": "ak-03",
+      "name": "notebook",
+      "identity_id": "7d2e1f0a3b4c5d6e7f8a9b0c1d2e3f01",
+      "created_at": "2026-09-01T10:00:00Z",
+      "expires_at": "2027-03-01T10:00:00Z",
+      "last_used_at": "2026-10-22T08:00:00Z",
+      "status": "active",
+      "identity_type": "user",
+      "identity_display_name": "Synthetic Person"
+    },
+    {
+      "id": "ak-04",
+      "name": "old-laptop",
+      "identity_id": "7d2e1f0a3b4c5d6e7f8a9b0c1d2e3f03",
+      "created_at": "2025-01-01T10:00:00Z",
+      "expires_at": "2026-01-01T10:00:00Z",
+      "last_used_at": "2025-12-20T08:00:00Z",
+      "status": "expired",
+      "identity_type": "user",
+      "identity_display_name": "Synthetic Person"
+    }
+  ],
+  "page_token": null
+}

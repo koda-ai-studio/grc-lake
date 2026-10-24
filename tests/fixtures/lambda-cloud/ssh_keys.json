@@ -1,0 +1,24 @@
+{
+  "data": [
+    {
+      "id": "4e1f0a2b3c4d5e6f7a8b9c0d1e2f3a01",
+      "name": "ops-ed25519",
+      "public_key": "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILTgt5YV5SgtgjvfuSk/ARNXXOlOdxEopgmzzgQlvQIx ops@example.test"
+    },
+    {
+      "id": "4e1f0a2b3c4d5e6f7a8b9c0d1e2f3a02",
+      "name": "legacy-rsa",
+      "public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQDBC1EiRGXmhNSW22/xIVYHlUSmfXyZs3HlrEVdb0whR3kLTVcsms/8we0ggCjoEKiAs0y8ZgDtuVjQvF7pj+yknP+/1oDPsCOmuclr7g4Ne9oj93eDI9ZY4KILzVapxPQWP0jdjwOjK6eEljW+BnVTD8GDV8Sbos7dz8Kahq+F5w== legacy@example.test"
+    },
+    {
+      "id": "4e1f0a2b3c4d5e6f7a8b9c0d1e2f3a03",
+      "name": "build-rsa",
+      "public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDmiG0PPF4m6Hio+UyDOAUpLVLjOBHCz424WH5lYZCUBo/Myb6qjksjicuB9oUR866tjNWv8VUweSNvfn/FW9yHvzFqlNdzPkM3J5gj4DuIGiAJG7jNcYVOSA127EL1OROdYbm6jopDoP/7s4JpqB8u+Qd/KMPhY6WkTA3zcxDXsK7RkVjEnt+6ry3hBCVKpS6LrnEBjDPYiA3FYsA9GdsqqbS5QC9/FELttKNvTIZ1bjv+amujC8FWG684k4/wjKRocK0wsIiiD0Of3miem72uLE5NLoXfrN65Q/Zjd6qSRA4gswErjkLGLLGGVoXTT0/IlsdJ337cPNur2qtJw9HqE7A6pWjqpwAAud2chl5Dnw6UANcDT7Ek+b7znT6de0249YEX/BKVWbJ/2SqzLkTvWlbFay+S71n/EymzfqiYa6lmA5YMUdSkiPyKqh3lf4ePi1NoxgS5QqFSBKR913Ozf5On0RS0RZQxzKhRZzLMcQleiU3jjozY390y/w5sVOZ1KcoQUS6xXfsvcfJPsEjXjhgd+9RzyuoIizrZlC0c1q00jKQ9dmHVXjWkeBZZnPPudBlx7QlbBEUfY1giCQGyKYcixICg+Zi57unST34ug9yQHdIkBO7+D36YTNrcbGBrXsup16Z+egsTIjnVJk9FE5+fyUkVwNdV1zMZXn6PnQ== build@example.test"
+    },
+    {
+      "id": "4e1f0a2b3c4d5e6f7a8b9c0d1e2f3a04",
+      "name": "old-dsa",
+      "public_key": "ssh-dss AAAAB3NzaC1kc3MAAACBALn17iqD0W9O27NmRMASa7g+XD3JyTh+o7qXPhUza6wJGXGp+EhRFzCmS0wKVpKvbYpysrhHqIAHoPV2WtHGbFnly0WN2EqArV8Ds8tcd3MqYgzZvvW086FB6VeyX7Spw7BdGyEiKT+OYZ5UmHMrLCe4iqU83a8PCodHuA5Sp2NhAAAAFQDeoUFwB+ZH4rV5T1KungEcjrJkMQAAAIEAvJNA2feflN05haw7tD73RBmMvQu2dIJzBPWFLEKulAHcq8QJWlAkzhtEKq9pKs7K7sP3J07K0WYAMmzYcZg2LzzaIN0XhM/mcnKo+YKvF5LM/cS7AKpO8rJOFU8A6glLzBqTt2Ww4vB+MEPp30ZiyzBpQ2wSp2TqvepEPuDzM/EAAACBAOTZWFmS5U2kHDzsV1OQEnTUxGrHP+cDmVpU9T73VMyQWSJcpj575zdulSuVw8GV74ZQ6rVYlyHbboSyaIXTDhPSZKdDXRvUcIxrE6RxsK17t90knKweiilnGeLtfwds8GvmGmcKlVFGDaww14wLPqAIgbI+JOM04BmilwJwaiLj old@example.test"
+    }
+  ]
+}

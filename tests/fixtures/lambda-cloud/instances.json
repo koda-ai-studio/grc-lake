@@ -1,0 +1,227 @@
+{
+  "data": [
+    {
+      "id": "0a1b2c3d4e5f40718293a4b5c6d7e8f1",
+      "name": "train-h100",
+      "status": "active",
+      "ssh_key_names": ["ops-ed25519"],
+      "file_system_names": ["shared-datasets"],
+      "region": {
+        "name": "us-east-1",
+        "description": "Virginia, USA"
+      },
+      "instance_type": {
+        "name": "gpu_8x_h100_sxm5",
+        "description": "8x H100 (80 GB SXM5)",
+        "gpu_description": "H100 (80 GB SXM5)",
+        "price_cents_per_hour": 0,
+        "specs": {
+          "vcpus": 1,
+          "memory_gib": 1,
+          "storage_gib": 1,
+          "gpus": 1
+        },
+        "architecture": "x86_64"
+      },
+      "image": {
+        "id": "0b9d7c1e-2f3a-4b5c-8d6e-7f8a9b0c1d2e",
+        "family": "lambda-stack-24-04"
+      },
+      "hostname": "train-h100.lambda.example.test",
+      "jupyter_token": "synthetic-jupyter-token-not-a-secret",
+      "jupyter_url": "https://jupyter-0a1b2c3d4e5f40718293a4b5c6d7e8f1.example.test",
+      "first_healthy": "2026-10-01T09:00:00Z",
+      "actions": {},
+      "tags": [
+        {
+          "key": "team",
+          "value": "research"
+        }
+      ],
+      "firewall_rulesets": [
+        {
+          "id": "rs-private"
+        }
+      ],
+      "private_ip": "10.19.60.24",
+      "ip": "11.10.20.30"
+    },
+    {
+      "id": "0a1b2c3d4e5f40718293a4b5c6d7e8f2",
+      "name": "infer-a10",
+      "status": "active",
+      "ssh_key_names": ["legacy-rsa"],
+      "file_system_names": ["shared-datasets"],
+      "region": {
+        "name": "us-west-1",
+        "description": "California, USA"
+      },
+      "instance_type": {
+        "name": "gpu_1x_a10",
+        "description": "1x A10 (24 GB PCIe)",
+        "gpu_description": "A10 (24 GB PCIe)",
+        "price_cents_per_hour": 0,
+        "specs": {
+          "vcpus": 1,
+          "memory_gib": 1,
+          "storage_gib": 1,
+          "gpus": 1
+        },
+        "architecture": "x86_64"
+      },
+      "image": {
+        "id": "0b9d7c1e-2f3a-4b5c-8d6e-7f8a9b0c1d2e",
+        "family": "lambda-stack-24-04"
+      },
+      "hostname": "infer-a10.lambda.example.test",
+      "jupyter_token": "synthetic-jupyter-token-not-a-secret",
+      "jupyter_url": "https://jupyter-0a1b2c3d4e5f40718293a4b5c6d7e8f2.example.test",
+      "first_healthy": "2026-10-01T09:00:00Z",
+      "actions": {},
+      "tags": [
+        {
+          "key": "team",
+          "value": "research"
+        }
+      ],
+      "firewall_rulesets": [
+        {
+          "id": "rs-inference"
+        }
+      ],
+      "private_ip": "10.19.60.24",
+      "ip": "11.10.20.30"
+    },
+    {
+      "id": "0a1b2c3d4e5f40718293a4b5c6d7e8f3",
+      "name": "dev-a100",
+      "status": "active",
+      "ssh_key_names": ["build-rsa", "old-dsa"],
+      "file_system_names": ["shared-datasets"],
+      "region": {
+        "name": "us-east-1",
+        "description": "Virginia, USA"
+      },
+      "instance_type": {
+        "name": "gpu_1x_a100_sxm4",
+        "description": "1x A100 (40 GB SXM4)",
+        "gpu_description": "A100 (40 GB SXM4)",
+        "price_cents_per_hour": 0,
+        "specs": {
+          "vcpus": 1,
+          "memory_gib": 1,
+          "storage_gib": 1,
+          "gpus": 1
+        },
+        "architecture": "x86_64"
+      },
+      "image": {
+        "id": "0b9d7c1e-2f3a-4b5c-8d6e-7f8a9b0c1d2e",
+        "family": "lambda-stack-24-04"
+      },
+      "hostname": "dev-a100.lambda.example.test",
+      "jupyter_token": "synthetic-jupyter-token-not-a-secret",
+      "jupyter_url": "https://jupyter-0a1b2c3d4e5f40718293a4b5c6d7e8f3.example.test",
+      "first_healthy": "2026-10-01T09:00:00Z",
+      "actions": {},
+      "tags": [
+        {
+          "key": "team",
+          "value": "research"
+        }
+      ],
+      "firewall_rulesets": [
+        {
+          "id": "rs-wide-open"
+        }
+      ],
+      "private_ip": "10.19.60.24",
+      "ip": "11.10.20.30"
+    },
+    {
+      "id": "0a1b2c3d4e5f40718293a4b5c6d7e8f4",
+      "name": "batch-gh200",
+      "status": "active",
+      "ssh_key_names": ["build-rsa"],
+      "file_system_names": ["shared-datasets"],
+      "region": {
+        "name": "us-south-1",
+        "description": "Texas, USA"
+      },
+      "instance_type": {
+        "name": "gpu_1x_gh200",
+        "description": "1x GH200 (96 GB)",
+        "gpu_description": "GH200 (96 GB)",
+        "price_cents_per_hour": 0,
+        "specs": {
+          "vcpus": 1,
+          "memory_gib": 1,
+          "storage_gib": 1,
+          "gpus": 1
+        },
+        "architecture": "x86_64"
+      },
+      "image": {
+        "id": "0b9d7c1e-2f3a-4b5c-8d6e-7f8a9b0c1d2e",
+        "family": "lambda-stack-24-04"
+      },
+      "hostname": "batch-gh200.lambda.example.test",
+      "jupyter_token": "synthetic-jupyter-token-not-a-secret",
+      "jupyter_url": "https://jupyter-0a1b2c3d4e5f40718293a4b5c6d7e8f4.example.test",
+      "first_healthy": "2026-10-01T09:00:00Z",
+      "actions": {},
+      "tags": [
+        {
+          "key": "team",
+          "value": "research"
+        }
+      ],
+      "firewall_rulesets": [],
+      "private_ip": "10.19.60.24",
+      "ip": "11.10.20.30"
+    },
+    {
+      "id": "0a1b2c3d4e5f40718293a4b5c6d7e8f5",
+      "name": "old-run",
+      "status": "terminated",
+      "ssh_key_names": ["ops-ed25519"],
+      "file_system_names": ["shared-datasets"],
+      "region": {
+        "name": "us-east-1",
+        "description": "Virginia, USA"
+      },
+      "instance_type": {
+        "name": "gpu_1x_a10",
+        "description": "1x A10 (24 GB PCIe)",
+        "gpu_description": "A10 (24 GB PCIe)",
+        "price_cents_per_hour": 0,
+        "specs": {
+          "vcpus": 1,
+          "memory_gib": 1,
+          "storage_gib": 1,
+          "gpus": 1
+        },
+        "architecture": "x86_64"
+      },
+      "image": {
+        "id": "0b9d7c1e-2f3a-4b5c-8d6e-7f8a9b0c1d2e",
+        "family": "lambda-stack-24-04"
+      },
+      "hostname": "old-run.lambda.example.test",
+      "jupyter_token": "synthetic-jupyter-token-not-a-secret",
+      "jupyter_url": "https://jupyter-0a1b2c3d4e5f40718293a4b5c6d7e8f5.example.test",
+      "first_healthy": "2026-10-01T09:00:00Z",
+      "actions": {},
+      "tags": [
+        {
+          "key": "team",
+          "value": "research"
+        }
+      ],
+      "firewall_rulesets": [],
+      "private_ip": "10.19.60.24",
+      "ip": "11.10.20.30"
+    }
+  ],
+  "page_token": null
+}

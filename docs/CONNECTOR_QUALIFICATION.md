@@ -42,7 +42,8 @@ and [Databricks #734](https://github.com/koda-ai-studio/grc-lake/issues/734).
 | `intune-devices` | Implemented | [intune_connector](../tests/test_intune_connector.py); [collection_completeness](../tests/test_collection_completeness.py) | No scoped live record linked | Unassigned |
 | `jamf-devices` | Preview | [jamf_connector](../tests/test_jamf_connector.py); [collection_completeness](../tests/test_collection_completeness.py) | No scoped live record linked | Unassigned |
 | `jira-ticketing` | Implemented | [jira_connector](../tests/test_jira_connector.py); [collection_completeness](../tests/test_collection_completeness.py) | No scoped live record linked | Unassigned |
-| `kubernetes-cluster` | Preview | [kubernetes_connector](../tests/test_kubernetes_connector.py); [collection_completeness](../tests/test_collection_completeness.py) | No scoped live record linked | Unassigned |
+| `kubernetes-cluster` | Preview | [kubernetes_connector](../tests/test_kubernetes_connector.py); [kubernetes_gpu_evidence](../tests/test_kubernetes_gpu_evidence.py); [neocloud_ccf_assessment](../tests/test_neocloud_ccf_assessment.py); [collection_completeness](../tests/test_collection_completeness.py) | No scoped live record linked | Unassigned |
+| `lambda-cloud` | Preview | [lambda_cloud_connector](../tests/test_lambda_cloud_connector.py); [neocloud_ccf_assessment](../tests/test_neocloud_ccf_assessment.py) | No scoped live record linked | Unassigned |
 | `managed-local-evidence` | Configuration boundary | Catalog validation only | Not applicable: no standalone collector | Unassigned |
 | `object-storage-evidence` | Implemented | [s3_connector](../tests/test_s3_connector.py) | No scoped live record linked | Unassigned |
 | `okta-identity` | Implemented | [okta_connector](../tests/test_okta_connector.py); [collection_completeness](../tests/test_collection_completeness.py) | No scoped live record linked | Unassigned |
@@ -78,7 +79,8 @@ Qualify the actual principal, account, resource scope and provider version separ
 | `intune-devices` | `scoped_token` | DeviceManagementManagedDevices.Read.All |
 | `jamf-devices` | `scoped_token` | Read Computers; Read Mobile Devices |
 | `jira-ticketing` | `scoped_token` | read:jira-work; read:jira-user; read:project:jira |
-| `kubernetes-cluster` | `scoped_token` | get/list clusterrolebindings and rolebindings; get/list namespaces, pods, and networkpolicies; get/list deployments, daemonsets, statefulsets, replicasets, jobs, and cronjobs |
+| `kubernetes-cluster` | `scoped_token` | get/list clusterrolebindings and rolebindings; get/list namespaces, pods, services, and networkpolicies; get/list deployments, daemonsets, statefulsets, replicasets, jobs, and cronjobs; get/list inferenceservices.serving.kserve.io (optional; KServe clusters) |
+| `lambda-cloud` | `scoped_token` | GET account, instances, firewall rulesets, and SSH keys; Read API keys of user and service identities (optional; key hygiene evidence) |
 | `managed-local-evidence` | `dedicated_schema` | write dedicated TrustOps output directory; read generated TrustOps output directory |
 | `object-storage-evidence` | `read_only_role` | LIST evidence prefix; GET evidence objects |
 | `okta-identity` | `scoped_token` | okta.users.read; okta.userFactors.read; okta.policies.read |

@@ -304,7 +304,7 @@ Upgrading from TrustOps? Read the [migration guide](docs/REBRANDING.md).
 
 - **Reviewed requirements by framework:** SOC 2 33/61 (10 with no recorded reviewer), ISO 27001 17/93 (10 with no recorded reviewer), HIPAA 4/24 (4 with no recorded reviewer), PCI DSS 0/12 (top-level), NIST CSF 2.0 72/106, NIST SP 800-53 495/1,014 (381 source-native self-maps; 96 with no recorded reviewer). Every pack is in the [coverage matrix](docs/FRAMEWORK_COVERAGE.md).
 - **21 framework packs, 2,282 catalogued requirements (1,995 distinct; FedRAMP Moderate's 287 rows restate NIST SP 800-53 controls),** linked through 1195 safeguards, including source-native assessment contracts. 2,196 requirements have safeguard mappings; 1,163 have reviewed mappings and the other 1,033 are proposed. Of the reviewed, 381 are source-native self-maps (written from that requirement's own pinned source) and 782 rest on reviewed crosswalk mappings; 339 rest only on legacy reviews with no recorded reviewer. The blended total is not a per-framework readiness figure.
-- **25 read-only source adapters (7 in preview)**, plus OCSF presets for existing security lakes.
+- **26 read-only source adapters (8 in preview)**, plus OCSF presets for existing security lakes.
 - **Evidence stays scoped:** missing or stale evidence leaves gaps; a passing sample does not prove complete population coverage. Proposed mappings are not attestable.
 - **One engine, four surfaces:** console, REST API, CLI, and MCP server. Agents propose; humans approve.
 

@@ -1,0 +1,19 @@
+{
+  "data": {
+    "id": "global",
+    "name": "Default Workspace Global Rules",
+    "rules": [
+      {
+        "protocol": "icmp",
+        "source_network": "0.0.0.0/0",
+        "description": "Ping"
+      },
+      {
+        "protocol": "tcp",
+        "source_network": "198.51.100.0/24",
+        "description": "SSH from the office",
+        "port_range": [22, 22]
+      }
+    ]
+  }
+}

@@ -17,6 +17,24 @@ raw evidence shape:
   1.2.16 / 3.2.1), only when the apiserver runs as a visible static pod. Managed
   control planes (EKS, GKE, AKS) do not expose it, so no event is emitted there
   rather than guessing either way.
+* ``kubernetes.workload.accelerator_inventory`` — workloads requesting GPUs
+  (``nvidia.com/gpu``, ``amd.com/gpu``) or InfiniBand (``rdma/ib``), with the
+  serving runtime and the namespace's NetworkPolicy count. Inventory only: it
+  is ``observed``, never a pass or a failure.
+* ``kubernetes.service.network_exposure`` — LoadBalancer and NodePort Services,
+  judged from the address the cluster assigned and ``loadBalancerSourceRanges``;
+  bound to the CCF network safeguard.
+* ``kubernetes.inference.network_exposure`` — KServe InferenceServices
+  (``serving.kserve.io/v1beta1``): cluster-local endpoints pass; an external URL
+  is ``not_evaluated`` because endpoint authentication is not visible through
+  the Kubernetes API.
+
+GPU and InfiniBand resource names follow the NVIDIA device plugin and the
+CoreWeave and Nebius GPU documentation, so the same evidence comes from CoreWeave
+Kubernetes Service, Nebius Managed Kubernetes, and any cluster running those
+plugins. Services and InferenceServices are optional reads: a 403 becomes a
+coverage-gap row instead of failing the sync, and a cluster without KServe (404)
+has no InferenceServices.
 
 CIS check numbers follow the CIS Kubernetes Benchmark v1.10 as encoded in
 aquasecurity/kube-bench ``cfg/cis-1.10``. Object shapes follow the Kubernetes
@@ -38,12 +56,15 @@ not apply here.
 from __future__ import annotations
 
 import hashlib
+import ipaddress
 import re
+import urllib.parse
 from collections.abc import Callable, Iterable, Mapping
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from security_lakehouse.connector_errors import CollectionGapError
 from security_lakehouse.ingestion import backoff
 from security_lakehouse.ingestion.paginate import object_rows, paginate
 from security_lakehouse.io import read_json
@@ -77,6 +98,25 @@ AUDIT_LOGGING_CONTROLS = [
     "NIST-CSF-PR.PS-04",
     "CIS-CONTROLS-8",
 ]
+
+# Every tag is in SG-NETWORK-001's crosswalk; the CCF assessment reads the
+# safeguard binding, never these hints.
+NETWORK_EXPOSURE_CONTROLS = ["FEDRAMP-SC-7", "NIST-800-53-SC-7", "CMMC-3.13.6", "NIST-CSF-PR.IR-01"]
+NETWORK_SAFEGUARD = "SG-NETWORK-001"
+ACCELERATOR_INVENTORY_CONTROLS = ["NIST-CSF-ID.AM-02", "NIST-800-53-CM-8", "FEDRAMP-CM-8"]
+
+GPU_RESOURCES = ("nvidia.com/gpu", "amd.com/gpu")
+INFINIBAND_RESOURCE = "rdma/ib"
+NIM_IMAGE_PREFIX = "nvcr.io/nim/"
+KSERVE_GROUP = "serving.kserve.io"
+KSERVE_VERSION = "v1beta1"
+KSERVE_PLURAL = "inferenceservices"
+# KServe pkg/constants: the label and domain that keep an InferenceService off
+# the external ingress gateway.
+KSERVE_VISIBILITY_LABEL = "networking.kserve.io/visibility"
+KSERVE_CLUSTER_LOCAL = "cluster-local"
+CLUSTER_LOCAL_DOMAIN = ".svc.cluster.local"
+EXPOSED_SERVICE_TYPES = ("LoadBalancer", "NodePort")
 
 # kind -> (API path prefix, plural). Pod templates are evaluated on the
 # controller that owns them; controller-owned ReplicaSets/Jobs/Pods are skipped
@@ -166,6 +206,45 @@ class KubernetesClient:
             "core", "list_namespaced_pod", namespace="kube-system", label_selector="component=kube-apiserver"
         )
 
+    def services(self) -> list[dict[str, Any]]:
+        return self._optional(
+            "services", "list services", lambda: self._list("core", "list_service_for_all_namespaces")
+        )
+
+    def inference_services(self) -> list[dict[str, Any]]:
+        def read() -> list[dict[str, Any]]:
+            return self._list(
+                "custom", "list_cluster_custom_object", group=KSERVE_GROUP, version=KSERVE_VERSION, plural=KSERVE_PLURAL
+            )
+
+        return self._optional(
+            "inference_services", f"list {KSERVE_PLURAL}.{KSERVE_GROUP}", read, missing_means_empty=True
+        )
+
+    @staticmethod
+    def _optional(
+        collection: str,
+        permission: str,
+        read: Callable[[], list[dict[str, Any]]],
+        *,
+        missing_means_empty: bool = False,
+    ) -> list[dict[str, Any]]:
+        try:
+            return read()
+        except Exception as exc:
+            status = getattr(exc, "status", None)
+            if status == 404 and missing_means_empty:
+                # The CRD is not installed, so the cluster has none of these objects.
+                return []
+            if status in (401, 403):
+                raise CollectionGapError(
+                    f"Kubernetes {collection} were not collected (permission denied)",
+                    collection=collection,
+                    reason="permission_denied",
+                    permission=permission,
+                ) from None
+            raise
+
     def _list(self, api: str, method: str, **kwargs: Any) -> list[dict[str, Any]]:
         call = getattr(self._apis[api], method)
 
@@ -215,6 +294,7 @@ def _default_apis(
         "networking": k8s_client.NetworkingV1Api(api_client),
         "apps": k8s_client.AppsV1Api(api_client),
         "batch": k8s_client.BatchV1Api(api_client),
+        "custom": k8s_client.CustomObjectsApi(api_client),
     }
     return apis, api_client.sanitize_for_serialization
 
@@ -266,6 +346,12 @@ class KubernetesFixtureClient:
     def apiserver_pods(self) -> list[dict[str, Any]]:
         return self._read("apiserver_pods.json")
 
+    def services(self) -> list[dict[str, Any]]:
+        return self._read("services.json")
+
+    def inference_services(self) -> list[dict[str, Any]]:
+        return self._read("inference_services.json")
+
     def _read(self, name: str) -> list[dict[str, Any]]:
         path = self.fixture / name
         payload = read_json(path) if path.exists() else []
@@ -303,13 +389,37 @@ def collect_kubernetes_evidence(
         if name:
             rows.append(_network_policy_event(cluster, name, policy_counts.get(name, 0), now, tenant_id))
 
+    accelerated_templates: list[tuple[str, dict[str, Any]]] = []
     for workload in [*client.workloads(), *client.pods()]:
         rows.extend(_workload_events(cluster, workload, allowlist, now, tenant_id))
+        inventory = _accelerator_event(cluster, workload, policy_counts, now, tenant_id)
+        if inventory:
+            rows.append(inventory)
+            accelerated_templates.append((str(inventory["attributes"]["namespace"]), _template_labels(workload)))
 
     audit = _audit_logging_event(cluster, client.apiserver_pods(), now, tenant_id)
     if audit:
         rows.append(audit)
+
+    gaps: list[CollectionGapError] = []
+    for service in _optional_read(client.services, gaps):
+        row = _service_exposure_event(cluster, service, accelerated_templates, now, tenant_id)
+        if row:
+            rows.append(row)
+    for item in _optional_read(client.inference_services, gaps):
+        row = _inference_exposure_event(cluster, item, now, tenant_id)
+        if row:
+            rows.append(row)
+    rows.extend(_gap_event(cluster, gap, now, tenant_id) for gap in gaps)
     return rows
+
+
+def _optional_read(read: Callable[[], list[dict[str, Any]]], gaps: list[CollectionGapError]) -> list[dict[str, Any]]:
+    try:
+        return read()
+    except CollectionGapError as gap:
+        gaps.append(gap)
+        return []
 
 
 # --- RBAC -------------------------------------------------------------------
@@ -669,6 +779,271 @@ def _audit_logging_event(
     )
 
 
+# --- Accelerator inventory ------------------------------------------------------
+
+
+def _quantity(value: Any) -> int:
+    """Whole-device count of an extended resource; device plugins only advertise integers."""
+    try:
+        return max(0, int(str(value).strip()))
+    except (TypeError, ValueError):
+        return 0
+
+
+def accelerator_requests(containers: Iterable[dict[str, Any]]) -> dict[str, int]:
+    """Per accelerator resource, the devices the containers ask for (limit, else request)."""
+    totals: dict[str, int] = {}
+    for container in containers:
+        resources = container.get("resources") or {}
+        limits = resources.get("limits") or {}
+        requests = resources.get("requests") or {}
+        for name in (*GPU_RESOURCES, INFINIBAND_RESOURCE):
+            count = _quantity(limits.get(name)) or _quantity(requests.get(name))
+            if count:
+                totals[name] = totals.get(name, 0) + count
+    return totals
+
+
+def serving_runtime(images: Iterable[str], names: Iterable[str] = ()) -> str | None:
+    """Recognize the common GPU model servers from image references and names."""
+    combined = " ".join([*images, *names]).lower()
+    for marker, runtime in (
+        ("vllm", "vllm"),
+        ("triton", "triton"),
+        ("text-generation-inference", "tgi"),
+        ("tgi", "tgi"),
+        (NIM_IMAGE_PREFIX.rstrip("/"), "nim"),
+    ):
+        if marker in combined:
+            return runtime
+    return None
+
+
+def _template_labels(workload: dict[str, Any]) -> dict[str, Any]:
+    kind = workload.get("kind")
+    spec = workload.get("spec") or {}
+    if kind == "Pod":
+        return dict((workload.get("metadata") or {}).get("labels") or {})
+    if kind == "CronJob":
+        template = ((spec.get("jobTemplate") or {}).get("spec") or {}).get("template") or {}
+    else:
+        template = spec.get("template") or {}
+    return dict((template.get("metadata") or {}).get("labels") or {})
+
+
+def _accelerator_event(
+    cluster: str, workload: dict[str, Any], policy_counts: dict[str, int], now: datetime, tenant_id: str
+) -> dict[str, Any] | None:
+    kind = str(workload.get("kind") or "")
+    meta = workload.get("metadata") or {}
+    if kind not in WORKLOAD_KINDS or meta.get("ownerReferences"):
+        return None
+    pod_spec = _pod_spec(workload)
+    name = str(meta.get("name") or "")
+    namespace = str(meta.get("namespace") or "")
+    if pod_spec is None or not name:
+        return None
+    containers = _containers(pod_spec)
+    requested = accelerator_requests(containers)
+    if not requested:
+        return None
+    images = [str(c.get("image") or "") for c in containers if c.get("image")]
+    prefix, plural = WORKLOAD_KINDS[kind]
+    return _event(
+        cluster=cluster,
+        entity="workload",
+        signal="accelerator_inventory",
+        object_ref=f"{kind}:{namespace}/{name}",
+        asset_type="kubernetes_workload",
+        controls=ACCELERATOR_INVENTORY_CONTROLS,
+        status="observed",
+        severity="info",
+        evidence_path=f"{prefix}/namespaces/{namespace}/{plural}/{name}",
+        attributes={
+            "cluster": cluster,
+            "workload_kind": kind,
+            "workload_name": name,
+            "namespace": namespace,
+            "system_namespace": namespace in SYSTEM_NAMESPACES,
+            "gpu_count": sum(requested.get(resource, 0) for resource in GPU_RESOURCES),
+            "accelerator_resources": sorted(requested),
+            "infiniband": INFINIBAND_RESOURCE in requested,
+            "images": images,
+            "serving_runtime": serving_runtime(images, [str(c.get("name") or "") for c in containers]),
+            "nim_image": any(image.startswith(NIM_IMAGE_PREFIX) for image in images),
+            "namespace_network_policy_count": policy_counts.get(namespace, 0),
+            "finding_reason": None,
+        },
+        collected_at=now,
+        tenant_id=tenant_id,
+    )
+
+
+# --- Network exposure -------------------------------------------------------------
+
+
+def _is_world(cidr: Any) -> bool:
+    try:
+        return ipaddress.ip_network(str(cidr).strip(), strict=False).prefixlen == 0
+    except ValueError:
+        # An unparseable range cannot be shown to restrict anything.
+        return True
+
+
+def _address_scope(ingress: list[Any]) -> str:
+    """``public``, ``private`` or ``unknown`` from the load balancer addresses the cluster reports."""
+    scopes: set[str] = set()
+    for entry in ingress:
+        raw = entry.get("ip") if isinstance(entry, dict) else None
+        if not raw:
+            scopes.add("unknown")
+            continue
+        try:
+            address = ipaddress.ip_address(str(raw).strip())
+        except ValueError:
+            scopes.add("unknown")
+            continue
+        scopes.add("public" if address.is_global else "private")
+    if "public" in scopes:
+        return "public"
+    if scopes == {"private"}:
+        return "private"
+    return "unknown"
+
+
+def _service_exposure_event(
+    cluster: str,
+    service: dict[str, Any],
+    accelerated_templates: list[tuple[str, dict[str, Any]]],
+    now: datetime,
+    tenant_id: str,
+) -> dict[str, Any] | None:
+    spec = service.get("spec") or {}
+    service_type = str(spec.get("type") or "ClusterIP")
+    if service_type not in EXPOSED_SERVICE_TYPES:
+        return None
+    meta = service.get("metadata") or {}
+    name = str(meta.get("name") or "")
+    namespace = str(meta.get("namespace") or "")
+    if not name:
+        return None
+    selector = spec.get("selector") or {}
+    fronts_accelerator = bool(selector) and any(
+        ns == namespace and all(labels.get(key) == value for key, value in selector.items())
+        for ns, labels in accelerated_templates
+    )
+    ranges = [str(item) for item in spec.get("loadBalancerSourceRanges") or []]
+    unrestricted = not ranges or any(_is_world(item) for item in ranges)
+    scope = _address_scope(((service.get("status") or {}).get("loadBalancer") or {}).get("ingress") or [])
+    if service_type == "NodePort":
+        status, severity, reason = "not_evaluated", "info", "node_port_reachability_not_visible"
+    elif scope == "public" and unrestricted:
+        status, reason = "open", "public_load_balancer_unrestricted"
+        severity = "high" if fronts_accelerator else "medium"
+    elif scope == "public":
+        status, severity, reason = "pass", "info", "public_load_balancer_source_restricted"
+    elif scope == "private":
+        status, severity, reason = "pass", "info", "internal_load_balancer"
+    else:
+        status, severity, reason = "not_evaluated", "info", "load_balancer_address_unknown"
+    return _event(
+        cluster=cluster,
+        entity="service",
+        signal="network_exposure",
+        object_ref=f"Service:{namespace}/{name}",
+        asset_type="network",
+        controls=NETWORK_EXPOSURE_CONTROLS,
+        status=status,
+        severity=severity,
+        evidence_path=f"/api/v1/namespaces/{namespace}/services/{name}",
+        attributes={
+            "cluster": cluster,
+            "namespace": namespace,
+            "service_name": name,
+            "service_type": service_type,
+            "address_scope": scope if service_type == "LoadBalancer" else None,
+            "source_ranges_restricted": not unrestricted,
+            "ports": [
+                {"port": port.get("port"), "protocol": port.get("protocol") or "TCP"}
+                for port in spec.get("ports") or []
+                if isinstance(port, dict)
+            ],
+            "selects_accelerator_workload": fronts_accelerator,
+            "finding_reason": reason,
+        },
+        collected_at=now,
+        tenant_id=tenant_id,
+        safeguard_ids=[NETWORK_SAFEGUARD],
+    )
+
+
+def _inference_exposure_event(
+    cluster: str, item: dict[str, Any], now: datetime, tenant_id: str
+) -> dict[str, Any] | None:
+    meta = item.get("metadata") or {}
+    name = str(meta.get("name") or "")
+    namespace = str(meta.get("namespace") or "")
+    if not name:
+        return None
+    predictor = (item.get("spec") or {}).get("predictor") or {}
+    model = predictor.get("model") or {}
+    containers = [c for c in [model, *(predictor.get("containers") or [])] if isinstance(c, dict) and c]
+    images = [str(c.get("image") or "") for c in containers if c.get("image")]
+    names = [str(model.get("runtime") or ""), *(str(c.get("name") or "") for c in containers)]
+    requested = accelerator_requests(containers)
+    host = urllib.parse.urlsplit(str((item.get("status") or {}).get("url") or "")).hostname or ""
+    cluster_local = (meta.get("labels") or {}).get(KSERVE_VISIBILITY_LABEL) == KSERVE_CLUSTER_LOCAL
+    if cluster_local or host.endswith(CLUSTER_LOCAL_DOMAIN):
+        url_scope, status, reason = "cluster_local", "pass", "cluster_local"
+    elif host:
+        url_scope, status, reason = "external", "not_evaluated", "external_url_authentication_not_visible"
+    else:
+        url_scope, status, reason = "none", "not_evaluated", "no_url_reported"
+    return _event(
+        cluster=cluster,
+        entity="inference",
+        signal="network_exposure",
+        object_ref=f"InferenceService:{namespace}/{name}",
+        asset_type="service",
+        controls=NETWORK_EXPOSURE_CONTROLS,
+        status=status,
+        severity="info",
+        evidence_path=f"/apis/{KSERVE_GROUP}/{KSERVE_VERSION}/namespaces/{namespace}/{KSERVE_PLURAL}/{name}",
+        attributes={
+            "cluster": cluster,
+            "namespace": namespace,
+            "inference_service": name,
+            "model_format": (model.get("modelFormat") or {}).get("name"),
+            "serving_runtime": serving_runtime(images, names),
+            "images": images,
+            "gpu_count": sum(requested.get(resource, 0) for resource in GPU_RESOURCES),
+            "url_scope": url_scope,
+            "finding_reason": reason,
+        },
+        collected_at=now,
+        tenant_id=tenant_id,
+        safeguard_ids=[NETWORK_SAFEGUARD],
+    )
+
+
+def _gap_event(cluster: str, gap: CollectionGapError, now: datetime, tenant_id: str) -> dict[str, Any]:
+    """A coverage-gap row: an actionable open item that neither passes nor fails a control."""
+    return _event(
+        cluster=cluster,
+        entity="collection",
+        signal="gap",
+        object_ref=f"Collection:{gap.collection}",
+        asset_type="collection_scope",
+        controls=[],
+        status="open",
+        severity="low",
+        evidence_path=f"kubernetes:{cluster}:collection-gap:{gap.collection}",
+        attributes={"cluster": cluster, **gap.attributes()},
+        collected_at=now,
+        tenant_id=tenant_id,
+    )
+
+
 # --- Event shape ------------------------------------------------------------------
 
 
@@ -694,9 +1069,10 @@ def _event(
     attributes: dict[str, Any],
     collected_at: datetime,
     tenant_id: str,
+    safeguard_ids: list[str] | None = None,
 ) -> dict[str, Any]:
     stable = _stable_id([cluster, signal, object_ref])
-    return {
+    row: dict[str, Any] = {
         "event_id": f"kubernetes-{stable}",
         "tenant_id": tenant_id,
         "workspace_id": "default",
@@ -720,3 +1096,6 @@ def _event(
         },
         "attributes": attributes,
     }
+    if safeguard_ids:
+        row["safeguard_ids"] = sorted(safeguard_ids)
+    return row

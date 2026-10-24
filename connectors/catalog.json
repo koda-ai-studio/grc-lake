@@ -621,15 +621,18 @@
       "credential_type": "kubernetes_read_only_service_account",
       "minimum_permissions": [
         "get/list clusterrolebindings and rolebindings",
-        "get/list namespaces, pods, and networkpolicies",
-        "get/list deployments, daemonsets, statefulsets, replicasets, jobs, and cronjobs"
+        "get/list namespaces, pods, services, and networkpolicies",
+        "get/list deployments, daemonsets, statefulsets, replicasets, jobs, and cronjobs",
+        "get/list inferenceservices.serving.kserve.io (optional; KServe clusters)"
       ],
       "evidence_types": [
         "kubernetes_rbac",
         "pod_security",
         "network_policy",
         "image_provenance",
-        "audit_logging"
+        "audit_logging",
+        "accelerator_inventory",
+        "network_exposure"
       ],
       "default_route": "dual",
       "freshness_slo_minutes": 240,
@@ -640,8 +643,32 @@
       "native_connector": false,
       "data_shape": "current_state",
       "vendor": "Kubernetes",
-      "description": "cluster-admin bindings, privileged or root workloads, namespaces without network policies, image registries, secrets injected as env vars, and API server audit flags where visible.",
+      "description": "cluster-admin bindings, privileged or root workloads, namespaces without network policies, image registries, secrets injected as env vars, API server audit flags where visible, GPU and InfiniBand workload inventory, and LoadBalancer, NodePort, and KServe endpoint exposure. Works with CoreWeave and Nebius managed Kubernetes.",
       "setup_hint": "Service account bound to a get/list-only ClusterRole, used in-cluster or through a kubeconfig context."
+    },
+    {
+      "connector_id": "lambda-cloud",
+      "name": "Lambda Cloud",
+      "category": "cloud",
+      "collection_mode": "direct_api_read",
+      "access_boundary": "scoped_token",
+      "credential_type": "lambda_cloud_api_key_ref",
+      "minimum_permissions": [
+        "GET account, instances, firewall rulesets, and SSH keys",
+        "Read API keys of user and service identities (optional; key hygiene evidence)"
+      ],
+      "evidence_types": ["network_exposure", "ssh_access", "api_key_hygiene"],
+      "default_route": "dual",
+      "freshness_slo_minutes": 240,
+      "is_implemented": true,
+      "production_status": "supported_connector",
+      "release_stage": "preview",
+      "velocity": "low_current_state",
+      "native_connector": false,
+      "data_shape": "current_state",
+      "vendor": "Lambda",
+      "description": "GPU instance inbound exposure from the global and attached firewall rulesets, SSH key strength per instance, and API key expiry and use.",
+      "setup_hint": "Lambda Cloud API key referenced by credential_ref; Lambda keys are not scoped, so GRC Lake issues GET requests only."
     },
     {
       "connector_id": "iceberg-parquet-lake",

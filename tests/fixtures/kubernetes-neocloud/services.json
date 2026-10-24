@@ -1,0 +1,185 @@
+{
+  "apiVersion": "v1",
+  "kind": "List",
+  "metadata": {
+    "resourceVersion": ""
+  },
+  "items": [
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "name": "vllm-public",
+        "namespace": "inference",
+        "uid": "3b9c4d5e-6f7a-4b8c-9d0e-1f2a3b4c5d01"
+      },
+      "spec": {
+        "type": "LoadBalancer",
+        "selector": {
+          "app": "vllm-llama"
+        },
+        "ports": [
+          {
+            "port": 443,
+            "protocol": "TCP",
+            "targetPort": 8000
+          }
+        ]
+      },
+      "status": {
+        "loadBalancer": {
+          "ingress": [
+            {
+              "ip": "11.22.33.44"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "name": "nim-restricted",
+        "namespace": "inference",
+        "uid": "3b9c4d5e-6f7a-4b8c-9d0e-1f2a3b4c5d02"
+      },
+      "spec": {
+        "type": "LoadBalancer",
+        "selector": {
+          "app": "nim-embed"
+        },
+        "ports": [
+          {
+            "port": 443,
+            "protocol": "TCP",
+            "targetPort": 8000
+          }
+        ],
+        "loadBalancerSourceRanges": ["10.20.0.0/16"]
+      },
+      "status": {
+        "loadBalancer": {
+          "ingress": [
+            {
+              "ip": "11.22.33.45"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "name": "web-internal",
+        "namespace": "default",
+        "uid": "3b9c4d5e-6f7a-4b8c-9d0e-1f2a3b4c5d03"
+      },
+      "spec": {
+        "type": "LoadBalancer",
+        "selector": {
+          "app": "web"
+        },
+        "ports": [
+          {
+            "port": 443,
+            "protocol": "TCP",
+            "targetPort": 8000
+          }
+        ]
+      },
+      "status": {
+        "loadBalancer": {
+          "ingress": [
+            {
+              "ip": "10.16.0.12"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "name": "web-nodeport",
+        "namespace": "default",
+        "uid": "3b9c4d5e-6f7a-4b8c-9d0e-1f2a3b4c5d04"
+      },
+      "spec": {
+        "type": "NodePort",
+        "selector": {
+          "app": "web"
+        },
+        "ports": [
+          {
+            "port": 443,
+            "protocol": "TCP",
+            "targetPort": 8000,
+            "nodePort": 30443
+          }
+        ]
+      },
+      "status": {
+        "loadBalancer": {
+          "ingress": []
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "name": "web-pending",
+        "namespace": "default",
+        "uid": "3b9c4d5e-6f7a-4b8c-9d0e-1f2a3b4c5d05"
+      },
+      "spec": {
+        "type": "LoadBalancer",
+        "selector": {
+          "app": "web"
+        },
+        "ports": [
+          {
+            "port": 443,
+            "protocol": "TCP",
+            "targetPort": 8000
+          }
+        ]
+      },
+      "status": {
+        "loadBalancer": {
+          "ingress": []
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "name": "web",
+        "namespace": "default",
+        "uid": "3b9c4d5e-6f7a-4b8c-9d0e-1f2a3b4c5d06"
+      },
+      "spec": {
+        "type": "ClusterIP",
+        "selector": {
+          "app": "web"
+        },
+        "ports": [
+          {
+            "port": 443,
+            "protocol": "TCP",
+            "targetPort": 8000
+          }
+        ]
+      },
+      "status": {
+        "loadBalancer": {
+          "ingress": []
+        }
+      }
+    }
+  ]
+}

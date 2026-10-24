@@ -108,6 +108,11 @@ from security_lakehouse.connectors_kubernetes import (
     KubernetesFixtureClient,
     collect_kubernetes_evidence,
 )
+from security_lakehouse.connectors_lambda import (
+    LambdaCloudClient,
+    LambdaCloudFixtureClient,
+    collect_lambda_cloud_evidence,
+)
 from security_lakehouse.connectors_okta import (
     OktaClient,
     OktaFixtureClient,
@@ -285,6 +290,7 @@ CROWDSTRIKE_CLOUD_ENV = "CROWDSTRIKE_CLOUD"
 CROWDSTRIKE_CLIENT_ID_ENV = "CROWDSTRIKE_CLIENT_ID"
 CROWDSTRIKE_CLIENT_SECRET_ENV = "CROWDSTRIKE_CLIENT_SECRET"
 KUBECONFIG_ENV = "KUBECONFIG"
+LAMBDA_API_KEY_ENV = "LAMBDA_API_KEY"
 KUBERNETES_SERVICE_HOST_ENV = "KUBERNETES_SERVICE_HOST"
 
 # Environment variables carrying the Jira Cloud site base URL and the account
@@ -724,6 +730,10 @@ def _build_kubernetes(inputs: SyncInputs) -> list[dict[str, Any]]:
     return _collect_kubernetes(fixture_dir=inputs.fixture_dir, env=inputs.env, credentials=inputs.credentials)
 
 
+def _build_lambda_cloud(inputs: SyncInputs) -> list[dict[str, Any]]:
+    return _collect_lambda_cloud(fixture_dir=inputs.fixture_dir, env=inputs.env, credentials=inputs.credentials)
+
+
 def _build_jira(inputs: SyncInputs) -> list[dict[str, Any]]:
     return _collect_jira(
         fixture_dir=inputs.fixture_dir,
@@ -829,6 +839,7 @@ REGISTRY: dict[str, ConnectorBuilder] = {
     "jamf-devices": _build_jamf,
     "crowdstrike-falcon": _build_crowdstrike,
     "kubernetes-cluster": _build_kubernetes,
+    "lambda-cloud": _build_lambda_cloud,
     "iceberg-parquet-lake": _build_iceberg,
     "bigquery-evidence-lake": _build_bigquery,
 }
@@ -1382,6 +1393,25 @@ def _collect_kubernetes(
         KubernetesClient(cluster_name, context=context, kubeconfig_path=kubeconfig_path, in_cluster=in_cluster),
         allowed_registries=allowed_registries,
     )
+
+
+def _collect_lambda_cloud(
+    *,
+    fixture_dir: str | Path | None,
+    env: dict[str, str],
+    credentials: dict[str, Any] | None = None,
+) -> list[dict[str, Any]]:
+    env = runtime_env(env)
+    creds = credentials or {}
+    if fixture_dir:
+        return collect_lambda_cloud_evidence(LambdaCloudFixtureClient(fixture_dir))
+    api_key = _resolve_provider_secret(str(creds.get("credential_ref") or ""), LAMBDA_API_KEY_ENV, env)
+    if not api_key:
+        raise ValueError(
+            "lambda-cloud sync requires --fixture-dir, or a Lambda Cloud API key (credential_ref naming the "
+            f"secret, or {LAMBDA_API_KEY_ENV}); GRC Lake only issues GET requests with it"
+        )
+    return collect_lambda_cloud_evidence(LambdaCloudClient(api_key=api_key))
 
 
 def _split_list(value: Any) -> list[str] | None:
