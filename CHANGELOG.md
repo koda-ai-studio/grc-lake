@@ -5,9 +5,13 @@ Python package, Helm chart, and bundled web console.
 
 ## Unreleased
 
+## 0.3.11 - 2026-10-23
+
+- Add `grc-lake demo`: load the synthetic golden company into a temporary lake, serve the console on loopback without authentication, and open the browser. Falls back to local mode without the `server` extra; refuses a busy port and deletes the lake on exit.
+- Serve local mode from the bare package. The scheduler no longer imports SQLAlchemy-backed operational retention at import time; the base-only wheel gate now starts local mode and requests the console and core API.
 - Bring selected graph node details into view on phones and tablets where the inspector sits below the canvas. Preserve the adjacent desktop inspector.
 - Restore local fixture loading, pipeline replay and snapshots without optional server dependencies. Detect configured application databases before importing SQLAlchemy; retain schema checks and remediation reconciliation for server-backed lakes. Add a base-only installed-wheel gate on each supported CI Python version.
-- Update installation examples and publication records for verified 0.3.10 artifacts, including the published bare-install workaround. Keep historical screenshot and scan provenance scoped to their original versions.
+- Update installation examples and publication records for 0.3.11. Keep historical screenshot and scan provenance scoped to their original versions.
 
 ## 0.3.10 - 2026-10-22
 
