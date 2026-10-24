@@ -183,15 +183,32 @@ const PRESETS: Record<string, IntegrationPreset> = {
     authLabel: "Read-only ClusterRole",
     badges: ["get/list only", "No Secret access"],
     summary:
-      "Bind a dedicated service account to a get/list-only ClusterRole, then name the cluster. Sync reads RBAC bindings, pod security settings, network policies, image sources, and API server audit flags where visible.",
+      "Bind a dedicated service account to a get/list-only ClusterRole, then name the cluster. Sync reads RBAC bindings, pod security settings, network policies, image sources, API server audit flags where visible, GPU workloads, and LoadBalancer, NodePort, and KServe endpoint exposure. Works with CoreWeave and Nebius managed Kubernetes.",
     providerSetup:
       "A cluster admin applies the grc-lake-config-reader ClusterRole and binding (docs/CONNECTORS.md), then issues a kubeconfig for that identity or runs GRC Lake in-cluster.",
     trustOpsInput:
       "Cluster name, optional kubeconfig context and path reference, optional allowed registries.",
     advancedTitle: "What is collected",
     advancedDetails: [
-      "Binding subjects, workload security settings, image references, names of Secret-backed env vars, NetworkPolicy counts, and audit flag presence.",
-      "Secrets, env values, container arguments, labels, and annotations are never read or stored.",
+      "Binding subjects, workload security settings, image references, names of Secret-backed env vars, NetworkPolicy counts, audit flag presence, GPU and InfiniBand requests, Service types and ports, and whether load balancer addresses are public.",
+      "Secrets, env values, container arguments, IP addresses, labels, and annotations are never stored. Selectors and labels are read only to match Services to GPU workloads and to detect KServe cluster-local visibility.",
+    ],
+  },
+  "lambda-cloud": {
+    connectorId: "lambda-cloud",
+    title: "Lambda Cloud",
+    authLabel: "API key reference",
+    badges: ["GET only", "Paced to 1 request/s"],
+    summary:
+      "Store a Lambda Cloud API key as a secret reference. Sync reads instances, the global and attached firewall rulesets, SSH keys, and API key metadata to judge inbound exposure and access hygiene.",
+    providerSetup:
+      "Create an API key in the Lambda Cloud console for a dedicated identity. Lambda keys are not scoped, so keep the key for GRC Lake only; without API-key read permission, key hygiene is recorded as a coverage gap.",
+    trustOpsInput:
+      "Name of the environment variable or secret file holding the API key.",
+    advancedTitle: "What is collected",
+    advancedDetails: [
+      "Instance ID, name, status, region, instance type and GPU, image family, attached firewall rulesets, SSH key names and algorithms, whether a public IP and Jupyter URL exist, and API key expiry, last use, and owning identity ID.",
+      "Jupyter tokens, IP addresses, host names, tags, rule descriptions, public key material, and person names are never stored.",
     ],
   },
   "databricks-evidence-lake": {

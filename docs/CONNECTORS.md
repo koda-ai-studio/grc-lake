@@ -986,6 +986,9 @@ events:
 | `kubernetes.workload.secret_env`        | Secrets are injected as environment variables (CIS 5.4.1)                                               | FEDRAMP-SC-28, CMMC-3.13.16, NIST-CSF-PR.DS-01                                                        |
 | `kubernetes.cluster.audit_logging`      | The kube-apiserver lacks `--audit-policy-file` plus a log or webhook sink (CIS 1.2.16, 3.2.1)           | FEDRAMP-AU-2, FEDRAMP-AU-12, CMMC-3.3.1, ISO27001-A.8.15, NIST-CSF-PR.PS-04, CIS-CONTROLS-8           |
 
+GPU clusters add workload inventory and exposure evidence; see
+[Neoclouds and GPU clouds](#neoclouds-and-gpu-clouds-preview).
+
 CIS references are to the CIS Kubernetes Benchmark v1.10. Workloads are evaluated on
 their controller's pod template (Deployment, DaemonSet, StatefulSet, CronJob, and
 ownerless ReplicaSets, Jobs, and Pods), so a pod is never counted twice. Without
@@ -1013,7 +1016,7 @@ metadata:
   name: grc-lake-config-reader
 rules:
   - apiGroups: [""]
-    resources: ["namespaces", "pods"]
+    resources: ["namespaces", "pods", "services"]
     verbs: ["get", "list"]
   - apiGroups: ["apps"]
     resources: ["deployments", "daemonsets", "statefulsets", "replicasets"]
@@ -1026,6 +1029,10 @@ rules:
     verbs: ["get", "list"]
   - apiGroups: ["rbac.authorization.k8s.io"]
     resources: ["clusterrolebindings", "rolebindings"]
+    verbs: ["get", "list"]
+  # Optional, KServe clusters only. Without it, inference endpoints are a coverage gap.
+  - apiGroups: ["serving.kserve.io"]
+    resources: ["inferenceservices"]
     verbs: ["get", "list"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -1048,8 +1055,108 @@ SaaS APIs does not apply here. Lists page with `limit`/`continue` and retry 429/
 honoring `Retry-After`.
 
 **Data minimization.** Secret objects are never listed. Environment variable values,
-container commands and args, labels, and annotations are never stored; only the names
-of Secret-backed variables, image references, and binding subjects are kept.
+container commands and args, IP addresses, labels, and annotations are never stored;
+only the names of Secret-backed variables, image references, binding subjects, and
+Service types and ports are kept. Service selectors and pod template labels are read
+in memory to match Services to GPU workloads, and the KServe visibility label to
+detect cluster-local endpoints.
+
+## Neoclouds and GPU clouds (preview)
+
+GPU clouds are assessed with two connectors: `kubernetes-cluster` for managed
+Kubernetes on CoreWeave and Nebius (or any cluster running the NVIDIA device plugin),
+and `lambda-cloud` for Lambda GPU instances. Both are preview: fixture-tested, not
+yet run against a live tenant. Evidence binds to existing CCF safeguards. The
+framework requirements it reaches come from each safeguard's reviewed crosswalk, and
+proposed mappings are never attested.
+
+### CoreWeave and Nebius managed Kubernetes
+
+The `kubernetes-cluster` connector works unchanged against these clusters. Point
+`kubeconfig_ref` at a kubeconfig for a dedicated identity bound to the
+`grc-lake-config-reader` ClusterRole above.
+
+- **CoreWeave Kubernetes Service (CKS).** The kubeconfig from the Cloud Console
+  embeds an API access token whose expiry and cluster scope are set when the token is
+  created. Private clusters have no public API endpoint, so run GRC Lake where it
+  can reach the private endpoint.
+- **Nebius Managed Kubernetes.** `nebius mk8s cluster get-credentials --id <id>
+--external` (or `--internal` from a Nebius VM) writes a kubeconfig that calls the
+  `nebius` CLI as an exec credential plugin. The official Kubernetes client runs that
+  plugin, so the CLI must be installed and signed in where GRC Lake runs. For a
+  hosted deployment, prefer a kubeconfig carrying a service-account token, because an
+  exec plugin runs a local command.
+
+| Event                                       | Asset type            | Result                                                                                                                                                                                                                                                      | Safeguard        |
+| ------------------------------------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| `kubernetes.workload.accelerator_inventory` | `kubernetes_workload` | `observed`: GPU count (`nvidia.com/gpu`, `amd.com/gpu`), InfiniBand (`rdma/ib`), serving runtime (vLLM, Triton, TGI, NVIDIA NIM), and the namespace's NetworkPolicy count as InfiniBand job scope                                                           | none (inventory) |
+| `kubernetes.service.network_exposure`       | `network`             | LoadBalancer with a public address and no `loadBalancerSourceRanges` (or `0.0.0.0/0`): open, high when it selects a GPU workload, else medium. Public with restricted ranges, or a private address: pass. NodePort, or no assigned address: `not_evaluated` | `SG-NETWORK-001` |
+| `kubernetes.inference.network_exposure`     | `service`             | KServe InferenceService labelled `networking.kserve.io/visibility: cluster-local` or with a `*.svc.cluster.local` URL: pass. External URL or no URL: `not_evaluated`                                                                                        | `SG-NETWORK-001` |
+
+Address scope is read from `status.loadBalancer.ingress[].ip`, not from provider
+annotations. CoreWeave, for example, assigns a public address only when the Service
+carries `service.beta.kubernetes.io/coreweave-load-balancer-type: public`; judging
+the assigned address works the same on every provider. A denied Services or
+InferenceService list becomes a `kubernetes.collection.gap` row and the sync is marked
+partial. A cluster without KServe (HTTP 404) has no InferenceServices.
+
+### Lambda Cloud (`lambda-cloud`)
+
+Reads `https://cloud.lambda.ai/api/v1` (Lambda Cloud API 1.10.0) with
+`Authorization: Bearer <key>`, issuing only `GET`: `/account`, `/instances` (paged by
+`page_size`/`page_token`, at most 100 pages), `/firewall-rulesets`,
+`/firewall-rulesets/global`, `/ssh-keys`, and `/api-keys`. Requests are paced to one
+per second, the documented limit, and retry 429 honoring `Retry-After`. Every request
+goes to the fixed host through the public-address egress guard; page tokens are only
+sent as query values.
+
+**Credentials.** `credential_ref` names the environment variable or secret file
+holding the API key (default `LAMBDA_API_KEY`). Lambda API keys carry full API access
+and cannot be scoped, so create a key for a dedicated identity and use it only for
+GRC Lake. Listing API keys needs the account's API-key read permission (service
+identity keys also need the service-identity read permission); without it, key
+hygiene is a coverage gap. A refused firewall or SSH key read is a coverage gap too,
+and the affected instance results become `not_evaluated`.
+
+| Event                                    | Asset type         | Result                                                                                                                                                                                                    | Safeguard         |
+| ---------------------------------------- | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
+| `lambda_cloud.instance.network_exposure` | `cloud_resource`   | Global ruleset plus the instance's rulesets. `0.0.0.0/0` to all protocols, all ports, SSH (22) or RDP (3389): open/high. Another internet-open TCP/UDP port: open/medium. Otherwise pass. ICMP is ignored | `SG-NETWORK-001`  |
+| `lambda_cloud.instance.ssh_access`       | `cloud_resource`   | DSA, or RSA under 2048 bits: open/medium. Strong keys: `observed`, because key strength alone does not establish logical access                                                                           | `SG-IDENTITY-001` |
+| `lambda_cloud.identity.api_key`          | `identity_account` | No expiry: open/medium. Unused for 90 days: open/low. Otherwise, or expired: `observed`. The asset is the owning identity                                                                                 | `SG-IDENTITY-001` |
+
+**Data minimization.** Jupyter tokens, public and private IP addresses, host names,
+tags, rule descriptions, public key material, and identity display names are dropped
+in the client. Only whether an instance has a public IP or a Jupyter URL is kept.
+
+### What GPU cloud APIs cannot show
+
+These stay unassessed or `not_evaluated`. None is reported as a pass.
+
+- **Encryption at rest and in transit.** Neither the Kubernetes API nor the Lambda
+  Cloud API exposes disk, filesystem, or InfiniBand fabric encryption settings.
+- **InfiniBand fabric isolation.** Fabric partitioning and tenant isolation are
+  provider-managed and invisible to both APIs; the inventory records which jobs use
+  the fabric.
+- **Inference endpoint authentication.** An external KServe URL is `not_evaluated`:
+  authentication is enforced by the ingress or service mesh, not the InferenceService.
+- **NodePort and pending load balancers.** Reachability depends on node addressing
+  and provider networking that the Kubernetes API does not report.
+- **Lambda `us-south-1`.** The API reference states that firewall rules do not apply
+  there, so exposure is `not_evaluated`. Jupyter URLs are recorded, not judged.
+- **Audit logging.** Managed control planes do not expose API server audit settings.
+  Lambda keeps account audit events for six months (`GET /audit-events`); this
+  connector does not collect them yet.
+- **Nebius control-plane API.** Nebius compute instances, VPC security groups, and IAM
+  service accounts sit behind REST and gRPC APIs that need a service-account JWT
+  exchanged for an IAM token. They are not collected; Nebius evidence comes from its
+  managed Kubernetes clusters only.
+- **Population completeness.** Only the assets a sync observed are assessed.
+
+**Live qualification.** A live run needs a CKS or Nebius kubeconfig bound to the
+ClusterRole above, with a GPU workload, a LoadBalancer Service, and ideally KServe,
+plus a Lambda Cloud API key for an account with at least one instance and ruleset.
+Record the run in `docs/qualification/connector-evidence.json` before removing the
+preview label.
 
 ## Retired connectors
 

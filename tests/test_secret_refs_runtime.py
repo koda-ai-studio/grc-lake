@@ -54,6 +54,7 @@ CASES = {
     "google-workspace-identity": "refresh_token_ref",
     "snowflake-evidence-lake": "private_key_ref",
     "kubernetes-cluster": "kubeconfig_ref",
+    "lambda-cloud": "credential_ref",
     "github-security": "credential_ref",
     "gitlab-security": "credential_ref",
 }

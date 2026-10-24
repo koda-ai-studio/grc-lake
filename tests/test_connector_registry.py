@@ -48,6 +48,7 @@ REAL_ADAPTERS = {
     "jamf-devices",
     "crowdstrike-falcon",
     "kubernetes-cluster",
+    "lambda-cloud",
     "iceberg-parquet-lake",
     "bigquery-evidence-lake",
 }
@@ -56,6 +57,7 @@ PREVIEW_CONNECTORS = {
     "jamf-devices",
     "crowdstrike-falcon",
     "kubernetes-cluster",
+    "lambda-cloud",
     "iceberg-parquet-lake",
     "bigquery-evidence-lake",
 }
@@ -286,6 +288,8 @@ def test_unknown_connector_id_raises_no_runner_registered(tmp_path: Path) -> Non
         ("jamf-devices", "jamf", {}),
         ("crowdstrike-falcon", "crowdstrike", {}),
         ("kubernetes-cluster", "kubernetes", {}),
+        ("kubernetes-cluster", "kubernetes-neocloud", {}),
+        ("lambda-cloud", "lambda-cloud", {}),
     ],
 )
 def test_fixture_sync_flows_through_registry(

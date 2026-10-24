@@ -1,0 +1,57 @@
+{
+  "data": [
+    {
+      "id": "rs-private",
+      "name": "private-https",
+      "region": {
+        "name": "us-east-1",
+        "description": "Virginia, USA"
+      },
+      "rules": [
+        {
+          "protocol": "tcp",
+          "source_network": "10.0.0.0/8",
+          "description": "HTTPS from the VPN",
+          "port_range": [443, 443]
+        }
+      ],
+      "created": "2026-09-15T12:00:00Z",
+      "instance_ids": ["0a1b2c3d4e5f40718293a4b5c6d7e8f1"]
+    },
+    {
+      "id": "rs-inference",
+      "name": "public-inference",
+      "region": {
+        "name": "us-west-1",
+        "description": "California, USA"
+      },
+      "rules": [
+        {
+          "protocol": "tcp",
+          "source_network": "0.0.0.0/0",
+          "description": "Inference API",
+          "port_range": [8000, 8000]
+        }
+      ],
+      "created": "2026-09-15T12:00:00Z",
+      "instance_ids": ["0a1b2c3d4e5f40718293a4b5c6d7e8f2"]
+    },
+    {
+      "id": "rs-wide-open",
+      "name": "wide-open",
+      "region": {
+        "name": "us-east-1",
+        "description": "Virginia, USA"
+      },
+      "rules": [
+        {
+          "protocol": "all",
+          "source_network": "0.0.0.0/0",
+          "description": "Allow everything"
+        }
+      ],
+      "created": "2026-09-15T12:00:00Z",
+      "instance_ids": ["0a1b2c3d4e5f40718293a4b5c6d7e8f3"]
+    }
+  ]
+}

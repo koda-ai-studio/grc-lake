@@ -1,0 +1,210 @@
+{
+  "apiVersion": "v1",
+  "kind": "List",
+  "metadata": {
+    "resourceVersion": ""
+  },
+  "items": [
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "creationTimestamp": "2026-08-10T12:00:00Z",
+        "labels": {
+          "app": "vllm-llama"
+        },
+        "name": "vllm-llama",
+        "namespace": "inference",
+        "resourceVersion": "2000",
+        "uid": "1f7a2b3c-4d5e-4f6a-8b9c-0d1e2f3a4001"
+      },
+      "spec": {
+        "replicas": 1,
+        "selector": {
+          "matchLabels": {
+            "app": "vllm-llama"
+          }
+        },
+        "template": {
+          "metadata": {
+            "labels": {
+              "app": "vllm-llama",
+              "tier": "serving"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "name": "vllm",
+                "image": "docker.io/vllm/vllm-openai:v0.6.3",
+                "ports": [
+                  {
+                    "containerPort": 8000,
+                    "protocol": "TCP"
+                  }
+                ],
+                "resources": {
+                  "limits": {
+                    "nvidia.com/gpu": "1",
+                    "memory": "64Gi"
+                  }
+                },
+                "securityContext": {
+                  "allowPrivilegeEscalation": false,
+                  "runAsNonRoot": true,
+                  "capabilities": {
+                    "drop": ["ALL"]
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "creationTimestamp": "2026-08-10T12:00:00Z",
+        "labels": {
+          "app": "nim-embed"
+        },
+        "name": "nim-embed",
+        "namespace": "inference",
+        "resourceVersion": "2000",
+        "uid": "1f7a2b3c-4d5e-4f6a-8b9c-0d1e2f3a4002"
+      },
+      "spec": {
+        "replicas": 1,
+        "selector": {
+          "matchLabels": {
+            "app": "nim-embed"
+          }
+        },
+        "template": {
+          "metadata": {
+            "labels": {
+              "app": "nim-embed",
+              "tier": "serving"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "name": "nim",
+                "image": "nvcr.io/nim/nvidia/nv-embedqa-e5-v5:1.0.0",
+                "resources": {
+                  "limits": {
+                    "nvidia.com/gpu": 1
+                  },
+                  "requests": {
+                    "nvidia.com/gpu": 1
+                  }
+                },
+                "securityContext": {
+                  "allowPrivilegeEscalation": false,
+                  "runAsNonRoot": true,
+                  "capabilities": {
+                    "drop": ["ALL"]
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "batch/v1",
+      "kind": "Job",
+      "metadata": {
+        "name": "llama-finetune",
+        "namespace": "training",
+        "uid": "1f7a2b3c-4d5e-4f6a-8b9c-0d1e2f3a4003"
+      },
+      "spec": {
+        "completions": 4,
+        "parallelism": 4,
+        "template": {
+          "metadata": {
+            "labels": {
+              "job-name": "llama-finetune"
+            }
+          },
+          "spec": {
+            "restartPolicy": "Never",
+            "containers": [
+              {
+                "name": "trainer",
+                "image": "ghcr.io/example-ml/trainer@sha256:abababababababababababababababababababababababababababababababab",
+                "resources": {
+                  "limits": {
+                    "nvidia.com/gpu": "8",
+                    "rdma/ib": "1"
+                  },
+                  "requests": {
+                    "nvidia.com/gpu": "8",
+                    "rdma/ib": "1"
+                  }
+                },
+                "securityContext": {
+                  "allowPrivilegeEscalation": false,
+                  "runAsNonRoot": true,
+                  "capabilities": {
+                    "add": ["IPC_LOCK"]
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "creationTimestamp": "2026-08-10T12:00:00Z",
+        "labels": {
+          "app": "web"
+        },
+        "name": "web",
+        "namespace": "default",
+        "resourceVersion": "2000",
+        "uid": "1f7a2b3c-4d5e-4f6a-8b9c-0d1e2f3a4004"
+      },
+      "spec": {
+        "replicas": 1,
+        "selector": {
+          "matchLabels": {
+            "app": "web"
+          }
+        },
+        "template": {
+          "metadata": {
+            "labels": {
+              "app": "web",
+              "tier": "serving"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "name": "web",
+                "image": "ghcr.io/example-ml/web:2.4.1",
+                "securityContext": {
+                  "allowPrivilegeEscalation": false,
+                  "runAsNonRoot": true,
+                  "capabilities": {
+                    "drop": ["ALL"]
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}
