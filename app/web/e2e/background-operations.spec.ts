@@ -110,6 +110,31 @@ test("real snapshot completes through the server worker", async ({ page }) => {
   });
 });
 
+test("a rejected snapshot is reported as an error, not a success", async ({
+  page,
+}) => {
+  await page.route("**/api/v1/snapshots", (route) =>
+    route.request().method() === "POST"
+      ? route.fulfill({
+          status: 409,
+          json: { errors: [{ detail: "snapshot store is read-only" }] },
+        })
+      : route.fallback(),
+  );
+  await page.goto("/console/dashboard/");
+  await page
+    .getByRole("button", { name: "Capture snapshot", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Freeze snapshot", exact: true })
+    .click();
+  const toast = page.locator("[data-sonner-toast]", {
+    hasText: "snapshot store is read-only",
+  });
+  await expect(toast).toBeVisible();
+  await expect(toast).toHaveAttribute("data-type", "error");
+});
+
 test("failed work presents the server's safe reason", async ({ page }) => {
   await page.route("**/api/v1/ingestion/eval", (r) =>
     r.fulfill({
