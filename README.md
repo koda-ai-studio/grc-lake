@@ -17,6 +17,10 @@ GRC Lake is open-source and self-hosted, running in infrastructure you control.
 Read evidence from existing systems and security lakes, evaluate versioned rules,
 and preserve the evidence and review decisions behind each result.
 
+**[Open the live demo](https://koda-ai-studio.github.io/grc-lake/)**: click
+through the console in your browser on synthetic sample data. Nothing to
+install; the demo is read-only.
+
 [Quick start](#quick-start) · [Product tour](#product-tour) · [Self-host](#self-host) ·
 [Engineering review](#engineering-review) · [Coverage](docs/CURRENT_STATE.md) · [Documentation](docs/README.md)
 
