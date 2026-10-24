@@ -3,11 +3,15 @@
 from __future__ import annotations
 
 import json
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from typing import Any
 
 import pytest
 
+from security_lakehouse.connector_runner import CONNECTOR_RAW_FILE, run_connector_sync
+from security_lakehouse.connector_state import append_config_event
+from security_lakehouse.io import read_json
 from security_lakehouse.lake_mapping import (
     compile_select,
     list_presets,
@@ -17,6 +21,7 @@ from security_lakehouse.lake_mapping import (
     resolve_mapping_ref,
     resolve_mappings,
 )
+from security_lakehouse.pipeline import run_pipeline
 from security_lakehouse.validation import validate_raw_events
 
 FIXTURES = Path(__file__).parent / "fixtures" / "ocsf"
@@ -173,3 +178,171 @@ def test_every_preset_compiles_for_every_sql_dialect(dialect: str) -> None:
         assert query.sql.startswith("SELECT ")
         assert "2026" not in query.sql
         assert query.params["since"]
+
+
+# --------------------------------------------------------------------------------
+# OCSF -> CCF safeguard binding
+# --------------------------------------------------------------------------------
+
+IDENTITY_TABLE = "ocsf_identity_events"
+
+
+def _safeguards() -> dict[str, dict[str, Any]]:
+    payload = json.loads((REPO_ROOT / "controls" / "safeguards.json").read_text(encoding="utf-8"))
+    return {row["safeguard_id"]: row for row in payload["safeguards"]}
+
+
+def _mapped(name: str) -> dict[str, dict[str, Any]]:
+    rows = read_fixture_table(FIXTURES, IDENTITY_TABLE)
+    result = map_rows(_preset(name, IDENTITY_TABLE), rows, collected_at=COLLECTED)
+    assert result.errors == []
+    assert validate_raw_events(result.events) == []
+    return {event["attributes"]["source_id"][0]: event for event in result.events}
+
+
+def _outcome(event: dict[str, Any]) -> tuple[str, list[str], str | None]:
+    return event["status"], event.get("safeguard_ids", []), event["attributes"].get("mapping_rule")
+
+
+def test_authentication_rules_judge_only_successful_logons_by_mfa() -> None:
+    events = _mapped("ocsf/authentication")
+    assert {key: _outcome(event) for key, event in events.items()} == {
+        "syn-auth-0001": ("pass", ["SG-IDENTITY-001"], "mfa_sign_in"),
+        "syn-auth-0002": ("open", ["SG-IDENTITY-001"], "sign_in_without_mfa"),
+        # a failed sign-in records an attempt, not control effectiveness
+        "syn-auth-0003": ("observed", [], None),
+        # the source did not say whether MFA was used
+        "syn-auth-0004": ("observed", [], None),
+        # a logoff says nothing about how the session was authenticated
+        "syn-auth-0005": ("observed", [], None),
+    }
+    assert events["syn-auth-0002"]["severity"] == "medium"
+    # verdict rows carry only the authentication tags the verdict is about
+    assert events["syn-auth-0001"]["controls"] == ["SOC2-CC6.1", "ISO27001-A.8.5", "NIST-800-53-IA-2"]
+    assert "NIST-800-53-AU-2" in events["syn-auth-0003"]["controls"]
+    assert {event["entity"]["asset_type"] for event in events.values()} == {"identity_user"}
+
+
+def test_account_change_flags_successful_privilege_grants_for_review() -> None:
+    events = _mapped("ocsf/account_change")
+    assert {key: _outcome(event) for key, event in events.items()} == {
+        "syn-acct-0001": ("not_evaluated", ["SG-IDENTITY-002"], "privilege_grant"),
+        "syn-acct-0002": ("observed", [], None),  # the grant failed, so nothing changed
+        "syn-acct-0003": ("observed", [], None),
+    }
+    # the rule leaves framework tags alone
+    assert events["syn-acct-0001"]["controls"] == events["syn-acct-0003"]["controls"]
+
+
+def test_api_activity_stays_presence_only_logging_evidence() -> None:
+    rows = read_fixture_table(FIXTURES, "cloud_trail_mgmt_2_0")
+    [event] = map_rows(_preset("ocsf/api_activity", "cloud_trail_mgmt_2_0"), rows, collected_at=COLLECTED).events
+    assert event["status"] == "observed"
+    assert "safeguard_ids" not in event
+    assert load_preset("ocsf/api_activity").get("rules") is None
+
+
+def test_preset_rules_bind_catalog_safeguards_that_apply_to_the_asset_type() -> None:
+    safeguards = _safeguards()
+    known = _catalog_control_ids()
+    bound = 0
+    for name in EXPECTED_PRESETS:
+        payload = load_preset(name)
+        asset_type = payload["fields"]["asset_type"]
+        for rule in payload.get("rules", []):
+            for safeguard_id in rule.get("safeguard_ids", []):
+                bound += 1
+                # a type the safeguard does not list would be an invalid binding in the assessment
+                assert asset_type == {"const": asset_type.get("const")}, name
+                assert asset_type["const"] in safeguards[safeguard_id]["asset_types"], (name, safeguard_id)
+            controls = rule.get("controls")
+            if controls is None:
+                continue
+            assert set(controls) <= known, (name, rule["name"])
+            # framework tags on a verdict row must be requirements the bound safeguards map to
+            members = {
+                member["control_id"]
+                for safeguard_id in rule.get("safeguard_ids", [])
+                for member in safeguards[safeguard_id]["satisfies"]
+            }
+            assert set(controls) <= members, (name, rule["name"], set(controls) - members)
+    assert bound == 3
+
+
+def test_disabling_rules_restores_presence_only_mapping() -> None:
+    rows = read_fixture_table(FIXTURES, IDENTITY_TABLE)
+    spec = resolve_mapping_ref({"preset": "ocsf/authentication", "source": {"table": IDENTITY_TABLE}, "rules": []})
+    events = map_rows(spec, rows, collected_at=COLLECTED).events
+    assert {event["status"] for event in events} == {"observed"}
+    assert not any("safeguard_ids" in event for event in events)
+
+
+def _fresh_fixture(target: Path) -> Path:
+    """Copy the identity fixture with current timestamps so freshness does not decide the verdict."""
+    target.mkdir()
+    rows = read_fixture_table(FIXTURES, IDENTITY_TABLE)
+    base = datetime.now(UTC) - timedelta(hours=2)
+    for offset, row in enumerate(rows):
+        row["time_dt"] = (base + timedelta(minutes=offset)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    (target / f"{IDENTITY_TABLE}.json").write_text(json.dumps(rows), encoding="utf-8")
+    return target
+
+
+def test_ocsf_rows_reach_the_ccf_assessment_through_sync_and_pipeline(tmp_path: Path) -> None:
+    lake = tmp_path / "lake"
+    append_config_event(
+        lake,
+        connector_id="databricks-evidence-lake",
+        state="enabled",
+        actor="t",
+        credentials={"host": "dbc-a1b2345c-d6e7.cloud.databricks.com"},
+        options={
+            "mappings": [
+                {"preset": "ocsf/authentication", "source": {"table": IDENTITY_TABLE}},
+                {"preset": "ocsf/account_change", "source": {"table": IDENTITY_TABLE}},
+            ]
+        },
+    )
+    synced = run_connector_sync(
+        lake,
+        connector_id="databricks-evidence-lake",
+        fixture_dir=_fresh_fixture(tmp_path / "fixtures"),
+        materialize=False,
+    )
+    assert synced.evidence_count == 8
+    out = tmp_path / "out"
+    run_pipeline(lake / CONNECTOR_RAW_FILE, out, tenant_id="ocsf-test")
+    assessment = read_json(out / "gold" / "ccf_assessment.json")
+
+    by_asset = {
+        (row["safeguard_id"], row["asset_id"]): row
+        for row in assessment["asset_results"]
+        if row["safeguard_id"] in {"SG-IDENTITY-001", "SG-IDENTITY-002"}
+    }
+    assert {key: row["status"] for key, row in by_asset.items()} == {
+        ("SG-IDENTITY-001", "user-alice"): "pass",
+        ("SG-IDENTITY-001", "user-bob"): "fail",
+        ("SG-IDENTITY-002", "user-build-bot"): "not_evaluated",
+    }
+    assert any(
+        "unknown or unevaluated" in reason for reason in by_asset[("SG-IDENTITY-002", "user-build-bot")]["reasons"]
+    )
+
+    safeguards = {row["safeguard_id"]: row for row in assessment["safeguards"]}
+    identity = safeguards["SG-IDENTITY-001"]
+    assert identity["status"] == "fail"
+    # carol, dave, erin, frank, and build-bot were observed without MFA evidence: never silently passed
+    assert (identity["assessed_asset_count"], identity["unassessed_asset_count"]) == (2, 5)
+    assert identity["invalid_binding_count"] == 0
+
+    # framework requirements come from the reviewed crosswalk, not from the preset's tags
+    requirements = {row["control_id"]: row for row in assessment["requirements"]}
+    assert requirements["SOC2-CC6.1"]["status"] == "fail"
+    assert requirements["SOC2-CC6.1"]["reviewed_safeguard_ids"] == ["SG-IDENTITY-001"]
+    assert requirements["CIS-AWS-1.10"]["status"] == "fail"  # tagged nowhere in the preset
+    # a proposed mapping is never attested, even when the safeguard has evidence
+    iso = requirements["ISO27001-A.8.5"]
+    assert "SG-IDENTITY-001" not in iso["reviewed_safeguard_ids"]
+    assert iso["pending_mapping_count"] >= 1
+    assert iso["status"] != "pass"
+    assert requirements["SOC2-CC6.2"]["status"] == "not_evaluated"

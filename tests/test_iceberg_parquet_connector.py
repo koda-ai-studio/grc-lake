@@ -132,6 +132,43 @@ def test_iceberg_sync_end_to_end_through_the_mapping_layer(sql_catalog: Any) -> 
     assert {event["source"] for event in events} == {"CloudTrail"}
 
 
+def test_iceberg_scan_projects_rule_columns_so_mfa_rules_match(sql_catalog: Any) -> None:
+    auth_schema = pa.schema(
+        [
+            ("time_dt", pa.timestamp("us", tz="UTC")),
+            ("class_uid", pa.int32()),
+            ("activity_id", pa.int32()),
+            ("status_id", pa.int32()),
+            ("is_mfa", pa.bool_()),
+            ("metadata", pa.struct([("uid", pa.string())])),
+            ("user", pa.struct([("uid", pa.string())])),
+        ]
+    )
+    when = datetime(2026, 9, 22, 12, tzinfo=UTC)
+    rows = [
+        {
+            "time_dt": when,
+            "class_uid": 3002,
+            "activity_id": 1,
+            "status_id": 1,
+            "is_mfa": mfa,
+            "metadata": {"uid": uid},
+            "user": {"uid": f"user-{uid}"},
+        }
+        for uid, mfa in (("m", True), ("n", False), ("u", None))
+    ]
+    table = sql_catalog.create_table("sec.ocsf_auth", schema=auth_schema)
+    table.append(pa.Table.from_pylist(rows, schema=auth_schema))
+    spec = resolve_mapping_ref({"preset": "ocsf/authentication", "source": {"table": "sec.ocsf_auth"}})
+    events = ice.collect_iceberg_evidence(_reader(sql_catalog), [spec], since=None, collected_at=when)
+    outcomes = {event["entity"]["asset_id"]: (event["status"], event.get("safeguard_ids")) for event in events}
+    assert outcomes == {
+        "user-m": ("pass", ["SG-IDENTITY-001"]),
+        "user-n": ("open", ["SG-IDENTITY-001"]),
+        "user-u": ("observed", None),
+    }
+
+
 # --- Parquet -------------------------------------------------------------------------
 
 

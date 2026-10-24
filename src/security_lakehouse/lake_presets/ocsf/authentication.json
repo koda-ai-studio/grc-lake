@@ -1,7 +1,7 @@
 {
   "spec_version": 1,
   "name": "ocsf_authentication",
-  "description": "OCSF Authentication (class_uid 3002), OCSF 1.1.0 (Amazon Security Lake source version 2). Sign-in evidence for access-control and authentication controls.",
+  "description": "OCSF Authentication (class_uid 3002), OCSF 1.1.0 (Amazon Security Lake source version 2). Sign-in evidence for access-control and authentication controls. A successful Logon passes SG-IDENTITY-001 when is_mfa is true and is open when it is false; failed or unknown sign-ins stay observations.",
   "source": {
     "table": "ocsf_table",
     "incremental": true,
@@ -69,7 +69,7 @@
       ]
     },
     "asset_type": {
-      "const": "identity"
+      "const": "identity_user"
     },
     "controls": {
       "const": [
@@ -81,12 +81,64 @@
       ]
     }
   },
+  "rules": [
+    {
+      "name": "mfa_sign_in",
+      "when": [
+        {
+          "column": "activity_id",
+          "op": "eq",
+          "value": 1
+        },
+        {
+          "column": "status_id",
+          "op": "eq",
+          "value": 1
+        },
+        {
+          "column": "is_mfa",
+          "op": "eq",
+          "value": true
+        }
+      ],
+      "status": "pass",
+      "controls": ["SOC2-CC6.1", "ISO27001-A.8.5", "NIST-800-53-IA-2"],
+      "safeguard_ids": ["SG-IDENTITY-001"]
+    },
+    {
+      "name": "sign_in_without_mfa",
+      "when": [
+        {
+          "column": "activity_id",
+          "op": "eq",
+          "value": 1
+        },
+        {
+          "column": "status_id",
+          "op": "eq",
+          "value": 1
+        },
+        {
+          "column": "is_mfa",
+          "op": "eq",
+          "value": false
+        }
+      ],
+      "status": "open",
+      "severity": "medium",
+      "controls": ["SOC2-CC6.1", "ISO27001-A.8.5", "NIST-800-53-IA-2"],
+      "safeguard_ids": ["SG-IDENTITY-001"]
+    }
+  ],
   "attributes": {
     "ocsf_class_uid": {
       "column": "class_uid"
     },
     "ocsf_activity_id": {
       "column": "activity_id"
+    },
+    "ocsf_status_id": {
+      "column": "status_id"
     },
     "ocsf_version": {
       "column": "metadata.version"

@@ -1,7 +1,7 @@
 {
   "spec_version": 1,
   "name": "ocsf_account_change",
-  "description": "OCSF Account Change (class_uid 3001), OCSF 1.1.0 (Amazon Security Lake source version 2). Identity lifecycle and privilege changes for account-management controls.",
+  "description": "OCSF Account Change (class_uid 3001), OCSF 1.1.0 (Amazon Security Lake source version 2). Identity lifecycle and privilege changes for account-management controls. A successful Attach Policy is a privilege grant pending review: it blocks a pass on SG-IDENTITY-002 without asserting a failure.",
   "source": {
     "table": "ocsf_table",
     "incremental": true,
@@ -69,7 +69,7 @@
       ]
     },
     "asset_type": {
-      "const": "identity"
+      "const": "identity_user"
     },
     "controls": {
       "const": [
@@ -81,12 +81,35 @@
       ]
     }
   },
+  "rules": [
+    {
+      "name": "privilege_grant",
+      "when": [
+        {
+          "column": "activity_id",
+          "op": "eq",
+          "value": 7
+        },
+        {
+          "column": "status_id",
+          "op": "eq",
+          "value": 1
+        }
+      ],
+      "status": "not_evaluated",
+      "severity": "medium",
+      "safeguard_ids": ["SG-IDENTITY-002"]
+    }
+  ],
   "attributes": {
     "ocsf_class_uid": {
       "column": "class_uid"
     },
     "ocsf_activity_id": {
       "column": "activity_id"
+    },
+    "ocsf_status_id": {
+      "column": "status_id"
     },
     "ocsf_version": {
       "column": "metadata.version"

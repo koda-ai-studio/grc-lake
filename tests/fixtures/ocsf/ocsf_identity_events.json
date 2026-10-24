@@ -1,0 +1,145 @@
+[
+  {
+    "metadata": {
+      "uid": "syn-auth-0001",
+      "version": "1.1.0",
+      "product": { "name": "Example IdP", "vendor_name": "Example" }
+    },
+    "time_dt": "2026-10-20T09:00:00Z",
+    "class_uid": 3002,
+    "activity_id": 1,
+    "activity_name": "Logon",
+    "severity_id": 1,
+    "status_id": 1,
+    "status": "Success",
+    "is_mfa": true,
+    "user": { "uid": "user-alice", "name": "alice@example.com" },
+    "src_endpoint": { "ip": "203.0.113.10" },
+    "cloud": { "account": { "uid": "111122223333" }, "region": "us-east-1" }
+  },
+  {
+    "metadata": {
+      "uid": "syn-auth-0002",
+      "version": "1.1.0",
+      "product": { "name": "Example IdP", "vendor_name": "Example" }
+    },
+    "time_dt": "2026-10-20T09:05:00Z",
+    "class_uid": 3002,
+    "activity_id": 1,
+    "activity_name": "Logon",
+    "severity_id": 1,
+    "status_id": 1,
+    "status": "Success",
+    "is_mfa": false,
+    "user": { "uid": "user-bob", "name": "bob@example.com" },
+    "src_endpoint": { "ip": "203.0.113.11" },
+    "cloud": { "account": { "uid": "111122223333" }, "region": "us-east-1" }
+  },
+  {
+    "metadata": {
+      "uid": "syn-auth-0003",
+      "version": "1.1.0",
+      "product": { "name": "Example IdP", "vendor_name": "Example" }
+    },
+    "time_dt": "2026-10-20T09:10:00Z",
+    "class_uid": 3002,
+    "activity_id": 1,
+    "activity_name": "Logon",
+    "severity_id": 1,
+    "status_id": 2,
+    "status": "Failure",
+    "is_mfa": false,
+    "user": { "uid": "user-carol", "name": "carol@example.com" },
+    "src_endpoint": { "ip": "198.51.100.20" },
+    "cloud": { "account": { "uid": "111122223333" }, "region": "us-east-1" }
+  },
+  {
+    "metadata": {
+      "uid": "syn-auth-0004",
+      "version": "1.1.0",
+      "product": { "name": "Example IdP", "vendor_name": "Example" }
+    },
+    "time_dt": "2026-10-20T09:15:00Z",
+    "class_uid": 3002,
+    "activity_id": 1,
+    "activity_name": "Logon",
+    "severity_id": 1,
+    "status_id": 1,
+    "status": "Success",
+    "user": { "uid": "user-dave", "name": "dave@example.com" },
+    "src_endpoint": { "ip": "203.0.113.12" },
+    "cloud": { "account": { "uid": "111122223333" }, "region": "us-east-1" }
+  },
+  {
+    "metadata": {
+      "uid": "syn-auth-0005",
+      "version": "1.1.0",
+      "product": { "name": "Example IdP", "vendor_name": "Example" }
+    },
+    "time_dt": "2026-10-20T09:20:00Z",
+    "class_uid": 3002,
+    "activity_id": 2,
+    "activity_name": "Logoff",
+    "severity_id": 1,
+    "status_id": 1,
+    "status": "Success",
+    "is_mfa": false,
+    "user": { "uid": "user-alice", "name": "alice@example.com" },
+    "src_endpoint": { "ip": "203.0.113.10" },
+    "cloud": { "account": { "uid": "111122223333" }, "region": "us-east-1" }
+  },
+  {
+    "metadata": {
+      "uid": "syn-acct-0001",
+      "version": "1.1.0",
+      "product": { "name": "Example Cloud Audit", "vendor_name": "Example" }
+    },
+    "time_dt": "2026-10-20T10:00:00Z",
+    "class_uid": 3001,
+    "activity_id": 7,
+    "activity_name": "Attach Policy",
+    "severity_id": 1,
+    "status_id": 1,
+    "status": "Success",
+    "user": { "uid": "user-build-bot", "name": "build-bot" },
+    "actor": { "user": { "name": "platform-admin" } },
+    "src_endpoint": { "ip": "198.51.100.7" },
+    "cloud": { "account": { "uid": "111122223333" }, "region": "us-east-1" }
+  },
+  {
+    "metadata": {
+      "uid": "syn-acct-0002",
+      "version": "1.1.0",
+      "product": { "name": "Example Cloud Audit", "vendor_name": "Example" }
+    },
+    "time_dt": "2026-10-20T10:05:00Z",
+    "class_uid": 3001,
+    "activity_id": 7,
+    "activity_name": "Attach Policy",
+    "severity_id": 1,
+    "status_id": 2,
+    "status": "Failure",
+    "user": { "uid": "user-erin", "name": "erin@example.com" },
+    "actor": { "user": { "name": "platform-admin" } },
+    "src_endpoint": { "ip": "198.51.100.7" },
+    "cloud": { "account": { "uid": "111122223333" }, "region": "us-east-1" }
+  },
+  {
+    "metadata": {
+      "uid": "syn-acct-0003",
+      "version": "1.1.0",
+      "product": { "name": "Example Cloud Audit", "vendor_name": "Example" }
+    },
+    "time_dt": "2026-10-20T10:10:00Z",
+    "class_uid": 3001,
+    "activity_id": 1,
+    "activity_name": "Create",
+    "severity_id": 1,
+    "status_id": 1,
+    "status": "Success",
+    "user": { "uid": "user-frank", "name": "frank@example.com" },
+    "actor": { "user": { "name": "platform-admin" } },
+    "src_endpoint": { "ip": "198.51.100.7" },
+    "cloud": { "account": { "uid": "111122223333" }, "region": "us-east-1" }
+  }
+]

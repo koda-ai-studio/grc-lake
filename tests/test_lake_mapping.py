@@ -320,3 +320,168 @@ def test_write_mode_is_append_when_every_mapping_is_incremental() -> None:
     snapshot = _spec(source={"table": "t", "incremental": False})
     assert lake_mapping.write_mode_for_options({"mapping": snapshot}) == "snapshot"
     assert lake_mapping.write_mode_for_options({}) is None
+
+
+# --------------------------------------------------------------------------------
+# Event-level rules and safeguard bindings
+# --------------------------------------------------------------------------------
+
+RULED_ROWS = [
+    {**ROW, "uuid": "mfa", "outcome": {"result": "SUCCESS"}, "mfa": True},
+    {**ROW, "uuid": "no-mfa", "outcome": {"result": "SUCCESS"}, "mfa": "false"},
+    {**ROW, "uuid": "unknown", "outcome": {"result": "SUCCESS"}},
+    {**ROW, "uuid": "failed", "outcome": {"result": "FAILURE"}, "mfa": False},
+]
+RULES = [
+    {
+        "name": "mfa_sign_in",
+        "when": [
+            {"column": "outcome.result", "op": "eq", "value": "SUCCESS"},
+            {"column": "mfa", "op": "eq", "value": True},
+        ],
+        "status": "pass",
+        "controls": ["SOC2-CC6.1"],
+        "safeguard_ids": ["SG-IDENTITY-001"],
+    },
+    {
+        "name": "sign_in_without_mfa",
+        "when": [
+            {"column": "outcome.result", "op": "eq", "value": "SUCCESS"},
+            {"column": "mfa", "op": "eq", "value": False},
+        ],
+        "status": "open",
+        "severity": "medium",
+        "controls": ["SOC2-CC6.1"],
+        "safeguard_ids": ["SG-IDENTITY-001"],
+    },
+]
+
+
+def _ruled_spec(**field_overrides: Any) -> dict[str, Any]:
+    spec = _spec(rules=RULES)
+    spec["fields"].pop("status")
+    spec["fields"]["asset_type"] = {"const": "identity_user"}
+    spec["fields"]["controls"] = {"const": ["SOC2-CC6.1", "SOC2-CC7.2"]}
+    spec["fields"].update(field_overrides)
+    return spec
+
+
+def test_first_matching_rule_sets_status_controls_and_safeguards_together() -> None:
+    result = map_rows(parse_mapping(_ruled_spec()), RULED_ROWS, collected_at=COLLECTED)
+    assert result.errors == []
+    assert validate_raw_events(result.events) == []
+    by_id = {event["attributes"]["source_id"]: event for event in result.events}
+
+    assert by_id["mfa"]["status"] == "pass"
+    assert by_id["mfa"]["safeguard_ids"] == ["SG-IDENTITY-001"]
+    assert by_id["mfa"]["controls"] == ["SOC2-CC6.1"]
+    assert by_id["mfa"]["attributes"]["mapping_rule"] == "mfa_sign_in"
+    # string booleans from VARIANT/JSON columns compare like real booleans
+    assert by_id["no-mfa"]["status"] == "open"
+    assert by_id["no-mfa"]["severity"] == "medium"
+    assert by_id["no-mfa"]["attributes"]["mapping_rule"] == "sign_in_without_mfa"
+    # no rule matched: field-level values apply and nothing is bound to a safeguard
+    for key in ("unknown", "failed"):
+        assert by_id[key]["status"] == "observed"
+        assert "safeguard_ids" not in by_id[key]
+        assert by_id[key]["controls"] == ["SOC2-CC6.1", "SOC2-CC7.2"]
+        assert "mapping_rule" not in by_id[key]["attributes"]
+
+
+def test_rules_keep_field_values_they_do_not_set() -> None:
+    rules = [{"name": "flag", "when": [{"column": "mfa", "op": "is_null"}], "status": "not_evaluated"}]
+    spec = parse_mapping(_ruled_spec(safeguard_ids={"const": ["SG-LOGGING-001"]}) | {"rules": rules})
+    events = map_rows(spec, RULED_ROWS, collected_at=COLLECTED).events
+    flagged = next(e for e in events if e["attributes"]["source_id"] == "unknown")
+    assert flagged["status"] == "not_evaluated"
+    assert flagged["controls"] == ["SOC2-CC6.1", "SOC2-CC7.2"]
+    assert flagged["safeguard_ids"] == ["SG-LOGGING-001"]
+    assert flagged["severity"] == "info"  # fields.severity: SUCCESS is not in the map
+    failed = next(e for e in events if e["attributes"]["source_id"] == "failed")
+    assert (failed["status"], failed["severity"]) == ("observed", "medium")
+
+
+def test_column_sourced_safeguard_ids_outside_the_catalog_reject_the_row() -> None:
+    spec = parse_mapping(_ruled_spec(safeguard_ids={"column": "bound", "split": ","}) | {"rules": []})
+    rows = [{**ROW, "uuid": "ok", "bound": "SG-LOGGING-001"}, {**ROW, "uuid": "bad", "bound": "SG-LOGGING-001,SG-X"}]
+    result = map_rows(spec, rows, collected_at=COLLECTED)
+    assert [event["safeguard_ids"] for event in result.events] == [["SG-LOGGING-001"]]
+    assert result.errors == [{"row": 2, "error": "fields.safeguard_ids: unknown safeguard 'SG-X'"}]
+
+
+def test_rule_columns_are_selected_from_the_source_table() -> None:
+    spec = parse_mapping(_ruled_spec())
+    assert "mfa" in spec.top_level_columns()
+    assert "`mfa`" in compile_select(spec, "databricks").sql
+
+
+def test_mapping_without_rules_or_safeguards_emits_an_unchanged_event() -> None:
+    [event] = map_rows(parse_mapping(_spec()), [ROW], collected_at=COLLECTED).events
+    # existing specs keep byte-identical events, so bronze hashes do not churn
+    assert "safeguard_ids" not in event
+    assert "mapping_rule" not in event["attributes"]
+
+
+def _with_rules(rules: Any) -> Any:
+    return lambda s: s.update(rules=rules)
+
+
+_WHEN = [{"column": "a", "op": "eq", "value": 1}]
+
+
+@pytest.mark.parametrize(
+    ("mutate", "expected"),
+    [
+        (_with_rules("nope"), "rules: must be a list of at most"),
+        (_with_rules([{"name": "x", "when": [], "status": "pass"}]), "rules[0].when: must list 1-8"),
+        (_with_rules([{"name": "x", "when": _WHEN}]), "rules[0]: must set at least one of"),
+        (_with_rules([{"name": "x", "when": _WHEN, "status": "fixed"}]), "rules[0].status: 'fixed' is not one of"),
+        (
+            _with_rules([{"name": "x", "when": _WHEN, "severity": "urgent"}]),
+            "rules[0].severity: 'urgent' is not one of",
+        ),
+        (
+            _with_rules([{"name": "x", "when": _WHEN, "safeguard_ids": ["SG-NOPE-999"]}]),
+            "rules[0].safeguard_ids: unknown safeguard 'SG-NOPE-999'",
+        ),
+        (
+            _with_rules([{"name": "x", "when": _WHEN, "controls": "SOC2-CC6.1"}]),
+            "rules[0].controls: must be a list of 1-64",
+        ),
+        (
+            _with_rules([{"name": "x", "when": [{"column": "a;drop", "op": "eq", "value": 1}], "status": "pass"}]),
+            "rules[0].when[0].column: must be a column path",
+        ),
+        (
+            _with_rules([{"name": "x", "when": [{"column": "a", "op": "like", "value": 1}], "status": "pass"}]),
+            "rules[0].when[0].op: must be one of",
+        ),
+        (
+            _with_rules([{"name": "Bad Name", "when": _WHEN, "status": "pass"}]),
+            "rules[0].name: must be 1-64 lowercase",
+        ),
+        (
+            _with_rules(
+                [
+                    {"name": "x", "when": _WHEN, "status": "pass"},
+                    {"name": "x", "when": _WHEN, "status": "open"},
+                ]
+            ),
+            "rules[1].name: duplicate rule name 'x'",
+        ),
+        (
+            _with_rules([{"name": "x", "when": _WHEN, "status": "pass", "extra": 1}]),
+            "rules[0].extra: unexpected key",
+        ),
+        (
+            lambda s: s["fields"].update(safeguard_ids={"const": ["SG-NOPE-999"]}),
+            "fields.safeguard_ids: unknown safeguard 'SG-NOPE-999'",
+        ),
+    ],
+)
+def test_invalid_rules_fail_with_path_scoped_errors(mutate: Any, expected: str) -> None:
+    spec = _spec()
+    mutate(spec)
+    with pytest.raises(MappingError) as caught:
+        parse_mapping(spec)
+    assert any(expected in error for error in caught.value.errors), caught.value.errors
