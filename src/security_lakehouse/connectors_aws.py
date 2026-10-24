@@ -76,6 +76,13 @@ INVENTORY_PERMISSIONS = {
     "securityhub": "securityhub:DescribeHub",
     "organizations": "organizations:DescribeOrganization",
 }
+# Error codes meaning the service is off for the account, not that the reader
+# was denied (IAM denial is AccessDeniedException). Scoped per service: Security
+# Hub answers DescribeHub with InvalidAccessException when it is not enabled.
+_SERVICE_NOT_ENABLED = {
+    "securityhub": {"InvalidAccessException": "Security Hub is not enabled in this account and region"},
+    "organizations": {"AWSOrganizationsNotInUseException": "the account is not a member of an organization"},
+}
 _SAFE_ERROR_CODE = re.compile(r"^[A-Za-z][A-Za-z0-9.]{0,63}$")
 
 
@@ -620,6 +627,7 @@ def _inventory_gap(exc: Exception, *, service: str, region: str, collection: str
     code = _aws_error_code(exc)
     safe_code = code if _SAFE_ERROR_CODE.match(code) else ""
     denied = "AccessDenied" in safe_code or safe_code.startswith("Unauthorized")
+    not_enabled = _SERVICE_NOT_ENABLED.get(service, {}).get(safe_code)
     scope = (
         f"AWS {service} inventory" if collection == f"inventory:{service}" else f"AWS {service} inventory in {region}"
     )
@@ -627,10 +635,13 @@ def _inventory_gap(exc: Exception, *, service: str, region: str, collection: str
     detail = safe_code or "read failed"
     if permission:
         detail = f"{detail}; grant {permission}"
+    elif not_enabled:
+        detail = f"{detail}; {not_enabled}"
+    reason = "permission_denied" if denied else "service_not_enabled" if not_enabled else "read_failed"
     return CollectionGapError(
         f"{scope} was not collected ({detail})",
         collection=collection,
-        reason="permission_denied" if denied else "read_failed",
+        reason=reason,
         permission=permission,
     )
 

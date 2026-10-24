@@ -423,6 +423,64 @@ def test_selected_aws_inventory_is_normalized_and_partial_failures_are_isolated(
     assert "RDS is unavailable" not in json.dumps(rows)
 
 
+@pytest.mark.parametrize(
+    ("service", "code", "reason", "permission"),
+    [
+        # Live receipt 2026-10-24: Security Hub off in the account.
+        ("securityhub", "InvalidAccessException", "service_not_enabled", None),
+        ("organizations", "AWSOrganizationsNotInUseException", "service_not_enabled", None),
+        ("securityhub", "AccessDeniedException", "permission_denied", "securityhub:DescribeHub"),
+        ("organizations", "AccessDeniedException", "permission_denied", "organizations:DescribeOrganization"),
+        ("securityhub", "InternalException", "read_failed", None),
+        # A service-specific "not enabled" code only counts for its own service.
+        ("rds", "AWSOrganizationsNotInUseException", "read_failed", None),
+    ],
+)
+def test_inventory_gap_separates_service_not_enabled_from_denied_and_failed(
+    service: str, code: str, reason: str, permission: str | None
+) -> None:
+    from security_lakehouse.connector_errors import collection_gaps
+    from security_lakehouse.connectors_aws import collect_aws_inventory_evidence
+
+    class InventoryClient:
+        def inventory(self, service: str, *, region_name: str) -> list[dict]:
+            raise _FakeClientError(code)
+
+    rows = collect_aws_inventory_evidence(
+        InventoryClient(),
+        account_id=ACCOUNT,
+        regions=["us-east-1"],
+        services=[service],
+        collected_at=datetime(2026, 5, 28, tzinfo=UTC),
+    )
+    assert validate_raw_events(rows) == []
+    [gap] = collection_gaps(rows)
+    assert gap["reason"] == reason
+    assert gap["permission"] == permission
+    assert code in gap["message"]
+
+
+def test_service_not_enabled_gap_says_what_to_turn_on() -> None:
+    from security_lakehouse.connector_errors import collection_gaps
+    from security_lakehouse.connectors_aws import collect_aws_inventory_evidence
+
+    class InventoryClient:
+        def inventory(self, service: str, *, region_name: str) -> list[dict]:
+            raise _FakeClientError("InvalidAccessException")
+
+    rows = collect_aws_inventory_evidence(
+        InventoryClient(), account_id=ACCOUNT, regions=["us-east-1"], services=["securityhub"]
+    )
+    gap = rows[0]["attributes"]
+    assert gap["message"] == (
+        "AWS securityhub inventory in us-east-1 was not collected "
+        "(InvalidAccessException; Security Hub is not enabled in this account and region)"
+    )
+    # Still a coverage gap, so the sync run records metadata.partial.
+    assert rows[0]["event_type"] == "aws.collection_gap"
+    assert collection_gaps(rows)
+
+
 def test_global_inventory_gap_clears_when_a_later_region_succeeds() -> None:
     from security_lakehouse.connectors_aws import collect_aws_inventory_evidence
 
