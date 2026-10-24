@@ -129,6 +129,28 @@ jobs:
       - name: Validate schemas and JSON artifacts
         run: uv run python tools/validate_ci_artifacts.py
 
+  tests-accompany-changes:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Product code changes include a test change
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          NO_TEST_NEEDED: ${{ contains(github.event.pull_request.labels.*.name, 'no-test-needed') }}
+        run: |
+          skip=()
+          if [ "$NO_TEST_NEEDED" = "true" ]; then skip=(--skip); fi
+          python tools/check_tests_accompany_changes.py "$BASE_SHA" "$HEAD_SHA" "${skip[@]}"
+
   pre-commit:
     runs-on: ubuntu-latest
     timeout-minutes: 20

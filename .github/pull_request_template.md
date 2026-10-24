@@ -17,7 +17,8 @@
 
 ## Checklist
 
-- [ ] New behavior or a bug fix has a test that fails without the change.
+- [ ] Test-first: a test failed before this change and passes after (name it in the summary). See [AGENTS.md](../AGENTS.md#test-driven-changes).
+- [ ] No new outbound destinations, telemetry, obfuscated code, or weakened security checks.
 - [ ] Docs, API contract, and console agree with the change.
 - [ ] No framework, connector, or control is described as covered or live-verified beyond what the catalog and tests support.
 - [ ] No secrets, tokens, or real customer evidence in code, fixtures, logs, or screenshots.
