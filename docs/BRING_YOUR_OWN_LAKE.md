@@ -61,15 +61,17 @@ grc-lake lake map --dry-run --lake build/lakehouse --connector-id snowflake-evid
 ```
 
 Configure a reader with a mapping (API and console configure calls take the same
-`options` object):
+`options` object). Enabling requires a passing access test, so probe first:
 
 ```bash
-grc-lake connectors configure --lake build/lakehouse \
-  --connector-id snowflake-evidence-lake --state enabled \
-  --credentials-json '{"account":"acme-prod","user":"GRC_LAKE_READER_SVC","private_key_ref":"SNOWFLAKE_PRIVATE_KEY_FILE"}' \
-  --options-json '{"warehouse":"GRC_LAKE_READ_WH","database":"SECURITY","schema":"OCSF",
-                   "mappings":[{"preset":"ocsf/api_activity","source":{"table":"CLOUDTRAIL_OCSF"}},
-                               {"preset":"ocsf/authentication","source":{"table":"CLOUDTRAIL_OCSF"}}]}'
+CREDS='{"account":"acme-prod","user":"GRC_LAKE_READER_SVC","private_key_ref":"SNOWFLAKE_PRIVATE_KEY_FILE"}'
+OPTS='{"warehouse":"GRC_LAKE_READ_WH","database":"SECURITY","schema":"OCSF",
+       "mappings":[{"preset":"ocsf/api_activity","source":{"table":"CLOUDTRAIL_OCSF"}},
+                   {"preset":"ocsf/authentication","source":{"table":"CLOUDTRAIL_OCSF"}}]}'
+grc-lake connectors probe --lake build/lakehouse --connector-id snowflake-evidence-lake \
+  --credentials-json "$CREDS" --options-json "$OPTS"
+grc-lake connectors configure --lake build/lakehouse --connector-id snowflake-evidence-lake \
+  --state enabled --credentials-json "$CREDS" --options-json "$OPTS"
 grc-lake connectors sync --lake build/lakehouse --connector-id snowflake-evidence-lake
 ```
 
