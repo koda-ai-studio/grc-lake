@@ -5,9 +5,15 @@ Python package, Helm chart, and bundled web console.
 
 ## Unreleased
 
+## 0.3.11 - 2026-10-23
+
+- Add `grc-lake demo`: load the synthetic golden company into a temporary lake, serve the console on loopback without authentication, and open the browser. Falls back to local mode without the `server` extra; refuses a busy port and deletes the lake on exit.
+- Lock dev-only zod 4.6.7 (GHSA-mrhx-c7xc-m3w5) for the console lint toolchain.
+- Lock filelock 4.2.4 (CVE-2026-112907, CVE-2026-112913, CVE-2026-112940) via snowflake-connector-python 5.1.0, which drops its `filelock<4` cap; protobuf resolves to 6.33.6 under the connector's `<7` bound.
+- Serve local mode from the bare package. The scheduler no longer imports SQLAlchemy-backed operational retention at import time; the base-only wheel gate now starts local mode and requests the console and core API.
 - Bring selected graph node details into view on phones and tablets where the inspector sits below the canvas. Preserve the adjacent desktop inspector.
 - Restore local fixture loading, pipeline replay and snapshots without optional server dependencies. Detect configured application databases before importing SQLAlchemy; retain schema checks and remediation reconciliation for server-backed lakes. Add a base-only installed-wheel gate on each supported CI Python version.
-- Update installation examples and publication records for verified 0.3.10 artifacts, including the published bare-install workaround. Keep historical screenshot and scan provenance scoped to their original versions.
+- Update installation examples and publication records for 0.3.11. Keep historical screenshot and scan provenance scoped to their original versions.
 
 ## 0.3.10 - 2026-10-22
 

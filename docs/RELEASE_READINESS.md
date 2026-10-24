@@ -29,6 +29,11 @@ retain their exact source revisions and synthetic workload limits. They do not
 establish production capacity or qualify a deployment memory budget; 100k records
 remain outside the proposed interactive workload.
 
+**0.3.11 is prepared on `main`, not yet published.** It restores the bare
+installation (fixture loading, pipeline replay, snapshots and local-mode serving
+without SQLAlchemy) and adds `grc-lake demo`. No database migrations between
+v0.3.10 and v0.3.11. Publication records below are added after verification.
+
 ## Known 0.3.10 package limitation
 
 The published bare installation (`pip install grc-lake==0.3.10`) imports SQLAlchemy
@@ -36,8 +41,8 @@ when running the local evidence pipeline, even without a configured application
 database. Fixture loading and pipeline evaluation therefore fail with
 `No module named 'sqlalchemy'`. Install `grc-lake[server]==0.3.10` as a workaround;
 the documented server and container paths pass the qualification checks below.
-The source fix and base-only wheel regression gate are listed under
-[Unreleased](../CHANGELOG.md#unreleased); they do not alter the published 0.3.10 bytes.
+Fixed in 0.3.11, including local-mode serving and a base-only installed-wheel
+gate; the published 0.3.10 bytes are unchanged.
 
 Existing `trustops-security-data-lake` releases remain available under their
 original PyPI name. Use a fresh Python environment when moving between distributions

@@ -22,32 +22,31 @@ and preserve the evidence and review decisions behind each result.
 
 ## Quick start
 
-Version **0.3.10** is published on PyPI, GitHub and GHCR; see the
-[verified release record](docs/RELEASE_READINESS.md#verified-0310-publication).
-The tour and catalog counts describe current source; later fixes are listed under
-[Unreleased](CHANGELOG.md#unreleased).
-
-Install published v0.3.10 with Python 3.11+ on macOS or Linux:
+See the console on a synthetic company with one command (Python 3.11+ and
+[uv](https://docs.astral.sh/uv/)):
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install "grc-lake[server]==0.3.10"
-grc-lake fixtures load --company golden --out ./lake --rebase-times
-grc-lake serve --server --allow-insecure-no-auth --lake ./lake --host 127.0.0.1 --port 8787
+uvx --from "grc-lake[server]" grc-lake demo
 ```
 
-Open [localhost:8787/console/dashboard/](http://127.0.0.1:8787/console/dashboard/).
-This loopback demo uses synthetic data and disables authentication.
-Keep the `[server]` extra for 0.3.10: the published bare package has a
-[local-pipeline dependency issue](docs/RELEASE_READINESS.md#known-0310-package-limitation).
+Or with pip: `pip install "grc-lake[server]"`, then `grc-lake demo`.
+The demo loads synthetic evidence into a temporary lake, serves
+[localhost:8787](http://127.0.0.1:8787/console/dashboard/) on loopback without
+authentication, and opens your browser. Ctrl+C stops it and deletes the lake.
+
 **First task:** find a failing control, inspect its evidence and mapping, then
-export the frozen result. Follow the [sample-data tutorial](docs/TUTORIAL_5_MIN.md);
-continue with the [synthetic workpaper example](docs/AUDITOR_WALKTHROUGH.md)
-to inspect a scoped test plan, population gaps, and a verified export. The source
-walkthrough also shows how to verify a workpaper handoff against a separately
-retained content digest, including detection of a self-consistent replacement.
-Installation time depends on your machine and connection.
+export the frozen result. Follow the [sample-data tutorial](docs/TUTORIAL_5_MIN.md),
+then the [synthetic workpaper example](docs/AUDITOR_WALKTHROUGH.md) for a scoped
+test plan, population gaps, and a verified export.
+
+To keep a lake between runs, load and serve it explicitly:
+
+```bash
+grc-lake fixtures load --company golden --out ./lake --rebase-times
+grc-lake serve --server --allow-insecure-no-auth --lake ./lake
+```
+
+Release notes: [changelog](CHANGELOG.md) · [verified release records](docs/RELEASE_READINESS.md).
 
 <details>
 <summary>Docker, source development, or MCP</summary>
@@ -55,7 +54,7 @@ Installation time depends on your machine and connection.
 The public Docker image needs no registry login. Use the published templates:
 
 ```bash
-git clone --branch v0.3.10 --depth 1 https://github.com/koda-ai-studio/grc-lake.git
+git clone --branch v0.3.11 --depth 1 https://github.com/koda-ai-studio/grc-lake.git
 cd grc-lake
 docker compose up
 ```
@@ -72,7 +71,7 @@ make demo-local
 For MCP over stdio:
 
 ```bash
-pip install "grc-lake[server,mcp]==0.3.10"
+pip install "grc-lake[server,mcp]"
 GRC_LAKE_LAKE=./lake grc-lake-mcp
 ```
 

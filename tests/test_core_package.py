@@ -27,4 +27,5 @@ def test_core_pipeline_without_site_packages(tmp_path):
         "replay": "ok",
         "integrity": "ok",
         "snapshots": "ok",
+        "console": "ok",
     }

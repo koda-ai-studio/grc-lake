@@ -441,6 +441,13 @@ def _parser() -> argparse.ArgumentParser:
     )
     serve.set_defaults(func=_serve)
 
+    demo = sub.add_parser(
+        "demo", help="load the synthetic golden company into a temporary lake and open the console on loopback"
+    )
+    demo.add_argument("--port", type=int, default=8787, help="loopback port")
+    demo.add_argument("--no-browser", action="store_true", help="print the console URL without opening a browser")
+    demo.set_defaults(func=_demo)
+
     aibom = sub.add_parser("aibom", help="local CycloneDX/SPDX AI bill of materials commands")
     aibom_sub = aibom.add_subparsers(dest="aibom_command", required=True)
     aibom_import = aibom_sub.add_parser("import", help="import a JSON AIBOM into the local lake")
@@ -2119,41 +2126,113 @@ def _fixtures_list(_args: argparse.Namespace) -> int:
 
 
 def _fixtures_load(args: argparse.Namespace) -> int:
+    summary = _load_fixture(
+        args.company,
+        args.out,
+        tenant_id=getattr(args, "tenant_id", "default"),
+        rebase_times=getattr(args, "rebase_times", False),
+        demo_records=not getattr(args, "no_demo_records", False),
+    )
+    print(json.dumps(summary, indent=2, sort_keys=True))
+    return 0
+
+
+def _load_fixture(
+    company: str, out: str | Path, *, tenant_id: str, rebase_times: bool, demo_records: bool
+) -> dict[str, Any]:
     from security_lakehouse.fixtures import find_fixture
 
-    fixture = find_fixture(args.company)
+    fixture = find_fixture(company)
     if fixture is None:
-        raise ValueError(f"unknown fixture {args.company!r}; run `grc-lake fixtures list` to see the options")
+        raise ValueError(f"unknown fixture {company!r}; run `grc-lake fixtures list` to see the options")
     raw_path = fixture.raw_path
-    if getattr(args, "rebase_times", False):
+    if rebase_times:
         from security_lakehouse.fixtures import rebase_fixture_times
 
         rows = [strict_json.loads(line) for line in raw_path.read_text(encoding="utf-8").splitlines() if line.strip()]
-        raw_path = Path(args.out) / "_fixture_rebased" / raw_path.name
+        raw_path = Path(out) / "_fixture_rebased" / raw_path.name
         raw_path.parent.mkdir(parents=True, exist_ok=True)
         raw_path.write_text(
             "\n".join(json.dumps(row, separators=(",", ":")) for row in rebase_fixture_times(rows)) + "\n",
             encoding="utf-8",
         )
-    result = run_pipeline(raw_path, args.out, tenant_id=getattr(args, "tenant_id", "default"))
-    demo_records = None
-    if fixture.company == "golden" and not getattr(args, "no_demo_records", False):
+    result = run_pipeline(raw_path, out, tenant_id=tenant_id)
+    seeded = None
+    if fixture.company == "golden" and demo_records:
         from security_lakehouse.demo_seed import seed_golden_demo
 
-        demo_records = seed_golden_demo(args.out)
-    print(
-        json.dumps(
-            {
-                "company": fixture.company,
-                "loaded_from": str(fixture.raw_path),
-                **result.__dict__,
-                **({"demo_records": demo_records} if demo_records is not None else {}),
-            },
-            indent=2,
-            sort_keys=True,
-        )
-    )
+        seeded = seed_golden_demo(out)
+    return {
+        "company": fixture.company,
+        "loaded_from": str(fixture.raw_path),
+        **result.__dict__,
+        **({"demo_records": seeded} if seeded is not None else {}),
+    }
+
+
+def _demo(args: argparse.Namespace) -> int:
+    import tempfile
+
+    host = "127.0.0.1"
+    _require_free_port(host, args.port)
+    with tempfile.TemporaryDirectory(prefix="grc-lake-demo-") as lake:
+        print("loading the synthetic golden company...", flush=True)
+        _load_fixture("golden", lake, tenant_id="default", rebase_times=True, demo_records=True)
+        url = f"http://{host}:{args.port}/console/dashboard/"
+        try:
+            import uvicorn
+
+            from security_lakehouse import server_app
+
+            full_server = True
+        except ModuleNotFoundError:
+            full_server = False
+        if not args.no_browser:
+            _open_when_listening(host, args.port, url)
+        print(f"GRC Lake demo (synthetic data, no authentication, loopback only): {url}")
+        print("press Ctrl+C to stop; the temporary lake is deleted on exit", flush=True)
+        with contextlib.suppress(KeyboardInterrupt):
+            if not full_server:
+                from security_lakehouse.server import serve as serve_local
+
+                print(
+                    "server extra not installed; using local mode (pip install 'grc-lake[server]' for the full API)",
+                    flush=True,
+                )
+                serve_local(lake, host=host, port=args.port)
+            else:
+                app = server_app.create_app(lake, require_auth=False)
+                uvicorn.run(app, host=host, port=args.port, log_level="warning")
     return 0
+
+
+def _require_free_port(host: str, port: int) -> None:
+    import socket
+
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as probe:
+        try:
+            probe.bind((host, port))
+        except OSError as exc:
+            raise SystemExit(f"port {port} is already in use on {host}; pass --port to choose another") from exc
+
+
+def _open_when_listening(host: str, port: int, url: str, *, timeout: float = 30.0) -> None:
+    import socket
+    import threading
+    import time
+    import webbrowser
+
+    def wait_then_open() -> None:
+        deadline = time.monotonic() + timeout
+        while time.monotonic() < deadline:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as probe:
+                probe.settimeout(0.5)
+                if probe.connect_ex((host, port)) == 0:
+                    webbrowser.open(url)
+                    return
+            time.sleep(0.2)
+
+    threading.Thread(target=wait_then_open, daemon=True).start()
 
 
 def _fixtures_synthesize_scale(args: argparse.Namespace) -> int:
