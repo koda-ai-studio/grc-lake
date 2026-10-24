@@ -21,7 +21,7 @@ Every guide in `docs/`, grouped by task. New here? Start with the
 
 [Current state and coverage](CURRENT_STATE.md) · [Contributor roadmap](../ROADMAP.md) · [Contributing](../CONTRIBUTING.md)
 
-[Connector qualification matrix](CONNECTOR_QUALIFICATION.md) · [GitHub collection contracts](GITHUB_QUALIFICATION.md)
+[Connector qualification matrix](CONNECTOR_QUALIFICATION.md) · [GitHub collection contracts](GITHUB_QUALIFICATION.md) · [Live receipts, 2026-10-24](qualification/live/2026-10-24.md)
 
 ## Operate
 

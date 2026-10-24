@@ -2,6 +2,7 @@
 
 import copy
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -21,13 +22,38 @@ def test_generated_matrix_is_current_and_does_not_promote_historical_checks():
     catalog, records = inputs()
     rows = qualification.build_rows(catalog, records)
     assert len(rows) == len(catalog)
-    assert {row["connector_id"] for row in rows if row["live_record"]} == {
-        "aws-posture",
-        "azure-posture",
-        "gcp-posture",
-    }
-    assert all(row["owner"] is None for row in rows)
-    assert "not qualification of the current release" in qualification.render()
+    live = {"aws-posture", "azure-posture", "gcp-posture", "github-security"}
+    assert {row["connector_id"] for row in rows if row["live_record"]} == live
+    assert {row["connector_id"]: row["owner"] for row in rows if row["owner"]} == dict.fromkeys(live, "maintainer")
+    assert all(
+        row["live_record"]["reference"].startswith("docs/qualification/live/") for row in rows if row["live_record"]
+    )
+    rendered = qualification.render()
+    assert "not qualification of a published release artifact" in rendered
+    assert "provider-wide" in rendered
+
+
+PROVIDER_IDENTIFIERS = {
+    "AWS account id": re.compile(r"(?<![\w.])\d{12}(?![\w.])"),
+    "ARN": re.compile(r"arn:aws[\w-]*:"),
+    "GUID": re.compile(r"\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b", re.IGNORECASE),
+    "email": re.compile(r"[\w.+-]+@[\w-]+\.[\w.-]+"),
+    "GCP project path": re.compile(r"projects/[a-z][\w-]{4,}"),
+    "token": re.compile(r"\b(?:gh[opsu]_|github_pat_|AKIA|ASIA)[A-Za-z0-9_]{8,}"),
+}
+
+
+def test_live_receipts_exist_and_carry_no_provider_identifiers():
+    records = [row for row in inputs()[1] if row["live_record"]]
+    for record in records:
+        path, _, anchor = record["live_record"]["reference"].partition("#")
+        text = (ROOT / path).read_text()
+        assert anchor and f'<a id="{anchor}"></a>' in text, record["connector_id"]
+        assert record["live_record"]["source_basis"] in text
+    for receipt in sorted((ROOT / "docs/qualification/live").glob("*.md")):
+        text = receipt.read_text()
+        for label, pattern in PROVIDER_IDENTIFIERS.items():
+            assert not pattern.search(text), f"{receipt.name} contains a {label}"
 
 
 @pytest.mark.parametrize("mutation", ["new", "stale", "duplicate"])

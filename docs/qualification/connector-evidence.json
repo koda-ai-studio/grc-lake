@@ -34,8 +34,13 @@
         "tests/test_github_collection_contract.py",
         "tests/test_connector_runner.py"
       ],
-      "live_record": null,
-      "owner": null
+      "live_record": {
+        "date": "2026-10-24",
+        "source_basis": "f4532d21",
+        "scope": "One public repository with a user OAuth token: 6 governance signals; alert counts reconciled with the GitHub API after fixing Dependabot cursor pagination. Probe is config-only; not a GitHub App installation, private repositories or multi-page lists.",
+        "reference": "docs/qualification/live/2026-10-24.md#github-security"
+      },
+      "owner": "maintainer"
     },
     {
       "connector_id": "gitlab-security",
@@ -69,12 +74,12 @@
         "tests/test_aws_role_policies.py"
       ],
       "live_record": {
-        "date": "2026-10-11",
-        "source_basis": "ccd9d9c3",
-        "scope": "IAM/posture, 12 raw records; one bounded read-only collection, not an account-wide completeness claim.",
-        "reference": "docs/CURRENT_STATE.md#earlier-bounded-provider-qualification"
+        "date": "2026-10-24",
+        "source_basis": "f4532d21",
+        "scope": "One test account, read-only: IAM posture 12 raw records in assume-role and local-profile modes; with role policies and seven inventory services in one region, 29 records including 2 coverage gaps. Counts reconciled with the AWS CLI; not other regions, accounts or organization-wide posture.",
+        "reference": "docs/qualification/live/2026-10-24.md#aws-posture"
       },
-      "owner": null
+      "owner": "maintainer"
     },
     {
       "connector_id": "identity-provider",
@@ -128,23 +133,23 @@
         "tests/test_gcp_non_human_identities.py"
       ],
       "live_record": {
-        "date": "2026-10-11",
-        "source_basis": "ccd9d9c3",
-        "scope": "Project IAM/assets, 181 raw records; no organization-policy rows, inherited/effective policy coverage unestablished.",
-        "reference": "docs/CURRENT_STATE.md#earlier-bounded-provider-qualification"
+        "date": "2026-10-24",
+        "source_basis": "f4532d21",
+        "scope": "One project via user ADC: 183 raw records (187 with service accounts); counts reconciled with gcloud. No project-level organization policies exist; inherited/effective policy coverage unestablished.",
+        "reference": "docs/qualification/live/2026-10-24.md#gcp-posture"
       },
-      "owner": null
+      "owner": "maintainer"
     },
     {
       "connector_id": "azure-posture",
       "fixture_tests": ["tests/test_azure_connector.py"],
       "live_record": {
-        "date": "2026-10-11",
-        "source_basis": "ccd9d9c3",
-        "scope": "Subscription posture, 26 raw records; bounded scope, not tenant-wide coverage.",
-        "reference": "docs/CURRENT_STATE.md#earlier-bounded-provider-qualification"
+        "date": "2026-10-24",
+        "source_basis": "f4532d21",
+        "scope": "One subscription via a local user session: 26 raw records (role assignments, resources, policy assignments including one inherited); counts reconciled with the Azure CLI. Not tenant-wide RBAC or service-principal authentication.",
+        "reference": "docs/qualification/live/2026-10-24.md#azure-posture"
       },
-      "owner": null
+      "owner": "maintainer"
     },
     {
       "connector_id": "jira-ticketing",

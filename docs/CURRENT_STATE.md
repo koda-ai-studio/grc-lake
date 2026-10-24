@@ -29,10 +29,20 @@ the [SOC 2 and ISO review batches](reviews/SOC2_ISO_REVIEW.md),
 and [measured capacity #910](https://github.com/koda-ai-studio/grc-lake/issues/910).
 
 The generated [connector qualification matrix](CONNECTOR_QUALIFICATION.md)
-links offline test modules, historical bounded live records, declared permissions
+links offline test modules, bounded live records, declared permissions
 and qualification owners for every built-in contract. Its
 [GitHub slice](GITHUB_QUALIFICATION.md) documents tested collection failure modes.
-Neither linked tests nor a prior source audit qualify the current release.
+
+The [2026-10-24 live receipts](qualification/live/2026-10-24.md) cover
+`aws-posture`, `azure-posture`, `gcp-posture` and `github-security` at source
+`f4532d21`. Each ran read-only against one maintainer test account, subscription,
+project or public repository: 12 AWS IAM records (29 with role policies and
+inventory), 26 Azure, 183 GCP (187 with service accounts) and 6 GitHub
+governance signals. Counts were reconciled with each provider's CLI, and
+recollection and generation integrity checks passed. The GitHub run found and
+fixed a Dependabot pagination failure. These receipts do not qualify a published
+release artifact, other tenants or provider-wide coverage. The other connectors
+have no live record.
 
 ## Coverage sources
 
@@ -105,7 +115,9 @@ these tests; inspect the exact candidate's CI reports before rollout.
 
 The 2026-10-11 audit used source based on `ccd9d9c3` (after #900), plus the
 console fixes described above. This is a dated check, not an evergreen support
-promise or qualification of a future release artifact.
+promise or qualification of a future release artifact. The
+[2026-10-24 receipts](qualification/live/2026-10-24.md) replace its live
+collection entries in the qualification matrix.
 
 - **Offline contracts:** 792 tests passed across 52 connector, sink and export
   modules, covering adapter behavior, credential boundaries, replay and output
