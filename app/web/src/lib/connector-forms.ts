@@ -347,6 +347,15 @@ export const CONNECTOR_CREDENTIAL_FIELDS: Record<string, ConnectorFieldDef[]> =
         required: true,
       },
     ],
+    "training-completion": [
+      {
+        name: "path",
+        label: "Export file or directory",
+        placeholder: "/srv/grc-lake/exports/lms",
+        required: true,
+        hint: "Absolute path under the server's allowed local root (on hosted GRC Lake, your tenant's directory). CSV or JSON with the documented column contract.",
+      },
+    ],
     "databricks-evidence-lake": [
       {
         name: "host",

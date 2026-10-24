@@ -143,6 +143,23 @@ const PRESETS: Record<string, IntegrationPreset> = {
       "Any other report column is ignored and never stored.",
     ],
   },
+  "training-completion": {
+    connectorId: "training-completion",
+    title: "Training completion export",
+    authLabel: "Local export path",
+    badges: ["CSV or JSON", "No provider credentials"],
+    summary:
+      "Schedule your LMS or training platform to export assignments and completions with the GRC Lake column contract, then point this connector at the file or directory. Results are joined to HR personnel when an HR connector is enabled.",
+    providerSetup:
+      "A training admin schedules a recurring export (CSV or JSON) into the directory GRC Lake may read.",
+    trustOpsInput:
+      "Absolute path of the export file or directory under the allowed local root.",
+    advancedTitle: "Export column contract",
+    advancedDetails: [
+      "person_email or employee_id, course_id, course_name, assigned_at, due_at, completed_at, status, score, required.",
+      "Any other column is ignored and never stored. Malformed or empty exports fail the sync.",
+    ],
+  },
   "jamf-devices": {
     connectorId: "jamf-devices",
     title: "Jamf Pro devices",

@@ -39,7 +39,6 @@ from typing import Any
 from security_lakehouse import netguard
 from security_lakehouse.connector_errors import ConnectorConfigError
 from security_lakehouse.delegation import require_aws_delegation
-from security_lakehouse.execution_mode import in_server_mode, server_tenant_id
 from security_lakehouse.lake_mapping import (
     DEFAULT_MAX_ROWS,
     MappingError,
@@ -51,13 +50,14 @@ from security_lakehouse.lake_mapping import (
     resolve_mapping_ref,
     resolve_mappings,
 )
+from security_lakehouse.local_paths import LOCAL_ROOT_ENV as LOCAL_ROOT_ENV  # re-exported for callers
+from security_lakehouse.local_paths import confine_local_path
 from security_lakehouse.runtime_environment import runtime_env
 from security_lakehouse.secret_refs import SecretRefPolicyError, secret_ref_denial
 
 CONNECTOR_ID = "iceberg-parquet-lake"
 SOURCE = "iceberg"
 CATALOG_TYPES = ("glue", "rest", "parquet")
-LOCAL_ROOT_ENV = "GRC_LAKE_LAKE_LOCAL_ROOT"
 DEFAULT_REST_TOKEN_ENV = "GRC_LAKE_ICEBERG_TOKEN"
 DEFAULT_INITIAL_WINDOW_DAYS = 30
 
@@ -469,24 +469,7 @@ def _parse_location(uri: str, env: Any) -> tuple[str, str]:
         return "s3", f"{bucket}/{prefix}".rstrip("/")
     if "://" in text or not text.startswith("/"):
         raise ValueError("Parquet locations must be s3://bucket/prefix or an absolute local path")
-    root = str(env.get(LOCAL_ROOT_ENV) or "").strip()
-    if not root:
-        raise ValueError(f"local Parquet paths are disabled; set {LOCAL_ROOT_ENV} to the directory they may read")
-    resolved = Path(text).resolve()
-    allowed = Path(root).resolve()
-    if in_server_mode(env if isinstance(env, dict) else None):
-        # The root is shared by the whole server; each hosted tenant reads only
-        # its own <root>/<tenant_id> subtree.
-        tenant_id = server_tenant_id()
-        if not tenant_id or "/" in tenant_id or tenant_id in {".", ".."}:
-            raise ValueError("local Parquet paths in hosted mode need a tenant context")
-        allowed = (allowed / tenant_id).resolve()
-        if resolved != allowed and allowed not in resolved.parents:
-            raise ValueError(f"local Parquet path is outside this tenant's directory under {LOCAL_ROOT_ENV}")
-        return "local", str(resolved)
-    if resolved != allowed and allowed not in resolved.parents:
-        raise ValueError(f"local Parquet path is outside {LOCAL_ROOT_ENV}")
-    return "local", str(resolved)
+    return "local", str(confine_local_path(text, env, label="Parquet"))
 
 
 def _parquet_paths(credentials: dict[str, Any], options: dict[str, Any]) -> dict[str, str]:

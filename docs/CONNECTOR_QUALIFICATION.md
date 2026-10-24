@@ -53,6 +53,7 @@ and [Databricks #734](https://github.com/koda-ai-studio/grc-lake/issues/734).
 | `siem-alerts` | Implemented | [siem_connector](../tests/test_siem_connector.py); [collection_completeness](../tests/test_collection_completeness.py) | No scoped live record linked | Unassigned |
 | `snowflake-evidence-lake` | Implemented | [snowflake_connector](../tests/test_snowflake_connector.py) | No scoped live record linked | Unassigned |
 | `ticketing` | Configuration boundary | Catalog validation only | Not applicable: no standalone collector | Unassigned |
+| `training-completion` | Preview | [training_completion_connector](../tests/test_training_completion_connector.py) | No scoped live record linked | Unassigned |
 | `workday-personnel` | Implemented | [rippling_workday_connectors](../tests/test_rippling_workday_connectors.py); [collection_completeness](../tests/test_collection_completeness.py) | No scoped live record linked | Unassigned |
 
 ## Catalog permission boundaries
@@ -90,4 +91,5 @@ Qualify the actual principal, account, resource scope and provider version separ
 | `siem-alerts` | `read_only_role` | read alert index; read detection metadata |
 | `snowflake-evidence-lake` | `read_only_role` | USAGE on warehouse; USAGE on database; USAGE on schema; SELECT on evidence views |
 | `ticketing` | `scoped_token` | read project issues; read issue status; read issue labels |
+| `training-completion` | `read_only_role` | read access to the training export file or directory only |
 | `workday-personnel` | `scoped_token` | Get access to a TrustOps employment custom report (RaaS) via an integration system user |

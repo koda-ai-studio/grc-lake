@@ -49,6 +49,7 @@ REAL_ADAPTERS = {
     "crowdstrike-falcon",
     "kubernetes-cluster",
     "lambda-cloud",
+    "training-completion",
     "iceberg-parquet-lake",
     "bigquery-evidence-lake",
 }
@@ -58,6 +59,7 @@ PREVIEW_CONNECTORS = {
     "crowdstrike-falcon",
     "kubernetes-cluster",
     "lambda-cloud",
+    "training-completion",
     "iceberg-parquet-lake",
     "bigquery-evidence-lake",
 }

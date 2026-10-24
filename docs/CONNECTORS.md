@@ -149,6 +149,7 @@ kubeconfig). See [Hosted connector credentials](SERVER_AUTH.md#hosted-connector-
 | `jamf-devices`              | Jamf Pro device posture | executable (preview)                    |
 | `crowdstrike-falcon`        | CrowdStrike Falcon EDR  | executable (preview)                    |
 | `kubernetes-cluster`        | Kubernetes config       | executable (preview)                    |
+| `training-completion`       | LMS training export     | executable file read (preview)          |
 | `snowflake-evidence-lake`   | governed evidence lake  | executable existing-lake read           |
 | `clickhouse-telemetry-lake` | telemetry analytics     | executable existing-lake read           |
 | `iceberg-parquet-lake`      | Iceberg / Parquet lake  | executable existing-lake read (preview) |
@@ -1158,6 +1159,88 @@ plus a Lambda Cloud API key for an account with at least one instance and rulese
 Record the run in `docs/qualification/connector-evidence.json` before removing the
 preview label.
 
+## Training completion: LMS exports (preview)
+
+`training-completion` reads security awareness training assignments and
+completions from a CSV or JSON export. Most learning-management and
+security-awareness platforms (for example Workday Learning, Cornerstone, Docebo
+or a security-awareness vendor's reporting export) can schedule one. The reader
+makes no vendor API calls, so it has no provider paging or rate-limit contract.
+The operator owns the export's completeness. Each row keeps the export file's
+SHA-256 as provenance.
+
+Point `credentials.path` at an export file or a directory of `.csv`/`.json` files
+(read non-recursively, at most 50 files of 25 MB each and 200,000 records). The path
+must sit under `GRC_LAKE_LAKE_LOCAL_ROOT`, the same allowed root the Parquet reader
+uses. In hosted mode each tenant reads only `<root>/<tenant_id>`. Symlinks that leave
+the export directory are rejected. To use object storage, sync the export into that
+directory, for example with a scheduled `aws s3 sync`. The object-storage connector
+lists objects but does not read their contents.
+
+| Column         | Required                      | Content                                                                                           |
+| -------------- | ----------------------------- | ------------------------------------------------------------------------------------------------- |
+| `person_email` | one of email or `employee_id` | Work email, the join key to HR records                                                            |
+| `employee_id`  | one of email or `employee_id` | Matches the HR employee ID or employee number                                                     |
+| `course_id`    | yes                           | Course, assignment or campaign ID                                                                 |
+| `course_name`  | no                            | Display name                                                                                      |
+| `assigned_at`  | no                            | `YYYY-MM-DD` or ISO-8601 (naive times are read as UTC)                                            |
+| `due_at`       | no                            | Same format; a past due date on an incomplete assignment makes it overdue                         |
+| `completed_at` | when `status` is `completed`  | Same format; must be empty for any other status and not in the future                             |
+| `status`       | yes                           | `completed`, `in_progress`, `not_started` or `overdue` (also `complete`, `passed`, `past_due`, …) |
+| `score`        | no                            | 0–100                                                                                             |
+| `required`     | no                            | `true`/`false` (default `true`); optional courses never pass or fail anyone                       |
+
+```csv
+person_email,employee_id,course_id,course_name,assigned_at,due_at,completed_at,status,score,required
+ada@example.com,101,SAT-2026,Annual security awareness,2026-01-05,2026-02-05,2026-01-20,completed,92,true
+alan@example.com,103,SAT-2026,Annual security awareness,2026-01-05,2026-02-05,,overdue,,true
+```
+
+JSON exports use the same field names, as a list of objects or `{"records": [...]}`.
+If the export uses other headers, rename them with `options.column_map`, for example
+`{"person_email": "User Email", "completed_at": "Completion Date"}`. Other columns
+are ignored and never stored. When a person has several rows for one course, the
+row with the most recent activity wins.
+
+Validation is strict. An unreadable, non-UTF-8, oversized or empty export fails the
+sync, as does an unknown status or invalid date. The error names files, row numbers
+and columns, never values. The previous evidence and assessment stay in place.
+Attributes are marked `data_sensitivity: confidential`.
+
+**Evaluation.** After a training or HRIS sync, GRC Lake rebuilds one derived row per
+person under the derived id `hris-training-coverage`. It joins the export to
+`hris.personnel.employment` rows from any HR connector on work email, then
+employee ID or number. Only required courses count.
+
+| Person                                                        | Outcome                   | Status          |
+| ------------------------------------------------------------- | ------------------------- | --------------- |
+| Active, every due course completed within the window          | `completed_within_window` | pass            |
+| Any required course overdue                                   | `overdue`                 | open            |
+| Latest completion older than the window                       | `completion_expired`      | open            |
+| Active in HR, no training record, past the onboarding grace   | `no_training_record`      | open            |
+| In the export but not in HR                                   | `not_in_hr_population`    | `not_evaluated` |
+| Email and employee ID point at different HR records           | `identity_conflict`       | `not_evaluated` |
+| No HR evidence at all: a completion                           | `hr_population_missing`   | `not_evaluated` |
+| Terminated, not yet started, inside the grace, or not yet due | counted only              | no row          |
+
+Without HR evidence, overdue training is still open because the training system
+reports it. A completion cannot pass, since the population is unknown. The window
+(`options.completion_window_days`, default 365, 1–1095) and onboarding grace
+(`options.new_hire_grace_days`, default 30, 0–365) are set on the connector.
+`options.system` labels the source (default `training-export`).
+
+Person rows use the `user` asset type and bind `SG-TRAINING-001`. Their framework
+tags are CMMC-3.2.1, FEDRAMP-AT-2, FEDRAMP-AT-4, NIST-800-53-AT-2,
+NIST-800-53-AT-4 and NIST-CSF-PR.AT-01, all maintainer-reviewed members of that
+safeguard's crosswalk. Other requirements, such as ISO27001-A.6.3, follow the
+crosswalk only once their mapping is reviewed. SOC 2 CC1.4 and CC2.2 are not mapped
+to this safeguard. `SG-IDENTITY-001` also accepts `user`, so trained people appear
+there as unassessed assets.
+
+One summary row states the result, for example "4 of 5 active personnel completed
+required training within the last 365 days". It also carries every count above. Its
+`population_completeness` is `hr_population` only when HR evidence exists.
+
 ## Retired connectors
 
 The KnowBe4 preview connector (`knowbe4-training`) is removed in the next release
@@ -1171,10 +1254,11 @@ evidence still ages under the normal freshness rules. Remove any external jobs
 that call this connector, and revoke its Reporting API token in KnowBe4 if it is
 no longer used elsewhere. GRC Lake does not revoke provider credentials.
 
-For training-related controls, use managed local evidence to retain applicable
-training records and reviews. A submitted document does not automatically establish
-training completion or satisfy the control; assessment still requires appropriate
-scope, provenance and review. No replacement provider integration is included.
+For training evidence, use the vendor-neutral
+[`training-completion`](#training-completion-lms-exports-preview) export reader,
+which needs no provider API. Managed local evidence remains available for other
+training records and reviews; a submitted document does not by itself establish
+training completion or satisfy the control.
 
 ## Existing lakes: mappings, Iceberg/Parquet, BigQuery (preview)
 

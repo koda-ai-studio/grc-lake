@@ -1,0 +1,28 @@
+{
+  "records": [
+    {
+      "person_email": "ada@example.com",
+      "employee_id": "101",
+      "course_id": "SAT-2026",
+      "course_name": "Annual security awareness",
+      "assigned_at": "2026-01-05",
+      "due_at": "2026-02-05",
+      "completed_at": "2026-01-20T10:00:00+00:00",
+      "status": "completed",
+      "score": 92,
+      "required": true
+    },
+    {
+      "person_email": "alan@example.com",
+      "employee_id": "103",
+      "course_id": "SAT-2026",
+      "course_name": "Annual security awareness",
+      "assigned_at": "2026-01-05",
+      "due_at": "2026-02-05",
+      "completed_at": null,
+      "status": "overdue",
+      "score": null,
+      "required": true
+    }
+  ]
+}
