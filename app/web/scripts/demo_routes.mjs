@@ -1,0 +1,40 @@
+/**
+ * Console routes the live-demo recorder visits. `interact` names a step in
+ * record_demo_snapshot.mjs that opens drawers or tabs so their API calls are
+ * recorded too. test_demo_snapshot.mjs fails when a new page is missing here.
+ */
+export const DEMO_ROUTES = [
+  { route: "/dashboard/", interact: "tabs" },
+  { route: "/insights/" },
+  { route: "/connectors/" },
+  { route: "/evidence/" },
+  { route: "/evidence/?id={evidence}", interact: "dialog-tabs" },
+  { route: "/frameworks/", interact: "tabs" },
+  { route: "/frameworks/?framework={framework}", interact: "tabs" },
+  { route: "/controls/" },
+  { route: "/controls/?id={control}", interact: "dialog-tabs" },
+  { route: "/crosswalk/" },
+  { route: "/mapping-review/" },
+  { route: "/graph/", interact: "graph" },
+  { route: "/violations/", interact: "finding-drawer" },
+  { route: "/remediation/" },
+  { route: "/risks/" },
+  { route: "/access-reviews/" },
+  { route: "/policies/" },
+  { route: "/vendor-risk/" },
+  { route: "/ai-governance/" },
+  { route: "/audit-room/", interact: "tabs" },
+  { route: "/trust-center/" },
+  { route: "/audit-log/" },
+  { route: "/automation/" },
+  { route: "/agents/" },
+  { route: "/auth/" },
+  { route: "/onboarding/" },
+  { route: "/deploy/" },
+  { route: "/poc/" },
+  { route: "/pricing/" },
+  { route: "/demo/" },
+  { route: "/login/" },
+  { route: "/signup/" },
+  { route: "/invite/" },
+];

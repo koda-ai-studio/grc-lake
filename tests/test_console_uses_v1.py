@@ -42,7 +42,9 @@ def _absolute_offenders() -> list[str]:
         for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
             for match in ABSOLUTE_RE.finditer(line):
                 api_path = match.group(1)
-                if api_path == "/api" or api_path.startswith(ABSOLUTE_ALLOWED):
+                # The bare prefix names no route; the live demo's replay layer
+                # matches on it to answer every API request from its snapshot.
+                if api_path in ("/api", "/api/") or api_path.startswith(ABSOLUTE_ALLOWED):
                     continue
                 out.append(f"{path.relative_to(WEB_SRC)}:{lineno} {api_path}")
     return out

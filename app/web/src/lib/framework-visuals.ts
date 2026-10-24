@@ -3,6 +3,8 @@
  * Not official logos — see docs/THIRD_PARTY_ASSETS.md.
  */
 
+import { consolePath } from "@/lib/base-path";
+
 export type FrameworkVisual = {
   label: string;
   mark: string;
@@ -34,7 +36,7 @@ export type FrameworkIconKey =
 
 export const FRAMEWORK_VISUALS: Record<string, FrameworkVisual> = {
   soc2: {
-    badge: "/console/frameworks/badges/soc2.svg",
+    badge: consolePath("/frameworks/badges/soc2.svg"),
     label: "SOC 2® Trust Services Criteria",
     mark: "SOC",
     accent: "#2563eb",
@@ -44,7 +46,7 @@ export const FRAMEWORK_VISUALS: Record<string, FrameworkVisual> = {
     icon: "shield",
   },
   "nist-ai-rmf": {
-    badge: "/console/frameworks/badges/nist-ai-rmf.svg",
+    badge: consolePath("/frameworks/badges/nist-ai-rmf.svg"),
     label: "NIST AI Risk Management Framework 1.0",
     mark: "AI",
     accent: "#7c3aed",
@@ -52,11 +54,11 @@ export const FRAMEWORK_VISUALS: Record<string, FrameworkVisual> = {
     ring: "#ddd6fe",
     gradient: "linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)",
     icon: "brain",
-    artwork: "/console/frameworks/nist-ai-rmf.png",
+    artwork: consolePath("/frameworks/nist-ai-rmf.png"),
     attribution: "N. Hanacek/NIST",
   },
   "iso-27001-2022": {
-    badge: "/console/frameworks/badges/iso.svg",
+    badge: consolePath("/frameworks/badges/iso.svg"),
     label: "ISO/IEC 27001:2022",
     mark: "ISO",
     accent: "#0891b2",
@@ -66,7 +68,7 @@ export const FRAMEWORK_VISUALS: Record<string, FrameworkVisual> = {
     icon: "lock",
   },
   "iso-27001-isms-2022": {
-    badge: "/console/frameworks/badges/iso.svg",
+    badge: consolePath("/frameworks/badges/iso.svg"),
     label: "ISO/IEC 27001 management clauses",
     mark: "ISMS",
     accent: "#0891b2",
@@ -76,7 +78,7 @@ export const FRAMEWORK_VISUALS: Record<string, FrameworkVisual> = {
     icon: "lock",
   },
   "iso-42001-2023": {
-    badge: "/console/frameworks/badges/iso.svg",
+    badge: consolePath("/frameworks/badges/iso.svg"),
     label: "ISO/IEC 42001:2023",
     mark: "AIMS",
     accent: "#0f766e",
@@ -122,7 +124,7 @@ export const FRAMEWORK_VISUALS: Record<string, FrameworkVisual> = {
     icon: "layers",
   },
   cis_aws: {
-    badge: "/console/frameworks/badges/cis.svg",
+    badge: consolePath("/frameworks/badges/cis.svg"),
     label: "CIS AWS",
     mark: "CIS",
     accent: "#ea580c",
@@ -132,7 +134,7 @@ export const FRAMEWORK_VISUALS: Record<string, FrameworkVisual> = {
     icon: "cloud",
   },
   "cis-controls-v8.1": {
-    badge: "/console/frameworks/badges/cis.svg",
+    badge: consolePath("/frameworks/badges/cis.svg"),
     label: "CIS Controls v8.1",
     mark: "CIS",
     accent: "#ea580c",
@@ -187,7 +189,7 @@ export const FRAMEWORK_VISUALS: Record<string, FrameworkVisual> = {
     icon: "landmark",
   },
   "eu-ai-act-2024-1689": {
-    badge: "/console/frameworks/badges/eu-ai-act.svg",
+    badge: consolePath("/frameworks/badges/eu-ai-act.svg"),
     label: "EU AI Act",
     mark: "EU AI",
     accent: "#be123c",
@@ -197,7 +199,7 @@ export const FRAMEWORK_VISUALS: Record<string, FrameworkVisual> = {
     icon: "bot",
   },
   "nist-csf-2.0": {
-    badge: "/console/frameworks/badges/nist-csf.svg",
+    badge: consolePath("/frameworks/badges/nist-csf.svg"),
     label: "NIST Cybersecurity Framework (CSF) 2.0",
     mark: "CSF",
     accent: "#0f766e",
@@ -205,11 +207,11 @@ export const FRAMEWORK_VISUALS: Record<string, FrameworkVisual> = {
     ring: "#99f6e4",
     gradient: "linear-gradient(135deg, #14b8a6 0%, #0f766e 100%)",
     icon: "shield",
-    artwork: "/console/frameworks/nist-csf-2.0.png",
+    artwork: consolePath("/frameworks/nist-csf-2.0.png"),
     attribution: "NIST/Natasha Hanacek",
   },
   "cmmc-2-level2": {
-    badge: "/console/frameworks/badges/cmmc.svg",
+    badge: consolePath("/frameworks/badges/cmmc.svg"),
     label: "CMMC 2.0 Level 2",
     mark: "CMMC",
     accent: "#1d4ed8",
@@ -219,7 +221,7 @@ export const FRAMEWORK_VISUALS: Record<string, FrameworkVisual> = {
     icon: "shield",
   },
   "iso-27017-2015": {
-    badge: "/console/frameworks/badges/iso.svg",
+    badge: consolePath("/frameworks/badges/iso.svg"),
     label: "ISO/IEC 27017:2015",
     mark: "27017",
     accent: "#0369a1",
@@ -229,7 +231,7 @@ export const FRAMEWORK_VISUALS: Record<string, FrameworkVisual> = {
     icon: "cloud",
   },
   "iso-27701-2019": {
-    badge: "/console/frameworks/badges/iso.svg",
+    badge: consolePath("/frameworks/badges/iso.svg"),
     label: "ISO/IEC 27701:2019",
     mark: "27701",
     accent: "#6d28d9",
@@ -239,7 +241,7 @@ export const FRAMEWORK_VISUALS: Record<string, FrameworkVisual> = {
     icon: "lock",
   },
   "iso-27701-2025": {
-    badge: "/console/frameworks/badges/iso.svg",
+    badge: consolePath("/frameworks/badges/iso.svg"),
     label: "ISO/IEC 27701:2025",
     mark: "27701",
     accent: "#6d28d9",

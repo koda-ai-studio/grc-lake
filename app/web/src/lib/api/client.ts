@@ -1,3 +1,4 @@
+import { consolePath } from "@/lib/base-path";
 import { isAuditorMode } from "@/lib/state/auditor";
 import { readAllGraphPages, type GraphPage } from "./graph-pages";
 import type {
@@ -108,7 +109,7 @@ import type {
 } from "./types";
 
 const BASE = "/api";
-const LOGIN_PATH = "/console/login";
+const LOGIN_PATH = consolePath("/login");
 
 function redirectToLogin(): void {
   if (typeof window === "undefined") return;

@@ -25,9 +25,11 @@ export function TopBar({
   const statusLabel =
     live === null
       ? "Connecting to API"
-      : live
-        ? "API connected"
-        : "API unavailable";
+      : process.env.NEXT_PUBLIC_DEMO_SNAPSHOT === "1"
+        ? "Recorded snapshot"
+        : live
+          ? "API connected"
+          : "API unavailable";
 
   // cmd/ctrl + K opens the palette anywhere in the app.
   useEffect(() => {

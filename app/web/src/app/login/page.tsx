@@ -5,6 +5,7 @@ import { KeyRound, Loader2, LogIn, ShieldCheck, Terminal } from "lucide-react";
 import { AuthMark } from "@/components/auth/AuthMark";
 import { GrcLakeLogo } from "@/components/brand/GrcLakeLogo";
 import { BRAND } from "@/lib/brand";
+import { CONSOLE_BASE_PATH, consolePath } from "@/lib/base-path";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -101,7 +102,8 @@ export default function LoginPage() {
   const redirectAfterLogin = () => {
     const params = new URLSearchParams(window.location.search);
     const raw = params.get("return_to");
-    if (!raw || !raw.startsWith("/console")) return "/console/dashboard";
+    if (!raw || !raw.startsWith(CONSOLE_BASE_PATH))
+      return consolePath("/dashboard");
     return raw;
   };
 

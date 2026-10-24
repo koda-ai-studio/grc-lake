@@ -85,6 +85,36 @@ Open the [control families](images/grc-lake-demo-control-families.png) and
 and mapping views. The [README](../README.md#product-tour) highlights evidence
 investigation and the AI asset worklist.
 
+## Hosted live demo
+
+The [live demo](https://koda-ai-studio.github.io/grc-lake/) is this console as
+a static site on GitHub Pages. It replays API responses recorded from the
+golden fixture, so it needs no server and stays read-only: writes show a
+read-only notice, the live stream is off, and a view the recorder did not
+capture says it is not available in the demo. A banner shows when the
+snapshot was recorded. Relative times age from that date.
+
+The `pages` workflow rebuilds it on every push to `main` and weekly. To
+reproduce it locally:
+
+```bash
+uv sync --frozen --extra dev --extra server
+make web-install web-build
+(cd app/web && npx playwright install chromium)
+bash tools/record_demo_snapshot.sh            # writes app/web/demo-snapshot/
+npm --prefix app/web run build:demo           # writes app/web/demo-site/
+npm --prefix app/web run test:demo-site       # serves it at /grc-lake/ and clicks through
+```
+
+`build:demo` sets `NEXT_PUBLIC_DEMO_SNAPSHOT=1` and
+`CONSOLE_BASE_PATH=/grc-lake/console`. The regular `npm run build` contains
+none of the replay code, and its copy step refuses a demo build, so the
+Python package never ships one. The recorder visits every route listed in
+`app/web/scripts/demo_routes.mjs`, opens the main drawers, then replays each
+detail request for every record of the same kind and records two levels of
+graph drill-down. Add a route there when you add a console page; the
+`test:demo` check fails until you do.
+
 ## Headless
 
 Every page reads the same `/api/v1` resources that agents and CI use:

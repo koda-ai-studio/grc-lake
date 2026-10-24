@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import { useSnapshotMutation, useSnapshots } from "@/lib/api/hooks";
+import { notify } from "@/lib/toast";
 
 interface Props {
   open: boolean;
@@ -38,7 +39,7 @@ export function SnapshotModal({ open, onClose, onToast }: Props) {
       onToast(`Snapshot frozen: ${r.snapshot_path.split(/[\\/]/).pop()}`);
       onClose();
     } catch (err) {
-      onToast(`Snapshot failed: ${(err as Error).message}`);
+      notify.error(`Snapshot failed: ${(err as Error).message}`);
     }
   };
 

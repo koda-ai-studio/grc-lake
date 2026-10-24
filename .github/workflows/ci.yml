@@ -30,6 +30,8 @@ jobs:
         run: npm ci --no-audit --no-fund
       - name: Dependency security regressions
         run: npm run test:dependencies
+      - name: Live demo replay checks
+        run: npm run test:demo
       - name: ESLint
         run: npm run lint
       - name: Typecheck

@@ -1,6 +1,10 @@
 import * as React from "react";
-import { AlertTriangle, RefreshCw } from "lucide-react";
+import { AlertTriangle, EyeOff, RefreshCw } from "lucide-react";
 import { ApiError } from "@/lib/api/client";
+import {
+  DEMO_UNRECORDED_MESSAGE,
+  DEMO_UNRECORDED_STATUS,
+} from "@/lib/demo/snapshot";
 import { Skeleton } from "@/components/ui/skeleton";
 import { GrcLakeMark } from "@/components/brand/GrcLakeMark";
 
@@ -26,6 +30,19 @@ function ErrorState({
   error?: unknown;
 }) {
   const status = error instanceof ApiError ? error.status : undefined;
+  if (
+    process.env.NEXT_PUBLIC_DEMO_SNAPSHOT === "1" &&
+    status === DEMO_UNRECORDED_STATUS
+  )
+    return (
+      <div
+        role="status"
+        className="m-5 flex items-center gap-2 rounded-lg border border-line bg-surface px-4 py-3 text-sm text-muted"
+      >
+        <EyeOff aria-hidden="true" className="h-4 w-4 flex-none" />
+        {DEMO_UNRECORDED_MESSAGE}
+      </div>
+    );
   const permission = status === 403;
   const message = permission
     ? `You do not have permission to view ${label}. Ask a workspace administrator for access.`

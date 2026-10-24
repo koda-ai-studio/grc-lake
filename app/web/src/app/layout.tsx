@@ -4,6 +4,7 @@ import { Toaster } from "sonner";
 import { Providers } from "./providers";
 import { Shell } from "@/components/shell/Shell";
 import { BRAND } from "@/lib/brand";
+import { consolePath } from "@/lib/base-path";
 // Canvas styles load with the global sheet: imported per canvas, webpack split
 // them into a chunk that several routes preloaded without applying.
 import "@xyflow/react/dist/style.css";
@@ -24,7 +25,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/console/og/grc-lake-share.svg",
+        url: consolePath("/og/grc-lake-share.svg"),
         width: 1200,
         height: 630,
         alt: `${BRAND.name} — ${BRAND.category}`,
