@@ -21,7 +21,7 @@ and preserve the evidence and review decisions behind each result.
 through the console in your browser on synthetic sample data. Nothing to
 install; the demo is read-only.
 
-[Quick start](#quick-start) · [Product tour](#product-tour) · [Self-host](#self-host) ·
+[Quick start](#quick-start) · [Product tour](#product-tour) · [Already on OCSF?](#already-on-ocsf) · [Self-host](#self-host) ·
 [Engineering review](#engineering-review) · [Coverage](docs/CURRENT_STATE.md) · [Documentation](docs/README.md)
 
 ## Quick start
@@ -166,6 +166,52 @@ not a customer deployment or an audit opinion._
 
 [Try the five-minute console tour](docs/PRODUCT_WALKTHROUGH.md#five-minute-tour) ·
 [How evidence investigation works](docs/INVESTIGATION_GRAPH.md)
+
+## Already on OCSF?
+
+If your security telemetry is already normalized to
+[OCSF](https://schema.ocsf.io/1.1.0/), for example in Amazon Security Lake or
+OCSF tables on Databricks or Snowflake, point GRC Lake at those tables. You
+don't need a new pipeline. The reader runs read-only queries and keeps a mapped
+copy of the rows it assesses in storage you operate.
+
+Built-in presets bind specific OCSF events to Common Control Framework
+safeguards. Framework requirements then follow from each safeguard's reviewed
+crosswalk:
+
+```mermaid
+flowchart LR
+  A["OCSF Authentication 3002<br/>successful Logon, is_mfa"] --> S1["SG-IDENTITY-001<br/>Logical access and MFA"]
+  B["OCSF Account Change 3001<br/>Attach Policy"] --> S2["SG-IDENTITY-002<br/>Access review"]
+  S1 --> R1["SOC 2 CC6.1 · NIST 800-53 IA-2<br/>CIS AWS 1.10 · …"]
+  S2 --> R2["SOC 2 CC6.2 · ISO 27001 A.8.2 · …"]
+```
+
+The rules state only what an event shows. A successful logon with MFA passes for
+that user, and one without MFA is open. A privilege grant blocks an access-review
+pass until someone reviews it, but it is not reported as a failure. Failed
+sign-ins and API activity remain observations. Proposed crosswalk mappings are
+never attested.
+
+For example, to read one OCSF table on Databricks:
+
+```bash
+CREDS='{"host":"dbc-example.cloud.databricks.com","warehouse_id":"abc123","catalog":"security",
+        "schema":"ocsf","client_id":"<sp-client-id>","client_secret_ref":"DATABRICKS_CLIENT_SECRET"}'
+OPTS='{"mappings":[{"preset":"ocsf/authentication","source":{"table":"ocsf_events"}},
+                   {"preset":"ocsf/account_change","source":{"table":"ocsf_events"}}]}'
+grc-lake connectors probe --lake ./lake --connector-id databricks-evidence-lake \
+  --credentials-json "$CREDS" --options-json "$OPTS"
+grc-lake connectors configure --lake ./lake --connector-id databricks-evidence-lake \
+  --state enabled --credentials-json "$CREDS" --options-json "$OPTS"
+grc-lake connectors sync --lake ./lake --connector-id databricks-evidence-lake
+grc-lake frameworks assessment --lake ./lake
+```
+
+Preview a preset against sample rows with `grc-lake lake map --dry-run` before
+you connect. See [OCSF events in the CCF](docs/BRING_YOUR_OWN_LAKE.md#ocsf-events-in-the-common-control-framework)
+for the rules and their limits, and the Snowflake, ClickHouse, BigQuery, and
+Iceberg setup.
 
 ## Architecture
 

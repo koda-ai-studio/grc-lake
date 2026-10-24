@@ -18,6 +18,9 @@ Safety model:
 * The same filters and watermark bound are re-applied in Python to every
   fetched row, so readers without SQL (Iceberg, Parquet, fixtures) have the
   same semantics.
+* Rules classify a row from its own field values. They run only in Python and
+  set nothing but the outcome vocabulary, framework tags, and catalog
+  safeguard IDs, so a verdict and the safeguards it applies to stay together.
 
 The spec reference lives in docs/BRING_YOUR_OWN_LAKE.md.
 """
@@ -35,6 +38,7 @@ from contextvars import ContextVar
 from dataclasses import dataclass, field
 from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
+from functools import lru_cache
 from importlib import resources
 from pathlib import Path
 from typing import Any
@@ -49,10 +53,15 @@ MAX_ATTRIBUTES = 64
 MAX_FILTERS = 20
 MAX_IN_VALUES = 100
 MAX_COALESCE = 8
+MAX_RULES = 32
+MAX_RULE_CONDITIONS = 8
+MAX_RULE_IDS = 64
 DEFAULT_MAX_ROWS = 50_000
 
 SEVERITIES = ("critical", "high", "medium", "low", "info", "none")
-STATUSES = ("pass", "open", "observed")
+# ``not_evaluated`` marks evidence that needs review: it blocks a pass without
+# asserting a failure. ``observed`` carries no verdict at all.
+STATUSES = ("pass", "open", "observed", "not_evaluated")
 TIME_FORMATS = ("timestamp", "epoch_ms", "epoch_s")
 FILTER_OPS = ("eq", "ne", "in", "not_in", "is_null", "is_not_null")
 DIALECTS = ("snowflake", "databricks", "clickhouse", "bigquery")
@@ -67,8 +76,10 @@ OPTIONAL_FIELDS = (
     "severity",
     "status",
     "controls",
+    "safeguard_ids",
     "evidence_ref",
 )
+RULE_OUTPUTS = ("status", "severity", "controls", "safeguard_ids")
 PRESET_PACKAGE = "security_lakehouse.lake_presets"
 
 _NAME = re.compile(r"^[a-z0-9][a-z0-9_-]{0,63}$")
@@ -120,6 +131,18 @@ class Filter:
 
 
 @dataclass(frozen=True)
+class Rule:
+    """First matching rule sets the row's outcome, framework tags, and safeguard binding."""
+
+    name: str
+    when: tuple[Filter, ...]
+    status: str | None = None
+    severity: str | None = None
+    controls: tuple[str, ...] | None = None
+    safeguard_ids: tuple[str, ...] | None = None
+
+
+@dataclass(frozen=True)
 class MappingSpec:
     name: str
     source_table: str
@@ -131,6 +154,7 @@ class MappingSpec:
     lookback_minutes: int = 0
     description: str = ""
     preset: str | None = None
+    rules: tuple[Rule, ...] = ()
 
     @property
     def observed_column(self) -> str:
@@ -148,6 +172,7 @@ class MappingSpec:
         for expr in [*self.fields.values(), *self.attributes.values()]:
             paths.extend(expr.columns())
         paths.extend(item.column for item in self.filters)
+        paths.extend(condition.column for rule in self.rules for condition in rule.when)
         out: list[str] = []
         seen: set[str] = set()
         for path in paths:
@@ -233,7 +258,10 @@ def parse_mapping(payload: Any, *, preset: str | None = None) -> MappingSpec:
     if len(json.dumps(payload, default=str)) > MAX_SPEC_BYTES:
         raise MappingError(f"mapping spec is larger than {MAX_SPEC_BYTES} bytes")
     _unexpected(
-        payload, {"spec_version", "name", "description", "source", "filters", "fields", "attributes"}, "", errors
+        payload,
+        {"spec_version", "name", "description", "source", "filters", "fields", "attributes", "rules"},
+        "",
+        errors,
     )
 
     if payload.get("spec_version") != SPEC_VERSION:
@@ -290,7 +318,7 @@ def parse_mapping(payload: Any, *, preset: str | None = None) -> MappingSpec:
         for key in ("asset_id", *OPTIONAL_FIELDS):
             if key not in raw_fields:
                 continue
-            allow = {"split"} if key == "controls" else set()
+            allow = {"split"} if key in {"controls", "safeguard_ids"} else set()
             expr = _parse_expr(raw_fields[key], f"fields.{key}", errors, allow=allow)
             if expr is None:
                 continue
@@ -298,6 +326,8 @@ def parse_mapping(payload: Any, *, preset: str | None = None) -> MappingSpec:
                 _check_vocab(expr, f"fields.{key}", SEVERITIES, errors)
             elif key == "status":
                 _check_vocab(expr, f"fields.{key}", STATUSES, errors)
+            elif key == "safeguard_ids":
+                _check_safeguard_expr(expr, errors)
             fields[key] = expr
 
     attributes: dict[str, ValueExpr] = {}
@@ -319,6 +349,7 @@ def parse_mapping(payload: Any, *, preset: str | None = None) -> MappingSpec:
                 attributes[key] = expr
 
     filters = _parse_filters(payload.get("filters", []), errors)
+    rules = _parse_rules(payload.get("rules", []), errors)
 
     if errors:
         raise MappingError(errors)
@@ -333,6 +364,7 @@ def parse_mapping(payload: Any, *, preset: str | None = None) -> MappingSpec:
         lookback_minutes=int(lookback),
         description=str(description),
         preset=preset,
+        rules=rules,
     )
 
 
@@ -448,37 +480,138 @@ def _parse_filters(raw: Any, errors: list[str]) -> tuple[Filter, ...]:
         return ()
     out: list[Filter] = []
     for index, item in enumerate(raw):
-        path = f"filters[{index}]"
+        parsed = _parse_condition(item, f"filters[{index}]", errors, nested=False)
+        if parsed is not None:
+            out.append(parsed)
+    return tuple(out)
+
+
+def _parse_condition(item: Any, path: str, errors: list[str], *, nested: bool) -> Filter | None:
+    """One comparison. SQL filters name top-level columns; rule conditions may name nested paths."""
+    if not isinstance(item, dict):
+        errors.append(f"{path}: must be an object")
+        return None
+    _unexpected(item, {"column", "op", "value"}, path, errors)
+    column, op, value = item.get("column"), item.get("op"), item.get("value")
+    ok = True
+    if nested:
+        if not isinstance(column, str) or not _COLUMN_PATH.fullmatch(column):
+            errors.append(f"{path}.column: must be a column path (identifiers joined by '.', optional [n])")
+            ok = False
+    elif not isinstance(column, str) or not _TOP_COLUMN.fullmatch(column):
+        errors.append(f"{path}.column: must be a top-level column name")
+        ok = False
+    if op not in FILTER_OPS:
+        errors.append(f"{path}.op: must be one of {', '.join(FILTER_OPS)}")
+        ok = False
+    elif op in {"in", "not_in"}:
+        if not isinstance(value, list) or not 1 <= len(value) <= MAX_IN_VALUES or not all(_bindable(v) for v in value):
+            errors.append(f"{path}.value: must be a list of 1-{MAX_IN_VALUES} strings, integers, or booleans")
+            ok = False
+    elif op in {"eq", "ne"}:
+        if not _bindable(value):
+            errors.append(f"{path}.value: must be a string, integer, or boolean")
+            ok = False
+    elif value is not None:
+        errors.append(f"{path}.value: must be omitted for {op}")
+        ok = False
+    return Filter(column=str(column), op=str(op), value=value) if ok else None
+
+
+def _parse_rules(raw: Any, errors: list[str]) -> tuple[Rule, ...]:
+    if not isinstance(raw, list) or len(raw) > MAX_RULES:
+        errors.append(f"rules: must be a list of at most {MAX_RULES} rules")
+        return ()
+    out: list[Rule] = []
+    names: set[str] = set()
+    for index, item in enumerate(raw):
+        path = f"rules[{index}]"
         if not isinstance(item, dict):
             errors.append(f"{path}: must be an object")
             continue
-        _unexpected(item, {"column", "op", "value"}, path, errors)
-        column, op, value = item.get("column"), item.get("op"), item.get("value")
-        ok = True
-        if not isinstance(column, str) or not _TOP_COLUMN.fullmatch(column):
-            errors.append(f"{path}.column: must be a top-level column name")
-            ok = False
-        if op not in FILTER_OPS:
-            errors.append(f"{path}.op: must be one of {', '.join(FILTER_OPS)}")
-            ok = False
-        elif op in {"in", "not_in"}:
-            if (
-                not isinstance(value, list)
-                or not 1 <= len(value) <= MAX_IN_VALUES
-                or not all(_bindable(v) for v in value)
-            ):
-                errors.append(f"{path}.value: must be a list of 1-{MAX_IN_VALUES} strings, integers, or booleans")
-                ok = False
-        elif op in {"eq", "ne"}:
-            if not _bindable(value):
-                errors.append(f"{path}.value: must be a string, integer, or boolean")
-                ok = False
-        elif value is not None:
-            errors.append(f"{path}.value: must be omitted for {op}")
-            ok = False
-        if ok:
-            out.append(Filter(column=str(column), op=str(op), value=value))
+        _unexpected(item, {"name", "when", *RULE_OUTPUTS}, path, errors)
+        name = item.get("name")
+        if not isinstance(name, str) or not _NAME.fullmatch(name):
+            errors.append(f"{path}.name: must be 1-64 lowercase letters, digits, '_' or '-'")
+        elif name in names:
+            errors.append(f"{path}.name: duplicate rule name {name!r}")
+        else:
+            names.add(name)
+        raw_when = item.get("when")
+        when: list[Filter] = []
+        if not isinstance(raw_when, list) or not 1 <= len(raw_when) <= MAX_RULE_CONDITIONS:
+            errors.append(f"{path}.when: must list 1-{MAX_RULE_CONDITIONS} conditions (all must hold)")
+        else:
+            for position, condition in enumerate(raw_when):
+                parsed = _parse_condition(condition, f"{path}.when[{position}]", errors, nested=True)
+                if parsed is not None:
+                    when.append(parsed)
+        if not any(key in item for key in RULE_OUTPUTS):
+            errors.append(f"{path}: must set at least one of {', '.join(RULE_OUTPUTS)}")
+        status = item.get("status")
+        if status is not None and status not in STATUSES:
+            errors.append(f"{path}.status: {status!r} is not one of {', '.join(STATUSES)}")
+        severity = item.get("severity")
+        if severity is not None and severity not in SEVERITIES:
+            errors.append(f"{path}.severity: {severity!r} is not one of {', '.join(SEVERITIES)}")
+        controls = _parse_id_list(item, "controls", path, errors)
+        safeguard_ids = _parse_id_list(item, "safeguard_ids", path, errors)
+        if safeguard_ids:
+            _check_safeguard_ids(safeguard_ids, f"{path}.safeguard_ids", errors)
+        out.append(
+            Rule(
+                name=str(name),
+                when=tuple(when),
+                status=status,
+                severity=severity,
+                controls=controls,
+                safeguard_ids=safeguard_ids,
+            )
+        )
     return tuple(out)
+
+
+def _parse_id_list(item: dict[str, Any], key: str, path: str, errors: list[str]) -> tuple[str, ...] | None:
+    """A rule's identifier list; an empty list deliberately clears the field-level value."""
+    if key not in item:
+        return None
+    values = item[key]
+    if (
+        not isinstance(values, list)
+        or len(values) > MAX_RULE_IDS
+        or not all(isinstance(v, str) and v.strip() and len(v) <= 128 for v in values)
+    ):
+        errors.append(f"{path}.{key}: must be a list of 1-{MAX_RULE_IDS} identifiers (or [] to clear)")
+        return None
+    return tuple(dict.fromkeys(v.strip() for v in values))
+
+
+def _check_safeguard_expr(expr: ValueExpr, errors: list[str]) -> None:
+    """Constant safeguard bindings must name catalog safeguards; column values are checked per row."""
+    ids: list[str] = []
+    for value in (expr.const, expr.default, *expr.map.values(), *(item.const for item in expr.coalesce)):
+        if isinstance(value, list):
+            ids.extend(str(v) for v in value)
+        elif isinstance(value, str):
+            parts = value.split(expr.split) if expr.split else [value]
+            ids.extend(part.strip() for part in parts if part.strip())
+    _check_safeguard_ids(ids, "fields.safeguard_ids", errors)
+
+
+def _check_safeguard_ids(ids: Any, path: str, errors: list[str]) -> None:
+    known = known_safeguard_ids()
+    for safeguard_id in ids:
+        if safeguard_id not in known:
+            errors.append(f"{path}: unknown safeguard {safeguard_id!r} (see controls/safeguards.json)")
+
+
+@lru_cache(maxsize=1)
+def known_safeguard_ids() -> frozenset[str]:
+    """Safeguard IDs shipped in the CCF catalog, read once per process."""
+    from security_lakehouse.safeguards import DEFAULT_SAFEGUARDS
+
+    payload = json.loads(DEFAULT_SAFEGUARDS.read_text(encoding="utf-8"))
+    return frozenset(str(row["safeguard_id"]) for row in payload["safeguards"])
 
 
 def _scalar(value: Any) -> bool:
@@ -635,12 +768,23 @@ def _map_row(
     asset_id = _text(_evaluate(spec.fields["asset_id"], row))
     if not asset_id:
         raise _RowError("fields.asset_id: no value")
+    rule = next((item for item in spec.rules if _matches(item.when, row)), None)
     severity = _text(_evaluate(spec.fields.get("severity"), row)).lower() or "info"
     if severity not in SEVERITIES:
         severity = "info"
     status = _text(_evaluate(spec.fields.get("status"), row)).lower() or "observed"
     if status not in STATUSES:
         status = "observed"
+    controls = _controls(spec.fields.get("controls"), row)
+    safeguard_ids = _controls(spec.fields.get("safeguard_ids"), row)
+    if rule is not None:
+        status = rule.status or status
+        severity = rule.severity or severity
+        controls = list(rule.controls) if rule.controls is not None else controls
+        safeguard_ids = list(rule.safeguard_ids) if rule.safeguard_ids is not None else safeguard_ids
+    unknown = sorted(set(safeguard_ids) - known_safeguard_ids())
+    if unknown:
+        raise _RowError(f"fields.safeguard_ids: unknown safeguard {unknown[0]!r}")
 
     id_digest = _digest(json.dumps([spec.name, *[_json_safe(v) for v in id_values]], sort_keys=True, default=str))
     source_slug = re.sub(r"[^a-z0-9_.-]+", "-", source.lower()).strip("-") or "lake"
@@ -661,7 +805,9 @@ def _map_row(
     )
     if spec.preset:
         attributes["mapping_preset"] = spec.preset
-    return {
+    if rule is not None:
+        attributes["mapping_rule"] = rule.name
+    event: dict[str, Any] = {
         "event_id": stable,
         "tenant_id": tenant_id,
         "workspace_id": "default",
@@ -677,7 +823,7 @@ def _map_row(
         },
         "severity": severity,
         "status": status,
-        "controls": _controls(spec.fields.get("controls"), row),
+        "controls": controls,
         "evidence": {
             "evidence_id": f"ev-{stable}",
             "evidence_ref": evidence_ref,
@@ -685,6 +831,9 @@ def _map_row(
         },
         "attributes": attributes,
     }
+    if safeguard_ids:
+        event["safeguard_ids"] = sorted(safeguard_ids)
+    return event
 
 
 def _observed_time(spec: MappingSpec, row: dict[str, Any]) -> datetime:
@@ -784,8 +933,13 @@ def resolve_path(row: dict[str, Any], path: str) -> Any:
 
 
 def _passes_filters(spec: MappingSpec, row: dict[str, Any]) -> bool:
-    for item in spec.filters:
-        value = row.get(item.column.lower())
+    return _matches(spec.filters, row)
+
+
+def _matches(conditions: tuple[Filter, ...], row: dict[str, Any]) -> bool:
+    """Every condition holds; a missing value fails every op except ``is_null``."""
+    for item in conditions:
+        value = resolve_path(row, item.column)
         if item.op == "is_null" and value is not None:
             return False
         if item.op == "is_not_null" and value is None:

@@ -61,15 +61,17 @@ grc-lake lake map --dry-run --lake build/lakehouse --connector-id snowflake-evid
 ```
 
 Configure a reader with a mapping (API and console configure calls take the same
-`options` object):
+`options` object). Enabling requires a passing access test, so probe first:
 
 ```bash
-grc-lake connectors configure --lake build/lakehouse \
-  --connector-id snowflake-evidence-lake --state enabled \
-  --credentials-json '{"account":"acme-prod","user":"GRC_LAKE_READER_SVC","private_key_ref":"SNOWFLAKE_PRIVATE_KEY_FILE"}' \
-  --options-json '{"warehouse":"GRC_LAKE_READ_WH","database":"SECURITY","schema":"OCSF",
-                   "mappings":[{"preset":"ocsf/api_activity","source":{"table":"CLOUDTRAIL_OCSF"}},
-                               {"preset":"ocsf/authentication","source":{"table":"CLOUDTRAIL_OCSF"}}]}'
+CREDS='{"account":"acme-prod","user":"GRC_LAKE_READER_SVC","private_key_ref":"SNOWFLAKE_PRIVATE_KEY_FILE"}'
+OPTS='{"warehouse":"GRC_LAKE_READ_WH","database":"SECURITY","schema":"OCSF",
+       "mappings":[{"preset":"ocsf/api_activity","source":{"table":"CLOUDTRAIL_OCSF"}},
+                   {"preset":"ocsf/authentication","source":{"table":"CLOUDTRAIL_OCSF"}}]}'
+grc-lake connectors probe --lake build/lakehouse --connector-id snowflake-evidence-lake \
+  --credentials-json "$CREDS" --options-json "$OPTS"
+grc-lake connectors configure --lake build/lakehouse --connector-id snowflake-evidence-lake \
+  --state enabled --credentials-json "$CREDS" --options-json "$OPTS"
 grc-lake connectors sync --lake build/lakehouse --connector-id snowflake-evidence-lake
 ```
 
@@ -135,32 +137,41 @@ PyYAML is installed. Specs are limited to 64 KiB.
 | `source`       | yes      | `table` (1-3 dot-separated identifiers), `incremental` (default `true`), `lookback_minutes` (0-10080).                                                                                          |
 | `filters`      | no       | Up to 20 filters, all of which must match.                                                                                                                                                      |
 | `fields`       | yes      | The evidence fields below.                                                                                                                                                                      |
+| `rules`        | no       | Up to 32 [rules](#rules) that classify a row from its own values. The first match sets that row's outcome, control hints, and safeguard binding.                                                |
 | `attributes`   | no       | Up to 64 extra values kept in `attributes` (keys are identifiers; names containing `secret`, `token`, `password`, `private_key`, or `api_key` are rejected because stored options redact them). |
 
 ### Fields
 
-| Field          | Required | Becomes                        | Notes                                                                                          |
-| -------------- | -------- | ------------------------------ | ---------------------------------------------------------------------------------------------- |
-| `id`           | yes      | stable `event_id`              | `{"column": ...}` or `{"columns": [...]}` (1-8). A row with every id column empty is an error. |
-| `observed_at`  | yes      | `event_time` and the watermark | One **top-level** column; `format` is `timestamp` (default), `epoch_ms`, or `epoch_s`.         |
-| `asset_id`     | yes      | `entity.asset_id`              | A row with no value is an error.                                                               |
-| `source`       | no       | `source`, `entity.org`         | Defaults to the reader (`snowflake`, `databricks`, `clickhouse`, `iceberg`, `bigquery`).       |
-| `event_type`   | no       | `event_type`                   | Defaults to `<source>.<name>`.                                                                 |
-| `asset_type`   | no       | `entity.asset_type`            | Defaults to `lake_record`.                                                                     |
-| `owner`        | no       | `entity.asset_owner`           | Defaults to `unassigned`.                                                                      |
-| `environment`  | no       | `entity.environment`           | Defaults to `unknown`.                                                                         |
-| `severity`     | no       | `severity`                     | Must resolve to `critical`, `high`, `medium`, `low`, `info`, or `none`; else `info`.           |
-| `status`       | no       | `status`                       | Must resolve to `pass`, `open`, or `observed`; else `observed`.                                |
-| `controls`     | no       | `controls` (control hints)     | A list constant, a list column, or a delimited string column with `split`.                     |
-| `evidence_ref` | no       | `evidence.evidence_ref`        | Defaults to `lake://<table>/<id digest>`.                                                      |
+| Field           | Required | Becomes                        | Notes                                                                                          |
+| --------------- | -------- | ------------------------------ | ---------------------------------------------------------------------------------------------- |
+| `id`            | yes      | stable `event_id`              | `{"column": ...}` or `{"columns": [...]}` (1-8). A row with every id column empty is an error. |
+| `observed_at`   | yes      | `event_time` and the watermark | One **top-level** column; `format` is `timestamp` (default), `epoch_ms`, or `epoch_s`.         |
+| `asset_id`      | yes      | `entity.asset_id`              | A row with no value is an error.                                                               |
+| `source`        | no       | `source`, `entity.org`         | Defaults to the reader (`snowflake`, `databricks`, `clickhouse`, `iceberg`, `bigquery`).       |
+| `event_type`    | no       | `event_type`                   | Defaults to `<source>.<name>`.                                                                 |
+| `asset_type`    | no       | `entity.asset_type`            | Defaults to `lake_record`.                                                                     |
+| `owner`         | no       | `entity.asset_owner`           | Defaults to `unassigned`.                                                                      |
+| `environment`   | no       | `entity.environment`           | Defaults to `unknown`.                                                                         |
+| `severity`      | no       | `severity`                     | Must resolve to `critical`, `high`, `medium`, `low`, `info`, or `none`; else `info`.           |
+| `status`        | no       | `status`                       | Must resolve to `pass`, `open`, `observed`, or `not_evaluated`; else `observed`.               |
+| `controls`      | no       | `controls` (control hints)     | A list constant, a list column, or a delimited string column with `split`.                     |
+| `safeguard_ids` | no       | `safeguard_ids` (CCF binding)  | Same forms as `controls`. Every id must exist in `controls/safeguards.json`.                   |
+| `evidence_ref`  | no       | `evidence.evidence_ref`        | Defaults to `lake://<table>/<id digest>`.                                                      |
 
 Constants and map values for `severity` and `status` are checked against those
-vocabularies when the spec loads.
+vocabularies when the spec loads. Constant safeguard ids are checked against the
+CCF catalog when the spec loads. A row whose column-sourced safeguard id is not
+in the catalog is reported as a mapping error and not emitted.
+
+`not_evaluated` means the row needs review: it blocks a pass without asserting a
+failure. `observed` carries no outcome at all. See
+[CCF evaluation](COMMON_CONTROL_FRAMEWORK.md#review-and-evaluation-boundaries)
+for how each outcome affects a safeguard.
 
 Every event also carries `attributes.source_id` (the id value), `raw_sha256` (a
 SHA-256 of the canonical JSON of the whole source row), `mapping`,
-`mapping_spec_version`, `source_table`, and `mapping_preset` when a preset was
-used. `event_id` is `<source>-<name>-<hash of the id values>`, so re-reading a
+`mapping_spec_version`, `source_table`, `mapping_preset` when a preset was
+used, and `mapping_rule` when a rule matched. `event_id` is `<source>-<name>-<hash of the id values>`, so re-reading a
 row, or a newer version of the same finding, replaces the earlier event instead
 of duplicating it.
 
@@ -180,7 +191,8 @@ Each field or attribute is an object with exactly one of:
 Optional modifiers: `map` (source value → output; numeric source values match
 their integer text, so `severity_id` 4 matches `"4"`; without a `default`, an
 unmapped value passes through unchanged), `default` (used when the value is
-empty or not in `map`), `prefix`, and `split` (for `controls` only).
+empty or not in `map`), `prefix`, and `split` (for `controls` and
+`safeguard_ids` only).
 There is no expression language: no functions, casts, or SQL fragments.
 
 ### Filters
@@ -190,6 +202,42 @@ There is no expression language: no functions, casts, or SQL fragments.
 integers, or booleans (`in`/`not_in` take a list of up to 100). Filters are
 pushed into the backend query as bound parameters and re-applied in Python to
 every fetched row.
+
+### Rules
+
+A rule classifies one row from that row's own values:
+
+```json
+{
+  "name": "sign_in_without_mfa",
+  "when": [
+    { "column": "status_id", "op": "eq", "value": 1 },
+    { "column": "is_mfa", "op": "eq", "value": false }
+  ],
+  "status": "open",
+  "severity": "medium",
+  "controls": ["SOC2-CC6.1"],
+  "safeguard_ids": ["SG-IDENTITY-001"]
+}
+```
+
+- `name` follows the spec `name` rules and is unique within the spec. It is
+  recorded in `attributes.mapping_rule`.
+- `when` lists 1-8 conditions, and all of them must hold. Conditions use the
+  filter operators, but `column` may be a nested path. Conditions are evaluated
+  in Python only and never reach SQL; their top-level columns are added to the
+  `SELECT`. A missing value fails every operator except `is_null`. Boolean and
+  integer values match their text forms, so `"false"` from a JSON column matches
+  `false`.
+- A rule sets at least one of `status`, `severity`, `controls`, and
+  `safeguard_ids`. Anything it does not set keeps the field-level value. An
+  empty list clears it.
+- Rules are tried in order, and the first match wins. A row that matches no rule
+  keeps the field-level values.
+
+Set the outcome and its safeguards in the same rule. An event's outcome applies
+to every safeguard and control hint it carries. A rule that marks a row `open`
+for MFA should not also tag a logging requirement.
 
 ## How a mapping becomes a query
 
@@ -253,8 +301,8 @@ are merged on top (lists such as `filters` are replaced). All presets filter on
 
 | Preset                       | OCSF class                      | OCSF version | Watermark         | Status                                              | Control hints                                                                     |
 | ---------------------------- | ------------------------------- | ------------ | ----------------- | --------------------------------------------------- | --------------------------------------------------------------------------------- |
-| `ocsf/authentication`        | Authentication (3002)           | 1.1.0        | `time_dt`         | `observed` (outcome kept in `attributes.outcome`)   | SOC2-CC6.1, ISO27001-A.8.5, ISO27001-A.8.15, NIST-800-53-IA-2, NIST-800-53-AU-2   |
-| `ocsf/account_change`        | Account Change (3001)           | 1.1.0        | `time_dt`         | `observed`                                          | SOC2-CC6.2, SOC2-CC6.3, ISO27001-A.5.16, ISO27001-A.5.18, NIST-800-53-AC-2        |
+| `ocsf/authentication`        | Authentication (3002)           | 1.1.0        | `time_dt`         | Rules (see below); otherwise `observed`             | SOC2-CC6.1, ISO27001-A.8.5, ISO27001-A.8.15, NIST-800-53-IA-2, NIST-800-53-AU-2   |
+| `ocsf/account_change`        | Account Change (3001)           | 1.1.0        | `time_dt`         | Rules (see below); otherwise `observed`             | SOC2-CC6.2, SOC2-CC6.3, ISO27001-A.5.16, ISO27001-A.5.18, NIST-800-53-AC-2        |
 | `ocsf/api_activity`          | API Activity (6003)             | 1.1.0        | `time_dt`         | `observed`                                          | SOC2-CC7.2, ISO27001-A.8.15, ISO27001-A.8.16, NIST-800-53-AU-2, NIST-800-53-AU-12 |
 | `ocsf/detection_finding`     | Detection Finding (2004)        | 1.1.0        | `time_dt`         | `status_id` New/In Progress → open, Resolved → pass | SOC2-CC7.2, SOC2-CC7.3, ISO27001-A.8.16, NIST-800-53-SI-4                         |
 | `ocsf/vulnerability_finding` | Vulnerability Finding (2002)    | 1.1.0        | `time_dt`         | `status_id` as above                                | SOC2-CC7.1, ISO27001-A.8.8, NIST-800-53-RA-5, NIST-800-53-SI-2                    |
@@ -262,12 +310,60 @@ are merged on top (lists such as `filters` are replaced). All presets filter on
 | `ocsf/security_finding`      | Security Finding (2001, legacy) | 1.0.0-rc.2   | `time` (epoch ms) | `state_id` New/In Progress → open, Resolved → pass  | SOC2-CC7.2, ISO27001-A.8.16, NIST-800-53-SI-4                                     |
 
 Severity comes from OCSF `severity_id` (1 Informational → info, 2 → low,
-3 → medium, 4 → high, 5 Critical and 6 Fatal → critical; 0 and 99 → info). Sign-in,
-account-change, and API events are activity evidence, so they are `observed`
-rather than control failures; a failed sign-in is not a failed control. Control
+3 → medium, 4 → high, 5 Critical and 6 Fatal → critical; 0 and 99 → info). Control
 hints are ids from `controls/catalog.json`. Security Hub `compliance.control`
 values (for example `IAM.6`) are kept in `attributes`, not treated as GRC Lake
 controls.
+
+### OCSF events in the Common Control Framework
+
+The authentication and account-change presets bind specific events to
+[CCF safeguards](COMMON_CONTROL_FRAMEWORK.md). Framework requirements then come
+from each safeguard's reviewed crosswalk, not from the preset's control hints.
+The binding asserts only what the event shows:
+
+| Preset                | Rule                  | When (OCSF 1.1.0)                                            | Outcome         | Safeguard         |
+| --------------------- | --------------------- | ------------------------------------------------------------ | --------------- | ----------------- |
+| `ocsf/authentication` | `mfa_sign_in`         | `activity_id` 1 Logon, `status_id` 1 Success, `is_mfa` true  | `pass`          | `SG-IDENTITY-001` |
+| `ocsf/authentication` | `sign_in_without_mfa` | `activity_id` 1 Logon, `status_id` 1 Success, `is_mfa` false | `open` (medium) | `SG-IDENTITY-001` |
+| `ocsf/account_change` | `privilege_grant`     | `activity_id` 7 Attach Policy, `status_id` 1 Success         | `not_evaluated` | `SG-IDENTITY-002` |
+
+All other rows remain `observed`, carry the preset's control hints, and bind no
+safeguard. That includes failed sign-ins, logons with no `is_mfa` value,
+logoffs, failed grants, other account lifecycle changes, and all API activity.
+A failed sign-in records an attempt, not a failed control. A user passes only
+when every retained successful logon for that user used MFA. That does not show
+MFA is enforced on paths the source never recorded. One successful logon
+without MFA fails the user. A privilege grant shows that
+access changed. It does not show whether the change was authorized, so it
+blocks a pass on access review until someone reviews it. It is not reported as
+a failure. Rows that match a rule keep only the control hints that rule
+concerns. For example, an MFA verdict does not tag the logging requirements.
+
+Both presets use the `identity_user` asset type, which those safeguards accept.
+The CCF assessment counts every identity it observes. A user who appears only in
+account-change events therefore stays unassessed for MFA rather than passing.
+Proposed crosswalk mappings, such as SG-IDENTITY-001 to ISO27001-A.8.5, are
+never attested. Review them through [mapping review](MAPPING_REVIEW.md).
+
+Some sources report `is_mfa: false` for federated sign-ins whose MFA happened
+at the identity provider. Before relying on `open` results, check how your
+source populates `is_mfa`. Replace the rules if your source needs different
+ones. Add `"rules": []` to return to presence-only mapping:
+
+```json
+{
+  "preset": "ocsf/authentication",
+  "source": { "table": "sec.ocsf_auth" },
+  "rules": []
+}
+```
+
+Finding presets (detection, vulnerability, compliance, and security findings)
+bind no safeguard. Their asset type comes from the vendor resource type, such as
+`AwsEc2Instance`, which no safeguard lists. The assessment would report such a
+binding as invalid rather than evaluate it. To bind them, override `asset_type`
+with a type the safeguard accepts, and add a rule or `fields.safeguard_ids`.
 
 Amazon Security Lake source version 2 writes OCSF 1.1.0 and source version 1
 writes OCSF 1.0.0-rc.2
