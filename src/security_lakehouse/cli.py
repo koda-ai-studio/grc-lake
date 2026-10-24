@@ -2191,7 +2191,7 @@ def _demo(args: argparse.Namespace) -> int:
             _open_when_listening(host, args.port, url)
         print(f"GRC Lake demo (synthetic data, no authentication, loopback only): {url}")
         print("press Ctrl+C to stop; the temporary lake is deleted on exit", flush=True)
-        try:
+        with contextlib.suppress(KeyboardInterrupt):
             if not full_server:
                 from security_lakehouse.server import serve as serve_local
 
@@ -2203,8 +2203,6 @@ def _demo(args: argparse.Namespace) -> int:
             else:
                 app = server_app.create_app(lake, require_auth=False)
                 uvicorn.run(app, host=host, port=args.port, log_level="warning")
-        except KeyboardInterrupt:
-            pass
     return 0
 
 
