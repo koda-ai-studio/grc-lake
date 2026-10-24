@@ -148,6 +148,7 @@ kubeconfig). See [Hosted connector credentials](SERVER_AUTH.md#hosted-connector-
 | `databricks-evidence-lake`  | Databricks UC evidence  | executable existing-lake read (preview) |
 | `jamf-devices`              | Jamf Pro device posture | executable (preview)                    |
 | `crowdstrike-falcon`        | CrowdStrike Falcon EDR  | executable (preview)                    |
+| `snyk-vulnerabilities`      | Snyk vulnerabilities    | executable (preview)                    |
 | `kubernetes-cluster`        | Kubernetes config       | executable (preview)                    |
 | `training-completion`       | LMS training export     | executable file read (preview)          |
 | `snowflake-evidence-lake`   | governed evidence lake  | executable existing-lake read           |
@@ -970,6 +971,64 @@ and last seen, containment status, reduced-functionality flag, and prevention po
 assignment are kept. MAC and IP addresses, serial numbers, user names, and tags are
 dropped before storage. From alerts, only ID, status, severity, and creation time are
 used, and only to compute the summary counts.
+
+## Snyk: vulnerability issues per project (preview)
+
+`snyk-vulnerabilities` reads the Snyk REST API (`version=2024-10-15`) for every
+organization the token can see, or only `options.org_ids`, and emits current-state
+vulnerability evidence. Project and issue rows bind
+`SG-VULNERABILITYMANAGEMENT-001`. Framework results come from that safeguard's
+reviewed crosswalk. The rows' tags (SOC2-CC7.1, ISO27001-A.8.8, NIST-800-53-RA-5,
+NIST-800-53-SI-2) all sit inside it.
+
+| Event                        | Outcome                                                                                                                                                                                                  |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `snyk.issue`                 | One per open-source, container, or code vulnerability issue (`package_vulnerability`, `code`). Open is `open` at Snyk's effective severity; resolved is `resolved`; open but ignored is `not_evaluated`. |
+| `snyk.project.test_coverage` | One per active project. `pass` only when Snyk tested the project within `options.max_test_age_days` (default 7, at most 90) and the issue listing was complete; otherwise `not_evaluated`.               |
+| `snyk.org.summary`           | Observation: project and issue counts, including what was skipped.                                                                                                                                       |
+| `snyk.collection_gap`        | An organization, its projects, or its issues could not be read (HTTP 403/404, or the page budget ran out). The sync reports itself partial.                                                              |
+
+Projects are the assets: container OS projects (`apk`, `deb`, `rpm`, `linux`) are
+`container_image`, all other project types are `repo`. Both are in the safeguard's
+scope. An asset passes only with a passing test-coverage row and no open or
+ignored vulnerability. A project without issues therefore passes only when it was
+recently tested. A project that was never tested, was last tested outside the
+window, or whose latest test counted issues that the issues API did not list stays
+`not_evaluated`. The connector does not evaluate remediation deadlines. Issue
+rows carry `created_at`, `resolved_at`, `age_days`, severity, and fixability, so
+deadline rules can be added later.
+
+Not evaluated, only counted on the org summary: inactive projects, license, IaC
+configuration, cloud, custom, and secrets issues, and issues on non-project scan
+items (Snyk environments).
+
+**Least privilege.** Use a read-only token. Snyk documents a **Group Viewer**
+service account as the way to make a token read-only. Service accounts are an
+Enterprise feature, and organization-level service accounts can only be Org
+Admin or Org Collaborator. On other plans, use a user token whose custom role
+holds only **View Organization**, **View Project**, and **View Project History**.
+Store the token and set `credential_ref` (default `SNYK_TOKEN`). Set `region` to
+`SNYK-US-01` (default, `api.snyk.io`), `SNYK-US-02` (`api.us.snyk.io`),
+`SNYK-EU-01` (`api.eu.snyk.io`), or `SNYK-AU-01` (`api.au.snyk.io`). Any other
+value, including a URL, is refused, so the token only ever goes to a Snyk API
+host. A token works only in its own region and gets HTTP 401 elsewhere.
+
+**Calls.** `GET /rest/orgs`, `GET /rest/orgs/{org_id}/projects?meta.latest_issue_counts=true`,
+and `GET /rest/orgs/{org_id}/issues`, 100 per page, with `Authorization: token …`.
+Only the `starting_after` cursor is taken from `links.next`; the request is rebuilt
+on the regional host. Each list stops after `options.max_pages` pages (default 200,
+at most 1,000) and records a gap rather than a shorter success. HTTP 429 (Snyk
+allows 1,620 requests per minute per key) waits for `Retry-After` when sent, else
+backs off exponentially. Malformed pages and a next link without a cursor fail the
+sync.
+
+**Data minimization.** Kept per issue: ID, key, type, title, severity, status,
+ignore flag, created, updated, and resolved times, resolution type, problem and CVE
+IDs, fixability flags, and risk score. Descriptions, code flows, file locations,
+and dependency coordinates are not stored. Kept per project: name, type, origin,
+target file and reference, criticality, lifecycle, environment tags, test
+frequency, and last test time (`meta.latest_issue_counts.updated_at`, which Snyk's
+migration guide maps to the v1 `lastTestedDate`).
 
 ## Kubernetes: cluster configuration baseline (preview)
 

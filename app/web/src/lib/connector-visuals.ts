@@ -206,6 +206,13 @@ export const CONNECTOR_VISUALS: Record<string, ConnectorVisual> = {
     bg: "#fff1f2",
     categoryLabel: "Endpoint protection",
   },
+  "snyk-vulnerabilities": {
+    vendor: "Snyk",
+    mark: "SK",
+    accent: "#4c4a73",
+    bg: "#f3f2f8",
+    categoryLabel: "Vulnerability scanning",
+  },
   "kubernetes-cluster": {
     vendor: "Kubernetes",
     mark: "K8s",

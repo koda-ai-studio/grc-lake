@@ -41,6 +41,7 @@ IDENTITY: dict[str, Any] = {
 CASES = {
     "jamf-devices": "client_secret_ref",
     "crowdstrike-falcon": "client_secret_ref",
+    "snyk-vulnerabilities": "credential_ref",
     "databricks-evidence-lake": "client_secret_ref",
     "bamboohr-personnel": "credential_ref",
     "rippling-personnel": "credential_ref",

@@ -1,0 +1,454 @@
+{
+  "jsonapi": {
+    "version": "1.0"
+  },
+  "data": [
+    {
+      "id": "0a1b2c3d-0000-4000-8000-300000000001",
+      "type": "issue",
+      "attributes": {
+        "key": "issue-key-01",
+        "title": "Prototype Pollution",
+        "type": "package_vulnerability",
+        "effective_severity_level": "high",
+        "created_at": "2026-05-20T08:00:00Z",
+        "updated_at": "2026-06-01T08:00:00Z",
+        "status": "open",
+        "ignored": false,
+        "problems": [
+          {
+            "id": "SNYK-JS-EXAMPLE-1001",
+            "source": "SNYK",
+            "type": "vulnerability"
+          },
+          {
+            "id": "CVE-2026-0001",
+            "source": "CVE",
+            "type": "vulnerability"
+          }
+        ],
+        "coordinates": [
+          {
+            "is_fixable_snyk": true,
+            "is_fixable_upstream": false,
+            "is_fixable_manually": false,
+            "is_upgradeable": true,
+            "is_patchable": false,
+            "is_pinnable": false,
+            "representations": [
+              {
+                "dependency": {
+                  "package_name": "example-lib",
+                  "package_version": "1.0.0"
+                }
+              }
+            ]
+          }
+        ],
+        "risk": {
+          "factors": [],
+          "score": {
+            "model": "v1",
+            "value": 640
+          }
+        },
+        "description": "Synthetic description that must not be stored."
+      },
+      "relationships": {
+        "organization": {
+          "data": {
+            "id": "0a1b2c3d-0000-4000-8000-000000000001",
+            "type": "organization"
+          }
+        },
+        "scan_item": {
+          "data": {
+            "id": "0a1b2c3d-0000-4000-8000-100000000001",
+            "type": "project"
+          }
+        }
+      }
+    },
+    {
+      "id": "0a1b2c3d-0000-4000-8000-300000000002",
+      "type": "issue",
+      "attributes": {
+        "key": "issue-key-02",
+        "title": "Prototype Pollution",
+        "type": "package_vulnerability",
+        "effective_severity_level": "medium",
+        "created_at": "2026-04-01T08:00:00Z",
+        "updated_at": "2026-04-15T08:00:00Z",
+        "status": "resolved",
+        "ignored": false,
+        "problems": [
+          {
+            "id": "SNYK-JS-EXAMPLE-1002",
+            "source": "SNYK",
+            "type": "vulnerability"
+          }
+        ],
+        "coordinates": [
+          {
+            "is_fixable_snyk": true,
+            "is_fixable_upstream": false,
+            "is_fixable_manually": false,
+            "is_upgradeable": true,
+            "is_patchable": false,
+            "is_pinnable": false,
+            "representations": [
+              {
+                "dependency": {
+                  "package_name": "example-lib",
+                  "package_version": "1.0.0"
+                }
+              }
+            ]
+          }
+        ],
+        "risk": {
+          "factors": [],
+          "score": {
+            "model": "v1",
+            "value": 640
+          }
+        },
+        "description": "Synthetic description that must not be stored.",
+        "resolution": {
+          "type": "fixed",
+          "resolved_at": "2026-04-15T08:00:00Z"
+        }
+      },
+      "relationships": {
+        "organization": {
+          "data": {
+            "id": "0a1b2c3d-0000-4000-8000-000000000001",
+            "type": "organization"
+          }
+        },
+        "scan_item": {
+          "data": {
+            "id": "0a1b2c3d-0000-4000-8000-100000000001",
+            "type": "project"
+          }
+        }
+      }
+    },
+    {
+      "id": "0a1b2c3d-0000-4000-8000-300000000003",
+      "type": "issue",
+      "attributes": {
+        "key": "issue-key-03",
+        "title": "SQL Injection",
+        "type": "code",
+        "effective_severity_level": "medium",
+        "created_at": "2026-05-20T08:00:00Z",
+        "updated_at": "2026-06-01T08:00:00Z",
+        "status": "open",
+        "ignored": true,
+        "problems": [
+          {
+            "id": "javascript/Sqli",
+            "source": "SNYK",
+            "type": "rule"
+          }
+        ],
+        "coordinates": [
+          {
+            "is_fixable_snyk": false,
+            "is_fixable_upstream": false,
+            "is_fixable_manually": false,
+            "is_upgradeable": false,
+            "is_patchable": false,
+            "is_pinnable": false,
+            "representations": [
+              {
+                "dependency": {
+                  "package_name": "example-lib",
+                  "package_version": "1.0.0"
+                }
+              }
+            ]
+          }
+        ],
+        "risk": {
+          "factors": [],
+          "score": {
+            "model": "v1",
+            "value": 640
+          }
+        },
+        "description": "Synthetic description that must not be stored."
+      },
+      "relationships": {
+        "organization": {
+          "data": {
+            "id": "0a1b2c3d-0000-4000-8000-000000000001",
+            "type": "organization"
+          }
+        },
+        "scan_item": {
+          "data": {
+            "id": "0a1b2c3d-0000-4000-8000-100000000004",
+            "type": "project"
+          }
+        },
+        "ignore": {
+          "data": {
+            "id": "0a1b2c3d-0000-4000-8000-5000000000aa",
+            "type": "ignore"
+          }
+        }
+      }
+    },
+    {
+      "id": "0a1b2c3d-0000-4000-8000-300000000004",
+      "type": "issue",
+      "attributes": {
+        "key": "issue-key-04",
+        "title": "GPL-3.0 license",
+        "type": "license",
+        "effective_severity_level": "low",
+        "created_at": "2026-05-20T08:00:00Z",
+        "updated_at": "2026-06-01T08:00:00Z",
+        "status": "open",
+        "ignored": false,
+        "problems": [
+          {
+            "id": "snyk:lic:npm:example:GPL-3.0",
+            "source": "SNYK",
+            "type": "rule"
+          }
+        ],
+        "coordinates": [
+          {
+            "is_fixable_snyk": false,
+            "is_fixable_upstream": false,
+            "is_fixable_manually": false,
+            "is_upgradeable": false,
+            "is_patchable": false,
+            "is_pinnable": false,
+            "representations": [
+              {
+                "dependency": {
+                  "package_name": "example-lib",
+                  "package_version": "1.0.0"
+                }
+              }
+            ]
+          }
+        ],
+        "risk": {
+          "factors": [],
+          "score": {
+            "model": "v1",
+            "value": 640
+          }
+        },
+        "description": "Synthetic description that must not be stored."
+      },
+      "relationships": {
+        "organization": {
+          "data": {
+            "id": "0a1b2c3d-0000-4000-8000-000000000001",
+            "type": "organization"
+          }
+        },
+        "scan_item": {
+          "data": {
+            "id": "0a1b2c3d-0000-4000-8000-100000000004",
+            "type": "project"
+          }
+        }
+      }
+    },
+    {
+      "id": "0a1b2c3d-0000-4000-8000-300000000005",
+      "type": "issue",
+      "attributes": {
+        "key": "issue-key-05",
+        "title": "Prototype Pollution",
+        "type": "package_vulnerability",
+        "effective_severity_level": "critical",
+        "created_at": "2026-05-01T08:00:00Z",
+        "updated_at": "2026-05-03T08:00:00Z",
+        "status": "resolved",
+        "ignored": false,
+        "problems": [
+          {
+            "id": "SNYK-JS-EXAMPLE-1005",
+            "source": "SNYK",
+            "type": "vulnerability"
+          }
+        ],
+        "coordinates": [
+          {
+            "is_fixable_snyk": true,
+            "is_fixable_upstream": false,
+            "is_fixable_manually": false,
+            "is_upgradeable": true,
+            "is_patchable": false,
+            "is_pinnable": false,
+            "representations": [
+              {
+                "dependency": {
+                  "package_name": "example-lib",
+                  "package_version": "1.0.0"
+                }
+              }
+            ]
+          }
+        ],
+        "risk": {
+          "factors": [],
+          "score": {
+            "model": "v1",
+            "value": 640
+          }
+        },
+        "description": "Synthetic description that must not be stored.",
+        "resolution": {
+          "type": "fixed",
+          "resolved_at": "2026-05-03T08:00:00Z"
+        }
+      },
+      "relationships": {
+        "organization": {
+          "data": {
+            "id": "0a1b2c3d-0000-4000-8000-000000000001",
+            "type": "organization"
+          }
+        },
+        "scan_item": {
+          "data": {
+            "id": "0a1b2c3d-0000-4000-8000-100000000005",
+            "type": "project"
+          }
+        }
+      }
+    },
+    {
+      "id": "0a1b2c3d-0000-4000-8000-300000000006",
+      "type": "issue",
+      "attributes": {
+        "key": "issue-key-06",
+        "title": "Prototype Pollution",
+        "type": "package_vulnerability",
+        "effective_severity_level": "high",
+        "created_at": "2026-05-20T08:00:00Z",
+        "updated_at": "2026-06-01T08:00:00Z",
+        "status": "open",
+        "ignored": false,
+        "problems": [
+          {
+            "id": "SNYK-JS-EXAMPLE-1006",
+            "source": "SNYK",
+            "type": "vulnerability"
+          }
+        ],
+        "coordinates": [
+          {
+            "is_fixable_snyk": true,
+            "is_fixable_upstream": false,
+            "is_fixable_manually": false,
+            "is_upgradeable": true,
+            "is_patchable": false,
+            "is_pinnable": false,
+            "representations": [
+              {
+                "dependency": {
+                  "package_name": "example-lib",
+                  "package_version": "1.0.0"
+                }
+              }
+            ]
+          }
+        ],
+        "risk": {
+          "factors": [],
+          "score": {
+            "model": "v1",
+            "value": 640
+          }
+        },
+        "description": "Synthetic description that must not be stored."
+      },
+      "relationships": {
+        "organization": {
+          "data": {
+            "id": "0a1b2c3d-0000-4000-8000-000000000001",
+            "type": "organization"
+          }
+        },
+        "scan_item": {
+          "data": {
+            "id": "0a1b2c3d-0000-4000-8000-100000000006",
+            "type": "project"
+          }
+        }
+      }
+    },
+    {
+      "id": "0a1b2c3d-0000-4000-8000-300000000007",
+      "type": "issue",
+      "attributes": {
+        "key": "issue-key-07",
+        "title": "Finding",
+        "type": "cloud",
+        "effective_severity_level": "high",
+        "created_at": "2026-05-20T08:00:00Z",
+        "updated_at": "2026-06-01T08:00:00Z",
+        "status": "open",
+        "ignored": false,
+        "problems": [
+          {
+            "id": "SNYK-JS-EXAMPLE-1007",
+            "source": "SNYK",
+            "type": "vulnerability"
+          }
+        ],
+        "coordinates": [
+          {
+            "is_fixable_snyk": false,
+            "is_fixable_upstream": false,
+            "is_fixable_manually": false,
+            "is_upgradeable": false,
+            "is_patchable": false,
+            "is_pinnable": false,
+            "representations": [
+              {
+                "dependency": {
+                  "package_name": "example-lib",
+                  "package_version": "1.0.0"
+                }
+              }
+            ]
+          }
+        ],
+        "risk": {
+          "factors": [],
+          "score": {
+            "model": "v1",
+            "value": 640
+          }
+        },
+        "description": "Synthetic description that must not be stored."
+      },
+      "relationships": {
+        "organization": {
+          "data": {
+            "id": "0a1b2c3d-0000-4000-8000-000000000001",
+            "type": "organization"
+          }
+        },
+        "scan_item": {
+          "data": {
+            "id": "0a1b2c3d-0000-4000-8000-4000000000aa",
+            "type": "environment"
+          }
+        }
+      }
+    }
+  ],
+  "links": {}
+}
