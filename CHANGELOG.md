@@ -5,6 +5,7 @@ Python package, Helm chart, and bundled web console.
 
 ## Unreleased
 
+- Lock dev-only virtualenv 21.14.13 (GHSA-cx6f-vjhg-g3cc).
 - Bind OCSF events to Common Control Framework safeguards. Lake mapping specs accept `fields.safeguard_ids` and ordered `rules` that set a row's outcome, control hints, and safeguard binding together from the row's own values. Safeguard ids are checked against the catalog. A new `not_evaluated` outcome blocks a pass without asserting a failure.
 - Evaluate OCSF 1.1.0 sign-ins and privilege grants. In `ocsf/authentication`, a successful Logon passes `SG-IDENTITY-001` when `is_mfa` is true and is open when it is false. In `ocsf/account_change`, a successful Attach Policy is pending review on `SG-IDENTITY-002`. Failed sign-ins, logons without an `is_mfa` value, other account changes, and API activity remain observations. Framework requirements follow each safeguard's reviewed crosswalk, and proposed mappings are not attested. Both presets now use the `identity_user` asset type. Existing preset users see new pass, open, and pending results on SOC 2 CC6.1 and related requirements. Add `"rules": []` to a preset reference to keep presence-only mapping.
 
