@@ -76,6 +76,12 @@ INVENTORY_PERMISSIONS = {
     "securityhub": "securityhub:DescribeHub",
     "organizations": "organizations:DescribeOrganization",
 }
+# Inventory a control requires to exist in every region. A successful read that
+# returns none fails the control instead of leaving it unevidenced.
+REQUIRED_INVENTORY = {
+    "cloudtrail": ("CIS-AWS-3.1", "high", "no CloudTrail trail logs this account"),
+    "config": ("CIS-AWS-3.3", "medium", "no AWS Config configuration recorder is set up"),
+}
 # Error codes meaning the service is off for the account, not that the reader
 # was denied (IAM denial is AccessDeniedException). Scoped per service: Security
 # Hub answers DescribeHub with InvalidAccessException when it is not enabled.
@@ -259,9 +265,17 @@ class AWSClient:
                 if row.get("DBInstanceIdentifier")
             ]
         if service == "cloudtrail":
+            # Shadow trails (a multi-region or organization trail created
+            # elsewhere) are what tell us this region is logged at all.
             return [
-                {"id": str(row.get("Name")), "arn": row.get("TrailARN"), "multi_region": row.get("IsMultiRegionTrail")}
-                for row in client.describe_trails(includeShadowTrails=False).get("trailList", [])
+                {
+                    "id": str(row.get("Name")),
+                    "arn": row.get("TrailARN"),
+                    "multi_region": row.get("IsMultiRegionTrail"),
+                    "home_region": row.get("HomeRegion"),
+                    "shadow": bool(row.get("HomeRegion")) and row.get("HomeRegion") != region_name,
+                }
+                for row in client.describe_trails(includeShadowTrails=True).get("trailList", [])
                 if row.get("Name")
             ]
         if service == "config":
@@ -594,6 +608,11 @@ def collect_aws_inventory_evidence(
             if service in global_services:
                 seen_global.add(service)
                 gaps.pop(collection, None)
+            if not resources and service in REQUIRED_INVENTORY:
+                rows.append(_absence_event(account, service, region, now, tenant_id))
+            if service == "cloudtrail":
+                # Shadows prove coverage above; the trail itself is inventoried in its home region and account.
+                resources = [trail for trail in resources if not _is_shadow_trail(trail, account_id)]
             for resource in resources:
                 resource_id = str(resource.get("id") or "").strip()
                 if not resource_id:
@@ -621,6 +640,40 @@ def collect_aws_inventory_evidence(
                 )
     rows.extend(_gap_event(account, gap, now, tenant_id) for gap in gaps.values())
     return rows
+
+
+def _is_shadow_trail(trail: dict[str, Any], account_id: str) -> bool:
+    if trail.get("shadow"):
+        return True
+    # An organization trail replicated into a member account carries the management account's ARN.
+    arn_parts = str(trail.get("arn") or "").split(":")
+    return len(arn_parts) > 4 and bool(arn_parts[4]) and arn_parts[4] != account_id
+
+
+def _absence_event(account: str, service: str, region: str, collected_at: datetime, tenant_id: str) -> dict[str, Any]:
+    """An account-scoped failing observation: the read succeeded and found nothing a control requires."""
+    control_id, severity, finding = REQUIRED_INVENTORY[service]
+    return _event(
+        account=account,
+        collected_at=collected_at,
+        tenant_id=tenant_id,
+        signal=f"inventory-absent-{service}",
+        dedupe_key=f"{service}:{region}",
+        event_type=f"aws.inventory.absent.{service}",
+        asset_id=f"aws:account:{account}",
+        asset_type="identity_account",
+        controls=[control_id],
+        status="open",
+        severity=severity,
+        evidence_ref=f"aws:{account}:{service}:{region}:none",
+        attributes={
+            "account_id": account,
+            "region": region,
+            "service": service,
+            "resource_count": 0,
+            "finding": f"{finding} in {region}",
+        },
+    )
 
 
 def _inventory_gap(exc: Exception, *, service: str, region: str, collection: str) -> CollectionGapError:

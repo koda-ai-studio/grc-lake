@@ -125,7 +125,13 @@ policy or the state of existing resources. See [GCP policy rules](https://docs.c
 ## Collection and version boundaries
 
 Inventory is an observation. AWS CloudTrail's explicit `multi_region=false`
-setting is a finding; the presence of a resource is not a pass. Runtime gateway
+setting is a finding; the presence of a resource is not a pass. Absence is a
+finding only after a successful read: when the CloudTrail read for a region
+returns no trail, shadow trails included, the connector emits an account-scoped
+`aws.inventory.absent.cloudtrail` row that fails `CIS-AWS-3.1`. When the AWS
+Config read returns no customer-managed configuration recorder, an
+`aws.inventory.absent.config` row fails `CIS-AWS-3.3`. A failed read stays a
+coverage gap and never claims absence. Runtime gateway
 blocked/denied/rejected events retain their original status in attributes and
 count as observations of enforcement. Okta factor-read errors remain unknown;
 a security question alone does not establish independent-factor enrollment.

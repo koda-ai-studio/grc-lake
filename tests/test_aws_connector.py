@@ -481,6 +481,111 @@ def test_service_not_enabled_gap_says_what_to_turn_on() -> None:
     assert collection_gaps(rows)
 
 
+class _EmptyAuditInventory:
+    """Successful reads that return no trail and no configuration recorder."""
+
+    def __init__(self, trails: list[dict] | None = None, fail: set[str] | None = None) -> None:
+        self.trails = trails or []
+        self.fail = fail or set()
+
+    def inventory(self, service: str, *, region_name: str) -> list[dict]:
+        if service in self.fail:
+            raise _FakeClientError("InternalFailure")
+        return self.trails if service == "cloudtrail" else []
+
+
+def _absence_rows(rows: list[dict]) -> dict[str, dict]:
+    return {row["event_type"]: row for row in rows if row["event_type"].startswith("aws.inventory.absent")}
+
+
+def test_successful_empty_audit_inventory_emits_failing_observations() -> None:
+    from security_lakehouse.connectors_aws import collect_aws_inventory_evidence
+
+    rows = collect_aws_inventory_evidence(
+        _EmptyAuditInventory(),
+        account_id=ACCOUNT,
+        regions=["us-east-1"],
+        services=["cloudtrail", "config"],
+        collected_at=datetime(2026, 10, 24, tzinfo=UTC),
+    )
+    assert validate_raw_events(rows) == []
+    absent = _absence_rows(rows)
+    assert set(absent) == {"aws.inventory.absent.cloudtrail", "aws.inventory.absent.config"}
+    trail = absent["aws.inventory.absent.cloudtrail"]
+    assert trail["status"] == "open"
+    assert trail["controls"] == ["CIS-AWS-3.1"]
+    assert trail["entity"]["asset_id"] == f"aws:account:{ACCOUNT}"
+    assert trail["attributes"]["region"] == "us-east-1"
+    assert trail["attributes"]["resource_count"] == 0
+    assert "no CloudTrail trail" in trail["attributes"]["finding"]
+    assert absent["aws.inventory.absent.config"]["controls"] == ["CIS-AWS-3.3"]
+
+
+def test_failed_read_stays_a_gap_and_never_claims_absence() -> None:
+    from security_lakehouse.connector_errors import collection_gaps
+    from security_lakehouse.connectors_aws import collect_aws_inventory_evidence
+
+    rows = collect_aws_inventory_evidence(
+        _EmptyAuditInventory(fail={"cloudtrail", "config"}),
+        account_id=ACCOUNT,
+        regions=["us-east-1"],
+        services=["cloudtrail", "config"],
+    )
+    assert _absence_rows(rows) == {}
+    assert len(collection_gaps(rows)) == 2
+
+
+def test_shadow_of_a_multi_region_trail_counts_as_coverage_without_an_inventory_row() -> None:
+    from security_lakehouse.connectors_aws import collect_aws_inventory_evidence
+
+    shadow = {"id": "org-trail", "multi_region": True, "home_region": "eu-west-1", "shadow": True}
+    rows = collect_aws_inventory_evidence(
+        _EmptyAuditInventory(trails=[shadow]),
+        account_id=ACCOUNT,
+        regions=["us-east-1"],
+        services=["cloudtrail"],
+    )
+    assert rows == []
+
+
+def test_aws_client_describes_trails_with_shadows_and_marks_them() -> None:
+    class CloudTrail:
+        def describe_trails(self, **kwargs):
+            assert kwargs == {"includeShadowTrails": True}
+            return {
+                "trailList": [
+                    {"Name": "local", "TrailARN": "arn:local", "IsMultiRegionTrail": False, "HomeRegion": "us-east-1"},
+                    {"Name": "global", "TrailARN": "arn:global", "IsMultiRegionTrail": True, "HomeRegion": "eu-west-1"},
+                ]
+            }
+
+    client = AWSClient.__new__(AWSClient)
+    client.service_client = lambda service, region_name=None: CloudTrail()  # type: ignore[method-assign]
+    trails = client.inventory("cloudtrail", region_name="us-east-1")
+    assert [(trail["id"], trail["shadow"]) for trail in trails] == [("local", False), ("global", True)]
+
+
+def test_missing_trail_fails_cis_cloudtrail_control_end_to_end(tmp_path: Path) -> None:
+    from security_lakehouse import pipeline
+    from security_lakehouse.connectors_aws import collect_aws_inventory_evidence
+    from security_lakehouse.io import write_jsonl
+
+    rows = collect_aws_inventory_evidence(
+        _EmptyAuditInventory(), account_id=ACCOUNT, regions=["us-east-1"], services=["cloudtrail"]
+    )
+    raw = tmp_path / "raw.jsonl"
+    write_jsonl(raw, rows)
+    lake = tmp_path / "lake"
+    pipeline.run_pipeline(raw, lake)
+    posture = {row["control_id"]: row for row in read_jsonl(lake / "gold/control_posture.jsonl")}
+    assert posture["CIS-AWS-3.1"]["status"] == "fail"
+    tests = [row for row in read_jsonl(lake / "gold/control_tests.jsonl") if row.get("control_id") == "CIS-AWS-3.1"]
+    assert tests
+    assert all(row["result"] == "fail" for row in tests)
+    assert posture["CIS-AWS-3.1"]["open_event_count"] == 1
+    assert posture["CIS-AWS-3.1"]["rule_reasons"] == ["1 open violation(s) (>= 1)"]
+
+
 def test_global_inventory_gap_clears_when_a_later_region_succeeds() -> None:
     from security_lakehouse.connectors_aws import collect_aws_inventory_evidence
 
