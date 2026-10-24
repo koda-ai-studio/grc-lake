@@ -5,6 +5,9 @@ Python package, Helm chart, and bundled web console.
 
 ## Unreleased
 
+- Record bounded live read-only receipts for `aws-posture`, `azure-posture`, `gcp-posture` and `github-security` (2026-10-24, source `f4532d21`), with counts reconciled against each provider's CLI and provider identifiers omitted. The qualification matrix links them and names the maintainer as owner. Each covers one test account, subscription, project or public repository, not provider-wide coverage.
+- Fix `github-security` sync failing with HTTP 400 on repositories with Dependabot alerts. GitHub rejects page-number pagination on that endpoint, so the adapter now follows `Link` cursors, restricted to the same host and endpoint.
+
 ## 0.3.11 - 2026-10-24
 
 - Add `grc-lake demo`: load the synthetic golden company into a temporary lake, serve the console on loopback without authentication, and open the browser. Falls back to local mode without the `server` extra; refuses a busy port and deletes the lake on exit.

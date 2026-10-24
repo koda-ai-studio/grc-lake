@@ -3,7 +3,9 @@
 This is an offline contract for the `github-security` adapter. Tests use synthetic
 responses and fixtures. It is not a live GitHub App installation test, a complete
 repository inventory, or qualification of a published package. The
-[matrix](CONNECTOR_QUALIFICATION.md) keeps those evidence levels separate.
+[matrix](CONNECTOR_QUALIFICATION.md) keeps those evidence levels separate. A
+bounded [live receipt](qualification/live/2026-10-24.md#github-security) covers
+one public repository with a user OAuth token.
 
 ## Collection behavior
 
