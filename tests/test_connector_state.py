@@ -126,7 +126,7 @@ def test_latest_config_returns_most_recent(tmp_path: Path) -> None:
     assert latest_config(tmp_path, "github-security")["state"] == "enabled"
 
 
-def test_probe_requires_enabled_connector(tmp_path: Path) -> None:
+def test_probe_requires_enabled_connector(tmp_path: Path, github_probe_ok: None) -> None:
     skipped = run_probe(tmp_path, connector_id="github-security")
     assert skipped["result"] == "skipped"
     assert "not enabled" in skipped["error"]
@@ -185,8 +185,8 @@ def test_probe_rejects_incomplete_staged_payload(tmp_path: Path) -> None:
 def test_runnable_probe_marks_config_only_mode(tmp_path: Path) -> None:
     rec = run_probe(
         tmp_path,
-        connector_id="github-security",
-        credentials={"credential_ref": "GITHUB_TOKEN"},
+        connector_id="gitlab-security",
+        credentials={"credential_ref": "GITLAB_TOKEN"},
         options={"repo": "acme/platform"},
     )
     assert rec["result"] == "ok"
@@ -557,7 +557,7 @@ def test_probe_unknown_connector_returns_error(tmp_path: Path) -> None:
     assert "unknown connector_id" in rec["error"]
 
 
-def test_build_catalog_view_joins_config_and_runs(tmp_path: Path) -> None:
+def test_build_catalog_view_joins_config_and_runs(tmp_path: Path, github_probe_ok: None) -> None:
     append_config_event(tmp_path, connector_id="github-security", state="enabled", actor="a")
     run_probe(tmp_path, connector_id="github-security")
     view = build_catalog_view(tmp_path)
@@ -685,7 +685,7 @@ def _request(
         return int(exc.code), json.loads(exc.read().decode("utf-8"))
 
 
-def test_connector_endpoints_round_trip(tmp_path: Path) -> None:
+def test_connector_endpoints_round_trip(tmp_path: Path, github_probe_ok: None) -> None:
     server = _spin_handler(tmp_path)
     try:
         status, body = _request(server, "GET", "/api/connectors")
@@ -763,7 +763,7 @@ def test_connector_configure_rejects_empty_enable(tmp_path: Path) -> None:
         server.shutdown()
 
 
-def test_connector_configure_requires_matching_ok_probe(tmp_path: Path) -> None:
+def test_connector_configure_requires_matching_ok_probe(tmp_path: Path, github_probe_ok: None) -> None:
     server = _spin_handler(tmp_path)
     try:
         status, body = _request(

@@ -105,7 +105,9 @@ def test_v1_connector_actions_require_connector_manage_scope(tmp_path: Path) -> 
     assert sync_denied.json()["errors"][0]["detail"] == "requires scope: connector_manage"
 
 
-def test_v1_headless_github_security_probe_enable_lifecycle(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_v1_headless_github_security_probe_enable_lifecycle(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, github_probe_ok: None
+) -> None:
     """Headless path: probe before enable, same contract as console (#475)."""
     # Hosted server mode resolves only allowlisted or tenant-prefixed refs.
     monkeypatch.setenv("GRC_LAKE_CONNECTOR_SECRET_REFS", "ACME_GITHUB_APP_TOKEN")

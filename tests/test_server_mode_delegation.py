@@ -162,7 +162,30 @@ def test_kubernetes_server_identity_is_refused_in_server_mode(
         connector_runner._collect_kubernetes(fixture_dir=None, env=env, credentials=credentials)
 
 
-def test_kubernetes_tenant_kubeconfig_ref_is_used_in_server_mode(monkeypatch: pytest.MonkeyPatch) -> None:
+KUBE_PREFIX = "GRC_LAKE_TENANT_3F2B8C1E_9A4D_4C2B_8F1E_2A6B7C8D9E0F__"
+
+
+def _kubeconfig(path: Path, users: dict[str, dict[str, Any]], *, current: str = "tenant") -> Path:
+    """Write a kubeconfig with one context per user; context names equal user names."""
+    import yaml
+
+    path.write_text(
+        yaml.safe_dump(
+            {
+                "apiVersion": "v1",
+                "kind": "Config",
+                "current-context": current,
+                "clusters": [{"name": "c", "cluster": {"server": "https://k8s.example.test"}}],
+                "contexts": [{"name": name, "context": {"cluster": "c", "user": name}} for name in users],
+                "users": [{"name": name, "user": user} for name, user in users.items()],
+            }
+        ),
+        encoding="utf-8",
+    )
+    return path
+
+
+def _collect_hosted(monkeypatch: pytest.MonkeyPatch, kubeconfig: str, **credentials: Any) -> dict[str, Any]:
     from security_lakehouse import connector_runner
 
     seen: dict[str, Any] = {}
@@ -173,13 +196,92 @@ def test_kubernetes_tenant_kubeconfig_ref_is_used_in_server_mode(monkeypatch: py
 
     monkeypatch.setattr(connector_runner, "KubernetesClient", FakeClient)
     monkeypatch.setattr(connector_runner, "collect_kubernetes_evidence", lambda *a, **k: [])
-    prefix = "GRC_LAKE_TENANT_3F2B8C1E_9A4D_4C2B_8F1E_2A6B7C8D9E0F__"
-    env = {f"{prefix}KUBECONFIG": "/secrets/tenant/kubeconfig", "KUBERNETES_SERVICE_HOST": "10.0.0.1"}
+    env = {f"{KUBE_PREFIX}KUBECONFIG": kubeconfig, "KUBERNETES_SERVICE_HOST": "10.0.0.1"}
     with server_execution(TENANT):
         connector_runner._collect_kubernetes(
-            fixture_dir=None, env=env, credentials={"cluster_name": "c", "kubeconfig_ref": f"{prefix}KUBECONFIG"}
+            fixture_dir=None,
+            env=env,
+            credentials={"cluster_name": "c", "kubeconfig_ref": f"{KUBE_PREFIX}KUBECONFIG", **credentials},
         )
-    assert seen == {"context": None, "kubeconfig_path": "/secrets/tenant/kubeconfig", "in_cluster": False}
+    return seen
+
+
+def test_kubernetes_tenant_kubeconfig_ref_is_used_in_server_mode(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    path = _kubeconfig(tmp_path / "kubeconfig", {"tenant": {"token": "synthetic"}})
+    seen = _collect_hosted(monkeypatch, str(path))
+    assert seen == {"context": None, "kubeconfig_path": str(path), "in_cluster": False}
+
+
+EXEC_USER = {"exec": {"apiVersion": "client.authentication.k8s.io/v1", "command": "/bin/sh", "args": ["-c", "id"]}}
+AUTH_PROVIDER_USER = {"auth-provider": {"name": "oidc", "config": {"cmd-path": "/bin/sh"}}}
+
+
+@pytest.mark.parametrize("user", [EXEC_USER, AUTH_PROVIDER_USER], ids=["exec", "auth-provider"])
+def test_hosted_kubeconfig_with_a_command_plugin_is_rejected(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, user: dict[str, Any]
+) -> None:
+    path = _kubeconfig(tmp_path / "kubeconfig", {"tenant": user})
+    with pytest.raises(ConnectorConfigError, match="exec or auth-provider") as exc:
+        _collect_hosted(monkeypatch, str(path))
+    assert "/bin/sh" not in str(exc.value)
+
+
+def test_hosted_kubeconfig_checks_the_selected_context_user(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    path = _kubeconfig(tmp_path / "kubeconfig", {"tenant": {"token": "t"}, "laptop": EXEC_USER})
+    assert _collect_hosted(monkeypatch, str(path))["context"] is None
+    with pytest.raises(ConnectorConfigError, match="exec or auth-provider"):
+        _collect_hosted(monkeypatch, str(path), context="laptop")
+
+
+def test_hosted_kubeconfig_list_is_inspected_like_the_client_merges_it(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import os
+
+    first = _kubeconfig(tmp_path / "a", {"other": {"token": "t"}}, current="other")
+    second = _kubeconfig(tmp_path / "b", {"tenant": EXEC_USER}, current="tenant")
+    # The client merges every path and the last current-context wins.
+    with pytest.raises(ConnectorConfigError, match="exec or auth-provider"):
+        _collect_hosted(monkeypatch, f"{first}{os.pathsep}{second}")
+
+
+@pytest.mark.parametrize("content", ["users: [unterminated", "", "- just\n- a list\n"])
+def test_hosted_kubeconfig_that_cannot_be_inspected_fails_closed(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, content: str
+) -> None:
+    path = tmp_path / "kubeconfig"
+    path.write_text(content, encoding="utf-8")
+    with pytest.raises(ConnectorConfigError, match="kubeconfig"):
+        _collect_hosted(monkeypatch, str(path))
+
+
+def test_hosted_kubeconfig_yaml_is_never_constructed_as_objects(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    path = tmp_path / "kubeconfig"
+    path.write_text("users: !!python/object/apply:os.system ['id']\n", encoding="utf-8")
+    with pytest.raises(ConnectorConfigError, match="kubeconfig"):
+        _collect_hosted(monkeypatch, str(path))
+
+
+def test_local_mode_keeps_exec_plugins_for_provider_login(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from security_lakehouse import connector_runner
+
+    path = _kubeconfig(tmp_path / "kubeconfig", {"tenant": EXEC_USER})
+    seen: dict[str, Any] = {}
+
+    class FakeClient:
+        def __init__(self, cluster: str, **kwargs: Any) -> None:
+            seen.update(kwargs)
+
+    monkeypatch.setattr(connector_runner, "KubernetesClient", FakeClient)
+    monkeypatch.setattr(connector_runner, "collect_kubernetes_evidence", lambda *a, **k: [])
+    connector_runner._collect_kubernetes(
+        fixture_dir=None, env={"KUBECONFIG": str(path)}, credentials={"cluster_name": "c"}
+    )
+    assert seen["kubeconfig_path"] == str(path)
 
 
 # --- GCP / BigQuery -------------------------------------------------------------

@@ -247,8 +247,12 @@ client library missing) becomes one `<source>.collection_gap` evidence row
 instead of failing the sync. The row is an open, low-severity item with no
 control mapping, so it never counts as passing or failing evidence; its
 `attributes` name the `collection`, `reason` (`api_disabled`,
-`permission_denied`, `client_unavailable`, `read_failed`), and the `api` or
-`permission` to fix. The sync result stays `ok`; the run record adds
+`service_not_enabled`, `permission_denied`, `client_unavailable`,
+`read_failed`), and the `api` or
+`permission` to fix. AWS reports `service_not_enabled` when Security Hub is
+not enabled (`InvalidAccessException`) or the account is not in an
+organization (`AWSOrganizationsNotInUseException`), separately from an IAM
+denial. The sync result stays `ok`; the run record adds
 `metadata.partial: true` and `metadata.coverage_gaps`, and `connectors sync`
 prints the same list as `coverage_gaps`. Example message:
 

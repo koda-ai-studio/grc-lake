@@ -275,7 +275,13 @@ page, or contains malformed items. Exhausted transient HTTP failures also fail
 the sync. A 401/403/404 remains an explicitly unavailable signal; inspect those
 gaps before using the evidence. Alert evidence contains aggregate counts only;
 alert details, secret material and tokens are not persisted. The GitHub probe
-validates configuration, not live API access or collection completeness.
+resolves the token the way sync does (`credential_ref`, then
+`options.token_env`, then `GRC_LAKE_GITHUB_APP_INSTALLATION_TOKEN`; a literal
+`token` is never used), reads the repository metadata, and makes one request to
+each alert endpoint. It reports each signal as `readable`, `forbidden` or
+`not_enabled`. An unreadable repository or any other HTTP failure fails the
+probe, as it would fail the sync. A green probe still does not establish
+collection completeness.
 See the [GitHub qualification contract](GITHUB_QUALIFICATION.md) and
 [catalog-wide qualification matrix](CONNECTOR_QUALIFICATION.md).
 
@@ -1143,9 +1149,17 @@ The `kubernetes-cluster` connector works unchanged against these clusters. Point
 - **Nebius Managed Kubernetes.** `nebius mk8s cluster get-credentials --id <id>
 --external` (or `--internal` from a Nebius VM) writes a kubeconfig that calls the
   `nebius` CLI as an exec credential plugin. The official Kubernetes client runs that
-  plugin, so the CLI must be installed and signed in where GRC Lake runs. For a
-  hosted deployment, prefer a kubeconfig carrying a service-account token, because an
-  exec plugin runs a local command.
+  plugin, so the CLI must be installed and signed in where GRC Lake runs. Local and
+  CLI runs accept it. Hosted mode rejects it (see below), so give a hosted
+  deployment a kubeconfig carrying a service-account token.
+
+**Hosted mode refuses kubeconfig command plugins.** In hosted server mode, a tenant
+kubeconfig whose selected context's user has an `exec` plugin or an `auth-provider`
+entry is rejected before the client is built. Either one would make the server run a
+local command. GRC Lake parses the file with a safe YAML loader and never executes
+it. A path list is merged the way the Kubernetes client merges it. A kubeconfig that
+cannot be parsed, or whose selected context is missing, also fails closed. Use a
+service-account token or a client certificate instead.
 
 | Event                                       | Asset type            | Result                                                                                                                                                                                                                                                      | Safeguard        |
 | ------------------------------------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |

@@ -1,5 +1,6 @@
 """Offline GitHub collection contracts; no provider credentials or network calls."""
 
+import io
 import json
 import urllib.error
 from datetime import UTC, datetime
@@ -151,19 +152,148 @@ def test_rate_limit_wait_is_honored_and_request_remains_read_only(monkeypatch):
     assert requests[0].full_url == requests[1].full_url
 
 
-def test_probe_only_validates_configuration_not_github_access(tmp_path, monkeypatch):
-    def forbidden(*args, **kwargs):
-        raise AssertionError("a configuration probe must not collect GitHub evidence")
+TOKEN = "ghs_synthetic-installation-token"
+REPO_URL = "https://api.github.com/repos/acme/model-service"
 
-    monkeypatch.setattr(governance.netguard, "open_public", forbidden)
+
+def http_error(url, status, message):
+    body = io.BytesIO(json.dumps({"message": message}).encode())
+    return urllib.error.HTTPError(url, status, "synthetic", {}, body)
+
+
+def probe(tmp_path, monkeypatch, responses, *, credentials=None):
+    """Run the github-security probe against scripted per-endpoint responses."""
+    monkeypatch.setenv("GRC_LAKE_GITHUB_APP_INSTALLATION_TOKEN", TOKEN)
+    requested = []
+
+    def request_page(self, url):
+        requested.append(url)
+        for marker, response in responses.items():
+            if marker in url:
+                if isinstance(response, Exception):
+                    raise response
+                return response, ""
+        raise AssertionError(f"unexpected GitHub request {url}")
+
+    monkeypatch.setattr(governance.GitHubGovernanceClient, "_request_page", request_page)
     result = run_probe(
         tmp_path,
         connector_id="github-security",
-        credentials={"token": "synthetic-token"},
+        credentials=credentials if credentials is not None else {"token": "staged"},
+        options={"repo": "acme/model-service"},
+    )
+    return result, requested
+
+
+def readable_responses():
+    return {
+        "/code-scanning/alerts": [],
+        "/secret-scanning/alerts": [],
+        "/dependabot/alerts": [{"number": 1, "state": "open"}],
+        REPO_URL: {"full_name": "acme/model-service", "default_branch": "main"},
+    }
+
+
+def test_probe_reads_repository_and_each_security_signal(tmp_path, monkeypatch):
+    responses = readable_responses()
+    responses["/secret-scanning/alerts"] = http_error(REPO_URL, 404, "Secret scanning is disabled on this repository.")
+    responses["/dependabot/alerts"] = http_error(REPO_URL, 403, "Resource not accessible by integration")
+    result, requested = probe(tmp_path, monkeypatch, responses)
+
+    assert result["result"] == "ok"
+    metadata = result["metadata"]
+    assert metadata["probe_mode"] == "live"
+    assert metadata["repo"] == "acme/model-service"
+    assert metadata["signals"] == [
+        {"signal": "code_scanning", "status": "readable"},
+        {"signal": "secret_scanning", "status": "not_enabled", "http_status": 404},
+        {"signal": "dependabot", "status": "forbidden", "http_status": 403},
+    ]
+    assert metadata["partial"] is True
+    assert requested[0] == REPO_URL
+    assert len(requested) == 4
+    # One page per signal, shaped like the sync's request for that endpoint.
+    dependabot = next(url for url in requested if "dependabot" in url)
+    assert "page" not in parse_qs(urlsplit(dependabot).query)
+    assert all(urlsplit(url).netloc == "api.github.com" for url in requested)
+    assert TOKEN not in json.dumps(result)
+    assert not (tmp_path / CONNECTOR_RAW_FILE).exists()
+
+
+def test_probe_reports_all_signals_readable_without_partial(tmp_path, monkeypatch):
+    result, _requested = probe(tmp_path, monkeypatch, readable_responses())
+    assert result["result"] == "ok"
+    assert {signal["status"] for signal in result["metadata"]["signals"]} == {"readable"}
+    assert result["metadata"]["partial"] is False
+
+
+@pytest.mark.parametrize("status", [401, 404])
+def test_probe_fails_when_repository_metadata_is_not_readable(tmp_path, monkeypatch, status):
+    responses = readable_responses()
+    responses[REPO_URL] = http_error(REPO_URL, status, "Bad credentials")
+    result, requested = probe(tmp_path, monkeypatch, responses)
+    assert result["result"] == "error"
+    assert f"HTTP {status}" in result["error"]
+    assert TOKEN not in json.dumps(result)
+    assert requested == [REPO_URL]
+
+
+def test_probe_fails_where_sync_would_fail_on_a_signal_error(tmp_path, monkeypatch):
+    # The 2026-10-24 live run: a green config-only probe preceded a sync that
+    # failed with HTTP 400 on the Dependabot endpoint.
+    responses = readable_responses()
+    responses["/dependabot/alerts"] = http_error(REPO_URL, 400, "Pagination using the page parameter is not supported")
+    result, _requested = probe(tmp_path, monkeypatch, responses)
+    assert result["result"] == "error"
+    assert "dependabot" in result["error"]
+    assert "HTTP 400" in result["error"]
+
+
+def test_probe_resolves_the_token_exactly_like_sync(tmp_path, monkeypatch):
+    monkeypatch.delenv("GRC_LAKE_GITHUB_APP_INSTALLATION_TOKEN", raising=False)
+
+    def forbidden(*args, **kwargs):
+        raise AssertionError("no request may be sent without a resolved token")
+
+    monkeypatch.setattr(governance.netguard, "open_public", forbidden)
+    # Sync never reads a literal ``token`` (it is redacted when stored), so the
+    # probe must not prove access with one either.
+    result = run_probe(
+        tmp_path,
+        connector_id="github-security",
+        credentials={"token": TOKEN},
+        options={"repo": "acme/model-service"},
+    )
+    assert result["result"] == "error"
+    assert "credential_ref" in result["error"]
+    assert TOKEN not in json.dumps(result)
+
+
+def test_probe_uses_the_configured_credential_ref(tmp_path, monkeypatch):
+    monkeypatch.setenv("ACME_GITHUB_TOKEN", "ghs_from-ref")
+    seen = []
+
+    def request_page(self, url):
+        seen.append(self.token)
+        return ({"default_branch": "main"} if url == REPO_URL else []), ""
+
+    monkeypatch.setattr(governance.GitHubGovernanceClient, "_request_page", request_page)
+    result = run_probe(
+        tmp_path,
+        connector_id="github-security",
+        credentials={"credential_ref": "ACME_GITHUB_TOKEN"},
         options={"repo": "acme/model-service"},
     )
     assert result["result"] == "ok"
-    assert not (tmp_path / CONNECTOR_RAW_FILE).exists()
+    assert set(seen) == {"ghs_from-ref"}
+
+
+def test_probe_requires_a_repository(tmp_path, monkeypatch):
+    monkeypatch.setenv("GRC_LAKE_GITHUB_APP_INSTALLATION_TOKEN", TOKEN)
+    append_config_event(tmp_path, connector_id="github-security", state="enabled", actor="fixture")
+    result = run_probe(tmp_path, connector_id="github-security")
+    assert result["result"] == "error"
+    assert "repo" in result["error"]
 
 
 def test_incomplete_live_path_preserves_prior_materialization(tmp_path, monkeypatch):
