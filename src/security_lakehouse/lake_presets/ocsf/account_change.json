@@ -98,6 +98,7 @@
       ],
       "status": "not_evaluated",
       "severity": "medium",
+      "controls": ["SOC2-CC6.2", "ISO27001-A.5.18"],
       "safeguard_ids": ["SG-IDENTITY-002"]
     }
   ],
