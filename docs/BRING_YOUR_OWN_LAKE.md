@@ -303,6 +303,7 @@ are merged on top (lists such as `filters` are replaced). All presets filter on
 | ---------------------------- | ------------------------------- | ------------ | ----------------- | --------------------------------------------------- | --------------------------------------------------------------------------------- |
 | `ocsf/authentication`        | Authentication (3002)           | 1.1.0        | `time_dt`         | Rules (see below); otherwise `observed`             | SOC2-CC6.1, ISO27001-A.8.5, ISO27001-A.8.15, NIST-800-53-IA-2, NIST-800-53-AU-2   |
 | `ocsf/account_change`        | Account Change (3001)           | 1.1.0        | `time_dt`         | Rules (see below); otherwise `observed`             | SOC2-CC6.2, SOC2-CC6.3, ISO27001-A.5.16, ISO27001-A.5.18, NIST-800-53-AC-2        |
+| `ocsf/group_management`      | Group Management (3006)         | 1.1.0        | `time_dt`         | Rules (see below); otherwise `observed`             | SOC2-CC6.2, SOC2-CC6.3, ISO27001-A.5.16, ISO27001-A.5.18, NIST-800-53-AC-2        |
 | `ocsf/api_activity`          | API Activity (6003)             | 1.1.0        | `time_dt`         | `observed`                                          | SOC2-CC7.2, ISO27001-A.8.15, ISO27001-A.8.16, NIST-800-53-AU-2, NIST-800-53-AU-12 |
 | `ocsf/detection_finding`     | Detection Finding (2004)        | 1.1.0        | `time_dt`         | `status_id` New/In Progress → open, Resolved → pass | SOC2-CC7.2, SOC2-CC7.3, ISO27001-A.8.16, NIST-800-53-SI-4                         |
 | `ocsf/vulnerability_finding` | Vulnerability Finding (2002)    | 1.1.0        | `time_dt`         | `status_id` as above                                | SOC2-CC7.1, ISO27001-A.8.8, NIST-800-53-RA-5, NIST-800-53-SI-2                    |
@@ -315,34 +316,50 @@ hints are ids from `controls/catalog.json`. Security Hub `compliance.control`
 values (for example `IAM.6`) are kept in `attributes`, not treated as GRC Lake
 controls.
 
+Amazon Security Lake's native CloudTrail source does not write Group Management
+(3006) events. Its source version 2 mapping covers Authentication, Account
+Change, and API Activity
+([OCSF CloudTrail mappings](https://github.com/ocsf/examples/tree/main/mappings/markdown/AWS/v1.1.0/CloudTrail)).
+Use `ocsf/group_management` for directory or identity-provider logs that you
+normalize to OCSF yourself or receive through a Security Lake custom source.
+
 ### OCSF events in the Common Control Framework
 
-The authentication and account-change presets bind specific events to
+Some presets bind specific events to
 [CCF safeguards](COMMON_CONTROL_FRAMEWORK.md). Framework requirements then come
 from each safeguard's reviewed crosswalk, not from the preset's control hints.
 The binding asserts only what the event shows:
 
-| Preset                | Rule                  | When (OCSF 1.1.0)                                            | Outcome         | Safeguard         |
-| --------------------- | --------------------- | ------------------------------------------------------------ | --------------- | ----------------- |
-| `ocsf/authentication` | `mfa_sign_in`         | `activity_id` 1 Logon, `status_id` 1 Success, `is_mfa` true  | `pass`          | `SG-IDENTITY-001` |
-| `ocsf/authentication` | `sign_in_without_mfa` | `activity_id` 1 Logon, `status_id` 1 Success, `is_mfa` false | `open` (medium) | `SG-IDENTITY-001` |
-| `ocsf/account_change` | `privilege_grant`     | `activity_id` 7 Attach Policy, `status_id` 1 Success         | `not_evaluated` | `SG-IDENTITY-002` |
+| Preset                       | Rule                       | When (OCSF 1.1.0)                                                      | Outcome                            | Safeguard                        |
+| ---------------------------- | -------------------------- | ---------------------------------------------------------------------- | ---------------------------------- | -------------------------------- |
+| `ocsf/authentication`        | `mfa_sign_in`              | `activity_id` 1 Logon, `status_id` 1 Success, `is_mfa` true            | `pass`                             | `SG-IDENTITY-001`                |
+| `ocsf/authentication`        | `sign_in_without_mfa`      | `activity_id` 1 Logon, `status_id` 1 Success, `is_mfa` false           | `open` (medium)                    | `SG-IDENTITY-001`                |
+| `ocsf/account_change`        | `privilege_grant`          | `activity_id` 7 Attach Policy, `status_id` 1 Success                   | `not_evaluated`                    | `SG-IDENTITY-002`                |
+| `ocsf/group_management`      | `group_privilege_grant`    | `activity_id` 1 Assign Privileges or 3 Add User, `status_id` 1 Success | `not_evaluated`                    | `SG-IDENTITY-002`                |
+| `ocsf/vulnerability_finding` | `vulnerability_management` | `resource.type` `AwsEc2Instance` or `AwsEcrContainerImage`             | unchanged (`status_id`)            | `SG-VULNERABILITYMANAGEMENT-001` |
+| `ocsf/compliance_finding`    | `configuration_baseline`   | `resource.type` `AwsEc2Instance`                                       | unchanged (`compliance.status_id`) | `SG-CONFIGBASELINE-001`          |
 
-All other rows remain `observed`, carry the preset's control hints, and bind no
-safeguard. That includes failed sign-ins, logons with no `is_mfa` value,
-logoffs, failed grants, other account lifecycle changes, and all API activity.
+All other rows remain `observed` or keep their finding status, carry the
+preset's control hints, and bind no safeguard. That includes failed sign-ins,
+logons with no `is_mfa` value, logoffs, failed grants, other account lifecycle
+changes, group removals and creations, all API activity, all detection findings,
+and findings on resource types the rules do not list.
 A failed sign-in records an attempt, not a failed control. A user passes only
 when every retained successful logon for that user used MFA. That does not show
 MFA is enforced on paths the source never recorded. One successful logon
 without MFA fails the user. A privilege grant shows that
 access changed. It does not show whether the change was authorized, so it
 blocks a pass on access review until someone reviews it. It is not reported as
-a failure. Rows that match a rule keep only the control hints that rule
-concerns. For example, an MFA verdict does not tag the logging requirements.
+a failure. Adding a user to a group and assigning privileges to a group are
+privilege grants in the same sense; the group is the asset under review. Rows
+that match a rule keep only the control hints that rule concerns. For example,
+an MFA verdict does not tag the logging requirements.
 
-Both presets use the `identity_user` asset type, which those safeguards accept.
-The CCF assessment counts every identity it observes. A user who appears only in
-account-change events therefore stays unassessed for MFA rather than passing.
+The authentication and account-change presets use the `identity_user` asset
+type, and the group-management preset uses `identity_group`. The safeguards
+they bind accept both. The CCF assessment counts every identity it observes. A
+user who appears only in account-change events, or a group, therefore stays
+unassessed for MFA rather than passing.
 Proposed crosswalk mappings, such as SG-IDENTITY-001 to ISO27001-A.8.5, are
 never attested. Review them through [mapping review](MAPPING_REVIEW.md).
 
@@ -359,11 +376,59 @@ ones. Add `"rules": []` to return to presence-only mapping:
 }
 ```
 
-Finding presets (detection, vulnerability, compliance, and security findings)
-bind no safeguard. Their asset type comes from the vendor resource type, such as
-`AwsEc2Instance`, which no safeguard lists. The assessment would report such a
-binding as invalid rather than evaluate it. To bind them, override `asset_type`
-with a type the safeguard accepts, and add a rule or `fields.safeguard_ids`.
+#### Resource types in finding and API activity presets
+
+A safeguard applies only to the asset types it lists, and vendor resource types
+such as `AwsEc2Instance` appear in none of them. The finding presets
+(detection, vulnerability, compliance, and security findings) and
+`ocsf/api_activity` therefore translate the vendor type to a catalog asset type
+when there is a clear equivalent:
+
+| Security Hub type (findings) | CloudTrail type (API activity) | Asset type        |
+| ---------------------------- | ------------------------------ | ----------------- |
+| `AwsEc2Instance`             | `AWS::EC2::Instance`           | `host`            |
+| `AwsEcrContainerImage`       | (none)                         | `container_image` |
+| `AwsS3Bucket`                | `AWS::S3::Bucket`              | `s3_bucket`       |
+| `AwsIamRole`                 | `AWS::IAM::Role`               | `iam_role`        |
+| `AwsIamUser`                 | `AWS::IAM::User`               | `identity_user`   |
+| `AwsIamGroup`                | `AWS::IAM::Group`              | `identity_group`  |
+
+All five presets share this table. The assessment treats an asset seen under two
+types as ambiguous and evaluates none of its bindings. One EC2 instance named in
+an Inspector finding, a Security Hub check, a GuardDuty detection, and a
+CloudTrail call keeps the single type `host`. The `iam_role` translation also
+matches the type the `aws-posture` connector gives the same role ARN. Any other
+type, such as `AwsAccount`, `AwsLambdaFunction`, or `AwsIamPolicy`, passes
+through unchanged. Such an asset is not counted for any safeguard and binds
+none. The original value is kept in `attributes.resource_type`.
+
+Only two finding rules bind a safeguard, and they keep the finding's own status:
+
+- A vulnerability finding on an EC2 instance or ECR container image is evidence
+  for `SG-VULNERABILITYMANAGEMENT-001`. New and In Progress findings are open,
+  Resolved findings pass, and Suppressed findings are observations, so they give
+  no verdict.
+- A compliance check on an EC2 instance is evidence for `SG-CONFIGBASELINE-001`.
+  The preset treats the source's checks, such as AWS Foundational Security Best
+  Practices, as the configuration baseline. Confirm that they match the baseline
+  you define before you rely on a pass. Warning results are observations.
+
+Translated types also count toward each safeguard's observed population. An EC2
+instance that appears only in a detection finding is applicable to the
+vulnerability safeguard and stays unassessed there. It does not pass. Detection
+findings bind nothing because an open detection is not a monitoring failure.
+Legacy security findings (OCSF 1.0.0-rc.2) bind nothing because they mix
+detections, vulnerabilities, and checks. `SG-CONFIGBASELINE-001` lists
+`cloud_policy`, `cloud_resource`, `host`, and `service`, so a check on an S3
+bucket or IAM role does not bind it. The vulnerability safeguard's crosswalk
+maps reviewed requirements such as SOC 2 CC7.1 and ISO 27001 A.8.8. The baseline
+safeguard's reviewed requirements are NIST CSF PR.PS-01 and NIST 800-171
+configuration requirements. Its mappings to ISO 27001 A.8.9 and NIST 800-53 CM-6
+are proposed and are not attested.
+
+To bind other resource types, override `fields.asset_type` with a map that
+covers them and replace `rules`, keeping each bound type in the safeguard's
+`asset_types`.
 
 Amazon Security Lake source version 2 writes OCSF 1.1.0 and source version 1
 writes OCSF 1.0.0-rc.2

@@ -183,15 +183,22 @@ crosswalk:
 flowchart LR
   A["OCSF Authentication 3002<br/>successful Logon, is_mfa"] --> S1["SG-IDENTITY-001<br/>Logical access and MFA"]
   B["OCSF Account Change 3001<br/>Attach Policy"] --> S2["SG-IDENTITY-002<br/>Access review"]
+  G["OCSF Group Management 3006<br/>Add User, Assign Privileges"] --> S2
+  V["OCSF Vulnerability Finding 2002<br/>EC2 instance, ECR image"] --> S3["SG-VULNERABILITYMANAGEMENT-001<br/>Vulnerability management"]
+  C["OCSF Compliance Finding 2003<br/>EC2 instance"] --> S4["SG-CONFIGBASELINE-001<br/>Hardened configuration baselines"]
   S1 --> R1["SOC 2 CC6.1 · NIST 800-53 IA-2<br/>CIS AWS 1.10 · …"]
   S2 --> R2["SOC 2 CC6.2 · ISO 27001 A.8.2 · …"]
+  S3 --> R3["SOC 2 CC7.1 · ISO 27001 A.8.8<br/>NIST 800-53 RA-5 · …"]
+  S4 --> R4["NIST CSF PR.PS-01 · …"]
 ```
 
 The rules state only what an event shows. A successful logon with MFA passes for
-that user, and one without MFA is open. A privilege grant blocks an access-review
-pass until someone reviews it, but it is not reported as a failure. Failed
-sign-ins and API activity remain observations. Proposed crosswalk mappings are
-never attested.
+that user, and one without MFA is open. A privilege grant, including adding a
+user to a group, blocks an access-review pass until someone reviews it, but it is
+not reported as a failure. Vulnerability findings and configuration checks keep
+their own open or resolved status. They bind a safeguard only for resource types
+with a clear catalog equivalent. Failed sign-ins, API activity, and detection
+findings remain unbound. Proposed crosswalk mappings are never attested.
 
 For example, to read one OCSF table on Databricks:
 

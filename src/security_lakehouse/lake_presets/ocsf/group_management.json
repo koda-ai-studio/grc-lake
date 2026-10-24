@@ -1,0 +1,150 @@
+{
+  "spec_version": 1,
+  "name": "ocsf_group_management",
+  "description": "OCSF Group Management (class_uid 3006), OCSF 1.1.0. Group membership and privilege changes for account-management controls. Not emitted by Amazon Security Lake's native CloudTrail source; expect it from custom sources such as directory or identity-provider logs. A successful Add User or Assign Privileges is a privilege grant pending review: it blocks a pass on SG-IDENTITY-002 without asserting a failure.",
+  "source": {
+    "table": "ocsf_table",
+    "incremental": true,
+    "lookback_minutes": 60
+  },
+  "filters": [
+    {
+      "column": "class_uid",
+      "op": "eq",
+      "value": 3006
+    }
+  ],
+  "fields": {
+    "id": {
+      "columns": [
+        "metadata.uid",
+        "time",
+        "group.uid",
+        "group.name",
+        "user.uid",
+        "activity_id"
+      ]
+    },
+    "observed_at": {
+      "column": "time_dt",
+      "format": "timestamp"
+    },
+    "source": {
+      "coalesce": [
+        {
+          "column": "metadata.product.name"
+        },
+        {
+          "const": "ocsf"
+        }
+      ]
+    },
+    "severity": {
+      "column": "severity_id",
+      "map": {
+        "0": "info",
+        "1": "info",
+        "2": "low",
+        "3": "medium",
+        "4": "high",
+        "5": "critical",
+        "6": "critical",
+        "99": "info"
+      },
+      "default": "info"
+    },
+    "event_type": {
+      "const": "ocsf.group_management"
+    },
+    "asset_id": {
+      "coalesce": [
+        {
+          "column": "group.uid"
+        },
+        {
+          "column": "group.name"
+        }
+      ]
+    },
+    "asset_type": {
+      "const": "identity_group"
+    },
+    "controls": {
+      "const": [
+        "SOC2-CC6.2",
+        "SOC2-CC6.3",
+        "ISO27001-A.5.16",
+        "ISO27001-A.5.18",
+        "NIST-800-53-AC-2"
+      ]
+    }
+  },
+  "rules": [
+    {
+      "name": "group_privilege_grant",
+      "when": [
+        {
+          "column": "activity_id",
+          "op": "in",
+          "value": [1, 3]
+        },
+        {
+          "column": "status_id",
+          "op": "eq",
+          "value": 1
+        }
+      ],
+      "status": "not_evaluated",
+      "severity": "medium",
+      "controls": ["SOC2-CC6.2", "ISO27001-A.5.18"],
+      "safeguard_ids": ["SG-IDENTITY-002"]
+    }
+  ],
+  "attributes": {
+    "ocsf_class_uid": {
+      "column": "class_uid"
+    },
+    "ocsf_activity_id": {
+      "column": "activity_id"
+    },
+    "ocsf_status_id": {
+      "column": "status_id"
+    },
+    "ocsf_version": {
+      "column": "metadata.version"
+    },
+    "product": {
+      "column": "metadata.product.name"
+    },
+    "vendor": {
+      "column": "metadata.product.vendor_name"
+    },
+    "cloud_account": {
+      "column": "cloud.account.uid"
+    },
+    "cloud_region": {
+      "column": "cloud.region"
+    },
+    "outcome": {
+      "column": "status"
+    },
+    "activity": {
+      "column": "activity_name"
+    },
+    "group": {
+      "column": "group.name"
+    },
+    "member": {
+      "column": "user.name"
+    },
+    "privileges": {
+      "column": "privileges"
+    },
+    "actor": {
+      "column": "actor.user.name"
+    },
+    "src_ip": {
+      "column": "src_endpoint.ip"
+    }
+  }
+}

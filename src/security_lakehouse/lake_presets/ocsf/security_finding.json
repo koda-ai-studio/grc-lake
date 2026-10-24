@@ -67,7 +67,20 @@
         {
           "const": "cloud_resource"
         }
-      ]
+      ],
+      "map": {
+        "AwsEc2Instance": "host",
+        "AwsEcrContainerImage": "container_image",
+        "AwsS3Bucket": "s3_bucket",
+        "AwsIamRole": "iam_role",
+        "AwsIamUser": "identity_user",
+        "AwsIamGroup": "identity_group",
+        "AWS::EC2::Instance": "host",
+        "AWS::S3::Bucket": "s3_bucket",
+        "AWS::IAM::Role": "iam_role",
+        "AWS::IAM::User": "identity_user",
+        "AWS::IAM::Group": "identity_group"
+      }
     },
     "status": {
       "column": "state_id",
@@ -119,6 +132,9 @@
     },
     "compliance_status": {
       "column": "compliance.status"
+    },
+    "resource_type": {
+      "column": "resources[0].type"
     }
   }
 }

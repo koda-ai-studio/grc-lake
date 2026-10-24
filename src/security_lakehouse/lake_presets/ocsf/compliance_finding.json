@@ -1,7 +1,7 @@
 {
   "spec_version": 1,
   "name": "ocsf_compliance_finding",
-  "description": "OCSF Compliance Finding (class_uid 2003), OCSF 1.1.0 (Amazon Security Lake source version 2). Configuration-check results; compliance.status_id drives pass/open.",
+  "description": "OCSF Compliance Finding (class_uid 2003), OCSF 1.1.0 (Amazon Security Lake source version 2). Configuration-check results; compliance.status_id drives pass/open. Checks on an EC2 instance bind SG-CONFIGBASELINE-001.",
   "source": {
     "table": "ocsf_table",
     "incremental": true,
@@ -67,7 +67,20 @@
         {
           "const": "cloud_resource"
         }
-      ]
+      ],
+      "map": {
+        "AwsEc2Instance": "host",
+        "AwsEcrContainerImage": "container_image",
+        "AwsS3Bucket": "s3_bucket",
+        "AwsIamRole": "iam_role",
+        "AwsIamUser": "identity_user",
+        "AwsIamGroup": "identity_group",
+        "AWS::EC2::Instance": "host",
+        "AWS::S3::Bucket": "s3_bucket",
+        "AWS::IAM::Role": "iam_role",
+        "AWS::IAM::User": "identity_user",
+        "AWS::IAM::Group": "identity_group"
+      }
     },
     "status": {
       "column": "compliance.status_id",
@@ -90,6 +103,20 @@
       ]
     }
   },
+  "rules": [
+    {
+      "name": "configuration_baseline",
+      "when": [
+        {
+          "column": "resource.type",
+          "op": "in",
+          "value": ["AwsEc2Instance"]
+        }
+      ],
+      "controls": ["ISO27001-A.8.9", "NIST-800-53-CM-6"],
+      "safeguard_ids": ["SG-CONFIGBASELINE-001"]
+    }
+  ],
   "attributes": {
     "ocsf_class_uid": {
       "column": "class_uid"
@@ -129,6 +156,9 @@
     },
     "compliance_standards": {
       "column": "compliance.standards"
+    },
+    "resource_type": {
+      "column": "resource.type"
     }
   }
 }
