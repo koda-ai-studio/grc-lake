@@ -5,3 +5,5 @@ out/
 .env*.local
 test-results/
 playwright-report/
+demo-snapshot/
+demo-site/

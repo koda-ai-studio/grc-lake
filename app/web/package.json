@@ -9,6 +9,11 @@
   "scripts": {
     "dev": "next dev --webpack -p 5173",
     "build": "next build --webpack && node scripts/copy_static_export.mjs",
+    "build:demo": "export NEXT_PUBLIC_DEMO_SNAPSHOT=1 CONSOLE_BASE_PATH=\"${CONSOLE_BASE_PATH:-/grc-lake/console}\" && next build --webpack && node scripts/assemble_demo_site.mjs",
+    "record:demo": "node scripts/record_demo_snapshot.mjs",
+    "serve:demo": "node scripts/serve_demo_site.mjs",
+    "test:demo": "node --test scripts/test_demo_snapshot.mjs",
+    "test:demo-site": "playwright test -c playwright.demo.config.ts",
     "start": "next start -p 5173",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src",

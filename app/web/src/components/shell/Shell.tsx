@@ -10,6 +10,7 @@ import { MobileNav, Sidebar } from "./Sidebar";
 import { TopBar } from "./TopBar";
 import { ApiHealthBanner } from "@/components/ApiHealthBanner";
 import { AuditorBanner } from "@/components/AuditorBanner";
+import { DemoBanner } from "@/components/demo/DemoBanner";
 import { SnapshotModal } from "@/components/modals/SnapshotModal";
 import { api } from "@/lib/api/client";
 import { ROUTE_LABELS } from "@/lib/console-copy";
@@ -57,6 +58,7 @@ export function Shell({ children }: { children: ReactNode }) {
     return (
       <main id="main-content" className="min-h-screen bg-panel">
         <title>{pageTitle}</title>
+        {process.env.NEXT_PUBLIC_DEMO_SNAPSHOT === "1" ? <DemoBanner /> : null}
         {children}
       </main>
     );
@@ -73,6 +75,7 @@ export function Shell({ children }: { children: ReactNode }) {
           Skip to main content
         </a>
         <PlatformStreamLiveRegion />
+        {process.env.NEXT_PUBLIC_DEMO_SNAPSHOT === "1" ? <DemoBanner /> : null}
         <TopBar
           onRefresh={onRefresh}
           onSnapshot={onSnapshot}
