@@ -160,7 +160,9 @@ test("evidence table opens an evidence drawer with lineage", async ({
   await expect(drawer).toBeVisible();
   await drawer.getByRole("button", { name: "Trace frozen results" }).click();
   await expect(drawer.getByText(/Generation integrity/)).toBeVisible();
-  await expect(drawer.getByText(/Lineage could not be verified/)).toHaveCount(0);
+  await expect(drawer.getByText(/Lineage could not be verified/)).toHaveCount(
+    0,
+  );
   await expectHealthy(page);
   expect(problems).toEqual([]);
 });
@@ -260,7 +262,9 @@ test("a view missing from the snapshot renders as unavailable, not as an outage"
     await route.fulfill({ json: manifest });
   });
   await open(page, "/risks/");
-  await expect(page.getByRole("status").filter({ hasText: UNAVAILABLE })).toBeVisible();
+  await expect(
+    page.getByRole("status").filter({ hasText: UNAVAILABLE }),
+  ).toBeVisible();
   await expect(page.getByText(API_DOWN)).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Retry" })).toHaveCount(0);
 });
