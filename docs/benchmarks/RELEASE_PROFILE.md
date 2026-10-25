@@ -51,11 +51,20 @@ It checks receipts; it does not itself rerun the benchmark or attest their origi
 
 The [October 25 profile receipt](release-profile-2026-10-25.json) retains source,
 configuration, host characteristics, raw receipt hashes and summarized outcomes.
-Two sequential runs passed these limits. At 10k records per tenant,
+Two initial sequential runs passed these limits. At 10k records per tenant,
 successful warm p95 ranged from 67–143 ms, cold reads from 1.85–3.12 seconds,
 and peak RSS from 319.6–415.9 MiB. Shared-host and OS-cache effects remain
 uncontrolled. These are observations, not causal speedup claims. Raw receipt
 hashes retain both attempts; faster later results do not replace the first run.
+
+A third run on candidate `488dbc4cf7737ea3074f2d9854803c1eba1ede5c` also
+passed, using Python 3.13.5 (the earlier runs used 3.12.13). At 10k records per
+tenant, successful warm p95 was approximately 40 ms, first reads 1.15–1.18 seconds,
+and peak RSS 457.0 MiB. Under sustained overload, admission fractions were 15.6%
+for the hot tenant and 61.7% for the cold tenant; most rejections were explicit
+rate limits. Both tenants completed more than 1,500 reads, with maximum success
+gaps below 154 ms. These observations do not promise that every submitted request
+will be admitted or establish a speedup across Python versions or host conditions.
 
 At 100k records per tenant the [earlier measurements](INVESTIGATION_CACHE.md)
 retained no models in the shipped cache and took roughly 14–16 seconds for reads.

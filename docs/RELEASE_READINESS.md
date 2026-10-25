@@ -50,8 +50,19 @@ two tenants with up to 10k synthetic records each and four clients, warm p95 at 
 500 ms, first/expired reads at most 5 seconds and process RSS at most 1 GiB, with
 both tenants making progress under overload. The checker uses a maximum two-second
 success gap to measure that progress and reports admission rejections separately.
-Two clean-source runs passed; repeat the profile on the final candidate. These
-results do not qualify 100k interactive use, browser rendering or production sizing.
+Two initial clean-source runs and candidate `488dbc4cf7737ea3074f2d9854803c1eba1ede5c`
+passed. The candidate measured about 40 ms successful warm p95, 1.15–1.18 second
+first reads and 457 MiB peak RSS at 10k records per tenant. Admission rejections
+remain separate, as recorded in the receipt. These results do not qualify 100k
+interactive use, browser rendering or production sizing.
+
+Local candidate checks also passed 172 targeted Python cases, console build/lint,
+static/catalog validation, dependency audits and wheel-content checks. Fresh
+bare wheel and source-archive installs exercised fixtures, replay, integrity,
+snapshots and the local console; a separate wheel installation exercised server
+startup, catalog isolation and integrity routes. Synthetic connector-to-export
+qualification and all 20 control-workpaper cases passed at source `488dbc4c`.
+These checks do not replace required CI or qualification of published bytes.
 
 The [focused recovery/confidentiality packet](reviews/RECOVERY_CONFIDENTIALITY.md)
 records the additional evidence needed for SOC2-A1.3 and SOC2-C1.1. Both mappings
