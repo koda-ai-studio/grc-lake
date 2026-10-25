@@ -56,6 +56,17 @@ back to an unpinned version. Python dependencies continue to use `uv.lock` and
 hash-verified installation. This build configuration does not alter existing
 published release images or their scan results below.
 
+### 0.3.11 release qualification scans
+
+The [0.3.11 release workflow](https://github.com/koda-ai-studio/grc-lake/actions/runs/40155762881)
+qualified AMD64 and emulated ARM64 on source
+`dc8aaef4833a7fe8530f536460b899dd2b33582f`. Each unfiltered Trivy report contains
+29 recognized Wolfi and 105 Python packages, with zero reported vulnerabilities.
+Brotli runtime libraries moved to 1.2.0-r7 for CVE-2026-111497; the rest of the
+system-package resolution is unchanged. No suppression or applicability exception
+was added. Published filesystem layers and runtime settings match the scanned
+images; see [publication verification](RELEASE_READINESS.md#verified-0311-publication).
+
 ### 0.3.10 release qualification scans
 
 The [0.3.10 release workflow](https://github.com/koda-ai-studio/grc-lake/actions/runs/39790934886)

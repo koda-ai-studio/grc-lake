@@ -13,13 +13,17 @@ Both failures are invisible until a user hits them, which is why this runs
 between build and publish.
 
     python tools/verify_wheel.py dist/*.whl
+    python tools/verify_wheel.py --published dist/*.whl   # also check the PyPI description
 """
 
 from __future__ import annotations
 
 import sys
 import zipfile
+from email.parser import Parser
 from pathlib import Path
+
+from pypi_readme import relative_links
 
 # Prefix -> what its absence would break for someone who pip-installs the wheel.
 REQUIRED: dict[str, str] = {
@@ -75,9 +79,22 @@ def verify(wheel: Path) -> list[str]:
     return problems
 
 
+def published_readme_problems(wheel: Path) -> list[str]:
+    """Relative README links render as broken images and links on the PyPI page."""
+    with zipfile.ZipFile(wheel) as archive:
+        metadata = next(name for name in archive.namelist() if name.endswith(".dist-info/METADATA"))
+        description = Parser().parsestr(archive.read(metadata).decode()).get_payload()
+    return [
+        f"relative README link {target!r} -- run tools/pypi_readme.py before building"
+        for target in relative_links(description)
+    ]
+
+
 def main(argv: list[str]) -> int:
+    published = "--published" in argv
+    argv = [arg for arg in argv if arg != "--published"]
     if not argv:
-        print("usage: verify_wheel.py <wheel> [<wheel> ...]", file=sys.stderr)
+        print("usage: verify_wheel.py [--published] <wheel> [<wheel> ...]", file=sys.stderr)
         return 2
 
     failed = False
@@ -87,7 +104,7 @@ def main(argv: list[str]) -> int:
             print(f"not a file: {wheel}", file=sys.stderr)
             failed = True
             continue
-        problems = verify(wheel)
+        problems = verify(wheel) + (published_readme_problems(wheel) if published else [])
         if problems:
             failed = True
             print(f"{wheel.name}: NOT publishable", file=sys.stderr)
