@@ -22,7 +22,7 @@ def test_generated_matrix_is_current_and_does_not_promote_historical_checks():
     catalog, records = inputs()
     rows = qualification.build_rows(catalog, records)
     assert len(rows) == len(catalog)
-    live = {"aws-posture", "azure-posture", "gcp-posture", "github-security"}
+    live = {"aws-posture", "azure-posture", "gcp-posture", "github-security", "databricks-evidence-lake"}
     assert {row["connector_id"] for row in rows if row["live_record"]} == live
     assert {row["connector_id"]: row["owner"] for row in rows if row["owner"]} == dict.fromkeys(live, "maintainer")
     assert all(

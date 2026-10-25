@@ -880,7 +880,7 @@ Setup:
 
 1. Run [`deploy/databricks/bootstrap_poc.sql`](../deploy/databricks/bootstrap_poc.sql)
    as a user who can create a catalog and read `system.access.audit`, replacing
-   `<grc-lake-sp-application-id>` with a service principal's application id.
+   `<trustops-sp-application-id>` with a service principal's application id.
 2. Grant that service principal `CAN USE` on one SQL warehouse.
 3. Create an OAuth secret for the service principal and store it as a secret
    reference (`client_secret_ref`, default `DATABRICKS_CLIENT_SECRET`).
@@ -893,8 +893,16 @@ host must be a Databricks workspace domain (`*.cloud.databricks.com`,
 `*.azuredatabricks.net`, `*.gcp.databricks.com`); result chunk links may not
 leave it; catalog, schema, and view names are strict identifiers quoted with
 backticks. The bootstrap views keep the latest 10,000 audit events so a read
-stays under the 25 MiB inline result limit. This connector has not yet been
-verified against a live workspace.
+bounds row count; actual payload size must still fit the 25 MiB inline result
+limit. The bootstrap accepts both audit response field spellings (`status_code`
+and `statusCode`). An empty audit window or missing response code does not
+establish a passing denied-access review.
+
+A [bounded trial receipt](qualification/live/2026-10-25-databricks.md) records
+OAuth collection and recollection of eight synthetic rows, plus two
+`not_evaluated` summaries over an empty system audit log. The adapter remains
+Preview: populated system audit logs, multi-chunk results, throttling and
+credential expiry still need live qualification.
 
 ## Jamf Pro: macOS and iOS device posture (preview)
 

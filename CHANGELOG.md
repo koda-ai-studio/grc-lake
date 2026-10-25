@@ -5,6 +5,8 @@ Python package, Helm chart, and bundled web console.
 
 ## Unreleased
 
+- Accept both Databricks audit response field spellings in the POC bootstrap. Empty audit windows and incomplete response codes no longer imply a passing denied-access review. Record bounded live OAuth and recollection checks; the adapter remains Preview.
+
 - Carry framework (CCF) results and reviewed/proposed mapping counts into both framework and repository maps. A passing control test with a missing or non-passing CCF result stays unattested, including older payloads. Rebuild cached maps when their assessment inputs change.
 
 - Keep investigation graph models warm while they are in use: a read now renews the 60-second cache entry, so a model expires only after 60 seconds without reads. Document that models in active use which do not fit the cache budget together can rebuild on every request. The control drawer now says "1 record with outcomes" instead of "1 records". Refresh the Controls, Frameworks and control drawer screenshots for the control test and framework result labels.
