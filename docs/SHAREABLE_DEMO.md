@@ -15,7 +15,10 @@ Use this guide when you want a **hosted link** evaluators can open, sign into, *
 
 Set `GRC_LAKE_PUBLIC_URL` on the server (Helm `env` or process environment). The console **Launch** and **Demo** pages surface copyable links when this variable is set.
 
-## Operator flow (15 minutes)
+## Operator flow
+
+Allow time for deployment, identity setup and source permissions; this is not a
+measured setup-time guarantee.
 
 1. Deploy from [Shareable POC Hosting](SHAREABLE_POC_HOSTING.md) or `deploy/examples/aws-snowflake-poc-values.yaml`.
 2. Configure OIDC/SAML — **do not** use `--allow-insecure-no-auth` for external shares.
@@ -26,7 +29,7 @@ Set `GRC_LAKE_PUBLIC_URL` on the server (Helm `env` or process environment). The
 7. Confirm dashboard shows non-empty posture from live sync.
 8. Create a trust-center share for external reviewers.
 
-## Account linking (true ingestion)
+## Account linking
 
 GRC Lake uses **read-only** connectors. The console walks:
 
@@ -36,7 +39,7 @@ Connect → Discover scope → Probe (Test) → Enable → Sync → Posture upda
 
 Recommended first links (deep-link from Launch page):
 
-| Connector                 | What it proves                  |
+| Connector                 | Evidence it can collect         |
 | ------------------------- | ------------------------------- |
 | `aws-posture`             | Cloud IAM + config evidence     |
 | `azure-posture`           | Azure subscription posture      |

@@ -64,6 +64,14 @@ startup, catalog isolation and integrity routes. Synthetic connector-to-export
 qualification and all 20 control-workpaper cases passed at source `488dbc4c`.
 These checks do not replace required CI or qualification of published bytes.
 
+The content and visual pass refreshed 42 synthetic console captures and passed
+96 screenshot checks; the combined public-copy, README, adoption and screenshot
+suite passed 141 cases. Catalog-derived checks now guard the connector overview
+counts. The README exposes the local performance profile and keeps detailed
+coverage counts expandable. Desktop/mobile preview checks found no broken images
+or horizontal overflow at the inspected widths; these are layout checks, not a
+browser capacity qualification.
+
 The [focused recovery/confidentiality packet](reviews/RECOVERY_CONFIDENTIALITY.md)
 records the additional evidence needed for SOC2-A1.3 and SOC2-C1.1. Both mappings
 remain proposed. Only an eligible human reviewing the full requirement text can

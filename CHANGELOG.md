@@ -5,6 +5,8 @@ Python package, Helm chart, and bundled web console.
 
 ## 0.3.14 - 2026-10-25
 
+- Refresh the README structure and console screenshots, expose the bounded graph performance profile, and reconcile connector summaries with the catalog. Preview qualification now distinguishes limited live receipts from provider-wide coverage. Add a regression check for overview counts and remove an unmeasured hosted-demo setup-time claim.
+
 - Add a repeatable local graph performance acceptance check for two tenants at 1k/10k records each. It checks cold and warm latency, idle-expiry reads, memory and tenant progress while reporting admission rejections separately. These bounded synthetic measurements do not qualify production capacity.
 
 - Renew Databricks OAuth tokens before expiry and retry an unauthorized SQL request once with fresh credentials. Invalid token lifetimes are rejected, repeated authorization failures stop, and rate-limit retries continue to honor `Retry-After`. These recovery paths are tested with synthetic responses; live expiry and throttling remain separate qualification.
