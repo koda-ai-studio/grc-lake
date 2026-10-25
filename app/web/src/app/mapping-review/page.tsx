@@ -123,7 +123,7 @@ function basisLabel(item: MappingReviewItem): string {
   if (item.mapping_source) return "Published crosswalk";
   if (item.shipped_review_status === "reviewed")
     return item.review_state === "proposed"
-      ? "Earlier maintainer review · needs re-review"
+      ? "Earlier maintainer review · needs re\u2011review"
       : "Maintainer review";
   return "Proposed equivalence";
 }
