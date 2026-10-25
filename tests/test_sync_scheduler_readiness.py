@@ -287,7 +287,7 @@ def test_scheduler_connector_sync_runs_real_github_fixture(tmp_path: Path) -> No
     assert result[0]["target_kind"] == "connector"
     assert result[0]["connector_id"] == "github-security"
     assert result[0]["result"] == "ok"
-    assert result[0]["evidence_count"] == 6
+    assert result[0]["evidence_count"] == 7
     assert latest_run(tmp_path, "github-security", kind="sync")["result"] == "ok"
 
 

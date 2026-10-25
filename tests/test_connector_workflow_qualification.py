@@ -14,7 +14,7 @@ def test_three_source_workflow_retains_evidence_and_replays(tmp_path):
     report = qualification.qualify(out)
     assert report["status"] == "passed", report
     assert report["qualification_level"] == "synthetic_connector_workflow_only"
-    assert report["observed_counts"] == {"github-repo-governance": 6, "okta": 8, "jira": 8}
+    assert report["observed_counts"] == {"github-repo-governance": 7, "okta": 8, "jira": 8}
     assert all(report["checks"].values())
     assert report["checks"]["failed_collection_preserves_evidence"]
     assert report["checks"]["replay_preserves_event_ids"]

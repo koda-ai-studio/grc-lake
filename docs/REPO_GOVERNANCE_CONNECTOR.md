@@ -76,7 +76,7 @@ Each emitted record includes:
 - `source=github-repo-governance` or `source=gitlab-repo-governance`
 - `event_type`
 - `entity.asset_id`
-- `entity.asset_type=repository`
+- `entity.asset_type=repository` (`repo` for the change-approval verdict below)
 - `entity.repo`
 - `controls`
 - `evidence.evidence_id`
@@ -85,9 +85,26 @@ Each emitted record includes:
 - `evidence.raw_sha256`
 - `attributes.source_health`
 
-The connector collects evidence only. Compliance posture is still evaluated by
-the assessment engine from normalized facts, mappings, freshness, and control
-rules.
+The signals above are observations (`status=observed`), except that
+`repository.governance.security_findings` is `open` while open alerts exist. None
+of them is bound to a safeguard.
+
+For GitHub, the connector also emits one evaluated
+`repository.governance.change_approval` record for the default branch, bound to
+the `SG-CHANGEAPPROVAL-001` safeguard (asset `github:repo:OWNER/REPO#default-branch`,
+`entity.asset_type=repo`, controls `SOC2-CC8.1` and `ISO27001-A.8.32`). Its
+status comes from the branch-protection record:
+
+| Status          | When                                                                                                                                                                       |
+| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pass`          | protection is readable, `required_approving_review_count >= 1`, `enforce_admins.enabled` is true, and `allow_force_pushes.enabled` and `allow_deletions.enabled` are false |
+| `open`          | protection is readable and any of those is not met; `attributes.unmet_requirements` lists which (no pull request review requirement counts as zero approvals)              |
+| `not_evaluated` | protection is unreadable (HTTP 401, 403 or 404; a 404 is not read as "unprotected") or a required setting is missing or malformed (`attributes.unknown_requirements`)      |
+
+Re-syncs replace the record (its `event_id` is stable per repository).
+Framework requirements still need a reviewed mapping before this safeguard
+result can be attested. Compliance posture is evaluated by the assessment
+engine from normalized facts, mappings, freshness, and control rules.
 
 ## Relationship To Public Audit
 

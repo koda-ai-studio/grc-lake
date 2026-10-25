@@ -27,7 +27,7 @@ from security_lakehouse.verification import verify_event, verify_lake_integrity
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCES = {"github-security": "github-governance", "okta-identity": "okta", "jira-ticketing": "jira"}
-EXPECTED_COUNTS = {"github-repo-governance": 6, "okta": 8, "jira": 8}
+EXPECTED_COUNTS = {"github-repo-governance": 7, "okta": 8, "jira": 8}
 
 
 def write_json(path: Path, value: dict) -> None:
@@ -98,6 +98,7 @@ def qualify(out: Path) -> dict:
             ("okta.identity.mfa_enrollment", "okta:user:00u3deprovision03"): "observed",
             ("jira.workflow.ticket", "jira:issue:SEC-101"): "pass",
             ("jira.workflow.ticket", "jira:issue:SEC-102"): "open",
+            ("repository.governance.change_approval", "github:repo:acme/model-service#default-branch"): "pass",
         }
         checks["fixture_outcomes_preserved"] = all(
             statuses.get(key) == value for key, value in expected_statuses.items()

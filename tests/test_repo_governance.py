@@ -87,6 +87,7 @@ def test_governance_sync_fixture_emits_valid_raw_events(tmp_path: Path) -> None:
     by_type = {row["event_type"]: row for row in rows}
     assert set(by_type) == {
         "repository.governance.branch_protection",
+        "repository.governance.change_approval",
         "repository.governance.collaborators",
         "repository.governance.security_settings",
         "repository.governance.security_findings",
@@ -319,6 +320,6 @@ def test_governance_sync_cli_writes_jsonl(tmp_path: Path, capsys) -> None:  # ty
     )
     assert code == 0
     payload = json.loads(capsys.readouterr().out)
-    assert payload["count"] == 6
+    assert payload["count"] == 7
     rows = read_jsonl(out)
     assert validate_raw_events(rows) == []
