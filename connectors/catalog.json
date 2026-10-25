@@ -41,7 +41,7 @@
         "CAN USE on the SQL warehouse",
         "USE CATALOG on the evidence catalog",
         "USE SCHEMA on the evidence schema",
-        "SELECT on the four TrustOps evidence views"
+        "SELECT on the four GRC Lake evidence views"
       ],
       "evidence_types": [
         "audit_event",
@@ -58,7 +58,7 @@
       "native_connector": false,
       "data_shape": "current_state",
       "vendor": "Databricks",
-      "description": "Read-only SELECT on TrustOps evidence views in a Unity Catalog schema, through a SQL warehouse.",
+      "description": "Read-only SELECT on GRC Lake evidence views in a Unity Catalog schema, through a SQL warehouse.",
       "setup_hint": "Service principal with OAuth M2M, CAN USE on one SQL warehouse, and SELECT on the evidence views."
     },
     {
@@ -332,8 +332,8 @@
       "access_boundary": "dedicated_schema",
       "credential_type": "local_filesystem",
       "minimum_permissions": [
-        "write dedicated TrustOps output directory",
-        "read generated TrustOps output directory"
+        "write dedicated GRC Lake output directory",
+        "read generated GRC Lake output directory"
       ],
       "evidence_types": [
         "raw_event",
@@ -349,7 +349,7 @@
       "data_shape": "current_state",
       "vendor": "Local",
       "description": "Starter-mode evidence objects on local filesystem.",
-      "setup_hint": "Dedicated TrustOps output directory on the server volume."
+      "setup_hint": "Dedicated GRC Lake output directory on the server volume."
     },
     {
       "connector_id": "google-workspace-identity",
@@ -510,7 +510,7 @@
       "data_shape": "current_state",
       "vendor": "BambooHR",
       "description": "Employment status, hire and termination dates, department, and manager \u2014 no names or sensitive HR fields.",
-      "setup_hint": "API key of a dedicated user whose access level can only view the employment fields TrustOps requests."
+      "setup_hint": "API key of a dedicated user whose access level can only view the employment fields GRC Lake requests."
     },
     {
       "category": "personnel",
@@ -548,11 +548,11 @@
       "name": "Workday Personnel",
       "credential_type": "workday_isu_basic",
       "minimum_permissions": [
-        "Get access to a TrustOps employment custom report (RaaS) via an integration system user"
+        "Get access to a GRC Lake employment custom report (RaaS) via an integration system user"
       ],
       "vendor": "Workday",
       "description": "Employment status, hire and termination dates, department, and manager from a tenant-defined RaaS report.",
-      "setup_hint": "Custom report with the TrustOps column contract, shared with a read-only integration system user."
+      "setup_hint": "Custom report with the GRC Lake column contract, shared with a read-only integration system user."
     },
     {
       "connector_id": "jamf-devices",

@@ -70,7 +70,7 @@ Qualify the actual principal, account, resource scope and provider version separ
 | `bigquery-evidence-lake` | `read_only_role` | roles/bigquery.jobUser on the project that runs the queries; roles/bigquery.dataViewer on the source dataset or tables |
 | `clickhouse-telemetry-lake` | `read_only_role` | Read metadata for allowed databases; SELECT on discovered evidence tables or views; SELECT-only grants for selected evidence surfaces |
 | `crowdstrike-falcon` | `scoped_token` | Hosts: Read; Prevention policies: Read; Alerts: Read |
-| `databricks-evidence-lake` | `read_only_role` | CAN USE on the SQL warehouse; USE CATALOG on the evidence catalog; USE SCHEMA on the evidence schema; SELECT on the four TrustOps evidence views |
+| `databricks-evidence-lake` | `read_only_role` | CAN USE on the SQL warehouse; USE CATALOG on the evidence catalog; USE SCHEMA on the evidence schema; SELECT on the four GRC Lake evidence views |
 | `entra-identity` | `scoped_token` | Application.Read.All |
 | `gcp-posture` | `scoped_token` | resourcemanager.projects.get; iam.roles.list; cloudasset.assets.listResource |
 | `github-security` | `scoped_token` | metadata:read; administration:read; code_scanning_alerts:read; secret_scanning_alerts:read; dependabot_alerts:read |
@@ -83,7 +83,7 @@ Qualify the actual principal, account, resource scope and provider version separ
 | `jira-ticketing` | `scoped_token` | read:jira-work; read:jira-user; read:project:jira |
 | `kubernetes-cluster` | `scoped_token` | get/list clusterrolebindings and rolebindings; get/list namespaces, pods, services, and networkpolicies; get/list deployments, daemonsets, statefulsets, replicasets, jobs, and cronjobs; get/list inferenceservices.serving.kserve.io (optional; KServe clusters) |
 | `lambda-cloud` | `scoped_token` | GET account, instances, firewall rulesets, and SSH keys; Read API keys of user and service identities (optional; key hygiene evidence) |
-| `managed-local-evidence` | `dedicated_schema` | write dedicated TrustOps output directory; read generated TrustOps output directory |
+| `managed-local-evidence` | `dedicated_schema` | write dedicated GRC Lake output directory; read generated GRC Lake output directory |
 | `object-storage-evidence` | `read_only_role` | LIST evidence prefix; GET evidence objects |
 | `okta-identity` | `scoped_token` | okta.users.read; okta.userFactors.read; okta.policies.read |
 | `okta-system-log` | `scoped_token` | okta.logs.read |
@@ -94,4 +94,4 @@ Qualify the actual principal, account, resource scope and provider version separ
 | `snyk-vulnerabilities` | `scoped_token` | View Organization; View Project; View Project History |
 | `ticketing` | `scoped_token` | read project issues; read issue status; read issue labels |
 | `training-completion` | `read_only_role` | read access to the training export file or directory only |
-| `workday-personnel` | `scoped_token` | Get access to a TrustOps employment custom report (RaaS) via an integration system user |
+| `workday-personnel` | `scoped_token` | Get access to a GRC Lake employment custom report (RaaS) via an integration system user |
