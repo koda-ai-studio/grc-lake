@@ -35,6 +35,18 @@ Prepare bounded, current-fingerprint packets for independent review with
 Check each candidate's source reference and operating contract; missing normative
 source access or a named reviewer leaves that candidate proposed.
 
+For a smaller review, repeat `--control` to select exact pending requirements:
+
+```bash
+grc-lake frameworks review packet --framework soc2 \
+  --control SOC2-A1.3 --control SOC2-C1.1 --out focused-review.json
+```
+
+The packet preserves each candidate's current fingerprint and the global coverage
+denominator. Unknown, already-reviewed or out-of-framework selections fail before
+writing output. This is review preparation, not an approval. See the
+[recovery and confidentiality review](reviews/RECOVERY_CONFIDENTIALITY.md).
+
 ## What "reviewed" means
 
 A maintainer review inherited through `review_basis.inherited_from` remains valid

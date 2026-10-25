@@ -7,6 +7,17 @@ Start with [current state and coverage](docs/CURRENT_STATE.md) for shipped paths
 and qualification boundaries. This roadmap describes remaining work, not promises
 of release dates.
 
+## 0.3.14 candidate and stability period
+
+The candidate combines Databricks completeness/recovery checks, focused CCF review
+packets and the accepted [bounded local graph profile](docs/benchmarks/RELEASE_PROFILE.md).
+Release gates and remaining qualification are tracked in
+[release readiness](docs/RELEASE_READINESS.md#0314-candidate). After publication,
+follow the [14-day stability and pilot process](docs/PILOT.md): prioritize reported
+correctness, security, supported-workload performance and setup problems. New
+connectors and unrelated feature expansion wait. No pilot adoption or mapping
+approval is implied by preparing this process.
+
 ## Next milestone: deepen qualification
 
 The 0.3.13 release separates control-test posture from framework results across

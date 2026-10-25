@@ -1,5 +1,8 @@
 # Generation-scoped graph reuse measurements
 
+The [local release profile](RELEASE_PROFILE.md) defines proposed repeatable
+latency, memory and progress gates for the bounded 1k/10k workload.
+
 ## October 25, 2026: sustained traffic, expiry and process memory
 
 The [bounded capacity receipt](investigation-capacity-2026-10-25.json) records
