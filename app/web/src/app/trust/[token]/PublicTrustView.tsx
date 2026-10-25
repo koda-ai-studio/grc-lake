@@ -17,6 +17,7 @@ type FrameworkRow = {
   evaluated_control_count?: number;
   failing_control_count?: number | null;
   stale_control_count?: number | null;
+  attested_pass_count?: number;
 };
 
 // Violation and stale-control counts are only present on detailed (auditor)
@@ -36,6 +37,7 @@ type PublicTrust = {
     state: string | null;
     framework_count: number | null;
     control_count: number | null;
+    attested_pass_count?: number;
     open_violation_count?: number | null;
     critical_violation_count?: number | null;
     high_violation_count?: number | null;
@@ -58,6 +60,8 @@ function readiness(state: string | null): {
   if (state === "partial_evidence")
     return { label: "Partial evidence", tone: "info" };
   if (state === "ready") return { label: "Ready", tone: "ready" };
+  if (state === "not_attested")
+    return { label: "Control tests passing · Not attested", tone: "info" };
   if (state === "not_evaluated") return { label: "Not assessed", tone: "info" };
   return { label: "In progress", tone: "info" };
 }
@@ -248,6 +252,9 @@ export default function PublicTrustView() {
                       ? `${row.evaluated_control_count ?? 0} / ${row.catalog_control_count} catalog controls evaluated`
                       : plural(row.control_count ?? 0, "observed control"),
                   ];
+                  if (typeof row.attested_pass_count === "number") {
+                    detail.push(`${row.attested_pass_count} attested`);
+                  }
                   if (typeof row.failing_control_count === "number") {
                     detail.push(`${row.failing_control_count} failing`);
                   }

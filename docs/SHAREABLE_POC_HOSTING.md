@@ -264,6 +264,12 @@ Recommended defaults:
 - no raw evidence, credentials, owners, assignees, or notes;
 - revoke after the review.
 
+The shared summary reports each framework's `attested_pass_count`: requirements
+whose framework (CCF) result passes through reviewed mappings. A framework reads
+`ready` only when every catalogued requirement is attested; passing control
+tests without attestation read `not_attested` ("Control tests passing · Not
+attested").
+
 ## 7. POC Readiness Checklist
 
 Before sending the link, confirm:
