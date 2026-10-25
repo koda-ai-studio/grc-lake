@@ -2170,11 +2170,26 @@ def _load_fixture(
     }
 
 
+def _interrupt(_signum: int, _frame: object) -> None:
+    raise KeyboardInterrupt
+
+
 def _demo(args: argparse.Namespace) -> int:
-    import tempfile
+    import signal
 
     host = "127.0.0.1"
     _require_free_port(host, args.port)
+    # SIGTERM would otherwise end the process without removing the lake.
+    previous = signal.signal(signal.SIGTERM, _interrupt)
+    try:
+        return _serve_demo(args, host)
+    finally:
+        signal.signal(signal.SIGTERM, previous)
+
+
+def _serve_demo(args: argparse.Namespace, host: str) -> int:
+    import tempfile
+
     with tempfile.TemporaryDirectory(prefix="grc-lake-demo-") as lake:
         print("loading the synthetic golden company...", flush=True)
         _load_fixture("golden", lake, tenant_id="default", rebase_times=True, demo_records=True)

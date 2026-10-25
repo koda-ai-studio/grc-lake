@@ -12,7 +12,28 @@ The console requests at most 150 nodes per neighborhood. The API allows 1–300 
 - Findings retain observed severity and the current recorded triage state. Resolving a workflow does not change the original evidence.
 - Sources and tools produce evidence. Vendor assessments are separate entities. In **Vendor risk → Linked services and assets**, record the exact source-account and asset IDs. Unknown references stay unlinked; provider names never imply vendor assessment coverage.
 
+- Walking from a requirement or safeguard also returns the source that produced each reached evidence record, with its `produces` edge. The source is context only: the walk does not continue into that source's other records.
+- A safeguard-to-evidence `has_evidence` edge whose asset has more than one recorded type, or a type the safeguard's `asset_types` does not accept, carries `binding: "invalid_asset_type"` and a `binding_reason`. The CCF assessment applies the same rule and treats such a binding as `not_evaluated`; the edge is not supporting evidence.
+
 The graph represents evidence relationships, not network reachability, attack paths, complete inventory, or live provider qualification. No compliance pass is inferred from a graph path.
+
+### Requirement node fields
+
+A requirement (`control`) node keeps two separate results:
+
+| Field                      | Meaning                                                                                                                                                             |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `status`                   | Control posture from `gold/control_posture.jsonl`: the evaluation rule applied to evidence tagged with the requirement. `not_evaluated` when no posture row exists. |
+| `rule_reasons`             | Posture rule reasons (list of strings), for example why the requirement fails. Empty when no posture row exists.                                                    |
+| `evaluation_rule`          | Posture evaluation rule name, or `null`.                                                                                                                            |
+| `open_event_count`         | Open violations counted by posture, or `null` when no posture row exists.                                                                                           |
+| `ccf_status`               | The requirement's result in `gold/ccf_assessment.json` (for example `not_evaluated`, `unmapped`, `fail`, `pass`). `not_evaluated` when absent.                      |
+| `reviewed_safeguard_count` | Safeguards with an attestable (reviewed) implementation mapping to the requirement.                                                                                 |
+| `proposed_safeguard_count` | Implementation mappings still pending review; they never count as coverage.                                                                                         |
+
+A posture `pass` is not a framework result. Only `ccf_status` reflects the reviewed CCF crosswalk, and it stays `not_evaluated` while mappings are proposed or the review log is unverified.
+
+Graph versions are content hashes built in a deterministic order, so every worker process and restart serving the same generation and overlays returns the same `version`.
 
 ## API
 

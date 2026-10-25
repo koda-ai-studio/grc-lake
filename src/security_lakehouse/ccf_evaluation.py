@@ -14,6 +14,15 @@ from security_lakehouse.jsontypes import JsonObject
 from security_lakehouse.safeguards import ATTESTABLE_STATES, contributes_to_coverage, effective_review_state
 from security_lakehouse.vocabulary import ControlVerdict
 
+__all__ = ["INVALID_ASSET_TYPE_REASON", "binding_applies", "evaluate_safeguards"]
+
+INVALID_ASSET_TYPE_REASON = "The asset type does not establish safeguard applicability."
+
+
+def binding_applies(asset_types: set[str], eligible_types: set[str]) -> bool:
+    """A binding is assessable only when its asset has one type the safeguard accepts."""
+    return len(asset_types) == 1 and asset_types <= eligible_types
+
 
 def _combine(states: list[str]) -> str:
     if ControlVerdict.FAIL in states:
@@ -82,9 +91,9 @@ def evaluate_safeguards(
             source_tenant_id, asset_id = asset_key
             reasons = []
             types = assets[asset_key]
-            if len(types) != 1 or not types <= eligible_types:
+            if not binding_applies(types, eligible_types):
                 status = ControlVerdict.NOT_EVALUATED.value
-                reasons.append("The asset type does not establish safeguard applicability.")
+                reasons.append(INVALID_ASSET_TYPE_REASON)
                 invalid += 1
             else:
                 assessed += 1
