@@ -79,6 +79,17 @@ artifacts from intermediate framework percentages. A Ready state requires every
 observed control to pass with current evidence. Catalog coverage is separate:
 100% within a small observed scope does not establish full framework coverage.
 
+A control's posture `status` is a control test: rules over evidence tagged with
+the control. It is not a framework result. `/api/v1/controls`,
+`/api/v1/control-tests` and `/api/v1/frameworks/{framework_id}/detail` carry the
+framework result next to it: `ccf_status` is the control's requirement result in
+`gold/ccf_assessment.json` (`not_evaluated` when absent), with
+`reviewed_safeguard_count` and `proposed_safeguard_count`. Framework detail keeps
+`passing_control_count` (control tests passing) and adds `attested_pass_count`
+(controls whose `ccf_status` is `pass`). Proposed mappings never attest, so the
+console shows a passing control test without a CCF pass as "Control test passing
+· Not attested".
+
 Severity remains available in violation and control-risk metrics; passing
 observations do not increase failure risk. A newly failing control cannot improve
 the score, and refreshing a stale/unknown control into a failure grants no credit.

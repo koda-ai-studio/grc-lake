@@ -244,7 +244,7 @@ test("framework drawer reports mapped controls and pass/fail, not readiness", as
     timeout: 20_000,
   });
   await expect(
-    drawer.getByText(/\d+ passing · \d+ failing · \d+ not evaluated/),
+    drawer.getByText(/\d+ attested · \d+ failing · \d+ not attested/),
   ).toBeVisible();
   await expect(drawer.getByText(/controls implemented/)).toHaveCount(0);
   await expect(drawer.getByText(/threshold for claiming/)).toHaveCount(0);

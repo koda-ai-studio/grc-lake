@@ -34,17 +34,14 @@ import {
 import { useToolbar } from "@/lib/state/filters";
 import { cn } from "@/lib/utils";
 import { ControlMonitoringSummary } from "@/components/controls/ControlMonitoringSummary";
+import { ControlResultBadge } from "@/components/controls/ControlResult";
 import { ControlTestTable } from "@/components/dashboard/ControlTestTable";
 import type { ControlPosture, Violation } from "@/lib/api/types";
 import { ROUTE_LABELS } from "@/lib/console-copy";
-import { displayLabel } from "@/lib/display";
 
 const SURFACE = "controls";
 const selectClass =
   "max-w-[12rem] rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink focus:outline-none focus:ring-1 focus:ring-brand";
-
-const toneForStatus = (status: string) =>
-  status === "pass" ? "ready" : status === "fail" ? "critical" : "attention";
 
 function ControlRow({
   control,
@@ -67,9 +64,7 @@ function ControlRow({
         <code className="text-sm font-semibold text-ink">
           {control.control_id}
         </code>
-        <Badge tone={toneForStatus(control.status)}>
-          {displayLabel(control.status)}
-        </Badge>
+        <ControlResultBadge status={control.status} ccf={control} />
       </div>
       <div className="mt-1 text-sm text-ink">{control.title}</div>
       <div className="mt-2 flex flex-wrap items-center gap-1.5">

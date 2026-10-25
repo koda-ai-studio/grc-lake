@@ -1,5 +1,15 @@
 // Wire types mirror security_lakehouse/assessment.py and gold/*.jsonl.
 
+/**
+ * Framework (CCF requirement) result next to a control test result, from
+ * gold/ccf_assessment.json via reviewed safeguard mappings only.
+ */
+export interface CcfResultFields {
+  ccf_status: string;
+  reviewed_safeguard_count: number;
+  proposed_safeguard_count: number;
+}
+
 export interface FrameworkPosture {
   not_evaluated_control_count?: number;
   framework: string;
@@ -79,7 +89,7 @@ export interface Assessment {
   assessment_hash: string;
 }
 
-export interface ControlPosture {
+export interface ControlPosture extends Partial<CcfResultFields> {
   control_id: string;
   framework: string;
   status: "pass" | "fail" | "warn" | string;
@@ -90,7 +100,7 @@ export interface ControlPosture {
   event_count: number;
 }
 
-export interface ControlTest {
+export interface ControlTest extends Partial<CcfResultFields> {
   /** Records with outcomes; linked observations are excluded. */
   evidence_count: number;
   control_id: string;
@@ -1162,7 +1172,7 @@ export interface FrameworkConnectorHint {
   rationale: string;
 }
 
-export interface FrameworkControlDetail {
+export interface FrameworkControlDetail extends Partial<CcfResultFields> {
   control_id: string;
   title: string;
   owner: string;
@@ -1206,7 +1216,10 @@ export interface FrameworkDetail {
   summary: {
     control_count: number;
     mapped_control_count: number;
+    /** Controls whose control test passes; not a framework attestation. */
     passing_control_count: number;
+    /** Controls whose CCF requirement result is pass (reviewed mappings). */
+    attested_pass_count?: number;
     failing_control_count: number;
     evidence_count: number;
     source_count: number;

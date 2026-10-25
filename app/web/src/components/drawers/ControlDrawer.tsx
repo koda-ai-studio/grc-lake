@@ -12,15 +12,16 @@ import { resolveFrameworkId } from "@/lib/framework-visuals";
 import type { ControlPosture } from "@/lib/api/types";
 import { assetLabel } from "@/lib/format";
 import { displayLabel } from "@/lib/display";
+import {
+  CcfAttestationNote,
+  ControlResultBadge,
+} from "@/components/controls/ControlResult";
 
 interface Props {
   control: ControlPosture | null;
   onClose: () => void;
   onOpenViolation: (violationId: string) => void;
 }
-
-const toneFor = (s: string) =>
-  s === "pass" ? "ready" : s === "fail" ? "critical" : "attention";
 
 export function ControlDrawer({ control, onClose, onOpenViolation }: Props) {
   const tests = useControlTests();
@@ -49,12 +50,11 @@ export function ControlDrawer({ control, onClose, onOpenViolation }: Props) {
             <div className="rounded-xl border border-line bg-surfaceMuted p-3">
               <div className="flex items-center justify-between gap-2">
                 <b>{test.name}</b>
-                <Badge
-                  tone={toneFor(test.result)}
-                  className="shrink-0 whitespace-nowrap"
-                >
-                  {displayLabel(test.status)}
-                </Badge>
+                <ControlResultBadge
+                  status={test.result}
+                  ccf={control}
+                  className="shrink-0"
+                />
               </div>
               <div className="mt-1 text-xs text-muted">{test.next_action}</div>
               <div className="mt-2 flex flex-wrap gap-1.5">
@@ -80,8 +80,17 @@ export function ControlDrawer({ control, onClose, onOpenViolation }: Props) {
             </dd>
             <dt className="text-muted">Owner</dt>
             <dd className="font-semibold">{control.owner}</dd>
-            <dt className="text-muted">Status</dt>
-            <dd className="font-semibold">{displayLabel(control.status)}</dd>
+            <dt className="text-muted">Control test</dt>
+            <dd>
+              <ControlResultBadge status={control.status} ccf={control} />
+            </dd>
+            <dt className="text-muted">Framework result</dt>
+            <dd>
+              <CcfAttestationNote
+                ccf={control}
+                frameworkId={resolveFrameworkId(control.framework)}
+              />
+            </dd>
             <dt className="text-muted">Risk score</dt>
             <dd className="font-semibold">{control.risk_score}</dd>
             <dt className="text-muted">Evidence</dt>

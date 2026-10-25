@@ -14,6 +14,7 @@ import type { ControlTest } from "@/lib/api/types";
 import { FrameworkMark } from "@/components/framework/FrameworkMark";
 import { frameworkIdFromControlId } from "@/lib/framework-visuals";
 import { Badge } from "@/components/ui/badge";
+import { ControlResultBadge } from "@/components/controls/ControlResult";
 import { DataTable } from "@/components/ui/data-table";
 import {
   Card,
@@ -24,9 +25,6 @@ import {
 import { displayLabel } from "@/lib/display";
 
 const helper = createColumnHelper<typeof sortableTableFeatures, ControlTest>();
-
-const toneFor = (result: string) =>
-  result === "pass" ? "ready" : result === "fail" ? "critical" : "attention";
 
 const CONFIDENCE_INPUT_LABELS: Record<string, string> = {
   evidence_coverage: "evidence coverage",
@@ -103,9 +101,7 @@ export function ControlTestTable({
         const v = info.getValue();
         return (
           <div>
-            <Badge tone={toneFor(v) as "ready" | "critical" | "attention"}>
-              {displayLabel(v)}
-            </Badge>
+            <ControlResultBadge status={v} ccf={info.row.original} />
             <div
               className="mt-1 whitespace-nowrap text-xs text-muted"
               title={confidenceTitle(info.row.original)}
