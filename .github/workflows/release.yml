@@ -152,11 +152,16 @@ jobs:
       - name: Build console
         run: make web-install web-build
 
+      # PyPI renders the description without the repository, so pin README
+      # links and screenshots to this tag in the build checkout only.
+      - name: Pin README links to the release tag
+        run: python tools/pypi_readme.py README.md --ref "${GITHUB_REF_NAME}"
+
       - name: Build sdist and wheel
         run: uv build --out-dir dist
 
       - name: Verify the wheel is publishable
-        run: python tools/verify_wheel.py dist/*.whl
+        run: python tools/verify_wheel.py --published dist/*.whl
 
       # CycloneDX SBOM of the locked runtime dependency set (base + the extras
       # the container image installs), attached to the GitHub release.

@@ -1,23 +1,26 @@
 # Release readiness
 
-GRC Lake **0.3.10 is published** on
-[PyPI](https://pypi.org/project/grc-lake/0.3.10/),
-[GitHub](https://github.com/koda-ai-studio/grc-lake/releases/tag/v0.3.10), and as
-`ghcr.io/koda-ai-studio/grc-lake:0.3.10`.
-Use the [v0.3.10 release templates](https://github.com/koda-ai-studio/grc-lake/tree/v0.3.10)
+GRC Lake **0.3.11 is published** on
+[PyPI](https://pypi.org/project/grc-lake/0.3.11/),
+[GitHub](https://github.com/koda-ai-studio/grc-lake/releases/tag/v0.3.11), and as
+`ghcr.io/koda-ai-studio/grc-lake:0.3.11`.
+Use the [v0.3.11 release templates](https://github.com/koda-ai-studio/grc-lake/tree/v0.3.11)
 for a published deployment. The package, provenance and container verification
 below are scoped to that release; later commits on `main` may contain unreleased fixes.
 
-There are no new database migrations between v0.3.9 and v0.3.10. The
-experimental canonical-entity ledger is additive and does not migrate existing
-findings or assessments. The KnowBe4 preview connector is retired: remove external
-sync jobs and revoke unused credentials separately. AWS role-policy collection
-is off by default and requires six additional read-only IAM grants when enabled.
+There are no new database migrations between v0.3.10 and v0.3.11. 0.3.11 restores
+the bare installation (fixture loading, pipeline replay, snapshots and local-mode
+serving without SQLAlchemy) and adds `grc-lake demo`. Existing OCSF preset users
+see new pass, open and pending results; add `"rules": []` to a preset reference to
+keep presence-only mapping (see the [changelog](../CHANGELOG.md)). Upgrading from
+0.3.9 or earlier: the KnowBe4 preview connector is retired (remove external sync
+jobs and revoke unused credentials separately), and AWS role-policy collection is
+off by default and requires six additional read-only IAM grants when enabled.
 
 The shell-free runtime uses pinned Wolfi Python and matching system libraries.
 Both published architectures match images qualified with zero reported vulnerabilities.
 CI and release gates block all HIGH/CRITICAL and fixable MEDIUM findings.
-See [runtime construction and scan scope](DEPENDENCY_SECURITY.md#0310-release-qualification-scans).
+See [runtime construction and scan scope](DEPENDENCY_SECURITY.md#0311-release-qualification-scans).
 Earlier published images and their historical scan results remain unchanged.
 
 Use the generated [coverage matrix](FRAMEWORK_COVERAGE.md) for current mapped and
@@ -29,10 +32,48 @@ retain their exact source revisions and synthetic workload limits. They do not
 establish production capacity or qualify a deployment memory budget; 100k records
 remain outside the proposed interactive workload.
 
-**0.3.11 is prepared on `main`, not yet published.** It restores the bare
-installation (fixture loading, pipeline replay, snapshots and local-mode serving
-without SQLAlchemy) and adds `grc-lake demo`. No database migrations between
-v0.3.10 and v0.3.11. Publication records below are added after verification.
+## Verified 0.3.11 publication
+
+The [release workflow](https://github.com/koda-ai-studio/grc-lake/actions/runs/40155762881)
+passed on source `dc8aaef4833a7fe8530f536460b899dd2b33582f`, after that exact
+main commit [passed CI](https://github.com/koda-ai-studio/grc-lake/actions/runs/40155244804).
+The `v0.3.11` tag resolves to that commit. An earlier `v0.3.11` tag on `2493e8e4`
+was refused by the tested-commit gate after a new brotli advisory failed main's image
+policy; nothing was built or published from it, and the tag was moved after the fix.
+Wheel and sdist bytes match between PyPI, GitHub and the workflow build:
+
+| Artifact                           | SHA-256                                                            |
+| ---------------------------------- | ------------------------------------------------------------------ |
+| `grc_lake-0.3.11-py3-none-any.whl` | `3b8acc698d6bf3e7d53dc26b9aa6055a0757aa51f658349cef0cdb5b675b13ba` |
+| `grc_lake-0.3.11.tar.gz`           | `cc0779e6e9a8deed558fa131fe9d7acedb4ef05687a2198ce2388dce62ec0a55` |
+
+The Python provenance for both files and the registry image attestation verify
+against this repository, the release workflow, the source commit and the `v0.3.11`
+tag. A base-only PyPI installation (no SQLAlchemy) passed fixture loading, pipeline
+replay, integrity verification, snapshots and local-mode console and API requests.
+`uvx --from "grc-lake[server]==0.3.11" grc-lake demo` installed from PyPI, served
+the console and core API on loopback, reported 0.3.11, and stopped cleanly on
+interrupt.
+
+The anonymously readable multi-platform index is `sha256:157e65bc9f7025d24bd688acd9a3e1fd239f8cb1b8d708c7d6c6b9918ebd3480`
+(also `latest`):
+
+- AMD64: `sha256:2a6cc1c17140a54cdbc36a2572351c9df39a15b03f5e34cd70c0d6152d46edfc`
+- ARM64: `sha256:2abaa14ac692197d8e307299c0ac8453c6423c5b92ece058947a38cf1e35b3c9`
+
+Both published platform images have the same 11 filesystem layers (21 unique across
+platforms) and runtime settings as the images qualified by the release workflow;
+only OCI metadata labels differ, and they name version 0.3.11 and the source commit.
+Each architecture passed the authenticated two-tenant release smoke. The workflow's
+full Trivy reports contain **zero reported vulnerabilities** across 29 Wolfi and
+105 Python packages, and an independent Trivy 0.69.3 scan of the published tag
+also reported zero for both architectures. This is a dated scan result for
+recognized components, not proof that application behavior or unknown
+vulnerabilities are absent.
+
+The [live console demo](https://koda-ai-studio.github.io/grc-lake/) serves the
+0.3.11 build from recorded synthetic responses. These checks do not qualify live
+providers, TLS, an IdP, production capacity or a deployment.
 
 ## Known 0.3.10 package limitation
 
