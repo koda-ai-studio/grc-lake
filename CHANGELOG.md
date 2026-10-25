@@ -15,6 +15,8 @@ Python package, Helm chart, and bundled web console.
 
 - Report an OSCAL assessment-results finding as `satisfied` only when the control test passes and the requirement's framework (CCF) result is `pass` through reviewed mappings. A passing control test with only proposed mappings, or no CCF result, is now `not-satisfied` (reason `other`); each finding adds a `trustops-ccf-status` prop. Previously the golden demo exported 8 SOC 2 objectives as satisfied while every CCF requirement was not evaluated.
 
+- The public trust summary (`/api/public/trust/{token}`) adds `attested_pass_count` per framework and overall, and reads `ready` only when every catalogued requirement has a framework (CCF) pass. A framework whose control tests all pass without that attestation now reads `not_attested`, shown as "Control tests passing · Not attested".
+
 - Label a mapping whose maintainer review no longer applies (the requirement version changed or an inherited review is invalid) as "Earlier maintainer review · needs re-review" in Mapping review instead of "Maintainer review", since it counts as proposed. Framework badges whose short mark is longer than four characters, such as NIST SP 800-53, show the framework icon at small sizes instead of wrapping the mark onto two lines.
 
 - Reject incomplete Databricks SQL results before replacing evidence or advancing watermarks. Validate result schemas, row counts and chunk offsets, follow index-only chunk cursors, and record failed reads as partial runs with a collection gap. Malformed chunk links are rejected before requesting them. The adapter remains Preview; the added qualification uses synthetic responses.

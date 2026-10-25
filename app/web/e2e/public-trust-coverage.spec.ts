@@ -44,3 +44,32 @@ for (const [evaluated, total, sufficient] of [
       ).toBeVisible();
   });
 }
+
+test("public readiness without attested passes is not ready", async ({
+  page,
+}) => {
+  await page.route("**/api/public/trust/**", (route) =>
+    route.fulfill({
+      json: {
+        schema_version: "trustops.public_trust.v1",
+        posture: { state: "not_attested", attested_pass_count: 2 },
+        frameworks: [
+          {
+            framework: "ISO 27001:2022",
+            state: "not_attested",
+            score: 90,
+            control_count: 93,
+            evaluated_control_count: 93,
+            catalog_control_count: 93,
+            attested_pass_count: 2,
+          },
+        ],
+      },
+    }),
+  );
+  await page.goto("/console/trust/attestation-test");
+  const score = page.getByTestId("framework-score");
+  await expect(score).toContainText("Control tests passing · Not attested");
+  await expect(score).not.toContainText("Ready");
+  await expect(page.getByText("2 attested")).toBeVisible();
+});

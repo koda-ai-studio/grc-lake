@@ -283,3 +283,49 @@ def test_public_trust_page_serves_with_and_without_trailing_slash(
 
     assert resp.status_code == 200
     assert "public-trust" in resp.text
+
+
+def _all_passing_posture(controls: list[str]) -> dict:
+    return {
+        "posture": {"score": 100.0, "state": "ready", "framework_count": 1, "control_count": len(controls)},
+        "frameworks": [
+            {
+                "framework": "ISO 27701:2025",
+                "score": 100.0,
+                "state": "ready",
+                "control_count": len(controls),
+                "not_evaluated_control_count": 0,
+                "failing_control_count": 0,
+                "stale_control_count": 0,
+            }
+        ],
+    }
+
+
+def test_public_summary_is_not_ready_without_attested_passes(tmp_path: Path, monkeypatch) -> None:
+    """Passing control tests alone are not an attestation; only CCF passes through reviewed mappings are."""
+    from security_lakehouse import server_app
+    from security_lakehouse.catalog import load_control_catalog
+
+    controls = [cid for cid, row in load_control_catalog().items() if row["framework_id"] == "iso-27701-2025"]
+    monkeypatch.setattr(server_app, "build_current_posture", lambda lake: _all_passing_posture(controls))
+    (tmp_path / "gold").mkdir(parents=True)
+    attested = controls[:3]
+    (tmp_path / "gold" / "ccf_assessment.json").write_text(
+        json.dumps({"requirements": [{"control_id": cid, "status": "pass"} for cid in attested]}), encoding="utf-8"
+    )
+
+    body = server_app._public_trust_summary(tmp_path, {"sensitivity_ceiling": "public"})
+
+    row = body["frameworks"][0]
+    assert row["attested_pass_count"] == len(attested)
+    assert row["state"] == "not_attested"
+    assert body["posture"]["attested_pass_count"] == len(attested)
+    assert body["posture"]["state"] == "not_attested"
+
+    (tmp_path / "gold" / "ccf_assessment.json").write_text(
+        json.dumps({"requirements": [{"control_id": cid, "status": "pass"} for cid in controls]}), encoding="utf-8"
+    )
+    body = server_app._public_trust_summary(tmp_path, {"sensitivity_ceiling": "public"})
+    assert body["frameworks"][0]["state"] == "ready"
+    assert body["posture"]["state"] == "ready"
