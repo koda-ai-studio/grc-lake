@@ -3,7 +3,7 @@
 All notable GRC Lake changes are summarized here. Versions follow semver for the
 Python package, Helm chart, and bundled web console.
 
-## Unreleased
+## 0.3.14 - 2026-10-25
 
 - Add a repeatable local graph performance acceptance check for two tenants at 1k/10k records each. It checks cold and warm latency, idle-expiry reads, memory and tenant progress while reporting admission rejections separately. These bounded synthetic measurements do not qualify production capacity.
 

@@ -5,6 +5,12 @@ See the [publication receipt](RELEASE_READINESS.md#verified-0313-publication) fo
 Changes on `main` or in a pull request can be newer than the published package. Check the [releases](https://github.com/koda-ai-studio/grc-lake/releases)
 and [changelog](../CHANGELOG.md) for the version you install.
 
+The 0.3.14 candidate adds Databricks completeness/recovery checks, focused
+mapping-review packets and an accepted [local graph profile](benchmarks/RELEASE_PROFILE.md).
+See [candidate release gates](RELEASE_READINESS.md#0314-candidate); these changes
+are not a verified published release. The [pilot guide](PILOT.md) provides an
+optional real-workflow evaluation and repeat-use check without telemetry.
+
 ## What you can use
 
 | Journey                             | Implemented path                                                                      | Boundary                                                                                                                                                        |

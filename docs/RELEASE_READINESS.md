@@ -35,7 +35,41 @@ reviewed mappings do not establish operating effectiveness or certification.
 The [graph cache and navigation measurements](benchmarks/INVESTIGATION_CACHE.md)
 retain their exact source revisions and synthetic workload limits. They do not
 establish production capacity or qualify a deployment memory budget; 100k records
-remain outside the proposed interactive workload.
+remain outside the accepted local interactive profile.
+
+## 0.3.14 candidate
+
+0.3.14 is being prepared; it is not yet published. Use the verified 0.3.13
+artifacts above until publication checks complete. This candidate adds strict
+Databricks result completeness and OAuth renewal, focused mapping-review packets,
+and a repeatable local graph performance gate. It introduces no database migration
+or dependency change.
+
+The maintainer accepted the [bounded graph profile](benchmarks/RELEASE_PROFILE.md):
+two tenants with up to 10k synthetic records each and four clients, warm p95 at most
+500 ms, first/expired reads at most 5 seconds and process RSS at most 1 GiB, with
+both tenants making progress under overload. The checker uses a maximum two-second
+success gap to measure that progress and reports admission rejections separately.
+Two clean-source runs passed; repeat the profile on the final candidate. These
+results do not qualify 100k interactive use, browser rendering or production sizing.
+
+The [focused recovery/confidentiality packet](reviews/RECOVERY_CONFIDENTIALITY.md)
+records the additional evidence needed for SOC2-A1.3 and SOC2-C1.1. Both mappings
+remain proposed. Only an eligible human reviewing the full requirement text can
+approve a mapping; code approval does not substitute for that decision.
+
+Databricks remains Preview. Synthetic regression coverage exercises malformed and
+multi-chunk results, expiry, one bounded authorization retry and rate limiting.
+Fresh live expiry, throttling and multi-chunk checks remain pending an authorized
+workspace. The prior bounded live receipt does not establish those behaviors.
+
+The [pilot guide](PILOT.md) separates first useful real assessments, repeat use and
+accepted contributions. It adds no telemetry and reports no adoption outcome.
+Its 14-day feature freeze starts at the next stable publication, with exceptions
+for security, correctness, supported-workload performance and setup/documentation
+repairs. Independent human review, required PR checks, exact-main CI and published
+artifact/runtime verification remain release gates; this candidate section is not
+a completion receipt.
 
 ## 0.3.13 qualification
 
@@ -47,7 +81,7 @@ control test passes while its proposed-only framework mapping is not evaluated.
 The [October 25 capacity measurements](benchmarks/INVESTIGATION_CACHE.md#october-25-2026-sustained-traffic-expiry-and-process-memory)
 add sustained hot/cold tenant traffic, idle expiry, forced eviction, 100k cache
 comparison and simultaneous worker RSS. The 100k models were not retained by the
-128 MiB cache. Reviewer-approved capacity budgets remain outstanding.
+128 MiB cache. The later 10k local profile has maintainer acceptance; production capacity budgets remain outstanding.
 
 Synthetic connector-to-export and 20 control-workpaper cases passed on source
 `6268edbdc625f894859837dc6fabdb8376e54f32`. These checks do not approve pending
