@@ -18,11 +18,11 @@ from security_lakehouse.golden_fixture import GOLDEN_COMPANY
 from security_lakehouse.pipeline import run_pipeline
 
 EXPECTED_SHA256 = {
-    "gold/asset_risk.jsonl": "ddf122701ada18761fed4790ad8d97d364f3b8da45ecdc830f09a269c130ded3",
-    "gold/ccf_assessment.json": "e6758a1dbce72f6fbb42dde8377bc4e78d77a90b2d13708b2219a4f718f76b6c",
-    "gold/control_posture.jsonl": "45ebfddf597bf80304d4801ecb4bd4c121461ec8145c70606d007ac16d32c196",
-    "gold/metrics.json": "7f0c49a9a80fc0a6495c7edac4d9d0e2a4d5023d2c46a96ec5daa3c75b9fc185",
-    "silver/normalized_events.jsonl": "d1dfc24759f4bcf9cb9c8ad7fce34d8e96188bf95953cd5a6ccfce3188189efd",
+    "gold/asset_risk.jsonl": "870e5b668cfcce43a372adfa175ce1a1cfd00ae1ad525870ea95de67a31cc820",
+    "gold/ccf_assessment.json": "99543d2f1a6a6cd3419a2417b6c98c6562a37cc74336ea0c47dc57b6a0084b9b",
+    "gold/control_posture.jsonl": "8745dc874c270497f95271ca2f45e7b9326d551539480b56c83c67f07c47dd72",
+    "gold/metrics.json": "11582aceb81b7737b0108c4864e61b1ee5177663bab7db6fc9ce5cb0946c1a96",
+    "silver/normalized_events.jsonl": "b11ed7005eb4ad6baf2e6f331499ab50cfd119429d6dc8d6d2549d0d4cdea95a",
 }
 
 

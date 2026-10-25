@@ -346,7 +346,7 @@ def test_golden_audit_framework_counts_match_overview_rule(tmp_path: Path) -> No
     run_pipeline(fixture.raw_path, lake, tenant_id="default")
     frameworks = build_current_posture(lake)["frameworks"]
     by_name = {row["framework"]: row for row in _framework_readiness(frameworks)}
-    assert by_name["ISO 27001:2022"]["assessed_controls"] == 0
+    assert by_name["ISO 27001:2022"]["assessed_controls"] == 3
     for row in frameworks:
         expected = int(row["control_count"]) - int(row.get("not_evaluated_control_count") or 0)
         assert by_name[row["framework"]]["assessed_controls"] == expected

@@ -119,8 +119,8 @@ test("shows observed-asset safeguard results without implying complete coverage"
     "Complete asset inventory is not established.",
   );
   await expect(assessment.getByRole("table")).toBeVisible();
-  // Golden evidence has framework tags but no explicit safeguard assertions.
-  await expect(assessment).toContainText("0 passing");
+  // Only the three golden assessor reviews carry explicit safeguard bindings.
+  await expect(assessment).toContainText("3 passing · 0 failing");
   await expect(
     assessment.getByRole("row").filter({ hasText: "SG-IDENTITY-001" }),
   ).toContainText("not evaluated");

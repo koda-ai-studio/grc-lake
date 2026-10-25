@@ -41,7 +41,12 @@ def test_controls_carry_ccf_result_next_to_control_test_status(golden_lake: Path
         assert row["ccf_status"] == requirement["status"]
         assert row["reviewed_safeguard_count"] == len(requirement["reviewed_safeguard_ids"])
         assert row["proposed_safeguard_count"] == requirement["pending_mapping_count"]
-    assert not [row for row in controls.values() if row["status"] == "pass" and row["ccf_status"] == "pass"]
+    # Only the ISO 27001 assessor records bound to reviewed safeguards attest.
+    attested = {cid for cid, row in controls.items() if row["status"] == "pass" and row["ccf_status"] == "pass"}
+    assert attested == {"ISO27001-A.5.13", "ISO27001-A.5.28", "ISO27001-A.8.17"}
+    for control_id in attested:
+        assert requirements[control_id]["pending_mapping_count"] == 0
+        assert requirements[control_id]["reviewed_safeguard_ids"]
 
 
 def test_control_tests_carry_ccf_result_on_streamed_and_sorted_pages(golden_lake: Path) -> None:

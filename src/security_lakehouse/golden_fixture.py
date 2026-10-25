@@ -215,6 +215,99 @@ def _repository_events(tenant_id: str) -> list[dict[str, Any]]:
     ]
 
 
+# Assessor records for three ISO 27001 requirements whose only safeguard mapping
+# is maintainer reviewed. Each record carries the evidence type its safeguard
+# requires and binds to the one asset the safeguard accepts (a ``service``), so
+# the demo reaches attested framework passes without loosening any rule.
+_REVIEW_ASSET = {
+    "asset_id": "golden:service:payments-platform",
+    "asset_name": "Payments platform",
+    "asset_type": "service",
+    "environment": "prod",
+    "owner": "grc",
+}
+_REVIEW_TIME = "2026-06-30T12:20:00Z"
+_REVIEW_COLLECTED = "2026-06-30T12:21:00Z"
+_ASSESSOR_REVIEWS = (
+    (
+        "ISO27001-A.5.28",
+        "SG-REVIEW-ISO27001-A-5-28",
+        "review_iso27001_a_5_28",
+        (
+            "authorized evidence collection",
+            "preservation",
+            "custody transfers",
+            "integrity checks",
+            "restricted access",
+            "documented handling",
+        ),
+    ),
+    (
+        "ISO27001-A.8.17",
+        "SG-REVIEW-ISO27001-A-8-17",
+        "review_iso27001_a_8_17",
+        (
+            "approved time sources",
+            "synchronization configuration",
+            "clock offset monitoring",
+            "failure handling",
+            "verification across scoped systems",
+        ),
+    ),
+    (
+        "ISO27001-A.5.13",
+        "SG-REVIEW-ISO27001-A-5-13",
+        "review_iso27001_a_5_13",
+        (
+            "classification-linked labelling rules",
+            "affected information and assets",
+            "implementation samples",
+            "exceptions",
+            "correction of inconsistent labels",
+        ),
+    ),
+)
+
+
+def _assessor_review_events(tenant_id: str) -> list[dict[str, Any]]:
+    """Scoped assessor records, each explicitly bound to its reviewed safeguard."""
+    rows = []
+    for control_id, safeguard_id, evidence_type, tests in _ASSESSOR_REVIEWS:
+        slug = control_id.lower().replace("iso27001-", "").replace(".", "-")
+        rows.append(
+            {
+                "tenant_id": tenant_id,
+                "event_id": f"golden-review-iso27001-{slug}",
+                "event_time": _REVIEW_TIME,
+                "event_type": evidence_type,
+                "source": "internal_audit",
+                "severity": "info",
+                "status": "passed",
+                "entity": dict(_REVIEW_ASSET),
+                "controls": [control_id],
+                "safeguard_ids": [safeguard_id],
+                "evidence": {
+                    "collected_at": _REVIEW_COLLECTED,
+                    "evidence_id": f"ev-golden-review-iso27001-{slug}",
+                    "uri": f"s3://acme-golden-evidence/{control_id}/assessor-review.json",
+                },
+                "attributes": {
+                    "fixture": GOLDEN_COMPANY,
+                    "assessor": "Acme internal audit",
+                    "assessment_period": {"start": "2026-04-01", "end": "2026-06-30"},
+                    "population": "Payments platform production services",
+                    "applicability": "applicable",
+                    "tests": list(tests),
+                    "exceptions": [],
+                    "unmet_checks": [],
+                    "remaining_uncertainty": "Sampled review; population completeness is not established.",
+                    "demo": True,
+                },
+            }
+        )
+    return rows
+
+
 def golden_control_ids() -> list[str]:
     """Return the 37 control IDs the golden fixture is designed to populate."""
     catalog = load_control_catalog()
@@ -340,9 +433,9 @@ def _supplemental_events(primary: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 
 def build_golden_fixture_rows(*, tenant_id: str = GOLDEN_TENANT_ID) -> list[dict[str, Any]]:
-    """Every row of the committed golden fixture: control events, then repository events."""
+    """Every row of the committed golden fixture: control, repository, then assessor-review events."""
     primary = build_golden_events(tenant_id=tenant_id)
-    rows = primary + _supplemental_events(primary) + _repository_events(tenant_id)
+    rows = primary + _supplemental_events(primary) + _repository_events(tenant_id) + _assessor_review_events(tenant_id)
     errors = validate_raw_events(rows)
     if errors:
         raise ValueError("; ".join(errors))

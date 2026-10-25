@@ -102,6 +102,45 @@ test("framework detail leads with attested passes, not control test passes", asy
   );
 });
 
+// ISO27001-A.5.28 is the opposite case: a fresh assessor record bound to its
+// only safeguard, whose mapping is maintainer reviewed, so it is attested.
+const ATTESTED_ID = "ISO27001-A.5.28";
+
+test("controls page shows a reviewed safeguard pass as attested", async ({
+  page,
+  request,
+}) => {
+  const body = (await (
+    await request.get("/api/v1/controls?limit=500")
+  ).json()) as {
+    data: Array<{
+      control_id: string;
+      status: string;
+      ccf_status: string;
+      reviewed_safeguard_count: number;
+      proposed_safeguard_count: number;
+    }>;
+  };
+  const control = body.data.find((row) => row.control_id === ATTESTED_ID)!;
+  expect(control.status).toBe("pass");
+  expect(control.ccf_status).toBe("pass");
+  expect(control.reviewed_safeguard_count).toBe(1);
+  expect(control.proposed_safeguard_count).toBe(0);
+
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/console/controls/");
+  await page.getByPlaceholder(/Search by control id/).fill(ATTESTED_ID);
+  const queue = page.getByRole("region", {
+    name: "Latest control test results",
+  });
+  const row = queue.locator("tbody tr").filter({ hasText: ATTESTED_ID });
+  await expect(row).toContainText("Passing · Attested");
+  await row.click();
+  await expect(page.getByRole("dialog")).toContainText(
+    /1 reviewed · 0 proposed mappings/,
+  );
+});
+
 test("the control drawer counts a single outcome record in the singular", async ({
   page,
   request,
