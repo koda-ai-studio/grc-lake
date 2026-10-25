@@ -167,7 +167,7 @@ function investigation(root: string, missing = false) {
       depth: 2,
       limit: 150,
       truncated: false,
-      matching_nodes: missing ? 0 : NODES.length,
+      matching_nodes: NODES.length,
       boundary: "Recorded relationships; not network reachability",
     },
   };
