@@ -44,7 +44,7 @@ test("a passing control test without a passing framework result is not attested"
       status: "pass",
       ccf_status: ccf,
     });
-    expect(state.label).toBe("Control test passing · not attested");
+    expect(state.label).toBe("Control test passing · Not attested");
     expect(state.tone).not.toBe("ready");
   }
   expect(

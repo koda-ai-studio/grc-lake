@@ -85,7 +85,7 @@ export function graphEvidenceState(node: StateInput) {
     !PASSING.includes(ccf)
   )
     return {
-      label: "Control test passing · not attested",
+      label: "Control test passing · Not attested",
       tone: "attention" as const,
       action: `The control test passes, but the framework result is ${displayLabel(ccf).toLowerCase()}. Review the mapped safeguards and their evidence before attesting this requirement.`,
     };

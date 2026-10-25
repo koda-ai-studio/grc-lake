@@ -184,7 +184,7 @@ test("investigation labels stale evidence, unattested controls, safeguards and i
   const control = page.locator(
     '.react-flow__node[data-id="control:SOC2-CC6.1"]',
   );
-  await expect(control).toContainText("Control test passing · not attested");
+  await expect(control).toContainText("Control test passing · Not attested");
   await expect(control).not.toContainText("Passing control");
   await expect(
     page.locator('.react-flow__node[data-id="evidence:mfa"]'),
@@ -213,7 +213,7 @@ test("investigation labels stale evidence, unattested controls, safeguards and i
   const drawer = page.getByRole("complementary", {
     name: "Selected graph node",
   });
-  await expect(drawer).toContainText("Control test passing · not attested");
+  await expect(drawer).toContainText("Control test passing · Not attested");
   await expect(drawer).toContainText("Framework result");
   await expect(drawer).toContainText("Open");
   await expect(drawer).toContainText("1 reviewed");
