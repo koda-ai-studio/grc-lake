@@ -36,7 +36,7 @@ retain their exact source revisions and synthetic workload limits. They do not
 establish production capacity or qualify a deployment memory budget; 100k records
 remain outside the proposed interactive workload.
 
-## Unreleased graph qualification
+## 0.3.13 candidate qualification
 
 Framework and repository maps now carry the same CCF result and reviewed/proposed
 mapping counts as Controls and Investigation. A missing framework result is not
@@ -52,6 +52,17 @@ Synthetic connector-to-export and 20 control-workpaper cases passed on source
 `6268edbdc625f894859837dc6fabdb8376e54f32`. These checks do not approve pending
 SOC 2/ISO mappings or qualify live providers. Use the bounded review-packet
 procedure in [Mapping review](MAPPING_REVIEW.md) for human decisions.
+
+The candidate also includes source-account-scoped OCSF event IDs, missing-subject
+rejection and partial mapping gaps. Preserve existing evidence and re-ingest OCSF
+source history into a fresh lake; stored raw rows do not acquire the new identities
+through pipeline replay alone. There are no new database migrations or dependencies.
+
+The [Databricks trial receipt](qualification/live/2026-10-25-databricks.md) records
+eight synthetic rows and two unknown summaries from an empty audit log. It found
+and fixed bootstrap response-field compatibility and empty-window verdicts.
+Databricks remains Preview; the trial does not qualify real audit coverage,
+production capacity, multi-chunk results, throttling or credential expiry.
 
 These changes are not included in v0.3.12. Publication still requires independent
 review, merged-source CI, release artifact/runtime qualification, and verification

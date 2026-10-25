@@ -1,6 +1,6 @@
 # Current state and coverage
 
-Release verification: **2026-10-25**. Source version: **0.3.12**. Latest published release checked: **v0.3.12**.
+Release verification: **2026-10-25**. Source release candidate: **0.3.13** (not yet published). Latest published release checked: **v0.3.12**.
 See the [publication receipt](RELEASE_READINESS.md#verified-0312-publication) for artifact and runtime evidence.
 Changes on `main` or in a pull request can be newer than the published package. Check the [releases](https://github.com/koda-ai-studio/grc-lake/releases)
 and [changelog](../CHANGELOG.md) for the version you install.
@@ -41,8 +41,10 @@ inventory), 26 Azure, 183 GCP (187 with service accounts) and 6 GitHub
 governance signals. Counts were reconciled with each provider's CLI, and
 recollection and generation integrity checks passed. The GitHub run found and
 fixed a Dependabot pagination failure. These receipts do not qualify a published
-release artifact, other tenants or provider-wide coverage. The other connectors
-have no live record.
+release artifact, other tenants or provider-wide coverage. The
+[Databricks trial receipt](qualification/live/2026-10-25-databricks.md) adds a
+bounded live OAuth check with eight synthetic rows and an empty audit window.
+Databricks remains Preview; the remaining connectors have no live record.
 
 ## Coverage sources
 

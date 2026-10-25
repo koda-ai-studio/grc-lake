@@ -3,7 +3,7 @@
 All notable GRC Lake changes are summarized here. Versions follow semver for the
 Python package, Helm chart, and bundled web console.
 
-## Unreleased
+## 0.3.13 - 2026-10-25
 
 - Scope experimental OCSF event and asset identity to the source account, so colliding user/event IDs in different accounts stay separate through CCF assessment. Missing assessed subjects no longer fall back to a cloud account. Mixed mapping errors create a collection gap, mark the run partial, and hold positive outcomes at `not_evaluated` until repair and replay. OCSF preset IDs change; re-ingest into a fresh lake to avoid mixing scoped and unscoped history.
 
