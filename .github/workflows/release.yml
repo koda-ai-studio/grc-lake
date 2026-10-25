@@ -116,11 +116,9 @@ jobs:
             exit 1
           fi
           # The GitHub release body is this version's CHANGELOG section; a tag
-          # without one would publish empty notes.
-          if ! awk -v v="${project_version}" '$1 == "##" && $2 == v { found = 1 } END { exit !found }' CHANGELOG.md; then
-            echo "::error::CHANGELOG.md has no '## ${project_version}' section"
-            exit 1
-          fi
+          # without one, or with entries left under Unreleased, publishes
+          # incomplete notes.
+          python3 tools/check_changelog_release.py "${project_version}" --changelog CHANGELOG.md
           echo "tag ${GITHUB_REF_NAME} matches package, chart, console, and changelog ${project_version}"
 
   build:

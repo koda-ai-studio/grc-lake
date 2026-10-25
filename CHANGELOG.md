@@ -3,6 +3,10 @@
 All notable GRC Lake changes are summarized here. Versions follow semver for the
 Python package, Helm chart, and bundled web console.
 
+## Unreleased
+
+- Refuse a release tag while `## Unreleased` still has entries, so every shipped change appears in the release notes. Rescan the published image daily on both architectures with the release vulnerability policy.
+
 ## 0.3.12 - 2026-10-25
 
 - Pin README links and screenshots to the release tag in the published package description, so the PyPI project page renders them. The release workflow rewrites the build checkout only, and the wheel gate refuses a published description with repository-relative links.
