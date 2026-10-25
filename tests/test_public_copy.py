@@ -1,5 +1,6 @@
 """Public copy (README, docs, package metadata) stays factual and free of internal planning language."""
 
+import json
 import re
 import tomllib
 from pathlib import Path
@@ -94,3 +95,13 @@ def test_roadmap_mapping_counts_match_the_effective_review_ledger() -> None:
         f"{states.count('proposed'):,} of {len(states):,} safeguard-to-requirement mapping rows are proposed, "
         f"so {coverage['proposed']:,} of the {coverage['covered']:,} mapped requirements have no reviewed mapping"
     ) in roadmap
+
+
+def test_connector_overview_counts_match_the_catalog() -> None:
+    catalog = json.loads((ROOT / "connectors/catalog.json").read_text())["connectors"]
+    contracts = len(catalog)
+    adapters = sum(row.get("is_implemented") is True for row in catalog)
+    for relative in ("docs/CONNECTORS.md", "docs/INGESTION_CONNECTORS_IDEMPOTENCY.md", "docs/CURRENT_STATE.md"):
+        text = (ROOT / relative).read_text().replace("**", "")
+        assert f"{contracts} catalog contracts" in text, relative
+        assert f"{adapters} executable adapters" in text, relative

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import io
 import json
+import urllib.error
 import urllib.parse
 from datetime import UTC, datetime
 from pathlib import Path
@@ -283,10 +284,103 @@ def _fake_workspace(monkeypatch: pytest.MonkeyPatch, routes: dict[tuple[str, str
         payload = routes[key]
         if isinstance(payload, list):
             payload = payload.pop(0)
+        if isinstance(payload, Exception):
+            raise payload
         return _FakeResponse(json.dumps(payload).encode())
 
     monkeypatch.setattr(netguard, "open_public", fake_open_public)
     return seen
+
+
+def test_expired_oauth_token_is_replaced_before_the_next_statement(monkeypatch):
+    from types import SimpleNamespace
+
+    now = [0.0]
+    monkeypatch.setattr("security_lakehouse.connectors_databricks.time", SimpleNamespace(monotonic=lambda: now[0]))
+    seen = _fake_workspace(
+        monkeypatch,
+        {
+            ("POST", "/oidc/v1/token"): [
+                {"access_token": "old-token", "expires_in": 60},
+                {"access_token": "new-token", "expires_in": 60},
+            ],
+            ("POST", "/api/2.0/sql/statements"): _statement_result(),
+        },
+    )
+    client = DatabricksClient(
+        HOST, client_id="test", client_secret="synthetic-secret", warehouse_id="w", catalog="c", schema="s"
+    )
+    client.audit_events()
+    now[0] = 50
+    client.audit_events()
+    now[0] = 61
+    client.audit_events()
+    statements = [r for r in seen if r.full_url.endswith("/statements")]
+    assert [r.get_header("Authorization") for r in statements] == [
+        "Bearer old-token",
+        "Bearer old-token",
+        "Bearer new-token",
+    ]
+
+
+@pytest.mark.parametrize("recovered", [True, False])
+def test_unauthorized_statement_refreshes_once_and_never_loops(monkeypatch, recovered):
+    denied = urllib.error.HTTPError("https://" + HOST, 401, "Unauthorized", {}, None)
+    seen = _fake_workspace(
+        monkeypatch,
+        {
+            ("POST", "/oidc/v1/token"): [{"access_token": "old-token"}, {"access_token": "new-token"}],
+            ("POST", "/api/2.0/sql/statements"): [denied, _statement_result() if recovered else denied],
+        },
+    )
+    client = DatabricksClient(
+        HOST, client_id="test", client_secret="synthetic-secret", warehouse_id="w", catalog="c", schema="s"
+    )
+    if recovered:
+        assert client.audit_events() == [{"audit_id": "a1"}]
+    else:
+        with pytest.raises(urllib.error.HTTPError):
+            client.audit_events()
+    assert sum(r.full_url.endswith("/oidc/v1/token") for r in seen) == 2
+    assert sum(r.full_url.endswith("/statements") for r in seen) == 2
+
+
+def test_rate_limit_honors_retry_after_without_reauthenticating(monkeypatch):
+    from security_lakehouse.ingestion import backoff
+
+    delays = []
+    monkeypatch.setattr(backoff.time, "sleep", delays.append)
+    limited = urllib.error.HTTPError("https://" + HOST, 429, "Limited", {"Retry-After": "2"}, None)
+    seen = _fake_workspace(
+        monkeypatch,
+        {
+            ("POST", "/oidc/v1/token"): {"access_token": "synthetic-token"},
+            ("POST", "/api/2.0/sql/statements"): [limited, _statement_result()],
+        },
+    )
+    client = DatabricksClient(
+        HOST, client_id="test", client_secret="synthetic-secret", warehouse_id="w", catalog="c", schema="s"
+    )
+    assert client.audit_events() == [{"audit_id": "a1"}]
+    assert delays == [2]
+    assert sum(r.full_url.endswith("/oidc/v1/token") for r in seen) == 1
+
+
+@pytest.mark.parametrize("lifetime", [0, -1, True, "60", None, float("nan"), float("inf")])
+def test_invalid_token_lifetime_is_not_cached_or_used(monkeypatch, lifetime):
+    seen = _fake_workspace(
+        monkeypatch,
+        {
+            ("POST", "/oidc/v1/token"): {"access_token": "synthetic-token", "expires_in": lifetime},
+            ("POST", "/api/2.0/sql/statements"): _statement_result(),
+        },
+    )
+    client = DatabricksClient(
+        HOST, client_id="test", client_secret="synthetic-secret", warehouse_id="w", catalog="c", schema="s"
+    )
+    with pytest.raises(RuntimeError, match="lifetime"):
+        client.audit_events()
+    assert len(seen) == 1
 
 
 def test_live_client_mints_m2m_token_polls_and_follows_chunks(monkeypatch: pytest.MonkeyPatch) -> None:

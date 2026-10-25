@@ -1,0 +1,58 @@
+name: Pilot feedback
+description: Share a sanitized outcome or obstacle from trying one GRC Lake workflow.
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This issue is public. Do not include credentials, customer evidence, exports or private hostnames.
+        Report security vulnerabilities privately through SECURITY.md. Synthetic trials and real use are different signals.
+  - type: input
+    id: version
+    attributes:
+      label: GRC Lake version and installation method
+      description: Include the version and pip, Compose, image, Helm or source installation.
+    validations:
+      required: true
+  - type: textarea
+    id: task
+    attributes:
+      label: What task did you try?
+      description: Describe the question and source category without identifying private systems or people.
+    validations:
+      required: true
+  - type: dropdown
+    id: evidence-scope
+    attributes:
+      label: What evidence did you use?
+      options:
+        - Synthetic sample only
+        - Authorized real evidence in a separate lake
+        - Did not reach collection
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Outcome and biggest obstacle
+      description: What worked, what did you independently verify, and what blocked you? Describe mismatches without pasting evidence.
+    validations:
+      required: true
+  - type: input
+    id: timing
+    attributes:
+      label: Optional measured time
+      description: Separate installation time from time to your first useful result. Say if you did not measure it.
+  - type: dropdown
+    id: repeat-use
+    attributes:
+      label: Have you returned to the workflow?
+      options:
+        - Not yet
+        - Tried once and stopped
+        - Returned and completed another useful collection or review
+        - Used it repeatedly over at least a week
+  - type: textarea
+    id: contribution
+    attributes:
+      label: Optional contribution
+      description: Link a public sanitized reproduction, issue or patch, or describe work you would like to contribute. Interest is not counted as a submitted contribution.

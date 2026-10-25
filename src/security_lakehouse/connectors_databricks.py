@@ -26,8 +26,10 @@ from __future__ import annotations
 
 import base64
 import json
+import math
 import re
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 from collections.abc import Callable
@@ -98,6 +100,7 @@ class DatabricksClient:
         self.timeout = timeout
         self._sleep = sleep
         self._token: str | None = None
+        self._token_expires_at = 0.0
 
     def audit_events(self) -> list[dict[str, Any]]:
         return self._select_view("audit_events")
@@ -241,7 +244,8 @@ class DatabricksClient:
         raise RuntimeError("Databricks statement did not finish within the polling budget")
 
     def _bearer(self) -> str:
-        if self._token is None:
+        if self._token is None or time.monotonic() >= self._token_expires_at:
+            requested_at = time.monotonic()
             request = urllib.request.Request(
                 f"https://{self.host}/oidc/v1/token",
                 data=b"grant_type=client_credentials&scope=all-apis",
@@ -257,22 +261,40 @@ class DatabricksClient:
             token = str((payload or {}).get("access_token") or "")
             if not token:
                 raise RuntimeError("Databricks OAuth token response did not include an access_token")
+            lifetime = payload.get("expires_in", 3600)
+            if (
+                type(lifetime) not in (int, float)
+                or lifetime <= 0
+                or (isinstance(lifetime, float) and not math.isfinite(lifetime))
+            ):
+                raise RuntimeError("Databricks OAuth token response has an invalid lifetime")
+            lifetime = min(lifetime, 3600)
+            self._token_expires_at = requested_at + lifetime - min(30, lifetime / 10)
             self._token = token
         return self._token
 
     def _request(self, method: str, path: str, body: dict[str, Any] | None = None) -> dict[str, Any]:
-        request = urllib.request.Request(
-            f"https://{self.host}{path}",
-            data=json.dumps(body).encode("utf-8") if body is not None else None,
-            method=method,
-            headers={
-                "authorization": f"Bearer {self._bearer()}",
-                "content-type": "application/json",
-                "accept": "application/json",
-                "user-agent": "grc-lake",
-            },
-        )
-        payload = backoff.http_retry(lambda: self._open(request))
+        def send() -> Any:
+            request = urllib.request.Request(
+                f"https://{self.host}{path}",
+                data=json.dumps(body).encode("utf-8") if body is not None else None,
+                method=method,
+                headers={
+                    "authorization": f"Bearer {self._bearer()}",
+                    "content-type": "application/json",
+                    "accept": "application/json",
+                    "user-agent": "grc-lake",
+                },
+            )
+            return self._open(request)
+
+        try:
+            payload = backoff.http_retry(send)
+        except urllib.error.HTTPError as exc:
+            if exc.code != 401:
+                raise
+            self._token = None
+            payload = backoff.http_retry(send)
         if not isinstance(payload, dict):
             raise ValueError("Databricks returned non-object JSON")
         return payload

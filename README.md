@@ -14,21 +14,22 @@
 
 **Turn security evidence into traceable control assessments and reviewable audit workpapers.**
 Open-source and self-hosted: read evidence from the systems and security lakes you
-already run, evaluate versioned control tests, and keep the evidence and review
-decisions behind every result.
+already run, evaluate versioned control tests, and retain evidence and recorded
+review decisions alongside the results.
 
-- **Traceable:** each result links to its source records, rule version, and review
-  decision; snapshots form a hash-chained ledger you can re-verify.
+- **Traceable:** follow results to source records and rule versions, and inspect the
+  recorded mapping decisions; snapshots form a hash-chained ledger you can re-verify.
 - **Works with what you have:** connect cloud, identity, endpoint, and code systems
   directly, or query OCSF tables already in your lake.
 - **One control, many frameworks:** reusable safeguards map to SOC 2, ISO 27001,
   NIST, and more, with reviewed and proposed mappings kept apart.
 
 **[Open the live demo →](https://koda-ai-studio.github.io/grc-lake/)** Click through the
-console on synthetic data. Nothing to install.
+console on recorded synthetic data. The hosted demo is read-only; it does not connect
+to your systems or establish live-provider coverage. Nothing to install.
 
 [Quick start](#quick-start) · [Product tour](#product-tour) · [Connect evidence](#connect-evidence) ·
-[Already on OCSF?](#already-on-ocsf) · [Frameworks](#frameworks) · [Self-host](#self-host) · [Docs](docs/README.md)
+[Already on OCSF?](#already-on-ocsf) · [Frameworks](#frameworks) · [Performance](#performance-and-qualification) · [Self-host](#self-host) · [Docs](docs/README.md)
 
 ## Quick start
 
@@ -46,6 +47,9 @@ and opens your browser. Ctrl+C stops it and deletes the lake. With pip:
 **First task:** find a failing control, inspect its evidence and mapping, and export
 the frozen result: follow the [sample-data tutorial](docs/TUTORIAL_5_MIN.md), then the
 [auditor workpaper example](docs/AUDITOR_WALKTHROUGH.md).
+
+For a real evaluation, follow the [bounded pilot guide](docs/PILOT.md): one source,
+one independently checked result, then a repeat collection and review.
 
 <details>
 <summary>Keep a lake, Docker, source development, or MCP</summary>
@@ -84,7 +88,8 @@ Release notes: [changelog](CHANGELOG.md) · [verified release records](docs/RELE
 
 ## Product tour
 
-**Collect → Evaluate → Resolve → Export.** Screens use the bundled synthetic company.
+**Collect → Evaluate → Resolve → Export.** Screens captured from the 0.3.14 console
+on October 25, 2026 use the bundled synthetic company.
 
 ### Start with the assessment overview
 
@@ -194,8 +199,8 @@ or [build one](docs/ADDING_CONNECTORS.md).
 
 If your telemetry is already normalized to [OCSF](https://schema.ocsf.io/1.1.0/), for
 example in Amazon Security Lake or OCSF tables on Databricks or Snowflake, point GRC
-Lake at those tables. No new pipeline: the reader runs read-only queries and keeps a
-mapped copy of the rows it assesses. Built-in presets bind events to CCF safeguards,
+Lake at those tables. Keep your existing source-ingestion pipeline: GRC Lake runs
+read-only queries, retains a mapped copy and evaluates the rows it imports. Built-in presets bind events to CCF safeguards,
 and framework requirements follow each safeguard's reviewed crosswalk:
 
 ```mermaid
@@ -243,6 +248,14 @@ and Snowflake, ClickHouse, BigQuery, and Iceberg setup:
 
 ## Frameworks
 
+Coverage means several different things: a catalogued requirement, a reviewed
+mapping and an assessed result are separate. Start with the
+[per-framework coverage matrix](docs/FRAMEWORK_COVERAGE.md); proposed mappings
+cannot establish an attested pass.
+
+<details>
+<summary>Catalog and reviewed-mapping counts</summary>
+
 <!-- BEGIN README AT A GLANCE -->
 
 - **Reviewed requirements by framework:** SOC 2 33/61 (10 with no recorded reviewer), ISO 27001 17/93 (10 with no recorded reviewer), HIPAA 4/24 (4 with no recorded reviewer), PCI DSS 0/12 (top-level), NIST CSF 2.0 72/106, NIST SP 800-53 495/1,014 (381 source-native self-maps; 96 with no recorded reviewer). Every pack is in the [coverage matrix](docs/FRAMEWORK_COVERAGE.md).
@@ -252,6 +265,8 @@ and Snowflake, ClickHouse, BigQuery, and Iceberg setup:
 - **One engine, four surfaces:** console, REST API, CLI, and MCP server. Agents propose; humans approve.
 
 <!-- END README AT A GLANCE -->
+
+</details>
 
 [Framework coverage](docs/FRAMEWORK_COVERAGE.md) · [Common safeguards](docs/COMMON_CONTROL_FRAMEWORK.md) ·
 [Audit readiness](docs/AUDIT_READINESS.md#explain-the-readiness-decision) · [Qualification](docs/CURRENT_STATE.md)
@@ -268,6 +283,20 @@ establish live-provider accuracy, production capacity, certification, or an audi
 opinion; see the [roadmap](ROADMAP.md) for remaining gaps.
 
 </details>
+
+## Performance and qualification
+
+The accepted [local graph profile](docs/benchmarks/RELEASE_PROFILE.md) exercises
+two tenants with up to 10k synthetic records each and four concurrent clients.
+Its limits are successful warm p95 ≤500 ms, first/expired reads ≤5 seconds and
+process RSS ≤1 GiB, with both tenants continuing to progress under overload.
+Three recorded runs passed. Admission and rate-limit rejections are reported
+separately; this is not a promise that every request under overload succeeds.
+
+This profile covers authenticated depth-one graph reads on local SQLite. It does
+not qualify 100k interactive use, browser rendering, external storage or production
+sizing. Check [provider qualification](docs/CONNECTOR_QUALIFICATION.md) and
+[verified release records](docs/RELEASE_READINESS.md) separately.
 
 ## Self-host
 
@@ -291,14 +320,14 @@ failing, missing, stale, conflicting, and incomplete-population cases.
 <details>
 <summary>Where to look for each review question</summary>
 
-| Question                                                         | Start here                                                                                                                                              |
-| ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| How do the layers fit together?                                  | [Architecture and source map](docs/ARCHITECTURE.md#implementation-and-test-map), [data flow](docs/DATA_FLOW.md)                                         |
-| What makes a result pass, fail, or remain unknown?               | [Evaluation semantics](docs/EVIDENCE_EVALUATION_SEMANTICS.md), [population reconciliation](docs/POPULATION_RECONCILIATION.md)                           |
-| What prevents cross-tenant access and unauthorized decisions?    | [Trust boundaries](docs/THREAT_MODEL.md), [identity and scopes](docs/SERVER_AUTH.md)                                                                    |
-| What happens after partial writes, retries, or interrupted jobs? | [Generation publication](docs/ASSESSMENT_GENERATIONS.md), [operation contracts](docs/ASSESSMENT_APPLICATION_CONTRACT.md)                                |
-| How are integrity and reproducibility checked?                   | [Workpaper qualification](docs/CONTROL_WORKFLOW_QUALIFICATION.md), [backup and restore](docs/runbooks/BACKUP_RESTORE.md)                                |
-| What performance has actually been measured?                     | [Pipeline measurements](docs/benchmarks/CCF_PIPELINE.md), [graph latency and memory](docs/benchmarks/INVESTIGATION_CACHE.md#navigation-index-follow-up) |
+| Question                                                         | Start here                                                                                                                    |
+| ---------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| How do the layers fit together?                                  | [Architecture and source map](docs/ARCHITECTURE.md#implementation-and-test-map), [data flow](docs/DATA_FLOW.md)               |
+| What makes a result pass, fail, or remain unknown?               | [Evaluation semantics](docs/EVIDENCE_EVALUATION_SEMANTICS.md), [population reconciliation](docs/POPULATION_RECONCILIATION.md) |
+| What prevents cross-tenant access and unauthorized decisions?    | [Trust boundaries](docs/THREAT_MODEL.md), [identity and scopes](docs/SERVER_AUTH.md)                                          |
+| What happens after partial writes, retries, or interrupted jobs? | [Generation publication](docs/ASSESSMENT_GENERATIONS.md), [operation contracts](docs/ASSESSMENT_APPLICATION_CONTRACT.md)      |
+| How are integrity and reproducibility checked?                   | [Workpaper qualification](docs/CONTROL_WORKFLOW_QUALIFICATION.md), [backup and restore](docs/runbooks/BACKUP_RESTORE.md)      |
+| What performance has actually been measured?                     | [Pipeline measurements](docs/benchmarks/CCF_PIPELINE.md), [accepted local graph profile](docs/benchmarks/RELEASE_PROFILE.md)  |
 
 Run checks from the revision under review; the CI badge tracks `main`, and benchmark
 receipts name their own revisions and workloads.

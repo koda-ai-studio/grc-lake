@@ -114,15 +114,17 @@ grc-lake connectors list
 
 ## Connector Runner
 
-GRC Lake currently has **27 connector contracts**. **Twenty-four** are executable
-runners (direct source/API runners, the Snowflake, Databricks, ClickHouse,
-Iceberg/Parquet, BigQuery, S3, SIEM, and runtime-gateway existing-lake readers, and
-the Okta System Log incremental adapter). The remaining entries are read-only access contracts or managed evidence
-boundaries — probes validate configuration but **sync is not available** until a
-collection adapter ships. Runners marked **(preview)** carry
-`"release_stage": "preview"` in the catalog and a Preview badge in `/connectors`:
-they are implemented and fixture-tested against the vendor's documented API but
-have not yet been verified against a live tenant.
+The catalog contains **31 catalog contracts**: **28 executable adapters** and
+3 configuration/access boundaries. Adapters include direct source/API collectors,
+existing-lake readers and incremental event-log readers. Boundaries describe
+read-only access or managed evidence; they have no standalone sync adapter.
+
+Adapters marked **Preview** carry `"release_stage": "preview"` in the catalog
+and a Preview badge in the console. Preview means qualification is limited; it
+does not necessarily mean no live run has occurred. Inspect the
+[qualification matrix](CONNECTOR_QUALIFICATION.md) for each adapter's offline
+tests, bounded live receipts and remaining gaps. Neither a successful probe nor
+a bounded live receipt establishes complete provider coverage.
 
 In hosted server mode, secret references must use the tenant's
 `GRC_LAKE_TENANT_<TENANT_ID>__` prefix or the operator's
@@ -888,7 +890,10 @@ Setup:
    probe and enable.
 
 GRC Lake mints a one-hour token at `https://<host>/oidc/v1/token`
-(`client_credentials`, `scope=all-apis`) per sync and keeps it in memory. The
+(`client_credentials`, `scope=all-apis`) for each sync and keeps it in memory.
+The reader renews cached tokens before their reported expiry and retries an
+unauthorized statement request once with a fresh token. Repeated authorization
+failures fail the sync; this does not change the principal's permissions. The
 host must be a Databricks workspace domain (`*.cloud.databricks.com`,
 `*.azuredatabricks.net`, `*.gcp.databricks.com`); result chunk links may not
 leave it; catalog, schema, and view names are strict identifiers quoted with
