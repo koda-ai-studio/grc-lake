@@ -258,7 +258,7 @@ def _write_jsonl(path: Path, rows: list[dict]) -> None:
     path.write_text("\n".join(json.dumps(row, sort_keys=True) for row in rows) + "\n", encoding="utf-8")
 
 
-def _seed_control_posture(lake: Path) -> None:
+def _seed_control_posture(lake: Path, *, ccf_assessment: bool = True) -> None:
     from security_lakehouse.generations import seal_generation
 
     _write_jsonl(
@@ -271,6 +271,14 @@ def _seed_control_posture(lake: Path) -> None:
                 "status": "pass",
                 "rule_reasons": [],
                 "latest_event_time": "2026-05-20T13:01:00Z",
+            },
+            {
+                "control_id": "SOC2-CC6.2",
+                "framework": "SOC 2",
+                "title": "Access is provisioned",
+                "status": "pass",
+                "rule_reasons": [],
+                "latest_event_time": "2026-05-20T13:02:00Z",
             },
             {
                 "control_id": "SOC2-CC7.1",
@@ -298,8 +306,36 @@ def _seed_control_posture(lake: Path) -> None:
             },
         ],
     )
+    # Only SOC2-CC6.1 has a framework (CCF) pass through a reviewed mapping;
+    # SOC2-CC6.2's control test passes but its mapping is still proposed.
+    if ccf_assessment:
+        _write_ccf_assessment(lake)
 
     seal_generation(lake, legacy=True)
+
+
+def _write_ccf_assessment(lake: Path) -> None:
+    (lake / "gold" / "ccf_assessment.json").write_text(
+        json.dumps(
+            {
+                "requirements": [
+                    {
+                        "control_id": "SOC2-CC6.1",
+                        "status": "pass",
+                        "reviewed_safeguard_ids": ["SG-IDENTITY-001"],
+                        "pending_mapping_count": 0,
+                    },
+                    {
+                        "control_id": "SOC2-CC6.2",
+                        "status": "not_evaluated",
+                        "reviewed_safeguard_ids": [],
+                        "pending_mapping_count": 1,
+                    },
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
 
 
 def test_build_assessment_results_maps_every_status(tmp_path: Path) -> None:
@@ -334,6 +370,45 @@ def test_build_assessment_results_never_reports_stale_or_unevaluated_as_satisfie
         status = finding["target"]["status"]
         if props["trustops-status"] in {"stale", "not_evaluated"}:
             assert status["state"] == "not-satisfied"
+
+
+def test_passing_control_test_without_framework_pass_is_not_satisfied(tmp_path: Path) -> None:
+    """Only a CCF pass through reviewed mappings is attestable; a control test alone is not."""
+    lake = tmp_path / "lake"
+    _seed_control_posture(lake)
+    findings = {
+        f["props"][0]["value"]: f
+        for f in build_assessment_results(lake)["assessment-results"]["results"][0]["findings"]
+    }
+    unattested = findings["SOC2-CC6.2"]
+    props = {p["name"]: p["value"] for p in unattested["props"]}
+    assert unattested["target"]["status"] == {"state": "not-satisfied", "reason": "other"}
+    assert props["trustops-status"] == "pass"
+    assert props["trustops-ccf-status"] == "not_evaluated"
+    assert {p["name"]: p["value"] for p in findings["SOC2-CC6.1"]["props"]}["trustops-ccf-status"] == "pass"
+
+
+def test_lake_without_framework_assessment_reports_nothing_satisfied(tmp_path: Path) -> None:
+    lake = tmp_path / "lake"
+    _seed_control_posture(lake, ccf_assessment=False)
+    states = {
+        f["target"]["status"]["state"]
+        for f in build_assessment_results(lake)["assessment-results"]["results"][0]["findings"]
+    }
+    assert states == {"not-satisfied"}
+
+
+def test_golden_assessment_results_satisfy_only_framework_passes(tmp_path: Path) -> None:
+    lake = tmp_path / "lake"
+    assert main(["fixtures", "load", "--company", "golden", "--out", str(lake), "--rebase-times"]) == 0
+    ccf = json.loads((lake / "gold" / "ccf_assessment.json").read_text(encoding="utf-8"))
+    passing = {row["control_id"] for row in ccf["requirements"] if row["status"] == "pass"}
+    satisfied = {
+        {p["name"]: p["value"] for p in f["props"]}["trustops-control-id"]
+        for f in build_assessment_results(lake)["assessment-results"]["results"][0]["findings"]
+        if f["target"]["status"]["state"] == "satisfied"
+    }
+    assert satisfied <= passing
 
 
 def test_build_assessment_results_validates_against_oscal_schema(tmp_path: Path) -> None:

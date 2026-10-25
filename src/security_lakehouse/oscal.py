@@ -48,6 +48,7 @@ from urllib.parse import quote
 
 from security_lakehouse.assessment import _assessment_hash, load_snapshot
 from security_lakehouse.catalog import load_control_catalog, load_framework_registry
+from security_lakehouse.ccf_requirement_results import ccf_result_fields, load_requirement_results
 from security_lakehouse.evidence_provenance import contains_synthetic_evidence
 from security_lakehouse.generations import generation_identity, generation_reader, pin_generation, verify_generation
 from security_lakehouse.io import file_sha256, read_json, read_jsonl, resolve_path
@@ -83,7 +84,8 @@ _INVALID_TOKEN_CHARS = re.compile(r"[^A-Za-z0-9._-]")
 # satisfied/not-satisfied; stale evidence and an unevaluated control are both
 # "not-satisfied, reason other" rather than "satisfied" -- an auditor reading
 # the export must never see an unconfirmed or unevaluated control reported as
-# passing.
+# passing. A passing control test is "satisfied" only when the requirement's
+# framework (CCF) result also passes through reviewed mappings.
 _STATUS_TO_OSCAL: dict[str, tuple[str, str]] = {
     "pass": ("satisfied", "pass"),
     "fail": ("not-satisfied", "fail"),
@@ -373,6 +375,7 @@ def build_assessment_results(
         for event in read_jsonl(source_lake / "silver/normalized_events.jsonl", missing_ok=True, base_dir=source_lake):
             for control_id in set(event.get("control_ids", [])):
                 inputs.setdefault(control_id, []).append(event)
+    ccf_results = load_requirement_results(source_lake)
     observations: list[JsonObject] = []
     findings: list[JsonObject] = []
     control_selections: list[JsonObject] = []
@@ -382,6 +385,9 @@ def build_assessment_results(
             continue
         status = str(row.get("status") or "not_evaluated")
         state, reason = _STATUS_TO_OSCAL.get(status, ("not-satisfied", "other"))
+        ccf_status = str(ccf_result_fields(ccf_results, control_id)["ccf_status"])
+        if state == "satisfied" and ccf_status != "pass":
+            state, reason = "not-satisfied", "other"
         token = _oscal_token(control_id)
         control_selections.append({"control-id": token})
 
@@ -428,6 +434,7 @@ def build_assessment_results(
                 "props": [
                     _prop("trustops-control-id", control_id),
                     _prop("trustops-status", status),
+                    _prop("trustops-ccf-status", ccf_status),
                     _prop("framework", row.get("framework", "")),
                 ],
                 "related-observations": [{"observation-uuid": observation_uuid}],

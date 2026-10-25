@@ -5,6 +5,7 @@ Python package, Helm chart, and bundled web console.
 
 ## Unreleased
 
+- Report an OSCAL assessment-results finding as `satisfied` only when the control test passes and the requirement's framework (CCF) result is `pass` through reviewed mappings. A passing control test with only proposed mappings, or no CCF result, is now `not-satisfied` (reason `other`); each finding adds a `trustops-ccf-status` prop. Previously the golden demo exported 8 SOC 2 objectives as satisfied while every CCF requirement was not evaluated.
 - Reject incomplete Databricks SQL results before replacing evidence or advancing watermarks. Validate result schemas, row counts and chunk offsets, follow index-only chunk cursors, and record failed reads as partial runs with a collection gap. Malformed chunk links are rejected before requesting them. The adapter remains Preview; the added qualification uses synthetic responses.
 
 ## 0.3.13 - 2026-10-25
