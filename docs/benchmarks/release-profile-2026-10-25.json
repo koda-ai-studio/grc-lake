@@ -2,127 +2,254 @@
   "schema": "grc.local_release_profile.v1",
   "review_status": "proposed",
   "profile": "local-graph-10k-v1",
-  "source_revision": "70a681b5735c644b5e6e3f9fb160138d61c75951",
-  "source_tree": "a4f59161e21c46870f1a2b0ed22a4a194ab8890a",
-  "merged_source_revision": "d3bbfa1668368ac01cf92266112aab935c6c5dd6",
-  "measured_at": "2026-10-25T18:28:45.733042+00:00",
-  "environment": {
-    "platform": "macOS-27.0.1-arm64-arm-64bit",
-    "python": "3.12.13",
-    "cpu_count": 10,
-    "machine": "arm64",
-    "physical_memory_bytes": 17179869184,
-    "storage": "local filesystem, synthetic legacy-compatible generations",
-    "cache": "OS and shared catalog caches uncontrolled; first means first graph call per tenant"
-  },
-  "configuration": {
-    "transport": "http",
-    "tenants": 2,
-    "repeats": 3,
-    "sizes": [1000, 10000],
-    "concurrency": [4],
-    "timeout_seconds": 900.0,
-    "sampled_rss_limit_mib": 2048,
-    "min_free_gib": 5,
-    "sample_seconds": 0.25,
-    "seed": 910,
-    "frozen_catalogs": true,
-    "model_cache": "shipped policy",
-    "model_cache_mib_override": null,
-    "sustained_seconds": 30.0,
-    "idle_seconds": 61.0,
-    "fixture": "seeded mixed controls/outcomes/asset types; every tenant shares source account shared-account-a",
-    "http": {
-      "server_processes": 1,
-      "client_timeout_seconds": 75,
-      "lifecycle_probes": false,
-      "auth_role": "security_admin",
-      "database": "scratch SQLite",
-      "query": {
-        "view": "environment",
-        "root": "own account-a asset-0",
-        "depth": 1,
-        "limit": 150
-      },
-      "graph_build_concurrency": "shipped default",
-      "dependencies": {
-        "fastapi": "0.141.1",
-        "starlette": "1.6.0",
-        "anyio": "4.14.2",
-        "uvicorn": "0.48.0",
-        "httpx": "0.28.1"
-      }
-    }
-  },
-  "raw_receipt_sha256": "ae5a64998bdffaa6d335d3a0c4d888c2abe8855c14685c681e577145f7ec63a5",
-  "results": [
+  "runs": [
     {
-      "rows_per_tenant": 1000,
-      "peak_rss_mib": 184.59375,
-      "tenants": {
-        "tenant-0": {
-          "admitted": 774,
-          "rejected": 471,
-          "admission_fraction": 0.6216867469879518,
-          "rejection_codes": {
-            "graph_build_capacity": 0,
-            "graph_tenant_capacity": 471,
-            "rate_limited": 0
+      "source_revision": "70a681b5735c644b5e6e3f9fb160138d61c75951",
+      "source_tree": "a4f59161e21c46870f1a2b0ed22a4a194ab8890a",
+      "measured_at": "2026-10-25T18:28:45.733042+00:00",
+      "environment": {
+        "platform": "macOS-27.0.1-arm64-arm-64bit",
+        "python": "3.12.13",
+        "cpu_count": 10,
+        "machine": "arm64",
+        "physical_memory_bytes": 17179869184,
+        "storage": "local filesystem, synthetic legacy-compatible generations",
+        "cache": "OS and shared catalog caches uncontrolled; first means first graph call per tenant"
+      },
+      "configuration": {
+        "transport": "http",
+        "tenants": 2,
+        "repeats": 3,
+        "sizes": [1000, 10000],
+        "concurrency": [4],
+        "timeout_seconds": 900.0,
+        "sampled_rss_limit_mib": 2048,
+        "min_free_gib": 5,
+        "sample_seconds": 0.25,
+        "seed": 910,
+        "frozen_catalogs": true,
+        "model_cache": "shipped policy",
+        "model_cache_mib_override": null,
+        "sustained_seconds": 30.0,
+        "idle_seconds": 61.0,
+        "fixture": "seeded mixed controls/outcomes/asset types; every tenant shares source account shared-account-a",
+        "http": {
+          "server_processes": 1,
+          "client_timeout_seconds": 75,
+          "lifecycle_probes": false,
+          "auth_role": "security_admin",
+          "database": "scratch SQLite",
+          "query": {
+            "view": "environment",
+            "root": "own account-a asset-0",
+            "depth": 1,
+            "limit": 150
           },
-          "warm_p95_seconds": 0.16118991700932384,
-          "max_success_gap_seconds": 0.2094955830834806,
-          "cold_seconds": 1.0475189170101658,
-          "post_idle_seconds": 1.3509723329916596
-        },
-        "tenant-1": {
-          "admitted": 301,
-          "rejected": 13,
-          "admission_fraction": 0.9585987261146497,
-          "rejection_codes": {
-            "graph_build_capacity": 0,
-            "graph_tenant_capacity": 13,
-            "rate_limited": 0
-          },
-          "warm_p95_seconds": 0.1421831250190735,
-          "max_success_gap_seconds": 0.3790234159678221,
-          "cold_seconds": 0.9635556669672951,
-          "post_idle_seconds": 0.6492787089664489
+          "graph_build_concurrency": "shipped default",
+          "dependencies": {
+            "fastapi": "0.141.1",
+            "starlette": "1.6.0",
+            "anyio": "4.14.2",
+            "uvicorn": "0.48.0",
+            "httpx": "0.28.1"
+          }
         }
-      }
+      },
+      "raw_receipt_sha256": "ae5a64998bdffaa6d335d3a0c4d888c2abe8855c14685c681e577145f7ec63a5",
+      "results": [
+        {
+          "rows_per_tenant": 1000,
+          "peak_rss_mib": 184.59375,
+          "tenants": {
+            "tenant-0": {
+              "admitted": 774,
+              "rejected": 471,
+              "admission_fraction": 0.6216867469879518,
+              "rejection_codes": {
+                "graph_build_capacity": 0,
+                "graph_tenant_capacity": 471,
+                "rate_limited": 0
+              },
+              "warm_p95_seconds": 0.16118991700932384,
+              "max_success_gap_seconds": 0.2094955830834806,
+              "cold_seconds": 1.0475189170101658,
+              "post_idle_seconds": 1.3509723329916596
+            },
+            "tenant-1": {
+              "admitted": 301,
+              "rejected": 13,
+              "admission_fraction": 0.9585987261146497,
+              "rejection_codes": {
+                "graph_build_capacity": 0,
+                "graph_tenant_capacity": 13,
+                "rate_limited": 0
+              },
+              "warm_p95_seconds": 0.1421831250190735,
+              "max_success_gap_seconds": 0.3790234159678221,
+              "cold_seconds": 0.9635556669672951,
+              "post_idle_seconds": 0.6492787089664489
+            }
+          }
+        },
+        {
+          "rows_per_tenant": 10000,
+          "peak_rss_mib": 319.609375,
+          "tenants": {
+            "tenant-0": {
+              "admitted": 708,
+              "rejected": 465,
+              "admission_fraction": 0.6035805626598465,
+              "rejection_codes": {
+                "graph_build_capacity": 0,
+                "graph_tenant_capacity": 465,
+                "rate_limited": 0
+              },
+              "warm_p95_seconds": 0.13233366701751947,
+              "max_success_gap_seconds": 0.23590995802078396,
+              "cold_seconds": 3.1244862499879673,
+              "post_idle_seconds": 2.9911217089975253
+            },
+            "tenant-1": {
+              "admitted": 286,
+              "rejected": 10,
+              "admission_fraction": 0.9662162162162162,
+              "rejection_codes": {
+                "graph_build_capacity": 0,
+                "graph_tenant_capacity": 10,
+                "rate_limited": 0
+              },
+              "warm_p95_seconds": 0.14283354196231812,
+              "max_success_gap_seconds": 0.3680630420567468,
+              "cold_seconds": 3.0528597499942407,
+              "post_idle_seconds": 2.907857167068869
+            }
+          }
+        }
+      ]
     },
     {
-      "rows_per_tenant": 10000,
-      "peak_rss_mib": 319.609375,
-      "tenants": {
-        "tenant-0": {
-          "admitted": 708,
-          "rejected": 465,
-          "admission_fraction": 0.6035805626598465,
-          "rejection_codes": {
-            "graph_build_capacity": 0,
-            "graph_tenant_capacity": 465,
-            "rate_limited": 0
+      "source_revision": "c487348397bd50ef71d6d9dde5b0334d3139ad3e",
+      "source_tree": "f89512f67d22b9955c17de6e7138da53b1e5b92d",
+      "measured_at": "2026-10-25T18:38:20.853064+00:00",
+      "environment": {
+        "platform": "macOS-27.0.1-arm64-arm-64bit",
+        "python": "3.12.13",
+        "cpu_count": 10,
+        "machine": "arm64",
+        "physical_memory_bytes": 17179869184,
+        "storage": "local filesystem, synthetic legacy-compatible generations",
+        "cache": "OS and shared catalog caches uncontrolled; first means first graph call per tenant"
+      },
+      "configuration": {
+        "transport": "http",
+        "tenants": 2,
+        "repeats": 3,
+        "sizes": [1000, 10000],
+        "concurrency": [4],
+        "timeout_seconds": 900.0,
+        "sampled_rss_limit_mib": 2048,
+        "min_free_gib": 5,
+        "sample_seconds": 0.25,
+        "seed": 910,
+        "frozen_catalogs": true,
+        "model_cache": "shipped policy",
+        "model_cache_mib_override": null,
+        "sustained_seconds": 30.0,
+        "idle_seconds": 61.0,
+        "fixture": "seeded mixed controls/outcomes/asset types; every tenant shares source account shared-account-a",
+        "http": {
+          "server_processes": 1,
+          "client_timeout_seconds": 75,
+          "lifecycle_probes": false,
+          "auth_role": "security_admin",
+          "database": "scratch SQLite",
+          "query": {
+            "view": "environment",
+            "root": "own account-a asset-0",
+            "depth": 1,
+            "limit": 150
           },
-          "warm_p95_seconds": 0.13233366701751947,
-          "max_success_gap_seconds": 0.23590995802078396,
-          "cold_seconds": 3.1244862499879673,
-          "post_idle_seconds": 2.9911217089975253
-        },
-        "tenant-1": {
-          "admitted": 286,
-          "rejected": 10,
-          "admission_fraction": 0.9662162162162162,
-          "rejection_codes": {
-            "graph_build_capacity": 0,
-            "graph_tenant_capacity": 10,
-            "rate_limited": 0
-          },
-          "warm_p95_seconds": 0.14283354196231812,
-          "max_success_gap_seconds": 0.3680630420567468,
-          "cold_seconds": 3.0528597499942407,
-          "post_idle_seconds": 2.907857167068869
+          "graph_build_concurrency": "shipped default",
+          "dependencies": {
+            "fastapi": "0.141.1",
+            "starlette": "1.6.0",
+            "anyio": "4.14.2",
+            "uvicorn": "0.48.0",
+            "httpx": "0.28.1"
+          }
         }
-      }
+      },
+      "raw_receipt_sha256": "974637d0fd392aa493a8e0567701bfbee90c2e7ca79fc3a6ceb05621ea567dbb",
+      "results": [
+        {
+          "rows_per_tenant": 1000,
+          "peak_rss_mib": 201.34375,
+          "tenants": {
+            "tenant-0": {
+              "admitted": 1033,
+              "rejected": 150,
+              "admission_fraction": 0.8732037193575655,
+              "rejection_codes": {
+                "graph_build_capacity": 0,
+                "graph_tenant_capacity": 150,
+                "rate_limited": 0
+              },
+              "warm_p95_seconds": 0.10842479194980115,
+              "max_success_gap_seconds": 0.18333958298899233,
+              "cold_seconds": 1.2788232499733567,
+              "post_idle_seconds": 0.48022575001232326
+            },
+            "tenant-1": {
+              "admitted": 297,
+              "rejected": 1,
+              "admission_fraction": 0.9966442953020134,
+              "rejection_codes": {
+                "graph_build_capacity": 0,
+                "graph_tenant_capacity": 1,
+                "rate_limited": 0
+              },
+              "warm_p95_seconds": 0.10466320905834436,
+              "max_success_gap_seconds": 0.3225252500269562,
+              "cold_seconds": 1.268601458054036,
+              "post_idle_seconds": 0.44828729110304266
+            }
+          }
+        },
+        {
+          "rows_per_tenant": 10000,
+          "peak_rss_mib": 415.859375,
+          "tenants": {
+            "tenant-0": {
+              "admitted": 1249,
+              "rejected": 1424,
+              "admission_fraction": 0.4672652450430228,
+              "rejection_codes": {
+                "graph_build_capacity": 0,
+                "graph_tenant_capacity": 340,
+                "rate_limited": 1084
+              },
+              "warm_p95_seconds": 0.06712995795533061,
+              "max_success_gap_seconds": 0.14841416699346155,
+              "cold_seconds": 1.8725140419555828,
+              "post_idle_seconds": 2.026878874981776
+            },
+            "tenant-1": {
+              "admitted": 643,
+              "rejected": 28,
+              "admission_fraction": 0.9582712369597616,
+              "rejection_codes": {
+                "graph_build_capacity": 0,
+                "graph_tenant_capacity": 28,
+                "rate_limited": 0
+              },
+              "warm_p95_seconds": 0.07203783292789012,
+              "max_success_gap_seconds": 0.1991634169826284,
+              "cold_seconds": 1.853676375001669,
+              "post_idle_seconds": 2.0238673329586163
+            }
+          }
+        }
+      ]
     }
   ],
   "limitations": [

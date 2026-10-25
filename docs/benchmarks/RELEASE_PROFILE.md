@@ -50,9 +50,11 @@ It checks receipts; it does not itself rerun the benchmark or attest their origi
 
 The [October 25 profile receipt](release-profile-2026-10-25.json) retains source,
 configuration, host characteristics, raw receipt hashes and summarized outcomes.
-The first run measured 132–143 ms successful warm p95 and 3.05–3.12 second cold
-reads at 10k records per tenant, with 319.6 MiB peak RSS. Shared-host and OS-cache
-effects remain uncontrolled. These are observations, not causal speedup claims.
+Two sequential runs passed the candidate limits. At 10k records per tenant,
+successful warm p95 ranged from 67–143 ms, cold reads from 1.85–3.12 seconds,
+and peak RSS from 319.6–415.9 MiB. Shared-host and OS-cache effects remain
+uncontrolled. These are observations, not causal speedup claims. Raw receipt
+hashes retain both attempts; faster later results do not replace the first run.
 
 At 100k records per tenant the [earlier measurements](INVESTIGATION_CACHE.md)
 retained no models in the shipped cache and took roughly 14–16 seconds for reads.
