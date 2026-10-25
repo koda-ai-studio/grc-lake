@@ -309,3 +309,63 @@ test("background queue refresh cannot replace the selected review basis", async 
     "1".repeat(64),
   );
 });
+
+test("an out-of-date maintainer review is not labeled as a current review", async ({
+  page,
+  request,
+}) => {
+  const body = (await (
+    await request.get("/api/v1/mapping-reviews/queue?limit=200")
+  ).json()) as {
+    data: Array<{
+      control_id: string;
+      shipped_review_status: string;
+      review_state: string;
+      mapping_source?: string | null;
+      mapping_basis?: string | null;
+    }>;
+  };
+  const stale = body.data.find(
+    (row) =>
+      row.shipped_review_status === "reviewed" &&
+      row.review_state === "proposed" &&
+      !row.mapping_source &&
+      !row.mapping_basis,
+  )!;
+  const table = await openQueue(page);
+  await page
+    .getByPlaceholder("Search requirement or safeguard")
+    .fill(stale.control_id);
+  const row = table
+    .getByRole("row")
+    .filter({ hasText: stale.control_id })
+    .first();
+  await expect(row).toContainText("Earlier maintainer review");
+  await expect(row).not.toContainText(/Maintainer review(?! )/);
+});
+
+test("framework marks fit their badge on one line", async ({ page }) => {
+  await openQueue(page);
+  const marks = page.locator('[role="img"][aria-label$=" framework"]');
+  await expect(marks.first()).toBeVisible();
+  const broken = await marks.evaluateAll((elements) =>
+    elements
+      .filter((el) => {
+        const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+        const lines = new Set<number>();
+        for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+          const range = document.createRange();
+          range.selectNodeContents(node);
+          for (const rect of range.getClientRects())
+            lines.add(Math.round(rect.top));
+        }
+        return (
+          lines.size > 1 ||
+          el.scrollWidth > el.clientWidth + 1 ||
+          el.scrollHeight > el.clientHeight + 1
+        );
+      })
+      .map((el) => el.getAttribute("aria-label")),
+  );
+  expect(broken).toEqual([]);
+});
