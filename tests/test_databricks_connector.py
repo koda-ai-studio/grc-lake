@@ -13,6 +13,7 @@ import pytest
 
 import security_lakehouse.connector_runner as connector_runner
 from security_lakehouse import netguard
+from security_lakehouse.connector_errors import CollectionGapError
 from security_lakehouse.connector_state import append_config_event
 from security_lakehouse.connectors_databricks import (
     DatabricksClient,
@@ -26,6 +27,225 @@ from security_lakehouse.validation import validate_raw_events
 
 FIXTURE = Path(__file__).parent / "fixtures" / "databricks"
 HOST = "dbc-a1b2345c-d6e7.cloud.databricks.com"
+
+
+def _statement_result() -> dict[str, Any]:
+    return {
+        "statement_id": "stmt-1",
+        "status": {"state": "SUCCEEDED"},
+        "manifest": {
+            "format": "JSON_ARRAY",
+            "schema": {"columns": [{"name": "audit_id"}]},
+            "total_row_count": 1,
+            "truncated": False,
+        },
+        "result": {"data_array": [["a1"]], "row_count": 1, "row_offset": 0},
+    }
+
+
+def _result_client(
+    monkeypatch: pytest.MonkeyPatch, response: dict[str, Any], chunk: dict[str, Any] | None = None
+) -> DatabricksClient:
+    _fake_workspace(
+        monkeypatch,
+        {
+            ("POST", "/oidc/v1/token"): {"access_token": "synthetic-token"},
+            ("POST", "/api/2.0/sql/statements"): response,
+            ("GET", "/api/2.0/sql/statements/stmt-1/result/chunks/1"): chunk
+            if chunk is not None
+            else {
+                "data_array": [["a2"]],
+                "row_count": 1,
+                "row_offset": 1,
+            },
+        },
+    )
+    return DatabricksClient(
+        HOST, client_id="test-app", client_secret="synthetic-secret", warehouse_id="w", catalog="c", schema="s"
+    )
+
+
+@pytest.mark.parametrize(
+    ("manifest", "result"),
+    [
+        ({"truncated": True}, {}),
+        ({"truncated": "false"}, {}),
+        ({"total_row_count": 2}, {}),
+        ({"total_row_count": True}, {}),
+        ({"total_row_count": -1}, {}),
+        ({"total_row_count": "1"}, {}),
+        ({"schema": {"columns": []}}, {}),
+        ({"schema": {"columns": [{"name": ""}]}}, {}),
+        ({"schema": {"columns": [{"name": "audit_id"}, {"name": "audit_id"}]}}, {"data_array": [["a1", "a2"]]}),
+        ({}, {"data_array": [[]]}),
+        ({}, {"data_array": [["a1", "extra"]]}),
+        ({}, {"data_array": ["a1"]}),
+        ({}, {"data_array": None}),
+        ({}, {"row_count": 2}),
+        ({}, {"row_count": True}),
+        ({}, {"row_offset": 1}),
+    ],
+)
+def test_statement_result_must_be_complete(
+    monkeypatch: pytest.MonkeyPatch, manifest: dict[str, Any], result: dict[str, Any]
+) -> None:
+    response = _statement_result()
+    response["manifest"].update(manifest)
+    response["result"].update(result)
+    with pytest.raises(CollectionGapError, match="incomplete"):
+        _result_client(monkeypatch, response).audit_events()
+
+
+@pytest.mark.parametrize("missing", ["manifest", "result"])
+def test_success_status_does_not_replace_result_data(monkeypatch: pytest.MonkeyPatch, missing: str) -> None:
+    response = _statement_result()
+    del response[missing]
+    with pytest.raises(CollectionGapError, match="incomplete"):
+        _result_client(monkeypatch, response).audit_events()
+
+
+@pytest.mark.parametrize("link", ["@attacker.example/result", "other.example/result", "//attacker.example/result"])
+def test_chunk_paths_cannot_change_the_request_authority(monkeypatch: pytest.MonkeyPatch, link: str) -> None:
+    response = _statement_result()
+    response["result"]["next_chunk_internal_link"] = link
+    with pytest.raises(CollectionGapError, match="chunk link"):
+        _result_client(monkeypatch, response).audit_events()
+
+
+@pytest.mark.parametrize("cursor", ["index", "path", "absolute"])
+def test_all_documented_chunk_cursors_return_the_complete_result(monkeypatch: pytest.MonkeyPatch, cursor: str) -> None:
+    response = _statement_result()
+    response["manifest"]["total_row_count"] = 2
+    if cursor == "index":
+        response["result"]["next_chunk_index"] = 1
+    else:
+        path = "/api/2.0/sql/statements/stmt-1/result/chunks/1"
+        response["result"]["next_chunk_internal_link"] = f"https://{HOST}{path}" if cursor == "absolute" else path
+    assert _result_client(monkeypatch, response).audit_events() == [{"audit_id": "a1"}, {"audit_id": "a2"}]
+
+
+def test_declared_empty_result_is_valid(monkeypatch: pytest.MonkeyPatch) -> None:
+    response = _statement_result()
+    response["manifest"]["total_row_count"] = 0
+    del response["result"]
+    assert _result_client(monkeypatch, response).audit_events() == []
+
+
+def test_sql_null_is_not_a_missing_column(monkeypatch: pytest.MonkeyPatch) -> None:
+    response = _statement_result()
+    response["result"]["data_array"] = [[None]]
+    assert _result_client(monkeypatch, response).audit_events() == [{"audit_id": None}]
+
+
+@pytest.mark.parametrize("index", [True, -1, "1"])
+def test_invalid_chunk_index_is_a_gap(monkeypatch: pytest.MonkeyPatch, index: Any) -> None:
+    response = _statement_result()
+    response["result"]["next_chunk_index"] = index
+    with pytest.raises(CollectionGapError, match="incomplete"):
+        _result_client(monkeypatch, response).audit_events()
+
+
+def test_index_cursor_requires_a_statement_id(monkeypatch: pytest.MonkeyPatch) -> None:
+    response = _statement_result()
+    del response["statement_id"]
+    response["result"]["next_chunk_index"] = 1
+    with pytest.raises(CollectionGapError, match="statement identifier"):
+        _result_client(monkeypatch, response).audit_events()
+
+
+def test_chunk_budget_exhaustion_is_a_gap(monkeypatch: pytest.MonkeyPatch) -> None:
+    from functools import partial
+
+    from security_lakehouse.ingestion.paginate import paginate
+
+    monkeypatch.setattr("security_lakehouse.connectors_databricks.paginate", partial(paginate, max_pages=1))
+    response = _statement_result()
+    response["manifest"]["total_row_count"] = 2
+    response["result"]["next_chunk_internal_link"] = "/api/2.0/sql/statements/stmt-1/result/chunks/1"
+    with pytest.raises(CollectionGapError, match="pagination did not finish"):
+        _result_client(monkeypatch, response).audit_events()
+
+
+@pytest.mark.parametrize(
+    "chunk",
+    [
+        {"data_array": [["a2", "extra"]]},
+        {"data_array": [["a2"]], "row_offset": 0},
+        {"data_array": [["a2"]], "row_count": 2},
+        {"data_array": [["a2"]], "next_chunk_index": 1},
+        {},
+    ],
+)
+def test_later_chunks_must_be_complete(monkeypatch: pytest.MonkeyPatch, chunk: dict[str, Any]) -> None:
+    response = _statement_result()
+    response["manifest"]["total_row_count"] = 2
+    response["result"]["next_chunk_internal_link"] = "/api/2.0/sql/statements/stmt-1/result/chunks/1"
+    with pytest.raises(CollectionGapError, match="incomplete"):
+        _result_client(monkeypatch, response, chunk).audit_events()
+
+
+@pytest.mark.parametrize("mapped", [False, True])
+@pytest.mark.parametrize("failure", ["truncated", "late_chunk"])
+def test_incomplete_sync_records_gap_without_replacing_evidence_or_advancing_watermark(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, mapped: bool, failure: str
+) -> None:
+    from security_lakehouse.ingestion.watermark import read_watermark, write_watermark
+
+    connector = "databricks-evidence-lake"
+    credentials = {
+        "host": HOST,
+        "warehouse_id": "w",
+        "catalog": "c",
+        "schema": "s",
+        "client_id": "test-app",
+        "client_secret_ref": "DATABRICKS_CLIENT_SECRET",
+    }
+    append_config_event(tmp_path, connector_id=connector, state="enabled", actor="test", credentials=credentials)
+    connector_runner.run_connector_sync(tmp_path, connector_id=connector, fixture_dir=FIXTURE)
+    raw = tmp_path / connector_runner.CONNECTOR_RAW_FILE
+    assessment = tmp_path / "gold/ccf_assessment.json"
+    before = raw.read_bytes(), assessment.read_bytes()
+    cursor = "2026-10-24T12:00:00Z"
+    write_watermark(tmp_path, connector, cursor)
+    if mapped:
+        append_config_event(
+            tmp_path,
+            connector_id=connector,
+            state="enabled",
+            actor="test",
+            credentials=credentials,
+            options={
+                "mapping": {
+                    "spec_version": 1,
+                    "name": "audit_scope",
+                    "source": {"table": "audit_events"},
+                    "fields": {
+                        "id": {"column": "audit_id"},
+                        "observed_at": {"column": "event_time", "format": "timestamp"},
+                        "asset_id": {"column": "audit_id"},
+                    },
+                }
+            },
+        )
+    monkeypatch.setenv("DATABRICKS_CLIENT_SECRET", "synthetic-secret")
+    response = _statement_result()
+    if failure == "truncated":
+        response["manifest"]["truncated"] = True
+    else:
+        response["manifest"]["total_row_count"] = 2
+        response["result"]["next_chunk_internal_link"] = "/api/2.0/sql/statements/stmt-1/result/chunks/1"
+    _result_client(monkeypatch, response, {"data_array": [["a2", "extra"]]})
+    with pytest.raises(connector_runner.ConnectorSyncError) as failed:
+        connector_runner.run_connector_sync(tmp_path, connector_id=connector)
+    run = failed.value.run
+    assert run["result"] == "error"
+    assert run["metadata"]["partial"] is True
+    [gap] = run["metadata"]["coverage_gaps"]
+    assert gap["collection"] == ("audit_scope" if mapped else "audit_events")
+    assert gap["reason"] == "incomplete_result"
+    assert "synthetic-secret" not in json.dumps(run) and "synthetic-token" not in json.dumps(run)
+    assert (raw.read_bytes(), assessment.read_bytes()) == before
+    assert read_watermark(tmp_path, connector) == cursor
 
 
 def test_fixture_collection_uses_the_shared_evidence_view_contract() -> None:
@@ -145,7 +365,7 @@ def test_chunk_link_must_stay_on_the_workspace(monkeypatch: pytest.MonkeyPatch) 
     client = DatabricksClient(
         HOST, client_id="a", client_secret="b", warehouse_id="w", catalog="c", schema="s", sleep=lambda _s: None
     )
-    with pytest.raises(ValueError, match="chunk link"):
+    with pytest.raises(CollectionGapError, match="chunk link"):
         client.asset_risk()
 
 

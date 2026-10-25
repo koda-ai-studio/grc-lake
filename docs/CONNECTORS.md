@@ -874,7 +874,7 @@ connectors, and all three feed the offboarding check below.
 `SELECT * FROM` each of the four GRC Lake evidence views in a Unity Catalog
 schema through the SQL Statement Execution API (`POST /api/2.0/sql/statements`,
 `INLINE` + `JSON_ARRAY`, polling while `PENDING`/`RUNNING`, following
-`next_chunk_internal_link`). No Databricks SDK or driver is installed.
+`next_chunk_internal_link` or `next_chunk_index`). No Databricks SDK or driver is installed.
 
 Setup:
 
@@ -897,6 +897,13 @@ bounds row count; actual payload size must still fit the 25 MiB inline result
 limit. The bootstrap accepts both audit response field spellings (`status_code`
 and `statusCode`). An empty audit window or missing response code does not
 establish a passing denied-access review.
+
+The reader checks the [Statement Execution result contract](https://docs.databricks.com/api/statement-execution/v1/statement-execution)
+before returning evidence: truncated results, missing data, inconsistent schemas,
+row counts or offsets, and unfinished pagination fail the sync. The failed run
+records a collection gap and `partial: true`; existing raw evidence, assessments
+and watermarks remain unchanged. A declared zero-row result is valid. These checks
+apply to both the four standard views and custom lake mappings.
 
 A [bounded trial receipt](qualification/live/2026-10-25-databricks.md) records
 OAuth collection and recollection of eight synthetic rows, plus two

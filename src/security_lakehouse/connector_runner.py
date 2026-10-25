@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import Any
 
 from security_lakehouse import netguard
-from security_lakehouse.connector_errors import ConnectorConfigError, collection_gaps
+from security_lakehouse.connector_errors import CollectionGapError, ConnectorConfigError, collection_gaps
 from security_lakehouse.connector_state import _safe_run_error, append_run_event, latest_config
 from security_lakehouse.connectors import (
     CONNECTOR_BUILDER_ENTRY_POINT_GROUP,
@@ -464,6 +464,9 @@ def run_connector_sync(
             actor=actor,
             duration_ms=_duration_ms(start),
             error=_safe_run_error(exc),
+            metadata={"partial": True, "coverage_gaps": [exc.attributes()]}
+            if isinstance(exc, CollectionGapError)
+            else None,
         )
         raise ConnectorSyncError(str(exc), run=run) from exc
 
