@@ -118,7 +118,7 @@ rest of that control.
 
 ```
 $ grc-lake frameworks safeguards --format table
-1195 safeguards map 2196 of 2282 requirements (96.2%) — 1163 maintainer-reviewed, 0 org-reviewed (51.0% attestable), 1033 proposed; 0 mapping(s) rejected by the org
+1195 safeguards map 2196 of 2282 requirements (96.2%) — 1163 maintainer-reviewed (339 rest only on legacy reviews with no recorded reviewer), 0 org-reviewed (51.0% attestable), 1033 proposed; 0 mapping(s) rejected by the org
 ```
 
 A mapping is **reviewed** once a human has confirmed the requirements are the

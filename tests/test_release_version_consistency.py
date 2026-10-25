@@ -99,3 +99,18 @@ def test_released_version_has_a_non_empty_changelog_section() -> None:
     changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
     section = changelog.split(f"## {RELEASE_VERSION} - {RELEASE_DATE}\n", 1)[1].split("\n## ", 1)[0]
     assert section.strip().startswith("- ")
+
+
+def test_install_guides_pin_one_published_release() -> None:
+    """Install guides name the latest published release; their pins must not mix versions."""
+    changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
+    releases = re.findall(r"^## (\d+\.\d+\.\d+) - ", changelog, re.MULTILINE)
+    allowed = set(releases[:2])
+    for doc in ("README.md", "docs/TUTORIAL_5_MIN.md"):
+        text = (ROOT / doc).read_text(encoding="utf-8")
+        refs = (
+            re.findall(r"--branch v(\d+\.\d+\.\d+)", text)
+            + re.findall(r"grc-lake\[[\w,]+\]==(\d+\.\d+\.\d+)", text)
+            + re.findall(r"published \*\*v(\d+\.\d+\.\d+)\*\*", text)
+        )
+        assert refs and len(set(refs)) == 1 and set(refs) <= allowed, (doc, refs)
