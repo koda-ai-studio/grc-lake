@@ -81,3 +81,19 @@ def test_missing_assessment_reads_as_not_evaluated(golden_lake: Path, tmp_path: 
         "reviewed_safeguard_count": 0,
         "proposed_safeguard_count": 0,
     }
+
+
+def test_graph_and_control_views_share_one_ccf_result_definition(golden_lake: Path) -> None:
+    from security_lakehouse.ccf_requirement_results import load_requirement_results, requirement_results_from
+    from security_lakehouse.investigation_graph import investigation_graph
+
+    payload = json.loads((golden_lake / "gold" / "ccf_assessment.json").read_text(encoding="utf-8"))
+    assert requirement_results_from(payload) == load_requirement_results(golden_lake)
+    assert requirement_results_from({"requirements": [{"control_id": "X-1", "status": None}]}) == {
+        "X-1": {"ccf_status": "not_evaluated", "reviewed_safeguard_count": 0, "proposed_safeguard_count": 0}
+    }
+
+    graph = investigation_graph(golden_lake, root="control:SOC2-CC6.8")
+    node = next(n for n in graph["nodes"] if n["id"] == "control:SOC2-CC6.8")
+    expected = load_requirement_results(golden_lake)["SOC2-CC6.8"]
+    assert {key: node[key] for key in expected} == expected

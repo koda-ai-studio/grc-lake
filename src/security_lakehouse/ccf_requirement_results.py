@@ -9,6 +9,7 @@ it, so a control with only proposed mappings never reads as an attested pass.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
@@ -17,7 +18,7 @@ from security_lakehouse.generations import pinned_path
 from security_lakehouse.io import read_json
 from security_lakehouse.jsontypes import JsonObject
 
-__all__ = ["ccf_result_fields", "load_requirement_results", "with_ccf_results"]
+__all__ = ["ccf_result_fields", "load_requirement_results", "requirement_results_from", "with_ccf_results"]
 
 RequirementResults = dict[str, JsonObject]
 
@@ -29,14 +30,19 @@ def load_requirement_results(lake: str | Path) -> RequirementResults:
     if summary is None:
         path = lake / "gold" / "ccf_assessment.json"
         summary = read_json(path, base_dir=lake) if pinned_path(path).is_file() else {}
-    results: RequirementResults = {}
-    for row in summary.get("requirements") or []:
-        results[str(row["control_id"])] = {
+    return requirement_results_from(summary)
+
+
+def requirement_results_from(assessment: Mapping[str, Any]) -> RequirementResults:
+    """Return ``control_id -> ccf fields`` from an already-read CCF assessment."""
+    return {
+        str(row["control_id"]): {
             "ccf_status": str(row.get("status") or "not_evaluated"),
             "reviewed_safeguard_count": len(row.get("reviewed_safeguard_ids") or []),
             "proposed_safeguard_count": int(row.get("pending_mapping_count") or 0),
         }
-    return results
+        for row in assessment.get("requirements") or []
+    }
 
 
 def ccf_result_fields(results: RequirementResults, control_id: str) -> JsonObject:
