@@ -1,0 +1,2640 @@
+{
+  "schema_version": "grc.investigation_capacity_summary.v1",
+  "date": "2026-10-25",
+  "scope": "Synthetic loopback HTTP and simultaneous independent workers on one shared host",
+  "receipt_policy": "Individual read arrays are summarized; full local receipts are fingerprinted below. Reproduction commands emit full receipts.",
+  "host_activity": "Benchmarks ran sequentially. Interactive applications and Databricks trial setup were active; two small offline SQL regression runs overlapped the eviction run. Host load and OS caches were uncontrolled.",
+  "runs": {
+    "sustained": {
+      "untracked_source_sha256": {},
+      "schema_version": "grc.investigation_benchmark.v2",
+      "revision": "6268edbdc625f894859837dc6fabdb8376e54f32",
+      "tracked_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "harness_sha256": "91acce5004aa55922e9e0e4bc5720081f48911572354a0bcfad24fb7e4b7cc08",
+      "measured_at": "2026-10-25T16:02:02.418784+00:00",
+      "environment": {
+        "platform": "macOS-27.0.1-arm64-arm-64bit",
+        "python": "3.12.13",
+        "cpu_count": 10,
+        "machine": "arm64",
+        "physical_memory_bytes": 17179869184,
+        "storage": "local filesystem, synthetic legacy-compatible generations",
+        "cache": "OS and shared catalog caches uncontrolled; first means first graph call per tenant"
+      },
+      "configuration": {
+        "transport": "http",
+        "tenants": 2,
+        "repeats": 2,
+        "sizes": [1000, 10000],
+        "concurrency": [8],
+        "timeout_seconds": 900.0,
+        "sampled_rss_limit_mib": 4096,
+        "min_free_gib": 5,
+        "sample_seconds": 0.25,
+        "seed": 910,
+        "frozen_catalogs": true,
+        "model_cache": "shipped policy",
+        "model_cache_mib_override": null,
+        "sustained_seconds": 30.0,
+        "idle_seconds": 61.0,
+        "fixture": "seeded mixed controls/outcomes/asset types; every tenant shares source account shared-account-a",
+        "http": {
+          "server_processes": 1,
+          "client_timeout_seconds": 75,
+          "lifecycle_probes": false,
+          "auth_role": "security_admin",
+          "database": "scratch SQLite",
+          "query": {
+            "view": "environment",
+            "root": "own account-a asset-0",
+            "depth": 1,
+            "limit": 150
+          },
+          "graph_build_concurrency": "shipped default",
+          "dependencies": {
+            "fastapi": "0.141.1",
+            "starlette": "1.6.0",
+            "anyio": "4.14.2",
+            "uvicorn": "0.48.0",
+            "httpx": "0.28.1"
+          }
+        }
+      },
+      "limitations": [
+        "Authenticated loopback HTTP, one Uvicorn process with default thread-pool and rate limits",
+        "Balanced and 4:1 skewed client submissions; client queue delay is not server scheduler delay",
+        "Explicit 503 admission and 429 rate-limit rejections are retained per tenant; they are not retried",
+        "Client and server share one process and host; RSS and CPU include both",
+        "Synthetic normalized records, SQLite state, no evaluation jobs or provider evidence",
+        "Response body bytes exclude HTTP headers; no production fairness, SLO or capacity budget",
+        "No object-store failover, crash recovery or distributed admission qualification"
+      ],
+      "attempts": [
+        {
+          "rows": 1000,
+          "concurrency": 8,
+          "correctness_ok": true,
+          "checks": {
+            "unauthenticated_rejected": true,
+            "invalid_credential_rejected": true,
+            "exact_bindings": true,
+            "duplicate_records": true,
+            "source_account_isolation": true,
+            "account_collision_isolation": true,
+            "foreign_root_rejected": true,
+            "all_submitted_reads_answered": true,
+            "admission_slots_released": true,
+            "stale_version_rejected": true
+          },
+          "scenarios": {
+            "balanced": {
+              "reads": 8,
+              "admitted": 5,
+              "rejected": 3,
+              "clients": 8,
+              "wall_seconds": 0.0886466249357909,
+              "reads_per_second": 90.24596261611327,
+              "per_tenant": {
+                "tenant-0": {
+                  "submitted": 4,
+                  "completed": 4,
+                  "admitted": 2,
+                  "rejected": {
+                    "graph_build_capacity": 2,
+                    "graph_tenant_capacity": 0,
+                    "graph_build_timeout": 0,
+                    "rate_limited": 0
+                  },
+                  "latency_seconds": {
+                    "p50": 0.07614437502343208,
+                    "p95": 0.07619179191533476,
+                    "p99": 0.07619179191533476
+                  },
+                  "latency_including_queue_seconds": {
+                    "p50": 0.07625670894049108,
+                    "p95": 0.07629283401183784,
+                    "p99": 0.07629283401183784
+                  },
+                  "rejection_latency_seconds": {
+                    "p50": 0.053637583972886205,
+                    "p95": 0.06403512507677078,
+                    "p99": 0.06403512507677078
+                  },
+                  "client_queue_seconds": {
+                    "p50": 6.491702515631914e-5,
+                    "p95": 0.0002936249366030097,
+                    "p99": 0.0002936249366030097
+                  },
+                  "max_success_gap_seconds": 0.07630937499925494
+                },
+                "tenant-1": {
+                  "submitted": 4,
+                  "completed": 4,
+                  "admitted": 3,
+                  "rejected": {
+                    "graph_build_capacity": 1,
+                    "graph_tenant_capacity": 0,
+                    "graph_build_timeout": 0,
+                    "rate_limited": 0
+                  },
+                  "latency_seconds": {
+                    "p50": 0.07600154203828424,
+                    "p95": 0.08511770807672292,
+                    "p99": 0.08511770807672292
+                  },
+                  "latency_including_queue_seconds": {
+                    "p50": 0.07621629210188985,
+                    "p95": 0.08556716609746218,
+                    "p99": 0.08556716609746218
+                  },
+                  "rejection_latency_seconds": {
+                    "p50": 0.057696000090800226,
+                    "p95": 0.057696000090800226,
+                    "p99": 0.057696000090800226
+                  },
+                  "client_queue_seconds": {
+                    "p50": 0.00021475006360560656,
+                    "p95": 0.00044945802073925734,
+                    "p99": 0.00044945802073925734
+                  },
+                  "max_success_gap_seconds": 0.0750594160053879
+                }
+              }
+            },
+            "skewed": {
+              "reads": 20,
+              "admitted": 8,
+              "rejected": 12,
+              "clients": 8,
+              "wall_seconds": 1.1139224580256268,
+              "reads_per_second": 17.95457112468046,
+              "per_tenant": {
+                "tenant-0": {
+                  "submitted": 16,
+                  "completed": 16,
+                  "admitted": 4,
+                  "rejected": {
+                    "graph_build_capacity": 2,
+                    "graph_tenant_capacity": 10,
+                    "graph_build_timeout": 0,
+                    "rate_limited": 0
+                  },
+                  "latency_seconds": {
+                    "p50": 0.08720533305313438,
+                    "p95": 1.056155167054385,
+                    "p99": 1.056155167054385
+                  },
+                  "latency_including_queue_seconds": {
+                    "p50": 0.0872672910336405,
+                    "p95": 1.110753042041324,
+                    "p99": 1.110753042041324
+                  },
+                  "rejection_latency_seconds": {
+                    "p50": 0.042119999998249114,
+                    "p95": 0.23703091603238136,
+                    "p99": 0.23703091603238136
+                  },
+                  "client_queue_seconds": {
+                    "p50": 0.037191833020187914,
+                    "p95": 0.09979079104959965,
+                    "p99": 0.09979079104959965
+                  },
+                  "max_success_gap_seconds": 0.688130124937743
+                },
+                "tenant-1": {
+                  "submitted": 4,
+                  "completed": 4,
+                  "admitted": 4,
+                  "rejected": {
+                    "graph_build_capacity": 0,
+                    "graph_tenant_capacity": 0,
+                    "graph_build_timeout": 0,
+                    "rate_limited": 0
+                  },
+                  "latency_seconds": {
+                    "p50": 0.17995179095305502,
+                    "p95": 0.39596420794259757,
+                    "p99": 0.39596420794259757
+                  },
+                  "latency_including_queue_seconds": {
+                    "p50": 0.2183392079314217,
+                    "p95": 0.528723832918331,
+                    "p99": 0.528723832918331
+                  },
+                  "rejection_latency_seconds": {},
+                  "client_queue_seconds": {
+                    "p50": 0.03838741697836667,
+                    "p95": 0.2184508329955861,
+                    "p99": 0.2184508329955861
+                  },
+                  "max_success_gap_seconds": 0.5830532080726698
+                }
+              }
+            },
+            "sustained": {
+              "reads": 6492,
+              "admitted": 1958,
+              "rejected": 4534,
+              "clients": 8,
+              "wall_seconds": 30.22213108406868,
+              "reads_per_second": 214.8094713089971,
+              "per_tenant": {
+                "tenant-0": {
+                  "submitted": 5189,
+                  "completed": 5189,
+                  "admitted": 1075,
+                  "rejected": {
+                    "graph_build_capacity": 142,
+                    "graph_tenant_capacity": 343,
+                    "graph_build_timeout": 0,
+                    "rate_limited": 3629
+                  },
+                  "latency_seconds": {
+                    "p50": 0.0803032909752801,
+                    "p95": 0.12225820892490447,
+                    "p99": 0.149210040923208
+                  },
+                  "latency_including_queue_seconds": {
+                    "p50": 0.08030349994078279,
+                    "p95": 0.12225845898501575,
+                    "p99": 0.14921033300925046
+                  },
+                  "rejection_latency_seconds": {
+                    "p50": 0.007710083038546145,
+                    "p95": 0.04438329197000712,
+                    "p99": 0.07651308295316994
+                  },
+                  "client_queue_seconds": {
+                    "p50": 2.08965502679348e-7,
+                    "p95": 2.9208604246377945e-7,
+                    "p99": 3.7509016692638397e-7
+                  },
+                  "max_success_gap_seconds": 1.0600259590428323
+                },
+                "tenant-1": {
+                  "submitted": 1303,
+                  "completed": 1303,
+                  "admitted": 883,
+                  "rejected": {
+                    "graph_build_capacity": 178,
+                    "graph_tenant_capacity": 242,
+                    "graph_build_timeout": 0,
+                    "rate_limited": 0
+                  },
+                  "latency_seconds": {
+                    "p50": 0.08016241702716798,
+                    "p95": 0.12464608403388411,
+                    "p99": 0.15362791705410928
+                  },
+                  "latency_including_queue_seconds": {
+                    "p50": 0.08016254205722362,
+                    "p95": 0.12464625004213303,
+                    "p99": 0.1536280419677496
+                  },
+                  "rejection_latency_seconds": {
+                    "p50": 0.044519833056256175,
+                    "p95": 0.06609483307693154,
+                    "p99": 0.17345183400902897
+                  },
+                  "client_queue_seconds": {
+                    "p50": 2.0803418010473251e-7,
+                    "p95": 2.9103830456733704e-7,
+                    "p99": 3.330642357468605e-7
+                  },
+                  "max_success_gap_seconds": 1.076794833992608
+                }
+              }
+            }
+          },
+          "cache": {
+            "max_bytes": 134217728,
+            "retained_bytes": 24417279,
+            "entries": 2,
+            "idle_ttl_seconds": 60
+          },
+          "lifecycle_probes": {},
+          "admission": {
+            "graph_build_concurrency": 4,
+            "graph_tenant_concurrency": 2,
+            "graph_build_timeout_seconds": 60.0
+          },
+          "transport": "http",
+          "seed": 910,
+          "retained_bytes": 29950385,
+          "unique_records_per_tenant": 1000,
+          "input_rows_including_duplicates": 1001,
+          "input_sha256": [
+            "ef007260da43638d25d3c2199f49ba2361a8e4f6cf2b34a8f3a3b60daaac374e",
+            "16ecf93d4460077699c410c515d549d570b89211523bbff172760b523240ef78"
+          ],
+          "input_bytes_per_tenant": [382114, 382114],
+          "model_counts": {
+            "framework": 21,
+            "control": 2282,
+            "ccf_category": 10,
+            "ccf_family": 21,
+            "safeguard": 1195,
+            "evidence_type": 1000,
+            "asset": 1000,
+            "environment": 2,
+            "account": 2,
+            "source": 2,
+            "finding": 364
+          },
+          "wall_seconds": 96.51617012510542,
+          "cpu_seconds": 44.280278,
+          "peak_rss_mib": 233.671875,
+          "load_average_before": [2.5615234375, 9.84814453125, 10.9892578125],
+          "load_average_after": [2.82373046875, 8.05712890625, 10.1767578125],
+          "individual_read_count": 6524,
+          "boundary_reads": [
+            {
+              "tenant": "tenant-0",
+              "query": "first",
+              "submission_ordinal": 0,
+              "http_status": 200,
+              "error_type": null,
+              "error_code": null,
+              "retry_after": null,
+              "seconds": 0.48074695793911815,
+              "client_queue_seconds": 1.0420335456728935e-6,
+              "completion_seconds": 1.595695042051375,
+              "response_body_bytes": 8648,
+              "response_nodes": 4,
+              "response_edges": 3
+            },
+            {
+              "tenant": "tenant-1",
+              "query": "first",
+              "submission_ordinal": 1,
+              "http_status": 200,
+              "error_type": null,
+              "error_code": null,
+              "retry_after": null,
+              "seconds": 0.4828737078933045,
+              "client_queue_seconds": 7.080379873514175e-7,
+              "completion_seconds": 2.0791184999980032,
+              "response_body_bytes": 8650,
+              "response_nodes": 4,
+              "response_edges": 3
+            },
+            {
+              "tenant": "tenant-0",
+              "query": "after_idle",
+              "submission_ordinal": 6522,
+              "http_status": 200,
+              "error_type": null,
+              "error_code": null,
+              "retry_after": null,
+              "seconds": 0.42233687499538064,
+              "client_queue_seconds": 5.58304600417614e-6,
+              "completion_seconds": 94.97105437505525,
+              "response_body_bytes": 8648,
+              "response_nodes": 4,
+              "response_edges": 3
+            },
+            {
+              "tenant": "tenant-1",
+              "query": "after_idle",
+              "submission_ordinal": 6523,
+              "http_status": 200,
+              "error_type": null,
+              "error_code": null,
+              "retry_after": null,
+              "seconds": 0.4581302920123562,
+              "client_queue_seconds": 1.500011421740055e-6,
+              "completion_seconds": 95.45158379210625,
+              "response_body_bytes": 8650,
+              "response_nodes": 4,
+              "response_edges": 3
+            }
+          ],
+          "read_summary": {
+            "after_idle": {
+              "submitted": 2,
+              "successful": 2,
+              "successful_latency_seconds": {
+                "p50": 0.42233687499538064,
+                "p95": 0.4581302920123562,
+                "p99": 0.4581302920123562
+              }
+            },
+            "balanced": {
+              "submitted": 8,
+              "successful": 5,
+              "successful_latency_seconds": {
+                "p50": 0.07614437502343208,
+                "p95": 0.08511770807672292,
+                "p99": 0.08511770807672292
+              }
+            },
+            "first": {
+              "submitted": 2,
+              "successful": 2,
+              "successful_latency_seconds": {
+                "p50": 0.48074695793911815,
+                "p95": 0.4828737078933045,
+                "p99": 0.4828737078933045
+              }
+            },
+            "skewed": {
+              "submitted": 20,
+              "successful": 8,
+              "successful_latency_seconds": {
+                "p50": 0.17995179095305502,
+                "p95": 1.056155167054385,
+                "p99": 1.056155167054385
+              }
+            },
+            "sustained": {
+              "submitted": 6492,
+              "successful": 1958,
+              "successful_latency_seconds": {
+                "p50": 0.0802444580476731,
+                "p95": 0.12293362501077354,
+                "p99": 0.1520404169568792
+              }
+            }
+          }
+        },
+        {
+          "rows": 10000,
+          "concurrency": 8,
+          "correctness_ok": true,
+          "checks": {
+            "unauthenticated_rejected": true,
+            "invalid_credential_rejected": true,
+            "exact_bindings": true,
+            "duplicate_records": true,
+            "source_account_isolation": true,
+            "account_collision_isolation": true,
+            "foreign_root_rejected": true,
+            "all_submitted_reads_answered": true,
+            "admission_slots_released": true,
+            "stale_version_rejected": true
+          },
+          "scenarios": {
+            "balanced": {
+              "reads": 8,
+              "admitted": 6,
+              "rejected": 2,
+              "clients": 8,
+              "wall_seconds": 0.10306100000161678,
+              "reads_per_second": 77.6239314568508,
+              "per_tenant": {
+                "tenant-0": {
+                  "submitted": 4,
+                  "completed": 4,
+                  "admitted": 4,
+                  "rejected": {
+                    "graph_build_capacity": 0,
+                    "graph_tenant_capacity": 0,
+                    "graph_build_timeout": 0,
+                    "rate_limited": 0
+                  },
+                  "latency_seconds": {
+                    "p50": 0.0684004999930039,
+                    "p95": 0.10038904205430299,
+                    "p99": 0.10038904205430299
+                  },
+                  "latency_including_queue_seconds": {
+                    "p50": 0.0684768749633804,
+                    "p95": 0.1005886250641197,
+                    "p99": 0.1005886250641197
+                  },
+                  "rejection_latency_seconds": {},
+                  "client_queue_seconds": {
+                    "p50": 0.00014083296991884708,
+                    "p95": 0.000240708002820611,
+                    "p99": 0.000240708002820611
+                  },
+                  "max_success_gap_seconds": 0.058947250014171004
+                },
+                "tenant-1": {
+                  "submitted": 4,
+                  "completed": 4,
+                  "admitted": 2,
+                  "rejected": {
+                    "graph_build_capacity": 0,
+                    "graph_tenant_capacity": 2,
+                    "graph_build_timeout": 0,
+                    "rate_limited": 0
+                  },
+                  "latency_seconds": {
+                    "p50": 0.09292191709391773,
+                    "p95": 0.09690166707150638,
+                    "p99": 0.09690166707150638
+                  },
+                  "latency_including_queue_seconds": {
+                    "p50": 0.09298516705166548,
+                    "p95": 0.09695720905438066,
+                    "p99": 0.09695720905438066
+                  },
+                  "rejection_latency_seconds": {
+                    "p50": 0.062152541941031814,
+                    "p95": 0.07889891706872731,
+                    "p99": 0.07889891706872731
+                  },
+                  "client_queue_seconds": {
+                    "p50": 5.5541982874274254e-5,
+                    "p95": 0.00020987493917346,
+                    "p99": 0.00020987493917346
+                  },
+                  "max_success_gap_seconds": 0.0943915001116693
+                }
+              }
+            },
+            "skewed": {
+              "reads": 20,
+              "admitted": 13,
+              "rejected": 7,
+              "clients": 8,
+              "wall_seconds": 0.2112782089971006,
+              "reads_per_second": 94.66191565583776,
+              "per_tenant": {
+                "tenant-0": {
+                  "submitted": 16,
+                  "completed": 16,
+                  "admitted": 9,
+                  "rejected": {
+                    "graph_build_capacity": 3,
+                    "graph_tenant_capacity": 4,
+                    "graph_build_timeout": 0,
+                    "rate_limited": 0
+                  },
+                  "latency_seconds": {
+                    "p50": 0.08267141703981906,
+                    "p95": 0.1367441670736298,
+                    "p99": 0.1367441670736298
+                  },
+                  "latency_including_queue_seconds": {
+                    "p50": 0.1367950839921832,
+                    "p95": 0.20752854098100215,
+                    "p99": 0.20752854098100215
+                  },
+                  "rejection_latency_seconds": {
+                    "p50": 0.05778579192701727,
+                    "p95": 0.06247558398172259,
+                    "p99": 0.06247558398172259
+                  },
+                  "client_queue_seconds": {
+                    "p50": 0.043656041962094605,
+                    "p95": 0.1400886250194162,
+                    "p99": 0.1400886250194162
+                  },
+                  "max_success_gap_seconds": 0.04577508301008493
+                },
+                "tenant-1": {
+                  "submitted": 4,
+                  "completed": 4,
+                  "admitted": 4,
+                  "rejected": {
+                    "graph_build_capacity": 0,
+                    "graph_tenant_capacity": 0,
+                    "graph_build_timeout": 0,
+                    "rate_limited": 0
+                  },
+                  "latency_seconds": {
+                    "p50": 0.08505545894149691,
+                    "p95": 0.132485790993087,
+                    "p99": 0.132485790993087
+                  },
+                  "latency_including_queue_seconds": {
+                    "p50": 0.140007583075203,
+                    "p95": 0.20840920903719962,
+                    "p99": 0.20840920903719962
+                  },
+                  "rejection_latency_seconds": {},
+                  "client_queue_seconds": {
+                    "p50": 0.04539216705597937,
+                    "p95": 0.14290670899208635,
+                    "p99": 0.14290670899208635
+                  },
+                  "max_success_gap_seconds": 0.1336407499620691
+                }
+              }
+            },
+            "sustained": {
+              "reads": 4656,
+              "admitted": 1629,
+              "rejected": 3027,
+              "clients": 8,
+              "wall_seconds": 30.16721049998887,
+              "reads_per_second": 154.33975905732876,
+              "per_tenant": {
+                "tenant-0": {
+                  "submitted": 3722,
+                  "completed": 3722,
+                  "admitted": 936,
+                  "rejected": {
+                    "graph_build_capacity": 157,
+                    "graph_tenant_capacity": 502,
+                    "graph_build_timeout": 0,
+                    "rate_limited": 2127
+                  },
+                  "latency_seconds": {
+                    "p50": 0.10028612497262657,
+                    "p95": 0.14402825001161546,
+                    "p99": 0.2204759999876842
+                  },
+                  "latency_including_queue_seconds": {
+                    "p50": 0.10028629098087549,
+                    "p95": 0.14402850007172674,
+                    "p99": 0.2204762080218643
+                  },
+                  "rejection_latency_seconds": {
+                    "p50": 0.008962624939158559,
+                    "p95": 0.060253042029216886,
+                    "p99": 0.08712470799218863
+                  },
+                  "client_queue_seconds": {
+                    "p50": 2.4994369596242905e-7,
+                    "p95": 3.7497375160455704e-7,
+                    "p99": 4.5902561396360397e-7
+                  },
+                  "max_success_gap_seconds": 0.188298917026259
+                },
+                "tenant-1": {
+                  "submitted": 934,
+                  "completed": 934,
+                  "admitted": 693,
+                  "rejected": {
+                    "graph_build_capacity": 120,
+                    "graph_tenant_capacity": 121,
+                    "graph_build_timeout": 0,
+                    "rate_limited": 0
+                  },
+                  "latency_seconds": {
+                    "p50": 0.10119212500285357,
+                    "p95": 0.14541762496810406,
+                    "p99": 0.21401904104277492
+                  },
+                  "latency_including_queue_seconds": {
+                    "p50": 0.10119245911482722,
+                    "p95": 0.14541787502821535,
+                    "p99": 0.21401929098647088
+                  },
+                  "rejection_latency_seconds": {
+                    "p50": 0.054333167034201324,
+                    "p95": 0.07517758395988494,
+                    "p99": 0.1688394999364391
+                  },
+                  "client_queue_seconds": {
+                    "p50": 2.08965502679348e-7,
+                    "p95": 3.33995558321476e-7,
+                    "p99": 4.169996827840805e-7
+                  },
+                  "max_success_gap_seconds": 0.24457558302674443
+                }
+              }
+            }
+          },
+          "cache": {
+            "max_bytes": 134217728,
+            "retained_bytes": 127264942,
+            "entries": 2,
+            "idle_ttl_seconds": 60
+          },
+          "lifecycle_probes": {},
+          "admission": {
+            "graph_build_concurrency": 4,
+            "graph_tenant_concurrency": 2,
+            "graph_build_timeout_seconds": 60.0
+          },
+          "transport": "http",
+          "seed": 910,
+          "retained_bytes": 39601288,
+          "unique_records_per_tenant": 10000,
+          "input_rows_including_duplicates": 10001,
+          "input_sha256": [
+            "76acd0d053e069c8ae67792f771b672f036101196b23f5809c3b0d2161e63ee8",
+            "0dcbfb1a8695d80479d7525399f6acd7fe00e14839d28fb6d39649defd4e302e"
+          ],
+          "input_bytes_per_tenant": [3841837, 3841837],
+          "model_counts": {
+            "framework": 21,
+            "control": 2282,
+            "ccf_category": 10,
+            "ccf_family": 21,
+            "safeguard": 1195,
+            "evidence_type": 10000,
+            "asset": 10000,
+            "environment": 2,
+            "account": 2,
+            "source": 2,
+            "finding": 3935
+          },
+          "wall_seconds": 105.72973958298098,
+          "cpu_seconds": 52.331860999999996,
+          "peak_rss_mib": 415.625,
+          "load_average_before": [2.82373046875, 8.05712890625, 10.1767578125],
+          "load_average_after": [2.43017578125, 6.3896484375, 9.2763671875],
+          "individual_read_count": 4688,
+          "boundary_reads": [
+            {
+              "tenant": "tenant-0",
+              "query": "first",
+              "submission_ordinal": 0,
+              "http_status": 200,
+              "error_type": null,
+              "error_code": null,
+              "retry_after": null,
+              "seconds": 1.9401399999624118,
+              "client_queue_seconds": 1.3330718502402306e-6,
+              "completion_seconds": 3.4934827079996467,
+              "response_body_bytes": 8704,
+              "response_nodes": 4,
+              "response_edges": 3
+            },
+            {
+              "tenant": "tenant-1",
+              "query": "first",
+              "submission_ordinal": 1,
+              "http_status": 200,
+              "error_type": null,
+              "error_code": null,
+              "retry_after": null,
+              "seconds": 1.9555005830479786,
+              "client_queue_seconds": 8.33999365568161e-7,
+              "completion_seconds": 5.449736125068739,
+              "response_body_bytes": 8704,
+              "response_nodes": 4,
+              "response_edges": 3
+            },
+            {
+              "tenant": "tenant-0",
+              "query": "after_idle",
+              "submission_ordinal": 4686,
+              "http_status": 200,
+              "error_type": null,
+              "error_code": null,
+              "retry_after": null,
+              "seconds": 2.0700695000123233,
+              "client_queue_seconds": 6.332993507385254e-6,
+              "completion_seconds": 100.9490695829736,
+              "response_body_bytes": 8704,
+              "response_nodes": 4,
+              "response_edges": 3
+            },
+            {
+              "tenant": "tenant-1",
+              "query": "after_idle",
+              "submission_ordinal": 4687,
+              "http_status": 200,
+              "error_type": null,
+              "error_code": null,
+              "retry_after": null,
+              "seconds": 1.9778807089896873,
+              "client_queue_seconds": 1.166015863418579e-6,
+              "completion_seconds": 102.94362329202704,
+              "response_body_bytes": 8704,
+              "response_nodes": 4,
+              "response_edges": 3
+            }
+          ],
+          "read_summary": {
+            "after_idle": {
+              "submitted": 2,
+              "successful": 2,
+              "successful_latency_seconds": {
+                "p50": 1.9778807089896873,
+                "p95": 2.0700695000123233,
+                "p99": 2.0700695000123233
+              }
+            },
+            "balanced": {
+              "submitted": 8,
+              "successful": 6,
+              "successful_latency_seconds": {
+                "p50": 0.09292191709391773,
+                "p95": 0.10038904205430299,
+                "p99": 0.10038904205430299
+              }
+            },
+            "first": {
+              "submitted": 2,
+              "successful": 2,
+              "successful_latency_seconds": {
+                "p50": 1.9401399999624118,
+                "p95": 1.9555005830479786,
+                "p99": 1.9555005830479786
+              }
+            },
+            "skewed": {
+              "submitted": 20,
+              "successful": 13,
+              "successful_latency_seconds": {
+                "p50": 0.08356658299453557,
+                "p95": 0.1367441670736298,
+                "p99": 0.1367441670736298
+              }
+            },
+            "sustained": {
+              "submitted": 4656,
+              "successful": 1629,
+              "successful_latency_seconds": {
+                "p50": 0.10053887497633696,
+                "p95": 0.14402825001161546,
+                "p99": 0.21791962499264628
+              }
+            }
+          }
+        }
+      ],
+      "http_harness_sha256": "993a3e54c476613b26575d266f1da1e2015b36c2db09b3dfbc49258d9d81294b",
+      "full_receipt_sha256": "fad0800fd44c6accab1cfabd198aee77219c55ffd19d20bbd9d0e36c1aed1404"
+    },
+    "100k-cache": {
+      "untracked_source_sha256": {},
+      "schema_version": "grc.investigation_benchmark.v2",
+      "revision": "6268edbdc625f894859837dc6fabdb8376e54f32",
+      "tracked_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "harness_sha256": "91acce5004aa55922e9e0e4bc5720081f48911572354a0bcfad24fb7e4b7cc08",
+      "measured_at": "2026-10-25T16:05:27.084956+00:00",
+      "environment": {
+        "platform": "macOS-27.0.1-arm64-arm-64bit",
+        "python": "3.12.13",
+        "cpu_count": 10,
+        "machine": "arm64",
+        "physical_memory_bytes": 17179869184,
+        "storage": "local filesystem, synthetic legacy-compatible generations",
+        "cache": "OS and shared catalog caches uncontrolled; first means first graph call per tenant"
+      },
+      "configuration": {
+        "transport": "http",
+        "tenants": 2,
+        "repeats": 1,
+        "sizes": [100000],
+        "concurrency": [1],
+        "timeout_seconds": 900.0,
+        "sampled_rss_limit_mib": 4096,
+        "min_free_gib": 5,
+        "sample_seconds": 0.25,
+        "seed": 910,
+        "frozen_catalogs": true,
+        "model_cache": "shipped policy",
+        "model_cache_mib_override": null,
+        "sustained_seconds": 0,
+        "idle_seconds": 0,
+        "fixture": "seeded mixed controls/outcomes/asset types; every tenant shares source account shared-account-a",
+        "http": {
+          "server_processes": 1,
+          "client_timeout_seconds": 75,
+          "lifecycle_probes": false,
+          "auth_role": "security_admin",
+          "database": "scratch SQLite",
+          "query": {
+            "view": "environment",
+            "root": "own account-a asset-0",
+            "depth": 1,
+            "limit": 150
+          },
+          "graph_build_concurrency": "shipped default",
+          "dependencies": {
+            "fastapi": "0.141.1",
+            "starlette": "1.6.0",
+            "anyio": "4.14.2",
+            "uvicorn": "0.48.0",
+            "httpx": "0.28.1"
+          }
+        }
+      },
+      "limitations": [
+        "Authenticated loopback HTTP, one Uvicorn process with default thread-pool and rate limits",
+        "Balanced and 4:1 skewed client submissions; client queue delay is not server scheduler delay",
+        "Explicit 503 admission and 429 rate-limit rejections are retained per tenant; they are not retried",
+        "Client and server share one process and host; RSS and CPU include both",
+        "Synthetic normalized records, SQLite state, no evaluation jobs or provider evidence",
+        "Response body bytes exclude HTTP headers; no production fairness, SLO or capacity budget",
+        "No object-store failover, crash recovery or distributed admission qualification"
+      ],
+      "attempts": [
+        {
+          "rows": 100000,
+          "concurrency": 1,
+          "correctness_ok": true,
+          "checks": {
+            "unauthenticated_rejected": true,
+            "invalid_credential_rejected": true,
+            "exact_bindings": true,
+            "duplicate_records": true,
+            "source_account_isolation": true,
+            "account_collision_isolation": true,
+            "foreign_root_rejected": true,
+            "all_submitted_reads_answered": true,
+            "admission_slots_released": true,
+            "stale_version_rejected": true
+          },
+          "scenarios": {
+            "balanced": {
+              "reads": 4,
+              "admitted": 4,
+              "rejected": 0,
+              "clients": 1,
+              "wall_seconds": 57.544673875090666,
+              "reads_per_second": 0.0695112115620396,
+              "per_tenant": {
+                "tenant-0": {
+                  "submitted": 2,
+                  "completed": 2,
+                  "admitted": 2,
+                  "rejected": {
+                    "graph_build_capacity": 0,
+                    "graph_tenant_capacity": 0,
+                    "graph_build_timeout": 0,
+                    "rate_limited": 0
+                  },
+                  "latency_seconds": {
+                    "p50": 13.857726541929878,
+                    "p95": 15.333436041022651,
+                    "p99": 15.333436041022651
+                  },
+                  "latency_including_queue_seconds": {
+                    "p50": 13.857861291966401,
+                    "p95": 43.798606500029564,
+                    "p99": 43.798606500029564
+                  },
+                  "rejection_latency_seconds": {},
+                  "client_queue_seconds": {
+                    "p50": 0.00013475003652274609,
+                    "p95": 28.465170459006913,
+                    "p99": 28.465170459006913
+                  },
+                  "max_success_gap_seconds": 29.941209166077897
+                },
+                "tenant-1": {
+                  "submitted": 2,
+                  "completed": 2,
+                  "admitted": 2,
+                  "rejected": {
+                    "graph_build_capacity": 0,
+                    "graph_tenant_capacity": 0,
+                    "graph_build_timeout": 0,
+                    "rate_limited": 0
+                  },
+                  "latency_seconds": {
+                    "p50": 13.744524165987968,
+                    "p95": 14.607429584022611,
+                    "p99": 14.607429584022611
+                  },
+                  "latency_including_queue_seconds": {
+                    "p50": 28.46501799998805,
+                    "p95": 57.54329912504181,
+                    "p99": 57.54329912504181
+                  },
+                  "rejection_latency_seconds": {},
+                  "client_queue_seconds": {
+                    "p50": 13.857588415965438,
+                    "p95": 43.798774959053844,
+                    "p99": 43.798774959053844
+                  },
+                  "max_success_gap_seconds": 29.078298790962435
+                }
+              }
+            },
+            "skewed": {
+              "reads": 10,
+              "admitted": 10,
+              "rejected": 0,
+              "clients": 1,
+              "wall_seconds": 142.68700141599402,
+              "reads_per_second": 0.07008346871657703,
+              "per_tenant": {
+                "tenant-0": {
+                  "submitted": 8,
+                  "completed": 8,
+                  "admitted": 8,
+                  "rejected": {
+                    "graph_build_capacity": 0,
+                    "graph_tenant_capacity": 0,
+                    "graph_build_timeout": 0,
+                    "rate_limited": 0
+                  },
+                  "latency_seconds": {
+                    "p50": 14.021807667100802,
+                    "p95": 15.783988042036071,
+                    "p99": 15.783988042036071
+                  },
+                  "latency_including_queue_seconds": {
+                    "p50": 56.047888041939586,
+                    "p95": 128.52859925001394,
+                    "p99": 128.52859925001394
+                  },
+                  "rejection_latency_seconds": {},
+                  "client_queue_seconds": {
+                    "p50": 42.4335605839733,
+                    "p95": 114.50679158291314,
+                    "p99": 114.50679158291314
+                  },
+                  "max_success_gap_seconds": 27.743664250010625
+                },
+                "tenant-1": {
+                  "submitted": 2,
+                  "completed": 2,
+                  "admitted": 2,
+                  "rejected": {
+                    "graph_build_capacity": 0,
+                    "graph_tenant_capacity": 0,
+                    "graph_build_timeout": 0,
+                    "rate_limited": 0
+                  },
+                  "latency_seconds": {
+                    "p50": 14.156483624945395,
+                    "p95": 14.336527124978602,
+                    "p99": 14.336527124978602
+                  },
+                  "latency_including_queue_seconds": {
+                    "p50": 70.3845589159755,
+                    "p95": 142.6852527919691,
+                    "p99": 142.6852527919691
+                  },
+                  "rejection_latency_seconds": {},
+                  "client_queue_seconds": {
+                    "p50": 56.0480317909969,
+                    "p95": 128.5287691670237,
+                    "p99": 128.5287691670237
+                  },
+                  "max_success_gap_seconds": 72.30071170895826
+                }
+              }
+            }
+          },
+          "cache": {
+            "max_bytes": 134217728,
+            "retained_bytes": 0,
+            "entries": 0,
+            "idle_ttl_seconds": 60
+          },
+          "lifecycle_probes": {},
+          "admission": {
+            "graph_build_concurrency": 4,
+            "graph_tenant_concurrency": 2,
+            "graph_build_timeout_seconds": 60.0
+          },
+          "transport": "http",
+          "seed": 910,
+          "retained_bytes": 141331543,
+          "unique_records_per_tenant": 100000,
+          "input_rows_including_duplicates": 100001,
+          "input_sha256": [
+            "878b66cdb6d59a1fd606c6dc8d83f0ffff9db06b747f782e1a3d4a6555f97cc1",
+            "ec64d8dfd5fde46618280bd2ebce7c98ae159ccf94e238eb9f248c9f39e7211f"
+          ],
+          "input_bytes_per_tenant": [38621080, 38621080],
+          "model_counts": {
+            "framework": 21,
+            "control": 2282,
+            "ccf_category": 10,
+            "ccf_family": 21,
+            "safeguard": 1195,
+            "evidence_type": 100000,
+            "asset": 100000,
+            "environment": 2,
+            "account": 2,
+            "source": 2,
+            "finding": 39669
+          },
+          "wall_seconds": 279.2564763330156,
+          "cpu_seconds": 272.971723,
+          "peak_rss_mib": 1119.6875,
+          "load_average_before": [2.9560546875, 6.4326171875, 9.2744140625],
+          "load_average_after": [3.59228515625, 4.97119140625, 7.81201171875],
+          "individual_read_count": 16,
+          "boundary_reads": [
+            {
+              "tenant": "tenant-0",
+              "query": "first",
+              "submission_ordinal": 0,
+              "http_status": 200,
+              "error_type": null,
+              "error_code": null,
+              "retry_after": null,
+              "seconds": 14.459975832956843,
+              "client_queue_seconds": 7.50063918530941e-7,
+              "completion_seconds": 20.106514665996656,
+              "response_body_bytes": 8746,
+              "response_nodes": 4,
+              "response_edges": 3
+            },
+            {
+              "tenant": "tenant-1",
+              "query": "first",
+              "submission_ordinal": 1,
+              "http_status": 200,
+              "error_type": null,
+              "error_code": null,
+              "retry_after": null,
+              "seconds": 14.218776209047064,
+              "client_queue_seconds": 7.499475032091141e-7,
+              "completion_seconds": 34.32593962503597,
+              "response_body_bytes": 8746,
+              "response_nodes": 4,
+              "response_edges": 3
+            }
+          ],
+          "read_summary": {
+            "balanced": {
+              "submitted": 4,
+              "successful": 4,
+              "successful_latency_seconds": {
+                "p50": 13.857726541929878,
+                "p95": 15.333436041022651,
+                "p99": 15.333436041022651
+              }
+            },
+            "first": {
+              "submitted": 2,
+              "successful": 2,
+              "successful_latency_seconds": {
+                "p50": 14.218776209047064,
+                "p95": 14.459975832956843,
+                "p99": 14.459975832956843
+              }
+            },
+            "skewed": {
+              "submitted": 10,
+              "successful": 10,
+              "successful_latency_seconds": {
+                "p50": 14.081536041921936,
+                "p95": 15.783988042036071,
+                "p99": 15.783988042036071
+              }
+            }
+          }
+        }
+      ],
+      "http_harness_sha256": "993a3e54c476613b26575d266f1da1e2015b36c2db09b3dfbc49258d9d81294b",
+      "full_receipt_sha256": "6b4e1bc8cfddabce75c65d85fe0e208e002d0fac29753a6f7cd93dab41dabad0"
+    },
+    "100k-disabled": {
+      "untracked_source_sha256": {},
+      "schema_version": "grc.investigation_benchmark.v2",
+      "revision": "6268edbdc625f894859837dc6fabdb8376e54f32",
+      "tracked_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "harness_sha256": "91acce5004aa55922e9e0e4bc5720081f48911572354a0bcfad24fb7e4b7cc08",
+      "measured_at": "2026-10-25T16:10:08.057970+00:00",
+      "environment": {
+        "platform": "macOS-27.0.1-arm64-arm-64bit",
+        "python": "3.12.13",
+        "cpu_count": 10,
+        "machine": "arm64",
+        "physical_memory_bytes": 17179869184,
+        "storage": "local filesystem, synthetic legacy-compatible generations",
+        "cache": "OS and shared catalog caches uncontrolled; first means first graph call per tenant"
+      },
+      "configuration": {
+        "transport": "http",
+        "tenants": 2,
+        "repeats": 1,
+        "sizes": [100000],
+        "concurrency": [1],
+        "timeout_seconds": 900.0,
+        "sampled_rss_limit_mib": 4096,
+        "min_free_gib": 5,
+        "sample_seconds": 0.25,
+        "seed": 910,
+        "frozen_catalogs": true,
+        "model_cache": "disabled",
+        "model_cache_mib_override": null,
+        "sustained_seconds": 0,
+        "idle_seconds": 0,
+        "fixture": "seeded mixed controls/outcomes/asset types; every tenant shares source account shared-account-a",
+        "http": {
+          "server_processes": 1,
+          "client_timeout_seconds": 75,
+          "lifecycle_probes": false,
+          "auth_role": "security_admin",
+          "database": "scratch SQLite",
+          "query": {
+            "view": "environment",
+            "root": "own account-a asset-0",
+            "depth": 1,
+            "limit": 150
+          },
+          "graph_build_concurrency": "shipped default",
+          "dependencies": {
+            "fastapi": "0.141.1",
+            "starlette": "1.6.0",
+            "anyio": "4.14.2",
+            "uvicorn": "0.48.0",
+            "httpx": "0.28.1"
+          }
+        }
+      },
+      "limitations": [
+        "Authenticated loopback HTTP, one Uvicorn process with default thread-pool and rate limits",
+        "Balanced and 4:1 skewed client submissions; client queue delay is not server scheduler delay",
+        "Explicit 503 admission and 429 rate-limit rejections are retained per tenant; they are not retried",
+        "Client and server share one process and host; RSS and CPU include both",
+        "Synthetic normalized records, SQLite state, no evaluation jobs or provider evidence",
+        "Response body bytes exclude HTTP headers; no production fairness, SLO or capacity budget",
+        "No object-store failover, crash recovery or distributed admission qualification"
+      ],
+      "attempts": [
+        {
+          "rows": 100000,
+          "concurrency": 1,
+          "correctness_ok": true,
+          "checks": {
+            "unauthenticated_rejected": true,
+            "invalid_credential_rejected": true,
+            "exact_bindings": true,
+            "duplicate_records": true,
+            "source_account_isolation": true,
+            "account_collision_isolation": true,
+            "foreign_root_rejected": true,
+            "all_submitted_reads_answered": true,
+            "admission_slots_released": true,
+            "stale_version_rejected": true
+          },
+          "scenarios": {
+            "balanced": {
+              "reads": 4,
+              "admitted": 4,
+              "rejected": 0,
+              "clients": 1,
+              "wall_seconds": 65.08752075000666,
+              "reads_per_second": 0.06145571307537614,
+              "per_tenant": {
+                "tenant-0": {
+                  "submitted": 2,
+                  "completed": 2,
+                  "admitted": 2,
+                  "rejected": {
+                    "graph_build_capacity": 0,
+                    "graph_tenant_capacity": 0,
+                    "graph_build_timeout": 0,
+                    "rate_limited": 0
+                  },
+                  "latency_seconds": {
+                    "p50": 16.398940750048496,
+                    "p95": 17.04463920800481,
+                    "p99": 17.04463920800481
+                  },
+                  "latency_including_queue_seconds": {
+                    "p50": 16.3991098330589,
+                    "p95": 50.744629041990265,
+                    "p99": 50.744629041990265
+                  },
+                  "rejection_latency_seconds": {},
+                  "client_queue_seconds": {
+                    "p50": 0.00016908301040530205,
+                    "p95": 33.699989833985455,
+                    "p99": 33.699989833985455
+                  },
+                  "max_success_gap_seconds": 34.34602154197637
+                },
+                "tenant-1": {
+                  "submitted": 2,
+                  "completed": 2,
+                  "admitted": 2,
+                  "rejected": {
+                    "graph_build_capacity": 0,
+                    "graph_tenant_capacity": 0,
+                    "graph_build_timeout": 0,
+                    "rate_limited": 0
+                  },
+                  "latency_seconds": {
+                    "p50": 14.340294583002105,
+                    "p95": 17.30076349992305,
+                    "p99": 17.30076349992305
+                  },
+                  "latency_including_queue_seconds": {
+                    "p50": 33.699587624985725,
+                    "p95": 65.08511241595261,
+                    "p99": 65.08511241595261
+                  },
+                  "rejection_latency_seconds": {},
+                  "client_queue_seconds": {
+                    "p50": 16.398824125062674,
+                    "p95": 50.7448178329505,
+                    "p99": 50.7448178329505
+                  },
+                  "max_success_gap_seconds": 33.70008866698481
+                }
+              }
+            },
+            "skewed": {
+              "reads": 10,
+              "admitted": 10,
+              "rejected": 0,
+              "clients": 1,
+              "wall_seconds": 193.93665154196788,
+              "reads_per_second": 0.05156322912915716,
+              "per_tenant": {
+                "tenant-0": {
+                  "submitted": 8,
+                  "completed": 8,
+                  "admitted": 8,
+                  "rejected": {
+                    "graph_build_capacity": 0,
+                    "graph_tenant_capacity": 0,
+                    "graph_build_timeout": 0,
+                    "rate_limited": 0
+                  },
+                  "latency_seconds": {
+                    "p50": 17.269462042022496,
+                    "p95": 23.1395308340434,
+                    "p99": 23.1395308340434
+                  },
+                  "latency_including_queue_seconds": {
+                    "p50": 62.178773874999024,
+                    "p95": 163.21574837504886,
+                    "p99": 163.21574837504886
+                  },
+                  "rejection_latency_seconds": {},
+                  "client_queue_seconds": {
+                    "p50": 44.98062004102394,
+                    "p95": 140.07621754100546,
+                    "p99": 140.07621754100546
+                  },
+                  "max_success_gap_seconds": 37.2646632080432
+                },
+                "tenant-1": {
+                  "submitted": 2,
+                  "completed": 2,
+                  "admitted": 2,
+                  "rejected": {
+                    "graph_build_capacity": 0,
+                    "graph_tenant_capacity": 0,
+                    "graph_build_timeout": 0,
+                    "rate_limited": 0
+                  },
+                  "latency_seconds": {
+                    "p50": 17.881977625074796,
+                    "p95": 30.707364166039042,
+                    "p99": 30.707364166039042
+                  },
+                  "latency_including_queue_seconds": {
+                    "p50": 80.06092195899691,
+                    "p95": 193.9255229580449,
+                    "p99": 193.9255229580449
+                  },
+                  "rejection_latency_seconds": {},
+                  "client_queue_seconds": {
+                    "p50": 62.17894433392212,
+                    "p95": 163.21815879200585,
+                    "p99": 163.21815879200585
+                  },
+                  "max_success_gap_seconds": 113.86462741601281
+                }
+              }
+            }
+          },
+          "cache": {
+            "max_bytes": 0,
+            "retained_bytes": 0,
+            "entries": 0,
+            "idle_ttl_seconds": 60
+          },
+          "lifecycle_probes": {},
+          "admission": {
+            "graph_build_concurrency": 4,
+            "graph_tenant_concurrency": 2,
+            "graph_build_timeout_seconds": 60.0
+          },
+          "transport": "http",
+          "seed": 910,
+          "retained_bytes": 141331540,
+          "unique_records_per_tenant": 100000,
+          "input_rows_including_duplicates": 100001,
+          "input_sha256": [
+            "878b66cdb6d59a1fd606c6dc8d83f0ffff9db06b747f782e1a3d4a6555f97cc1",
+            "ec64d8dfd5fde46618280bd2ebce7c98ae159ccf94e238eb9f248c9f39e7211f"
+          ],
+          "input_bytes_per_tenant": [38621080, 38621080],
+          "model_counts": {
+            "framework": 21,
+            "control": 2282,
+            "ccf_category": 10,
+            "ccf_family": 21,
+            "safeguard": 1195,
+            "evidence_type": 100000,
+            "asset": 100000,
+            "environment": 2,
+            "account": 2,
+            "source": 2,
+            "finding": 39669
+          },
+          "wall_seconds": 344.19589312491007,
+          "cpu_seconds": 297.537969,
+          "peak_rss_mib": 996.15625,
+          "load_average_before": [3.59228515625, 4.97119140625, 7.81201171875],
+          "load_average_after": [15.73583984375, 9.81640625, 8.943359375],
+          "individual_read_count": 16,
+          "boundary_reads": [
+            {
+              "tenant": "tenant-0",
+              "query": "first",
+              "submission_ordinal": 0,
+              "http_status": 200,
+              "error_type": null,
+              "error_code": null,
+              "retry_after": null,
+              "seconds": 12.454845750005916,
+              "client_queue_seconds": 9.579816833138466e-7,
+              "completion_seconds": 18.463134874938987,
+              "response_body_bytes": 8746,
+              "response_nodes": 4,
+              "response_edges": 3
+            },
+            {
+              "tenant": "tenant-1",
+              "query": "first",
+              "submission_ordinal": 1,
+              "http_status": 200,
+              "error_type": null,
+              "error_code": null,
+              "retry_after": null,
+              "seconds": 13.687580541009083,
+              "client_queue_seconds": 8.75093974173069e-7,
+              "completion_seconds": 32.151523208012804,
+              "response_body_bytes": 8746,
+              "response_nodes": 4,
+              "response_edges": 3
+            }
+          ],
+          "read_summary": {
+            "balanced": {
+              "submitted": 4,
+              "successful": 4,
+              "successful_latency_seconds": {
+                "p50": 16.398940750048496,
+                "p95": 17.30076349992305,
+                "p99": 17.30076349992305
+              }
+            },
+            "first": {
+              "submitted": 2,
+              "successful": 2,
+              "successful_latency_seconds": {
+                "p50": 12.454845750005916,
+                "p95": 13.687580541009083,
+                "p99": 13.687580541009083
+              }
+            },
+            "skewed": {
+              "submitted": 10,
+              "successful": 10,
+              "successful_latency_seconds": {
+                "p50": 17.881977625074796,
+                "p95": 30.707364166039042,
+                "p99": 30.707364166039042
+              }
+            }
+          }
+        }
+      ],
+      "http_harness_sha256": "993a3e54c476613b26575d266f1da1e2015b36c2db09b3dfbc49258d9d81294b",
+      "full_receipt_sha256": "0daf81e7654a6bf6c50aa33ea661dd64679259d970c469f983c10043d1463443"
+    },
+    "eviction": {
+      "untracked_source_sha256": {},
+      "schema_version": "grc.investigation_benchmark.v2",
+      "revision": "6268edbdc625f894859837dc6fabdb8376e54f32",
+      "tracked_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "harness_sha256": "91acce5004aa55922e9e0e4bc5720081f48911572354a0bcfad24fb7e4b7cc08",
+      "measured_at": "2026-10-25T16:15:54.903706+00:00",
+      "environment": {
+        "platform": "macOS-27.0.1-arm64-arm-64bit",
+        "python": "3.12.13",
+        "cpu_count": 10,
+        "machine": "arm64",
+        "physical_memory_bytes": 17179869184,
+        "storage": "local filesystem, synthetic legacy-compatible generations",
+        "cache": "OS and shared catalog caches uncontrolled; first means first graph call per tenant"
+      },
+      "configuration": {
+        "transport": "http",
+        "tenants": 2,
+        "repeats": 1,
+        "sizes": [10000],
+        "concurrency": [4],
+        "timeout_seconds": 900.0,
+        "sampled_rss_limit_mib": 4096,
+        "min_free_gib": 5,
+        "sample_seconds": 0.25,
+        "seed": 910,
+        "frozen_catalogs": true,
+        "model_cache": "override",
+        "model_cache_mib_override": 64,
+        "sustained_seconds": 20.0,
+        "idle_seconds": 61.0,
+        "fixture": "seeded mixed controls/outcomes/asset types; every tenant shares source account shared-account-a",
+        "http": {
+          "server_processes": 1,
+          "client_timeout_seconds": 75,
+          "lifecycle_probes": false,
+          "auth_role": "security_admin",
+          "database": "scratch SQLite",
+          "query": {
+            "view": "environment",
+            "root": "own account-a asset-0",
+            "depth": 1,
+            "limit": 150
+          },
+          "graph_build_concurrency": "shipped default",
+          "dependencies": {
+            "fastapi": "0.141.1",
+            "starlette": "1.6.0",
+            "anyio": "4.14.2",
+            "uvicorn": "0.48.0",
+            "httpx": "0.28.1"
+          }
+        }
+      },
+      "limitations": [
+        "Authenticated loopback HTTP, one Uvicorn process with default thread-pool and rate limits",
+        "Balanced and 4:1 skewed client submissions; client queue delay is not server scheduler delay",
+        "Explicit 503 admission and 429 rate-limit rejections are retained per tenant; they are not retried",
+        "Client and server share one process and host; RSS and CPU include both",
+        "Synthetic normalized records, SQLite state, no evaluation jobs or provider evidence",
+        "Response body bytes exclude HTTP headers; no production fairness, SLO or capacity budget",
+        "No object-store failover, crash recovery or distributed admission qualification"
+      ],
+      "attempts": [
+        {
+          "rows": 10000,
+          "concurrency": 4,
+          "correctness_ok": true,
+          "checks": {
+            "unauthenticated_rejected": true,
+            "invalid_credential_rejected": true,
+            "exact_bindings": true,
+            "duplicate_records": true,
+            "source_account_isolation": true,
+            "account_collision_isolation": true,
+            "foreign_root_rejected": true,
+            "all_submitted_reads_answered": true,
+            "admission_slots_released": true,
+            "stale_version_rejected": true
+          },
+          "scenarios": {
+            "balanced": {
+              "reads": 4,
+              "admitted": 4,
+              "rejected": 0,
+              "clients": 4,
+              "wall_seconds": 2.6927604590309784,
+              "reads_per_second": 1.4854644744150198,
+              "per_tenant": {
+                "tenant-0": {
+                  "submitted": 2,
+                  "completed": 2,
+                  "admitted": 2,
+                  "rejected": {
+                    "graph_build_capacity": 0,
+                    "graph_tenant_capacity": 0,
+                    "graph_build_timeout": 0,
+                    "rate_limited": 0
+                  },
+                  "latency_seconds": {
+                    "p50": 2.6901440829969943,
+                    "p95": 2.690724667045288,
+                    "p99": 2.690724667045288
+                  },
+                  "latency_including_queue_seconds": {
+                    "p50": 2.690304375020787,
+                    "p95": 2.6907925420673564,
+                    "p99": 2.6907925420673564
+                  },
+                  "rejection_latency_seconds": {},
+                  "client_queue_seconds": {
+                    "p50": 6.787502206861973e-5,
+                    "p95": 0.0001602920237928629,
+                    "p99": 0.0001602920237928629
+                  },
+                  "max_success_gap_seconds": 2.690320666995831
+                },
+                "tenant-1": {
+                  "submitted": 2,
+                  "completed": 2,
+                  "admitted": 2,
+                  "rejected": {
+                    "graph_build_capacity": 0,
+                    "graph_tenant_capacity": 0,
+                    "graph_build_timeout": 0,
+                    "rate_limited": 0
+                  },
+                  "latency_seconds": {
+                    "p50": 0.2962823340203613,
+                    "p95": 0.3094763749977574,
+                    "p99": 0.3094763749977574
+                  },
+                  "latency_including_queue_seconds": {
+                    "p50": 0.2963657920481637,
+                    "p95": 0.3098320420831442,
+                    "p99": 0.3098320420831442
+                  },
+                  "rejection_latency_seconds": {},
+                  "client_queue_seconds": {
+                    "p50": 8.345802780240774e-5,
+                    "p95": 0.0003556670853868127,
+                    "p99": 0.0003556670853868127
+                  },
+                  "max_success_gap_seconds": 2.3811625000089407
+                }
+              }
+            },
+            "skewed": {
+              "reads": 10,
+              "admitted": 7,
+              "rejected": 3,
+              "clients": 4,
+              "wall_seconds": 3.240687374956906,
+              "reads_per_second": 3.085765099490036,
+              "per_tenant": {
+                "tenant-0": {
+                  "submitted": 8,
+                  "completed": 8,
+                  "admitted": 5,
+                  "rejected": {
+                    "graph_build_capacity": 0,
+                    "graph_tenant_capacity": 3,
+                    "graph_build_timeout": 0,
+                    "rate_limited": 0
+                  },
+                  "latency_seconds": {
+                    "p50": 0.1913600000552833,
+                    "p95": 0.4488329578889534,
+                    "p99": 0.4488329578889534
+                  },
+                  "latency_including_queue_seconds": {
+                    "p50": 0.22919295798055828,
+                    "p95": 0.539877999923192,
+                    "p99": 0.539877999923192
+                  },
+                  "rejection_latency_seconds": {
+                    "p50": 0.0383832500083372,
+                    "p95": 0.21017791598569602,
+                    "p99": 0.21017791598569602
+                  },
+                  "client_queue_seconds": {
+                    "p50": 0.00013520801439881325,
+                    "p95": 0.2294078340055421,
+                    "p99": 0.2294078340055421
+                  },
+                  "max_success_gap_seconds": 2.6990222920430824
+                },
+                "tenant-1": {
+                  "submitted": 2,
+                  "completed": 2,
+                  "admitted": 2,
+                  "rejected": {
+                    "graph_build_capacity": 0,
+                    "graph_tenant_capacity": 0,
+                    "graph_build_timeout": 0,
+                    "rate_limited": 0
+                  },
+                  "latency_seconds": {
+                    "p50": 2.793344958103262,
+                    "p95": 3.202183875022456,
+                    "p99": 3.202183875022456
+                  },
+                  "latency_including_queue_seconds": {
+                    "p50": 3.2329767080955207,
+                    "p95": 3.235379165969789,
+                    "p99": 3.235379165969789
+                  },
+                  "rejection_latency_seconds": {},
+                  "client_queue_seconds": {
+                    "p50": 0.03319529094733298,
+                    "p95": 0.43963174999225885,
+                    "p99": 0.43963174999225885
+                  },
+                  "max_success_gap_seconds": 3.234774583019316
+                }
+              }
+            },
+            "sustained": {
+              "reads": 139,
+              "admitted": 63,
+              "rejected": 76,
+              "clients": 4,
+              "wall_seconds": 22.930387208005413,
+              "reads_per_second": 6.061825242596539,
+              "per_tenant": {
+                "tenant-0": {
+                  "submitted": 109,
+                  "completed": 109,
+                  "admitted": 42,
+                  "rejected": {
+                    "graph_build_capacity": 0,
+                    "graph_tenant_capacity": 67,
+                    "graph_build_timeout": 0,
+                    "rate_limited": 0
+                  },
+                  "latency_seconds": {
+                    "p50": 0.4672223749803379,
+                    "p95": 3.451052541960962,
+                    "p99": 3.5994742499897256
+                  },
+                  "latency_including_queue_seconds": {
+                    "p50": 0.46722275007050484,
+                    "p95": 3.4510530839907005,
+                    "p99": 3.599474749993533
+                  },
+                  "rejection_latency_seconds": {
+                    "p50": 0.0722489170730114,
+                    "p95": 0.7380466660251841,
+                    "p99": 0.8157265830086544
+                  },
+                  "client_queue_seconds": {
+                    "p50": 3.33995558321476e-7,
+                    "p95": 5.00003807246685e-7,
+                    "p99": 6.25033862888813e-7
+                  },
+                  "max_success_gap_seconds": 3.4530370420543477
+                },
+                "tenant-1": {
+                  "submitted": 30,
+                  "completed": 30,
+                  "admitted": 21,
+                  "rejected": {
+                    "graph_build_capacity": 0,
+                    "graph_tenant_capacity": 9,
+                    "graph_build_timeout": 0,
+                    "rate_limited": 0
+                  },
+                  "latency_seconds": {
+                    "p50": 0.5876089999219403,
+                    "p95": 3.773954250034876,
+                    "p99": 3.8114935000194237
+                  },
+                  "latency_including_queue_seconds": {
+                    "p50": 0.5876091669779271,
+                    "p95": 3.773954499978572,
+                    "p99": 3.8114937910577282
+                  },
+                  "rejection_latency_seconds": {
+                    "p50": 0.08117487502750009,
+                    "p95": 0.5948058339999989,
+                    "p99": 0.5948058339999989
+                  },
+                  "client_queue_seconds": {
+                    "p50": 3.33995558321476e-7,
+                    "p95": 7.080379873514175e-7,
+                    "p99": 7.50063918530941e-7
+                  },
+                  "max_success_gap_seconds": 4.438704291940667
+                }
+              }
+            }
+          },
+          "cache": {
+            "max_bytes": 67108864,
+            "retained_bytes": 63632471,
+            "entries": 1,
+            "idle_ttl_seconds": 60
+          },
+          "lifecycle_probes": {},
+          "admission": {
+            "graph_build_concurrency": 4,
+            "graph_tenant_concurrency": 2,
+            "graph_build_timeout_seconds": 60.0
+          },
+          "transport": "http",
+          "seed": 910,
+          "retained_bytes": 37100504,
+          "unique_records_per_tenant": 10000,
+          "input_rows_including_duplicates": 10001,
+          "input_sha256": [
+            "76acd0d053e069c8ae67792f771b672f036101196b23f5809c3b0d2161e63ee8",
+            "0dcbfb1a8695d80479d7525399f6acd7fe00e14839d28fb6d39649defd4e302e"
+          ],
+          "input_bytes_per_tenant": [3841837, 3841837],
+          "model_counts": {
+            "framework": 21,
+            "control": 2282,
+            "ccf_category": 10,
+            "ccf_family": 21,
+            "safeguard": 1195,
+            "evidence_type": 10000,
+            "asset": 10000,
+            "environment": 2,
+            "account": 2,
+            "source": 2,
+            "finding": 3935
+          },
+          "wall_seconds": 124.35700950003229,
+          "cpu_seconds": 52.318263,
+          "peak_rss_mib": 341.578125,
+          "load_average_before": [15.73583984375, 9.81640625, 8.943359375],
+          "load_average_after": [14.26904296875, 10.60107421875, 9.33056640625],
+          "individual_read_count": 157,
+          "boundary_reads": [
+            {
+              "tenant": "tenant-0",
+              "query": "first",
+              "submission_ordinal": 0,
+              "http_status": 200,
+              "error_type": null,
+              "error_code": null,
+              "retry_after": null,
+              "seconds": 3.3580422080121934,
+              "client_queue_seconds": 8.749775588512421e-7,
+              "completion_seconds": 6.918217958067544,
+              "response_body_bytes": 8704,
+              "response_nodes": 4,
+              "response_edges": 3
+            },
+            {
+              "tenant": "tenant-1",
+              "query": "first",
+              "submission_ordinal": 1,
+              "http_status": 200,
+              "error_type": null,
+              "error_code": null,
+              "retry_after": null,
+              "seconds": 3.150017499923706,
+              "client_queue_seconds": 4.459056071937084e-6,
+              "completion_seconds": 10.070537999970838,
+              "response_body_bytes": 8704,
+              "response_nodes": 4,
+              "response_edges": 3
+            },
+            {
+              "tenant": "tenant-0",
+              "query": "after_idle",
+              "submission_ordinal": 155,
+              "http_status": 200,
+              "error_type": null,
+              "error_code": null,
+              "retry_after": null,
+              "seconds": 6.785857625072822,
+              "client_queue_seconds": 0.00037945795338600874,
+              "completion_seconds": 112.18315445806365,
+              "response_body_bytes": 8704,
+              "response_nodes": 4,
+              "response_edges": 3
+            },
+            {
+              "tenant": "tenant-1",
+              "query": "after_idle",
+              "submission_ordinal": 156,
+              "http_status": 200,
+              "error_type": null,
+              "error_code": null,
+              "retry_after": null,
+              "seconds": 5.431881500058807,
+              "client_queue_seconds": 1.915963366627693e-6,
+              "completion_seconds": 117.61799829103984,
+              "response_body_bytes": 8704,
+              "response_nodes": 4,
+              "response_edges": 3
+            }
+          ],
+          "read_summary": {
+            "after_idle": {
+              "submitted": 2,
+              "successful": 2,
+              "successful_latency_seconds": {
+                "p50": 5.431881500058807,
+                "p95": 6.785857625072822,
+                "p99": 6.785857625072822
+              }
+            },
+            "balanced": {
+              "submitted": 4,
+              "successful": 4,
+              "successful_latency_seconds": {
+                "p50": 0.3094763749977574,
+                "p95": 2.690724667045288,
+                "p99": 2.690724667045288
+              }
+            },
+            "first": {
+              "submitted": 2,
+              "successful": 2,
+              "successful_latency_seconds": {
+                "p50": 3.150017499923706,
+                "p95": 3.3580422080121934,
+                "p99": 3.3580422080121934
+              }
+            },
+            "skewed": {
+              "submitted": 10,
+              "successful": 7,
+              "successful_latency_seconds": {
+                "p50": 0.41847862501163036,
+                "p95": 3.202183875022456,
+                "p99": 3.202183875022456
+              }
+            },
+            "sustained": {
+              "submitted": 139,
+              "successful": 63,
+              "successful_latency_seconds": {
+                "p50": 0.5141642920207232,
+                "p95": 3.4630251249764115,
+                "p99": 3.8114935000194237
+              }
+            }
+          }
+        }
+      ],
+      "http_harness_sha256": "993a3e54c476613b26575d266f1da1e2015b36c2db09b3dfbc49258d9d81294b",
+      "full_receipt_sha256": "66149c444b725e335f2278330b679ac8a222148205f0860efd319850bdcd1e17"
+    },
+    "replicas": {
+      "source_commit": "6268edbdc625f894859837dc6fabdb8376e54f32",
+      "source_dirty": false,
+      "configuration": {
+        "rows_per_tenant": 10000,
+        "tenants": 2,
+        "replicas": 2,
+        "clients_per_replica": 4,
+        "sustained_seconds": 20.0,
+        "sample_seconds": 0.25,
+        "aggregate_rss_limit_mib": 4096,
+        "min_free_gib": 5
+      },
+      "limitations": [
+        "Independent scratch SQLite databases; no shared-store replica consistency proof",
+        "One host; each sampled worker includes its HTTP clients and server",
+        "Sampled simultaneous RSS, not the sum of separately observed peaks",
+        "No production capacity, failover, latency SLO or approved memory budget"
+      ],
+      "correctness_ok": true,
+      "stopped": null,
+      "elapsed_seconds": 64.47933887504041,
+      "peak_aggregate_rss_mib": 670.359375,
+      "max_simultaneous_processes": 2,
+      "replicas": [
+        {
+          "correctness_ok": true,
+          "checks": {
+            "unauthenticated_rejected": true,
+            "invalid_credential_rejected": true,
+            "exact_bindings": true,
+            "duplicate_records": true,
+            "source_account_isolation": true,
+            "account_collision_isolation": true,
+            "foreign_root_rejected": true,
+            "all_submitted_reads_answered": true,
+            "admission_slots_released": true,
+            "stale_version_rejected": true
+          },
+          "scenarios": {
+            "balanced": {
+              "reads": 4,
+              "admitted": 4,
+              "rejected": 0,
+              "clients": 4,
+              "wall_seconds": 0.2078341250307858,
+              "reads_per_second": 19.246117544014936,
+              "per_tenant": {
+                "tenant-0": {
+                  "submitted": 2,
+                  "completed": 2,
+                  "admitted": 2,
+                  "rejected": {
+                    "graph_build_capacity": 0,
+                    "graph_tenant_capacity": 0,
+                    "graph_build_timeout": 0,
+                    "rate_limited": 0
+                  },
+                  "latency_seconds": {
+                    "p50": 0.15328387496992946,
+                    "p95": 0.172249750001356,
+                    "p99": 0.172249750001356
+                  },
+                  "latency_including_queue_seconds": {
+                    "p50": 0.15354158403351903,
+                    "p95": 0.1723930409643799,
+                    "p99": 0.1723930409643799
+                  },
+                  "rejection_latency_seconds": {},
+                  "client_queue_seconds": {
+                    "p50": 0.00014329096302390099,
+                    "p95": 0.0002577090635895729,
+                    "p99": 0.0002577090635895729
+                  },
+                  "max_success_gap_seconds": 0.15359958400949836
+                },
+                "tenant-1": {
+                  "submitted": 2,
+                  "completed": 2,
+                  "admitted": 2,
+                  "rejected": {
+                    "graph_build_capacity": 0,
+                    "graph_tenant_capacity": 0,
+                    "graph_build_timeout": 0,
+                    "rate_limited": 0
+                  },
+                  "latency_seconds": {
+                    "p50": 0.1698314999230206,
+                    "p95": 0.20234266598708928,
+                    "p99": 0.20234266598708928
+                  },
+                  "latency_including_queue_seconds": {
+                    "p50": 0.17000708391424268,
+                    "p95": 0.20242912496905774,
+                    "p99": 0.20242912496905774
+                  },
+                  "rejection_latency_seconds": {},
+                  "client_queue_seconds": {
+                    "p50": 8.645898196846247e-5,
+                    "p95": 0.00017558399122208357,
+                    "p99": 0.00017558399122208357
+                  },
+                  "max_success_gap_seconds": 0.1707455839496106
+                }
+              }
+            },
+            "skewed": {
+              "reads": 10,
+              "admitted": 7,
+              "rejected": 3,
+              "clients": 4,
+              "wall_seconds": 0.42237783304881305,
+              "reads_per_second": 23.675484880013407,
+              "per_tenant": {
+                "tenant-0": {
+                  "submitted": 8,
+                  "completed": 8,
+                  "admitted": 5,
+                  "rejected": {
+                    "graph_build_capacity": 0,
+                    "graph_tenant_capacity": 3,
+                    "graph_build_timeout": 0,
+                    "rate_limited": 0
+                  },
+                  "latency_seconds": {
+                    "p50": 0.17302654101513326,
+                    "p95": 0.20400104101281613,
+                    "p99": 0.20400104101281613
+                  },
+                  "latency_including_queue_seconds": {
+                    "p50": 0.32853683293797076,
+                    "p95": 0.409728082944639,
+                    "p99": 0.409728082944639
+                  },
+                  "rejection_latency_seconds": {
+                    "p50": 0.11661562498193234,
+                    "p95": 0.13935987500008196,
+                    "p99": 0.13935987500008196
+                  },
+                  "client_queue_seconds": {
+                    "p50": 0.00017629202920943499,
+                    "p95": 0.32063770794775337,
+                    "p99": 0.32063770794775337
+                  },
+                  "max_success_gap_seconds": 0.15712862508371472
+                },
+                "tenant-1": {
+                  "submitted": 2,
+                  "completed": 2,
+                  "admitted": 2,
+                  "rejected": {
+                    "graph_build_capacity": 0,
+                    "graph_tenant_capacity": 0,
+                    "graph_build_timeout": 0,
+                    "rate_limited": 0
+                  },
+                  "latency_seconds": {
+                    "p50": 0.09020424995105714,
+                    "p95": 0.2371764580020681,
+                    "p99": 0.2371764580020681
+                  },
+                  "latency_including_queue_seconds": {
+                    "p50": 0.3467589169740677,
+                    "p95": 0.41893391602206975,
+                    "p99": 0.41893391602206975
+                  },
+                  "rejection_latency_seconds": {},
+                  "client_queue_seconds": {
+                    "p50": 0.10958245897199959,
+                    "p95": 0.3287296660710126,
+                    "p99": 0.3287296660710126
+                  },
+                  "max_success_gap_seconds": 0.3486405829899013
+                }
+              }
+            },
+            "sustained": {
+              "reads": 503,
+              "admitted": 420,
+              "rejected": 83,
+              "clients": 4,
+              "wall_seconds": 20.213839833042584,
+              "reads_per_second": 24.883941109386367,
+              "per_tenant": {
+                "tenant-0": {
+                  "submitted": 401,
+                  "completed": 401,
+                  "admitted": 321,
+                  "rejected": {
+                    "graph_build_capacity": 0,
+                    "graph_tenant_capacity": 80,
+                    "graph_build_timeout": 0,
+                    "rate_limited": 0
+                  },
+                  "latency_seconds": {
+                    "p50": 0.1244809579802677,
+                    "p95": 0.4335417919792235,
+                    "p99": 0.9703366669127718
+                  },
+                  "latency_including_queue_seconds": {
+                    "p50": 0.12448137497995049,
+                    "p95": 0.4335421669529751,
+                    "p99": 0.9703371248906478
+                  },
+                  "rejection_latency_seconds": {
+                    "p50": 0.07303483306895941,
+                    "p95": 0.16515708400402218,
+                    "p99": 0.5112521250266582
+                  },
+                  "client_queue_seconds": {
+                    "p50": 3.7497375160455704e-7,
+                    "p95": 5.41098415851593e-7,
+                    "p99": 6.249174475669861e-7
+                  },
+                  "max_success_gap_seconds": 0.9898188749793917
+                },
+                "tenant-1": {
+                  "submitted": 102,
+                  "completed": 102,
+                  "admitted": 99,
+                  "rejected": {
+                    "graph_build_capacity": 0,
+                    "graph_tenant_capacity": 3,
+                    "graph_build_timeout": 0,
+                    "rate_limited": 0
+                  },
+                  "latency_seconds": {
+                    "p50": 0.13072012504562736,
+                    "p95": 0.30781104206107557,
+                    "p99": 1.0625417080009356
+                  },
+                  "latency_including_queue_seconds": {
+                    "p50": 0.1307204170152545,
+                    "p95": 0.3078113329829648,
+                    "p99": 1.0625421250006184
+                  },
+                  "rejection_latency_seconds": {
+                    "p50": 0.08983716601505876,
+                    "p95": 0.09444591705687344,
+                    "p99": 0.09444591705687344
+                  },
+                  "client_queue_seconds": {
+                    "p50": 3.7497375160455704e-7,
+                    "p95": 5.419133231043816e-7,
+                    "p99": 7.08969309926033e-7
+                  },
+                  "max_success_gap_seconds": 1.1568359580123797
+                }
+              }
+            }
+          },
+          "cache": {
+            "max_bytes": 134217728,
+            "retained_bytes": 127264942,
+            "entries": 2,
+            "idle_ttl_seconds": 60
+          },
+          "lifecycle_probes": {},
+          "admission": {
+            "graph_build_concurrency": 4,
+            "graph_tenant_concurrency": 2,
+            "graph_build_timeout_seconds": 60.0
+          },
+          "transport": "http",
+          "seed": 910,
+          "retained_bytes": 37379673,
+          "unique_records_per_tenant": 10000,
+          "input_rows_including_duplicates": 10001,
+          "input_sha256": [
+            "76acd0d053e069c8ae67792f771b672f036101196b23f5809c3b0d2161e63ee8",
+            "0dcbfb1a8695d80479d7525399f6acd7fe00e14839d28fb6d39649defd4e302e"
+          ],
+          "input_bytes_per_tenant": [3841837, 3841837],
+          "model_counts": {
+            "framework": 21,
+            "control": 2282,
+            "ccf_category": 10,
+            "ccf_family": 21,
+            "safeguard": 1195,
+            "evidence_type": 10000,
+            "asset": 10000,
+            "environment": 2,
+            "account": 2,
+            "source": 2,
+            "finding": 3935
+          },
+          "wall_seconds": 60.50794633303303,
+          "cpu_seconds": 29.78039,
+          "peak_rss_mib": 340.5625,
+          "individual_read_count": 519,
+          "boundary_reads": [
+            {
+              "tenant": "tenant-0",
+              "query": "first",
+              "submission_ordinal": 0,
+              "http_status": 200,
+              "error_type": null,
+              "error_code": null,
+              "retry_after": null,
+              "seconds": 3.7462572919903323,
+              "client_queue_seconds": 1.0409858077764511e-6,
+              "completion_seconds": 7.495487082982436,
+              "response_body_bytes": 8704,
+              "response_nodes": 4,
+              "response_edges": 3
+            },
+            {
+              "tenant": "tenant-1",
+              "query": "first",
+              "submission_ordinal": 1,
+              "http_status": 200,
+              "error_type": null,
+              "error_code": null,
+              "retry_after": null,
+              "seconds": 8.71426320890896,
+              "client_queue_seconds": 9.160721674561501e-7,
+              "completion_seconds": 16.211068624979816,
+              "response_body_bytes": 8704,
+              "response_nodes": 4,
+              "response_edges": 3
+            }
+          ],
+          "read_summary": {
+            "balanced": {
+              "submitted": 4,
+              "successful": 4,
+              "successful_latency_seconds": {
+                "p50": 0.1698314999230206,
+                "p95": 0.20234266598708928,
+                "p99": 0.20234266598708928
+              }
+            },
+            "first": {
+              "submitted": 2,
+              "successful": 2,
+              "successful_latency_seconds": {
+                "p50": 3.7462572919903323,
+                "p95": 8.71426320890896,
+                "p99": 8.71426320890896
+              }
+            },
+            "skewed": {
+              "submitted": 10,
+              "successful": 7,
+              "successful_latency_seconds": {
+                "p50": 0.17302654101513326,
+                "p95": 0.2371764580020681,
+                "p99": 0.2371764580020681
+              }
+            },
+            "sustained": {
+              "submitted": 503,
+              "successful": 420,
+              "successful_latency_seconds": {
+                "p50": 0.12622637499589473,
+                "p95": 0.3804196659475565,
+                "p99": 0.9821568329352885
+              }
+            }
+          }
+        },
+        {
+          "correctness_ok": true,
+          "checks": {
+            "unauthenticated_rejected": true,
+            "invalid_credential_rejected": true,
+            "exact_bindings": true,
+            "duplicate_records": true,
+            "source_account_isolation": true,
+            "account_collision_isolation": true,
+            "foreign_root_rejected": true,
+            "all_submitted_reads_answered": true,
+            "admission_slots_released": true,
+            "stale_version_rejected": true
+          },
+          "scenarios": {
+            "balanced": {
+              "reads": 4,
+              "admitted": 4,
+              "rejected": 0,
+              "clients": 4,
+              "wall_seconds": 0.23669400007929653,
+              "reads_per_second": 16.899456676806054,
+              "per_tenant": {
+                "tenant-0": {
+                  "submitted": 2,
+                  "completed": 2,
+                  "admitted": 2,
+                  "rejected": {
+                    "graph_build_capacity": 0,
+                    "graph_tenant_capacity": 0,
+                    "graph_build_timeout": 0,
+                    "rate_limited": 0
+                  },
+                  "latency_seconds": {
+                    "p50": 0.1558974590152502,
+                    "p95": 0.16911875002551824,
+                    "p99": 0.16911875002551824
+                  },
+                  "latency_including_queue_seconds": {
+                    "p50": 0.15729933406691998,
+                    "p95": 0.17031645798124373,
+                    "p99": 0.17031645798124373
+                  },
+                  "rejection_latency_seconds": {},
+                  "client_queue_seconds": {
+                    "p50": 0.001197707955725491,
+                    "p95": 0.0014018750516697764,
+                    "p99": 0.0014018750516697764
+                  },
+                  "max_success_gap_seconds": 0.16011420905124396
+                },
+                "tenant-1": {
+                  "submitted": 2,
+                  "completed": 2,
+                  "admitted": 2,
+                  "rejected": {
+                    "graph_build_capacity": 0,
+                    "graph_tenant_capacity": 0,
+                    "graph_build_timeout": 0,
+                    "rate_limited": 0
+                  },
+                  "latency_seconds": {
+                    "p50": 0.14496241696178913,
+                    "p95": 0.2333058340009302,
+                    "p99": 0.2333058340009302
+                  },
+                  "latency_including_queue_seconds": {
+                    "p50": 0.14522062498144805,
+                    "p95": 0.23345533397514373,
+                    "p99": 0.23345533397514373
+                  },
+                  "rejection_latency_seconds": {},
+                  "client_queue_seconds": {
+                    "p50": 0.00014949997421354055,
+                    "p95": 0.00025820801965892315,
+                    "p99": 0.00025820801965892315
+                  },
+                  "max_success_gap_seconds": 0.15259729197714478
+                }
+              }
+            },
+            "skewed": {
+              "reads": 10,
+              "admitted": 8,
+              "rejected": 2,
+              "clients": 4,
+              "wall_seconds": 0.38642875000368804,
+              "reads_per_second": 25.87799173820416,
+              "per_tenant": {
+                "tenant-0": {
+                  "submitted": 8,
+                  "completed": 8,
+                  "admitted": 6,
+                  "rejected": {
+                    "graph_build_capacity": 0,
+                    "graph_tenant_capacity": 2,
+                    "graph_build_timeout": 0,
+                    "rate_limited": 0
+                  },
+                  "latency_seconds": {
+                    "p50": 0.13136366696562618,
+                    "p95": 0.1502692080102861,
+                    "p99": 0.1502692080102861
+                  },
+                  "latency_including_queue_seconds": {
+                    "p50": 0.1364158750511706,
+                    "p95": 0.3678224589675665,
+                    "p99": 0.3678224589675665
+                  },
+                  "rejection_latency_seconds": {
+                    "p50": 0.12235012499149889,
+                    "p95": 0.12471079104579985,
+                    "p99": 0.12471079104579985
+                  },
+                  "client_queue_seconds": {
+                    "p50": 0.00032712495885789394,
+                    "p95": 0.2575800420017913,
+                    "p99": 0.2575800420017913
+                  },
+                  "max_success_gap_seconds": 0.1372976249549538
+                },
+                "tenant-1": {
+                  "submitted": 2,
+                  "completed": 2,
+                  "admitted": 2,
+                  "rejected": {
+                    "graph_build_capacity": 0,
+                    "graph_tenant_capacity": 0,
+                    "graph_build_timeout": 0,
+                    "rate_limited": 0
+                  },
+                  "latency_seconds": {
+                    "p50": 0.11866683303378522,
+                    "p95": 0.1527582500129938,
+                    "p99": 0.1527582500129938
+                  },
+                  "latency_including_queue_seconds": {
+                    "p50": 0.2623887090012431,
+                    "p95": 0.3816378749907017,
+                    "p99": 0.3816378749907017
+                  },
+                  "rejection_latency_seconds": {},
+                  "client_queue_seconds": {
+                    "p50": 0.1096304589882493,
+                    "p95": 0.26297104195691645,
+                    "p99": 0.26297104195691645
+                  },
+                  "max_success_gap_seconds": 0.26529183401726186
+                }
+              }
+            },
+            "sustained": {
+              "reads": 484,
+              "admitted": 412,
+              "rejected": 72,
+              "clients": 4,
+              "wall_seconds": 20.15650458401069,
+              "reads_per_second": 24.012099815358706,
+              "per_tenant": {
+                "tenant-0": {
+                  "submitted": 385,
+                  "completed": 385,
+                  "admitted": 314,
+                  "rejected": {
+                    "graph_build_capacity": 0,
+                    "graph_tenant_capacity": 71,
+                    "graph_build_timeout": 0,
+                    "rate_limited": 0
+                  },
+                  "latency_seconds": {
+                    "p50": 0.12573429197072983,
+                    "p95": 0.4289682499365881,
+                    "p99": 0.7621397080365568
+                  },
+                  "latency_including_queue_seconds": {
+                    "p50": 0.12573479197453707,
+                    "p95": 0.4289685409748927,
+                    "p99": 0.7621402080403641
+                  },
+                  "rejection_latency_seconds": {
+                    "p50": 0.08506445901002735,
+                    "p95": 0.22007749998010695,
+                    "p99": 0.8562011249596253
+                  },
+                  "client_queue_seconds": {
+                    "p50": 3.7509016692638397e-7,
+                    "p95": 6.249174475669861e-7,
+                    "p99": 2.625049091875553e-6
+                  },
+                  "max_success_gap_seconds": 0.6521660420112312
+                },
+                "tenant-1": {
+                  "submitted": 99,
+                  "completed": 99,
+                  "admitted": 98,
+                  "rejected": {
+                    "graph_build_capacity": 0,
+                    "graph_tenant_capacity": 1,
+                    "graph_build_timeout": 0,
+                    "rate_limited": 0
+                  },
+                  "latency_seconds": {
+                    "p50": 0.13071141694672406,
+                    "p95": 0.6248315409757197,
+                    "p99": 0.7006018749671057
+                  },
+                  "latency_including_queue_seconds": {
+                    "p50": 0.13071166700683534,
+                    "p95": 0.6248319579754025,
+                    "p99": 0.7006023330613971
+                  },
+                  "rejection_latency_seconds": {
+                    "p50": 0.07233479199931026,
+                    "p95": 0.07233479199931026,
+                    "p99": 0.07233479199931026
+                  },
+                  "client_queue_seconds": {
+                    "p50": 3.7497375160455704e-7,
+                    "p95": 7.080379873514175e-7,
+                    "p99": 1.125037670135498e-6
+                  },
+                  "max_success_gap_seconds": 1.17226616689004
+                }
+              }
+            }
+          },
+          "cache": {
+            "max_bytes": 134217728,
+            "retained_bytes": 127264942,
+            "entries": 2,
+            "idle_ttl_seconds": 60
+          },
+          "lifecycle_probes": {},
+          "admission": {
+            "graph_build_concurrency": 4,
+            "graph_tenant_concurrency": 2,
+            "graph_build_timeout_seconds": 60.0
+          },
+          "transport": "http",
+          "seed": 910,
+          "retained_bytes": 37365254,
+          "unique_records_per_tenant": 10000,
+          "input_rows_including_duplicates": 10001,
+          "input_sha256": [
+            "76acd0d053e069c8ae67792f771b672f036101196b23f5809c3b0d2161e63ee8",
+            "0dcbfb1a8695d80479d7525399f6acd7fe00e14839d28fb6d39649defd4e302e"
+          ],
+          "input_bytes_per_tenant": [3841837, 3841837],
+          "model_counts": {
+            "framework": 21,
+            "control": 2282,
+            "ccf_category": 10,
+            "ccf_family": 21,
+            "safeguard": 1195,
+            "evidence_type": 10000,
+            "asset": 10000,
+            "environment": 2,
+            "account": 2,
+            "source": 2,
+            "finding": 3935
+          },
+          "wall_seconds": 60.32613037491683,
+          "cpu_seconds": 29.376943999999998,
+          "peak_rss_mib": 323.171875,
+          "individual_read_count": 500,
+          "boundary_reads": [
+            {
+              "tenant": "tenant-0",
+              "query": "first",
+              "submission_ordinal": 0,
+              "http_status": 200,
+              "error_type": null,
+              "error_code": null,
+              "retry_after": null,
+              "seconds": 3.7909559580730274,
+              "client_queue_seconds": 7.919734343886375e-7,
+              "completion_seconds": 7.546453166985884,
+              "response_body_bytes": 8704,
+              "response_nodes": 4,
+              "response_edges": 3
+            },
+            {
+              "tenant": "tenant-1",
+              "query": "first",
+              "submission_ordinal": 1,
+              "http_status": 200,
+              "error_type": null,
+              "error_code": null,
+              "retry_after": null,
+              "seconds": 8.707511542015709,
+              "client_queue_seconds": 1.249951310455799e-6,
+              "completion_seconds": 16.255116916960105,
+              "response_body_bytes": 8704,
+              "response_nodes": 4,
+              "response_edges": 3
+            }
+          ],
+          "read_summary": {
+            "balanced": {
+              "submitted": 4,
+              "successful": 4,
+              "successful_latency_seconds": {
+                "p50": 0.1558974590152502,
+                "p95": 0.2333058340009302,
+                "p99": 0.2333058340009302
+              }
+            },
+            "first": {
+              "submitted": 2,
+              "successful": 2,
+              "successful_latency_seconds": {
+                "p50": 3.7909559580730274,
+                "p95": 8.707511542015709,
+                "p99": 8.707511542015709
+              }
+            },
+            "skewed": {
+              "submitted": 10,
+              "successful": 8,
+              "successful_latency_seconds": {
+                "p50": 0.13136366696562618,
+                "p95": 0.1527582500129938,
+                "p99": 0.1527582500129938
+              }
+            },
+            "sustained": {
+              "submitted": 484,
+              "successful": 412,
+              "successful_latency_seconds": {
+                "p50": 0.12797687493730336,
+                "p95": 0.4289682499365881,
+                "p99": 0.7362648330163211
+              }
+            }
+          }
+        }
+      ],
+      "full_receipt_sha256": "5af641803e902a2537ba3a03acdcc82e582d91528644e752a313f9ad520d9df9"
+    }
+  }
+}

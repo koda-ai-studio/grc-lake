@@ -36,6 +36,27 @@ retain their exact source revisions and synthetic workload limits. They do not
 establish production capacity or qualify a deployment memory budget; 100k records
 remain outside the proposed interactive workload.
 
+## Unreleased graph qualification
+
+Framework and repository maps now carry the same CCF result and reviewed/proposed
+mapping counts as Controls and Investigation. A missing framework result is not
+shown as a passing control. Regression coverage includes `SOC2-CC6.8`, whose
+control test passes while its proposed-only framework mapping is not evaluated.
+
+The [October 25 capacity measurements](benchmarks/INVESTIGATION_CACHE.md#october-25-2026-sustained-traffic-expiry-and-process-memory)
+add sustained hot/cold tenant traffic, idle expiry, forced eviction, 100k cache
+comparison and simultaneous worker RSS. The 100k models were not retained by the
+128 MiB cache. Reviewer-approved capacity budgets remain outstanding.
+
+Synthetic connector-to-export and 20 control-workpaper cases passed on source
+`6268edbdc625f894859837dc6fabdb8376e54f32`. These checks do not approve pending
+SOC 2/ISO mappings or qualify live providers. Use the bounded review-packet
+procedure in [Mapping review](MAPPING_REVIEW.md) for human decisions.
+
+These changes are not included in v0.3.12. Publication still requires independent
+review, merged-source CI, release artifact/runtime qualification, and verification
+of the published package and container bytes.
+
 ## Verified 0.3.12 publication
 
 The [release workflow](https://github.com/koda-ai-studio/grc-lake/actions/runs/40164154790)

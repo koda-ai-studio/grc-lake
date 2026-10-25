@@ -1,5 +1,87 @@
 # Generation-scoped graph reuse measurements
 
+## October 25, 2026: sustained traffic, expiry and process memory
+
+The [bounded capacity receipt](investigation-capacity-2026-10-25.json) records
+clean source `6268edbdc625f894859837dc6fabdb8376e54f32`, configuration, input
+hashes, correctness checks, per-tenant outcomes and latency distributions. Full
+local receipts are fingerprinted; individual read arrays are summarized in the
+published receipt to keep its size bounded. All six attempts passed the harness
+checks, including colliding source accounts, foreign roots and stale versions.
+
+Measurements used a 10-core ARM64 macOS host with 16 GiB RAM, Python 3.12,
+local SQLite and frozen synthetic catalogs. Benchmarks ran sequentially, while
+interactive applications and Databricks trial setup were active. Two small SQL
+regression runs overlapped the eviction measurement. Host load and OS caches
+were uncontrolled; latency differences are not causal performance estimates.
+
+Eight closed-loop clients ran for 30 seconds with approximately 4:1 hot/cold
+tenant submissions. The p95 values below include only successful reads. Rejected
+requests are reported separately and were not retried.
+
+| Records / tenant | Hot admitted / submitted | Cold admitted / submitted | Hot / cold p95 seconds | Hot / cold maximum success gap seconds | Process peak RSS MiB |
+| ---------------- | ------------------------ | ------------------------- | ---------------------- | -------------------------------------- | -------------------- |
+| 1,000            | 1,075 / 5,189            | 883 / 1,303               | 0.122 / 0.125          | 1.060 / 1.077                          | 233.7                |
+| 10,000           | 936 / 3,722              | 693 / 934                 | 0.144 / 0.145          | 0.188 / 0.245                          | 415.6                |
+
+Both tenants made progress in these finite runs. The hot tenant received 3,629
+and 2,127 `429 rate_limited` responses respectively; remaining rejections were
+explicit process/tenant admission limits. A success gap includes the beginning
+and end of the measured window. This is evidence of observed progress, not a
+starvation-freedom guarantee or an approved admission policy.
+
+After 61 seconds without reads, both tenants were read successfully again:
+0.422–0.458 seconds at 1k and 1.978–2.070 seconds at 10k. The current cache uses
+**60 seconds of idle time**, refreshed on access; expiration is checked lazily
+on subsequent reads. The dated October 18 description below predates this
+idle-expiry behavior. The final 128 MiB cache snapshot held two models totaling
+23.3 MiB at 1k and 121.4 MiB at 10k.
+
+A separate 64 MiB override at 10k retained one 60.7 MiB model. Four clients over
+20 seconds admitted 63 of 139 requests, with tenant-capacity rejections for the
+rest. Successful p95 was 3.463 seconds; post-idle reads took 5.432–6.786 seconds.
+This exercises eviction and rebuild behavior but does not isolate eviction cost
+from shared-host contention. The shipped budget remains 128 MiB.
+
+At **100k records per tenant**, one client completed all reads with both shipped
+and disabled caching. The shipped cache retained **zero models**. First reads
+took 14.219–14.460 seconds, and balanced/skewed p95 was 15.333/15.784 seconds;
+process peak RSS was 1,119.7 MiB. Disabled caching peaked at 996.2 MiB, with
+balanced/skewed p95 of 17.301/30.707 seconds. These single noisy runs do not
+establish a cache speedup: the workload exceeds retention and remains outside
+the proposed interactive workload.
+
+Two simultaneous independent HTTP workers, each with two 10k tenants and four
+clients, passed their checks. Sampled aggregate RSS peaked at **670.4 MiB**, with
+two processes observed concurrently. Each worker retained 121.4 MiB of model
+objects. The measurement includes client/server memory in each process, uses
+separate SQLite stores, and does not prove shared-store consistency, load-balancer
+fairness, failover or a production memory budget.
+
+Reproduce with new output paths; each command retains its full raw receipt:
+
+```bash
+uv run --frozen python tools/benchmark_investigation.py --transport http \
+  --sizes 1000 10000 --tenants 2 --concurrency 8 --repeats 2 --seed 910 \
+  --frozen-catalogs --sustained-seconds 30 --idle-seconds 61 \
+  --timeout 900 --max-rss-mib 4096 --out /tmp/sustained.json
+uv run --frozen python tools/benchmark_investigation.py --transport http \
+  --sizes 100000 --tenants 2 --concurrency 1 --repeats 1 --seed 910 \
+  --frozen-catalogs --timeout 900 --max-rss-mib 4096 --out /tmp/100k-cache.json
+# Repeat the previous command with --disable-model-cache and a new output path.
+uv run --frozen python tools/benchmark_investigation.py --transport http \
+  --sizes 10000 --tenants 2 --concurrency 4 --repeats 1 --seed 910 \
+  --frozen-catalogs --model-cache-mib 64 --sustained-seconds 20 --idle-seconds 61 \
+  --timeout 900 --max-rss-mib 4096 --out /tmp/eviction.json
+uv run --frozen python tools/benchmark_graph_replicas.py --rows 10000 \
+  --replicas 2 --clients 4 --seconds 20 --timeout 900 --out /tmp/replicas.json
+```
+
+Reviewer-approved latency, rejection and memory budgets, representative tenant
+mixes, and multi-host deployment qualification remain open in [#910](https://github.com/koda-ai-studio/grc-lake/issues/910).
+The console's 500-node layout cap is an implementation limit, not a measured
+capacity budget.
+
 ## October 18, 2026
 
 These are synthetic local measurements of bounded model reuse, not production
