@@ -1,6 +1,6 @@
 # GRC Lake roadmap
 
-Source candidate **0.3.13**, checked **2026-10-25**; **v0.3.12 is published**.
+Status as of v0.3.13 (source candidate), checked **2026-10-25**; **v0.3.12 is published**.
 The candidate adds graph result parity, scoped OCSF identities and bounded
 Databricks/capacity evidence; it still requires independent review and release gates.
 Start with [current state and coverage](docs/CURRENT_STATE.md) for shipped paths
