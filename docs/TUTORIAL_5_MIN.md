@@ -7,12 +7,12 @@ the walkthrough, not a measured clean-machine setup time.
 
 ## 1. Start GRC Lake with sample data
 
-Pick one. These examples use the published **v0.3.11** release.
+Pick one. These examples use the published **v0.3.12** release.
 
 **Docker Compose** (Docker with Compose v2):
 
 ```bash
-git clone --branch v0.3.11 --depth 1 https://github.com/koda-ai-studio/grc-lake.git
+git clone --branch v0.3.12 --depth 1 https://github.com/koda-ai-studio/grc-lake.git
 cd grc-lake
 docker compose up
 ```
@@ -22,7 +22,7 @@ docker compose up
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install "grc-lake[server]==0.3.11"
+pip install "grc-lake[server]==0.3.12"
 grc-lake fixtures load --company golden --out ./lake --rebase-times
 grc-lake serve --server --allow-insecure-no-auth --lake ./lake --host 127.0.0.1 --port 8787
 ```
