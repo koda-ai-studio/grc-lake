@@ -87,3 +87,17 @@ test("framework detail leads with attested passes, not control test passes", asy
     "Control test passing · Not attested",
   );
 });
+
+test("the control drawer counts a single outcome record in the singular", async ({
+  page,
+  request,
+}) => {
+  const body = (await (
+    await request.get("/api/v1/control-tests?limit=500")
+  ).json()) as { data: Array<{ control_id: string; evidence_count: number }> };
+  const single = body.data.find((row) => row.evidence_count === 1)!;
+  await page.goto(`/console/controls/?id=${single.control_id}`);
+  const drawer = page.getByRole("dialog");
+  await expect(drawer).toContainText("1 record with outcomes");
+  await expect(drawer).not.toContainText("1 records with");
+});

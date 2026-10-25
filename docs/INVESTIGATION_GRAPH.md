@@ -61,9 +61,12 @@ the lake's JSONL indexes. Changing a generation or overlay cannot reuse the prev
 key. Mutable legacy lakes and generations missing frozen catalogs rebuild normally.
 
 The process retains at most eight models, one per lake, within a 128 MiB budget of
-accounted Python object sizes. Models expire 60 seconds after insertion, with
+accounted Python object sizes. Models expire after 60 seconds without a read, with
 expired entries removed on the next cache access; least recently used models are
-evicted when necessary. Oversized models are returned without retention. This is
+evicted when necessary. Oversized models are returned without retention. When the
+models in active use do not fit the budget together, requests that alternate between
+them rebuild each time and can be slower than running without the cache; see
+[retention sizing](benchmarks/INVESTIGATION_CACHE.md#retention-sizing). This is
 not a total RSS bound: active builds, active readers, temporary allocations and
 Python allocator overhead are additional. No graph cache is written to disk. See the
 [reuse measurements](benchmarks/INVESTIGATION_CACHE.md) for observed cold/warm

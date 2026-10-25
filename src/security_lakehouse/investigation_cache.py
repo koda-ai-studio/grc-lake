@@ -75,6 +75,7 @@ class ModelCache:
                         self._bytes -= self._entries.pop(previous)[1]
                 cached = self._entries.get(key)
                 if cached is not None:
+                    self._entries[key] = cached[0], cached[1], monotonic()
                     self._entries.move_to_end(key)
                     return cached[0]
                 waiting = self._building.get(key)
