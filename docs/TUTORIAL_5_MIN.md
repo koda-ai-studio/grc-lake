@@ -12,7 +12,7 @@ Pick one. These examples use the published **v0.3.12** release.
 **Docker Compose** (Docker with Compose v2):
 
 ```bash
-git clone --branch v0.3.12 --depth 1 https://github.com/koda-ai-studio/grc-lake.git
+git clone --branch v0.3.13 --depth 1 https://github.com/koda-ai-studio/grc-lake.git
 cd grc-lake
 docker compose up
 ```
