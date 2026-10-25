@@ -173,3 +173,12 @@ def test_mcp_can_list_the_queue_and_decisions_but_has_no_decision_tool(tmp_path:
     assert decisions["decisions"][0]["reviewer"] == "grc@acme.test"
     coverage = call_tool(server, "get_framework_coverage")
     assert coverage["summary"]["org_reviewed_mapping_count"] == 1
+
+
+def test_cli_safeguards_table_separates_legacy_reviews_without_a_reviewer(capsys) -> None:
+    assert main(["frameworks", "safeguards"]) == 0
+    coverage = json.loads(capsys.readouterr().out)
+    assert coverage["legacy_only_reviewed"] > 0
+    assert main(["frameworks", "safeguards", "--format", "table"]) == 0
+    headline = capsys.readouterr().out.splitlines()[0]
+    assert f"{coverage['legacy_only_reviewed']} rest only on legacy reviews with no recorded reviewer" in headline

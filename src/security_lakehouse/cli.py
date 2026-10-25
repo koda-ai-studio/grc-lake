@@ -2448,7 +2448,8 @@ def _frameworks_safeguards(args: argparse.Namespace) -> int:
     print(
         f"{coverage['safeguards']} safeguards map {coverage['covered']} of "
         f"{coverage['controls']} requirements ({coverage['coverage_pct']}%) — "
-        f"{coverage['maintainer_reviewed']} maintainer-reviewed, {coverage['org_reviewed']} org-reviewed "
+        f"{coverage['maintainer_reviewed']} maintainer-reviewed ({coverage['legacy_only_reviewed']} rest only on "
+        f"legacy reviews with no recorded reviewer), {coverage['org_reviewed']} org-reviewed "
         f"({coverage['reviewed_pct']}% attestable), {coverage['proposed']} proposed; "
         f"{coverage['rejected_mappings']} mapping(s) rejected by the org"
     )
