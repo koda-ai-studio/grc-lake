@@ -157,7 +157,7 @@ function investigation(root: string, missing = false) {
       root_offset: 0,
       next_root_offset: null,
       nodes: missing ? [] : NODES,
-      edges: missing ? [] : EDGES,
+      edges: EDGES,
       counts: { framework: 1, control: 1, evidence_type: 1, asset: 2 },
       framework_groups: [],
       selected_framework: "",
