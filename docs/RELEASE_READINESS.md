@@ -32,6 +32,11 @@ retain their exact source revisions and synthetic workload limits. They do not
 establish production capacity or qualify a deployment memory budget; 100k records
 remain outside the proposed interactive workload.
 
+**0.3.12 is prepared on `main`, not yet published.** It changes only the published
+package description: README links and screenshots are pinned to the release tag so
+the PyPI project page renders them. No code, dependency, image or migration changes
+from v0.3.11. Publication records below are added after verification.
+
 ## Verified 0.3.11 publication
 
 The [release workflow](https://github.com/koda-ai-studio/grc-lake/actions/runs/40155762881)
