@@ -7,6 +7,10 @@ Python package, Helm chart, and bundled web console.
 
 - Add a repeatable local graph performance acceptance check for two tenants at 1k/10k records each. It checks cold and warm latency, idle-expiry reads, memory and tenant progress while reporting admission rejections separately. These bounded synthetic measurements do not qualify production capacity.
 
+- Renew Databricks OAuth tokens before expiry and retry an unauthorized SQL request once with fresh credentials. Invalid token lifetimes are rejected, repeated authorization failures stop, and rate-limit retries continue to honor `Retry-After`. These recovery paths are tested with synthetic responses; live expiry and throttling remain separate qualification.
+
+- Let mapping-review packets select exact pending requirements with repeatable `--control` flags. Preserve candidate fingerprints and coverage denominators; reject missing or already-reviewed selections before writing output. Add focused recovery/confidentiality review guidance without approving either mapping, align the pip and Compose tutorial versions, and document an optional pilot-feedback and stability period.
+
 - Reject incomplete Databricks SQL results before replacing evidence or advancing watermarks. Validate result schemas, row counts and chunk offsets, follow index-only chunk cursors, and record failed reads as partial runs with a collection gap. Malformed chunk links are rejected before requesting them. The adapter remains Preview; the added qualification uses synthetic responses.
 
 ## 0.3.13 - 2026-10-25

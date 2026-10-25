@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from collections.abc import Sequence
 from math import ceil
 from pathlib import Path
 from typing import Any
@@ -18,6 +19,7 @@ def build_review_packet(
     *,
     payload: dict[str, Any] | None = None,
     framework_id: str | None = None,
+    control_ids: Sequence[str] | None = None,
     batch_size: int = 25,
     target_mapped_pct: int = 80,
     target_reviewed_pct: int = 50,
@@ -50,6 +52,14 @@ def build_review_packet(
         if item["review_state"] not in {"proposed", "needs_changes"}:
             continue
         grouped[item["control_id"]].append(item)
+    selected = sorted(set(control_ids)) if control_ids is not None else None
+    if selected is not None:
+        if not selected:
+            raise ValueError("select at least one requirement")
+        unavailable = set(selected) - grouped.keys()
+        if unavailable:
+            raise ValueError("requirements are not pending in the requested scope: " + ", ".join(sorted(unavailable)))
+        grouped = {control_id: grouped[control_id] for control_id in selected}
     catalog = load_control_catalog()
     requirements = []
     for control_id, candidates in grouped.items():
@@ -90,6 +100,7 @@ def build_review_packet(
         "schema": "grc_lake.mapping_review_packet.v1",
         "scope": "organization" if lake_dir is not None else "catalog",
         "framework_filter": framework_id,
+        **({"control_filter": selected} if selected is not None else {}),
         "summary": {
             "catalog_requirements": total,
             "mapped_requirements": coverage["covered"],

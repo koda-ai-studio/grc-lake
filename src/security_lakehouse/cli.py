@@ -727,6 +727,9 @@ def _parser() -> argparse.ArgumentParser:
         "--framework", default=None, help="filter requirements; milestone denominator remains the full catalog"
     )
     review_packet.add_argument("--batch-size", type=int, default=25, help="distinct requirements per batch (1-100)")
+    review_packet.add_argument(
+        "--control", action="append", default=None, help="select a pending requirement; repeat for a focused packet"
+    )
     review_packet.add_argument("--out", default=None, help="write JSON to this path (default stdout)")
     review_packet.set_defaults(func=_frameworks_review_packet)
     review_export = review_sub.add_parser("export", help="export the decision log with its chain verification")
@@ -2526,7 +2529,9 @@ def _frameworks_review_queue(args: argparse.Namespace) -> int:
 def _frameworks_review_packet(args: argparse.Namespace) -> int:
     from security_lakehouse.mapping_review_packet import build_review_packet
 
-    packet = build_review_packet(args.lake, framework_id=args.framework, batch_size=args.batch_size)
+    packet = build_review_packet(
+        args.lake, framework_id=args.framework, control_ids=args.control, batch_size=args.batch_size
+    )
     text = json.dumps(packet, indent=2, sort_keys=True) + "\n"
     if args.out:
         out_path = Path(args.out)

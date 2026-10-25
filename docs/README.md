@@ -3,6 +3,8 @@
 Every guide in `docs/`, grouped by task. New here? Start with the
 [5-minute tutorial](TUTORIAL_5_MIN.md) and [architecture](ARCHITECTURE.md).
 
+For a real evaluation and contribution feedback, use the [bounded pilot guide](PILOT.md).
+
 ## Start
 
 | Guide                                                                   | Covers                                                             |

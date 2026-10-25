@@ -47,6 +47,9 @@ and opens your browser. Ctrl+C stops it and deletes the lake. With pip:
 the frozen result: follow the [sample-data tutorial](docs/TUTORIAL_5_MIN.md), then the
 [auditor workpaper example](docs/AUDITOR_WALKTHROUGH.md).
 
+For a real evaluation, follow the [bounded pilot guide](docs/PILOT.md): one source,
+one independently checked result, then a repeat collection and review.
+
 <details>
 <summary>Keep a lake, Docker, source development, or MCP</summary>
 

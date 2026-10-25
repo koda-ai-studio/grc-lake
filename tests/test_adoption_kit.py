@@ -28,6 +28,16 @@ def _command(service: dict[str, Any]) -> str:
 # --- compose quickstart -------------------------------------------------------
 
 
+def test_tutorial_installs_the_same_published_release_for_pip_and_compose():
+    tutorial = (ROOT / "docs/TUTORIAL_5_MIN.md").read_text()
+    readme = (ROOT / "README.md").read_text()
+    versions = re.findall(r"git clone --branch v([\d.]+)", tutorial)
+    versions += re.findall(r"grc-lake\[server\]==([\d.]+)", tutorial)
+    versions += re.findall(r"published \*\*v([\d.]+)\*\*", tutorial)
+    assert len(versions) == 3
+    assert set(versions) == set(re.findall(r"git clone --branch v([\d.]+)", readme))
+
+
 def test_demo_service_is_localhost_only_seeds_the_golden_fixture_and_says_auth_is_off() -> None:
     demo = _compose()["services"]["grc-lake"]
     command = _command(demo)

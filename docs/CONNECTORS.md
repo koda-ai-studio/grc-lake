@@ -888,7 +888,10 @@ Setup:
    probe and enable.
 
 GRC Lake mints a one-hour token at `https://<host>/oidc/v1/token`
-(`client_credentials`, `scope=all-apis`) per sync and keeps it in memory. The
+(`client_credentials`, `scope=all-apis`) for each sync and keeps it in memory.
+The reader renews cached tokens before their reported expiry and retries an
+unauthorized statement request once with a fresh token. Repeated authorization
+failures fail the sync; this does not change the principal's permissions. The
 host must be a Databricks workspace domain (`*.cloud.databricks.com`,
 `*.azuredatabricks.net`, `*.gcp.databricks.com`); result chunk links may not
 leave it; catalog, schema, and view names are strict identifiers quoted with
