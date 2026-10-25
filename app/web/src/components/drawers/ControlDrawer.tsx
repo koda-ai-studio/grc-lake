@@ -10,7 +10,7 @@ import { FrameworkBadge } from "@/components/framework/FrameworkBadge";
 import { EntityTagsEditor } from "@/components/EntityTagsEditor";
 import { resolveFrameworkId } from "@/lib/framework-visuals";
 import type { ControlPosture } from "@/lib/api/types";
-import { assetLabel } from "@/lib/format";
+import { assetLabel, plural } from "@/lib/format";
 import { displayLabel } from "@/lib/display";
 import {
   CcfAttestationNote,
@@ -104,9 +104,9 @@ export function ControlDrawer({ control, onClose, onOpenViolation }: Props) {
               </Link>
               {test && (
                 <p className="mt-1 text-xs font-normal text-muted">
-                  {test.evidence_count} records with outcomes used by control
-                  tests. Linked observations remain visible but do not establish
-                  a verdict.
+                  {plural(test.evidence_count, "record")} with outcomes used by
+                  control tests. Linked observations remain visible but do not
+                  establish a verdict.
                 </p>
               )}
             </dd>

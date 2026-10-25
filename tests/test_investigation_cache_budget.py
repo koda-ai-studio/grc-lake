@@ -51,7 +51,7 @@ def test_oversized_model_is_returned_but_not_retained():
     assert not store._entries and not store._building and store._bytes == 0
 
 
-def test_expiry_rebuilds_without_requiring_background_threads(monkeypatch):
+def test_idle_expiry_rebuilds_without_requiring_background_threads(monkeypatch):
     clock = [0.0]
     monkeypatch.setattr(cache, "monotonic", lambda: clock[0])
     store = cache.ModelCache(ttl=60)
@@ -64,7 +64,10 @@ def test_expiry_rebuilds_without_requiring_background_threads(monkeypatch):
     for instant in (0, 30, 61):
         clock[0] = instant
         store.get_or_build(("a", "v"), build, lambda: True, lambda: None)
-    assert len(builds) == 2
+    assert len(builds) == 1, "a read renews the entry, so a model in steady use stays warm"
+    clock[0] = 121
+    store.get_or_build(("a", "v"), build, lambda: True, lambda: None)
+    assert len(builds) == 2, "an entry idle for the full ttl is rebuilt"
 
 
 def test_canceled_waiter_does_not_abort_leader():
