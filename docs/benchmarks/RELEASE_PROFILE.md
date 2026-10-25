@@ -1,8 +1,9 @@
 # Local graph release acceptance profile
 
-This is a proposed regression budget for a bounded local pilot. Human review of
-the limits and receipts is required before treating it as accepted. It does not
-qualify production capacity, a deployment SLA, or all graph queries.
+The maintainer accepted this bounded local pilot profile on October 25, 2026.
+The decision is recorded in the linked receipt. It does not qualify production
+capacity, a deployment SLA, or all graph queries; independent code review remains
+a separate merge gate.
 
 The profile uses two tenants with 1,000 and 10,000 synthetic records **per tenant**,
 four concurrent closed-loop clients, the shipped cache and admission settings,
@@ -12,7 +13,7 @@ tenants after 61 idle seconds. The measured endpoint is an authenticated graph
 neighborhood at depth one, limited to 150 nodes, over local SQLite. Client and
 server run in the same process; RSS includes both.
 
-| Check                                                                    | Proposed limit                                   |
+| Check                                                                    | Acceptance limit                                 |
 | ------------------------------------------------------------------------ | ------------------------------------------------ |
 | First read and post-expiry read, each tenant                             | At most 5 seconds                                |
 | Sustained successful-read p95, including client queue delay, each tenant | At most 500 ms                                   |
@@ -50,7 +51,7 @@ It checks receipts; it does not itself rerun the benchmark or attest their origi
 
 The [October 25 profile receipt](release-profile-2026-10-25.json) retains source,
 configuration, host characteristics, raw receipt hashes and summarized outcomes.
-Two sequential runs passed the candidate limits. At 10k records per tenant,
+Two sequential runs passed these limits. At 10k records per tenant,
 successful warm p95 ranged from 67–143 ms, cold reads from 1.85–3.12 seconds,
 and peak RSS from 319.6–415.9 MiB. Shared-host and OS-cache effects remain
 uncontrolled. These are observations, not causal speedup claims. Raw receipt

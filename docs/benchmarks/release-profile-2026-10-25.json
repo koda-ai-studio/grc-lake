@@ -1,6 +1,6 @@
 {
   "schema": "grc.local_release_profile.v1",
-  "review_status": "proposed",
+  "review_status": "accepted_bounded_profile",
   "profile": "local-graph-10k-v1",
   "runs": [
     {
@@ -261,6 +261,21 @@
     "Response body bytes exclude HTTP headers; no production fairness, SLO or capacity budget",
     "No object-store failover, crash recovery or distributed admission qualification"
   ],
-  "acceptance_approved": false,
-  "live_provider_qualification": false
+  "acceptance_approved": true,
+  "live_provider_qualification": false,
+  "acceptance_review": {
+    "reviewer": "msaad00",
+    "recorded_at": "2026-10-25T18:57:21Z",
+    "scope": "Local synthetic graph release profile only; not production capacity or 100k interactive use.",
+    "approved_limits": {
+      "tenants": 2,
+      "records_per_tenant_max": 10000,
+      "concurrent_clients": 4,
+      "warm_p95_ms_max": 500,
+      "cold_or_expired_read_seconds_max": 5,
+      "process_rss_mib_max": 1024,
+      "both_tenants_must_make_progress": true
+    },
+    "code_review": "Independent pull-request approval remains required."
+  }
 }
