@@ -281,3 +281,16 @@
 .react-flow {
   --xy-background-color: var(--color-surface);
 }
+
+/* The library clears node outlines; keyboard users still need to see focus. */
+.react-flow .react-flow__node.selectable:focus-visible,
+.react-flow .react-flow__node:focus-visible {
+  outline: 3px solid var(--color-brand);
+  outline-offset: 3px;
+  border-radius: 0.75rem;
+}
+
+.react-flow .react-flow__edge:focus-visible .react-flow__edge-path {
+  stroke: var(--color-brand);
+  stroke-width: 3;
+}

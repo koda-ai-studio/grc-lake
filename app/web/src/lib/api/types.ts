@@ -1430,10 +1430,19 @@ export interface GraphNode {
   severity?: string;
   freshness_status?: string;
   freshness_age_minutes?: number;
+  /** Control nodes: the CCF framework result, independent of the posture test. */
+  ccf_status?: string;
+  reviewed_safeguard_count?: number;
+  proposed_safeguard_count?: number;
+  rule_reasons?: string[];
+  evaluation_rule?: string;
+  open_event_count?: number;
 }
 
 export interface GraphEdge {
   review_state?: string;
+  /** `invalid_asset_type`: the evidence does not apply to this asset type. */
+  binding?: string;
   id: string;
   source: string;
   target: string;
