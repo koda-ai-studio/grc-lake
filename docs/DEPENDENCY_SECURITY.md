@@ -56,6 +56,14 @@ back to an unpinned version. Python dependencies continue to use `uv.lock` and
 hash-verified installation. This build configuration does not alter existing
 published release images or their scan results below.
 
+### 0.3.12 release qualification scans
+
+The [0.3.12 release workflow](https://github.com/koda-ai-studio/grc-lake/actions/runs/40164154790)
+qualified AMD64 and emulated ARM64 on source
+`73e9b5014b31bde75bcf42ae664bb97709e493ad` with zero reported vulnerabilities in
+each unfiltered Trivy report. The runtime package resolution is unchanged from 0.3.11.
+See [publication verification](RELEASE_READINESS.md#verified-0312-publication).
+
 ### 0.3.11 release qualification scans
 
 The [0.3.11 release workflow](https://github.com/koda-ai-studio/grc-lake/actions/runs/40155762881)
