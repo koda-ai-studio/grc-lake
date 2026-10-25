@@ -17,6 +17,7 @@ from security_lakehouse import catalog
 from security_lakehouse import safeguards as safeguard_catalog
 from security_lakehouse.asset_names import asset_name_for, names_from_assets
 from security_lakehouse.catalog import control_catalog_view, framework_registry_view
+from security_lakehouse.ccf_evaluation import INVALID_ASSET_TYPE_REASON, binding_applies
 from security_lakehouse.domain_identity import source_asset_key
 from security_lakehouse.event_status import FAIL_STATUSES, normalize_event_status
 from security_lakehouse.generations import generation_identity, generation_reader, pinned_path
@@ -151,6 +152,7 @@ def _build_model(
     assessment_path = lake / "gold/ccf_assessment.json"
     assessment = read_json(assessment_path, base_dir=lake) if pinned_path(assessment_path).is_file() else {}
     assessed = {row["safeguard_id"]: row for row in assessment.get("safeguards", [])}
+    requirements = {row["control_id"]: row for row in assessment.get("requirements", [])}
     posture = {
         r["control_id"]: r for r in read_jsonl(lake / "gold/control_posture.jsonl", missing_ok=True, base_dir=lake)
     }
@@ -159,6 +161,8 @@ def _build_model(
         check()
         fid = str(row.get("framework_id") or "")
         node("framework", "framework:" + fid, frameworks.get(fid, {}).get("name", fid), framework_id=fid)
+        evaluated = posture.get(cid, {})
+        requirement = requirements.get(cid, {})
         node(
             "control",
             "control:" + cid,
@@ -166,8 +170,14 @@ def _build_model(
             subtitle=row.get("title"),
             framework_id=fid,
             owner=row.get("owner"),
-            status=posture.get(cid, {}).get("status", "not_evaluated"),
-            risk_score=posture.get(cid, {}).get("risk_score"),
+            status=evaluated.get("status", "not_evaluated"),
+            risk_score=evaluated.get("risk_score"),
+            rule_reasons=list(evaluated.get("rule_reasons") or []),
+            evaluation_rule=evaluated.get("evaluation_rule"),
+            open_event_count=evaluated.get("open_event_count"),
+            ccf_status=requirement.get("status", "not_evaluated"),
+            reviewed_safeguard_count=len(requirement.get("reviewed_safeguard_ids") or []),
+            proposed_safeguard_count=int(requirement.get("pending_mapping_count") or 0),
             basis="Catalog requirement; evidence links are recorded bindings",
         )
         edge("framework:" + fid, "control:" + cid, "framework_has_control")
@@ -176,9 +186,11 @@ def _build_model(
     for fid, row in load_ccf_families().items():
         node("ccf_family", "family:" + fid, row["label"], basis="Catalog taxonomy")
         edge("category:" + row["category"], "family:" + fid, "contains")
+    eligible_types: dict[str, set[str]] = {}
     for row in safeguards["safeguards"]:
         check()
         sid = "safeguard:" + row["safeguard_id"]
+        eligible_types[row["safeguard_id"]] = set(row.get("asset_types") or [])
         node(
             "safeguard",
             sid,
@@ -204,6 +216,13 @@ def _build_model(
     evidence_by_event = defaultdict(list)
     check()
     ordered_events = sorted(((canonical_sha256(event), event) for event in events), key=lambda item: item[0])
+    # Safeguard bindings are judged on every type recorded for the asset, as in
+    # the CCF assessment, so one event cannot validate a binding on its own.
+    asset_types: dict[tuple[str, str], set[str]] = defaultdict(set)
+    for _, event in ordered_events:
+        asset_types[source_asset_key({**event, "asset_id": event.get("asset_id") or ""})].add(
+            str(event.get("asset_type"))
+        )
     for event_hash, event in ordered_events:
         check()
         account, asset = source_asset_key({**event, "asset_id": event.get("asset_id") or ""})
@@ -263,7 +282,7 @@ def _build_model(
                 basis="Evidence producer; no vendor assessment implied",
             )
             edge(src, eid, "produces")
-        for cid in set(event.get("control_ids") or []):
+        for cid in sorted(set(event.get("control_ids") or [])):
             edge("control:" + cid, eid, "control_requires_evidence")
             if normalize_event_status(event.get("status")) in FAIL_STATUSES:
                 decision = triage.get(cid + ":" + str(event.get("event_id")), {})
@@ -282,8 +301,17 @@ def _build_model(
                 )
                 edge(aid, finding, "has_finding")
                 edge(finding, eid, "has_evidence")
-        for sid in set(event.get("safeguard_ids") or []):
-            edge("safeguard:" + sid, eid, "has_evidence")
+        for sid in sorted(set(event.get("safeguard_ids") or [])):
+            if binding_applies(asset_types[(account, asset)], eligible_types.get(sid, set())):
+                edge("safeguard:" + sid, eid, "has_evidence")
+            else:
+                edge(
+                    "safeguard:" + sid,
+                    eid,
+                    "has_evidence",
+                    binding="invalid_asset_type",
+                    binding_reason=INVALID_ASSET_TYPE_REASON,
+                )
 
     check()
     if platform_tenant_id is not None:
@@ -398,6 +426,19 @@ def investigation_graph(
             ordered.extend(sorted(following - selected))
             selected.update(following)
             frontier = following
+            if links is outgoing:
+                # Producing sources point inward to evidence. Show them as context
+                # without expanding into the source's other records.
+                producers = {
+                    key
+                    for evidence in following
+                    if nodes[evidence]["kind"] == "evidence_type"
+                    for key in linked(incoming, evidence)
+                    if nodes[key]["kind"] == "source"
+                } - selected
+                visited.update(producers)
+                ordered.extend(sorted(producers))
+                selected.update(producers)
     framework_groups = []
     grouped_controls: dict[str, list[str]] = defaultdict(list)
     selected_framework = ""

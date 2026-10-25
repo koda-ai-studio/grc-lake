@@ -82,3 +82,44 @@ def test_demo_refuses_a_busy_port_before_loading(monkeypatch: pytest.MonkeyPatch
             cli._demo(_args("--port", str(port)))
 
     assert loaded == []
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="SIGTERM is POSIX process termination")
+def test_demo_deletes_its_temporary_lake_on_sigterm(tmp_path: Path) -> None:
+    import os
+    import signal
+    import subprocess
+    import time
+
+    scratch = tmp_path / "tmp"
+    scratch.mkdir()
+    port = _free_port()
+    script = "import sys; from security_lakehouse.cli import main; raise SystemExit(main(sys.argv[1:]))"
+    process = subprocess.Popen(
+        [sys.executable, "-c", script, "demo", "--no-browser", "--port", str(port)],
+        env={**os.environ, "TMPDIR": str(scratch)},
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    try:
+        deadline = time.monotonic() + 90
+        while time.monotonic() < deadline:
+            assert process.poll() is None, "demo exited before listening"
+            with socket.socket() as probe:
+                probe.settimeout(0.5)
+                if probe.connect_ex(("127.0.0.1", port)) == 0:
+                    break
+            time.sleep(0.2)
+        else:
+            pytest.fail("demo never listened")
+        lakes = list(scratch.glob("grc-lake-demo-*"))
+        assert len(lakes) == 1 and any(lakes[0].iterdir())
+
+        process.send_signal(signal.SIGTERM)
+        process.wait(timeout=30)
+    finally:
+        if process.poll() is None:
+            process.kill()
+            process.wait()
+
+    assert not lakes[0].exists()

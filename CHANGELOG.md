@@ -6,6 +6,8 @@ Python package, Helm chart, and bundled web console.
 ## Unreleased
 
 - Refuse a release tag while `## Unreleased` still has entries, so every shipped change appears in the release notes. Rescan the published image daily on both architectures with the release vulnerability policy.
+- Fix investigation graph accuracy. Graph versions no longer depend on the process hash seed, so expanding a node after a restart or on another worker no longer fails with "graph version changed". Requirement nodes add `ccf_status`, `reviewed_safeguard_count` and `proposed_safeguard_count` from the CCF assessment beside the posture `status`, plus posture `rule_reasons`, `evaluation_rule` and `open_event_count`. Requirement and safeguard neighborhoods now include the source that produced each evidence record. Safeguard evidence bound to an asset type the safeguard does not accept is marked `binding: "invalid_asset_type"` instead of drawn as supporting evidence.
+- Delete the `grc-lake demo` temporary lake when the process receives SIGTERM, not only on Ctrl+C.
 
 ## 0.3.12 - 2026-10-25
 
