@@ -295,10 +295,8 @@ def _fake_workspace(monkeypatch: pytest.MonkeyPatch, routes: dict[tuple[str, str
 def test_expired_oauth_token_is_replaced_before_the_next_statement(monkeypatch):
     from types import SimpleNamespace
 
-    import security_lakehouse.connectors_databricks as module
-
     now = [0.0]
-    monkeypatch.setattr(module, "time", SimpleNamespace(monotonic=lambda: now[0]))
+    monkeypatch.setattr("security_lakehouse.connectors_databricks.time", SimpleNamespace(monotonic=lambda: now[0]))
     seen = _fake_workspace(
         monkeypatch,
         {
