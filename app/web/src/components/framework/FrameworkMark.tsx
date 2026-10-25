@@ -71,7 +71,7 @@ export function FrameworkMark({
         />
       ) : (
         <span className="grid place-items-center" aria-hidden="true">
-          {size >= 36 ? (
+          {size >= 36 || visual.mark.length > 4 ? (
             <Icon style={{ width: size * 0.46, height: size * 0.46 }} />
           ) : (
             <span style={{ fontSize: Math.max(8, size * 0.27) }}>
