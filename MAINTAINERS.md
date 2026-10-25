@@ -3,9 +3,10 @@
 Maintainers merge pull requests, triage issues, cut releases, and handle
 security reports. See [GOVERNANCE.md](GOVERNANCE.md) for roles and how to join.
 
-| Maintainer      | GitHub                                 | Areas     |
-| --------------- | -------------------------------------- | --------- |
-| Lead maintainer | [@msaad00](https://github.com/msaad00) | All areas |
+| Maintainer      | GitHub                                             | Areas     |
+| --------------- | -------------------------------------------------- | --------- |
+| Lead maintainer | [@msaad00](https://github.com/msaad00)             | All areas |
+| Maintainer      | [@andres-linero](https://github.com/andres-linero) | All areas |
 
 ## Reviewers
 
