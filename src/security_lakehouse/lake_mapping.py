@@ -43,6 +43,7 @@ from importlib import resources
 from pathlib import Path
 from typing import Any
 
+from security_lakehouse.connector_errors import CollectionGapError
 from security_lakehouse.models import parse_event_time, utc_iso
 
 logger = logging.getLogger(__name__)
@@ -69,6 +70,7 @@ DIALECTS = ("snowflake", "databricks", "clickhouse", "bigquery")
 REQUIRED_FIELDS = ("id", "observed_at", "asset_id")
 OPTIONAL_FIELDS = (
     "source",
+    "source_account_id",
     "event_type",
     "asset_type",
     "owner",
@@ -768,6 +770,14 @@ def _map_row(
     asset_id = _text(_evaluate(spec.fields["asset_id"], row))
     if not asset_id:
         raise _RowError("fields.asset_id: no value")
+    source_account_id = tenant_id
+    if "source_account_id" in spec.fields:
+        scope = _evaluate(spec.fields["source_account_id"], row)
+        if scope is not None and (not isinstance(scope, str | int) or isinstance(scope, bool)):
+            raise _RowError("fields.source_account_id: must be a string or integer identifier")
+        source_account_id = _text(scope)
+        if not source_account_id:
+            raise _RowError("fields.source_account_id: no value")
     rule = next((item for item in spec.rules if _matches(item.when, row)), None)
     severity = _text(_evaluate(spec.fields.get("severity"), row)).lower() or "info"
     if severity not in SEVERITIES:
@@ -786,7 +796,10 @@ def _map_row(
     if unknown:
         raise _RowError(f"fields.safeguard_ids: unknown safeguard {unknown[0]!r}")
 
-    id_digest = _digest(json.dumps([spec.name, *[_json_safe(v) for v in id_values]], sort_keys=True, default=str))
+    identity = [spec.name, *[_json_safe(v) for v in id_values]]
+    if "source_account_id" in spec.fields:
+        identity.append({"source_account_id": source_account_id})
+    id_digest = _digest(json.dumps(identity, sort_keys=True, default=str))
     source_slug = re.sub(r"[^a-z0-9_.-]+", "-", source.lower()).strip("-") or "lake"
     stable = f"{source_slug}-{spec.name}-{id_digest[:24]}"
     raw_sha256 = _digest(json.dumps(_json_safe(raw), sort_keys=True, separators=(",", ":"), default=str))
@@ -809,7 +822,7 @@ def _map_row(
         attributes["mapping_rule"] = rule.name
     event: dict[str, Any] = {
         "event_id": stable,
-        "tenant_id": tenant_id,
+        "tenant_id": source_account_id,
         "workspace_id": "default",
         "event_time": utc_iso(observed),
         "source": source,
@@ -1052,8 +1065,8 @@ def collect_mapped_evidence(
 ) -> list[dict[str, Any]]:
     """Fetch and map rows for each spec.
 
-    Unmappable rows are skipped and logged with their count; a spec whose
-    every fetched row fails raises instead of silently syncing nothing.
+    Unmappable rows make a collection partial and prevent positive verdicts
+    for that mapping. If every fetched row fails, the sync fails closed.
     """
     events: list[dict[str, Any]] = []
     for spec in specs:
@@ -1087,6 +1100,12 @@ def collect_mapped_evidence(
             )
         if result.errors:
             logger.warning("mapping %r skipped %d unmappable row(s)", spec.name, len(result.errors))
+            for event in result.events:
+                event["attributes"]["mapping_partial"] = True
+                if event["status"] == "pass":
+                    event["attributes"]["mapping_original_status"] = "pass"
+                    event["status"] = "not_evaluated"
+            events.append(_mapping_gap(spec, result, tenant_id=tenant_id, source=default_source, now=collected_at))
         if len(rows) >= max_rows:
             logger.warning(
                 "mapping %r reached the %d-row sync bound; the next sync continues from the new watermark",
@@ -1095,6 +1114,47 @@ def collect_mapped_evidence(
             )
         events.extend(result.events)
     return events
+
+
+def _mapping_gap(
+    spec: MappingSpec, result: MapResult, *, tenant_id: str, source: str, now: datetime | None
+) -> dict[str, Any]:
+    gap = CollectionGapError(
+        "Some rows could not be mapped; inspect the mapping dry-run and replay the affected window.",
+        collection=spec.name,
+        reason="unmappable_rows",
+    )
+    stable = "lake-mapping-gap-" + _digest(json.dumps([tenant_id, source, spec.name, spec.source_table]))[:24]
+    # A diagnostic must not move the shared watermark beyond the collected evidence.
+    event_time = max(event["event_time"] for event in result.events)
+    return {
+        "event_id": stable,
+        "tenant_id": tenant_id,
+        "workspace_id": "default",
+        "event_time": event_time,
+        "source": source,
+        "event_type": "lake.collection_gap",
+        "entity": {
+            "asset_id": stable,
+            "asset_type": "collection_scope",
+            "asset_owner": "unassigned",
+            "environment": "unknown",
+            "org": source,
+        },
+        "severity": "info",
+        "status": "not_evaluated",
+        "controls": [],
+        "evidence": {
+            "evidence_id": f"ev-{stable}",
+            "evidence_ref": f"lake://{spec.source_table}/mapping-gap",
+            "evidence_collected_at": utc_iso(now or datetime.now(UTC)),
+        },
+        "attributes": {
+            **gap.attributes(),
+            "mapping": spec.name,
+            "unmapped_rows": len(result.errors),
+        },
+    }
 
 
 def probe_mappings(client: Any, specs: list[MappingSpec]) -> dict[str, Any]:

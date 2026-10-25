@@ -5,6 +5,8 @@ Python package, Helm chart, and bundled web console.
 
 ## Unreleased
 
+- Scope experimental OCSF event and asset identity to the source account, so colliding user/event IDs in different accounts stay separate through CCF assessment. Missing assessed subjects no longer fall back to a cloud account. Mixed mapping errors create a collection gap, mark the run partial, and hold positive outcomes at `not_evaluated` until repair and replay. OCSF preset IDs change; re-ingest into a fresh lake to avoid mixing scoped and unscoped history.
+
 - Accept both Databricks audit response field spellings in the POC bootstrap. Empty audit windows and incomplete response codes no longer imply a passing denied-access review. Record bounded live OAuth and recollection checks; the adapter remains Preview.
 
 - Carry framework (CCF) results and reviewed/proposed mapping counts into both framework and repository maps. A passing control test with a missing or non-passing CCF result stays unattested, including older payloads. Rebuild cached maps when their assessment inputs change.

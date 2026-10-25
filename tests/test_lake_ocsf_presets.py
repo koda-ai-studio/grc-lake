@@ -525,3 +525,127 @@ def test_ocsf_findings_reach_the_ccf_assessment_without_ambiguous_assets(tmp_pat
     assert BASELINE_SG not in cm6["reviewed_safeguard_ids"]
     assert cm6["pending_mapping_count"] >= 1
     assert cm6["status"] != "pass"
+
+
+def test_ocsf_accounts_keep_colliding_users_and_event_ids_separate_through_ccf(tmp_path: Path) -> None:
+    from copy import deepcopy
+
+    original = read_fixture_table(FIXTURES, IDENTITY_TABLE)[0]
+    original["time_dt"] = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+    rows = []
+    for account, mfa in (("scope-a", True), ("scope-b", False)):
+        row = deepcopy(original)
+        row["cloud"]["account"]["uid"] = account
+        row["is_mfa"] = mfa
+        rows.append(row)
+    lake = tmp_path / "lake"
+    fixtures = tmp_path / "fixtures"
+    fixtures.mkdir()
+    (fixtures / f"{IDENTITY_TABLE}.json").write_text(json.dumps(rows))
+    append_config_event(
+        lake,
+        connector_id="databricks-evidence-lake",
+        state="enabled",
+        actor="t",
+        credentials={"host": "dbc-a1b2345c-d6e7.cloud.databricks.com"},
+        options={"mapping": {"preset": "ocsf/authentication", "source": {"table": IDENTITY_TABLE}}},
+    )
+    from security_lakehouse.io import read_jsonl
+
+    for _ in range(2):
+        synced = run_connector_sync(
+            lake, connector_id="databricks-evidence-lake", fixture_dir=fixtures, materialize=False
+        )
+        assert synced.evidence_count == 2
+        raw = read_jsonl(lake / CONNECTOR_RAW_FILE)
+        assert len(raw) == len({event["event_id"] for event in raw}) == 2
+        assert {event["tenant_id"] for event in raw} == {"scope-a", "scope-b"}
+    out = tmp_path / "out"
+    run_pipeline(lake / CONNECTOR_RAW_FILE, out, tenant_id="platform-tenant")
+    assessment = read_json(out / "gold/ccf_assessment.json")
+    results = {
+        r["source_tenant_id"]: r["status"]
+        for r in assessment["asset_results"]
+        if r["safeguard_id"] == "SG-IDENTITY-001"
+    }
+    assert results == {"scope-a": "pass", "scope-b": "fail"}
+
+
+@pytest.mark.parametrize(
+    "preset,table,subject",
+    [
+        ("ocsf/authentication", IDENTITY_TABLE, "user"),
+        ("ocsf/account_change", IDENTITY_TABLE, "user"),
+        ("ocsf/group_management", IDENTITY_TABLE, "group"),
+        ("ocsf/vulnerability_finding", FINDING_TABLE, "resource"),
+        ("ocsf/compliance_finding", FINDING_TABLE, "resource"),
+    ],
+)
+def test_ocsf_cannot_substitute_an_account_for_a_missing_assessed_subject(preset, table, subject):
+    from copy import deepcopy
+
+    spec = _preset(preset)
+    row = deepcopy(next(r for r in read_fixture_table(FIXTURES, table) if r["class_uid"] == EXPECTED_PRESETS[preset]))
+    row[subject] = {}
+    result = map_rows(spec, [row])
+    assert result.events == []
+    assert result.errors and result.errors[0]["error"] == "fields.asset_id: no value"
+
+
+@pytest.mark.parametrize("missing", ["user", "cloud"])
+def test_partial_ocsf_mapping_blocks_pass_and_records_a_safe_gap(tmp_path: Path, missing: str) -> None:
+    from copy import deepcopy
+
+    from security_lakehouse.ingestion.watermark import read_watermark
+    from security_lakehouse.io import read_jsonl
+
+    row = deepcopy(read_fixture_table(FIXTURES, IDENTITY_TABLE)[0])
+    row["time_dt"] = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+    bad = deepcopy(row)
+    bad[missing] = {}
+    bad["metadata"]["uid"] = "private-unmappable-row"
+    fixture_dir = tmp_path / "fixtures"
+    fixture_dir.mkdir()
+    (fixture_dir / f"{IDENTITY_TABLE}.json").write_text(json.dumps([row, bad]))
+    lake = tmp_path / "lake"
+    append_config_event(
+        lake,
+        connector_id="databricks-evidence-lake",
+        state="enabled",
+        actor="t",
+        credentials={"host": "dbc-a1b2345c-d6e7.cloud.databricks.com"},
+        options={"mapping": {"preset": "ocsf/authentication", "source": {"table": IDENTITY_TABLE}}},
+    )
+    for _ in range(2):
+        sync = run_connector_sync(
+            lake, connector_id="databricks-evidence-lake", fixture_dir=fixture_dir, materialize=False
+        )
+        assert sync.run["metadata"]["partial"] is True
+        raw = read_jsonl(lake / CONNECTOR_RAW_FILE)
+        assert len(raw) == 2
+        assert validate_raw_events(raw) == []
+        [gap] = [event for event in raw if event["attributes"].get("collection_gap")]
+        assert gap["status"] == "not_evaluated"
+        assert gap["entity"]["asset_type"] == "collection_scope"
+        assert not gap.get("safeguard_ids") and not gap["controls"]
+        assert gap["attributes"]["unmapped_rows"] == 1
+        [valid] = [event for event in raw if not event["attributes"].get("collection_gap")]
+        assert valid["status"] == "not_evaluated"
+        assert valid["attributes"]["mapping_original_status"] == "pass"
+        assert "private-unmappable-row" not in json.dumps(raw)
+        assert read_watermark(lake, "databricks-evidence-lake") == valid["event_time"]
+    out = tmp_path / "out"
+    run_pipeline(lake / CONNECTOR_RAW_FILE, out, tenant_id="platform-tenant")
+    assessment = read_json(out / "gold/ccf_assessment.json")
+    assert not any(item["status"] == "pass" for item in assessment["requirements"])
+    identity = [item for item in assessment["asset_results"] if item["safeguard_id"] == "SG-IDENTITY-001"]
+    assert identity and all(item["status"] == "not_evaluated" for item in identity)
+    assert all(item["asset_id"] == "user-alice" for item in identity)
+
+
+@pytest.mark.parametrize("preset", EXPECTED_PRESETS)
+def test_every_ocsf_preset_requires_an_explicit_source_scope(preset: str) -> None:
+    spec = _preset(preset)
+    expected = "cloud.account_uid" if preset == "ocsf/security_finding" else "cloud.account.uid"
+    assert spec.fields["source_account_id"].column == expected
+    assert "cloud" in spec.top_level_columns()

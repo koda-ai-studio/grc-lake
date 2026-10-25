@@ -62,9 +62,6 @@
         },
         {
           "column": "user.name"
-        },
-        {
-          "column": "cloud.account.uid"
         }
       ]
     },
@@ -79,6 +76,9 @@
         "NIST-800-53-IA-2",
         "NIST-800-53-AU-2"
       ]
+    },
+    "source_account_id": {
+      "column": "cloud.account.uid"
     }
   },
   "rules": [
