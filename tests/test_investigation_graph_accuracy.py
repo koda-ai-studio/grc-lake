@@ -48,20 +48,21 @@ def test_control_nodes_carry_ccf_result_and_posture_reasons(golden: Path) -> Non
     assessment = json.loads((golden / "gold/ccf_assessment.json").read_text(encoding="utf-8"))
     requirements = {row["control_id"]: row for row in assessment["requirements"]}
     passing = sorted(cid for cid, row in posture.items() if row["status"] == "pass" and cid in requirements)
-    assert passing, "golden must contain a passing posture row to compare against the CCF result"
-    cid = passing[0]
-    graph = investigation_graph(golden, root="control:" + cid, depth=1)
-    node = next(n for n in graph["nodes"] if n["id"] == "control:" + cid)
-    requirement = requirements[cid]
+    unattested = [cid for cid in passing if requirements[cid]["status"] != "pass"]
+    attested = [cid for cid in passing if requirements[cid]["status"] == "pass"]
+    assert unattested and attested, "golden must contain attested and unattested passing posture rows"
+    for cid in (unattested[0], attested[0]):
+        graph = investigation_graph(golden, root="control:" + cid, depth=1)
+        node = next(n for n in graph["nodes"] if n["id"] == "control:" + cid)
+        requirement = requirements[cid]
 
-    assert node["status"] == "pass"
-    assert node["ccf_status"] == requirement["status"]
-    assert node["ccf_status"] != "pass"
-    assert node["reviewed_safeguard_count"] == len(requirement["reviewed_safeguard_ids"])
-    assert node["proposed_safeguard_count"] == requirement["pending_mapping_count"]
-    assert node["rule_reasons"] == posture[cid]["rule_reasons"]
-    assert node["evaluation_rule"] == posture[cid]["evaluation_rule"]
-    assert node["open_event_count"] == posture[cid]["open_event_count"]
+        assert node["status"] == "pass"
+        assert node["ccf_status"] == requirement["status"]
+        assert node["reviewed_safeguard_count"] == len(requirement["reviewed_safeguard_ids"])
+        assert node["proposed_safeguard_count"] == requirement["pending_mapping_count"]
+        assert node["rule_reasons"] == posture[cid]["rule_reasons"]
+        assert node["evaluation_rule"] == posture[cid]["evaluation_rule"]
+        assert node["open_event_count"] == posture[cid]["open_event_count"]
 
 
 def test_control_without_assessment_or_posture_is_not_evaluated(tmp_path: Path) -> None:

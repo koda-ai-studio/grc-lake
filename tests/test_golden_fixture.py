@@ -38,7 +38,12 @@ def test_golden_fixture_ships_and_populates_dashboard(tmp_path: Path) -> None:
     fixture = find_fixture(GOLDEN_COMPANY)
     assert fixture is not None
     assert fixture.event_count >= len(golden_control_ids())
-    expected_controls = set(golden_control_ids()) | {"ISO27001-A.5.15"}
+    expected_controls = set(golden_control_ids()) | {
+        "ISO27001-A.5.15",
+        "ISO27001-A.5.13",
+        "ISO27001-A.5.28",
+        "ISO27001-A.8.17",
+    }
     assert set(fixture.controls) == expected_controls
 
     run_pipeline(fixture.raw_path, tmp_path)
@@ -237,3 +242,60 @@ def test_access_review_alias_preserves_raw_type_without_inventing_other_evidence
 
     assert expand_evidence_types("iam.access_review") == ["iam.access_review", "identity.access_review"]
     assert expand_evidence_types("runtime.inference") == ["runtime.inference"]
+
+
+def _jsonl(path: Path) -> list[dict]:
+    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+
+
+def test_golden_demo_reaches_attested_passes_only_through_reviewed_bindings(tmp_path: Path) -> None:
+    """The demo shows the payoff: a few framework passes, each one honestly earned."""
+    from security_lakehouse.ccf_evaluation import binding_applies
+    from security_lakehouse.cli import main
+    from security_lakehouse.safeguards import ATTESTABLE_STATES, effective_review_state
+
+    lake = tmp_path / "lake"
+    assert main(["fixtures", "load", "--company", "golden", "--out", str(lake), "--rebase-times"]) == 0
+    assessment = json.loads((lake / "gold" / "ccf_assessment.json").read_text(encoding="utf-8"))
+    catalog = json.loads((lake / "catalog" / "safeguards.json").read_text(encoding="utf-8"))
+    safeguards = {row["safeguard_id"]: row for row in catalog["safeguards"]}
+    silver = _jsonl(lake / "silver" / "normalized_events.jsonl")
+    freshness = {row["event_id"]: row["status"] for row in _jsonl(lake / "gold" / "evidence_freshness.jsonl")}
+    asset_types: dict[str, set[str]] = {}
+    for row in silver:
+        asset_types.setdefault(row["asset_id"], set()).add(row["asset_type"])
+    safeguard_results = {row["safeguard_id"]: row for row in assessment["safeguards"]}
+
+    passes = [row for row in assessment["requirements"] if row["status"] == "pass"]
+    assert 2 <= len(passes) <= 5, [row["control_id"] for row in passes]
+    for requirement in passes:
+        control_id = requirement["control_id"]
+        assert requirement["pending_mapping_count"] == 0
+        assert requirement["reviewed_safeguard_ids"]
+        for safeguard_id in requirement["reviewed_safeguard_ids"]:
+            definition = safeguards[safeguard_id]
+            member = next(m for m in definition["satisfies"] if m["control_id"] == control_id)
+            assert effective_review_state(member) in ATTESTABLE_STATES
+            result = safeguard_results[safeguard_id]
+            assert result["status"] == "pass"
+            assert result["assessed_asset_count"] == result["applicable_asset_count"] >= 1
+            bound = [row for row in assessment["asset_results"] if row["safeguard_id"] == safeguard_id]
+            assert bound and all(row["status"] == "pass" for row in bound)
+            eligible = set(definition["asset_types"])
+            crosswalk = {m["control_id"] for m in definition["satisfies"]}
+            required = set(definition.get("required_evidence_types") or [])
+            for row in bound:
+                assert binding_applies(asset_types[row["asset_id"]], eligible), row
+                events = [event for event in silver if event["event_id"] in row["event_ids"]]
+                assert events and all(freshness[event["event_id"]] == "fresh" for event in events)
+                assert all(set(event["control_ids"]) <= crosswalk for event in events)
+                assert required <= {kind for event in events for kind in event["evidence_types"]}
+
+    # The payoff reaches the console's control tests, and the demo keeps its
+    # failures, gaps and unattested passes next to it.
+    tests = api_v1.handle_get("/api/v1/control-tests", {"limit": ["500"]}, lake)[1]["data"]
+    attested = {row["control_id"] for row in tests if row["result"] == "pass" and row["ccf_status"] == "pass"}
+    assert attested == {row["control_id"] for row in passes}
+    assert [row for row in tests if row["result"] == "fail"]
+    assert [row for row in tests if row["result"] == "pass" and row["ccf_status"] != "pass"]
+    assert {"not_evaluated", "unmapped"} <= {row["status"] for row in assessment["requirements"]}

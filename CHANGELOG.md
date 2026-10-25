@@ -19,6 +19,8 @@ Python package, Helm chart, and bundled web console.
 
 - Label a mapping whose maintainer review no longer applies (the requirement version changed or an inherited review is invalid) as "Earlier maintainer review · needs re-review" in Mapping review instead of "Maintainer review", since it counts as proposed. Framework badges whose short mark is longer than four characters, such as NIST SP 800-53, show the framework icon at small sizes instead of wrapping the mark onto two lines.
 
+- The golden demo now reaches three attested framework (CCF) passes: synthetic ISO 27001 assessor records for A.5.13, A.5.28 and A.8.17 bind to each requirement's only safeguard, whose mapping is maintainer reviewed, on the one `service` asset those safeguards accept. The Controls page reads "11 of 41 control tests · 3 attested" instead of "0 attested"; evaluation rules, safeguard definitions and review states are unchanged, and the demo keeps its failing, stale and unattested controls.
+
 - Reject incomplete Databricks SQL results before replacing evidence or advancing watermarks. Validate result schemas, row counts and chunk offsets, follow index-only chunk cursors, and record failed reads as partial runs with a collection gap. Malformed chunk links are rejected before requesting them. The adapter remains Preview; the added qualification uses synthetic responses.
 
 - `grc-lake frameworks safeguards --format table` now states how many maintainer-reviewed requirements rest only on legacy reviews with no recorded reviewer, matching the console and README. A release test keeps the README and 5-minute tutorial install pins on a single published version; the tutorial had mixed 0.3.12 and 0.3.13.
