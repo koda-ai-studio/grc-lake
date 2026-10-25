@@ -82,6 +82,7 @@ from security_lakehouse.auth.sessions import (
     ensure_cookie_signing_configured,
 )
 from security_lakehouse.catalog import load_control_catalog
+from security_lakehouse.ccf_requirement_results import load_requirement_results
 from security_lakehouse.data_policy import normalize_sensitivity, redact_payload
 from security_lakehouse.db import agent_runs as agent_runs_db
 from security_lakehouse.db import migrate, remediation, repository
@@ -576,6 +577,14 @@ def _public_trust_summary(lake: Path, share: dict[str, object]) -> dict[str, obj
     catalog = load_control_catalog()
     names = {str(row["framework"]): str(row["framework_id"]) for row in catalog.values()}
     catalog_counts = Counter(str(row["framework_id"]) for row in catalog.values())
+    # A passing control test is not an attestation: only a CCF pass through
+    # reviewed mappings counts, and "ready" requires every requirement attested.
+    ccf_results = load_requirement_results(lake)
+    attested_counts = Counter(
+        str(row["framework_id"])
+        for control_id, row in catalog.items()
+        if ccf_results.get(control_id, {}).get("ccf_status") == "pass"
+    )
     scoped = share.get("scope") == "posture_framework"
     selected = str(share.get("framework_id") or "")
     if scoped and selected not in registry:
@@ -592,6 +601,10 @@ def _public_trust_summary(lake: Path, share: dict[str, object]) -> dict[str, obj
             observed = int(row.get("control_count") or 0)
             evaluated = max(0, observed - int(row.get("not_evaluated_control_count") or 0))
             partial = not total or evaluated < total
+            attested = attested_counts.get(framework_id, 0)
+            framework_state = "partial_evidence" if partial else row.get("state")
+            if framework_state == "ready" and attested < total:
+                framework_state = "not_attested"
             framework_row: dict[str, object] = {
                 "framework_id": framework_id,
                 "catalog_control_count": total,
@@ -600,8 +613,9 @@ def _public_trust_summary(lake: Path, share: dict[str, object]) -> dict[str, obj
                 "coverage_basis": "observed_controls",
                 "framework": row.get("framework"),
                 "score": row.get("score"),
-                "state": "partial_evidence" if partial else row.get("state"),
+                "state": framework_state,
                 "control_count": row.get("control_count"),
+                "attested_pass_count": attested,
             }
             if detailed:
                 framework_row["failing_control_count"] = row.get("failing_control_count")
@@ -612,6 +626,7 @@ def _public_trust_summary(lake: Path, share: dict[str, object]) -> dict[str, obj
         "state": posture_block.get("state"),
         "framework_count": posture_block.get("framework_count"),
         "control_count": posture_block.get("control_count"),
+        "attested_pass_count": sum(int(row["attested_pass_count"]) for row in frameworks),
     }
     if detailed:
         for key in (
@@ -632,9 +647,12 @@ def _public_trust_summary(lake: Path, share: dict[str, object]) -> dict[str, obj
             "state": frameworks[0]["state"] if frameworks else "not_evaluated",
             "framework_count": len(frameworks),
             "control_count": count,
+            "attested_pass_count": sum(int(row["attested_pass_count"]) for row in frameworks),
         }
     elif any(row["state"] == "partial_evidence" for row in frameworks):
         posture_summary["state"] = "partial_evidence"
+    elif posture_summary["state"] == "ready" and any(row["state"] == "not_attested" for row in frameworks):
+        posture_summary["state"] = "not_attested"
     return {
         "schema_version": "trustops.public_trust.v1",
         "synthetic_fixture": redacted.get("synthetic_fixture") is True,

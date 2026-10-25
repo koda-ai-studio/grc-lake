@@ -84,7 +84,7 @@ const SHARE_AUDIENCES: Array<{
     label: "Customer trust",
     audience: "Prospects, customers, and partner reviewers",
     visibility:
-      "Overall and per-framework readiness with scores. No violation or stale-control counts.",
+      "Overall and per-framework readiness, scores and attested passes. No violation or stale-control counts.",
     sensitivity: "public",
   },
   {
