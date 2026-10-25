@@ -261,6 +261,17 @@ For live GitHub collection, use a GitHub App installation token from the
 selected environment variable or secret manager. The configure payload should
 store the reference name, not the raw token:
 
+```bash
+export GRC_LAKE_GITHUB_APP_INSTALLATION_TOKEN=...  # from your secret manager
+grc-lake connectors probe --lake ./lake --connector-id github-security \
+  --credentials-json '{"credential_ref":"GRC_LAKE_GITHUB_APP_INSTALLATION_TOKEN"}' \
+  --options-json '{"org":"OWNER","repo":"OWNER/REPO"}'
+grc-lake connectors configure --lake ./lake --connector-id github-security --state enabled \
+  --credentials-json '{"credential_ref":"GRC_LAKE_GITHUB_APP_INSTALLATION_TOKEN"}' \
+  --options-json '{"org":"OWNER","repo":"OWNER/REPO"}'
+grc-lake connectors sync --lake ./lake --connector-id github-security --repo OWNER/REPO
+```
+
 The minimum GitHub App repository permissions are:
 
 | Permission                   | Access unlocked                                                            |
