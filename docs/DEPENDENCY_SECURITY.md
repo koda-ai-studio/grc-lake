@@ -53,7 +53,9 @@ Updating the builder digest or package versions requires fresh unfiltered scans,
 native-library checks, Compose quickstart and authenticated runtime probes on
 AMD64 and ARM64. An unavailable pinned package fails the build; it must not fall
 back to an unpinned version. Python dependencies continue to use `uv.lock` and
-hash-verified installation. This build configuration does not alter existing
+hash-verified installation. The `image-watch` workflow rescans the published `latest`
+image on both architectures daily with the same policy, so an advisory published
+after release surfaces before the next tag. This build configuration does not alter existing
 published release images or their scan results below.
 
 ### 0.3.12 release qualification scans
