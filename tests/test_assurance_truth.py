@@ -64,7 +64,11 @@ def test_imported_status_never_silently_passes(tmp_path, status, expected):
         assert posture["frameworks"][0]["state"] != "ready"
         assert posture["posture"]["score"] == 0
     finding = build_assessment_results(lake)["assessment-results"]["results"][0]["findings"][0]
-    assert finding["target"]["status"]["state"] == ("satisfied" if expected == "pass" else "not-satisfied")
+    props = {p["name"]: p["value"] for p in finding["props"]}
+    assert props["trustops-status"] == expected
+    # These events never reach a CCF pass, so even a passing control test is not an attestation.
+    assert props["trustops-ccf-status"] != "pass"
+    assert finding["target"]["status"]["state"] == "not-satisfied"
 
 
 def test_incremental_evaluation_refreshes_expired_unchanged_evidence(tmp_path, monkeypatch):

@@ -76,18 +76,25 @@ per-control `pass`/`fail`/`stale`/`not_evaluated` rows the pipeline writes for
 every generation — and emits one OSCAL `finding`, backed by one
 `observation`, per control:
 
-| GRC Lake `status` | OSCAL `target.status.state` | `reason` |
-| ----------------- | --------------------------- | -------- |
-| `pass`            | `satisfied`                 | `pass`   |
-| `fail`            | `not-satisfied`             | `fail`   |
-| `stale`           | `not-satisfied`             | `other`  |
-| `not_evaluated`   | `not-satisfied`             | `other`  |
+| GRC Lake `status` | OSCAL `target.status.state`                                   | `reason`         |
+| ----------------- | ------------------------------------------------------------- | ---------------- |
+| `pass`            | `satisfied` only with a CCF `pass`; otherwise `not-satisfied` | `pass` / `other` |
+| `fail`            | `not-satisfied`                                               | `fail`           |
+| `stale`           | `not-satisfied`                                               | `other`          |
+| `not_evaluated`   | `not-satisfied`                                               | `other`          |
 
 OSCAL only has two objective states. A control with stale evidence or no
 active control definition is reported `not-satisfied`, never `satisfied` — an
 auditor reading the export must never see an unconfirmed or unevaluated
 control reported as passing. The original GRC Lake status is preserved
 verbatim in a `trustops-status` prop on the finding.
+
+A control test is not an attestation. A finding is `satisfied` only when the
+control test passes **and** the requirement's framework (CCF) result in
+`gold/ccf_assessment.json` is `pass`, which requires reviewed safeguard
+mappings. A passing control test whose requirement has only proposed mappings,
+or no CCF result, is `not-satisfied` with reason `other`. Each finding carries
+the framework result in a `trustops-ccf-status` prop.
 
 `--snapshot <id>` reads frozen per-control detail from the snapshot's verified
 generation, or from its embedded control rows. A snapshot without frozen detail
