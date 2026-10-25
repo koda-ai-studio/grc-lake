@@ -99,6 +99,9 @@
         "NIST-800-53-AU-2",
         "NIST-800-53-AU-12"
       ]
+    },
+    "source_account_id": {
+      "column": "cloud.account.uid"
     }
   },
   "attributes": {

@@ -142,21 +142,22 @@ PyYAML is installed. Specs are limited to 64 KiB.
 
 ### Fields
 
-| Field           | Required | Becomes                        | Notes                                                                                          |
-| --------------- | -------- | ------------------------------ | ---------------------------------------------------------------------------------------------- |
-| `id`            | yes      | stable `event_id`              | `{"column": ...}` or `{"columns": [...]}` (1-8). A row with every id column empty is an error. |
-| `observed_at`   | yes      | `event_time` and the watermark | One **top-level** column; `format` is `timestamp` (default), `epoch_ms`, or `epoch_s`.         |
-| `asset_id`      | yes      | `entity.asset_id`              | A row with no value is an error.                                                               |
-| `source`        | no       | `source`, `entity.org`         | Defaults to the reader (`snowflake`, `databricks`, `clickhouse`, `iceberg`, `bigquery`).       |
-| `event_type`    | no       | `event_type`                   | Defaults to `<source>.<name>`.                                                                 |
-| `asset_type`    | no       | `entity.asset_type`            | Defaults to `lake_record`.                                                                     |
-| `owner`         | no       | `entity.asset_owner`           | Defaults to `unassigned`.                                                                      |
-| `environment`   | no       | `entity.environment`           | Defaults to `unknown`.                                                                         |
-| `severity`      | no       | `severity`                     | Must resolve to `critical`, `high`, `medium`, `low`, `info`, or `none`; else `info`.           |
-| `status`        | no       | `status`                       | Must resolve to `pass`, `open`, `observed`, or `not_evaluated`; else `observed`.               |
-| `controls`      | no       | `controls` (control hints)     | A list constant, a list column, or a delimited string column with `split`.                     |
-| `safeguard_ids` | no       | `safeguard_ids` (CCF binding)  | Same forms as `controls`. Every id must exist in `controls/safeguards.json`.                   |
-| `evidence_ref`  | no       | `evidence.evidence_ref`        | Defaults to `lake://<table>/<id digest>`.                                                      |
+| Field               | Required | Becomes                                    | Notes                                                                                                                     |
+| ------------------- | -------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
+| `id`                | yes      | stable `event_id`                          | `{"column": ...}` or `{"columns": [...]}` (1-8). A row with every id column empty is an error.                            |
+| `observed_at`       | yes      | `event_time` and the watermark             | One **top-level** column; `format` is `timestamp` (default), `epoch_ms`, or `epoch_s`.                                    |
+| `asset_id`          | yes      | `entity.asset_id`                          | A row with no value is an error.                                                                                          |
+| `source_account_id` | no       | Raw `tenant_id`, normalized source account | If declared, must resolve to a nonempty string or integer. Included in event identity; never changes the platform tenant. |
+| `source`            | no       | `source`, `entity.org`                     | Defaults to the reader (`snowflake`, `databricks`, `clickhouse`, `iceberg`, `bigquery`).                                  |
+| `event_type`        | no       | `event_type`                               | Defaults to `<source>.<name>`.                                                                                            |
+| `asset_type`        | no       | `entity.asset_type`                        | Defaults to `lake_record`.                                                                                                |
+| `owner`             | no       | `entity.asset_owner`                       | Defaults to `unassigned`.                                                                                                 |
+| `environment`       | no       | `entity.environment`                       | Defaults to `unknown`.                                                                                                    |
+| `severity`          | no       | `severity`                                 | Must resolve to `critical`, `high`, `medium`, `low`, `info`, or `none`; else `info`.                                      |
+| `status`            | no       | `status`                                   | Must resolve to `pass`, `open`, `observed`, or `not_evaluated`; else `observed`.                                          |
+| `controls`          | no       | `controls` (control hints)                 | A list constant, a list column, or a delimited string column with `split`.                                                |
+| `safeguard_ids`     | no       | `safeguard_ids` (CCF binding)              | Same forms as `controls`. Every id must exist in `controls/safeguards.json`.                                              |
+| `evidence_ref`      | no       | `evidence.evidence_ref`                    | Defaults to `lake://<table>/<id digest>`.                                                                                 |
 
 Constants and map values for `severity` and `status` are checked against those
 vocabularies when the spec loads. Constant safeguard ids are checked against the
@@ -173,7 +174,9 @@ SHA-256 of the canonical JSON of the whole source row), `mapping`,
 `mapping_spec_version`, `source_table`, `mapping_preset` when a preset was
 used, and `mapping_rule` when a rule matched. `event_id` is `<source>-<name>-<hash of the id values>`, so re-reading a
 row, or a newer version of the same finding, replaces the earlier event instead
-of duplicating it.
+of duplicating it. Declaring `source_account_id` also includes that account in
+the hash, keeping identical source IDs from different accounts separate. Mappings
+that omit the field retain their existing IDs and reader-provided source scope.
 
 ### Value expressions
 
@@ -288,8 +291,14 @@ bound.
   `lookback_minutes` behind the newest synced row, in any mapped table, are
   skipped. Raise `lookback_minutes` for sources with long delivery lag.
 - A mapping whose every fetched row fails to map fails the sync (the spec almost
-  certainly does not match the table). Otherwise unmappable rows are skipped and
-  logged with their count. `lake map --dry-run` lists each one.
+  certainly does not match the table). Mixed valid and invalid rows produce a
+  `not_evaluated` collection-gap row and mark the run partial. Positive outcomes
+  from that mapping are held at `not_evaluated`, with the original outcome in
+  `attributes.mapping_original_status`; known failures remain open. The gap has
+  no safeguard binding and does not advance the watermark beyond valid rows.
+  `lake map --dry-run` lists the errors. Repair the mapping and replay the affected
+  window: errors older than the shared lookback are not automatically retried.
+  Incremental history retains the gap receipt; it is not evidence of recovery.
 
 ## OCSF presets
 
@@ -298,6 +307,23 @@ Presets are complete specs you reference as
 are merged on top (lists such as `filters` are replaced). All presets filter on
 `class_uid`, so one table holding several OCSF classes splits cleanly. They use a
 60-minute lookback.
+
+Every OCSF preset requires source account scope from `cloud.account.uid` (legacy
+Security Finding uses `cloud.account_uid`). The [OCSF 1.1 cloud schema](https://github.com/ocsf/ocsf-schema/blob/v1.1.0/objects/cloud.json)
+makes account context optional; these presets require it to disambiguate cross-account IDs. For an
+on-premises or other source, override `fields.source_account_id.column` with a
+trusted account/organization identifier in the input. For a verified single-scope
+table, an expanded spec may use a constant instead. Never substitute a shared
+`unknown` scope. Missing scope is a mapping error.
+
+Assessed users, groups and resources must have their own identifiers. A cloud
+account is not a fallback user or resource. Missing subjects are mapping errors,
+which cannot produce a passing result through partial collection.
+
+**Upgrade:** source account scoping changes the experimental OCSF preset event
+IDs. Preserve existing evidence and re-ingest source history into a fresh lake. Replaying stored raw
+rows alone does not rewrite their IDs. Avoid mixing old unscoped and new scoped
+records in one assessment; generic mappings without the new field keep their IDs.
 
 | Preset                       | OCSF class                      | OCSF version | Watermark         | Status                                              | Control hints                                                                     |
 | ---------------------------- | ------------------------------- | ------------ | ----------------- | --------------------------------------------------- | --------------------------------------------------------------------------------- |
