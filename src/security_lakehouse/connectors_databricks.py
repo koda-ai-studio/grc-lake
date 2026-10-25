@@ -36,9 +36,10 @@ from pathlib import Path
 from typing import Any
 
 from security_lakehouse import netguard
+from security_lakehouse.connector_errors import CollectionGapError
 from security_lakehouse.connectors_snowflake import DEFAULT_VIEWS, collect_snowflake_evidence
 from security_lakehouse.ingestion import backoff
-from security_lakehouse.ingestion.paginate import paginate
+from security_lakehouse.ingestion.paginate import IncompleteCollectionError, paginate
 from security_lakehouse.io import read_json
 from security_lakehouse.lake_mapping import MappingSpec, compile_select, read_fixture_table
 
@@ -118,13 +119,13 @@ class DatabricksClient:
         query = compile_select(
             spec, "databricks", since=since, limit=limit, default_namespace=(self.catalog, self.schema)
         )
-        return self._execute(query.sql, query.databricks_parameters())
+        return self._execute(query.sql, query.databricks_parameters(), collection=spec.name)
 
     def _select_view(self, key: str) -> list[dict[str, Any]]:
         statement = f"SELECT * FROM `{self.catalog}`.`{self.schema}`.`{self.views[key]}`"  # noqa: S608
-        return self._execute(statement, [])
+        return self._execute(statement, [], collection=key)
 
-    def _execute(self, statement: str, parameters: list[dict[str, str]]) -> list[dict[str, Any]]:
+    def _execute(self, statement: str, parameters: list[dict[str, str]], *, collection: str) -> list[dict[str, Any]]:
         body: dict[str, Any] = {
             "statement": statement,
             "warehouse_id": self.warehouse_id,
@@ -136,29 +137,94 @@ class DatabricksClient:
         if parameters:
             body["parameters"] = parameters
         response = self._await(self._request("POST", "/api/2.0/sql/statements", body))
-        columns = [
-            str(col.get("name")) for col in ((response.get("manifest") or {}).get("schema") or {}).get("columns", [])
-        ]
-        first = response.get("result") or {}
+
+        def incomplete(detail: str) -> CollectionGapError:
+            return CollectionGapError(
+                f"Databricks result incomplete: {detail}",
+                collection=collection,
+                reason="incomplete_result",
+                api="sql.statements",
+            )
+
+        manifest = response.get("manifest")
+        if not isinstance(manifest, dict) or not isinstance(manifest.get("schema"), dict):
+            raise incomplete("missing result schema")
+        if manifest.get("truncated", False) is not False:
+            raise incomplete("result was truncated")
+        if manifest.get("format", "JSON_ARRAY") != "JSON_ARRAY":
+            raise incomplete("unexpected result format")
+        definitions = manifest["schema"].get("columns")
+        if not isinstance(definitions, list) or not definitions:
+            raise incomplete("missing result columns")
+        columns: list[str] = []
+        for column in definitions:
+            name = column.get("name") if isinstance(column, dict) else None
+            if not isinstance(name, str) or not name.strip():
+                raise incomplete("invalid result columns")
+            columns.append(name)
+        if len(set(columns)) != len(columns):
+            raise incomplete("duplicate result columns")
+        total = manifest.get("total_row_count")
+        if "total_row_count" in manifest and (type(total) is not int or total < 0):
+            raise incomplete("invalid total row count")
+        first = response.get("result")
+        if first is None and total == 0:
+            first = {"data_array": []}
+        if not isinstance(first, dict):
+            raise incomplete("missing result data")
+        received = 0
 
         def fetch_page(link: str | None) -> dict[str, Any]:
             return first if link is None else self._request("GET", link)
 
         def extract_items(page: dict[str, Any]) -> list[dict[str, Any]]:
-            return [dict(zip(columns, row, strict=False)) for row in page.get("data_array") or []]
+            nonlocal received
+            rows = page.get("data_array")
+            if not isinstance(rows, list) or any(not isinstance(row, list) or len(row) != len(columns) for row in rows):
+                raise incomplete("row data does not match the result schema")
+            for key, expected in (("row_count", len(rows)), ("row_offset", received)):
+                if key in page and (type(page[key]) is not int or page[key] != expected):
+                    raise incomplete("chunk row count or offset does not match the result")
+            received += len(rows)
+            return [dict(zip(columns, row, strict=True)) for row in rows]
 
         def next_cursor(page: dict[str, Any]) -> str | None:
-            link = str(page.get("next_chunk_internal_link") or "")
-            if not link:
+            index = page.get("next_chunk_index")
+            if index is not None and (type(index) is not int or index < 0):
+                raise incomplete("invalid next chunk index")
+            link = page.get("next_chunk_internal_link")
+            if link is not None:
+                if not isinstance(link, str) or not link or any(char.isspace() for char in link) or "\\" in link:
+                    raise incomplete("invalid result chunk link")
+                try:
+                    parsed = urllib.parse.urlparse(link)
+                    if (parsed.scheme or parsed.netloc) and (
+                        parsed.scheme != "https"
+                        or parsed.hostname != self.host
+                        or parsed.port not in (None, 443)
+                        or parsed.username is not None
+                    ):
+                        raise ValueError
+                    if not parsed.path.startswith("/") or parsed.path.startswith("//") or parsed.fragment:
+                        raise ValueError
+                except ValueError:
+                    raise incomplete("invalid result chunk link") from None
+                return parsed.path + (f"?{parsed.query}" if parsed.query else "")
+            if index is None:
                 return None
-            parsed = urllib.parse.urlparse(link)
-            if parsed.scheme or parsed.netloc:
-                if parsed.scheme != "https" or parsed.hostname != self.host:
-                    raise ValueError("refusing a result chunk link outside the configured Databricks workspace")
-                link = parsed.path + (f"?{parsed.query}" if parsed.query else "")
-            return link
+            statement_id = response.get("statement_id")
+            if not isinstance(statement_id, str) or not statement_id:
+                raise incomplete("missing statement identifier for the next chunk")
+            identifier = urllib.parse.quote(statement_id, safe="")
+            return f"/api/2.0/sql/statements/{identifier}/result/chunks/{index}"
 
-        return list(paginate(fetch_page, extract_items, next_cursor))
+        try:
+            rows = list(paginate(fetch_page, extract_items, next_cursor))
+        except IncompleteCollectionError:
+            raise incomplete("result pagination did not finish") from None
+        if total is not None and len(rows) != total:
+            raise incomplete("received row count does not match the result total")
+        return rows
 
     def _await(self, response: dict[str, Any]) -> dict[str, Any]:
         statement_id = urllib.parse.quote(str(response.get("statement_id") or ""), safe="")
