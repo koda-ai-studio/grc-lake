@@ -63,8 +63,12 @@ tenant, successful warm p95 was approximately 40 ms, first reads 1.15–1.18 sec
 and peak RSS 457.0 MiB. Under sustained overload, admission fractions were 15.6%
 for the hot tenant and 61.7% for the cold tenant; most rejections were explicit
 rate limits. Both tenants completed more than 1,500 reads, with maximum success
-gaps below 154 ms. These observations do not promise that every submitted request
-will be admitted or establish a speedup across Python versions or host conditions.
+gaps below 154 ms. At 1k records per tenant the overload admission fractions were
+7.9% (hot) and 31.1% (cold). These observations do not promise that every submitted
+request will be admitted or establish a speedup across Python versions or host
+conditions. The acceptance decision was recorded at 18:57 UTC, on the two initial
+runs; this third run was measured at 18:59 UTC, after it, and is supplementary
+evidence rather than part of the approved basis.
 
 At 100k records per tenant the [earlier measurements](INVESTIGATION_CACHE.md)
 retained no models in the shipped cache and took roughly 14–16 seconds for reads.

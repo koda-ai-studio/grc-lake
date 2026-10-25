@@ -25,6 +25,19 @@ and public, synthetic reproduction steps. Provider access is optional for most
 work; never share credentials or real evidence in an issue. For live integration
 work, see [connector test accounts](docs/CONNECTOR_TEST_ACCOUNTS.md).
 
+Ready-to-pick work:
+
+- [Good first issues](https://github.com/koda-ai-studio/grc-lake/issues?q=is%3Aopen+label%3A%22good+first+issue%22):
+  scoped connectors and presets that need no vendor account; fixtures are enough.
+- [Help wanted: connectors](https://github.com/koda-ai-studio/grc-lake/issues?q=is%3Aopen+label%3A%22help+wanted%22+label%3Aarea-connectors):
+  read-only evidence sources requested for common SOC 2 and ISO 27001 evidence, each
+  with its target safeguard and done-when checklist.
+- [Questions and ideas](https://github.com/koda-ai-studio/grc-lake/discussions):
+  ask before you build if the scope is unclear.
+
+Maintainers aim to give a first review within two business days of a pull request
+that passes CI. If a review takes longer, comment on the pull request.
+
 ## Set up
 
 You need Python 3.11 or later, [uv](https://docs.astral.sh/uv/), Node 22 or
