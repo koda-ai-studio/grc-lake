@@ -33,6 +33,7 @@ Python package, Helm chart, and bundled web console.
 - Lock dev-only virtualenv 21.14.13 (GHSA-cx6f-vjhg-g3cc).
 - Lock dev-only zod 4.6.7 (GHSA-mrhx-c7xc-m3w5) for the console lint toolchain.
 - Lock filelock 4.2.4 (CVE-2026-112907, CVE-2026-112913, CVE-2026-112940) via snowflake-connector-python 5.1.0, which drops its `filelock<4` cap; protobuf resolves to 6.33.6 under the connector's `<7` bound.
+- Pin Wolfi brotli runtime libraries to 1.2.0-r7 (CVE-2026-111497). The rest of the runtime package resolution is unchanged on AMD64 and ARM64.
 
 ## 0.3.10 - 2026-10-22
 
