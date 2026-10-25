@@ -1,30 +1,31 @@
 # Release readiness
 
-GRC Lake **0.3.12 is published** on
-[PyPI](https://pypi.org/project/grc-lake/0.3.12/),
-[GitHub](https://github.com/koda-ai-studio/grc-lake/releases/tag/v0.3.12), and as
-`ghcr.io/koda-ai-studio/grc-lake:0.3.12`.
-Use the [v0.3.12 release templates](https://github.com/koda-ai-studio/grc-lake/tree/v0.3.12)
+GRC Lake **0.3.13 is published** on
+[PyPI](https://pypi.org/project/grc-lake/0.3.13/),
+[GitHub](https://github.com/koda-ai-studio/grc-lake/releases/tag/v0.3.13), and as
+`ghcr.io/koda-ai-studio/grc-lake:0.3.13`.
+Use the [v0.3.13 release templates](https://github.com/koda-ai-studio/grc-lake/tree/v0.3.13)
 for a published deployment. The package, provenance and container verification
 below are scoped to that release; later commits on `main` may contain unreleased fixes.
 
-0.3.12 changes only the published package description: README links and screenshots
-are pinned to the release tag so the PyPI project page renders them. Apart from
-version strings, its code, dependencies and system packages match 0.3.11.
+0.3.13 aligns graph CCF results, scopes OCSF identities to source accounts, exposes
+incomplete mappings and repairs Databricks audit bootstrap handling. Existing OCSF
+evidence retains its original identities: preserve it and re-ingest source history
+into a fresh lake to adopt the new preset IDs. See the qualification boundaries below.
 
-There are no new database migrations between v0.3.10 and v0.3.12. 0.3.11 restores
+There are no new database migrations between v0.3.10 and v0.3.13. 0.3.11 restores
 the bare installation (fixture loading, pipeline replay, snapshots and local-mode
-serving without SQLAlchemy) and adds `grc-lake demo`. Existing OCSF preset users
-see new pass, open and pending results; add `"rules": []` to a preset reference to
+serving without SQLAlchemy) and adds `grc-lake demo`. The 0.3.11 OCSF rule presets
+introduced pass, open and pending results; add `"rules": []` to a preset reference to
 keep presence-only mapping (see the [changelog](../CHANGELOG.md)). Upgrading from
 0.3.9 or earlier: the KnowBe4 preview connector is retired (remove external sync
 jobs and revoke unused credentials separately), and AWS role-policy collection is
 off by default and requires six additional read-only IAM grants when enabled.
 
 The shell-free runtime uses pinned Wolfi Python and matching system libraries.
-Both published architectures match images qualified with zero reported vulnerabilities.
+Release qualification covers both architectures and reports zero vulnerabilities.
 CI and release gates block all HIGH/CRITICAL and fixable MEDIUM findings.
-See [runtime construction and scan scope](DEPENDENCY_SECURITY.md#0312-release-qualification-scans).
+See [runtime construction and scan scope](DEPENDENCY_SECURITY.md#0313-release-qualification-scans).
 Earlier published images and their historical scan results remain unchanged.
 
 Use the generated [coverage matrix](FRAMEWORK_COVERAGE.md) for current mapped and
@@ -36,7 +37,7 @@ retain their exact source revisions and synthetic workload limits. They do not
 establish production capacity or qualify a deployment memory budget; 100k records
 remain outside the proposed interactive workload.
 
-## 0.3.13 candidate qualification
+## 0.3.13 qualification
 
 Framework and repository maps now carry the same CCF result and reviewed/proposed
 mapping counts as Controls and Investigation. A missing framework result is not
@@ -53,7 +54,7 @@ Synthetic connector-to-export and 20 control-workpaper cases passed on source
 SOC 2/ISO mappings or qualify live providers. Use the bounded review-packet
 procedure in [Mapping review](MAPPING_REVIEW.md) for human decisions.
 
-The candidate also includes source-account-scoped OCSF event IDs, missing-subject
+The release also includes source-account-scoped OCSF event IDs, missing-subject
 rejection and partial mapping gaps. Preserve existing evidence and re-ingest OCSF
 source history into a fresh lake; stored raw rows do not acquire the new identities
 through pipeline replay alone. There are no new database migrations or dependencies.
@@ -64,11 +65,51 @@ and fixed bootstrap response-field compatibility and empty-window verdicts.
 Databricks remains Preview; the trial does not qualify real audit coverage,
 production capacity, multi-chunk results, throttling or credential expiry.
 
-These changes are not included in v0.3.12. Publication still requires independent
-review, merged-source CI, release artifact/runtime qualification, and verification
-of the published package and container bytes.
+These changes are included in v0.3.13. The publication checks below are separate
+from provider qualification, human mapping decisions and production capacity.
+
+## Verified 0.3.13 publication
+
+The [release workflow](https://github.com/koda-ai-studio/grc-lake/actions/runs/40217572156)
+passed on source `3b1a2c5a557515e7bab8a9a02d0c00f3a18d359e`, after that exact
+main commit [passed CI](https://github.com/koda-ai-studio/grc-lake/actions/runs/40216581845).
+The `v0.3.13` tag resolves to that commit. Main's Python suites recorded 6,817
+passed and 86 skipped tests, with no failures; browser and container gates also passed.
+Wheel and sdist bytes match between PyPI, GitHub and the workflow build:
+
+| Artifact                           | SHA-256                                                            |
+| ---------------------------------- | ------------------------------------------------------------------ |
+| `grc_lake-0.3.13-py3-none-any.whl` | `cae6bb5524c8d041496754bf4cf575bdbd7f60e86ebf46fe7406c241b2f3a3d4` |
+| `grc_lake-0.3.13.tar.gz`           | `303d5b2dfbe54b4d21f3f9063ea7f4c8f80f812bf5480c8a80acf7092fbdfa36` |
+
+The Python provenance for both files and the registry image attestation verify
+against this repository, the release workflow, the source commit and `v0.3.13` tag.
+Fresh bare installations from the wheel and sdist passed fixture loading, replay,
+integrity, snapshots and local console checks. The wheel also passed server-mode
+package/catalog isolation, console HTTP and integrity-route checks with frozen
+server dependencies. These installations used the workflow files whose bytes
+were subsequently matched to both published distributions.
+
+The anonymously readable multi-platform index is
+`sha256:865e1cc7e4f19974eb9d716b4c1ccb89ee7e12fa381f41afc7eb0128cb445b52`
+(also `latest`):
+
+- AMD64: `sha256:9eda591c74b22dcffaf568949b016c12de110f92c4aca8e5a892674e8640d362`
+- ARM64: `sha256:1e6436289af5db6ce0012faba4826af12bd06580f803a3b86d3419e96c612215`
+
+Both public manifests and configurations hash-verify, name version 0.3.13 and the
+release source commit, and retain a non-root runtime user. The release workflow
+qualified both architectures with 11 authenticated checks covering tenant isolation,
+authorization, key revocation, snapshots, persistence, integrity and console serving.
+Its full Trivy 0.70.0 reports contain **zero reported vulnerabilities** for both
+architectures. These checks do not qualify production scale, live providers, TLS
+or an IdP, and a zero-findings scan does not establish the absence of unknown flaws.
 
 ## Verified 0.3.12 publication
+
+0.3.12 changed only the published package description: README links and screenshots
+were pinned to the release tag so the PyPI project page renders them. Apart from
+version strings, its code, dependencies and system packages match 0.3.11.
 
 The [release workflow](https://github.com/koda-ai-studio/grc-lake/actions/runs/40164154790)
 passed on source `73e9b5014b31bde75bcf42ae664bb97709e493ad`, after that exact

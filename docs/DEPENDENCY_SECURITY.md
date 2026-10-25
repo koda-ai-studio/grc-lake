@@ -58,6 +58,18 @@ image on both architectures daily with the same policy, so an advisory published
 after release surfaces before the next tag. This build configuration does not alter existing
 published release images or their scan results below.
 
+### 0.3.13 release qualification scans
+
+The [0.3.13 release workflow](https://github.com/koda-ai-studio/grc-lake/actions/runs/40217572156)
+qualified AMD64 and ARM64 before publication. Both full Trivy 0.70.0 reports
+contain **zero reported vulnerabilities** across all configured severities.
+Both architectures passed dependency checks and 11 authenticated runtime checks.
+The published image provenance verifies against the release workflow, source
+`3b1a2c5a557515e7bab8a9a02d0c00f3a18d359e` and `v0.3.13` tag.
+See the [publication receipt](RELEASE_READINESS.md#verified-0313-publication)
+for the public image digests and package verification. These dated scan results
+do not establish the absence of application defects or unknown vulnerabilities.
+
 ### 0.3.12 release qualification scans
 
 The [0.3.12 release workflow](https://github.com/koda-ai-studio/grc-lake/actions/runs/40164154790)
