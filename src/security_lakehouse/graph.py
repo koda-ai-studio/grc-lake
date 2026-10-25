@@ -25,6 +25,7 @@ from security_lakehouse.catalog import (
     control_catalog_view,
     framework_registry_view,
 )
+from security_lakehouse.ccf_requirement_results import ccf_result_fields, load_requirement_results
 from security_lakehouse.framework_provenance import framework_pack_state
 from security_lakehouse.generations import generation_reader, pinned_path
 from security_lakehouse.io import canonical_sha256, file_version, read_json, read_jsonl
@@ -109,6 +110,9 @@ _GRAPH_INPUTS = (
     "silver/normalized_events.jsonl",
     "gold/asset_risk.jsonl",
     "gold/control_posture.jsonl",
+    "gold/ccf_assessment.json",
+    "mart/security_lakehouse.sqlite",
+    "generation.json",
     "catalog/control_map.json",
 )
 _GRAPHS: DerivedCache[dict[str, Any]] = DerivedCache(max_entries=16, per_root=2)
@@ -144,6 +148,7 @@ def coverage_view(lake_dir: str | Path) -> dict[str, Any]:
 
 def _build_compliance_graph(lake: Path) -> dict[str, Any]:
     frameworks = framework_registry_view()
+    ccf_results = load_requirement_results(lake)
     frozen = lake / "catalog/control_map.json"
     controls = (
         {row["control_id"]: row for row in read_json(frozen, base_dir=lake)["controls"]}
@@ -195,6 +200,7 @@ def _build_compliance_graph(lake: Path) -> dict[str, Any]:
                 "owner": control.get("owner"),
                 "status": posture.get(control_id, {}).get("status", "not_evaluated"),
                 "risk_score": posture.get(control_id, {}).get("risk_score"),
+                **ccf_result_fields(ccf_results, control_id),
             }
         )
         if framework_id:
@@ -506,6 +512,7 @@ def build_repository_graph(lake_dir: str | Path) -> dict[str, Any]:
     repo audit events and authenticated governance events share this model.
     """
     lake = Path(lake_dir)
+    ccf_results = load_requirement_results(lake)
     events = [
         row
         for row in _bronze_raw_rows(lake)
@@ -585,6 +592,7 @@ def build_repository_graph(lake_dir: str | Path) -> dict[str, Any]:
                 framework_id=_framework_from_control(str(control_id)),
                 status=posture.get(str(control_id), {}).get("status", "not_evaluated"),
                 risk_score=posture.get(str(control_id), {}).get("risk_score"),
+                **ccf_result_fields(ccf_results, str(control_id)),
             )
             add_edge(evidence_node, control_node, "evidence_maps_control")
 

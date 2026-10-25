@@ -346,6 +346,15 @@ def _attempt(args, rows, concurrency):
                     *(("--graph-build-concurrency", str(slots)) if slots is not None else ()),
                     *(("--frozen-catalogs",) if getattr(args, "frozen_catalogs", False) else ()),
                     *(("--disable-model-cache",) if getattr(args, "disable_model_cache", False) else ()),
+                    *(
+                        ("--model-cache-mib", str(args.model_cache_mib))
+                        if getattr(args, "model_cache_mib", None) is not None
+                        else ()
+                    ),
+                    "--sustained-seconds",
+                    str(getattr(args, "sustained_seconds", 0)),
+                    "--idle-seconds",
+                    str(getattr(args, "idle_seconds", 0)),
                     "--client-timeout",
                     str(getattr(args, "client_timeout", 75)),
                     *(("--lifecycle-probes",) if getattr(args, "lifecycle_probes", False) else ()),
@@ -411,6 +420,11 @@ def main():
     parser.add_argument("--out", type=Path)
     parser.add_argument("--frozen-catalogs", action="store_true", help="freeze catalogs to exercise model reuse")
     parser.add_argument("--disable-model-cache", action="store_true", help="bypass retention for paired measurements")
+    parser.add_argument("--model-cache-mib", type=int, help="override per-process retention for eviction measurements")
+    parser.add_argument(
+        "--sustained-seconds", type=float, default=0, help="HTTP closed-loop duration, up to 300 seconds"
+    )
+    parser.add_argument("--idle-seconds", type=float, default=0, help="HTTP idle interval before rereading each tenant")
     parser.add_argument("--worker", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--transport", choices=("direct", "http"), default="direct")
     parser.add_argument("--seed", type=int, help="vary controls, outcomes and asset types deterministically")
@@ -432,6 +446,11 @@ def main():
         or args.timeout <= 0
         or args.max_rss_mib <= 0
         or args.min_free_gib < 1
+        or not 0 <= args.sustained_seconds <= 300
+        or not 0 <= args.idle_seconds <= 120
+        or ((args.sustained_seconds or args.idle_seconds) and args.transport != "http")
+        or (args.model_cache_mib is not None and not 0 <= args.model_cache_mib <= 1024)
+        or (args.model_cache_mib is not None and args.disable_model_cache)
         or (args.graph_build_concurrency is not None and not 1 <= args.graph_build_concurrency <= 64)
         or (args.graph_build_concurrency is not None and args.transport != "http")
         or not math.isfinite(args.client_timeout)
@@ -443,11 +462,13 @@ def main():
             " and HTTP-only 1-64 graph build slots"
         )
     if args.worker:
-        if args.disable_model_cache:
+        if args.disable_model_cache or args.model_cache_mib is not None:
             from security_lakehouse import investigation_graph as graph_module
             from security_lakehouse.investigation_cache import ModelCache
 
-            graph_module._MODEL_CACHE = ModelCache(max_bytes=0)
+            graph_module._MODEL_CACHE = ModelCache(
+                max_bytes=0 if args.disable_model_cache else args.model_cache_mib * 2**20
+            )
         try:
             workload = run_workload
             if args.transport == "http":
@@ -461,6 +482,8 @@ def main():
                     "graph_build_concurrency": args.graph_build_concurrency,
                     "client_timeout": args.client_timeout,
                     "lifecycle_probes": args.lifecycle_probes,
+                    "sustained_seconds": args.sustained_seconds,
+                    "idle_seconds": args.idle_seconds,
                 }
                 if args.transport == "http"
                 else {}
@@ -528,7 +551,14 @@ def main():
             "sample_seconds": 0.25,
             "seed": args.seed,
             "frozen_catalogs": args.frozen_catalogs,
-            "model_cache": "disabled" if args.disable_model_cache else "shipped policy",
+            "model_cache": "disabled"
+            if args.disable_model_cache
+            else "override"
+            if args.model_cache_mib is not None
+            else "shipped policy",
+            "model_cache_mib_override": args.model_cache_mib,
+            "sustained_seconds": args.sustained_seconds,
+            "idle_seconds": args.idle_seconds,
             "fixture": (
                 "uniform two-control fixture" if args.seed is None else "seeded mixed controls/outcomes/asset types"
             )
@@ -561,7 +591,7 @@ def main():
         report["limitations"] = [
             "Authenticated loopback HTTP, one Uvicorn process with default thread-pool and rate limits",
             "Balanced and 4:1 skewed client submissions; client queue delay is not server scheduler delay",
-            "Explicit 503 admission rejections are retained per tenant; they are not retried",
+            "Explicit 503 admission and 429 rate-limit rejections are retained per tenant; they are not retried",
             "Client and server share one process and host; RSS and CPU include both",
             "Synthetic normalized records, SQLite state, no evaluation jobs or provider evidence",
             "Response body bytes exclude HTTP headers; no production fairness, SLO or capacity budget",

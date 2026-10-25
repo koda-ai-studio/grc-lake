@@ -1,19 +1,20 @@
 # GRC Lake roadmap
 
-Status as of v0.3.5, checked **2026-10-15**; **v0.3.5 is published**.
+Status as of v0.3.12, checked **2026-10-25** against current `main`; **v0.3.12 is published**.
+Recent graph and control-result improvements remain unreleased; see the changelog.
 Start with [current state and coverage](docs/CURRENT_STATE.md) for shipped paths
 and qualification boundaries. This roadmap describes remaining work, not promises
 of release dates.
 
 ## Next milestone: deepen qualification
 
-Version 0.3.5 adds graph outcome and mapping-identity fixes, bounded graph builds,
-and CCF coverage and export validation. It includes the NIST mapping expansion
-and proposed SOC 2 and ISO assessment contracts. Exact-main CI,
-release qualification and published-artifact checks passed; see
-[release readiness](docs/RELEASE_READINESS.md). Provider depth, independent mapping
-review and measured capacity remain separate work below. Correctness, security,
-migration and supported-workflow regressions remain release blockers.
+Current `main` separates control-test posture from framework results, keeps graph
+versions deterministic, and bounds large console maps. The next release must keep
+those results consistent across all graph views. Published-artifact verification
+remains scoped to v0.3.12 in [release readiness](docs/RELEASE_READINESS.md).
+Provider depth, independent mapping review and measured capacity remain separate
+work below. Correctness, security, migration and supported-workflow regressions
+remain release blockers.
 
 Use operator and contributor reports to set priorities: installation,
 first connection and sync, finding investigation, access review, and audit export.
@@ -52,10 +53,10 @@ Public repository URL onboarding shipped in 0.3.4 ([#911](https://github.com/kod
 
 ## Coverage still incomplete
 
-The agreed catalog milestones are met in 0.3.5: 80.1% mapped and
-50.1% reviewed. The [NIST assessment expansion](docs/NIST53_ASSESSMENTS.md) and
+The current catalog has 96.2% mapped requirements and
+51.0% with reviewed mappings. The [NIST assessment expansion](docs/NIST53_ASSESSMENTS.md) and
 [maintainer approval of 33 source-review batches](controls/reviews/2026-10-14-source-batches.json)
-provide the mapping and review increases. The 50.1% is a blended aggregate: 381 of
+provide the mapping and review increases. The 51.0% is a blended aggregate: 381 of
 those reviewed requirements are source-native NIST 800-53 self-maps, not
 crosswalk judgements. Read reviewed coverage per framework, split into self-maps
 and crosswalk reviews, in the [coverage matrix](docs/FRAMEWORK_COVERAGE.md).
@@ -88,7 +89,7 @@ provider HA and production capacity remain unqualified by this audit.
 
 ## Release work
 
-v0.3.5 is published. The earlier 0.3.3 changes include dependency remediation,
+v0.3.12 is published. The earlier 0.3.3 changes include dependency remediation,
 authentication hardening, evidence eligibility, versioned CCF governance, exact
 lineage and frozen requirement-gap explanations. The console now exposes those
 gaps and record-level investigation, with bounded graph navigation and shared

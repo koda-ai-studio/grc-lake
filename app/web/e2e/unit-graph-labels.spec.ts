@@ -38,7 +38,15 @@ test("passing evidence that is stale or expired never reads as passing", () => {
 });
 
 test("a passing control test without a passing framework result is not attested", () => {
-  for (const ccf of ["open", "fail", "not_evaluated"]) {
+  for (const ccf of [
+    undefined,
+    "",
+    "open",
+    "fail",
+    "not_evaluated",
+    "closed",
+    "resolved",
+  ]) {
     const state = graphEvidenceState({
       kind: "control",
       status: "pass",
@@ -50,10 +58,6 @@ test("a passing control test without a passing framework result is not attested"
   expect(
     graphEvidenceState({ kind: "control", status: "pass", ccf_status: "pass" }),
   ).toMatchObject({ label: "Passing control", tone: "ready" });
-  // Older payloads without the framework result keep the posture label.
-  expect(graphEvidenceState({ kind: "control", status: "pass" }).label).toBe(
-    "Passing control",
-  );
   expect(
     graphEvidenceState({ kind: "control", status: "fail", ccf_status: "pass" })
       .label,

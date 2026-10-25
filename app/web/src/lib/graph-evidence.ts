@@ -77,13 +77,8 @@ export function graphEvidenceState(node: StateInput) {
         action: `The record passed when collected, but it is ${freshness}. Collect fresh evidence before relying on it.`,
       };
   }
-  const ccf = (node.ccf_status ?? "").toLowerCase();
-  if (
-    node.kind === "control" &&
-    PASSING.includes(status) &&
-    ccf &&
-    !PASSING.includes(ccf)
-  )
+  const ccf = (node.ccf_status || "not_evaluated").toLowerCase();
+  if (node.kind === "control" && PASSING.includes(status) && ccf !== "pass")
     return {
       label: "Control test passing · Not attested",
       tone: "attention" as const,

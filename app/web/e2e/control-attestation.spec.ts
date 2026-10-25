@@ -6,6 +6,20 @@ import { expect, test } from "@playwright/test";
 
 const CONTROL_ID = "SOC2-CC6.8";
 
+test("framework maps retain the unattested result shown in controls", async ({
+  page,
+}) => {
+  await page.goto(`/console/graph/?focus=control%3A${CONTROL_ID}`);
+  const node = page.locator(
+    `.react-flow__node[data-id="control:${CONTROL_ID}"]`,
+  );
+  await expect(node).toContainText("Control test passing · Not attested");
+  await node.click();
+  await expect(
+    page.getByText("Framework result", { exact: true }),
+  ).toBeVisible();
+});
+
 test("controls API carries the CCF result next to the control test", async ({
   request,
 }) => {
