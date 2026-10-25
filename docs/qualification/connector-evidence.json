@@ -8,9 +8,17 @@
     },
     {
       "connector_id": "databricks-evidence-lake",
-      "fixture_tests": ["tests/test_databricks_connector.py"],
-      "live_record": null,
-      "owner": null
+      "fixture_tests": [
+        "tests/test_databricks_connector.py",
+        "tests/test_databricks_bootstrap.py"
+      ],
+      "live_record": {
+        "date": "2026-10-25",
+        "source_basis": "6268edbd",
+        "scope": "One trial SQL warehouse with service-principal OAuth: 8 synthetic rows recollected without duplicates; empty system audit log yields 2 not_evaluated summaries using the candidate bootstrap identified in the receipt. Preview retained; no populated audit log, multi-chunk, throttling or expiry qualification.",
+        "reference": "docs/qualification/live/2026-10-25-databricks.md#databricks-evidence-lake"
+      },
+      "owner": "maintainer"
     },
     {
       "connector_id": "clickhouse-telemetry-lake",

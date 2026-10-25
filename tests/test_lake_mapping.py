@@ -485,3 +485,46 @@ def test_invalid_rules_fail_with_path_scoped_errors(mutate: Any, expected: str) 
     with pytest.raises(MappingError) as caught:
         parse_mapping(spec)
     assert any(expected in error for error in caught.value.errors), caught.value.errors
+
+
+def test_declared_source_account_is_required_and_part_of_event_identity():
+    payload = _spec()
+    payload["fields"]["source_account_id"] = {"column": "account"}
+    spec = parse_mapping(payload)
+    rows = [{**ROW, "account": scope} for scope in ("account-a", "account-b")]
+    result = map_rows(spec, rows, collected_at=COLLECTED, tenant_id="platform")
+    assert not result.errors
+    assert {r["tenant_id"] for r in result.events} == {"account-a", "account-b"}
+    assert len({r["event_id"] for r in result.events}) == 2
+    assert map_rows(spec, [ROW], collected_at=COLLECTED).events == []
+    assert map_rows(spec, [ROW], collected_at=COLLECTED).errors[0]["error"] == "fields.source_account_id: no value"
+    assert "account" in spec.top_level_columns()
+
+
+@pytest.mark.parametrize("account", [{}, {"uid": "nested"}, ["one"], True, False])
+def test_source_scope_must_be_a_scalar_identifier(account):
+    payload = _spec()
+    payload["fields"]["source_account_id"] = {"column": "account"}
+    result = map_rows(parse_mapping(payload), [{**ROW, "account": account}])
+    assert result.events == []
+    assert result.errors[0]["error"] == "fields.source_account_id: must be a string or integer identifier"
+
+
+def test_partial_mapping_preserves_failures_and_preview_diagnostics():
+    from security_lakehouse.lake_mapping import capture_mapping_stats, collect_mapped_evidence
+
+    spec = parse_mapping(_spec())
+    invalid = {**ROW, "uuid": None}
+
+    def fetch(*_):
+        return [ROW, invalid]
+
+    events = collect_mapped_evidence(fetch, [spec], collected_at=COLLECTED)
+    assert len(events) == 2
+    [finding] = [event for event in events if not event["attributes"].get("collection_gap")]
+    assert finding["status"] == "open"
+    assert finding["attributes"]["mapping_partial"] is True
+    with capture_mapping_stats() as stats:
+        preview = collect_mapped_evidence(fetch, [spec], collected_at=COLLECTED)
+    assert len(preview) == 1 and preview[0]["status"] == "open"
+    assert stats[0]["mapped_count"] == 1 and len(stats[0]["errors"]) == 1

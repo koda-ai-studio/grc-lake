@@ -53,9 +53,6 @@
       "coalesce": [
         {
           "column": "resource.uid"
-        },
-        {
-          "column": "cloud.account.uid"
         }
       ]
     },
@@ -101,6 +98,9 @@
         "NIST-800-53-CM-6",
         "NIST-800-53-CA-7"
       ]
+    },
+    "source_account_id": {
+      "column": "cloud.account.uid"
     }
   },
   "rules": [

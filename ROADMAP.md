@@ -1,16 +1,16 @@
 # GRC Lake roadmap
 
-Status as of v0.3.12, checked **2026-10-25** against current `main`; **v0.3.12 is published**.
-Recent graph and control-result improvements remain unreleased; see the changelog.
+Status as of v0.3.13 (source candidate), checked **2026-10-25**; **v0.3.12 is published**.
+The candidate adds graph result parity, scoped OCSF identities and bounded
+Databricks/capacity evidence; it still requires independent review and release gates.
 Start with [current state and coverage](docs/CURRENT_STATE.md) for shipped paths
 and qualification boundaries. This roadmap describes remaining work, not promises
 of release dates.
 
 ## Next milestone: deepen qualification
 
-Current `main` separates control-test posture from framework results, keeps graph
-versions deterministic, and bounds large console maps. The next release must keep
-those results consistent across all graph views. Published-artifact verification
+The 0.3.13 candidate separates control-test posture from framework results across
+graph views, keeps graph versions deterministic, and bounds large console maps. Published-artifact verification
 remains scoped to v0.3.12 in [release readiness](docs/RELEASE_READINESS.md).
 Provider depth, independent mapping review and measured capacity remain separate
 work below. Correctness, security, migration and supported-workflow regressions

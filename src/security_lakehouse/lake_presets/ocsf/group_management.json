@@ -77,6 +77,9 @@
         "ISO27001-A.5.18",
         "NIST-800-53-AC-2"
       ]
+    },
+    "source_account_id": {
+      "column": "cloud.account.uid"
     }
   },
   "rules": [
