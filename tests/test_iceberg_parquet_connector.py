@@ -143,6 +143,7 @@ def test_iceberg_scan_projects_rule_columns_so_mfa_rules_match(sql_catalog: Any)
             ("is_mfa", pa.bool_()),
             ("metadata", pa.struct([("uid", pa.string())])),
             ("user", pa.struct([("uid", pa.string())])),
+            ("cloud", pa.struct([("account", pa.struct([("uid", pa.string())]))])),
         ]
     )
     when = datetime(2026, 9, 22, 12, tzinfo=UTC)
@@ -155,6 +156,7 @@ def test_iceberg_scan_projects_rule_columns_so_mfa_rules_match(sql_catalog: Any)
             "is_mfa": mfa,
             "metadata": {"uid": uid},
             "user": {"uid": f"user-{uid}"},
+            "cloud": {"account": {"uid": "synthetic-account"}},
         }
         for uid, mfa in (("m", True), ("n", False), ("u", None))
     ]
@@ -162,6 +164,7 @@ def test_iceberg_scan_projects_rule_columns_so_mfa_rules_match(sql_catalog: Any)
     table.append(pa.Table.from_pylist(rows, schema=auth_schema))
     spec = resolve_mapping_ref({"preset": "ocsf/authentication", "source": {"table": "sec.ocsf_auth"}})
     events = ice.collect_iceberg_evidence(_reader(sql_catalog), [spec], since=None, collected_at=when)
+    assert {event["tenant_id"] for event in events} == {"synthetic-account"}
     outcomes = {event["entity"]["asset_id"]: (event["status"], event.get("safeguard_ids")) for event in events}
     assert outcomes == {
         "user-m": ("pass", ["SG-IDENTITY-001"]),
