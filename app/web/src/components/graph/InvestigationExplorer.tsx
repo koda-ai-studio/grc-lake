@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api/client";
 import type { GraphNode, GraphNodeKind } from "@/lib/api/types";
 import { GRAPH_KIND_COLOR } from "@/lib/graph-palette";
+import { graphEdgeInvalid, labelWithKind } from "@/lib/graph-evidence";
 import { GraphCanvas } from "./GraphCanvas";
 import { GraphNodeDrawer } from "./GraphNodeDrawer";
 import { PageHeader } from "@/components/PageHeader";
@@ -322,7 +323,7 @@ export function InvestigationExplorer() {
                   )}
                 {data?.roots.map((n) => (
                   <option key={n.id} value={n.id}>
-                    {n.label} · {n.kind.replaceAll("_", " ")}
+                    {labelWithKind(n.label, n.kind)}
                   </option>
                 ))}
               </select>
@@ -405,7 +406,21 @@ export function InvestigationExplorer() {
       <QueryState queries={[query]} label="investigation graph">
         {data && (
           <>
-            {data.root_missing || data.nodes.length === 0 ? (
+            {data.root_missing ? (
+              <div
+                role="status"
+                className="grid justify-items-start gap-3 rounded-xl border border-line p-6 text-sm text-muted"
+              >
+                <p>
+                  <b className="text-ink">Starting point not found.</b>{" "}
+                  <code className="break-all">{currentRoot}</code> is not in the
+                  current evidence. It may have been renamed or removed.
+                </p>
+                <Button size="sm" onClick={reset}>
+                  Reset starting point
+                </Button>
+              </div>
+            ) : data.nodes.length === 0 ? (
               <div className="rounded-xl border border-line p-6 text-sm text-muted">
                 No recorded relationships for this selection. Choose another
                 starting point or enable its layer. Vendor links require
@@ -640,6 +655,30 @@ export function InvestigationExplorer() {
                     )}
                   </div>
                 )}
+                {!(repositoryRoot && repositoryView === "evidence") && (
+                  <div
+                    data-testid="graph-column-legend"
+                    className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted"
+                  >
+                    {view === "controls" && (
+                      <span className="font-semibold text-ink">
+                        Framework → Control → Evidence / Safeguard → Asset /
+                        Repository
+                      </span>
+                    )}
+                    <details className="min-w-0">
+                      <summary className="cursor-pointer">Line styles</summary>
+                      <ul className="mt-1 grid gap-0.5">
+                        <li>Solid: recorded evidence link</li>
+                        <li>Dashed: reviewed catalog mapping</li>
+                        <li>Dotted: proposed mapping</li>
+                        <li className="text-danger-fg">
+                          Red dashed: invalid asset type (not supporting)
+                        </li>
+                      </ul>
+                    </details>
+                  </div>
+                )}
                 <div
                   className={`grid items-start gap-3 ${selectedNode ? "xl:grid-cols-[minmax(0,1fr)_300px]" : ""}`}
                 >
@@ -691,10 +730,6 @@ export function InvestigationExplorer() {
                     }
                   />
                 </div>
-                <p className="text-xs leading-5 text-muted sm:hidden">
-                  Drag the canvas to follow connections. Use Fit view for the
-                  full map.
-                </p>
                 <details className="rounded-xl border border-line p-3">
                   <summary className="cursor-pointer text-sm font-semibold">
                     Selected relationships and mapping review state
@@ -714,6 +749,12 @@ export function InvestigationExplorer() {
                           {e.review_state
                             ? ` · ${e.review_state.replaceAll("_", " ")} (catalog mapping)`
                             : ""}
+                          {graphEdgeInvalid(e) && (
+                            <b className="text-danger-fg">
+                              {" "}
+                              · invalid asset type, does not support this asset
+                            </b>
+                          )}
                         </li>
                       ))}
                   </ul>

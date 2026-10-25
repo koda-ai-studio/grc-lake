@@ -13,6 +13,8 @@ import {
   MiniMap,
   ReactFlow,
   ReactFlowProvider,
+  getNodesBounds,
+  getViewportForBounds,
   useReactFlow,
   useUpdateNodeInternals,
   type Edge,
@@ -26,7 +28,9 @@ import {
   BookOpen,
   Boxes,
   CheckCircle2,
+  CircleDashed,
   ClipboardCheck,
+  Clock3,
   Code2,
   FileCode2,
   FileText,
@@ -41,9 +45,23 @@ import {
   UserRound,
   Users,
   Workflow,
+  XCircle,
   type LucideIcon,
 } from "lucide-react";
-import { graphEvidenceState, graphRecordLabel } from "@/lib/graph-evidence";
+import {
+  graphEdgeInvalid,
+  graphEvidenceState,
+  graphHasOutcome,
+  graphKindLabel,
+  graphNodeAriaLabel,
+  graphRecordLabel,
+} from "@/lib/graph-evidence";
+import {
+  GRAPH_LAYOUT_NODE_CAP,
+  GRAPH_READABLE_ZOOM,
+  graphLayoutBudget,
+} from "@/lib/graph-layout";
+import { formatCount } from "@/lib/format";
 import { displayLabel as statusLabel } from "@/lib/display";
 import { SOURCE_CONNECTOR } from "@/lib/evidence-source-links";
 import { GRAPH_KIND_COLOR } from "@/lib/graph-palette";
@@ -60,6 +78,8 @@ interface GraphNodeData extends Record<string, unknown> {
   label: string;
   subtitle: string;
   status?: string;
+  freshness_status?: string;
+  ccf_status?: string;
   severity?: string;
   kind: GraphNodeKind;
   layout: LayoutDir;
@@ -137,27 +157,52 @@ function emphasisClass(emphasis: GraphNodeData["emphasis"]): string {
   }
 }
 
+type OutcomeTone = ReturnType<typeof graphEvidenceState>["tone"];
+
+const STATE_COLOR: Record<OutcomeTone, string> = {
+  critical: "var(--color-danger)",
+  ready: "var(--color-success)",
+  attention: "var(--color-warning)",
+  default: "var(--color-muted)",
+};
+
+// Each outcome gets its own shape so status never depends on colour alone.
+const STATE_GLYPH: Record<OutcomeTone, LucideIcon> = {
+  critical: XCircle,
+  ready: CheckCircle2,
+  attention: Clock3,
+  default: CircleDashed,
+};
+
+function StatusGlyph({
+  tone,
+  compact,
+}: {
+  tone: OutcomeTone;
+  compact: boolean;
+}) {
+  const Icon = STATE_GLYPH[tone];
+  return (
+    <span
+      data-testid="graph-status-glyph"
+      data-tone={tone}
+      aria-hidden="true"
+      className={`absolute -bottom-1 -right-1 grid place-items-center rounded-full border border-line bg-surface ${compact ? "h-5 w-5" : "h-7 w-7"}`}
+      style={{ color: STATE_COLOR[tone] }}
+    >
+      <Icon className={compact ? "h-3.5 w-3.5" : "h-5 w-5"} strokeWidth={2.5} />
+    </span>
+  );
+}
+
 function GraphNodeCard({ id, data, selected }: NodeProps<FlowGraphNode>) {
   const updateNodeInternals = useUpdateNodeInternals();
   useEffect(() => {
     updateNodeInternals(id);
   }, [id, data.bank, data.neighborhoodRoot, updateNodeInternals]);
   const state = graphEvidenceState(data);
-  const hasOutcome = [
-    "canonical_entity",
-    "entity_alias",
-    "control",
-    "safeguard",
-    "evidence",
-    "evidence_type",
-    "signal_gap",
-  ].includes(data.kind);
-  const stateColor = {
-    critical: "var(--color-danger)",
-    ready: "var(--color-success)",
-    attention: "var(--color-warning)",
-    default: "var(--color-muted)",
-  }[state.tone];
+  const hasOutcome = graphHasOutcome(data.kind);
+  const stateColor = STATE_COLOR[state.tone];
   const tone = hasOutcome
     ? { border: stateColor, chip: stateColor }
     : (KIND_STYLE[data.kind] ?? {
@@ -177,16 +222,27 @@ function GraphNodeCard({ id, data, selected }: NodeProps<FlowGraphNode>) {
       ? connectorId
       : undefined;
   const displayLabel = graphRecordLabel(data);
-  const evidenceState = graphEvidenceState(data);
-  const isEvidence = [
-    "canonical_entity",
-    "entity_alias",
-    "control",
-    "safeguard",
-    "evidence",
-    "evidence_type",
-    "signal_gap",
-  ].includes(data.kind);
+  const isEvidence = hasOutcome;
+  // Safeguards share outcome wording with evidence; name the kind so the two
+  // are not mistaken for each other.
+  const outcomeLabel =
+    data.kind === "safeguard" && !/safeguard/i.test(state.label)
+      ? `${graphKindLabel(data.kind)} · ${state.label}`
+      : state.label;
+  const outcomeClass =
+    state.tone === "critical"
+      ? "text-danger-fg"
+      : state.tone === "ready"
+        ? "text-success-fg"
+        : state.tone === "attention"
+          ? "text-warning-fg"
+          : undefined;
+  const glyph = hasOutcome ? (
+    <StatusGlyph
+      tone={state.tone}
+      compact={Boolean(data.compact || data.bank)}
+    />
+  ) : null;
   if (data.bank) {
     const inward = data.bank === "left" ? Position.Right : Position.Left;
     const handleStyle =
@@ -211,7 +267,7 @@ function GraphNodeCard({ id, data, selected }: NodeProps<FlowGraphNode>) {
             />
             <div
               data-testid="graph-node-icon"
-              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2"
+              className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2"
               style={{
                 borderColor: selected ? "var(--color-brand)" : tone.border,
                 color: tone.border,
@@ -219,6 +275,7 @@ function GraphNodeCard({ id, data, selected }: NodeProps<FlowGraphNode>) {
               }}
             >
               <Icon className="h-5 w-5" />
+              {glyph}
             </div>
             <div className="min-w-0 flex-1">
               <div
@@ -230,10 +287,10 @@ function GraphNodeCard({ id, data, selected }: NodeProps<FlowGraphNode>) {
               <div className="mt-1 text-[10px] leading-3 text-muted">
                 {data.relationshipLabel}
               </div>
-              <div className="mt-1 text-[11px] leading-4 text-muted">
-                {isEvidence
-                  ? evidenceState.label
-                  : data.kind.replaceAll("_", " ")}
+              <div
+                className={`mt-1 text-[11px] leading-4 ${(isEvidence && outcomeClass) || "text-muted"}`}
+              >
+                {isEvidence ? outcomeLabel : data.kind.replaceAll("_", " ")}
               </div>
             </div>
           </div>
@@ -301,6 +358,7 @@ function GraphNodeCard({ id, data, selected }: NodeProps<FlowGraphNode>) {
               ) : (
                 <Icon className="h-5 w-5" />
               )}
+              {glyph}
             </div>
             <div className="min-w-0 flex-1">
               <div
@@ -310,10 +368,10 @@ function GraphNodeCard({ id, data, selected }: NodeProps<FlowGraphNode>) {
                 {displayLabel}
               </div>
               <div
-                className={`mt-1 text-sm leading-4 ${isEvidence && evidenceState.tone === "critical" ? "text-danger-fg" : isEvidence && evidenceState.tone === "ready" ? "text-success-fg" : "text-muted"}`}
+                className={`mt-1 text-sm leading-4 ${(isEvidence && outcomeClass) || "text-muted"}`}
               >
                 {isEvidence
-                  ? evidenceState.label
+                  ? outcomeLabel
                   : data.kind === "finding"
                     ? [statusLabel(data.severity), statusLabel(data.status)]
                         .filter(Boolean)
@@ -424,6 +482,7 @@ function GraphNodeCard({ id, data, selected }: NodeProps<FlowGraphNode>) {
             ) : (
               <Icon className="h-9 w-9" />
             )}
+            {glyph}
           </div>
           <div
             data-testid="graph-node-label"
@@ -433,17 +492,7 @@ function GraphNodeCard({ id, data, selected }: NodeProps<FlowGraphNode>) {
           </div>
           <div className="mt-1 shrink-0 text-[11px] leading-3 text-muted">
             {isEvidence ? (
-              <span
-                className={
-                  evidenceState.tone === "critical"
-                    ? "text-danger-fg"
-                    : evidenceState.tone === "ready"
-                      ? "text-success-fg"
-                      : undefined
-                }
-              >
-                {evidenceState.label}
-              </span>
+              <span className={outcomeClass}>{outcomeLabel}</span>
             ) : data.kind === "finding" ? (
               [statusLabel(data.severity), statusLabel(data.status)]
                 .filter(Boolean)
@@ -695,6 +744,8 @@ interface Props {
   pathTo: string | null;
   onSelectNode: (node: GraphNode | null) => void;
   onExploreNode?: (node: GraphNode) => void;
+  /** Offered when the filtered graph is too large to lay out. */
+  oversizeAction?: React.ReactNode;
 }
 
 interface ImperativeRef {
@@ -736,13 +787,14 @@ function InnerGraphCanvas({
   pathTo,
   onSelectNode,
   onExploreNode,
+  oversizeAction,
   canvasRef,
 }: Props & { canvasRef?: React.MutableRefObject<ImperativeRef | null> }) {
   const { resolved: resolvedTheme } = useTheme();
   const [hydrated, setHydrated] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
   useEffect(() => setHydrated(true), []);
-  const { fitView, setCenter } = useReactFlow();
+  const { setCenter, setViewport } = useReactFlow();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const activeId = hoveredId ?? selectedId;
@@ -934,85 +986,67 @@ function InnerGraphCanvas({
     return out;
   }, [searchQuery, filteredNodes]);
 
-  const { nodes: rfNodes, edges: rfEdges } = useMemo(() => {
-    if (!graph) return { nodes: [] as FlowGraphNode[], edges: [] as Edge[] };
-    const list: FlowGraphNode[] = filteredNodes.map((n) => {
-      let emphasis: GraphNodeData["emphasis"] = "active";
-      if (matchSet) emphasis = matchSet.has(n.id) ? "match" : "dimmed";
-      else if (pathSet) emphasis = pathSet.nodes.has(n.id) ? "path" : "dimmed";
-      else if (highlightSet)
-        emphasis = highlightSet.has(n.id) ? "highlight" : "dimmed";
-      return {
-        id: n.id,
-        type: "trustops-graph",
-        className: n.id === focusId ? "focused" : undefined,
-        selected: n.id === selectedId,
-        position: { x: 0, y: 0 },
-        data: {
-          label: n.label,
-          subtitle: n.subtitle ?? "",
-          kind: n.kind,
-          compact: compactCards && layout === "LR" && !neighborhoodRoot,
-          layout,
-          provider: n.provider,
-          status: n.status,
-          severity: n.severity,
-          framework_id: n.framework_id,
-          family_id:
-            n.kind === "ccf_family" ? n.id.replace(/^family:/, "") : undefined,
-          owner: n.owner,
-          risk_score: n.risk_score,
-          emphasis,
-        },
-      };
-    });
+  const budget = graphLayoutBudget(filteredNodes.length);
+  const tooLarge = !neighborhoodRoot && !budget.draw;
+
+  // Layout depends only on the node set and direction; hover, selection and
+  // search restyle the laid-out graph without re-running dagre.
+  const laidOut = useMemo(() => {
+    if (!graph || tooLarge)
+      return { nodes: [] as FlowGraphNode[], edges: [] as Edge[] };
+    const list: FlowGraphNode[] = filteredNodes.map((n) => ({
+      id: n.id,
+      type: "trustops-graph",
+      position: { x: 0, y: 0 },
+      ariaLabel: graphNodeAriaLabel(n),
+      data: {
+        label: n.label,
+        subtitle: n.subtitle ?? "",
+        kind: n.kind,
+        compact: compactCards && layout === "LR" && !neighborhoodRoot,
+        layout,
+        provider: n.provider,
+        status: n.status,
+        freshness_status: n.freshness_status,
+        ccf_status: n.ccf_status,
+        severity: n.severity,
+        framework_id: n.framework_id,
+        family_id:
+          n.kind === "ccf_family" ? n.id.replace(/^family:/, "") : undefined,
+        owner: n.owner,
+        risk_score: n.risk_score,
+        emphasis: "active",
+      },
+    }));
     const edges: Edge[] = graph.edges
       .filter((e) => allowedIds.has(e.source) && allowedIds.has(e.target))
       .map((e) => {
-        const onPath = pathSet?.edges.has(e.id) ?? false;
-        const onHighlight = highlightSet
-          ? e.source === activeId || e.target === activeId
-          : Boolean(scopeIds);
-        const dimmed =
-          (matchSet && !matchSet.has(e.source) && !matchSet.has(e.target)) ||
-          (pathSet && !onPath) ||
-          (highlightSet &&
-            !onHighlight &&
-            (!compactCards || hoveredId !== null));
+        const invalid = graphEdgeInvalid(e);
+        const kind = e.kind.replaceAll("_", " ");
+        const review = e.review_state?.replaceAll("_", " ");
         return {
           id: e.id,
-          data: { relationshipKind: e.kind },
+          data: {
+            relationshipKind: e.kind,
+            reviewState: e.review_state,
+            invalid,
+          },
+          className: invalid ? "graph-edge-invalid" : undefined,
           source: e.source,
           target: e.target,
-          label: showEdgeLabels
-            ? e.review_state?.replaceAll("_", " ")
-            : undefined,
-          ariaLabel: `${e.kind.replaceAll("_", " ")}${e.review_state ? `: ${e.review_state.replaceAll("_", " ")}` : ""}`,
-          labelStyle: { fill: "var(--color-ink)", fontSize: 11 },
+          label: invalid
+            ? "invalid asset type"
+            : showEdgeLabels
+              ? review
+              : undefined,
+          ariaLabel: invalid
+            ? `${kind}: invalid asset type, does not support this asset`
+            : `${kind}${review ? `: ${review}` : ""}`,
+          labelStyle: {
+            fill: invalid ? "var(--color-danger-fg)" : "var(--color-ink)",
+            fontSize: 11,
+          },
           labelBgStyle: { fill: "var(--color-surface)" },
-          animated: onPath,
-          markerEnd: {
-            type: MarkerType.ArrowClosed,
-            width: 16,
-            height: 16,
-            color: onPath ? "var(--color-warning)" : "var(--color-ink)",
-          },
-          style: {
-            stroke: onPath
-              ? "var(--color-warning)"
-              : onHighlight
-                ? "var(--color-ink)"
-                : compactCards
-                  ? "var(--color-muted)"
-                  : "var(--color-line-strong)",
-            strokeWidth: onPath ? 2.5 : 1.5,
-            strokeDasharray:
-              e.review_state &&
-              !["maintainer_reviewed", "org_reviewed"].includes(e.review_state)
-                ? "5 4"
-                : undefined,
-            opacity: dimmed && !onPath && !onHighlight ? 0.4 : 1,
-          },
         };
       });
     return layoutGraph(list, edges, layout, rankLimit, neighborhoodRoot);
@@ -1022,9 +1056,82 @@ function InnerGraphCanvas({
     rankLimit,
     showEdgeLabels,
     graph,
+    tooLarge,
     filteredNodes,
     allowedIds,
     layout,
+  ]);
+
+  const { nodes: rfNodes, edges: rfEdges } = useMemo(() => {
+    const nodes: FlowGraphNode[] = laidOut.nodes.map((n) => {
+      let emphasis: GraphNodeData["emphasis"] = "active";
+      if (matchSet) emphasis = matchSet.has(n.id) ? "match" : "dimmed";
+      else if (pathSet) emphasis = pathSet.nodes.has(n.id) ? "path" : "dimmed";
+      else if (highlightSet)
+        emphasis = highlightSet.has(n.id) ? "highlight" : "dimmed";
+      return {
+        ...n,
+        className: n.id === focusId ? "focused" : undefined,
+        selected: n.id === selectedId,
+        data: { ...n.data, emphasis },
+      };
+    });
+    const edges: Edge[] = laidOut.edges.map((e) => {
+      const invalid = Boolean(e.data?.invalid);
+      const reviewState = e.data?.reviewState as string | undefined;
+      const reviewed =
+        !reviewState ||
+        ["maintainer_reviewed", "org_reviewed"].includes(reviewState);
+      const onPath = pathSet?.edges.has(e.id) ?? false;
+      const onHighlight = highlightSet
+        ? e.source === activeId || e.target === activeId
+        : Boolean(scopeIds);
+      const dimmed =
+        (matchSet && !matchSet.has(e.source) && !matchSet.has(e.target)) ||
+        (pathSet && !onPath) ||
+        (highlightSet && !onHighlight && (!compactCards || hoveredId !== null));
+      const accent = invalid
+        ? "var(--color-danger)"
+        : onPath
+          ? "var(--color-warning)"
+          : undefined;
+      return {
+        ...e,
+        animated: onPath,
+        markerEnd: {
+          type: MarkerType.ArrowClosed,
+          width: 16,
+          height: 16,
+          color: accent ?? "var(--color-ink)",
+        },
+        style: {
+          stroke:
+            accent ??
+            (onHighlight
+              ? "var(--color-ink)"
+              : compactCards
+                ? "var(--color-muted)"
+                : "var(--color-line-strong)"),
+          strokeWidth: onPath || invalid ? 2.5 : 1.5,
+          // Invalid bindings: short red dashes. Catalog mappings: dashed when
+          // reviewed, dotted while proposed. Evidence links stay solid.
+          strokeDasharray: invalid
+            ? "3 4"
+            : e.data?.relationshipKind === "maps_to"
+              ? reviewed
+                ? "8 4"
+                : "2 4"
+              : reviewed
+                ? undefined
+                : "5 4",
+          opacity: dimmed && !onPath && !onHighlight && !invalid ? 0.4 : 1,
+        },
+      };
+    });
+    return { nodes, edges };
+  }, [
+    laidOut,
+    compactCards,
     matchSet,
     pathSet,
     highlightSet,
@@ -1063,21 +1170,82 @@ function InnerGraphCanvas({
   const mobileY = mobileAnchor
     ? mobileAnchor.position.y + (mobileAnchor.height ?? NODE_H) / 2
     : null;
+  const [overflow, setOverflow] = useState(false);
+  const laidOutNodes = laidOut.nodes;
+  const overflowsAt = useCallback(
+    (zoom: number) => {
+      const wrapper = wrapperRef.current;
+      if (!wrapper || laidOutNodes.length === 0) return false;
+      const bounds = getNodesBounds(laidOutNodes);
+      return (
+        bounds.width * zoom > wrapper.clientWidth + 1 ||
+        bounds.height * zoom > wrapper.clientHeight + 1
+      );
+    },
+    [laidOutNodes],
+  );
   const fitReadableView = useCallback(
     (duration = 0) => {
+      const wrapper = wrapperRef.current;
+      const width = wrapper?.clientWidth ?? 0;
+      const height = wrapper?.clientHeight ?? 0;
+      if (!width || !height || laidOutNodes.length === 0) return;
       if (
         compactCards &&
         !neighborhoodRoot &&
-        (wrapperRef.current?.clientWidth ?? 0) < 600 &&
+        width < 600 &&
         mobileX !== null &&
         mobileY !== null
       ) {
         setCenter(mobileX, mobileY, { zoom: 0.85, duration });
-      } else {
-        fitView({ maxZoom: 1, padding: 0.06, duration });
+        setOverflow(overflowsAt(0.85));
+        return;
       }
+      const bounds = getNodesBounds(laidOutNodes);
+      const fit = getViewportForBounds(bounds, width, height, 0.16, 1, 0.06);
+      if (neighborhoodRoot || fit.zoom >= GRAPH_READABLE_ZOOM) {
+        setViewport(fit, { duration });
+        setOverflow(false);
+        return;
+      }
+      // Fitting everything would shrink labels below reading size. Hold a
+      // readable zoom and start from the focus, or from where the layout
+      // begins, and say that more of the map is outside the view.
+      const zoom = GRAPH_READABLE_ZOOM;
+      const margin = 16 / zoom;
+      const anchor =
+        focusNode ??
+        (compactCards
+          ? rfNodes.find((node) => node.data.kind === "control")
+          : undefined);
+      let x = bounds.x + bounds.width / 2;
+      let y = bounds.y + bounds.height / 2;
+      if (anchor) {
+        x = anchor.position.x + (anchor.width ?? NODE_W) / 2;
+        y = anchor.position.y + (anchor.height ?? NODE_H) / 2;
+      } else if (layout === "LR") {
+        x = bounds.x + width / 2 / zoom - margin;
+      } else if (layout === "TB") {
+        y = bounds.y + height / 2 / zoom - margin;
+      } else {
+        y = bounds.y + bounds.height - height / 2 / zoom + margin;
+      }
+      setCenter(x, y, { zoom, duration });
+      setOverflow(true);
     },
-    [compactCards, neighborhoodRoot, mobileX, mobileY, setCenter, fitView],
+    [
+      compactCards,
+      neighborhoodRoot,
+      mobileX,
+      mobileY,
+      setCenter,
+      setViewport,
+      laidOutNodes,
+      overflowsAt,
+      focusNode,
+      rfNodes,
+      layout,
+    ],
   );
 
   useEffect(() => {
@@ -1086,13 +1254,16 @@ function InnerGraphCanvas({
       // A scoped path is small enough to fit whole at a readable zoom.
       if (focusX !== null && focusY !== null && !scopeIds) {
         setCenter(focusX + 73, focusY + 29, { zoom: 0.9, duration: 300 });
+        setOverflow(overflowsAt(0.9));
       } else {
         fitReadableView(180);
       }
     });
     return () => window.cancelAnimationFrame(frame);
+    // Restyling on hover must not refit; only node-set and filter changes do.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    fitReadableView,
+    laidOutNodes,
     setCenter,
     focusX,
     focusY,
@@ -1106,32 +1277,36 @@ function InnerGraphCanvas({
   ]);
 
   // Opening the adjacent inspector changes canvas width without changing nodes.
+  const fitRef = useRef(fitReadableView);
+  useEffect(() => {
+    fitRef.current = fitReadableView;
+  }, [fitReadableView]);
   useEffect(() => {
     const wrapper = wrapperRef.current;
     if (!wrapper) return;
     let frame = 0;
     const observer = new ResizeObserver(() => {
       cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() => fitReadableView());
+      frame = requestAnimationFrame(() => fitRef.current());
     });
     observer.observe(wrapper);
     return () => {
       observer.disconnect();
       cancelAnimationFrame(frame);
     };
-  }, [fitReadableView, scopeIds, hydrated]);
+  }, [scopeIds, hydrated, tooLarge]);
 
   // When the search has exactly one match, recentre the viewport on it so the
   // user sees the result immediately.
   useEffect(() => {
     if (!matchSet || matchSet.size !== 1) return;
-    const match = rfNodes.find((n) => matchSet.has(n.id));
+    const match = laidOutNodes.find((n) => matchSet.has(n.id));
     if (!match) return;
     setCenter(match.position.x + 73, match.position.y + 29, {
       zoom: 0.9,
       duration: 300,
     });
-  }, [matchSet, rfNodes, setCenter]);
+  }, [matchSet, laidOutNodes, setCenter]);
 
   // Expose imperative export helpers to the parent (Export menu).
   useEffect(() => {
@@ -1168,117 +1343,155 @@ function InnerGraphCanvas({
     );
   }
 
-  return (
-    <div
-      ref={wrapperRef}
-      className={`${heightClassName} overflow-hidden rounded-xl border border-line bg-surface`}
-    >
-      <ReactFlow
-        colorMode={resolvedTheme}
-        nodes={placedNodes}
-        onNodesChange={(changes) => {
-          const moves = changes.filter(
-            (change) => change.type === "position" && change.position,
-          );
-          if (!moves.length) return;
-          setDragged((current) => {
-            const positions =
-              current.key === placementKey ? { ...current.positions } : {};
-            for (const move of moves) {
-              if (move.type !== "position" || !move.position) continue;
-              const node = rfNodes.find((item) => item.id === move.id);
-              if (!node) continue;
-              const { x, y } = move.position;
-              // Stop at another card rather than allowing labels to overlap.
-              const blocked = rfNodes.some((other) => {
-                if (other.id === move.id) return false;
-                const at = positions[other.id] ?? other.position;
-                return (
-                  x < at.x + (other.width ?? NODE_W) + 12 &&
-                  x + (node.width ?? NODE_W) + 12 > at.x &&
-                  y < at.y + (other.height ?? NODE_H) + 12 &&
-                  y + (node.height ?? NODE_H) + 12 > at.y
-                );
-              });
-              if (!blocked) positions[move.id] = move.position;
-            }
-            return { key: placementKey, positions };
-          });
-        }}
-        onNodeMouseEnter={(_, node) => setHoveredId(node.id)}
-        onNodeMouseLeave={() => setHoveredId(null)}
-        onNodeDragStart={() => {
-          if (pendingClick.current) clearTimeout(pendingClick.current);
-          setHoveredId(null);
-        }}
-        onNodeDragStop={(_, node) => setHoveredId(node.id)}
-        onPaneClick={() => {
-          setSelectedId(null);
-          setHoveredId(null);
-          onSelectNode(null);
-        }}
-        edges={rfEdges}
-        nodeTypes={nodeTypes}
-        nodesDraggable
-        nodesConnectable={false}
-        edgesReconnectable={false}
-        fitView
-        fitViewOptions={{ maxZoom: 1, padding: 0.06 }}
-        minZoom={0.16}
-        maxZoom={1.6}
-        proOptions={{ hideAttribution: true }}
-        onNodeClick={(_, node) => {
-          if (pendingClick.current) clearTimeout(pendingClick.current);
-          const select = () => {
-            setSelectedId(node.id);
-            onSelectNode(
-              graph?.nodes.find((item) => item.id === node.id) ?? null,
-            );
-          };
-          // Keep the node still until a possible double-click resolves; opening
-          // the inspector immediately moves the second click off its target.
-          if (onExploreNode) pendingClick.current = setTimeout(select, 250);
-          else select();
-        }}
-        zoomOnScroll={false}
-        preventScrolling={false}
-        zoomOnDoubleClick={!onExploreNode}
-        onNodeDoubleClick={(_, node) => {
-          if (pendingClick.current) clearTimeout(pendingClick.current);
-          const target = graph?.nodes.find((item) => item.id === node.id);
-          if (target) onExploreNode?.(target);
-        }}
-        onKeyDown={(event) => {
-          if (event.key !== "Enter" && event.key !== " ") return;
-          const nodeId = (event.target as HTMLElement).closest<HTMLElement>(
-            ".react-flow__node",
-          )?.dataset.id;
-          if (!nodeId) return;
-          event.preventDefault();
-          const target = graph?.nodes.find((item) => item.id === nodeId);
-          if (
-            event.key === "Enter" &&
-            event.shiftKey &&
-            target &&
-            onExploreNode
-          ) {
-            onExploreNode(target);
-          } else {
-            setSelectedId(nodeId);
-            onSelectNode(target ?? null);
-          }
-        }}
+  if (tooLarge) {
+    return (
+      <div
+        ref={wrapperRef}
+        role="status"
+        data-testid="graph-too-large"
+        className={`${heightClassName} grid place-items-center rounded-xl border border-dashed border-line bg-surfaceMuted p-6 text-center`}
       >
-        <Background gap={20} color="var(--color-line)" />
-        <MiniMap
-          pannable
-          zoomable
-          className="!h-20 !w-28 !rounded-lg !border !border-line !bg-surface/90 !shadow-card"
-          style={{ width: 112, height: 80 }}
-          maskColor="rgb(var(--rgb-ink) / 0.06)"
-        />
-        <Controls position="bottom-left" />
-      </ReactFlow>
+        <div className="grid max-w-md justify-items-center gap-3 text-sm text-muted">
+          <Network aria-hidden="true" className="h-8 w-8" />
+          <p>
+            <b className="text-ink">
+              {formatCount(filteredNodes.length)} nodes is too many to draw
+              readably.
+            </b>{" "}
+            Maps draw up to {formatCount(GRAPH_LAYOUT_NODE_CAP)} nodes. Choose
+            one framework or focus a control path, or use Evidence investigation
+            to follow a specific record.
+          </p>
+          {oversizeAction}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid gap-1">
+      <div
+        ref={wrapperRef}
+        className={`${heightClassName} overflow-hidden rounded-xl border border-line bg-surface`}
+      >
+        <ReactFlow
+          onlyRenderVisibleElements={budget.virtualize}
+          edgesFocusable={false}
+          colorMode={resolvedTheme}
+          nodes={placedNodes}
+          onNodesChange={(changes) => {
+            const moves = changes.filter(
+              (change) => change.type === "position" && change.position,
+            );
+            if (!moves.length) return;
+            setDragged((current) => {
+              const positions =
+                current.key === placementKey ? { ...current.positions } : {};
+              for (const move of moves) {
+                if (move.type !== "position" || !move.position) continue;
+                const node = rfNodes.find((item) => item.id === move.id);
+                if (!node) continue;
+                const { x, y } = move.position;
+                // Stop at another card rather than allowing labels to overlap.
+                const blocked = rfNodes.some((other) => {
+                  if (other.id === move.id) return false;
+                  const at = positions[other.id] ?? other.position;
+                  return (
+                    x < at.x + (other.width ?? NODE_W) + 12 &&
+                    x + (node.width ?? NODE_W) + 12 > at.x &&
+                    y < at.y + (other.height ?? NODE_H) + 12 &&
+                    y + (node.height ?? NODE_H) + 12 > at.y
+                  );
+                });
+                if (!blocked) positions[move.id] = move.position;
+              }
+              return { key: placementKey, positions };
+            });
+          }}
+          onNodeMouseEnter={(_, node) => setHoveredId(node.id)}
+          onNodeMouseLeave={() => setHoveredId(null)}
+          onNodeDragStart={() => {
+            if (pendingClick.current) clearTimeout(pendingClick.current);
+            setHoveredId(null);
+          }}
+          onNodeDragStop={(_, node) => setHoveredId(node.id)}
+          onPaneClick={() => {
+            setSelectedId(null);
+            setHoveredId(null);
+            onSelectNode(null);
+          }}
+          edges={rfEdges}
+          nodeTypes={nodeTypes}
+          nodesDraggable
+          nodesConnectable={false}
+          edgesReconnectable={false}
+          fitView
+          fitViewOptions={{ maxZoom: 1, padding: 0.06 }}
+          minZoom={0.16}
+          maxZoom={1.6}
+          proOptions={{ hideAttribution: true }}
+          onNodeClick={(_, node) => {
+            if (pendingClick.current) clearTimeout(pendingClick.current);
+            const select = () => {
+              setSelectedId(node.id);
+              onSelectNode(
+                graph?.nodes.find((item) => item.id === node.id) ?? null,
+              );
+            };
+            // Keep the node still until a possible double-click resolves; opening
+            // the inspector immediately moves the second click off its target.
+            if (onExploreNode) pendingClick.current = setTimeout(select, 250);
+            else select();
+          }}
+          zoomOnScroll={false}
+          preventScrolling={false}
+          zoomOnDoubleClick={!onExploreNode}
+          onNodeDoubleClick={(_, node) => {
+            if (pendingClick.current) clearTimeout(pendingClick.current);
+            const target = graph?.nodes.find((item) => item.id === node.id);
+            if (target) onExploreNode?.(target);
+          }}
+          onKeyDown={(event) => {
+            if (event.key !== "Enter" && event.key !== " ") return;
+            const nodeId = (event.target as HTMLElement).closest<HTMLElement>(
+              ".react-flow__node",
+            )?.dataset.id;
+            if (!nodeId) return;
+            event.preventDefault();
+            const target = graph?.nodes.find((item) => item.id === nodeId);
+            if (
+              event.key === "Enter" &&
+              event.shiftKey &&
+              target &&
+              onExploreNode
+            ) {
+              onExploreNode(target);
+            } else {
+              setSelectedId(nodeId);
+              onSelectNode(target ?? null);
+            }
+          }}
+        >
+          <Background gap={20} color="var(--color-line)" />
+          <MiniMap
+            pannable
+            zoomable
+            className="!h-20 !w-28 !rounded-lg !border !border-line !bg-surface/90 !shadow-card max-md:!hidden"
+            style={{ width: 112, height: 80 }}
+            maskColor="rgb(var(--rgb-ink) / 0.06)"
+          />
+          <Controls position="bottom-left" />
+        </ReactFlow>
+      </div>
+      {overflow && (
+        <p
+          data-testid="graph-overflow-hint"
+          className="text-xs leading-5 text-muted"
+        >
+          Part of this map is outside the view. Drag the canvas to follow
+          connections, or use Fit view (bottom left) to see all of it.
+        </p>
+      )}
     </div>
   );
 }

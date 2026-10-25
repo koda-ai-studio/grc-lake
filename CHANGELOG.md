@@ -3,6 +3,13 @@
 All notable GRC Lake changes are summarized here. Versions follow semver for the
 Python package, Helm chart, and bundled web console.
 
+## Unreleased
+
+- Keep the console graph responsive on large maps. A map above 500 nodes, such as All frameworks or NIST SP 800-53 on the golden demo, is no longer laid out; it says how to narrow the view instead. Drawable maps above 200 nodes render only the nodes in view, and hover or selection no longer re-runs the layout. On the golden demo, choosing All frameworks went from a 26-second freeze with about 39,000 DOM elements to under a second with about 600.
+- Label graph outcomes accurately. Passing evidence that is stale or expired reads "Stale evidence". When a control node carries a framework result (`ccf_status`) that is not a pass, a passing control test reads "Control test passing · not attested", and the node inspector shows the framework result, reviewed and proposed safeguard counts, the evaluation rule, open events and rule reasons. Edges with `binding: "invalid_asset_type"` draw as red dashed lines labeled as invalid, never as support. Older payloads without these fields keep their previous labels.
+- Make the graph usable by keyboard and screen reader. Nodes show a visible focus ring, come before edges in tab order (edges are no longer tab stops), and are announced as "kind: label, status".
+- Improve graph readability. Maps open at a readable zoom from the focused control or the start of the layout, with a note when part of the map is outside the view. Each status has its own icon shape, safeguards are named as safeguards, catalog mappings draw dashed (dotted while proposed), and the investigation view has a column legend. The minimap is hidden on phones, the maps legend stays visible in its rail, and the map uses framework names, readable evidence names and correct plurals. An unknown starting point says "Starting point not found" with a reset, starting points no longer repeat their kind, and empty layer chips are dimmed.
+
 ## 0.3.12 - 2026-10-25
 
 - Pin README links and screenshots to the release tag in the published package description, so the PyPI project page renders them. The release workflow rewrites the build checkout only, and the wheel gate refuses a published description with repository-relative links.
