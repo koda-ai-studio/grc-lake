@@ -14,77 +14,120 @@
 --
 -- On SQL warehouses, Unity Catalog evaluates the view owner's permissions on
 -- underlying tables, so the reader needs SELECT on these views only - never on
--- system.access.audit itself. Row-level views keep the latest 10,000 events so
--- a single read stays under the Statement Execution API INLINE limit (25 MiB).
+-- system.access.audit itself. Row-level views keep the latest 10,000 events to
+-- bound row count; payload size must still fit the API INLINE limit (25 MiB).
+
+-- Serialize the response struct to support both status_code and statusCode fields.
+-- Missing response codes and empty audit windows cannot establish a passing review.
 
 CREATE CATALOG IF NOT EXISTS trustops COMMENT 'GRC Lake governed evidence lake POC';
 CREATE SCHEMA IF NOT EXISTS trustops.evidence COMMENT 'Curated read-only evidence views for GRC Lake';
 
 CREATE OR REPLACE VIEW trustops.evidence.GRC_LAKE_AUDIT_EVENTS AS
+WITH audit AS (
+  SELECT *, TRY_CAST(COALESCE(
+    get_json_object(to_json(response), '$.status_code'),
+    get_json_object(to_json(response), '$.statusCode')
+  ) AS INT) AS response_status_code
+  FROM system.access.audit
+)
 SELECT
   event_id AS audit_id,
   user_identity.email AS actor,
   concat(service_name, '.', action_name) AS object_name,
-  CASE WHEN response.statusCode >= 400 THEN 'open' ELSE 'observed' END AS status,
+  CASE WHEN response_status_code >= 400 THEN 'open' ELSE 'observed' END AS status,
   CASE
-    WHEN response.statusCode IN (401, 403) THEN 'medium'
-    WHEN response.statusCode >= 400 THEN 'low'
+    WHEN response_status_code IN (401, 403) THEN 'medium'
+    WHEN response_status_code >= 400 THEN 'low'
     ELSE 'info'
   END AS severity,
   event_id AS evidence_ref,
   request_id AS query_id,
   action_name AS event_action
-FROM system.access.audit
+FROM audit
 WHERE event_date >= date_sub(current_date(), 7)
 ORDER BY event_time DESC
 LIMIT 10000;
 
 CREATE OR REPLACE VIEW trustops.evidence.GRC_LAKE_CONTROL_POSTURE AS
+WITH audit AS (
+  SELECT *, TRY_CAST(COALESCE(
+    get_json_object(to_json(response), '$.status_code'),
+    get_json_object(to_json(response), '$.statusCode')
+  ) AS INT) AS response_status_code
+  FROM system.access.audit
+)
 SELECT
   'DATABRICKS-AUDIT-LOGGING' AS control_id,
-  CASE WHEN count(*) > 0 THEN 'passed' ELSE 'open' END AS status,
-  CASE WHEN count(*) > 0 THEN 10 ELSE 70 END AS risk_score,
-  CASE WHEN count(*) > 0 THEN 'low' ELSE 'high' END AS severity,
+  CASE WHEN count(*) > 0 THEN 'passed' ELSE 'not_evaluated' END AS status,
+  CASE WHEN count(*) > 0 THEN 10 ELSE NULL END AS risk_score,
+  CASE WHEN count(*) > 0 THEN 'low' ELSE 'info' END AS severity,
   'databricks-system-access-audit' AS evidence_ref,
   'SOC2' AS framework_id,
   0.95 AS confidence
-FROM system.access.audit
+FROM audit
 WHERE event_date >= date_sub(current_date(), 7)
 UNION ALL
 SELECT
   'DATABRICKS-DENIED-ACCESS-REVIEW' AS control_id,
-  CASE WHEN count_if(response.statusCode IN (401, 403)) = 0 THEN 'passed' ELSE 'open' END AS status,
-  CASE WHEN count_if(response.statusCode IN (401, 403)) = 0 THEN 10 ELSE 60 END AS risk_score,
-  CASE WHEN count_if(response.statusCode IN (401, 403)) = 0 THEN 'low' ELSE 'medium' END AS severity,
+  CASE
+    WHEN count_if(response_status_code IN (401, 403)) > 0 THEN 'open'
+    WHEN count(*) = 0 OR count(response_status_code) < count(*) THEN 'not_evaluated'
+    ELSE 'passed'
+  END AS status,
+  CASE
+    WHEN count_if(response_status_code IN (401, 403)) > 0 THEN 60
+    WHEN count(*) = 0 OR count(response_status_code) < count(*) THEN NULL
+    ELSE 10
+  END AS risk_score,
+  CASE
+    WHEN count_if(response_status_code IN (401, 403)) > 0 THEN 'medium'
+    WHEN count(*) = 0 OR count(response_status_code) < count(*) THEN 'info'
+    ELSE 'low'
+  END AS severity,
   'databricks-denied-requests' AS evidence_ref,
   'SOC2' AS framework_id,
   0.85 AS confidence
-FROM system.access.audit
+FROM audit
 WHERE event_date >= date_sub(current_date(), 7);
 
 CREATE OR REPLACE VIEW trustops.evidence.GRC_LAKE_ASSET_RISK AS
+WITH audit AS (
+  SELECT *, TRY_CAST(COALESCE(
+    get_json_object(to_json(response), '$.status_code'),
+    get_json_object(to_json(response), '$.statusCode')
+  ) AS INT) AS response_status_code
+  FROM system.access.audit
+)
 SELECT
   concat('databricks:workspace:', workspace_id) AS asset_id,
   'workspace' AS asset_type,
   'databricks' AS owner,
   'prod' AS environment,
-  CASE WHEN count_if(response.statusCode IN (401, 403)) > 0 THEN 60 ELSE 10 END AS risk_score,
-  CASE WHEN count_if(response.statusCode IN (401, 403)) > 0 THEN 'open' ELSE 'observed' END AS status,
-  CASE WHEN count_if(response.statusCode IN (401, 403)) > 0 THEN 'medium' ELSE 'low' END AS severity,
+  CASE WHEN count_if(response_status_code IN (401, 403)) > 0 THEN 60 ELSE 10 END AS risk_score,
+  CASE WHEN count_if(response_status_code IN (401, 403)) > 0 THEN 'open' ELSE 'observed' END AS status,
+  CASE WHEN count_if(response_status_code IN (401, 403)) > 0 THEN 'medium' ELSE 'low' END AS severity,
   concat('databricks-workspace-', workspace_id) AS evidence_ref
-FROM system.access.audit
+FROM audit
 WHERE event_date >= date_sub(current_date(), 7)
 GROUP BY workspace_id;
 
 CREATE OR REPLACE VIEW trustops.evidence.GRC_LAKE_EVIDENCE_BUNDLES AS
+WITH audit AS (
+  SELECT *, TRY_CAST(COALESCE(
+    get_json_object(to_json(response), '$.status_code'),
+    get_json_object(to_json(response), '$.statusCode')
+  ) AS INT) AS response_status_code
+  FROM system.access.audit
+)
 SELECT
   event_id AS bundle_id,
   event_id AS evidence_ref,
-  CASE WHEN response.statusCode >= 400 THEN 'open' ELSE 'observed' END AS status,
-  CASE WHEN response.statusCode >= 400 THEN 'medium' ELSE 'info' END AS severity,
+  CASE WHEN response_status_code >= 400 THEN 'open' ELSE 'observed' END AS status,
+  CASE WHEN response_status_code >= 400 THEN 'medium' ELSE 'info' END AS severity,
   sha2(concat_ws(':', event_id, service_name, action_name, cast(event_time AS STRING)), 256) AS hash_sha256,
   concat('databricks://system/access/audit/', event_id) AS object_uri
-FROM system.access.audit
+FROM audit
 WHERE event_date >= date_sub(current_date(), 7)
 ORDER BY event_time DESC
 LIMIT 10000;
