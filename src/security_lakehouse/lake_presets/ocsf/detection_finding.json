@@ -53,9 +53,6 @@
       "coalesce": [
         {
           "column": "resources[0].uid"
-        },
-        {
-          "column": "cloud.account.uid"
         }
       ]
     },
@@ -102,6 +99,9 @@
         "ISO27001-A.8.16",
         "NIST-800-53-SI-4"
       ]
+    },
+    "source_account_id": {
+      "column": "cloud.account.uid"
     }
   },
   "attributes": {
