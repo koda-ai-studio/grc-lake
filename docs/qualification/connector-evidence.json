@@ -14,9 +14,9 @@
       ],
       "live_record": {
         "date": "2026-10-25",
-        "source_basis": "6268edbd",
-        "scope": "One trial SQL warehouse with service-principal OAuth: 8 synthetic rows recollected without duplicates; empty system audit log yields 2 not_evaluated summaries using the candidate bootstrap identified in the receipt. Preview retained; no populated audit log, multi-chunk, throttling or expiry qualification.",
-        "reference": "docs/qualification/live/2026-10-25-databricks.md#databricks-evidence-lake"
+        "source_basis": "3235c9ad",
+        "scope": "One trial SQL warehouse with service-principal OAuth and a populated system audit log: 928 rows (462 audit events) recollected without duplicates; 16 open audit events reconciled with the provider count of failed requests. Preview retained; no multi-chunk, throttling or credential-expiry qualification.",
+        "reference": "docs/qualification/live/2026-10-25-databricks.md#databricks-populated-audit"
       },
       "owner": "maintainer"
     },

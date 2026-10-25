@@ -67,9 +67,43 @@ explicit function adapters. Ten cases failed on the original SQL; all thirteen
 passed with the candidate. This harness is a bounded semantic check, separate
 from the live Databricks execution above.
 
+<a id="databricks-populated-audit"></a>
+
+## Populated audit log run
+
+Later the same day, the same maintainer-owned trial workspace had a populated
+system audit log: 462 rows from 16 services, counted by the operator identity.
+The committed `deploy/databricks/bootstrap_poc.sql` at source `3235c9ad` was
+re-applied unchanged to the system audit schema, with the reader service
+principal's grants. Collection used that service principal with a one-day OAuth
+secret, supplied only through a secret reference from a private local file.
+
+| Step                  | Result                                                                  |
+| --------------------- | ----------------------------------------------------------------------- |
+| Probe                 | ok                                                                      |
+| Configure             | enabled                                                                 |
+| Sync 1                | 928 records, no coverage gaps                                           |
+| Sync 2 (recollection) | 928 records, no coverage gaps; 928 unique raw event IDs, 928 normalized |
+
+The 928 records reconcile with the four views: 462 audit events, 2 control
+posture rows, 2 asset risk rows and 462 evidence bundles. The operator identity
+independently counted 16 audit rows with a response status of 400 or higher; the
+lake holds 16 open audit events and 16 matching open evidence bundles, with all
+other audit rows `observed`. Control posture had 6 failing and 2 `not_evaluated`
+controls. The secret value was absent from every lake file and command output.
+
+The CCF assessment stayed at 2,196 `not_evaluated` and 86 `unmapped`
+requirements, because these view-based events carry no `safeguard_ids`; binding
+evaluated connector evidence to safeguards is tracked separately. No framework
+pass was produced.
+
+Teardown: the secret was revoked, the reader service principal was deleted at
+workspace and account level, the `trustops` catalog (views only) was dropped, the
+warehouse was stopped and the local secret file and CLI credentials were removed.
+
 ## Remaining qualification
 
-No populated system audit window, multi-chunk result, 429 retry, credential expiry,
+The populated audit run above closes the empty-audit-log gap. No multi-chunk result, 429 retry, credential expiry,
 provider recovery, production scale or failover was exercised. The preview stage
 and [follow-up #734](https://github.com/koda-ai-studio/grc-lake/issues/734) remain.
 Provider identifiers, hostnames, principal names, credentials and raw evidence
