@@ -1,14 +1,18 @@
 # Release readiness
 
-GRC Lake **0.3.11 is published** on
-[PyPI](https://pypi.org/project/grc-lake/0.3.11/),
-[GitHub](https://github.com/koda-ai-studio/grc-lake/releases/tag/v0.3.11), and as
-`ghcr.io/koda-ai-studio/grc-lake:0.3.11`.
-Use the [v0.3.11 release templates](https://github.com/koda-ai-studio/grc-lake/tree/v0.3.11)
+GRC Lake **0.3.12 is published** on
+[PyPI](https://pypi.org/project/grc-lake/0.3.12/),
+[GitHub](https://github.com/koda-ai-studio/grc-lake/releases/tag/v0.3.12), and as
+`ghcr.io/koda-ai-studio/grc-lake:0.3.12`.
+Use the [v0.3.12 release templates](https://github.com/koda-ai-studio/grc-lake/tree/v0.3.12)
 for a published deployment. The package, provenance and container verification
 below are scoped to that release; later commits on `main` may contain unreleased fixes.
 
-There are no new database migrations between v0.3.10 and v0.3.11. 0.3.11 restores
+0.3.12 changes only the published package description: README links and screenshots
+are pinned to the release tag so the PyPI project page renders them. Apart from
+version strings, its code, dependencies and system packages match 0.3.11.
+
+There are no new database migrations between v0.3.10 and v0.3.12. 0.3.11 restores
 the bare installation (fixture loading, pipeline replay, snapshots and local-mode
 serving without SQLAlchemy) and adds `grc-lake demo`. Existing OCSF preset users
 see new pass, open and pending results; add `"rules": []` to a preset reference to
@@ -20,7 +24,7 @@ off by default and requires six additional read-only IAM grants when enabled.
 The shell-free runtime uses pinned Wolfi Python and matching system libraries.
 Both published architectures match images qualified with zero reported vulnerabilities.
 CI and release gates block all HIGH/CRITICAL and fixable MEDIUM findings.
-See [runtime construction and scan scope](DEPENDENCY_SECURITY.md#0311-release-qualification-scans).
+See [runtime construction and scan scope](DEPENDENCY_SECURITY.md#0312-release-qualification-scans).
 Earlier published images and their historical scan results remain unchanged.
 
 Use the generated [coverage matrix](FRAMEWORK_COVERAGE.md) for current mapped and
@@ -32,10 +36,40 @@ retain their exact source revisions and synthetic workload limits. They do not
 establish production capacity or qualify a deployment memory budget; 100k records
 remain outside the proposed interactive workload.
 
-**0.3.12 is prepared on `main`, not yet published.** It changes only the published
-package description: README links and screenshots are pinned to the release tag so
-the PyPI project page renders them. No code, dependency, image or migration changes
-from v0.3.11. Publication records below are added after verification.
+## Verified 0.3.12 publication
+
+The [release workflow](https://github.com/koda-ai-studio/grc-lake/actions/runs/40164154790)
+passed on source `73e9b5014b31bde75bcf42ae664bb97709e493ad`, after that exact
+main commit [passed CI](https://github.com/koda-ai-studio/grc-lake/actions/runs/40160747032).
+The `v0.3.12` tag resolves to that commit. Wheel and sdist bytes match between PyPI,
+GitHub and the workflow build:
+
+| Artifact                           | SHA-256                                                            |
+| ---------------------------------- | ------------------------------------------------------------------ |
+| `grc_lake-0.3.12-py3-none-any.whl` | `4b3c500bbb79a6325dc08b662efb6f07e1279c5a70c4ff0ccf640f36360e1ac9` |
+| `grc_lake-0.3.12.tar.gz`           | `03d15bda11b4e1f28d9aaf373063c669bdfb8d82cab61d03e6361b33fd900839` |
+
+The Python provenance for both files and the registry image attestation verify
+against this repository, the release workflow, the source commit and the `v0.3.12`
+tag. The PyPI description contains no repository-relative links; all 53 tag-pinned
+image and document URLs returned 200. A base-only PyPI installation passed fixture
+loading, pipeline replay, integrity verification, snapshots and local-mode console
+and API requests. `uvx --from "grc-lake[server]==0.3.12" grc-lake demo` served the
+console and core API, reported 0.3.12, and stopped cleanly on interrupt.
+
+The anonymously readable multi-platform index is `sha256:dbf6eebf5093ca676a9b433d01733603dcca335432d0ecb228b80f77d78488e4`
+(also `latest`):
+
+- AMD64: `sha256:d2bea4764e6093604dbec9d71e2163c6cc67221a58105a6dd223fc48acf47c96`
+- ARM64: `sha256:f000497786d4e39a277ab9925f022e8e72d7d3b6462f19a2a97240ace3a71957`
+
+Both published platform images have the same filesystem layers and runtime settings
+as the images qualified by the release workflow; only OCI metadata labels differ, and
+they name version 0.3.12 and the source commit. Each architecture passed the
+authenticated two-tenant release smoke. The workflow's Trivy reports and an
+independent Trivy 0.69.3 scan of the published tag report **zero vulnerabilities**
+for both architectures. This is a dated scan result for recognized components, not
+proof that application behavior or unknown vulnerabilities are absent.
 
 ## Verified 0.3.11 publication
 
