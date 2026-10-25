@@ -5,6 +5,8 @@ Python package, Helm chart, and bundled web console.
 
 ## Unreleased
 
+- Add a repeatable local graph performance acceptance check for two tenants at 1k/10k records each. It checks cold and warm latency, idle-expiry reads, memory and tenant progress while reporting admission rejections separately. These bounded synthetic measurements do not qualify production capacity.
+
 - Reject incomplete Databricks SQL results before replacing evidence or advancing watermarks. Validate result schemas, row counts and chunk offsets, follow index-only chunk cursors, and record failed reads as partial runs with a collection gap. Malformed chunk links are rejected before requesting them. The adapter remains Preview; the added qualification uses synthetic responses.
 
 ## 0.3.13 - 2026-10-25
