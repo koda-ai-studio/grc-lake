@@ -5,9 +5,9 @@ test("control and safeguard outcomes distinguish fail, pass, stale and unknown",
   expect(graphEvidenceState({ kind: "control", status: "fail" })).toMatchObject(
     { label: "Failing control", tone: "critical" },
   );
-  expect(graphEvidenceState({ kind: "control", status: "pass" })).toMatchObject(
-    { label: "Passing control", tone: "ready" },
-  );
+  expect(
+    graphEvidenceState({ kind: "control", status: "pass", ccf_status: "pass" }),
+  ).toMatchObject({ label: "Passing control", tone: "ready" });
   expect(
     graphEvidenceState({ kind: "safeguard", status: "not_evaluated" }),
   ).toMatchObject({ label: "Not evaluated", tone: "default" });

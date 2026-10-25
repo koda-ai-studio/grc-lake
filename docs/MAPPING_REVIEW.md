@@ -21,12 +21,19 @@ The [source packet](reviews/2026-10-15-repaired-proposals.json) retains the
 corresponding contracts and source references. Vendor guidance does not establish
 normative equivalence or operating effectiveness.
 
-Release 0.3.6 has 1,163/2,252 reviewed requirements (51.6%), with mapped coverage
-unchanged at 1,803/2,252 (80.1%). SOC 2 has 33/61 reviewed requirements (54.1%),
-ISO 27001 has 17/93 (18.3%), and ISO 42001 has 14/40 (35.0%). These approvals are
-included in the published 0.3.6 release. They do not attest operating effectiveness.
-The remaining queue contains 115 requirements in 13 batches; alternative mappings
-to newly reviewed requirements remain proposed and receive no inherited approval.
+At the current source revision, 1,163/2,282 requirements have reviewed mappings
+(51.0%) and 2,196/2,282 are mapped (96.2%). SOC 2 has 33/61 reviewed requirements
+(54.1%), ISO 27001 has 17/93 (18.3%), and ISO 42001 has 14/40 (35.0%). The
+35 approvals above first shipped in 0.3.6; they do not attest operating effectiveness.
+The remaining SOC 2 and ISO queue contains 130 requirements: 28 SOC 2, 76 ISO
+27001, and 26 ISO 42001. Alternative mappings to already reviewed requirements
+remain proposed and receive no inherited approval.
+
+Prepare bounded, current-fingerprint packets for independent review with
+`grc-lake frameworks review packet --framework soc2 --batch-size 5 --out soc2-review.json`
+(or `iso-27001-2022` / `iso-42001-2023`). A generated packet records no decision.
+Check each candidate's source reference and operating contract; missing normative
+source access or a named reviewer leaves that candidate proposed.
 
 ## What "reviewed" means
 

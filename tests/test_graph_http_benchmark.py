@@ -40,6 +40,34 @@ def test_http_workload_uses_auth_and_preserves_tenant_bindings(tmp_path, monkeyp
     assert not list(tmp_path.rglob("credentials*"))
 
 
+def test_sustained_and_idle_reads_retain_per_tenant_outcomes_and_queue_latency(tmp_path):
+    from tools.benchmark_investigation_http import run_http_workload
+
+    report = run_http_workload(
+        tmp_path,
+        rows=12,
+        tenants=2,
+        concurrency=2,
+        repeats=1,
+        frozen_catalogs=True,
+        sustained_seconds=0.2,
+        idle_seconds=0.01,
+    )
+    assert report["correctness_ok"]
+    assert report["scenarios"]["sustained"]["wall_seconds"] >= 0.2
+    for tenant in ("tenant-0", "tenant-1"):
+        measured = report["scenarios"]["sustained"]["per_tenant"][tenant]
+        assert measured["submitted"] > 0
+        assert measured["completed"] == measured["submitted"]
+        assert measured["max_success_gap_seconds"] >= 0
+        assert measured["latency_including_queue_seconds"]["p95"] >= measured["latency_seconds"]["p95"]
+    idle = [r for r in report["reads"] if r["query"] == "after_idle"]
+    assert len(idle) == 2
+    assert all(r["http_status"] == 200 for r in idle)
+    assert report["cache"]["max_bytes"] == 128 * 1024 * 1024
+    assert report["cache"]["retained_bytes"] >= 0
+
+
 @pytest.fixture
 def slow_app():
     import time
@@ -108,11 +136,17 @@ def test_http_parent_dispatches_worker_and_preserves_receipt(tmp_path):
         timeout=60,
         max_rss_mib=1024,
         transport="http",
+        sustained_seconds=0.2,
+        idle_seconds=0.01,
+        model_cache_mib=1,
     )
     report = attempt(args, 12, 2)
     assert report["correctness_ok"]
     assert report["transport"] == "http"
     assert report["checks"]["foreign_root_rejected"]
+    assert report["scenarios"]["sustained"]["reads"] > 0
+    assert report["cache"]["max_bytes"] == 1024 * 1024
+    assert any(row["query"] == "after_idle" for row in report["reads"])
     assert not list(tmp_path.iterdir())
 
 
@@ -248,3 +282,24 @@ def test_parent_preserves_http_timeout_and_lifecycle_options(tmp_path):
     # A tiny timeout must reach the worker instead of silently using its default.
     report = attempt(args, 12, 1)
     assert not report["correctness_ok"]
+
+
+def test_rate_limited_reads_remain_rejections_in_sustained_measurements():
+    from tools.benchmark_investigation_http import summarize_scenario
+
+    samples = [
+        {
+            "tenant": "tenant-0",
+            "http_status": 429,
+            "error_code": "rate_limited",
+            "seconds": 0.1,
+            "client_queue_seconds": 0.2,
+            "completion_seconds": 0.3,
+        }
+    ]
+    summary = summarize_scenario(samples, ["tenant-0"], 1, 0, 1)
+    assert summary["admitted"] == 0
+    assert summary["rejected"] == 1
+    assert summary["per_tenant"]["tenant-0"]["rejected"]["rate_limited"] == 1
+    assert summary["per_tenant"]["tenant-0"]["max_success_gap_seconds"] == 1
+    assert summary["per_tenant"]["tenant-0"]["latency_seconds"] == {}

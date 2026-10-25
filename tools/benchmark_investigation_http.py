@@ -32,6 +32,7 @@ from security_lakehouse.io import canonical_sha256, file_sha256
 ROUTE = "/api/v1/graph/investigation"
 # Explicit fail-fast server responses: saturation evidence, not correctness failures.
 ADMISSION_CODES = ("graph_build_capacity", "graph_tenant_capacity", "graph_build_timeout")
+REJECTION_CODES = (*ADMISSION_CODES, "rate_limited")
 
 
 @contextmanager
@@ -80,7 +81,43 @@ def loopback_server(app, shutdown_timeout=10):
 
 
 def admission_rejected(receipt):
-    return receipt["http_status"] == 503 and receipt["error_code"] in ADMISSION_CODES
+    return (receipt["http_status"] == 503 and receipt["error_code"] in ADMISSION_CODES) or (
+        receipt["http_status"] == 429 and receipt["error_code"] == "rate_limited"
+    )
+
+
+def summarize_scenario(samples, tenants, clients, start, end):
+    admitted = [r for r in samples if r["http_status"] == 200]
+    if any(r["http_status"] != 200 and not admission_rejected(r) for r in samples):
+        raise ValueError("HTTP concurrent read failed")
+    wall = end - start
+    per_tenant = {}
+    for tenant in tenants:
+        own = [r for r in samples if r["tenant"] == tenant]
+        successful = [r for r in admitted if r["tenant"] == tenant]
+        completions = [start, *sorted(r["completion_seconds"] for r in successful), end]
+        per_tenant[tenant] = {
+            "submitted": len(own),
+            "completed": len(own),
+            "admitted": len(successful),
+            "rejected": {code: sum(r["error_code"] == code for r in own) for code in REJECTION_CODES},
+            "latency_seconds": distribution([r["seconds"] for r in successful]),
+            "latency_including_queue_seconds": distribution(
+                [r["seconds"] + r["client_queue_seconds"] for r in successful]
+            ),
+            "rejection_latency_seconds": distribution([r["seconds"] for r in own if admission_rejected(r)]),
+            "client_queue_seconds": distribution([r["client_queue_seconds"] for r in own]),
+            "max_success_gap_seconds": max(b - a for a, b in zip(completions, completions[1:], strict=False)),
+        }
+    return {
+        "reads": len(samples),
+        "admitted": len(admitted),
+        "rejected": len(samples) - len(admitted),
+        "clients": clients,
+        "wall_seconds": wall,
+        "reads_per_second": len(samples) / wall,
+        "per_tenant": per_tenant,
+    }
 
 
 def validate_http_graph(result, tenant, rows, *, seed=None, evidence_ids=None):
@@ -108,6 +145,8 @@ def run_http_workload(
     client_timeout=75,
     lifecycle_probes=False,
     frozen_catalogs=False,
+    sustained_seconds=0,
+    idle_seconds=0,
 ):
     with local_configuration():
         if graph_build_concurrency is not None:
@@ -123,11 +162,25 @@ def run_http_workload(
             client_timeout=client_timeout,
             lifecycle_probes=lifecycle_probes,
             frozen_catalogs=frozen_catalogs,
+            sustained_seconds=sustained_seconds,
+            idle_seconds=idle_seconds,
         )
 
 
 def _run_http_workload(
-    root, *, rows, tenants, concurrency, repeats, progress_path, seed, client_timeout, lifecycle_probes, frozen_catalogs
+    root,
+    *,
+    rows,
+    tenants,
+    concurrency,
+    repeats,
+    progress_path,
+    seed,
+    client_timeout,
+    lifecycle_probes,
+    frozen_catalogs,
+    sustained_seconds,
+    idle_seconds,
 ):
     from security_lakehouse.db.models import Tenant
     from security_lakehouse.db.repository import create_api_key, create_user
@@ -205,7 +258,7 @@ def _run_http_workload(
                     error_type = type(exc).__name__
                 finished = time.perf_counter()
                 error_code = None
-                if response is not None and response.status_code == 503:
+                if response is not None and response.status_code in {429, 503}:
                     try:
                         error_code = response.json()["errors"][0]["code"]
                     except (ValueError, KeyError, IndexError, TypeError):
@@ -277,38 +330,52 @@ def _run_http_workload(
                         receipt, _ = future.result()
                         reads.append(receipt)
                         retain()
-                burst_seconds = time.perf_counter() - burst_started
                 samples = [r for r in reads if r["query"] == scenario]
-                if any(r["http_status"] != 200 and not admission_rejected(r) for r in samples):
-                    raise ValueError("HTTP concurrent read failed")
-                admitted = [r for r in samples if r["http_status"] == 200]
-                scenarios[scenario] = {
-                    "reads": len(samples),
-                    "admitted": len(admitted),
-                    "rejected": len(samples) - len(admitted),
-                    "clients": concurrency,
-                    "wall_seconds": burst_seconds,
-                    "reads_per_second": len(samples) / burst_seconds,
-                    "per_tenant": {
-                        tenant: {
-                            "submitted": batch.count(tenant),
-                            "completed": sum(r["tenant"] == tenant for r in samples),
-                            "admitted": sum(r["tenant"] == tenant for r in admitted),
-                            "rejected": {
-                                code: sum(r["tenant"] == tenant and r["error_code"] == code for r in samples)
-                                for code in ADMISSION_CODES
-                            },
-                            "latency_seconds": distribution([r["seconds"] for r in admitted if r["tenant"] == tenant]),
-                            "rejection_latency_seconds": distribution(
-                                [r["seconds"] for r in samples if r["tenant"] == tenant and admission_rejected(r)]
-                            ),
-                            "client_queue_seconds": distribution(
-                                [r["client_queue_seconds"] for r in samples if r["tenant"] == tenant]
-                            ),
-                        }
-                        for tenant in credentials
-                    },
-                }
+                scenarios[scenario] = summarize_scenario(
+                    samples, credentials, concurrency, burst_started - started, time.perf_counter() - started
+                )
+            if sustained_seconds:
+                sustained_started = time.perf_counter()
+                deadline = sustained_started + sustained_seconds
+                weighted = [tenant for tenant in credentials for _ in range(4 if tenant == "tenant-0" else 1)]
+                receipt_lock = threading.Lock()
+
+                def closed_loop(worker):
+                    ordinal = worker
+                    first_read = True
+                    while first_read or time.perf_counter() < deadline:
+                        tenant = (
+                            list(credentials)[worker % len(credentials)]
+                            if first_read
+                            else weighted[ordinal % len(weighted)]
+                        )
+                        first_read = False
+                        receipt, _ = request(tenant, "sustained", time.perf_counter(), ordinal)
+                        with receipt_lock:
+                            reads.append(receipt)
+                        ordinal += 1
+
+                with ThreadPoolExecutor(max_workers=concurrency) as pool:
+                    futures = [pool.submit(closed_loop, worker) for worker in range(concurrency)]
+                    for future in as_completed(futures):
+                        future.result()
+                        with receipt_lock:
+                            retain()
+                scenarios["sustained"] = summarize_scenario(
+                    [r for r in reads if r["query"] == "sustained"],
+                    credentials,
+                    concurrency,
+                    sustained_started - started,
+                    time.perf_counter() - started,
+                )
+            if idle_seconds:
+                time.sleep(idle_seconds)
+                for tenant in credentials:
+                    receipt, result = request(tenant, "after_idle", time.perf_counter(), len(reads))
+                    reads.append(receipt)
+                    retain()
+                    if result is None:
+                        raise ValueError("HTTP post-idle read failed")
             checks["all_submitted_reads_answered"] = True
             if app.state.graph_build_slots.active:
                 raise ValueError("graph build slot leaked after the bursts")
@@ -340,11 +407,21 @@ def _run_http_workload(
             retain()
     finally:
         app.state.sessionmaker.kw["bind"].dispose()
+    from security_lakehouse.investigation_graph import _MODEL_CACHE
+
+    with _MODEL_CACHE._lock:
+        cache = {
+            "max_bytes": _MODEL_CACHE.max_bytes,
+            "retained_bytes": _MODEL_CACHE._bytes,
+            "entries": len(_MODEL_CACHE._entries),
+            "idle_ttl_seconds": _MODEL_CACHE.ttl,
+        }
     rss = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / (2**20 if sys.platform == "darwin" else 1024)
     return {
         "correctness_ok": True,
         "checks": checks,
         "scenarios": scenarios,
+        "cache": cache,
         "lifecycle_probes": probes,
         "admission": {
             "graph_build_concurrency": app.state.graph_build_slots.capacity,

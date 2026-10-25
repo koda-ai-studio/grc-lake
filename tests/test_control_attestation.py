@@ -97,3 +97,47 @@ def test_graph_and_control_views_share_one_ccf_result_definition(golden_lake: Pa
     node = next(n for n in graph["nodes"] if n["id"] == "control:SOC2-CC6.8")
     expected = load_requirement_results(golden_lake)["SOC2-CC6.8"]
     assert {key: node[key] for key in expected} == expected
+
+
+@pytest.mark.parametrize("builder_name", ["build_compliance_graph", "build_repository_graph"])
+def test_maps_preserve_ccf_results_and_refresh_changed_assessments(tmp_path: Path, builder_name: str) -> None:
+    from security_lakehouse import graph
+    from security_lakehouse.io import write_json, write_jsonl
+
+    control_id = "SOC2-CC6.8"
+    write_jsonl(tmp_path / "gold/control_posture.jsonl", [{"control_id": control_id, "status": "pass"}])
+    write_jsonl(
+        tmp_path / "bronze/raw_events.jsonl",
+        [
+            {
+                "raw": {
+                    "event_id": "repo-check",
+                    "event_type": "repository.codeowners",
+                    "controls": [control_id],
+                    "entity": {"asset_id": "example/repo", "asset_type": "repository"},
+                    "status": "pass",
+                }
+            }
+        ],
+    )
+    build = getattr(graph, builder_name)
+    for ccf_status, reviewed, pending in ((None, [], 0), ("not_evaluated", [], 1), ("fail", ["SG-TEST"], 0)):
+        if ccf_status is not None:
+            write_json(
+                tmp_path / "gold/ccf_assessment.json",
+                {
+                    "requirements": [
+                        {
+                            "control_id": control_id,
+                            "status": ccf_status,
+                            "reviewed_safeguard_ids": reviewed,
+                            "pending_mapping_count": pending,
+                        }
+                    ]
+                },
+            )
+        node = next(n for n in build(tmp_path)["nodes"] if n["id"] == "control:" + control_id)
+        assert node["status"] == "pass"
+        assert node["ccf_status"] == (ccf_status or "not_evaluated")
+        assert node["reviewed_safeguard_count"] == len(reviewed)
+        assert node["proposed_safeguard_count"] == pending
