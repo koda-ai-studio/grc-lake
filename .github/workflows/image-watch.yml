@@ -1,0 +1,62 @@
+name: image-watch
+
+# Advisories land after an image passes CI. Rescan the published image daily so a
+# new finding in pinned system or Python packages surfaces before the next tag,
+# not at the release gate.
+on:
+  workflow_dispatch:
+  schedule:
+    # 06:47 UTC daily
+    - cron: "47 6 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    name: Rescan published image
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Record published image vulnerabilities (amd64)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        env:
+          TRIVY_PLATFORM: linux/amd64
+        with:
+          image-ref: ghcr.io/koda-ai-studio/grc-lake:latest
+          version: v0.70.0
+          scanners: vuln
+          format: json
+          output: trivy-published-amd64.json
+          severity: UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
+          ignore-unfixed: false
+          exit-code: "0"
+      - name: Record published image vulnerabilities (arm64)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        env:
+          TRIVY_PLATFORM: linux/arm64
+        with:
+          image-ref: ghcr.io/koda-ai-studio/grc-lake:latest
+          version: v0.70.0
+          scanners: vuln
+          format: json
+          output: trivy-published-arm64.json
+          severity: UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
+          ignore-unfixed: false
+          exit-code: "0"
+      - name: Reject HIGH/CRITICAL and fixable MEDIUM findings (amd64)
+        run: python3 tools/check_image_vulnerabilities.py trivy-published-amd64.json
+      - name: Reject HIGH/CRITICAL and fixable MEDIUM findings (arm64)
+        if: always()
+        run: python3 tools/check_image_vulnerabilities.py trivy-published-arm64.json
+      - name: Retain published image vulnerability reports
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: published-image-vulnerabilities
+          path: trivy-published-*.json
+          if-no-files-found: warn
+          retention-days: 14
