@@ -269,7 +269,10 @@ test("control queue rows open the drawer and obey the filters", async ({
   await result.selectOption("pass");
   const rows = queue.locator("tbody tr");
   await expect(rows.first()).toBeVisible();
-  for (const text of await rows.allInnerTexts()) expect(text).toContain("Pass");
+  for (const text of await rows.allInnerTexts())
+    expect(text).toMatch(
+      /Control test passing · Not attested|Passing · Attested/,
+    );
 
   const owner = page.getByRole("combobox", { name: "Filter by owner" });
   await owner.selectOption("grc");

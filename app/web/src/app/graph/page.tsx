@@ -9,7 +9,9 @@ import {
   BookOpen,
   Boxes,
   CheckCircle2,
+  CircleDashed,
   ClipboardCheck,
+  Clock3,
   Code2,
   Download,
   FileCode2,
@@ -30,6 +32,7 @@ import {
   UserRound,
   Workflow,
   X,
+  XCircle,
   type LucideIcon,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -55,6 +58,8 @@ import { GraphNodeDrawer } from "@/components/graph/GraphNodeDrawer";
 import { useComplianceGraph, useRepositoryGraph } from "@/lib/api/hooks";
 import type { GraphNode, GraphNodeKind } from "@/lib/api/types";
 import { formatCount, plural } from "@/lib/format";
+import { frameworkVisual } from "@/lib/framework-visuals";
+import { graphRecordLabel } from "@/lib/graph-evidence";
 import { SM_UP, useMediaQuery } from "@/lib/use-media-query";
 
 const COMPLIANCE_KINDS: GraphNodeKind[] = [
@@ -157,6 +162,17 @@ const KIND_ICON: Record<GraphNodeKind, LucideIcon> = {
   evidence: Boxes,
 };
 
+const STATUS_LEGEND = [
+  { label: "failing", Icon: XCircle, color: "var(--color-danger)" },
+  { label: "passing", Icon: CheckCircle2, color: "var(--color-success)" },
+  {
+    label: "stale or not attested",
+    Icon: Clock3,
+    color: "var(--color-warning)",
+  },
+  { label: "not evaluated", Icon: CircleDashed, color: "var(--color-muted)" },
+];
+
 const LAYOUT_LABEL: Record<LayoutDir, string> = {
   LR: "Left → Right",
   TB: "Top → Bottom",
@@ -203,7 +219,7 @@ function GraphWorkspace() {
   return (
     <div>
       <div
-        className="mb-3 flex gap-2"
+        className="mb-3 flex flex-wrap gap-2"
         role="group"
         aria-label="Graph workspace"
       >
@@ -215,9 +231,13 @@ function GraphWorkspace() {
         </Button>
         <Button
           variant={map ? "primary" : "default"}
+          aria-label="Framework and repository maps"
           onClick={() => setMap(true)}
         >
-          Framework and repository maps
+          <span className="sm:hidden">Maps</span>
+          <span className="hidden sm:inline">
+            Framework and repository maps
+          </span>
         </Button>
       </div>
       {!map ? (
@@ -339,6 +359,13 @@ function GraphPageContent() {
       ).sort(),
     [data],
   );
+  const frameworkName = useMemo(() => {
+    const titles = new Map<string, string>();
+    for (const node of data?.nodes ?? [])
+      if (node.kind === "framework" && node.framework_id)
+        titles.set(node.framework_id, node.label);
+    return (id: string) => frameworkVisual(id, titles.get(id)).label;
+  }, [data]);
   const linkedControls = useMemo(
     () =>
       Array.from(
@@ -369,21 +396,22 @@ function GraphPageContent() {
     [data],
   );
 
+  const defaultFramework =
+    frameworks.find((id) => id.toLowerCase() === "soc2") ?? frameworks[0];
+
   // Default to one framework each time the compliance view opens; "All
   // frameworks" stays a real choice until the mode changes.
   useEffect(() => {
     if (
       frameworkDefaulted.current ||
       graphMode !== "compliance" ||
-      frameworks.length === 0
+      !defaultFramework
     )
       return;
     frameworkDefaulted.current = true;
     if (filterFramework) return;
-    setFilterFramework(
-      frameworks.find((id) => id.toLowerCase() === "soc2") ?? frameworks[0],
-    );
-  }, [filterFramework, frameworks, graphMode]);
+    setFilterFramework(defaultFramework);
+  }, [filterFramework, defaultFramework, graphMode]);
 
   const graphIndex = useMemo(() => {
     const nodesById = new Map<string, GraphNode>();
@@ -555,13 +583,13 @@ function GraphPageContent() {
     });
     const countKind = (kind: GraphNodeKind) =>
       nodes.filter((node) => node.kind === kind).length;
+    const ids = new Set(nodes.map((node) => node.id));
     return {
       nodes: nodes.length,
       edges:
-        data?.edges.filter((edge) => {
-          const ids = new Set(nodes.map((node) => node.id));
-          return ids.has(edge.source) && ids.has(edge.target);
-        }).length ?? 0,
+        data?.edges.filter(
+          (edge) => ids.has(edge.source) && ids.has(edge.target),
+        ).length ?? 0,
       controls: countKind("control"),
       evidenceTypes: countKind("evidence_type"),
       assets: countKind("asset"),
@@ -730,7 +758,9 @@ function GraphPageContent() {
       ? "Repository"
       : pathRootNode
         ? pathRootNode.label
-        : filterFramework || "All frameworks";
+        : filterFramework
+          ? frameworkName(filterFramework)
+          : "All frameworks";
 
   const repoGraphEmpty =
     graphMode === "repository" &&
@@ -1038,6 +1068,7 @@ function GraphPageContent() {
           className={`grid min-w-0 items-start gap-3 ${selected ? "xl:grid-cols-[minmax(0,1fr)_320px]" : "xl:grid-cols-[220px_minmax(0,1fr)]"}`}
         >
           <Card
+            data-testid="graph-layer-rail"
             className={`${selected ? "hidden" : ""} order-last max-h-[clamp(380px,calc(100dvh-260px),620px)] min-h-[340px] overflow-auto xl:order-none`}
           >
             <CardHeader className="p-3 pb-2">
@@ -1061,16 +1092,21 @@ function GraphPageContent() {
                     const on = visible.has(kind);
                     const Icon = KIND_ICON[kind];
                     const color = KIND_SWATCH[kind];
+                    const empty = (counts[kind] ?? 0) === 0;
                     return (
                       <button
                         key={kind}
                         type="button"
+                        data-testid="graph-layer-chip"
+                        data-empty={empty}
+                        aria-pressed={on}
                         onClick={() => toggle(kind)}
                         className={[
                           "grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-1.5 rounded-lg border px-2 py-1.5 text-left text-[11px] font-semibold",
                           on
                             ? "bg-surface text-ink shadow-sm"
                             : "border-line bg-surfaceMuted text-muted hover:border-brand",
+                          empty ? "opacity-60" : "",
                         ].join(" ")}
                         style={on ? { borderColor: color } : undefined}
                       >
@@ -1109,7 +1145,7 @@ function GraphPageContent() {
                   <option value="">All frameworks (wide map)</option>
                   {frameworks.map((f) => (
                     <option key={f} value={f}>
-                      {f}
+                      {frameworkName(f)}
                     </option>
                   ))}
                 </select>
@@ -1207,7 +1243,10 @@ function GraphPageContent() {
                 </select>
               </section>
 
-              <section className="rounded-lg border border-line bg-surfaceMuted p-2.5 text-[11px] text-muted">
+              <section
+                data-testid="graph-maps-legend"
+                className="sticky bottom-0 z-10 rounded-lg border border-line bg-surfaceMuted p-2.5 text-[11px] text-muted"
+              >
                 <div className="mb-1 font-semibold uppercase tracking-wide text-muted">
                   Legend
                 </div>
@@ -1229,6 +1268,18 @@ function GraphPageContent() {
                       <span className="text-ink">{KIND_LABEL[kind]}</span>
                     </div>
                   ))}
+                  <div className="mt-1 grid gap-1 border-t border-line pt-1">
+                    {STATUS_LEGEND.map(({ label, Icon, color }) => (
+                      <div key={label} className="flex items-center gap-2">
+                        <Icon
+                          aria-hidden="true"
+                          className="h-3.5 w-3.5"
+                          style={{ color }}
+                        />
+                        <span>{label}</span>
+                      </div>
+                    ))}
+                  </div>
                   <div className="mt-1 border-t border-line pt-1">
                     <div className="flex items-center gap-2">
                       <span className="h-2.5 w-2.5 rounded bg-warning" />
@@ -1289,7 +1340,9 @@ function GraphPageContent() {
                       <>
                         Showing every node in{" "}
                         <b className="text-ink">
-                          {filterFramework || "all frameworks"}
+                          {filterFramework
+                            ? frameworkName(filterFramework)
+                            : "all frameworks"}
                         </b>{" "}
                         ({formatCount(visibleSummary.nodes)} nodes)
                       </>
@@ -1341,6 +1394,28 @@ function GraphPageContent() {
               pathTo={pathTo}
               onSelectNode={handleSelect}
               canvasRef={canvasRef}
+              oversizeAction={
+                graphMode !== "compliance" ? null : filterFramework ? (
+                  defaultPathRoot ? (
+                    <Button
+                      size="sm"
+                      onClick={() => setPathRoot(defaultPathRoot)}
+                    >
+                      Focus one control path
+                    </Button>
+                  ) : null
+                ) : defaultFramework ? (
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      setFilterFramework(defaultFramework);
+                      setPathRoot(null);
+                    }}
+                  >
+                    Show {frameworkName(defaultFramework)}
+                  </Button>
+                ) : null
+              }
             />
           </div>
           <GraphNodeDrawer
@@ -1393,16 +1468,26 @@ function GraphPageContent() {
                                 {control.subtitle}
                               </div>
                             </div>
-                            <Badge tone="info">{control.framework_id}</Badge>
+                            {control.framework_id && (
+                              <Badge
+                                tone="info"
+                                className="max-w-[45%] shrink-0"
+                                title={frameworkName(control.framework_id)}
+                              >
+                                <span className="truncate">
+                                  {frameworkName(control.framework_id)}
+                                </span>
+                              </Badge>
+                            )}
                           </div>
                           <div className="mt-2 grid grid-cols-[minmax(0,1fr)_auto] gap-2 text-xs">
                             <span className="truncate text-muted">
                               {evidenceTypes.length > 0
-                                ? evidenceTypes.map((e) => e.label).join(", ")
+                                ? evidenceTypes.map(graphRecordLabel).join(", ")
                                 : "No evidence type mapped"}
                             </span>
                             <span className="font-semibold text-ink">
-                              {assetCount} assets
+                              {plural(assetCount, "asset")}
                             </span>
                           </div>
                         </button>
@@ -1440,12 +1525,16 @@ function GraphPageContent() {
                           )}
                         </div>
                         <div className="mt-2 flex flex-wrap gap-2 text-xs">
-                          <Badge tone="info">{signalCount} signals</Badge>
+                          <Badge tone="info">
+                            {plural(signalCount, "signal")}
+                          </Badge>
                           {gapCount > 0 && (
-                            <Badge tone="critical">{gapCount} auth gaps</Badge>
+                            <Badge tone="critical">
+                              {plural(gapCount, "auth gap")}
+                            </Badge>
                           )}
                           <span className="font-semibold text-ink">
-                            {controlIds.length} controls
+                            {plural(controlIds.length, "control")}
                           </span>
                         </div>
                       </button>

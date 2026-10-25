@@ -346,9 +346,10 @@ def test_failed_build_is_not_cached(tmp_path):
     ],
 )
 def test_streamed_collection_pages_match_the_materialized_contract(lake, route, relative):
-    rows = read_jsonl(lake / relative)
+    rows = api_v1.COLLECTION_LOADERS[route][1](lake)
     resource = api_v1.STREAMED_COLLECTIONS[route][0]
     assert rows
+    assert len(rows) == len(read_jsonl(lake / relative))
     for params in (
         {},
         {"limit": "2"},

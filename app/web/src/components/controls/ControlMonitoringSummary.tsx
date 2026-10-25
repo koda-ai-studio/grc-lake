@@ -13,14 +13,19 @@ export function ControlMonitoringSummary({ rows }: { rows: ControlTest[] }) {
   const error = countByResult(rows, "error");
   const total = rows.length;
   const passRate = total > 0 ? Math.round((passed / total) * 100) : 0;
+  const attested = rows.filter(
+    (row) => row.result === "pass" && row.ccf_status === "pass",
+  ).length;
 
   return (
     <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
       <KpiTile
         label="Tests passing"
         value={`${passRate}%`}
-        detail={`${passed} of ${total} control tests`}
-        tone={failed > 0 || error > 0 ? "attention" : "ready"}
+        detail={`${passed} of ${total} control tests · ${attested} attested`}
+        tone={
+          failed > 0 || error > 0 || attested < passed ? "attention" : "ready"
+        }
       />
       <KpiTile
         label="Failed tests"

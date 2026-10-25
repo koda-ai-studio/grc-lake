@@ -18,6 +18,7 @@ from security_lakehouse import safeguards as safeguard_catalog
 from security_lakehouse.asset_names import asset_name_for, names_from_assets
 from security_lakehouse.catalog import control_catalog_view, framework_registry_view
 from security_lakehouse.ccf_evaluation import INVALID_ASSET_TYPE_REASON, binding_applies
+from security_lakehouse.ccf_requirement_results import ccf_result_fields, requirement_results_from
 from security_lakehouse.domain_identity import source_asset_key
 from security_lakehouse.event_status import FAIL_STATUSES, normalize_event_status
 from security_lakehouse.generations import generation_identity, generation_reader, pinned_path
@@ -152,7 +153,7 @@ def _build_model(
     assessment_path = lake / "gold/ccf_assessment.json"
     assessment = read_json(assessment_path, base_dir=lake) if pinned_path(assessment_path).is_file() else {}
     assessed = {row["safeguard_id"]: row for row in assessment.get("safeguards", [])}
-    requirements = {row["control_id"]: row for row in assessment.get("requirements", [])}
+    requirements = requirement_results_from(assessment)
     posture = {
         r["control_id"]: r for r in read_jsonl(lake / "gold/control_posture.jsonl", missing_ok=True, base_dir=lake)
     }
@@ -162,7 +163,6 @@ def _build_model(
         fid = str(row.get("framework_id") or "")
         node("framework", "framework:" + fid, frameworks.get(fid, {}).get("name", fid), framework_id=fid)
         evaluated = posture.get(cid, {})
-        requirement = requirements.get(cid, {})
         node(
             "control",
             "control:" + cid,
@@ -175,9 +175,7 @@ def _build_model(
             rule_reasons=list(evaluated.get("rule_reasons") or []),
             evaluation_rule=evaluated.get("evaluation_rule"),
             open_event_count=evaluated.get("open_event_count"),
-            ccf_status=requirement.get("status", "not_evaluated"),
-            reviewed_safeguard_count=len(requirement.get("reviewed_safeguard_ids") or []),
-            proposed_safeguard_count=int(requirement.get("pending_mapping_count") or 0),
+            **ccf_result_fields(requirements, cid),
             basis="Catalog requirement; evidence links are recorded bindings",
         )
         edge("framework:" + fid, "control:" + cid, "framework_has_control")

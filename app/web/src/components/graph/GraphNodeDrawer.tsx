@@ -28,8 +28,10 @@ import {
 import {
   graphCheckGuidance,
   graphEvidenceState,
+  graphHasOutcome,
   graphRecordLabel,
 } from "@/lib/graph-evidence";
+import { plural } from "@/lib/format";
 import { displayLabel } from "@/lib/display";
 
 const KIND_TONE: Record<
@@ -139,6 +141,13 @@ export function GraphNodeDrawer({
     node.kind,
   );
   const outcome = graphEvidenceState(node);
+  const hasOutcome = graphHasOutcome(node.kind);
+  const hasFrameworkResult =
+    node.kind === "control" &&
+    (node.ccf_status !== undefined ||
+      node.reviewed_safeguard_count !== undefined ||
+      node.proposed_safeguard_count !== undefined ||
+      (node.rule_reasons?.length ?? 0) > 0);
   const relatedIds = new Set(
     graph?.edges.flatMap((edge) =>
       edge.target === node.id && edge.kind === "evidence_covers_asset"
@@ -228,6 +237,61 @@ export function GraphNodeDrawer({
             </p>
           </div>
         )}
+        {hasFrameworkResult && (
+          <section
+            aria-label="Framework result"
+            className="grid gap-2 rounded-lg border border-line p-3 text-sm"
+          >
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-muted">
+              Framework result
+            </h3>
+            <dl className="grid grid-cols-[110px_minmax(0,1fr)] gap-x-3 gap-y-1">
+              {node.ccf_status && (
+                <>
+                  <dt className="text-muted">CCF result</dt>
+                  <dd className="font-semibold">
+                    {displayLabel(node.ccf_status)}
+                  </dd>
+                </>
+              )}
+              {(node.reviewed_safeguard_count !== undefined ||
+                node.proposed_safeguard_count !== undefined) && (
+                <>
+                  <dt className="text-muted">Safeguards</dt>
+                  <dd>
+                    {node.reviewed_safeguard_count ?? 0} reviewed ·{" "}
+                    {node.proposed_safeguard_count ?? 0} proposed
+                  </dd>
+                </>
+              )}
+              {node.evaluation_rule && (
+                <>
+                  <dt className="text-muted">Rule</dt>
+                  <dd className="break-words">
+                    {displayLabel(node.evaluation_rule)}
+                  </dd>
+                </>
+              )}
+              {node.open_event_count !== undefined && (
+                <>
+                  <dt className="text-muted">Open events</dt>
+                  <dd>{plural(node.open_event_count, "open event")}</dd>
+                </>
+              )}
+            </dl>
+            {(node.rule_reasons?.length ?? 0) > 0 && (
+              <ul className="grid list-disc gap-1 pl-4 text-xs leading-5 text-muted">
+                {node.rule_reasons!.map((reason) => (
+                  <li key={reason}>{reason}</li>
+                ))}
+              </ul>
+            )}
+            <p className="text-xs leading-5 text-muted">
+              Proposed safeguard mappings are never attestable; only reviewed
+              mappings count toward the framework result.
+            </p>
+          </section>
+        )}
         {node.kind === "repository" && graph && (
           <section
             aria-label="Visible repository evidence"
@@ -306,7 +370,12 @@ export function GraphNodeDrawer({
         <dl className="grid grid-cols-[100px_minmax(0,1fr)] gap-x-3 gap-y-2 border-t border-line pt-4 text-sm">
           {(
             [
-              ["Status", node.status ? displayLabel(node.status) : undefined],
+              [
+                "Status",
+                node.status && !hasOutcome
+                  ? displayLabel(node.status)
+                  : undefined,
+              ],
               ["Source account", node.source_account_id],
               ["Observed", node.observed_at],
               ["Asserted by", node.asserted_by],
@@ -357,7 +426,9 @@ export function GraphNodeDrawer({
           {node.freshness_status && (
             <>
               <dt className="text-muted">Freshness</dt>
-              <dd className="font-semibold">{node.freshness_status}</dd>
+              <dd className="font-semibold">
+                {displayLabel(node.freshness_status)}
+              </dd>
             </>
           )}
           {node.severity && (

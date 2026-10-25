@@ -11,6 +11,7 @@ from collections import defaultdict
 from pathlib import Path
 
 from security_lakehouse.catalog import load_control_catalog
+from security_lakehouse.ccf_requirement_results import ccf_result_fields, load_requirement_results
 from security_lakehouse.connectors import load_connector_catalog
 from security_lakehouse.evidence_hints import enabled_connector_ids, resolve_connector_hints
 from security_lakehouse.framework_provenance import build_framework_view
@@ -72,6 +73,7 @@ def build_framework_detail(framework_id: str, lake_dir: str | Path) -> JsonObjec
     evidence = read_jsonl(lake / "silver" / "normalized_events.jsonl")
     freshness = read_jsonl(lake / "gold" / "evidence_freshness.jsonl")
     configured_connectors = enabled_connector_ids(lake)
+    ccf_results = load_requirement_results(lake)
     connector_catalog = load_connector_catalog()
 
     evidence_by_control: dict[str, list[JsonObject]] = defaultdict(list)
@@ -115,6 +117,7 @@ def build_framework_detail(framework_id: str, lake_dir: str | Path) -> JsonObjec
                 "official_source_ref": control.get("official_source_ref"),
                 "articles": articles,
                 "connector_hints": connector_hints,
+                **ccf_result_fields(ccf_results, control_id),
                 "posture": {
                     "status": (posture or {}).get("status") or "not_evaluated",
                     "risk_score": (posture or {}).get("risk_score"),
@@ -165,6 +168,7 @@ def build_framework_detail(framework_id: str, lake_dir: str | Path) -> JsonObjec
             "control_count": len(control_rows),
             "mapped_control_count": sum(1 for row in control_rows if row["articles"]),
             "passing_control_count": sum(1 for row in control_rows if row["posture"]["status"] == "pass"),
+            "attested_pass_count": sum(1 for row in control_rows if row["ccf_status"] == "pass"),
             "failing_control_count": sum(1 for row in control_rows if row["posture"]["status"] == "fail"),
             "evidence_count": len(framework_evidence),
             "source_count": len({source["source"] for row in control_rows for source in row["evidence"]["sources"]}),
@@ -187,7 +191,19 @@ def page_framework_detail(
     if not include_details:
         page = [
             {
-                **{key: row.get(key) for key in ("control_id", "title", "owner", "evaluation_rule", "posture")},
+                **{
+                    key: row.get(key)
+                    for key in (
+                        "control_id",
+                        "title",
+                        "owner",
+                        "evaluation_rule",
+                        "posture",
+                        "ccf_status",
+                        "reviewed_safeguard_count",
+                        "proposed_safeguard_count",
+                    )
+                },
                 "evidence": {
                     key: row.get("evidence", {}).get(key) for key in ("count", "latest_evidence_at", "freshness")
                 },

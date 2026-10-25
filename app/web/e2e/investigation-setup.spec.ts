@@ -382,6 +382,8 @@ for (const [status, label] of [
       for (const node of body.data.nodes) {
         if (node.kind === "evidence_type") {
           node.status = status;
+          // Expired passing evidence reads as stale; keep this case current.
+          node.freshness_status = "fresh";
           node.control_ids = ["SOC2-CC6.1"];
         }
       }

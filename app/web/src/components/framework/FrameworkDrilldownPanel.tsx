@@ -25,6 +25,11 @@ import type {
 import { RequirementGapPanel } from "@/components/framework/RequirementGapPanel";
 import { FrameworkEvidenceChain } from "@/components/framework/FrameworkEvidenceChain";
 import { cn } from "@/lib/utils";
+import {
+  CcfAttestationNote,
+  ControlResultBadge,
+} from "@/components/controls/ControlResult";
+import { attestedHeadline } from "@/lib/control-attestation";
 import { displayLabel } from "@/lib/display";
 
 type StatusFilter = "all" | "pass" | "fail" | "not_evaluated";
@@ -88,13 +93,6 @@ function ControlRow({
   expanded: boolean;
   onToggle: () => void;
 }) {
-  const statusTone =
-    control.posture.status === "pass"
-      ? "ready"
-      : control.posture.status === "fail"
-        ? "critical"
-        : "default";
-
   return (
     <section
       id={`control-${control.control_id}`}
@@ -127,9 +125,7 @@ function ControlRow({
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <Badge tone={statusTone}>
-            {displayLabel(control.posture.status)}
-          </Badge>
+          <ControlResultBadge status={control.posture.status} ccf={control} />
           {expanded ? (
             <ChevronUp className="h-4 w-4 text-muted" />
           ) : (
@@ -153,6 +149,7 @@ function ControlRow({
               <p className="text-sm leading-relaxed text-muted">
                 {control.evidence_requirement}
               </p>
+              <CcfAttestationNote ccf={control} frameworkId={frameworkId} />
               <RequirementGapPanel
                 key={`${frameworkId}:${control.control_id}`}
                 frameworkId={frameworkId}
@@ -358,6 +355,7 @@ export function FrameworkDrilldownPanel({
   }
 
   if (!data) return null;
+  const attested = data.summary.attested_pass_count ?? 0;
 
   return (
     <>
@@ -371,19 +369,23 @@ export function FrameworkDrilldownPanel({
             requirement.
           </p>
         </div>
-        <Badge
-          tone={
-            data.summary.failing_control_count
-              ? "critical"
-              : data.summary.control_count > 0 &&
-                  data.summary.passing_control_count ===
-                    data.summary.control_count
-                ? "ready"
-                : "default"
-          }
-        >
-          {data.summary.passing_control_count}/{data.summary.control_count} pass
-        </Badge>
+        <div className="grid justify-items-end gap-1">
+          <Badge
+            tone={
+              data.summary.failing_control_count
+                ? "critical"
+                : data.summary.control_count > 0 &&
+                    attested === data.summary.control_count
+                  ? "ready"
+                  : "default"
+            }
+          >
+            {attested}/{data.summary.control_count} attested
+          </Badge>
+          <span className="text-[11px] text-muted">
+            {attestedHeadline(data.summary.passing_control_count, attested)}
+          </span>
+        </div>
       </div>
 
       <div className="grid gap-2 rounded-lg border border-line bg-surface p-2.5 md:grid-cols-[minmax(180px,1fr)_minmax(140px,180px)]">
@@ -410,8 +412,8 @@ export function FrameworkDrilldownPanel({
           className="min-w-0 rounded-lg border border-line bg-surface px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-1 focus:ring-brand"
         >
           <option value="all">All statuses</option>
-          <option value="pass">Passing</option>
-          <option value="fail">Failing</option>
+          <option value="pass">Control test passing</option>
+          <option value="fail">Control test failing</option>
           <option value="not_evaluated">Not evaluated</option>
         </select>
       </div>

@@ -50,6 +50,7 @@ import type {
   ReadinessStage,
 } from "@/lib/api/types";
 import { MAPPING_REVIEW_GLOSSARY, ROUTE_LABELS } from "@/lib/console-copy";
+import { attestedHeadline, mappingReviewHref } from "@/lib/control-attestation";
 import { displayLabel } from "@/lib/display";
 import { formatCount, formatDate } from "@/lib/format";
 import {
@@ -271,11 +272,12 @@ function Detail({
   const results = summary
     ? {
         total: summary.control_count,
-        pass: summary.passing_control_count,
+        attested: summary.attested_pass_count ?? 0,
+        testPass: summary.passing_control_count,
         fail: summary.failing_control_count,
-        notEvaluated: Math.max(
+        notAttested: Math.max(
           summary.control_count -
-            summary.passing_control_count -
+            (summary.attested_pass_count ?? 0) -
             summary.failing_control_count,
           0,
         ),
@@ -416,12 +418,26 @@ function Detail({
               {results ? (
                 <>
                   <div className="mt-2 text-base font-semibold text-ink">
-                    {results.pass} passing · {results.fail} failing ·{" "}
-                    {results.notEvaluated} not evaluated
+                    {results.attested} attested · {results.fail} failing ·{" "}
+                    {results.notAttested} not attested
                   </div>
                   <div className="text-xs text-muted">
                     of {results.total}{" "}
                     {results.total === 1 ? "control" : "controls"}
+                  </div>
+                  <div className="mt-1 text-xs text-muted">
+                    <span className="font-semibold text-ink">
+                      {attestedHeadline(results.testPass, results.attested)}
+                    </span>
+                    . A control test runs rules over tagged evidence; only a
+                    framework result through reviewed safeguard mappings is
+                    attested.{" "}
+                    <Link
+                      href={mappingReviewHref(framework.framework_id)}
+                      className="font-semibold text-brand hover:underline"
+                    >
+                      Open Mapping review →
+                    </Link>
                   </div>
                   <div
                     className="mt-2 flex h-2 overflow-hidden rounded-full bg-surfaceMuted"
@@ -429,7 +445,7 @@ function Detail({
                   >
                     <div
                       className="h-full bg-success"
-                      style={{ width: `${share(results.pass)}%` }}
+                      style={{ width: `${share(results.attested)}%` }}
                     />
                     <div
                       className="h-full bg-danger"

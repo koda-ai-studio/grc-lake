@@ -42,6 +42,7 @@ from security_lakehouse.assessment import (
     verify_snapshot_chain,
 )
 from security_lakehouse.asset_names import load_asset_names, with_asset_names
+from security_lakehouse.ccf_requirement_results import load_requirement_results, with_ccf_results
 from security_lakehouse.connector_runner import ConnectorSyncError, run_connector_sync
 from security_lakehouse.connector_state import (
     LOCAL_ONLY_OPTIONS as _LOCAL_ONLY_OPTIONS,
@@ -282,11 +283,17 @@ COLLECTION_LOADERS: dict[str, tuple[str, Callable[[Path], list[JsonObject]]]] = 
     "/api/v1/ccf/asset-results": ("ccf.asset-results", lambda lake: _ccf_assessment(lake)["asset_results"]),
     "/api/v1/controls": (
         "controls",
-        lambda lake: read_jsonl(lake / "gold" / "control_posture.jsonl", missing_ok=True, base_dir=lake),
+        lambda lake: with_ccf_results(
+            read_jsonl(lake / "gold" / "control_posture.jsonl", missing_ok=True, base_dir=lake),
+            load_requirement_results(lake),
+        ),
     ),
     "/api/v1/control-tests": (
         "control-tests",
-        lambda lake: read_jsonl(lake / "gold" / "control_tests.jsonl", missing_ok=True, base_dir=lake),
+        lambda lake: with_ccf_results(
+            read_jsonl(lake / "gold" / "control_tests.jsonl", missing_ok=True, base_dir=lake),
+            load_requirement_results(lake),
+        ),
     ),
     "/api/v1/evidence": (
         "evidence",
@@ -1466,6 +1473,17 @@ STREAMED_COLLECTIONS: dict[str, tuple[str, Path]] = {
 }
 
 
+def _streamed_row_decorator(lake: Path, path: str) -> Callable[[list[JsonObject]], list[JsonObject]]:
+    """Per-route row additions applied to every streamed page, matching the materialized loader."""
+    if path == "/api/v1/evidence":
+        names = load_asset_names(lake)
+        return lambda rows: with_asset_names(rows, names)
+    if path == "/api/v1/control-tests":
+        results = load_requirement_results(lake)
+        return lambda rows: with_ccf_results(rows, results)
+    return lambda rows: rows
+
+
 def evidence_page_response(lake: Path, params: Params) -> JsonObject:
     """Page ``/api/v1/evidence``; see :func:`streamed_page_response`."""
     return streamed_page_response(lake, "/api/v1/evidence", params)
@@ -1487,13 +1505,13 @@ def streamed_page_response(lake: Path, path: str, params: Params) -> JsonObject:
         return collection_response(resource, COLLECTION_LOADERS[path][1](lake), params)
     _, limit, offset = paginate_collection([], params)
     filters = _collection_filters(params)
-    names = load_asset_names(lake) if path == "/api/v1/evidence" else {}
+    decorate = _streamed_row_decorator(lake, path)
     source = lake / relative
     if not filters:
         count, window = jsonl_page(source, offset, offset + limit, missing_ok=True, base_dir=lake)
         return collection_page_response(
             resource,
-            with_asset_names(window, names),
+            decorate(window),
             count=count,
             limit=limit,
             offset=offset,
@@ -1504,7 +1522,7 @@ def streamed_page_response(lake: Path, path: str, params: Params) -> JsonObject:
     fields: set[str] = set()
     count = 0
     for raw in iter_jsonl(source, missing_ok=True, base_dir=lake):
-        (row,) = with_asset_names([raw], names)
+        (row,) = decorate([raw])
         fields.update(row)
         if not _row_matches(row, filters):
             continue
