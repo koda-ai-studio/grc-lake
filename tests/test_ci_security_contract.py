@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -69,6 +70,10 @@ def test_python_matrix_runs_complete_suite_once_and_preserves_artifact_dependenc
     test_step = next(step for step in tests["steps"] if "--ci-shard" in step.get("run", ""))
     assert test_step["env"]["SHARD"] == "${{ matrix.shard }}/${{ strategy.job-total }}"
     assert '-p tools.pytest_shard --ci-shard="$SHARD"' in test_step["run"]
+    # Shards balance by recorded module time; the durations file must exist and cover the suite.
+    assert "--ci-shard-durations=tools/ci_test_durations.json" in test_step["run"]
+    durations = json.loads((ROOT / "tools/ci_test_durations.json").read_text())
+    assert len(durations) > 100 and all(name.startswith("tests/") for name in durations)
     assert "-p tools.pytest_strict_imports --allow-import-skip=moto " in test_step["run"]
     assert any("--all-extras" in step.get("run", "") for step in tests["steps"])
     for name in ("pipeline-smoke", "python-tests", "e2e"):
