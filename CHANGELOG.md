@@ -5,6 +5,7 @@ Python package, Helm chart, and bundled web console.
 
 ## Unreleased
 
+- Security: upgrade certifi to 2026.10.23, which removes the distrusted "emSign ECC Root CA - C3" and "emSign Root CA - C1" roots from the Python CA bundle used for outbound HTTPS, plus pip 26.2.2 and uv 0.13.5 (CI and the image build). The container's system CA bundle already excluded both roots; the 0.3.14 image's Python bundle did not.
 - GCP `iam.disableServiceAccountKeyCreation` and `compute.requireOsLogin` constraints that are not set on the project are now evaluated from their effective (inherited) policy, so an organization or folder enforcement can pass `SG-IDENTITY-001` and an unenforced one fails it. A conditional or list rule, or an effective policy that cannot be read (new permission `orgpolicy.policy.get`, in `roles/orgpolicy.policyViewer`), stays `not_evaluated` and is reported as a coverage gap.
 
 ## 0.3.14 - 2026-10-26
