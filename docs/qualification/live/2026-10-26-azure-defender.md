@@ -10,13 +10,13 @@ qualification of other subscriptions, management-group scope, paid Defender
 plans, service-principal or managed-identity authentication, or operating
 effectiveness.
 
-The live run used a pre-merge build of `4c14b908` whose connector code is identical; only two test constants were renamed afterwards so public assessment GUIDs no longer resemble secrets to the secret scanner.
+The live run used the pre-merge connector code from pull request #1076; after the run, only two test constants were renamed so public assessment GUIDs no longer resemble secrets to the secret scanner.
 
 ## Setup
 
 - `DefaultAzureCredential` through the maintainer's local `az login` user
   session; not the hosted app-registration path.
-- Source: `4c14b908` (`origin/main` `2b9c47dd` plus this change); only this
+- Source: `origin/main` `2b9c47dd` plus the connector change in pull request #1076; only this
   receipt was uncommitted. CPython 3.13.5, `uv run`, azure-identity 1.25.3. Defender
   assessments are read over ARM REST (`api-version=2021-06-01`) with the SDK
   credential's token; no Defender SDK is installed.

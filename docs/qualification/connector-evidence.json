@@ -156,8 +156,8 @@
       ],
       "live_record": {
         "date": "2026-10-26",
-        "source_basis": "4c14b908",
-        "scope": "One subscription via a local user session: 80 raw records including 54 Defender for Cloud assessments (14 Healthy, 33 Unhealthy, 7 NotApplicable, matching the Azure CLI), 6 of them bound to SG-DATAPROTECTION-001. Not management-group scope, paid Defender plans or service-principal authentication.",
+        "source_basis": "2b9c47dd",
+        "scope": "With the Defender for Cloud collection from #1076. One subscription via a local user session: 80 raw records including 54 Defender for Cloud assessments (14 Healthy, 33 Unhealthy, 7 NotApplicable, matching the Azure CLI), 6 of them bound to SG-DATAPROTECTION-001. Not management-group scope, paid Defender plans or service-principal authentication.",
         "reference": "docs/qualification/live/2026-10-26-azure-defender.md#azure-posture"
       },
       "owner": "maintainer"
