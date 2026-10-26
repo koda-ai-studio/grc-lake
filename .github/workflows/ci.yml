@@ -297,13 +297,13 @@ jobs:
 
   python-tests:
     runs-on: ubuntu-latest
-    # A passing shard can take ~20 minutes with coverage; retain time for uploads.
+    # Time-balanced shards take about 6 minutes; the timeout leaves room for slow runners and uploads.
     timeout-minutes: 30
     needs: web
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3, 4]
+        shard: [1, 2, 3, 4, 5, 6]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Download React bundle
@@ -327,6 +327,7 @@ jobs:
           COVERAGE_FILE: build/coverage-shard-${{ matrix.shard }}.data
         run: >-
           uv run python -m pytest -q -p tools.pytest_shard --ci-shard="$SHARD"
+          --ci-shard-durations=tools/ci_test_durations.json
           -p tools.pytest_strict_imports --allow-import-skip=moto
           --durations=10 --junitxml=build/pytest-results.xml
           --cov --cov-report=term-missing:skip-covered
@@ -586,6 +587,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     needs: web
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Download React bundle
@@ -616,4 +621,5 @@ jobs:
       - name: Console Playwright smoke
         env:
           GRC_LAKE_COOKIE_SIGNING_KEY: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+          E2E_SHARD: ${{ matrix.shard }}/${{ strategy.job-total }}
         run: bash tools/run_e2e_console.sh

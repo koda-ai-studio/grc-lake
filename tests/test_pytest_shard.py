@@ -65,3 +65,26 @@ def test_shard_preserves_test_failures_and_empty_collection(tmp_path: Path) -> N
     assert "1 failed" in failed.stdout
     empty = run_pytest(tmp_path, "--ci-shard=2/2")
     assert empty.returncode == 5
+
+
+def test_recorded_durations_balance_shards_by_time_not_count(tmp_path: Path) -> None:
+    import json
+
+    for name, size in [("slow", 2), ("a", 6), ("b", 6), ("c", 6), ("new_module", 4)]:
+        (tmp_path / f"test_{name}.py").write_text(
+            f"import pytest\n@pytest.mark.parametrize('value', range({size}))\n"
+            "def test_value(value):\n    assert value >= 0\n"
+        )
+    durations = tmp_path / "durations.json"
+    durations.write_text(json.dumps({"test_slow.py": 100.0, "test_a.py": 6.0, "test_b.py": 6.0, "test_c.py": 6.0}))
+    owners: dict[str, int] = {}
+    seen: set[str] = set()
+    for index in range(1, 3):
+        result = run_pytest(tmp_path, "--collect-only", f"--ci-shard={index}/2", f"--ci-shard-durations={durations}")
+        assert result.returncode == 0, result.stderr + result.stdout
+        for node in (line for line in result.stdout.splitlines() if "::" in line):
+            seen.add(node)
+            owners[node.split("::", 1)[0]] = index
+    assert len(seen) == 24
+    # Two slow tests outweigh twenty-two fast ones, so they get a shard to themselves.
+    assert [module for module, owner in owners.items() if owner == owners["test_slow.py"]] == ["test_slow.py"]
