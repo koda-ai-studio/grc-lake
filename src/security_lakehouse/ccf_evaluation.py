@@ -5,8 +5,10 @@ asset evidence cannot become passes. Inventory completeness is a separate claim.
 """
 
 from collections import Counter, defaultdict
+from collections.abc import Iterable, Mapping
 from datetime import datetime
 
+from security_lakehouse.catalog import framework_registry_view
 from security_lakehouse.control_verdict import evaluate_evidence_verdict
 from security_lakehouse.domain_identity import source_asset_key
 from security_lakehouse.evidence_freshness import build_evidence_freshness, current_evidence_is_stale
@@ -14,7 +16,7 @@ from security_lakehouse.jsontypes import JsonObject
 from security_lakehouse.safeguards import ATTESTABLE_STATES, contributes_to_coverage, effective_review_state
 from security_lakehouse.vocabulary import ControlVerdict
 
-__all__ = ["INVALID_ASSET_TYPE_REASON", "binding_applies", "evaluate_safeguards"]
+__all__ = ["INVALID_ASSET_TYPE_REASON", "binding_applies", "evaluate_safeguards", "framework_provider_sources"]
 
 INVALID_ASSET_TYPE_REASON = "The asset type does not establish safeguard applicability."
 COLLECTION_SCOPE = "collection_scope"
@@ -35,12 +37,22 @@ def _combine(states: list[str]) -> str:
     return ControlVerdict.PASS.value
 
 
+def framework_provider_sources() -> dict[str, frozenset[str]]:
+    """Evidence sources each provider-scoped framework (a provider benchmark) accepts."""
+    return {
+        framework_id: frozenset(framework["provider_sources"])
+        for framework_id, framework in framework_registry_view().items()
+        if framework.get("provider_sources")
+    }
+
+
 def evaluate_safeguards(
     events: list[JsonObject],
     payload: JsonObject,
     controls: dict[str, JsonObject],
     *,
     now: datetime | None = None,
+    provider_sources: Mapping[str, Iterable[str]] | None = None,
 ) -> JsonObject:
     # Validate before a dict can hide duplicate definitions or a mapping can
     # transfer a passing safeguard to a different framework's requirement.
@@ -89,6 +101,10 @@ def evaluate_safeguards(
     global_ambiguous_count = sum(len(types) != 1 for types in assets.values())
     results = []
     asset_results = []
+    # Per-asset states with their evidence sources, so a provider benchmark is
+    # assessed only from its own provider's evidence.
+    asset_states: dict[str, list[tuple[frozenset[str], str]]] = defaultdict(list)
+    incomplete: set[str] = set()
     for safeguard_id, definition in definitions.items():
         eligible_types = set(definition.get("asset_types") or [])
         eligible_count = sum(type_counts[t] for t in eligible_types)
@@ -114,6 +130,7 @@ def evaluate_safeguards(
                 status = verdict.status
                 reasons = list(verdict.reasons)
             states.append(status)
+            asset_states[safeguard_id].append((frozenset(str(row.get("source", "")) for row in rows), status))
             asset_results.append(
                 {
                     "safeguard_id": safeguard_id,
@@ -126,7 +143,9 @@ def evaluate_safeguards(
                 }
             )
         missing = max(0, eligible_count - assessed)
-        if missing or ambiguous_count or invalid or bound_sources[safeguard_id] & gap_sources:
+        if missing or ambiguous_count or invalid:
+            incomplete.add(safeguard_id)
+        if safeguard_id in incomplete or bound_sources[safeguard_id] & gap_sources:
             states.append(ControlVerdict.NOT_EVALUATED.value)
         results.append(
             {
@@ -140,6 +159,22 @@ def evaluate_safeguards(
             }
         )
     by_id = {row["safeguard_id"]: row["status"] for row in results}
+    scopes = {
+        framework_id: frozenset(sources)
+        for framework_id, sources in (
+            framework_provider_sources() if provider_sources is None else provider_sources
+        ).items()
+    }
+
+    def provider_status(safeguard_id: str, sources: frozenset[str]) -> str:
+        states = [status for asset_sources, status in asset_states[safeguard_id] if asset_sources & sources]
+        if not states:
+            return ControlVerdict.NOT_EVALUATED.value
+        gaps = {source for _, source in bound_sources[safeguard_id] & gap_sources}
+        if safeguard_id in incomplete or gaps & sources:
+            states.append(ControlVerdict.NOT_EVALUATED.value)
+        return _combine(states)
+
     mappings: dict[str, list[tuple[str, str]]] = defaultdict(list)
     contextual: dict[str, list[JsonObject]] = defaultdict(list)
     for safeguard_id, definition in definitions.items():
@@ -156,7 +191,11 @@ def evaluate_safeguards(
         links = mappings.get(control_id, [])
         reviewed = [sid for sid, state in links if state in ATTESTABLE_STATES]
         pending = sum(state not in ATTESTABLE_STATES for _, state in links)
-        statuses = [by_id[sid] for sid in reviewed]
+        scope = scopes.get(str(control.get("framework_id")))
+        if scope is None:
+            statuses = [by_id[sid] for sid in reviewed]
+        else:
+            statuses = [provider_status(sid, scope) for sid in reviewed]
         required = control.get("required_evidence_types") or []
         if reviewed and required:
             requirement_rows = [
@@ -164,6 +203,7 @@ def evaluate_safeguards(
                 for sid in reviewed
                 for asset_rows in bound.get(sid, {}).values()
                 for row in asset_rows
+                if scope is None or str(row.get("source", "")) in scope
             ]
             if current_evidence_is_stale(requirement_rows, required_types=required):
                 statuses.append(ControlVerdict.STALE.value)

@@ -471,7 +471,8 @@ def test_ocsf_rows_reach_the_ccf_assessment_through_sync_and_pipeline(tmp_path: 
     requirements = {row["control_id"]: row for row in assessment["requirements"]}
     assert requirements["SOC2-CC6.1"]["status"] == "fail"
     assert requirements["SOC2-CC6.1"]["reviewed_safeguard_ids"] == ["SG-IDENTITY-001"]
-    assert requirements["CIS-AWS-1.10"]["status"] == "fail"  # tagged nowhere in the preset
+    # a provider benchmark ignores evidence from other sources, even on a shared safeguard
+    assert requirements["CIS-AWS-1.10"]["status"] == "not_evaluated"
     # a proposed mapping is never attested, even when the safeguard has evidence
     iso = requirements["ISO27001-A.8.5"]
     assert "SG-IDENTITY-001" not in iso["reviewed_safeguard_ids"]
