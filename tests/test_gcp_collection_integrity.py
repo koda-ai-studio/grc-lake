@@ -65,10 +65,33 @@ def test_explicit_empty_collections_remain_valid(tmp_path):
     for method in METHODS:
         (tmp_path / f"{method}.json").write_text("[]")
     rows = collect_gcp_evidence(GCPFixtureClient(tmp_path))
-    # No project policies: each expected constraint's enforcement is unestablished.
-    assert [(row["event_type"], row["status"], row["attributes"]["set_on_project"]) for row in rows] == [
+    # No project policies and no readable effective policy: enforcement is
+    # unestablished, and each unread effective policy is a named gap.
+    assert [(row["event_type"], row["status"], row["attributes"].get("set_on_project")) for row in rows] == [
         ("gcp.cloud.org_policy", "not_evaluated", False)
-    ] * 2
+    ] * 2 + [("gcp.collection_gap", "open", None)] * 2
+    assert {row["attributes"]["collection"] for row in rows if row["event_type"] == "gcp.collection_gap"} == {
+        "effective_org_policies:compute.requireOsLogin",
+        "effective_org_policies:iam.disableServiceAccountKeyCreation",
+    }
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"constraint": "compute.requireOsLogin", "enforced": True},
+        [{"constraint": "compute.requireOsLogin", "enforced": "yes"}],
+        [None, {"constraint": "compute.requireOsLogin", "enforced": True}],
+    ],
+)
+def test_malformed_effective_policy_fixture_is_a_gap_not_a_pass(tmp_path, payload):
+    for method in METHODS:
+        (tmp_path / f"{method}.json").write_text("[]")
+    (tmp_path / "effective_org_policies.json").write_text(json.dumps(payload))
+    rows = collect_gcp_evidence(GCPFixtureClient(tmp_path))
+    policy = next(r for r in rows if r["attributes"].get("constraint") == "constraints/compute.requireOsLogin")
+    assert policy["status"] == "not_evaluated"
+    assert policy["attributes"]["effective"] is False
 
 
 @pytest.mark.parametrize("method,key", [("iam_bindings", "bindings"), ("assets", "assets")])

@@ -186,6 +186,9 @@ def test_gcp_collect_accepts_successful_empty_org_and_asset_reads() -> None:
         def org_policies(self) -> list[dict[str, object]]:
             return []
 
+        def effective_org_policy(self, constraint: str) -> dict[str, object]:
+            return {"constraint": constraint, "enforced": True}
+
         def assets(self) -> list[dict[str, object]]:
             return []
 

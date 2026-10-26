@@ -251,7 +251,7 @@ def _service_disabled(service: str) -> PermissionDenied:
     )
 
 
-def _live_gcp_client(*, iam: Any = None, org: Any = None, assets: Any = None) -> GCPClient:
+def _live_gcp_client(*, iam: Any = None, org: Any = None, assets: Any = None, effective: Any = None) -> GCPClient:
     class Projects:
         def get_iam_policy(self, **_kwargs: Any) -> Any:
             if isinstance(iam, Exception):
@@ -264,6 +264,12 @@ def _live_gcp_client(*, iam: Any = None, org: Any = None, assets: Any = None) ->
             if isinstance(org, Exception):
                 raise org
             return []
+
+        def get_effective_policy(self, **_kwargs: Any) -> Any:
+            if isinstance(effective, Exception):
+                raise effective
+            rule = type("R", (), {"enforce": True, "condition": None})()
+            return type("P", (), {"spec": type("S", (), {"rules": [rule], "reset": False})()})()
 
     class Assets:
         def list_assets(self, **_kwargs: Any) -> list[Any]:
@@ -338,6 +344,37 @@ def test_gcp_classifies_real_google_api_core_service_disabled_error() -> None:
 def test_gcp_permission_denied_without_metadata_falls_back_to_documented_permission() -> None:
     rows = collect_gcp_evidence(_live_gcp_client(org=PermissionDenied("denied")), collected_at=NOW)
     assert collection_gaps(rows)[0]["permission"] == "orgpolicy.policies.list"
+
+
+def test_gcp_denied_effective_policy_reads_are_gaps_and_never_pass() -> None:
+    denied = PermissionDenied("denied token=ya29.secret")
+    client = _live_gcp_client(
+        iam=_service_disabled("cloudresourcemanager.googleapis.com"),
+        assets=_service_disabled("cloudasset.googleapis.com"),
+        effective=denied,
+    )
+    # The project listing succeeded, so effective-read gaps cannot make the run "all failed".
+    rows = collect_gcp_evidence(client, collected_at=NOW)
+
+    assert validate_raw_events(rows) == []
+    policies = [r for r in rows if r["event_type"] == "gcp.cloud.org_policy"]
+    assert len(policies) == 2
+    assert {r["status"] for r in policies} == {"not_evaluated"}
+    assert {r["attributes"]["effective"] for r in policies} == {False}
+    effective_gaps = [g for g in collection_gaps(rows) if g["collection"].startswith("effective_org_policies:")]
+    assert len(effective_gaps) == 2
+    assert {g["permission"] for g in effective_gaps} == {"orgpolicy.policy.get"}
+    assert {g["reason"] for g in effective_gaps} == {"permission_denied"}
+    assert "ya29" not in json.dumps(rows)
+
+
+def test_gcp_live_inherited_enforcement_passes_from_the_effective_policy() -> None:
+    rows = collect_gcp_evidence(_live_gcp_client(), collected_at=NOW)
+    policies = [r for r in rows if r["event_type"] == "gcp.cloud.org_policy"]
+    assert [(r["status"], r["attributes"]["effective"], r["attributes"]["set_on_project"]) for r in policies] == [
+        ("pass", True, False)
+    ] * 2
+    assert collection_gaps(rows) == []
 
 
 def test_gcp_unclassified_failure_still_fails_closed_without_provider_text() -> None:
