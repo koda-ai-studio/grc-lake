@@ -94,3 +94,23 @@ def test_historical_live_claim_requires_a_bounded_source_record(missing):
     del record["live_record"][missing]
     with pytest.raises(ValueError, match="live record"):
         qualification.build_rows(catalog, records)
+
+
+def test_matrix_counts_linked_receipts_by_stage_without_equating_unlinked_with_untested():
+    rendered = qualification.render()
+    assert "| Implemented | 18 | 4 | 14 |" in rendered
+    assert "| Preview | 10 | 1 | 9 |" in rendered
+    assert "does not mean never tested or no demo account exists" in rendered
+    assert "RECONCILING_LIVE_RECEIPTS.md" in rendered
+
+
+@pytest.mark.parametrize("change", ["anchor", "basis"])
+def test_live_reference_must_resolve_to_its_recorded_anchor_and_revision(change):
+    catalog, records = inputs()
+    record = next(row for row in records if row["live_record"])["live_record"]
+    if change == "anchor":
+        record["reference"] = record["reference"].split("#")[0] + "#not-a-receipt"
+    else:
+        record["source_basis"] = "0" * 40
+    with pytest.raises(ValueError, match="receipt"):
+        qualification.build_rows(catalog, records)
