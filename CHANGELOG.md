@@ -5,6 +5,8 @@ Python package, Helm chart, and bundled web console.
 
 ## 0.3.14 - 2026-10-25
 
+- Record a live AWS and GitHub pilot before and after flagship safeguard binding: the same read-only collection moved from no framework results to 103 failing requirements from verified IAM findings and one attested pass from a verified branch-protection verdict.
+
 - Record a second Databricks live run against a populated system audit log: 928 rows recollected without duplicates, with open audit events reconciled to the provider's count of failed requests. The connector stays Preview until multi-chunk, throttling and credential-expiry behavior are exercised.
 
 - Discover installed connector plugins once per process instead of on every catalog load. Safeguard evaluation reloads the connector catalog for each evaluation, and each reload scanned every installed distribution's entry points (about 40 ms); the NIST SP 800-53 assessment tests drop from 114 s to 12 s locally, and evaluation-heavy API and pipeline paths stop paying the scan.
