@@ -219,7 +219,7 @@ function GraphWorkspace() {
   return (
     <div>
       <div
-        className="mb-3 flex flex-wrap gap-2"
+        className="mx-auto flex w-full max-w-[1600px] flex-wrap gap-2 px-4 pt-5 sm:px-5 lg:px-8 lg:pt-6"
         role="group"
         aria-label="Graph workspace"
       >
