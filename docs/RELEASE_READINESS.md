@@ -39,8 +39,8 @@ remain outside the accepted local interactive profile.
 
 ## 0.3.14 candidate
 
-0.3.14 is being prepared; it is not yet published. Use the verified 0.3.13
-artifacts above until publication checks complete. This candidate adds strict
+0.3.14 is published; see the [publication receipt](#verified-0314-publication).
+This release adds strict
 Databricks result completeness and OAuth renewal, focused mapping-review packets,
 and a repeatable local graph performance gate. It introduces no database migration
 or dependency change.
@@ -118,6 +118,34 @@ for security, correctness, supported-workload performance and setup/documentatio
 repairs. Independent human review, required PR checks, exact-main CI and published
 artifact/runtime verification remain release gates; this candidate section is not
 a completion receipt.
+
+## Verified 0.3.14 publication
+
+The [release workflow](https://github.com/koda-ai-studio/grc-lake/actions/runs/40269042080)
+passed on source `8b2500cf568d9b4544a55f4aca67045b68bdb2d8`, after that exact
+main commit [passed CI](https://github.com/koda-ai-studio/grc-lake/actions/runs/40266471319).
+The `v0.3.14` tag resolves to that commit. The full Python suite on main recorded
+6,948 passed and 86 skipped tests, with no failures, before the last two merges,
+whose suites passed in CI. Wheel and sdist bytes match between PyPI and the
+GitHub release:
+
+| Artifact                           | SHA-256                                                            |
+| ---------------------------------- | ------------------------------------------------------------------ |
+| `grc_lake-0.3.14-py3-none-any.whl` | `a90571252226c9ecaacec965349923181a114f6accda0fbae52d8cc700dbe13f` |
+| `grc_lake-0.3.14.tar.gz`           | `f1fc0b9408c87b3cef8a4429d50cc8456ff981969ae77d0c6271d84c001c5bb4` |
+
+The Python provenance for the wheel and the registry image attestation verify
+against this repository with `gh attestation verify`. The multi-platform image
+index `ghcr.io/koda-ai-studio/grc-lake:0.3.14` (digest
+`sha256:de002d4573327082d134367d7b6dea20c9952f28449e29731e71d03fa20139a3`)
+publishes `linux/amd64` and `linux/arm64`. The GitHub release carries the wheel,
+sdist, CycloneDX SBOM and Sigstore provenance.
+
+A fresh installation of `grc-lake[server]==0.3.14` from PyPI loaded the golden
+fixture, printed the framework summary (3 attested, 0 failing), exported OSCAL
+assessment results with exactly the three attested requirements `satisfied`, and
+verified a new assessment snapshot. The hosted demo was redeployed from the same
+commit and shows "11 of 41 control tests · 3 attested".
 
 ## 0.3.13 qualification
 

@@ -64,7 +64,7 @@ grc-lake serve --server --allow-insecure-no-auth --lake ./lake
 Docker (public image, no registry login):
 
 ```bash
-git clone --branch v0.3.13 --depth 1 https://github.com/koda-ai-studio/grc-lake.git
+git clone --branch v0.3.14 --depth 1 https://github.com/koda-ai-studio/grc-lake.git
 cd grc-lake && docker compose up
 ```
 
@@ -89,7 +89,7 @@ Release notes: [changelog](CHANGELOG.md) · [verified release records](docs/RELE
 ## Product tour
 
 **Collect → Evaluate → Resolve → Export.** Screens captured from the 0.3.14 console
-on October 25, 2026 use the bundled synthetic company.
+on October 26, 2026 use the bundled synthetic company.
 
 ### Start with the assessment overview
 
@@ -297,6 +297,12 @@ This profile covers authenticated depth-one graph reads on local SQLite. It does
 not qualify 100k interactive use, browser rendering, external storage or production
 sizing. Check [provider qualification](docs/CONNECTOR_QUALIFICATION.md) and
 [verified release records](docs/RELEASE_READINESS.md) separately.
+
+Bounded live runs are recorded as receipts with every verdict checked against the
+provider: an [AWS and GitHub pilot](docs/qualification/live/2026-10-26-aws-github-binding.md)
+that moved from no framework results to 103 failing requirements and one attested
+pass, and a [Databricks run on a populated audit log](docs/qualification/live/2026-10-25-databricks.md#databricks-populated-audit).
+Each covers one account or workspace, not provider-wide qualification.
 
 ## Self-host
 
