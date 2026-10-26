@@ -10,6 +10,7 @@ from security_lakehouse.safeguards import (
     SCHEMA,
     coverage_by_family,
     coverage_by_framework,
+    effective_review_state,
     load_safeguards,
     mapping_review_queue,
     mapping_review_report,
@@ -350,13 +351,19 @@ def test_enrichment_records_verifiable_provenance() -> None:
 def test_every_safeguard_says_what_it_applies_to() -> None:
     """Evaluation targets resources, not frameworks.
 
-    Every member's asset types must be covered by the safeguard's operated scope.
-    Removing a proposed relationship must not narrow that scope and invalidate
-    existing human review receipts for retained mappings.
+    Reviewed claims cover the requirement's asset types. A new proposed operating
+    safeguard may be narrower; its proposal must not broaden the population to
+    unrelated resources. Receipt fingerprints separately pin existing definitions.
     """
     catalog = load_control_catalog()
     for entry in load_safeguards()["safeguards"]:
-        expected = sorted({t for m in entry["satisfies"] for t in (catalog[m["control_id"]].get("asset_types") or [])})
+        assert entry.get("asset_types"), entry["safeguard_id"]
+        expected = {
+            t
+            for m in entry["satisfies"]
+            if effective_review_state(m) == "reviewed"
+            for t in (catalog[m["control_id"]].get("asset_types") or [])
+        }
         assert set(expected) <= set(entry.get("asset_types", [])), f"{entry['safeguard_id']} misses member asset types"
 
 

@@ -49,7 +49,7 @@ def test_device_fixture_verdict_reaches_compatible_safeguard_and_never_approves_
     rows = [r for r in assessment["asset_results"] if r["safeguard_id"] == sid]
     assert rows and any(r["status"] == "fail" for r in rows)
     definition = next(e for e in load_safeguards()["safeguards"] if e["safeguard_id"] == sid)
-    assert asset_type in definition["asset_types"]
+    assert definition["asset_types"] == [asset_type]
     assert all(m["review_status"] == "proposed" and not m.get("maintainer_review_ref") for m in definition["satisfies"])
     controls = {m["control_id"] for m in definition["satisfies"]}
     raw = [r for r in read_jsonl(lake / CONNECTOR_RAW_FILE) if sid in r.get("safeguard_ids", [])]

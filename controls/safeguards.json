@@ -53994,12 +53994,7 @@
       "owner": "endpoint-security",
       "reviewed_by": null,
       "reviewed_at": null,
-      "asset_types": [
-        "cloud_policy",
-        "cloud_resource",
-        "managed_device",
-        "service"
-      ],
+      "asset_types": ["managed_device"],
       "required_evidence_types": ["device.encryption"],
       "satisfies": [
         {
@@ -54029,7 +54024,7 @@
       "owner": "endpoint-security",
       "reviewed_by": null,
       "reviewed_at": null,
-      "asset_types": ["audit_log", "endpoint_host", "host", "service"],
+      "asset_types": ["endpoint_host"],
       "required_evidence_types": [
         "crowdstrike.host.sensor",
         "crowdstrike.host.prevention_policy"
