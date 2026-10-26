@@ -1513,3 +1513,20 @@ collection-to-assessment contract; they do not add live provider qualification.
 Provider field references: [Microsoft Graph managed devices](https://learn.microsoft.com/en-us/graph/api/resources/intune-devices-manageddevice?view=graph-rest-1.0),
 [Jamf computer inventory](https://developer.jamf.com/jamf-pro/reference/get_v4-computers-inventory),
 and [CrowdStrike prevention policies](https://falconpy.io/Service-Collections/Prevention-Policy.html).
+
+## Jira workflow evidence
+
+Jira ticket rows bind to `SG-REMEDIATIONTRACKING-001`, scoped to
+`workflow_ticket` assets with a proposed NIST CA-5 mapping. Explicitly unassigned
+or overdue open tickets produce findings. Successful recorded resolutions remain
+`observed`; missing status and ambiguous resolutions remain `not_evaluated`.
+Neither ticket closure nor a custom resolution label verifies that a vulnerability
+was remediated. Jira administrators can define [resolution values](https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issue-resolutions/).
+
+Project and transition observations stay outside this safeguard. Assessing the
+complete plan of action and milestones requires separate evidence of system
+scope, planned actions, verification and the organization's review frequency.
+The mapping stays proposed until human review; these fixture tests add no live
+qualification receipt. HR personnel records continue through the existing
+[training population correlation](#training-completion-lms-exports-preview) when completion evidence
+is available; personnel inventory alone cannot establish completed training.
