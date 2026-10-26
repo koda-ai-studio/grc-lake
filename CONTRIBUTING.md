@@ -89,9 +89,9 @@ Run the checks that match what you touched before you push. CI runs all of them.
 | Helm, Terraform         | `make deploy-check` (needs `helm` and `terraform`)                                    |
 | Everything, as CI does  | `make ci`, then `make pre-commit-run`                                                 |
 
-CI partitions the complete collected Python suite into four groups, balancing
-by test count while keeping each module's fixtures on one runner. To reproduce
-a group locally, run `uv run python -m pytest -q -p tools.pytest_shard --ci-shard=1/4`
+CI partitions the complete collected Python suite into six groups, balancing
+by recorded module duration while keeping each module's fixtures on one runner. To reproduce
+a group locally, run `uv run python -m pytest -q -p tools.pytest_shard --ci-shard=1/6`
 (replace `1` with the failing group). Ordinary `make test` still runs everything,
 serially; a full run takes roughly 25 minutes on a recent laptop. The suite does
 not use pytest-xdist, so `pytest -n auto` is not supported.

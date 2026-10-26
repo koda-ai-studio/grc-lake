@@ -275,7 +275,10 @@ def test_readme_glance_matches_the_generator_and_the_catalogs() -> None:
         f"{coverage['reviewed']:,} have reviewed mappings and the other {coverage['proposed']:,} are proposed" in block
     )
     assert coverage["reviewed"] + coverage["proposed"] == coverage["covered"]
-    assert f"{len(runnable)} read-only source adapters ({len(preview)} in preview)" in block
+    assert (
+        f"{len(runnable)} executable adapters ({len(runnable) - len(preview)} implemented, {len(preview)} preview)"
+        in block
+    )
     assert (
         f"Of the reviewed, {coverage['source_native_reviewed']:,} are source-native self-maps" in block
         and f"{coverage['crosswalk_reviewed']:,} rest on reviewed crosswalk mappings" in block
