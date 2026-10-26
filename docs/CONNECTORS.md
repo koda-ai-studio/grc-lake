@@ -921,7 +921,9 @@ Setup:
 1. Run [`deploy/databricks/bootstrap_poc.sql`](../deploy/databricks/bootstrap_poc.sql)
    as a user who can create a catalog and read `system.access.audit`, replacing
    `<trustops-sp-application-id>` with a service principal's application id.
-2. Grant that service principal `CAN USE` on one SQL warehouse.
+2. Give that service principal the workspace `databricks-sql-access` entitlement
+   and `CAN USE` on one SQL warehouse. Without the entitlement, a newly created
+   service principal is refused (HTTP 403) on its first warehouse read.
 3. Create an OAuth secret for the service principal and store it as a secret
    reference (`client_secret_ref`, default `DATABRICKS_CLIENT_SECRET`).
 4. Configure `host`, `warehouse_id`, `catalog`, `schema`, and `client_id`, then
