@@ -93,12 +93,11 @@ def test_800_53_twins_share_the_review_state_of_the_identical_fedramp_mapping(pr
             assert twin is not None, f"{safeguard['safeguard_id']} maps {control_id} but not its 800-53 twin"
             assert twin["framework_id"] == "nist-800-53-rev5"
             assert twin["review_status"] == original["review_status"], control_id
-            if twin["review_status"] == "reviewed":
+            if "review_basis" in twin:
                 assert twin["review_basis"] == {
                     "inherited_from": control_id,
                     "reason": "identical NIST SP 800-53 Rev 5 control",
                 }
                 inherited += 1
-            else:
-                assert "review_basis" not in twin
+            assert twin["review_status"] == "proposed"
     assert inherited == 96

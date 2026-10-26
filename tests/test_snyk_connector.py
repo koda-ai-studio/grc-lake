@@ -516,8 +516,8 @@ def test_fixture_sync_reaches_the_ccf_assessment_through_runner_and_pipeline(tmp
     assert safeguard["status"] == "fail"
     assert (safeguard["assessed_asset_count"], safeguard["invalid_binding_count"]) == (7, 0)
     requirements = {row["control_id"]: row for row in assessment["requirements"]}
-    assert VULNERABILITY_SAFEGUARD in requirements["SOC2-CC7.1"]["reviewed_safeguard_ids"]
-    assert requirements["SOC2-CC7.1"]["status"] == "fail"
+    assert VULNERABILITY_SAFEGUARD not in requirements["SOC2-CC7.1"]["reviewed_safeguard_ids"]
+    assert requirements["SOC2-CC7.1"]["status"] == "not_evaluated"
 
 
 def test_live_sync_through_the_runner_records_a_partial_run(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

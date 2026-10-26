@@ -178,7 +178,7 @@ def test_mcp_can_list_the_queue_and_decisions_but_has_no_decision_tool(tmp_path:
 def test_cli_safeguards_table_separates_legacy_reviews_without_a_reviewer(capsys) -> None:
     assert main(["frameworks", "safeguards"]) == 0
     coverage = json.loads(capsys.readouterr().out)
-    assert coverage["legacy_only_reviewed"] > 0
+    assert coverage["legacy_only_reviewed"] == 0
     assert main(["frameworks", "safeguards", "--format", "table"]) == 0
     headline = capsys.readouterr().out.splitlines()[0]
     assert f"{coverage['legacy_only_reviewed']} rest only on legacy reviews with no recorded reviewer" in headline

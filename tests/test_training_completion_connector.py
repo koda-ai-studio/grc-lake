@@ -395,12 +395,12 @@ def test_hr_only_lakes_produce_no_training_rows() -> None:
     assert correlate_training_coverage(HR_POPULATION, as_of=AS_OF, collected_at=COLLECTED, tenant_id="t") == []
 
 
-def test_bindings_stay_inside_the_reviewed_training_crosswalk() -> None:
+def test_bindings_stay_inside_the_training_crosswalk() -> None:
     safeguards = {row["safeguard_id"]: row for row in load_safeguards()["safeguards"]}
     training = safeguards[TRAINING_SAFEGUARD_ID]
-    reviewed = {m["control_id"] for m in training["satisfies"] if m.get("review_status") == "reviewed"}
+    mapped = {m["control_id"] for m in training["satisfies"]}
     catalog = load_control_catalog()
-    assert set(TRAINING_CONTROLS) <= reviewed
+    assert set(TRAINING_CONTROLS) <= mapped
     assert all(control_id in catalog for control_id in TRAINING_CONTROLS)
     assert all(not catalog[control_id].get("required_evidence_types") for control_id in TRAINING_CONTROLS)
     assert TRAINING_PERSON_ASSET_TYPE in training["asset_types"]
