@@ -351,3 +351,5 @@ receipts name their own revisions and workloads.
 | Contribute           | [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md)                                        |
 
 [All documentation](docs/README.md) · License: [Apache 2.0](LICENSE)
+
+<!-- mcp-name: io.github.koda-ai-studio/grc-lake -->

@@ -32,7 +32,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         from security_lakehouse.distributed.config import ClusterConfig
 
-        if ClusterConfig.from_env() is not None and args.command not in {"cluster", "serve", "scheduler", "db"}:
+        if ClusterConfig.from_env() is not None and args.command not in {"cluster", "serve", "scheduler", "db", "mcp"}:
             raise ValueError(
                 "distributed mode uses cluster commands or the authenticated API; local lake commands require local mode"
             )
@@ -1029,11 +1029,21 @@ def _parser() -> argparse.ArgumentParser:
     policy_rules = policy_sub.add_parser("rules", help="list the built-in named rules")
     policy_rules.set_defaults(func=_policy_rules)
 
+    mcp = sub.add_parser("mcp", help="run the MCP server over stdio (requires the 'mcp' extra)")
+    mcp.set_defaults(func=_mcp)
+
     openapi = sub.add_parser("openapi", help="export the server-mode OpenAPI schema (requires the 'server' extra)")
     openapi.add_argument("--out", default=None, help="write JSON to this path (default stdout)")
     openapi.set_defaults(func=_openapi)
 
     return parser
+
+
+def _mcp(args: argparse.Namespace) -> int:
+    from security_lakehouse import mcp_server
+
+    mcp_server.main()
+    return 0
 
 
 def _validate(args: argparse.Namespace) -> int:

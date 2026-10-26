@@ -3,6 +3,10 @@
 All notable GRC Lake changes are summarized here. Versions follow semver for the
 Python package, Helm chart, and bundled web console.
 
+## Unreleased
+
+- `grc-lake mcp` runs the MCP server (same as `grc-lake-mcp`), and the release workflow lists GRC Lake in the official MCP Registry as `io.github.koda-ai-studio/grc-lake` from `server.json`, verified by GitHub OIDC and a hidden `mcp-name` marker in the PyPI README. The registry entry launches `uvx --from "grc-lake[mcp]==<version>" grc-lake mcp`. A registry failure never blocks the PyPI package or the GitHub release.
+
 ## 0.3.16 - 2026-10-26
 
 - AWS and GCP collection-gap rows, and AWS inventory-absence rows, now sit on their own assets (`aws:account:<id>:collection:<collection>`, `aws:account:<id>:inventory`, `gcp:project:<id>:collection:<collection>`) instead of the account or project asset that carries the password-policy or org-policy verdict. A denied read or a missing CloudTrail trail no longer hides a failing verdict as `not_evaluated`. A collection gap from a source still keeps every safeguard that source binds from passing.
