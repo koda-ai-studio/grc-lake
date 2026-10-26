@@ -141,10 +141,10 @@
         "tests/test_gcp_non_human_identities.py"
       ],
       "live_record": {
-        "date": "2026-10-24",
-        "source_basis": "f4532d21",
-        "scope": "One project via user ADC: 183 raw records (187 with service accounts); counts reconciled with gcloud. No project-level organization policies exist; inherited/effective policy coverage unestablished.",
-        "reference": "docs/qualification/live/2026-10-24.md#gcp-posture"
+        "date": "2026-10-26",
+        "source_basis": "8b2500cf",
+        "scope": "One project with application-default credentials: 185 records recollected without duplicates; inherited org policies read from the effective policy (one enforced pass, one unenforced open, both checked with gcloud) move SG-IDENTITY-001 to fail. Not other projects, folders or organizations.",
+        "reference": "docs/qualification/live/2026-10-26-gcp-effective-policy.md#gcp-posture"
       },
       "owner": "maintainer"
     },
