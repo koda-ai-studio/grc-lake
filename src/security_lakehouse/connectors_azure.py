@@ -16,12 +16,23 @@ Two clients sit behind one interface, mirroring ``connectors_aws``:
   This keeps Azure Cloud Shell usable when the management SDK namespace shifts
   across installed versions.
 * :class:`AzureFixtureClient` — reads ``role_assignments.json`` /
-  ``policy_assignments.json`` / ``resources.json`` from a fixture directory so
-  collection is fully testable without live Azure credentials.
+  ``policy_assignments.json`` / ``resources.json`` /
+  ``security_assessments.json`` from a fixture directory so collection is fully
+  testable without live Azure credentials.
+
+Microsoft Defender for Cloud assessments are provider-evaluated verdicts, read
+through the ARM REST API (no extra SDK): ``GET
+https://management.azure.com/subscriptions/{id}/providers/Microsoft.Security/assessments?api-version=2021-06-01``
+(https://learn.microsoft.com/rest/api/defenderforcloud-composite/assessments/list).
+Pages carry ``value`` and ``nextLink``; ``properties.status.code`` is
+``Healthy``, ``Unhealthy`` or ``NotApplicable``. Reader or Security Reader
+grants ``Microsoft.Security/assessments/read``
+(https://learn.microsoft.com/azure/defender-for-cloud/permissions).
 
 The collector is strictly read-only and least-privilege: it only ever issues
 list/read operations (``roleAssignments/read``, ``policyStates/read``,
-``subscriptions/read`` and resource list reads) and never mutates Azure state.
+``subscriptions/read``, ``Microsoft.Security/assessments/read`` and resource
+list reads) and never mutates Azure state.
 """
 
 from __future__ import annotations
@@ -30,11 +41,18 @@ import json
 import re
 import shutil
 import subprocess
+import urllib.error
+import urllib.parse
+import urllib.request
+from collections.abc import Callable
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from security_lakehouse import netguard
 from security_lakehouse.connector_errors import (
+    CollectionGapError,
     ConnectorAccessError,
     ConnectorConfigError,
     ConnectorOperatorError,
@@ -43,6 +61,8 @@ from security_lakehouse.connector_ids import stable_id_slug
 from security_lakehouse.delegation import azure_credential
 from security_lakehouse.execution_mode import in_server_mode
 from security_lakehouse.identity import classify_identity_type
+from security_lakehouse.ingestion import backoff
+from security_lakehouse.ingestion.paginate import IncompleteCollectionError, paginate
 from security_lakehouse.io import read_json
 from security_lakehouse.models import utc_iso
 from security_lakehouse.runtime_environment import runtime_env
@@ -66,7 +86,67 @@ BUILTIN_PRIVILEGED_ROLES = {
     "18d7d88d-d35e-4fb5-a5c3-7773c20a72d9": "User Access Administrator",
 }
 
+ARM_HOST = "management.azure.com"
+ARM_TOKEN_SCOPE = "https://management.azure.com/.default"
+SECURITY_ASSESSMENTS_API_VERSION = "2021-06-01"
+SECURITY_ASSESSMENTS_COLLECTION = "security_assessments"
+SECURITY_ASSESSMENTS_PERMISSION = "Microsoft.Security/assessments/read (Reader or Security Reader)"
+DEFAULT_ASSESSMENT_MAX_PAGES = 200
+ARM_TIMEOUT = 30
+
+# Defender status codes; NotApplicable means the assessment did not run, so it
+# is an observation and never a pass. Any other code is an unknown outcome.
+ASSESSMENT_STATUS = {"healthy": "pass", "unhealthy": "open", "notapplicable": "observed"}
+BINDABLE_STATUSES = {"pass", "open", "not_evaluated"}
+
+IDENTITY_SAFEGUARD_CONTROLS = ("SOC2-CC6.1", "ISO27001-A.5.15", "HIPAA-164.308(a)(4)")
+DATA_PROTECTION_CONTROLS = ("SOC2-CC6.7", "ISO27001-A.8.24")
+LOGGING_CONTROLS = ("SOC2-CC7.2", "ISO27001-A.8.15", "HIPAA-164.312(b)")
+VULNERABILITY_CONTROLS = ("SOC2-CC7.1", "ISO27001-A.8.8")
+
+
+@dataclass(frozen=True)
+class AssessmentSafeguard:
+    """A reviewed binding of one built-in Defender assessment to one safeguard."""
+
+    safeguard_id: str
+    asset_type: str
+    controls: tuple[str, ...]
+
+
+# Built-in Defender assessment keys, verified against Microsoft's published
+# assessment metadata (Microsoft.Security/assessmentMetadata). Bind only where
+# the assessment's subject is what the safeguard definition assesses and the
+# asset type is one it accepts; every other assessment keeps its verdict
+# unbound. Subscription-scoped keys land on the subscription (account_config),
+# resource-scoped keys on the resource (cloud_resource).
+_IDENTITY = AssessmentSafeguard("SG-IDENTITY-001", "account_config", IDENTITY_SAFEGUARD_CONTROLS)
+_DATA_PROTECTION = AssessmentSafeguard("SG-DATAPROTECTION-001", "cloud_resource", DATA_PROTECTION_CONTROLS)
+DEFENDER_ASSESSMENT_SAFEGUARDS: dict[str, AssessmentSafeguard] = {
+    # Disabled accounts with owner / read and write permissions should be removed.
+    "050ac097-3dda-4d24-ab6d-82568e7a50cf": _IDENTITY,
+    "a4899b81-b689-4e0d-aa29-45983ab8b7fc": _IDENTITY,
+    "1ff0b4c9-ed56-4de6-be9c-d7ab39645926": _IDENTITY,
+    "9b4f4dd4-24fc-42ba-9978-2a1cf575d36d": _IDENTITY,
+    # Guest accounts with owner / write permissions should be removed.
+    "20606e75-05c4-48c0-9d97-add6daa2109a": _IDENTITY,
+    "f2864482-b329-4310-8c06-3cf74fe880c5": _IDENTITY,
+    "0354476c-a12a-4fcc-a79d-f0ab7ffffdbb": _IDENTITY,
+    "009678ce-adce-4c94-9cc8-cfc2bd0c6a06": _IDENTITY,
+    # Secure transfer to storage accounts should be enabled (in transit).
+    "1c5de8e1-f68d-6a17-e0d2-ec259c42768c": _DATA_PROTECTION,
+    # Transparent Data Encryption on SQL databases should be enabled (at rest).
+    "651967bf-044e-4bde-8376-3e08e0600105": _DATA_PROTECTION,
+    # Diagnostic logs in Key Vault should be enabled.
+    "88bbc99c-e5af-ddd7-6105-6150b2bfa519": AssessmentSafeguard("SG-LOGGING-001", "cloud_resource", LOGGING_CONTROLS),
+    # Machines should have vulnerability findings resolved.
+    "1195afff-c881-495e-9bc5-1486211ae03f": AssessmentSafeguard(
+        "SG-VULNERABILITYMANAGEMENT-001", "cloud_resource", VULNERABILITY_CONTROLS
+    ),
+}
+
 _SAFE_ERROR_CODE = re.compile(r"^[A-Za-z][A-Za-z0-9.]{0,63}$")
+_SUBSCRIPTION_SCOPE = re.compile(r"/subscriptions/([^/]+)/?", re.IGNORECASE)
 _CREDENTIALS_UNAVAILABLE = (
     "Azure credentials are unavailable: DefaultAzureCredential found no usable identity "
     "(run az login, or configure a managed identity or service-principal environment variables)"
@@ -126,6 +206,122 @@ def probe_azure_access(*, credentials: dict[str, Any], options: dict[str, Any]) 
         "subscription_state": str(subscription.get("state") or "unknown"),
         "capabilities": ["Microsoft.Resources/subscriptions/read"],
     }
+
+
+def _require_arm_url(url: str) -> str:
+    parts = urllib.parse.urlsplit(url)
+    if parts.scheme != "https" or parts.hostname != ARM_HOST or parts.netloc != ARM_HOST:
+        raise ValueError("Azure security assessments collection incomplete: a link left the ARM host")
+    return url
+
+
+class ArmSecurityAssessmentReader:
+    """Read-only, paged ARM list of a subscription's Defender for Cloud assessments.
+
+    Requests go only to ``management.azure.com`` over HTTPS, the first built from
+    the subscription id and every ``nextLink`` checked against that host (and
+    revalidated on redirects). Pages are bounded; 429 and transient 5xx retry
+    with ``Retry-After``. Refusals become a ``security_assessments`` collection
+    gap; provider error text and the token are never copied.
+    """
+
+    def __init__(
+        self,
+        subscription_id: str,
+        *,
+        token_provider: Callable[[], str],
+        max_pages: int = DEFAULT_ASSESSMENT_MAX_PAGES,
+        timeout: int = ARM_TIMEOUT,
+        sleep: Callable[[float], Any] | None = None,
+    ) -> None:
+        self.subscription_id = subscription_id
+        self.max_pages = max_pages
+        self.timeout = timeout
+        self._token_provider = token_provider
+        self._sleep = sleep
+
+    def __repr__(self) -> str:
+        return f"ArmSecurityAssessmentReader(subscription_id={self.subscription_id!r})"
+
+    def assessments(self) -> list[dict[str, Any]]:
+        subscription = urllib.parse.quote(self.subscription_id, safe="")
+        first = (
+            f"https://{ARM_HOST}/subscriptions/{subscription}/providers/Microsoft.Security/assessments"
+            f"?api-version={SECURITY_ASSESSMENTS_API_VERSION}"
+        )
+        return list(
+            paginate(lambda link: self._get(link or first), _assessment_page_rows, _next_link, max_pages=self.max_pages)
+        )
+
+    def _get(self, url: str) -> dict[str, Any]:
+        request = urllib.request.Request(
+            _require_arm_url(url),
+            method="GET",
+            headers={
+                "accept": "application/json",
+                "authorization": f"Bearer {self._token_provider()}",
+                "user-agent": "grc-lake",
+            },
+        )
+        try:
+            payload = backoff.http_retry(lambda: self._open(request), sleep=self._sleep)
+        except urllib.error.HTTPError as exc:
+            raise _assessment_http_gap(exc.code) from None
+        if not isinstance(payload, dict):
+            raise ValueError("Azure security assessments collection incomplete: a page was not an object")
+        return payload
+
+    def _open(self, request: urllib.request.Request) -> Any:
+        with netguard.open_guarded(request, timeout=self.timeout, validate=_require_arm_url, label="azure") as resp:
+            return json.loads(resp.read().decode("utf-8"))
+
+
+def _assessment_page_rows(page: dict[str, Any]) -> list[dict[str, Any]]:
+    rows = page.get("value")
+    if not isinstance(rows, list) or any(not isinstance(row, dict) for row in rows):
+        raise ValueError("Azure security assessments collection incomplete: expected an array of objects")
+    return rows
+
+
+def _next_link(page: dict[str, Any]) -> str | None:
+    link = page.get("nextLink")
+    if link is None or link == "":
+        return None
+    if not isinstance(link, str):
+        raise ValueError("Azure security assessments collection incomplete: malformed nextLink")
+    return _require_arm_url(link)
+
+
+def _assessment_http_gap(status: int) -> CollectionGapError:
+    reason = {401: "unauthorized", 403: "permission_denied", 404: "not_found"}.get(status, "read_failed")
+    return CollectionGapError(
+        f"Azure Defender for Cloud assessments were not collected (HTTP {status})",
+        collection=SECURITY_ASSESSMENTS_COLLECTION,
+        reason=reason,
+        api="Microsoft.Security/assessments",
+        permission=SECURITY_ASSESSMENTS_PERMISSION if status in {401, 403} else None,
+    )
+
+
+def _assessment_gap(exc: Exception) -> CollectionGapError:
+    """Turn any failed assessment read into an operator-safe coverage gap."""
+    if isinstance(exc, CollectionGapError):
+        return exc
+    if isinstance(exc, IncompleteCollectionError):
+        reason, detail = "page_budget_exhausted", "the page budget was exhausted"
+    elif isinstance(exc, ValueError):
+        reason, detail = "invalid_data", "the response was malformed or incomplete"
+    elif isinstance(exc, ConnectorAccessError) and "AuthorizationFailed" in str(exc):
+        reason, detail = "permission_denied", "AuthorizationFailed"
+    else:
+        reason, detail = "read_failed", "read failed"
+    return CollectionGapError(
+        f"Azure Defender for Cloud assessments were not collected ({detail})",
+        collection=SECURITY_ASSESSMENTS_COLLECTION,
+        reason=reason,
+        api="Microsoft.Security/assessments",
+        permission=SECURITY_ASSESSMENTS_PERMISSION if reason == "permission_denied" else None,
+    )
 
 
 def build_azure_client(
@@ -214,6 +410,18 @@ class AzureClient:
     def resources(self) -> list[dict[str, Any]]:
         return [self._as_dict(item) for item in self._resources.resources.list()]
 
+    def security_assessments(self) -> list[dict[str, Any]]:
+        return ArmSecurityAssessmentReader(self.subscription_id, token_provider=self._arm_token).assessments()
+
+    def _arm_token(self) -> str:
+        try:
+            return str(self._credential.get_token(ARM_TOKEN_SCOPE).token)
+        except Exception as exc:
+            mapped = _azure_access_error(exc, self.subscription_id)
+            if mapped is None:
+                raise
+            raise mapped from None
+
     @staticmethod
     def _as_dict(item: Any) -> dict[str, Any]:
         if isinstance(item, dict):
@@ -260,6 +468,9 @@ class AzureCliClient:
 
     def resources(self) -> list[dict[str, Any]]:
         return self._run_json(["resource", "list"])
+
+    def security_assessments(self) -> list[dict[str, Any]]:
+        return self._run_json(["security", "assessment", "list"])
 
     def _run_json(self, args: list[str], *, single_object: bool = False) -> list[dict[str, Any]]:
         cmd = [self._az, *args, "--subscription", self.subscription_id, "--output", "json"]
@@ -326,6 +537,14 @@ class AzureFixtureClient:
     def resources(self) -> list[dict[str, Any]]:
         return self._read_list("resources.json")
 
+    def security_assessments(self) -> list[dict[str, Any]]:
+        payload = self._read("security_assessments.json")
+        return (
+            _assessment_page_rows(payload)
+            if isinstance(payload, dict)
+            else self._read_list("security_assessments.json")
+        )
+
     def _read(self, name: str) -> Any:
         path = self.fixture / name
         return read_json(path) if path.exists() else []
@@ -352,7 +571,10 @@ def collect_azure_evidence(
       scope is a high open finding for review),
     * one policy-assignment event per Azure Policy assignment (-> policy
       controls; a disabled enforcement mode is an open finding),
-    * one resource event per subscription resource (-> resource controls).
+    * one resource event per subscription resource (-> resource controls),
+    * one Defender for Cloud assessment verdict per assessed resource; keys in
+      :data:`DEFENDER_ASSESSMENT_SAFEGUARDS` bind to their safeguard. An
+      unreadable assessment list is a coverage gap, never an empty success.
 
     Every event passes :func:`security_lakehouse.validation.validate_raw_events`.
     """
@@ -371,12 +593,108 @@ def collect_azure_evidence(
         if event is not None:
             rows.append(event)
 
+    inventoried: dict[str, str] = {}
     for resource in client.resources():
         event = _resource_event(subscription, resource, now, tenant_id)
         if event is not None:
             rows.append(event)
+            resource_id = event["attributes"]["resource_id"]
+            inventoried.setdefault(resource_id.lower(), resource_id)
+
+    try:
+        assessments = client.security_assessments()
+    except (RuntimeError, ValueError, OSError) as exc:
+        rows.append(_gap_event(subscription, _assessment_gap(exc), now, tenant_id))
+    else:
+        for assessment in assessments:
+            event = _assessment_event(subscription, assessment, now, tenant_id, inventoried)
+            if event is not None:
+                rows.append(event)
 
     return rows
+
+
+def _assessment_event(
+    subscription: str,
+    assessment: dict[str, Any],
+    collected_at: datetime,
+    tenant_id: str,
+    inventoried: dict[str, str],
+) -> dict[str, Any] | None:
+    props = _props(assessment)
+    assessment_id = str(assessment.get("id") or "").strip()
+    key = str(assessment.get("name") or "").strip().lower()
+    if not assessment_id or not key:
+        return None
+    details = props.get("resourceDetails") or props.get("resource_details") or {}
+    details = details if isinstance(details, dict) else {}
+    resource_id = str(details.get("id") or details.get("Id") or "").strip()
+    source = str(details.get("source") or details.get("Source") or "").strip()
+    raw_status = props.get("status")
+    status_body: dict[str, Any] = raw_status if isinstance(raw_status, dict) else {}
+    code = str(status_body.get("code") or "").strip()
+    status = ASSESSMENT_STATUS.get(code.lower(), "not_evaluated")
+
+    subscription_scope = _SUBSCRIPTION_SCOPE.fullmatch(resource_id)
+    if subscription_scope:
+        asset_id, asset_type = f"azure:subscription:{_subscription_slug(subscription_scope[1])}", "account_config"
+    elif source.lower() == "azure" and resource_id.startswith("/"):
+        canonical = inventoried.get(resource_id.lower(), resource_id)
+        asset_id, asset_type = f"azure:resource:{_id_slug(canonical)}", "cloud_resource"
+    else:
+        # On-premises machines and SQL servers carry no Azure resource id.
+        asset_id, asset_type = f"azure:assessed-host:{_id_slug(assessment_id)}", "host"
+
+    mapping = DEFENDER_ASSESSMENT_SAFEGUARDS.get(key)
+    if mapping is not None and mapping.asset_type != asset_type:
+        mapping = None
+    row = _event(
+        subscription=subscription,
+        collected_at=collected_at,
+        tenant_id=tenant_id,
+        signal="security_assessment",
+        dedupe_key=assessment_id,
+        event_type="azure.security.assessment",
+        asset_id=asset_id,
+        asset_type=asset_type,
+        controls=list(mapping.controls) if mapping else [],
+        status=status,
+        severity="medium" if status == "open" else "info",
+        evidence_ref=assessment_id,
+        attributes={
+            "assessment_id": assessment_id,
+            "assessment_key": key,
+            "display_name": str(props.get("displayName") or props.get("display_name") or "").strip(),
+            "status_code": code or None,
+            "status_cause": status_body.get("cause"),
+            "status_change_date": status_body.get("statusChangeDate") or status_body.get("status_change_date"),
+            "resource_id": resource_id or None,
+            "resource_source": source or None,
+            "mapped_safeguard_id": mapping.safeguard_id if mapping else None,
+        },
+    )
+    if mapping is not None and status in BINDABLE_STATUSES:
+        row["safeguard_ids"] = [mapping.safeguard_id]
+    return row
+
+
+def _gap_event(subscription: str, gap: CollectionGapError, collected_at: datetime, tenant_id: str) -> dict[str, Any]:
+    """A coverage-gap row on its own scope asset, so no evidence asset gains a second type."""
+    return _event(
+        subscription=subscription,
+        collected_at=collected_at,
+        tenant_id=tenant_id,
+        signal="collection_gap",
+        dedupe_key=gap.collection,
+        event_type="azure.collection_gap",
+        asset_id=f"azure:collection-scope:{subscription}",
+        asset_type="collection_scope",
+        controls=[],
+        status="open",
+        severity="low",
+        evidence_ref=f"azure:{subscription}:collection-gap:{gap.collection}",
+        attributes=gap.attributes(),
+    )
 
 
 def _role_assignment_event(

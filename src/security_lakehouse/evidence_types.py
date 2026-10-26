@@ -12,6 +12,7 @@ PROVIDER_EVENT_ALIASES: dict[str, tuple[str, ...]] = {
     "azure.cloud.policy_assignment": ("cloud.config", "identity.access_review"),
     "azure.cloud.resource": ("cloud.config",),
     "azure.cloud.role_assignment": ("cloud.config", "identity.access_review"),
+    "azure.security.assessment": ("cloud.config",),
     "gcp.cloud.asset": ("cloud.config",),
     "gcp.cloud.iam_binding": ("cloud.config", "identity.access_review"),
     "gcp.cloud.org_policy": ("cloud.config", "identity.access_review"),

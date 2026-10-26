@@ -140,9 +140,15 @@ connector reads:
 - role assignments
 - policy assignments
 - subscription resources
+- Microsoft Defender for Cloud assessments (`Microsoft.Security/assessments/read`)
 
 For a POC, built-in `Reader` at subscription scope is usually enough for resource
-and policy inventory. For many subscriptions, grant at management-group scope or
+and policy inventory. It also covers Defender for Cloud assessments; `Security
+Reader` is the narrower Defender-only alternative for that read
+([Defender for Cloud permissions](https://learn.microsoft.com/azure/defender-for-cloud/permissions)).
+A denied assessment read is recorded as a coverage gap and the rest of the sync
+still lands; see
+[Azure Defender for Cloud assessments](CONNECTORS.md#azure-defender-for-cloud-assessments). For many subscriptions, grant at management-group scope or
 roll the same assignment across subscriptions, then import the subscription IDs.
 
 To grant a GRC Lake managed identity or Entra app read access:
