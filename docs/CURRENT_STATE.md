@@ -1,14 +1,16 @@
 # Current state and coverage
 
-Release verification: **2026-10-25**. Latest published release checked: **v0.3.13**.
-See the [publication receipt](RELEASE_READINESS.md#verified-0313-publication) for artifact and runtime evidence.
+Release verification: **2026-10-26**. Latest published release checked: **v0.3.14**.
+See the [publication receipt](RELEASE_READINESS.md#verified-0314-publication) for artifact and runtime evidence.
 Changes on `main` or in a pull request can be newer than the published package. Check the [releases](https://github.com/koda-ai-studio/grc-lake/releases)
 and [changelog](../CHANGELOG.md) for the version you install.
 
-The 0.3.14 candidate adds Databricks completeness/recovery checks, focused
-mapping-review packets and an accepted [local graph profile](benchmarks/RELEASE_PROFILE.md).
-See [candidate release gates](RELEASE_READINESS.md#0314-candidate); these changes
-are not a verified published release. The [pilot guide](PILOT.md) provides an
+0.3.14 reports a framework result only for a CCF pass through reviewed mappings,
+in the console, OSCAL export, public trust summary and CLI; binds AWS, GitHub,
+Okta, Google Workspace and GCP verdicts to safeguards; records the maintainer's
+SOC 2 and ISO 27001 batch review; and adds Databricks completeness checks. See the
+[0.3.14 notes](RELEASE_READINESS.md#0314-candidate) and
+[publication receipt](RELEASE_READINESS.md#verified-0314-publication). The [pilot guide](PILOT.md) provides an
 optional real-workflow evaluation and repeat-use check without telemetry.
 
 ## What you can use
