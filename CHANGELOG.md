@@ -3,6 +3,10 @@
 All notable GRC Lake changes are summarized here. Versions follow semver for the
 Python package, Helm chart, and bundled web console.
 
+## Unreleased
+
+- GCP `iam.disableServiceAccountKeyCreation` and `compute.requireOsLogin` constraints that are not set on the project are now evaluated from their effective (inherited) policy, so an organization or folder enforcement can pass `SG-IDENTITY-001` and an unenforced one fails it. A conditional or list rule, or an effective policy that cannot be read (new permission `orgpolicy.policy.get`, in `roles/orgpolicy.policyViewer`), stays `not_evaluated` and is reported as a coverage gap.
+
 ## 0.3.14 - 2026-10-26
 
 - The Overview's assessed-coverage tile now states how many requirements are attested ("3 attested" on the demo), using the same count as the Controls page, and an overflowing graph node inspector fades at its bottom edge so it reads as scrollable. All 42 demo screenshots were retaken; the Evidence capture had still shown 56 records instead of 59.

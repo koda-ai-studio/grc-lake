@@ -18,8 +18,8 @@ Two clients sit behind one interface, mirroring ``connectors_aws``:
   without live GCP credentials.
 
 The collector is strictly read-only and least-privilege: it only ever issues
-``GetIamPolicy`` / ``ListOrgPolicies`` / ``ListAssets`` style reads and never
-mutates GCP state.
+``GetIamPolicy`` / ``ListOrgPolicies`` / ``GetEffectivePolicy`` / ``ListAssets``
+style reads and never mutates GCP state.
 """
 
 from __future__ import annotations
@@ -67,9 +67,10 @@ EXPECTED_ENFORCED_CONSTRAINTS = {
 }
 # Expected-constraint verdicts bind to the logical access and MFA safeguard,
 # which accepts account_config and carries POLICY_CONTROLS. The project passes
-# only when every expected constraint is enforced: a bound not_evaluated (unset
-# or conditional) blocks the pass. Privileged-role and public-member bindings
-# are review signals, and observations stay unbound.
+# only when every expected constraint is enforced: a bound not_evaluated
+# (conditional, or an unreadable effective policy) blocks the pass.
+# Privileged-role and public-member bindings are review signals, and
+# observations stay unbound.
 IDENTITY_SAFEGUARD = "SG-IDENTITY-001"
 BINDABLE_STATUSES = {"pass", "open", "not_evaluated"}
 
@@ -107,6 +108,12 @@ ASSET_COLLECTION = _Collection(
     "cloudasset.googleapis.com",
     "cloudasset.assets.listResource",
 )
+# An expected constraint not set on the project is evaluated from its effective
+# (inherited) policy. Google's REST reference names the permission
+# orgpolicy.policies.get, but the IAM permission that exists, and that
+# roles/orgpolicy.policyViewer grants, is orgpolicy.policy.get.
+EFFECTIVE_ORG_POLICY_PERMISSION = "orgpolicy.policy.get"
+EFFECTIVE_ORG_POLICY_COLLECTION = "effective_org_policies"
 SERVICE_ACCOUNT_COLLECTION = _Collection(
     "service_accounts", "service accounts", "IAM API", "iam.googleapis.com", "iam.serviceAccounts.list"
 )
@@ -165,7 +172,45 @@ def _collection_error(exc: Exception, collection: _Collection, project_id: str) 
             api=None,
             permission=permission,
         )
-    return ConnectorAccessError(_READ_FAILED[collection.key])
+    return ConnectorAccessError(_READ_FAILED.get(collection.key, f"GCP collection incomplete: {collection.label}"))
+
+
+def _effective_collection(identifier: str) -> _Collection:
+    return _Collection(
+        f"{EFFECTIVE_ORG_POLICY_COLLECTION}:{identifier}",
+        f"effective policy for {identifier}",
+        ORG_POLICY_COLLECTION.api_label,
+        ORG_POLICY_COLLECTION.api,
+        EFFECTIVE_ORG_POLICY_PERMISSION,
+    )
+
+
+def _effective_read_failed(identifier: str, project_id: str) -> CollectionGapError:
+    return CollectionGapError(
+        f"effective policy for {identifier} could not be read on project {_project_slug(project_id)}; "
+        "its enforcement was not evaluated",
+        collection=_effective_collection(identifier).key,
+        reason="read_failed",
+    )
+
+
+def _boolean_enforcement(spec: Any) -> bool | None:
+    """Only an explicit unconditional boolean rule establishes enforcement.
+
+    Conditions, reset, and list (values/allow/deny) rules cannot be reduced to
+    one verdict for the project, so they yield ``None``.
+    """
+    rules = getattr(spec, "rules", []) if spec is not None else []
+    if len(rules) != 1 or getattr(spec, "reset", False):
+        return None
+    rule = rules[0]
+    condition = getattr(getattr(rule, "condition", None), "expression", "")
+    protobuf = getattr(rule, "_pb", None)
+    kind = protobuf.WhichOneof("kind") if protobuf is not None else None
+    value = getattr(rule, "enforce", None)
+    if not condition and isinstance(value, bool) and (protobuf is None or kind == "enforce"):
+        return value
+    return None
 
 
 def _items(payload: Any, collection: _Collection) -> Iterator[Any]:
@@ -314,30 +359,38 @@ class GCPClient:
         try:
             listing = self._org_policies.list_policies(parent=f"projects/{self.project_id}")
             for policy in _items(listing, ORG_POLICY_COLLECTION):
-                spec = getattr(policy, "spec", None)
-                rules = getattr(spec, "rules", []) if spec is not None else []
-                # Only an explicit unconditional boolean rule establishes the
-                # listed policy's enforcement. Conditions and reset/list rules
-                # require effective-policy evaluation, not an any(True) guess.
-                enforced = None
-                if len(rules) == 1 and not getattr(spec, "reset", False):
-                    rule = rules[0]
-                    condition = getattr(getattr(rule, "condition", None), "expression", "")
-                    protobuf = getattr(rule, "_pb", None)
-                    kind = protobuf.WhichOneof("kind") if protobuf is not None else None
-                    value = getattr(rule, "enforce", None)
-                    if not condition and isinstance(value, bool) and (protobuf is None or kind == "enforce"):
-                        enforced = value
                 policies.append(
                     {
                         "name": getattr(policy, "name", ""),
                         "constraint": getattr(policy, "name", "").split("/policies/")[-1],
-                        "enforced": enforced,
+                        "enforced": _boolean_enforcement(getattr(policy, "spec", None)),
                     }
                 )
         except Exception as exc:  # noqa: BLE001 - provider details must not enter stored errors
             raise _collection_error(exc, ORG_POLICY_COLLECTION, self.project_id) from None
         return _validated_records(policies, ORG_POLICY_COLLECTION)
+
+    def effective_org_policy(self, constraint: str) -> dict[str, Any]:
+        """Read one constraint's effective policy (``GetEffectivePolicy``).
+
+        Any failure, including 404 and a malformed response, is a gap for that
+        constraint so its verdict stays ``not_evaluated``.
+        """
+        identifier = constraint.removeprefix("constraints/")
+        try:
+            if self._org_policies is None:
+                raise ValueError("org policy client unavailable")
+            policy = self._org_policies.get_effective_policy(name=f"projects/{self.project_id}/policies/{identifier}")
+            spec = getattr(policy, "spec", None)
+            if spec is None or isinstance(policy, (str, bytes, Mapping)):
+                raise ValueError("malformed effective policy")
+            enforced = _boolean_enforcement(spec)
+        except Exception as exc:  # noqa: BLE001 - provider details must not enter stored errors
+            error = _collection_error(exc, _effective_collection(identifier), self.project_id)
+            if isinstance(error, CollectionGapError):
+                raise error from None
+            raise _effective_read_failed(identifier, self.project_id) from None
+        return {"constraint": f"constraints/{identifier}", "enforced": enforced}
 
     def assets(self) -> list[dict[str, Any]]:
         assets: list[dict[str, Any]] = []
@@ -373,6 +426,23 @@ class GCPFixtureClient:
 
     def assets(self) -> list[dict[str, Any]]:
         return self._read_collection(ASSET_COLLECTION, "assets")
+
+    def effective_org_policy(self, constraint: str) -> dict[str, Any]:
+        """Read ``effective_org_policies.json``; a missing file or constraint is a gap."""
+        identifier = constraint.removeprefix("constraints/")
+        try:
+            payload = read_json(self.fixture / f"{EFFECTIVE_ORG_POLICY_COLLECTION}.json")
+        except (OSError, ValueError):
+            raise _effective_read_failed(identifier, self.project_id) from None
+        for record in payload if isinstance(payload, list) else []:
+            if not isinstance(record, dict):
+                break
+            if str(record.get("constraint", "")).removeprefix("constraints/") == identifier:
+                enforced = record.get("enforced")
+                if enforced is None or isinstance(enforced, bool):
+                    return {"constraint": f"constraints/{identifier}", "enforced": enforced}
+                break
+        raise _effective_read_failed(identifier, self.project_id)
 
     def _read_collection(self, collection: _Collection, key: str | None = None) -> list[dict[str, Any]]:
         try:
@@ -454,18 +524,26 @@ def collect_gcp_evidence(
     rows.extend(policy_rows)
     if not any(gap.collection == ORG_POLICY_COLLECTION.key for gap in gaps):
         # The listing returns only policies set on the project; an expected
-        # constraint missing from it is inherited or at its default, which only
-        # an effective-policy read could establish.
+        # constraint missing from it is inherited or at its default, which the
+        # effective policy establishes. A failed read stays not_evaluated.
         listed = {row["attributes"]["constraint"] for row in policy_rows}
         for constraint in sorted(EXPECTED_ENFORCED_CONSTRAINTS - listed):
-            unset = {"name": f"projects/{project}/policies/{constraint}", "constraint": constraint, "enforced": None}
-            rows.append(_policy_event(project, unset, now, tenant_id, set_on_project=False))
+            unset: dict[str, Any] = {"constraint": constraint, "enforced": None}
+            effective = False
+            try:
+                unset["enforced"] = client.effective_org_policy(constraint).get("enforced")
+                effective = True
+            except CollectionGapError as gap:
+                gaps.append(gap)
+            rows.append(_policy_event(project, unset, now, tenant_id, set_on_project=False, effective=effective))
 
     for asset in read(client.assets, ASSET_COLLECTION):
         rows.append(_asset_event(project, asset, now, tenant_id))
 
-    if len(gaps) == 3:
-        raise ConnectorAccessError("GCP collection failed: " + "; ".join(gap.message for gap in gaps))
+    base_keys = {IAM_COLLECTION.key, ORG_POLICY_COLLECTION.key, ASSET_COLLECTION.key}
+    base_gaps = [gap for gap in gaps if gap.collection in base_keys]
+    if len(base_gaps) == 3:
+        raise ConnectorAccessError("GCP collection failed: " + "; ".join(gap.message for gap in base_gaps))
     if include_non_human_identities:
         binding_available = not any(gap.collection == "iam_bindings" for gap in gaps)
         rows.extend(_service_account_events(client, project, bindings, binding_available, now, tenant_id))
@@ -636,6 +714,7 @@ def _policy_event(
     tenant_id: str,
     *,
     set_on_project: bool = True,
+    effective: bool = False,
 ) -> dict[str, Any]:
     resource = str(policy.get("constraint") or policy.get("name") or "")
     identifier = resource.split("/policies/")[-1].removeprefix("constraints/")
@@ -660,13 +739,15 @@ def _policy_event(
         controls=POLICY_CONTROLS,
         status=status,
         severity="medium" if needs_enforcement else "info",
-        evidence_ref=f"//orgpolicy.googleapis.com/projects/{project}/policies/{identifier}",
+        evidence_ref=f"//orgpolicy.googleapis.com/projects/{project}/policies/{identifier}"
+        + (":getEffectivePolicy" if effective else ""),
         attributes={
             "constraint": constraint,
             "enforced": enforced,
             "expected_enforced": expected,
             "needs_enforcement": needs_enforcement,
             "set_on_project": set_on_project,
+            "effective": effective,
         },
     )
     if status in BINDABLE_STATUSES:

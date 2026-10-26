@@ -119,3 +119,85 @@ def test_real_gcp_sdk_boolean_rule_retains_explicit_enforcement(enforce, expecte
     collected = client.org_policies()[0]
     assert collected["enforced"] is enforce
     assert gcp._policy_event("project", collected, NOW, "tenant")["status"] == expected
+
+
+def _effective_client(response):
+    calls = []
+
+    def get_effective_policy(**kwargs):
+        calls.append(kwargs)
+        if isinstance(response, Exception):
+            raise response
+        return response
+
+    client = gcp.GCPClient.__new__(gcp.GCPClient)
+    client.project_id = "project"
+    client._org_policies = SimpleNamespace(get_effective_policy=get_effective_policy)
+    return client, calls
+
+
+@pytest.mark.parametrize("enforce,expected", [(True, "pass"), (False, "open")])
+def test_real_gcp_sdk_effective_policy_establishes_inherited_enforcement(enforce, expected):
+    sdk = pytest.importorskip("google.cloud.orgpolicy_v2")
+    policy = sdk.Policy(
+        name="projects/123/policies/compute.requireOsLogin",
+        spec=sdk.PolicySpec(rules=[sdk.PolicySpec.PolicyRule(enforce=enforce)]),
+    )
+    client, calls = _effective_client(policy)
+    collected = client.effective_org_policy("constraints/compute.requireOsLogin")
+    assert calls == [{"name": "projects/project/policies/compute.requireOsLogin"}]
+    assert collected["enforced"] is enforce
+    row = gcp._policy_event("project", collected, NOW, "tenant", set_on_project=False, effective=True)
+    assert row["status"] == expected
+    assert row["safeguard_ids"] == ["SG-IDENTITY-001"]
+
+
+def test_real_gcp_sdk_effective_policy_without_unconditional_enforcement_is_not_evaluated():
+    sdk = pytest.importorskip("google.cloud.orgpolicy_v2")
+    rule = sdk.PolicySpec.PolicyRule
+    tagged = {"expression": "resource.matchTag('123/env', 'prod')"}
+    specs = [
+        sdk.PolicySpec(rules=[rule(enforce=False), rule(enforce=True, condition=tagged)]),
+        sdk.PolicySpec(rules=[rule(values=rule.StringValues(allowed_values=["x"]))]),
+        sdk.PolicySpec(rules=[]),
+        sdk.PolicySpec(reset=True),
+    ]
+    for spec in specs:
+        policy = sdk.Policy(name="projects/123/policies/compute.requireOsLogin", spec=spec)
+        client, _calls = _effective_client(policy)
+        collected = client.effective_org_policy("constraints/compute.requireOsLogin")
+        assert collected["enforced"] is None
+        row = gcp._policy_event("project", collected, NOW, "tenant", set_on_project=False, effective=True)
+        assert row["status"] == "not_evaluated"
+
+
+class _GoogleError(Exception):
+    def __init__(self, message, *, code, reason=None, metadata=None):
+        super().__init__(message)
+        self.message = message
+        self.code = code
+        self.reason = reason
+        self.metadata = metadata or {}
+
+
+@pytest.mark.parametrize(
+    "failure,reason,permission",
+    [
+        (_GoogleError("denied private-value", code=403), "permission_denied", "orgpolicy.policy.get"),
+        (_GoogleError("not found private-value", code=404), "read_failed", None),
+        (_GoogleError("backend private-value", code=500), "read_failed", None),
+        (None, "read_failed", None),
+        ("private-value", "read_failed", None),
+    ],
+    ids=["403", "404", "500", "empty-response", "malformed-response"],
+)
+def test_failed_effective_policy_read_is_a_named_gap_without_provider_text(failure, reason, permission):
+    client, _calls = _effective_client(failure)
+    with pytest.raises(gcp.CollectionGapError) as caught:
+        client.effective_org_policy("constraints/iam.disableServiceAccountKeyCreation")
+    gap = caught.value
+    assert gap.collection == "effective_org_policies:iam.disableServiceAccountKeyCreation"
+    assert gap.reason == reason
+    assert gap.permission == permission
+    assert "private-value" not in gap.message
+    assert "/" not in gap.message
