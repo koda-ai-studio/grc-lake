@@ -52,23 +52,27 @@ governance signals. Counts were reconciled with each provider's CLI, and
 recollection and generation integrity checks passed. The GitHub run found and
 fixed a Dependabot pagination failure. These receipts do not qualify a published
 release artifact, other tenants or provider-wide coverage. The
-[Databricks trial receipt](qualification/live/2026-10-25-databricks.md) adds a
-bounded live OAuth check with eight synthetic rows and an empty audit window.
-Databricks remains Preview; the remaining connectors have no live record.
+[Databricks trial receipt](qualification/live/2026-10-25-databricks.md#databricks-multichunk)
+adds populated audit-log collection and two 77,036-record syncs across three
+result chunks, including 75,000 synthetic rows. Counts and open audit events
+were reconciled with the provider, and recollection preserved unique event IDs.
+Databricks remains Preview; live throttling and credential expiry remain untested.
+The index currently links receipts for AWS, Azure, GCP, GitHub and Databricks;
+an absent link does not establish that a connector has never been tried.
 
 ## Coverage sources
 
 Use these maintained contracts rather than a second hand-maintained feature count.
 
-| Coverage question                                | Source of truth                                                                                              | How to check                                                                                                                                             |
-| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Which connectors execute, and which are preview? | [Connector catalog](CONNECTORS.md), `connectors/catalog.json`                                                | `grc-lake connectors validate`; runner and catalog tests under `tests/`                                                                                  |
-| Which requirements have reviewed mappings?       | Generated [framework coverage](FRAMEWORK_COVERAGE.md)                                                        | `make coverage-doc`; review the generated diff and effective mapping versions                                                                            |
-| Which lakes and deployment modes work?           | [Deployment compatibility](DEPLOYMENT.md#deployment-and-lake-compatibility), [BYOL](BRING_YOUR_OWN_LAKE.md)  | Qualify reader, schema mapping, application storage and export separately                                                                                |
-| What goes in and comes out?                      | [Data model](DATA_MODEL.md), [data flow](DATA_FLOW.md), [API contract](api/AGENT_API.md)                     | Schema validation, replay/identity tests, export round trips and generation verification                                                                 |
-| What scales, with which settings?                | [Distributed mode](DISTRIBUTED.md), [audit scale](AUDIT_SCALE.md), [benchmarks](BENCHMARKS.md)               | Record workload, storage, hardware, configuration, concurrency, latency and resource use                                                                 |
-| Which user journeys exist?                       | [Console UX](CONSOLE_UX.md), `app/web/e2e/`                                                                  | Synthetic browser tests plus authorized deployment checks; an accessible page alone is not a completed journey                                           |
-| How much Python code do tests exercise?          | [CI runs](https://github.com/koda-ai-studio/grc-lake/actions/workflows/ci.yml), `coverage-combined` artifact | The `coverage` job combines all four test shards into line-and-branch coverage for that exact revision; this is separate from framework mapping coverage |
+| Coverage question                                | Source of truth                                                                                              | How to check                                                                                                                                            |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Which connectors execute, and which are preview? | [Connector catalog](CONNECTORS.md), `connectors/catalog.json`                                                | `grc-lake connectors validate`; runner and catalog tests under `tests/`                                                                                 |
+| Which requirements have reviewed mappings?       | Generated [framework coverage](FRAMEWORK_COVERAGE.md)                                                        | `make coverage-doc`; review the generated diff and effective mapping versions                                                                           |
+| Which lakes and deployment modes work?           | [Deployment compatibility](DEPLOYMENT.md#deployment-and-lake-compatibility), [BYOL](BRING_YOUR_OWN_LAKE.md)  | Qualify reader, schema mapping, application storage and export separately                                                                               |
+| What goes in and comes out?                      | [Data model](DATA_MODEL.md), [data flow](DATA_FLOW.md), [API contract](api/AGENT_API.md)                     | Schema validation, replay/identity tests, export round trips and generation verification                                                                |
+| What scales, with which settings?                | [Distributed mode](DISTRIBUTED.md), [audit scale](AUDIT_SCALE.md), [benchmarks](BENCHMARKS.md)               | Record workload, storage, hardware, configuration, concurrency, latency and resource use                                                                |
+| Which user journeys exist?                       | [Console UX](CONSOLE_UX.md), `app/web/e2e/`                                                                  | Synthetic browser tests plus authorized deployment checks; an accessible page alone is not a completed journey                                          |
+| How much Python code do tests exercise?          | [CI runs](https://github.com/koda-ai-studio/grc-lake/actions/workflows/ci.yml), `coverage-combined` artifact | The `coverage` job combines all six test shards into line-and-branch coverage for that exact revision; this is separate from framework mapping coverage |
 
 The [0.3.3 main CI run](https://github.com/koda-ai-studio/grc-lake/actions/runs/38210181098)
 at source `fee5a7b8` passed 5,355 Python tests, with 86 skipped. Its combined
