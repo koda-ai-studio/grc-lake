@@ -95,3 +95,17 @@ def test_consolidated_copy_artifact_hook_preserves_filename_coverage() -> None:
         assert re.search(hook["files"], name), name
     for name in ("models.py", "catalog.json", "Card.tsx"):
         assert not re.search(hook["files"], name), name
+
+
+def test_console_e2e_runs_as_independent_playwright_shards() -> None:
+    import yaml
+
+    job = yaml.safe_load((ROOT / ".github/workflows/ci.yml").read_text())["jobs"]["e2e"]
+    shards = job["strategy"]["matrix"]["shard"]
+    assert shards == list(range(1, len(shards) + 1)) and len(shards) > 1
+    assert job["strategy"]["fail-fast"] is False
+    step = next(step for step in job["steps"] if "run_e2e_console.sh" in step.get("run", ""))
+    assert step["env"]["E2E_SHARD"] == "${{ matrix.shard }}/${{ strategy.job-total }}"
+    # Each shard starts its own server and lake, so no state is shared between runners.
+    script = (ROOT / "tools/run_e2e_console.sh").read_text()
+    assert '${E2E_SHARD:+--shard="$E2E_SHARD"}' in script

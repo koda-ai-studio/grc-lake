@@ -38,6 +38,6 @@ until curl -sf "${BASE}/api/v1/healthz" >/dev/null 2>&1; do
 done
 
 echo "==> Run Playwright console smoke tests"
-PLAYWRIGHT_BASE_URL="$BASE" npm --prefix app/web run test:e2e
+PLAYWRIGHT_BASE_URL="$BASE" npm --prefix app/web run test:e2e -- ${E2E_SHARD:+--shard="$E2E_SHARD"}
 
 echo "==> E2E smoke passed"
