@@ -7,6 +7,8 @@ Python package, Helm chart, and bundled web console.
 
 - Record a second Databricks live run against a populated system audit log: 928 rows recollected without duplicates, with open audit events reconciled to the provider's count of failed requests. The connector stays Preview until multi-chunk, throttling and credential-expiry behavior are exercised.
 
+- Discover installed connector plugins once per process instead of on every catalog load. Safeguard evaluation reloads the connector catalog for each evaluation, and each reload scanned every installed distribution's entry points (about 40 ms); the NIST SP 800-53 assessment tests drop from 114 s to 12 s locally, and evaluation-heavy API and pipeline paths stop paying the scan.
+
 - Refresh the README structure and console screenshots, expose the bounded graph performance profile, and reconcile connector summaries with the catalog. Preview qualification now distinguishes limited live receipts from provider-wide coverage. Add a regression check for overview counts and remove an unmeasured hosted-demo setup-time claim.
 
 - Add a repeatable local graph performance acceptance check for two tenants at 1k/10k records each. It checks cold and warm latency, idle-expiry reads, memory and tenant progress while reporting admission rejections separately. These bounded synthetic measurements do not qualify production capacity.
