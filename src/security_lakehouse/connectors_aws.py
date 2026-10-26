@@ -53,6 +53,11 @@ IDENTITY_CONTROLS = ["SOC2-CC6.1", "ISO27001-A.5.15", "HIPAA-164.308(a)(4)"]
 MFA_CONTROLS = ["SOC2-CC6.1", "HIPAA-164.308(a)(4)", "CIS-AWS-1.10"]
 POLICY_CONTROLS = ["SOC2-CC6.1", "ISO27001-A.5.15", "CIS-AWS-1.8"]
 ACCESS_KEY_CONTROLS = [*IDENTITY_CONTROLS, "CIS-AWS-1.14"]
+# Evaluated IAM verdicts (MFA, key rotation, password policy) bind to the logical
+# access and MFA safeguard, which accepts identity_account and account_config and
+# carries every control tag above. Observations and the name-based privileged
+# flag stay unbound so they can never supply or deny a safeguard verdict.
+IDENTITY_SAFEGUARD = "SG-IDENTITY-001"
 
 # AWS-recommended password-policy floor used to score the account policy. A
 # policy that meets every one of these is "strong"; anything weaker is an open
@@ -785,6 +790,7 @@ def _mfa_event(
         asset_type="identity_account",
         controls=MFA_CONTROLS,
         status="observed" if not console_access else ("open" if needs_mfa else "pass"),
+        safeguard_ids=[IDENTITY_SAFEGUARD] if console_access else None,
         severity="high" if needs_mfa else "info",
         evidence_ref=f"{arn}/mfa-devices",
         attributes={
@@ -855,6 +861,7 @@ def _access_key_event(
         asset_type="identity_account",
         controls=ACCESS_KEY_CONTROLS,
         status="open" if needs_rotation else "pass",
+        safeguard_ids=[IDENTITY_SAFEGUARD],
         severity="medium" if needs_rotation else "info",
         evidence_ref=f"{arn}/access-keys",
         attributes={
@@ -896,6 +903,7 @@ def _policy_event(
         asset_type="account_config",
         controls=POLICY_CONTROLS,
         status=status,
+        safeguard_ids=[IDENTITY_SAFEGUARD],
         severity=severity,
         evidence_ref=f"arn:aws:iam::{account}:account-password-policy",
         attributes={
@@ -945,9 +953,10 @@ def _event(
     evidence_ref: str,
     attributes: dict[str, Any],
     dedupe_key: str | None = None,
+    safeguard_ids: list[str] | None = None,
 ) -> dict[str, Any]:
     stable = _stable_suffix(account=account, signal=signal, asset_id=asset_id, dedupe_key=dedupe_key)
-    return {
+    row: dict[str, Any] = {
         "event_id": f"aws-{stable}",
         "tenant_id": tenant_id,
         "workspace_id": "default",
@@ -971,6 +980,9 @@ def _event(
         },
         "attributes": attributes,
     }
+    if safeguard_ids:
+        row["safeguard_ids"] = sorted(safeguard_ids)
+    return row
 
 
 def _iso_or_none(value: Any) -> str | None:

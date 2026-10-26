@@ -27,6 +27,8 @@ Python package, Helm chart, and bundled web console.
 
 - `grc-lake frameworks safeguards --format table` now states how many maintainer-reviewed requirements rest only on legacy reviews with no recorded reviewer, matching the console and README. A release test keeps the README and 5-minute tutorial install pins on a single published version; the tutorial had mixed 0.3.12 and 0.3.13.
 
+- AWS posture and GitHub governance verdicts now reach framework (CCF) results. AWS MFA enrollment (console users), access-key hygiene, and account password policy events bind to `SG-IDENTITY-001`; privileged-name flags and observations stay unbound. GitHub sync adds a `repository.governance.change_approval` verdict for the default branch, bound to `SG-CHANGEAPPROVAL-001`: `pass` only when protection is readable with at least one required approval, admins included, and force pushes and deletions disabled; `open` with the unmet settings listed; `not_evaluated` when protection is unreadable or incomplete. Previously a live sync with failing IAM posture left every safeguard not evaluated. Change-approval requirements such as SOC 2 CC8.1 stay not evaluated until their mappings are reviewed.
+
 ## 0.3.13 - 2026-10-25
 
 - Scope experimental OCSF event and asset identity to the source account, so colliding user/event IDs in different accounts stay separate through CCF assessment. Missing assessed subjects no longer fall back to a cloud account. Mixed mapping errors create a collection gap, mark the run partial, and hold positive outcomes at `not_evaluated` until repair and replay. OCSF preset IDs change; re-ingest into a fresh lake to avoid mixing scoped and unscoped history.

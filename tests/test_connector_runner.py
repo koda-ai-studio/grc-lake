@@ -63,19 +63,19 @@ def test_github_connector_sync_writes_raw_and_materializes_lake(tmp_path: Path) 
         fixture_dir=FIXTURE,
     )
     assert result.result == "ok"
-    assert result.evidence_count == 6
+    assert result.evidence_count == 7
     assert result.materialized is True
 
     raw_rows = read_jsonl(tmp_path / CONNECTOR_RAW_FILE)
     assert validate_raw_events(raw_rows) == []
-    assert len(raw_rows) == 6
+    assert len(raw_rows) == 7
     assert (tmp_path / "bronze" / "raw_events.jsonl").is_file()
     assert (tmp_path / "silver" / "normalized_events.jsonl").is_file()
     assert (tmp_path / "gold" / "current_posture.json").is_file()
 
     run = latest_run(tmp_path, "github-security", kind="sync")
     assert run["result"] == "ok"
-    assert run["evidence_count"] == 6
+    assert run["evidence_count"] == 7
 
 
 def test_connector_sync_upserts_stable_event_ids(tmp_path: Path) -> None:
@@ -88,8 +88,8 @@ def test_connector_sync_upserts_stable_event_ids(tmp_path: Path) -> None:
         fixture_dir=FIXTURE,
         materialize=False,
     )
-    assert first.evidence_count == second.evidence_count == 6
-    assert len(read_jsonl(tmp_path / CONNECTOR_RAW_FILE)) == 6
+    assert first.evidence_count == second.evidence_count == 7
+    assert len(read_jsonl(tmp_path / CONNECTOR_RAW_FILE)) == 7
 
 
 def test_connector_sync_cli_runs_fixture_connector(tmp_path: Path, capsys) -> None:  # type: ignore[no-untyped-def]
@@ -148,9 +148,9 @@ def test_connector_sync_cli_runs_fixture_connector(tmp_path: Path, capsys) -> No
     assert code == 0
     payload = json.loads(capsys.readouterr().out)
     assert payload["connector_id"] == "github-security"
-    assert payload["evidence_count"] == 6
+    assert payload["evidence_count"] == 7
     assert payload["materialized"] is False
-    assert len(read_jsonl(tmp_path / CONNECTOR_RAW_FILE)) == 6
+    assert len(read_jsonl(tmp_path / CONNECTOR_RAW_FILE)) == 7
 
 
 def test_connector_configure_cli_persists_schedule_options(tmp_path: Path, capsys, github_probe_ok) -> None:  # type: ignore[no-untyped-def]

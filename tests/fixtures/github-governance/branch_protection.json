@@ -1,4 +1,10 @@
 {
+  "allow_deletions": {
+    "enabled": false
+  },
+  "allow_force_pushes": {
+    "enabled": false
+  },
   "enforce_admins": {
     "enabled": true
   },

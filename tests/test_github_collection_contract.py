@@ -336,6 +336,9 @@ def test_fixture_replay_preserves_identity_and_evidence_hashes():
     first = governance.sync_repo_governance("acme/model-service", **kwargs)
     assert first == governance.sync_repo_governance("acme/model-service", **kwargs)
     assert validate_raw_events(first) == []
-    assert all(row["entity"]["asset_id"] == "github:repo:acme/model-service" for row in first)
+    assert {row["entity"]["asset_id"] for row in first} == {
+        "github:repo:acme/model-service",
+        "github:repo:acme/model-service#default-branch",
+    }
     assert all(row["evidence"]["raw_sha256"] for row in first)
     assert "synthetic-token" not in json.dumps(first)

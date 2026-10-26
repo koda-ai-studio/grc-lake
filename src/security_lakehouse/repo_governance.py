@@ -67,6 +67,20 @@ CONTROL_MAP = {
     "security_findings": ["SOC2-CC7.2", "PCI-DSS-11", "ISO27001-A.8.16"],
 }
 
+# The default-branch change-approval verdict binds to the change-approval
+# safeguard. Safeguards accept the "repo" asset type, so the verdict is recorded
+# on the repository's default branch rather than on the "repository" observation
+# asset, which would otherwise carry two asset types and never be assessable.
+CHANGE_APPROVAL_SAFEGUARD = "SG-CHANGEAPPROVAL-001"
+CHANGE_APPROVAL_CONTROLS = ["SOC2-CC8.1", "ISO27001-A.8.32"]
+CHANGE_APPROVAL_CRITERIA = [
+    "branch protection readable",
+    "required_approving_review_count >= 1",
+    "enforce_admins.enabled is true",
+    "allow_force_pushes.enabled is false",
+    "allow_deletions.enabled is false",
+]
+
 GITHUB_READ_ONLY_SCOPES = [
     "metadata:read",
     "administration:read",
@@ -627,7 +641,7 @@ def _build_events(
         "security_settings": _safe_call(client.vulnerability_alerts),
         "security_findings": _safe_call(client.security_findings),
     }
-    return [
+    rows = [
         _event(
             spec,
             collected_at,
@@ -649,6 +663,96 @@ def _build_events(
         )
         for signal, payload in signal_payloads.items()
     ]
+    if spec.provider == "github":
+        rows.append(
+            _change_approval_event(
+                spec,
+                collected_at,
+                signal_payloads["branch_protection"],
+                branch=branch,
+                evidence_ref=f"{evidence_ref}/branches/{urllib.parse.quote(branch, safe='')}/protection",
+                source_health=source_health,
+            )
+        )
+    return rows
+
+
+def _flag(payload: dict[str, Any], key: str) -> bool | None:
+    value = payload.get(key)
+    enabled = value.get("enabled") if isinstance(value, dict) else None
+    return enabled if isinstance(enabled, bool) else None
+
+
+def _evaluate_change_approval(payload: dict[str, Any] | list[dict[str, Any]]) -> tuple[str, list[str], list[str]]:
+    """Return (status, unmet, unknown) for the default branch's change-approval settings.
+
+    An unreadable record is never a pass. A readable record that omits pull
+    request reviews requires none; any other missing setting is unknown.
+    """
+    if not isinstance(payload, dict) or payload.get("available") is False:
+        return EventStatus.NOT_EVALUATED.value, [], ["branch_protection_unreadable"]
+    unmet: list[str] = []
+    unknown: list[str] = []
+    reviews = payload.get("required_pull_request_reviews")
+    count = reviews.get("required_approving_review_count") if isinstance(reviews, dict) else 0
+    if (reviews is not None and not isinstance(reviews, dict)) or isinstance(count, bool) or not isinstance(count, int):
+        unknown.append("required_approving_reviews")
+    elif count < 1:
+        unmet.append("required_approving_reviews")
+    for key, expected, label in (
+        ("enforce_admins", True, "admins_not_included"),
+        ("allow_force_pushes", False, "force_pushes_allowed"),
+        ("allow_deletions", False, "deletions_allowed"),
+    ):
+        enabled = _flag(payload, key)
+        if enabled is None:
+            unknown.append(key)
+        elif enabled is not expected:
+            unmet.append(label)
+    if unmet:
+        return EventStatus.OPEN.value, unmet, unknown
+    if unknown:
+        return EventStatus.NOT_EVALUATED.value, unmet, unknown
+    return EventStatus.PASS.value, unmet, unknown
+
+
+def _change_approval_event(
+    spec: GovernanceRepoSpec,
+    collected_at: datetime,
+    payload: dict[str, Any] | list[dict[str, Any]],
+    *,
+    branch: str,
+    evidence_ref: str,
+    source_health: dict[str, Any],
+) -> dict[str, Any]:
+    status, unmet, unknown = _evaluate_change_approval(payload)
+    record = payload if isinstance(payload, dict) else {}
+    reviews = record.get("required_pull_request_reviews")
+    row = _event(
+        spec,
+        collected_at,
+        signal="change_approval",
+        event_type="repository.governance.change_approval",
+        controls=CHANGE_APPROVAL_CONTROLS,
+        evidence_ref=evidence_ref,
+        attributes={
+            "default_branch": branch,
+            "source_health": source_health,
+            "criteria": CHANGE_APPROVAL_CRITERIA,
+            "unmet_requirements": unmet,
+            "unknown_requirements": unknown,
+            "required_approving_review_count": (
+                reviews.get("required_approving_review_count") if isinstance(reviews, dict) else None
+            ),
+            "http_status": record.get("http_status"),
+        },
+        status=status,
+        severity=Severity.MEDIUM.value if status == EventStatus.OPEN else Severity.INFO.value,
+        asset_id=f"{spec.asset_id}#default-branch",
+        asset_type="repo",
+    )
+    row["safeguard_ids"] = [CHANGE_APPROVAL_SAFEGUARD]
+    return row
 
 
 def _safe_call(func: Any) -> dict[str, Any] | list[dict[str, Any]]:
@@ -777,6 +881,8 @@ def _event(
     attributes: dict[str, Any],
     status: str,
     severity: str = "info",
+    asset_id: str | None = None,
+    asset_type: str = "repository",
 ) -> dict[str, Any]:
     stable = _sha({"repo": spec.slug, "signal": signal, "provider": spec.provider})[:16]
     evidence_body = {"event_type": event_type, "evidence_ref": evidence_ref, "attributes": attributes}
@@ -789,8 +895,8 @@ def _event(
         "source": source,
         "event_type": event_type,
         "entity": {
-            "asset_id": spec.asset_id,
-            "asset_type": "repository",
+            "asset_id": asset_id or spec.asset_id,
+            "asset_type": asset_type,
             "asset_owner": spec.owner,
             "environment": "prod",
             "repo": spec.slug,
