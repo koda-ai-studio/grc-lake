@@ -37,6 +37,30 @@ retain their exact source revisions and synthetic workload limits. They do not
 establish production capacity or qualify a deployment memory budget; 100k records
 remain outside the accepted local interactive profile.
 
+## 0.3.15 candidate
+
+A security and correctness patch on the verified 0.3.14 release. It introduces no
+database migration.
+
+- **Security:** certifi 2026.10.23 removes the distrusted "emSign ECC Root CA - C3"
+  and "emSign Root CA - C1" roots from the Python CA bundle used for outbound HTTPS.
+  The 0.3.14 image's Python bundle still trusted them (its system CA bundle did not).
+  pip moves to 26.2.2 and uv to 0.13.5 in CI and the image build.
+- **GCP:** inherited organization policies are read from the effective policy, so
+  constraints not set on the project produce real verdicts; verified live
+  ([receipt](qualification/live/2026-10-26-gcp-effective-policy.md)).
+- **Azure:** Microsoft Defender for Cloud assessment verdicts are collected and
+  conservatively mapped ones bind to safeguards, so Azure moves framework results
+  for the first time; verified live
+  ([receipt](qualification/live/2026-10-26-azure-defender.md)).
+- **Databricks:** the reader's `databricks-sql-access` entitlement is documented, and
+  a live multi-chunk run is recorded
+  ([receipt](qualification/live/2026-10-25-databricks.md#databricks-multichunk)).
+  The connector stays Preview.
+
+Release gates are unchanged: exact-main CI on the tagged commit, version
+consistency, the changelog gate, and published-artifact verification.
+
 ## 0.3.14 candidate
 
 0.3.14 is published; see the [publication receipt](#verified-0314-publication).
