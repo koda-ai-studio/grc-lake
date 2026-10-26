@@ -69,6 +69,33 @@ def test_missing_catalog_source_invalidates_review_even_when_versions_match(tmp_
     assert safeguards.effective_review_state(rows["TWIN"]) == "proposed"
 
 
+def test_missing_status_cannot_supply_an_inherited_review(tmp_path, monkeypatch):
+    source = member("SOURCE")
+    del source["review_status"]
+    rows = load(tmp_path, monkeypatch, [source, member("TWIN", source="SOURCE")])
+    assert safeguards.effective_review_state(rows["SOURCE"]) == "proposed"
+    assert safeguards.effective_review_state(rows["TWIN"]) == "proposed"
+
+
+def test_missing_status_is_not_attestable_but_can_receive_a_human_decision():
+    row = {"control_id": "SOURCE", "control_version": "1"}
+    assert safeguards.effective_review_state(row) == "proposed"
+    assert safeguards.review_provenance(row) is None
+    assert safeguards.effective_review_state(row, "approve") == "org_reviewed"
+    assert safeguards.effective_review_state(row, "reject") == "rejected"
+    assert safeguards.effective_review_state(row, "needs_changes") == "needs_changes"
+
+
+def test_missing_status_does_not_count_as_reviewed_or_pass(tmp_path, monkeypatch):
+    source = member("SOURCE")
+    del source["review_status"]
+    rows = load(tmp_path, monkeypatch, [source])
+    payload = {"safeguards": [{"safeguard_id": "SG", "satisfies": list(rows.values())}]}
+    assert safeguards.framework_mapping_coverage(payload)["reviewed"] == 0
+    assert safeguards.requirement_status("SOURCE", {"SG": "pass"}, payload) != "pass"
+    assert safeguards.mapping_review_items(payload)[0]["shipped_review_status"] == "proposed"
+
+
 def test_invalid_review_is_excluded_from_attestable_coverage(tmp_path, monkeypatch):
     rows = load(tmp_path, monkeypatch, [member("SOURCE", status="proposed"), member("TWIN", source="SOURCE")])
     payload = {"safeguards": [{"safeguard_id": "SG", "satisfies": list(rows.values())}]}

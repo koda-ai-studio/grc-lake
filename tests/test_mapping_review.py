@@ -278,7 +278,7 @@ def test_concurrent_writers_across_processes_never_fork_the_chain(tmp_path: Path
     [
         ("reviewed", None, "maintainer_reviewed"),
         ("proposed", None, "proposed"),
-        (None, None, "maintainer_reviewed"),
+        (None, None, "proposed"),
         ("proposed", "approve", "org_reviewed"),
         ("reviewed", "approve", "maintainer_reviewed"),
         ("proposed", "needs_changes", "needs_changes"),
