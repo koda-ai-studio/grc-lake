@@ -17,6 +17,7 @@ from security_lakehouse.vocabulary import ControlVerdict
 __all__ = ["INVALID_ASSET_TYPE_REASON", "binding_applies", "evaluate_safeguards"]
 
 INVALID_ASSET_TYPE_REASON = "The asset type does not establish safeguard applicability."
+COLLECTION_SCOPE = "collection_scope"
 
 
 def binding_applies(asset_types: set[str], eligible_types: set[str]) -> bool:
@@ -68,13 +69,21 @@ def evaluate_safeguards(
     assets: dict[tuple[str, str], set[str]] = defaultdict(set)
     bound: dict[str, dict[tuple[str, str], list[JsonObject]]] = defaultdict(lambda: defaultdict(list))
     freshness = {(row["tenant_id"], row["event_id"]): row for row in build_evidence_freshness(events, now=now)}
+    # A source's collection gap keeps the safeguards it binds from passing; it
+    # never masks a failing verdict because it sits on its own asset.
+    gap_sources: set[tuple[str, str]] = set()
+    bound_sources: dict[str, set[tuple[str, str]]] = defaultdict(set)
     for event in events:
         asset_key: tuple[str, str] = source_asset_key(event)
         assets[asset_key].add(str(event["asset_type"]))
+        source_key = (asset_key[0], str(event.get("source", "")))
+        if event["asset_type"] == COLLECTION_SCOPE:
+            gap_sources.add(source_key)
         for safeguard_id in event.get("safeguard_ids", []):
             if safeguard_id not in definitions:
                 raise ValueError("evidence references an unknown safeguard")
             bound[safeguard_id][asset_key].append(event)
+            bound_sources[safeguard_id].add(source_key)
     # Index the observed population once. Avoid a safeguards x events scan.
     type_counts = Counter(next(iter(types)) for types in assets.values() if len(types) == 1)
     global_ambiguous_count = sum(len(types) != 1 for types in assets.values())
@@ -117,7 +126,7 @@ def evaluate_safeguards(
                 }
             )
         missing = max(0, eligible_count - assessed)
-        if missing or ambiguous_count or invalid:
+        if missing or ambiguous_count or invalid or bound_sources[safeguard_id] & gap_sources:
             states.append(ControlVerdict.NOT_EVALUATED.value)
         results.append(
             {
