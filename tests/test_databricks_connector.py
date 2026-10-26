@@ -540,7 +540,6 @@ def test_bootstrap_sql_matches_the_connector_contract() -> None:
 
 def test_documented_minimum_permissions_include_the_sql_access_entitlement() -> None:
     """A newly created service principal without it is refused (403) on its first warehouse read."""
-    import json
     from pathlib import Path
 
     catalog = json.loads((Path(__file__).resolve().parents[1] / "connectors/catalog.json").read_text())
