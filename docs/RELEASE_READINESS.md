@@ -37,6 +37,26 @@ retain their exact source revisions and synthetic workload limits. They do not
 establish production capacity or qualify a deployment memory budget; 100k records
 remain outside the accepted local interactive profile.
 
+## 0.3.16 candidate
+
+A correctness patch on the verified 0.3.15 release that removes a false pass. It
+introduces no database migration and no safeguard or review-state change.
+
+- **Provider benchmarks:** CIS AWS requirements are assessed only from AWS
+  evidence (`aws`, `aws_config`), declared as `provider_sources` in the framework
+  registry. In 0.3.15, enforced GCP org policies could pass `CIS-AWS-1.10` and
+  other CIS AWS identity recommendations with no AWS evidence, because the
+  identity safeguard is shared with SOC 2, ISO 27001 and NIST. Without AWS
+  evidence these requirements are now `not_evaluated`. Cross-framework results
+  are unchanged.
+- **Coverage gaps:** AWS and GCP gap rows and AWS inventory-absence rows have their
+  own assets, so a denied read or a missing CloudTrail trail no longer hides a
+  failing password-policy or org-policy verdict. A source's gap still keeps the
+  safeguards it binds from passing.
+
+Release gates are unchanged: exact-main CI on the tagged commit, version
+consistency, the changelog gate, and published-artifact verification.
+
 ## 0.3.15 candidate
 
 0.3.15 is published; see the [publication receipt](#verified-0315-publication).

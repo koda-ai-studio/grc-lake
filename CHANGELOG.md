@@ -3,7 +3,7 @@
 All notable GRC Lake changes are summarized here. Versions follow semver for the
 Python package, Helm chart, and bundled web console.
 
-## Unreleased
+## 0.3.16 - 2026-10-26
 
 - AWS and GCP collection-gap rows, and AWS inventory-absence rows, now sit on their own assets (`aws:account:<id>:collection:<collection>`, `aws:account:<id>:inventory`, `gcp:project:<id>:collection:<collection>`) instead of the account or project asset that carries the password-policy or org-policy verdict. A denied read or a missing CloudTrail trail no longer hides a failing verdict as `not_evaluated`. A collection gap from a source still keeps every safeguard that source binds from passing.
 - Provider benchmarks are assessed only from their own provider's evidence. The framework registry declares `provider_sources` (CIS AWS: `aws`, `aws_config`), and a CIS AWS requirement now counts only asset results from those sources. Previously a shared safeguard let GCP or identity-provider evidence decide CIS AWS results: enforced GCP org policies could mark `CIS-AWS-1.10` and other identity recommendations passing with no AWS evidence, and a failing GCP policy failed them. Without AWS evidence they are now `not_evaluated`.
