@@ -165,6 +165,7 @@ export function GraphNodeDrawer({
     <aside
       ref={inspectorRef}
       aria-label="Selected graph node"
+      data-testid="graph-node-inspector"
       className="min-w-0 scroll-mt-20 self-start rounded-xl border border-line bg-surface xl:max-h-[650px] xl:overflow-auto"
     >
       <div className="sticky top-0 z-10 flex items-start gap-3 border-b border-line bg-surface p-4">
@@ -489,6 +490,13 @@ export function GraphNodeDrawer({
           )}
         </div>
       </div>
+      {/* Overlay scrollbars hide the cap on desktop; fade the bottom edge so the
+          panel reads as scrollable rather than cut off. */}
+      <div
+        aria-hidden="true"
+        data-testid="inspector-more-below"
+        className="pointer-events-none sticky bottom-0 -mt-10 hidden h-10 rounded-b-xl bg-gradient-to-t from-surface to-transparent xl:block"
+      />
     </aside>
   );
 }

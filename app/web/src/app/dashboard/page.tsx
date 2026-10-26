@@ -24,6 +24,7 @@ import {
 import { VendorCoverage } from "@/components/dashboard/VendorCoverage";
 import { QueryState } from "@/components/QueryState";
 import { PageHeader } from "@/components/PageHeader";
+import { attestedPassCount } from "@/lib/control-attestation";
 import { ROUTE_LABELS } from "@/lib/console-copy";
 import { splitFrameworkPacks } from "@/lib/framework-packs";
 
@@ -64,6 +65,7 @@ export default function DashboardPage() {
               ingestion={ingestion.data}
               frameworkCount={packCount}
               catalog={registeredFrameworks.data}
+              attested={tests.data ? attestedPassCount(tests.data) : undefined}
             />
             <div className="grid min-w-0 items-start gap-5 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
               <DashboardPanel

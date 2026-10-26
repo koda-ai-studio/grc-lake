@@ -166,3 +166,21 @@ test("the control drawer counts a single outcome record in the singular", async 
   await expect(drawer).toContainText("1 record with outcomes");
   await expect(drawer).not.toContainText("1 records with");
 });
+
+test("overview leads with the same attested count as the controls page", async ({
+  page,
+  request,
+}) => {
+  const tests = (
+    (await (await request.get("/api/v1/control-tests?limit=500")).json()) as {
+      data: Array<{ result: string; ccf_status?: string }>;
+    }
+  ).data;
+  const attested = tests.filter(
+    (row) => row.result === "pass" && row.ccf_status === "pass",
+  ).length;
+  expect(attested).toBeGreaterThan(0);
+  await page.goto("/console/dashboard/");
+  const tile = page.getByRole("link", { name: /Assessed coverage/ });
+  await expect(tile).toContainText(`${attested} attested`);
+});

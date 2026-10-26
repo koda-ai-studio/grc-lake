@@ -38,6 +38,15 @@ export function mappingCountsLabel(ccf: CcfResultFields): string {
   return `${reviewed} reviewed · ${proposed} proposed mapping${proposed === 1 ? "" : "s"}`;
 }
 
+/** Control tests that pass and whose requirement has a CCF pass through reviewed mappings. */
+export function attestedPassCount(
+  rows: ReadonlyArray<{ result: string; ccf_status?: string | null }>,
+): number {
+  return rows.filter(
+    (row) => row.result === "pass" && row.ccf_status === "pass",
+  ).length;
+}
+
 export function attestedHeadline(testPasses: number, attested: number): string {
   return `${testPasses} control test${testPasses === 1 ? "" : "s"} passing · ${attested} attested`;
 }

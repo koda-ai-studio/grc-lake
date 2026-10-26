@@ -350,3 +350,18 @@ test("graph workspace tabs align with the page content instead of touching the t
   expect(Math.abs(tabBox!.x - headingBox!.x)).toBeLessThanOrEqual(1);
   expect(tabBox!.y - mainBox!.y).toBeGreaterThanOrEqual(16);
 });
+
+test("an overflowing node inspector shows that more details are below", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/console/graph/");
+  await page.locator('.react-flow__node[data-id="control:SOC2-CC6.1"]').click();
+  const inspector = page.getByTestId("graph-node-inspector");
+  await expect(inspector).toBeVisible();
+  const overflowing = await inspector.evaluate(
+    (el) => el.scrollHeight > el.clientHeight + 1,
+  );
+  expect(overflowing).toBe(true);
+  await expect(inspector.getByTestId("inspector-more-below")).toBeVisible();
+});

@@ -161,11 +161,20 @@ test("overview leads with overall posture and distinguishes score from coverage"
   // fixture they must not print the same number.
   expect(coverage.percent).not.toBe(Math.round(assessment.posture.score));
   const accuracy = ingestion.eval_accuracy;
+  const attested = (
+    (await (
+      await page.request.get("/api/v1/control-tests?limit=500")
+    ).json()) as {
+      data: Array<{ result: string; ccf_status?: string }>;
+    }
+  ).data.filter(
+    (row) => row.result === "pass" && row.ccf_status === "pass",
+  ).length;
   await expect(
     overview
       .getByRole("link", { name: /Assessed coverage/ })
       .getByText(
-        `${coverage.assessed.toLocaleString()} of ${coverage.total.toLocaleString()} requirements assessed · ${accuracy.needs_evidence} need evidence`,
+        `${coverage.assessed.toLocaleString()} of ${coverage.total.toLocaleString()} requirements assessed · ${attested} attested · ${accuracy.needs_evidence} need evidence`,
         { exact: true },
       ),
   ).toBeVisible();

@@ -156,12 +156,15 @@ export function AssessmentOverview({
   assessment,
   ingestion,
   frameworkCount,
+  attested,
   catalog,
 }: {
   assessment?: Assessment;
   ingestion?: IngestionStatus;
   /** Framework packs with catalogued requirements; registry stubs excluded. */
   frameworkCount: number;
+  /** Control tests with a CCF pass through reviewed mappings; omitted while loading. */
+  attested?: number;
   /** Framework registry with catalog sizes; undefined while it loads. */
   catalog?: FrameworkView[];
 }) {
@@ -262,7 +265,7 @@ export function AssessmentOverview({
             suffix={coveragePercent != null ? "%" : undefined}
             detail={
               coverage && coveragePercent != null
-                ? `${formatCount(coverage.assessed)} of ${formatCount(coverage.total)} requirements assessed${needsEvidence ? ` · ${needsEvidence} need evidence` : ""}`
+                ? `${formatCount(coverage.assessed)} of ${formatCount(coverage.total)} requirements assessed${attested != null ? ` · ${formatCount(attested)} attested` : ""}${needsEvidence ? ` · ${needsEvidence} need evidence` : ""}`
                 : !posture
                   ? "Not evaluated"
                   : catalog
