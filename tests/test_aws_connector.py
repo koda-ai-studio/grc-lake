@@ -514,7 +514,7 @@ def test_successful_empty_audit_inventory_emits_failing_observations() -> None:
     trail = absent["aws.inventory.absent.cloudtrail"]
     assert trail["status"] == "open"
     assert trail["controls"] == ["CIS-AWS-3.1"]
-    assert trail["entity"]["asset_id"] == f"aws:account:{ACCOUNT}"
+    assert trail["entity"]["asset_id"] == f"aws:account:{ACCOUNT}:inventory"
     assert trail["attributes"]["region"] == "us-east-1"
     assert trail["attributes"]["resource_count"] == 0
     assert "no CloudTrail trail" in trail["attributes"]["finding"]

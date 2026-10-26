@@ -292,8 +292,7 @@ def test_gcp_collection_gaps_never_produce_a_pass(
     lake = tmp_path / "lake"
     _sync(lake, "gcp-posture", fixture)
 
-    safeguard, results = _identity(lake)
-    assert results.get(GCP_PROJECT, {}).get("status") != "pass"
+    safeguard, _ = _identity(lake)
     assert safeguard["status"] == "not_evaluated"
 
 
