@@ -209,7 +209,7 @@ def _check_inherited_reviews(entry: JsonObject, catalog: dict[str, Any]) -> None
                 control_id in seen
                 or counts[control_id] != 1
                 or control_id not in catalog
-                or current.get("review_status", "reviewed") != "reviewed"
+                or current.get("review_status", "proposed") != "reviewed"
                 or current.get("control_version")
                 != current.get("current_control_version", current.get("control_version"))
             ):
@@ -312,7 +312,7 @@ def validate_safeguards(payload: JsonObject, *, catalog: dict[str, Any] | None =
             role = member.get("role", "equivalent")
             if not isinstance(role, str) or role not in VALID_ROLES:
                 problems.append(f"{sid}: invalid role {role!r} on {control_id!r}")
-            review = member.get("review_status", "reviewed")
+            review = member.get("review_status", "proposed")
             if not isinstance(review, str) or review not in VALID_REVIEW_STATES:
                 problems.append(f"{sid}: invalid review_status {review!r} on {control_id!r}")
             if "mapping_source" in member:
@@ -329,7 +329,7 @@ def effective_review_state(member: JsonObject, decision: str | None = None) -> s
     (``approve`` / ``reject`` / ``needs_changes``) or ``None``; with ``None`` a
     member already annotated by the org overlay keeps its annotated state.
 
-    * no org decision: shipped ``reviewed`` (the default for legacy rows) is
+    * no org decision: explicit shipped ``reviewed`` is
       ``maintainer_reviewed``; anything else is ``proposed``
     * ``approve``: ``org_reviewed`` for a proposed mapping; a maintainer-reviewed
       mapping stays ``maintainer_reviewed`` so the two are never double counted
@@ -348,7 +348,7 @@ def effective_review_state(member: JsonObject, decision: str | None = None) -> s
         "current_control_version", member.get("control_version")
     )
     if (
-        member.get("review_status", "reviewed") == "reviewed"
+        member.get("review_status", "proposed") == "reviewed"
         and version_matches
         and member.get("inherited_review_valid", True)
     ):
@@ -500,7 +500,7 @@ def mapping_review_items(
                     "framework_id": str(member.get("framework_id")),
                     "role": member.get("role", "equivalent"),
                     "contributes_to_coverage": contributes_to_coverage(member),
-                    "shipped_review_status": member.get("review_status", "reviewed"),
+                    "shipped_review_status": member.get("review_status", "proposed"),
                     "review_state": state,
                     "review_label": REVIEW_STATE_LABELS[state],
                     "review_provenance": review_provenance(member),

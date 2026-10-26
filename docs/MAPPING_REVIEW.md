@@ -76,7 +76,10 @@ proposed. This rule also follows multi-step inheritance. A tenant can still
 review that mapping independently through the existing approval workflow.
 Valid inherited mappings keep their existing decision fingerprints.
 
-Each mapping in `controls/safeguards.json` ships with a `review_status`:
+Each mapping in `controls/safeguards.json` must ship with an explicit `review_status`.
+Runtime readers treat an omitted status as `proposed`, including inherited-review
+chains; omission cannot establish an attested pass. Explicit legacy `reviewed`
+rows retain their separately disclosed policy. The available statuses are:
 
 - **reviewed**: a GRC Lake maintainer confirmed the equivalence against the
   requirement text. The console and API call this **maintainer-reviewed**.
@@ -318,8 +321,8 @@ until a reviewer supersedes them. The console identifies approvals needing revie
 
 Catalog publication validation also rejects duplicate mappings, mismatched
 frameworks, missing explicit review/version fields, invalid rules and malformed
-asset/evidence type lists. This stricter publication gate does not rewrite legacy
-reader defaults or claim that a mapping establishes operating effectiveness.
+asset/evidence type lists. Publication validation and runtime defaults both reject implicit review credit;
+neither claims that a mapping establishes operating effectiveness.
 
 ## CSF 2.0 improvement and recovery review packet
 

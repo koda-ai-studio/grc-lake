@@ -275,7 +275,7 @@ def record_decisions(
                     "auth_method": auth_method,
                     "evidence_ref": evidence,
                     "source_anchor": member_mapping_source(entry, member),
-                    "shipped_review_status": member.get("review_status", "reviewed"),
+                    "shipped_review_status": member.get("review_status", "proposed"),
                     "review_basis_version": REVIEW_BASIS_VERSION,
                     "review_basis_sha256": review_basis(entry, member, controls[key[1]]),
                     "control_sha256": canonical_sha256(controls[key[1]]),
