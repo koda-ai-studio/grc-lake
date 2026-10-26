@@ -136,9 +136,23 @@ def connector_entry_points(group: str) -> list[importlib.metadata.EntryPoint]:
     for name in (group, _LEGACY_ENTRY_POINT_GROUPS.get(group)):
         if not name:
             continue
-        for entry_point in importlib.metadata.entry_points(group=name):
+        for entry_point in _discovered_entry_points(name):
             selected.setdefault(entry_point.name, entry_point)
     return list(selected.values())
+
+
+_DISCOVERED: dict[tuple[str, Any], tuple[importlib.metadata.EntryPoint, ...]] = {}
+
+
+def _discovered_entry_points(group: str) -> tuple[importlib.metadata.EntryPoint, ...]:
+    # Scanning installed distributions costs tens of milliseconds and the catalog
+    # is reloaded on every evaluation, so enumerate once per process. Keying on the
+    # discovery function keeps a substituted implementation from reusing results.
+    finder = importlib.metadata.entry_points
+    key = (group, finder)
+    if key not in _DISCOVERED:
+        _DISCOVERED[key] = tuple(finder(group=group))
+    return _DISCOVERED[key]
 
 
 def _load_entry_points(group: str) -> dict[str, tuple[str, Any]]:

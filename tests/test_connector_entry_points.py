@@ -166,3 +166,29 @@ def test_grc_lake_group_wins_a_name_registered_in_both_groups(
     assert registry["demo-vendor-evidence"] is demo_vendor_connector.build_demo_vendor
     # The shadowed legacy registration is never imported.
     assert "broken_vendor_connector" not in caplog.text
+
+
+def test_entry_point_enumeration_is_cached_per_discovery_function(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Evaluation reloads the connector catalog often; plugin discovery must not rescan every time."""
+    from security_lakehouse import connectors
+
+    calls: list[str] = []
+
+    def counting(**kwargs: str) -> list[importlib.metadata.EntryPoint]:
+        calls.append(kwargs["group"])
+        return []
+
+    monkeypatch.setattr(importlib.metadata, "entry_points", counting)
+    for _ in range(5):
+        connectors.load_connector_catalog()
+    assert len(calls) == len(set(calls)), calls
+
+    replaced: list[str] = []
+
+    def replacement(**kwargs: str) -> list[importlib.metadata.EntryPoint]:
+        replaced.append(kwargs["group"])
+        return []
+
+    monkeypatch.setattr(importlib.metadata, "entry_points", replacement)
+    connectors.load_connector_catalog()
+    assert replaced, "a different discovery function is enumerated again"
