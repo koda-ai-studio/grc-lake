@@ -101,9 +101,35 @@ Teardown: the secret was revoked, the reader service principal was deleted at
 workspace and account level, the `trustops` catalog (views only) was dropped, the
 warehouse was stopped and the local secret file and CLI credentials were removed.
 
-## Remaining qualification
+<a id="databricks-multichunk"></a>
 
-The populated audit run above closes the empty-audit-log gap. No multi-chunk result, 429 retry, credential expiry,
+## Multi-chunk run (2026-10-26)
+
+On the same trial workspace, with source `8b2500cf` (v0.3.14), the committed
+bootstrap was re-applied and a separate qualification schema exposed the four
+views with the audit view widened to 1,016 real audit rows plus 75,000 rows
+explicitly labelled `synthetic-multichunk`. Read in full, that view returned
+76,016 rows in **3 result chunks**. A newly created reader service principal was
+first refused with HTTP 403 until it was given the workspace
+`databricks-sql-access` entitlement; the documented minimum permissions now
+include it.
+
+| Step                  | Result                                                        |
+| --------------------- | ------------------------------------------------------------- |
+| Sync 1                | 77,036 records, no coverage gaps (157 s)                      |
+| Sync 2 (recollection) | 77,036 records, no coverage gaps; 77,036 unique raw event IDs |
+
+The 77,036 records equal the provider-side view counts (76,016 + 2 + 2 + 1,016),
+all 75,000 synthetic rows arrived, and the 38 audit rows with a response status of
+400 or higher arrived as 38 open audit events with 38 matching open bundles. The
+secret value was absent from every lake file and output. A first attempt with
+100,000 synthetic rows (102,036 events) stopped at the local full-rebuild limit
+of 100k events, which asks for an external evidence sink; that is intended
+behavior. Teardown matched the earlier runs: secret revoked, reader deleted at
+workspace and account level, catalog dropped, warehouse stopped, local credentials
+removed.
+
+The populated audit and multi-chunk runs above close those gaps. No live 429 retry, credential expiry,
 provider recovery, production scale or failover was exercised. The preview stage
 and [follow-up #734](https://github.com/koda-ai-studio/grc-lake/issues/734) remain.
 Provider identifiers, hostnames, principal names, credentials and raw evidence

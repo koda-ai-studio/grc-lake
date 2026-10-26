@@ -38,6 +38,7 @@
       "access_boundary": "read_only_role",
       "credential_type": "databricks_oauth_client_credentials",
       "minimum_permissions": [
+        "databricks-sql-access entitlement for the service principal",
         "CAN USE on the SQL warehouse",
         "USE CATALOG on the evidence catalog",
         "USE SCHEMA on the evidence schema",
