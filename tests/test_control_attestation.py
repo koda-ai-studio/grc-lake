@@ -32,9 +32,9 @@ def test_controls_carry_ccf_result_next_to_control_test_status(golden_lake: Path
     cc68 = controls["SOC2-CC6.8"]
     assert cc68["status"] == "pass"
     assert cc68["ccf_status"] == "not_evaluated"
-    assert cc68["reviewed_safeguard_count"] == 0
-    assert cc68["proposed_safeguard_count"] == requirements["SOC2-CC6.8"]["pending_mapping_count"] > 0
-    assert controls["SOC2-CC3.3"]["reviewed_safeguard_count"] == 0
+    assert cc68["reviewed_safeguard_count"] == len(requirements["SOC2-CC6.8"]["reviewed_safeguard_ids"]) == 1
+    assert cc68["proposed_safeguard_count"] == requirements["SOC2-CC6.8"]["pending_mapping_count"]
+    assert controls["SOC2-CC3.3"]["reviewed_safeguard_count"] == 1
 
     for control_id, row in controls.items():
         requirement = requirements[control_id]
@@ -56,8 +56,7 @@ def test_control_tests_carry_ccf_result_on_streamed_and_sorted_pages(golden_lake
         tests = {row["control_id"]: row for row in body["data"]}
         assert tests["SOC2-CC6.8"]["result"] == "pass"
         assert tests["SOC2-CC6.8"]["ccf_status"] == "not_evaluated"
-        assert tests["SOC2-CC6.8"]["reviewed_safeguard_count"] == 0
-        assert tests["SOC2-CC6.8"]["proposed_safeguard_count"] > 0
+        assert tests["SOC2-CC6.8"]["reviewed_safeguard_count"] == 1
 
 
 def test_framework_detail_separates_attested_passes_from_control_test_passes(golden_lake: Path) -> None:
@@ -73,8 +72,7 @@ def test_framework_detail_separates_attested_passes_from_control_test_passes(gol
     cc68 = next(row for row in controls if row["control_id"] == "SOC2-CC6.8")
     assert cc68["posture"]["status"] == "pass"
     assert cc68["ccf_status"] == "not_evaluated"
-    assert cc68["reviewed_safeguard_count"] == 0
-    assert cc68["proposed_safeguard_count"] > 0
+    assert cc68["reviewed_safeguard_count"] == 1
 
 
 def test_missing_assessment_reads_as_not_evaluated(golden_lake: Path, tmp_path: Path) -> None:

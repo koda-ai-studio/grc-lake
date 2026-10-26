@@ -126,6 +126,7 @@ def proposed_source_catalog(tmp_path_factory, monkeypatch):
             if member.get("maintainer_review_ref") in {
                 "controls/reviews/2026-10-14-source-batches.json",
                 "controls/reviews/2026-10-15-soc2-iso-repairs.json",
+                "controls/reviews/2026-10-25-soc2-iso27001-batch.json",
             }:
                 member["review_status"] = "proposed"
                 for key in ("maintainer_review_ref", "reviewed_by", "reviewed_at"):

@@ -216,7 +216,7 @@ def test_review_queue_filters_to_a_cross_framework_risk_domain() -> None:
         "fedramp-moderate",
         "iso-42001-2023",
         "nist-ai-rmf",
-        "soc2",
+        "iso-27001-2022",
     }
     assert len(filtered) == sum(1 for item in everything if item["risk_domain"] == "detection")
 

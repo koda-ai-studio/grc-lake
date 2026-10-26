@@ -64,7 +64,7 @@ def test_new_mapping_coverage_does_not_grant_review_credit():
     coverage = coverage_by_framework(load_safeguards())
     row = coverage["frameworks"][FRAMEWORK]
     assert (row["controls"], row["covered"], row["reviewed"]) == (30, 30, 0)
-    assert coverage["frameworks"]["iso-27001-2022"]["reviewed"] == 17
+    assert coverage["frameworks"]["iso-27001-2022"]["reviewed"] == 53
     assert validate_safeguards(load_safeguards()) == []
     assert len(entries()) == 30
     assert len({s["required_evidence_types"][0] for s in entries()}) == 30

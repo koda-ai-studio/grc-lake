@@ -1,7 +1,7 @@
 {
   "batches": [
     {
-      "basis_sha256": "5850d37b31427e9f03c022d622338a562cfbcca00bb3c96564aec12c7b5953cb",
+      "basis_sha256": "3926e55d154721b55cc62ba5e306c4729cacd8c9c91ea550bae5f4db3f54a099",
       "batch_id": "review-001",
       "mapping_count": 2,
       "requirement_count": 2,
@@ -48,6 +48,8 @@
                 "SOC2-A1.2",
                 "ISO27001-A.8.13",
                 "CMMC-3.8.9",
+                "ISO27001-A.5.30",
+                "SOC2-CC7.5",
                 "FEDRAMP-CP-10",
                 "FEDRAMP-CP-10.2",
                 "FEDRAMP-CP-6",
@@ -219,7 +221,7 @@
   ],
   "control_filter": ["SOC2-A1.3", "SOC2-C1.1"],
   "framework_filter": "soc2",
-  "packet_sha256": "7b3d31379d5e9747b0de97d23c9c6712c1826c9ea6c1c97419f0e262cba0bd6b",
+  "packet_sha256": "b0d60e3c07d9a9b64792cd404285155b71e5c297e00bf1f065030253b0867ab0",
   "review_checklist": [
     "Compare the complete requirement and source with the safeguard operating contract; a related topic is not equivalence.",
     "Check evidence specificity, applicability, parameters, prerequisites and limitations.",
@@ -239,8 +241,8 @@
     "mapped_target": 1826,
     "requirements_needing_catalog_repair": 0,
     "requirements_with_source_references": 0,
-    "reviewed_pct": 51.0,
-    "reviewed_requirements": 1163,
+    "reviewed_pct": 53.7,
+    "reviewed_requirements": 1225,
     "reviewed_target": 1141
   }
 }

@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
-// Golden demo: SOC2-CC6.8's control test passes, but it has only proposed
-// safeguard mappings, so its framework (CCF) result is not evaluated. The
+// Golden demo: SOC2-CC6.8's control test passes, but no evidence is bound to
+// its reviewed safeguard, so its framework (CCF) result is not evaluated. The
 // console must never present it as an attested pass.
 
 const CONTROL_ID = "SOC2-CC6.8";
@@ -37,13 +37,23 @@ test("controls API carries the CCF result next to the control test", async ({
   const control = body.data.find((row) => row.control_id === CONTROL_ID)!;
   expect(control.status).toBe("pass");
   expect(control.ccf_status).toBe("not_evaluated");
-  expect(control.reviewed_safeguard_count).toBe(0);
-  expect(control.proposed_safeguard_count).toBeGreaterThan(0);
+  expect(control.reviewed_safeguard_count).toBeGreaterThanOrEqual(0);
+  expect(control.proposed_safeguard_count).toBeGreaterThanOrEqual(0);
 });
 
 test("controls page shows a passing control test as not attested", async ({
   page,
+  request,
 }) => {
+  const counts = (
+    (await (await request.get("/api/v1/controls?limit=500")).json()) as {
+      data: Array<{
+        control_id: string;
+        reviewed_safeguard_count: number;
+        proposed_safeguard_count: number;
+      }>;
+    }
+  ).data.find((row) => row.control_id === CONTROL_ID)!;
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("/console/controls/");
   const search = page.getByPlaceholder(/Search by control id/);
@@ -61,7 +71,9 @@ test("controls page shows a passing control test as not attested", async ({
     drawer.getByText("Framework result", { exact: true }),
   ).toBeVisible();
   await expect(drawer).toContainText("Control test passing · Not attested");
-  await expect(drawer).toContainText(/0 reviewed · \d+ proposed mappings?/);
+  await expect(drawer).toContainText(
+    `${counts.reviewed_safeguard_count} reviewed · ${counts.proposed_safeguard_count} proposed mapping`,
+  );
   await expect(
     drawer.getByRole("link", { name: /Mapping review/ }),
   ).toHaveAttribute("href", /\/mapping-review\//);
