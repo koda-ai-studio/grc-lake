@@ -3,8 +3,9 @@
 All notable GRC Lake changes are summarized here. Versions follow semver for the
 Python package, Helm chart, and bundled web console.
 
-## Unreleased
+## 0.3.15 - 2026-10-26
 
+- Databricks: document the `databricks-sql-access` entitlement in the reader's minimum permissions (a new service principal without it gets HTTP 403), and record a live multi-chunk run (77,036 records over 3 result chunks, reconciled with the provider). The connector stays Preview.
 - Security: upgrade certifi to 2026.10.23, which removes the distrusted "emSign ECC Root CA - C3" and "emSign Root CA - C1" roots from the Python CA bundle used for outbound HTTPS, plus pip 26.2.2 and uv 0.13.5 (CI and the image build). The container's system CA bundle already excluded both roots; the 0.3.14 image's Python bundle did not.
 - GCP `iam.disableServiceAccountKeyCreation` and `compute.requireOsLogin` constraints that are not set on the project are now evaluated from their effective (inherited) policy, so an organization or folder enforcement can pass `SG-IDENTITY-001` and an unenforced one fails it. A conditional or list rule, or an effective policy that cannot be read (new permission `orgpolicy.policy.get`, in `roles/orgpolicy.policyViewer`), stays `not_evaluated` and is reported as a coverage gap.
 - `azure-posture` now collects Microsoft Defender for Cloud assessments (read-only ARM `Microsoft.Security/assessments`, `api-version=2021-06-01`, same-host `nextLink`, bounded pages, `Retry-After`). Healthy is `pass`, Unhealthy `open`, NotApplicable `observed` and any other code `not_evaluated`. A reviewed allowlist of 12 built-in assessment keys binds to `SG-IDENTITY-001` (disabled and guest accounts with privileged access), `SG-DATAPROTECTION-001` (storage secure transfer, SQL TDE), `SG-LOGGING-001` (Key Vault diagnostic logs) and `SG-VULNERABILITYMANAGEMENT-001` (machine vulnerability findings), so Azure verdicts reach framework (CCF) results; other assessments keep their verdict unbound. A denied or malformed assessment read is a coverage gap and the run is marked partial. Reader already grants the read.
