@@ -304,6 +304,8 @@ def render_readme_glance() -> str:
     coverage = coverage_by_framework()
     safeguard_count, requirement_count, framework_count = _coverage_summary()
     standard_sources, preview_sources = _read_only_source_counts()
+    catalog = json.loads((ROOT / "connectors/catalog.json").read_text())["connectors"]
+    boundaries = sum(not entry.get("is_implemented") for entry in catalog)
     return (
         "- **Reviewed requirements by framework:** "
         f"{headline_framework_phrase(coverage['frameworks'])}. "
@@ -316,8 +318,9 @@ def render_readme_glance() -> str:
         f"requirement's own pinned source) and {coverage['crosswalk_reviewed']:,} rest on reviewed crosswalk "
         f"mappings; {coverage['legacy_only_reviewed']:,} rest only on legacy reviews with no recorded reviewer. "
         "The blended total is not a per-framework readiness figure.\n"
-        f"- **{standard_sources + preview_sources} read-only source adapters ({preview_sources} in preview)**, "
-        "plus OCSF presets for existing security lakes.\n"
+        f"- **{standard_sources + preview_sources} executable adapters ({standard_sources} implemented, "
+        f"{preview_sources} preview) and {boundaries} configuration boundaries**. Read-only provider collection includes "
+        "OCSF presets for existing security lakes.\n"
         "- **Evidence stays scoped:** missing or stale evidence leaves gaps; a passing sample does not prove "
         "complete population coverage. Proposed mappings are not attestable.\n"
         "- **One engine, four surfaces:** console, REST API, CLI, and MCP server. Agents propose; humans approve."

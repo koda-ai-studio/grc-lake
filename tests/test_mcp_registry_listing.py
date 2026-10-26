@@ -46,3 +46,13 @@ def test_server_json_matches_the_package_release_and_registry_limits() -> None:
 def test_pypi_readme_carries_the_registry_ownership_marker() -> None:
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
     assert f"<!-- mcp-name: {SERVER_NAME} -->" in readme
+
+
+def test_registry_copy_distinguishes_provider_reads_from_local_writes(tmp_path) -> None:
+    from test_mcp_server import tool_names
+
+    server = mcp_server.build_server(tmp_path)
+    assert {"sync_connector", "configure_connector", "create_snapshot"} <= tool_names(server)
+    description = _server()["description"].lower()
+    assert "local writes" in description
+    assert "read-only connectors" in description
