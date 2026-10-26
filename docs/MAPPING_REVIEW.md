@@ -21,25 +21,42 @@ The [source packet](reviews/2026-10-15-repaired-proposals.json) retains the
 corresponding contracts and source references. Vendor guidance does not establish
 normative equivalence or operating effectiveness.
 
-At the current source revision, 1,163/2,282 requirements have reviewed mappings
-(51.0%) and 2,196/2,282 are mapped (96.2%). SOC 2 has 33/61 reviewed requirements
-(54.1%), ISO 27001 has 17/93 (18.3%), and ISO 42001 has 14/40 (35.0%). The
-35 approvals above first shipped in 0.3.6; they do not attest operating effectiveness.
-The remaining SOC 2 and ISO queue contains 130 requirements: 28 SOC 2, 76 ISO
-27001, and 26 ISO 42001. Alternative mappings to already reviewed requirements
-remain proposed and receive no inherited approval.
+On 2026-10-25 the maintainer (msaad00) reviewed the SOC 2 and ISO 27001 pending
+queue against the requirement text and approved it as one batch decision. The
+[batch receipt](../controls/reviews/2026-10-25-soc2-iso27001-batch.json) records
+that decision once for all listed mappings; it does not carry per-mapping
+rationales. It binds each mapping to the fingerprint in the
+[archived queue](reviews/2026-10-25-soc2-iso27001-pending-queue.json), which holds
+all 123 presented candidates (37 SOC 2 for 28 requirements, 86 ISO 27001 for 76
+requirements). It approves 73 mappings: 37 SOC 2 and 36 ISO 27001.
+
+The other 50 ISO 27001 candidates are title-theme suggestions. The receipt lists
+them as excluded because a shipped title-theme mapping is never counted as
+maintainer-reviewed. They stay proposed, and your organization can still decide
+them in Mapping review. 61 of the approved mappings have no citation of their
+own; the queue gave only requirement-level Cisco locators for them. ISO 42001 was
+not part of the decision. The same limits apply as for the earlier record: this
+is a mapping approval only, and operating effectiveness and certification need
+separate evidence.
+
+At the current source revision, 1,227/2,282 requirements have reviewed mappings
+(53.8%) and 2,196/2,282 are mapped (96.2%). SOC 2 has 61/61 reviewed requirements
+(100.0%), ISO 27001 has 53/93 (57.0%), and ISO 42001 has 14/40 (35.0%). The
+remaining SOC 2 and ISO queue contains 66 requirements: 40 ISO 27001, whose only
+candidates are title-theme suggestions, and 26 ISO 42001. Alternative mappings
+to already reviewed requirements remain proposed and receive no inherited approval.
 
 Prepare bounded, current-fingerprint packets for independent review with
-`grc-lake frameworks review packet --framework soc2 --batch-size 5 --out soc2-review.json`
-(or `iso-27001-2022` / `iso-42001-2023`). A generated packet records no decision.
+`grc-lake frameworks review packet --framework iso-42001-2023 --batch-size 5 --out iso42001-review.json`
+(or `iso-27001-2022`). A generated packet records no decision.
 Check each candidate's source reference and operating contract; missing normative
 source access or a named reviewer leaves that candidate proposed.
 
 For a smaller review, repeat `--control` to select exact pending requirements:
 
 ```bash
-grc-lake frameworks review packet --framework soc2 \
-  --control SOC2-A1.3 --control SOC2-C1.1 --out focused-review.json
+grc-lake frameworks review packet --framework iso-42001-2023 \
+  --control ISO42001-10.4 --control ISO42001-2.3 --out focused-review.json
 ```
 
 The packet preserves each candidate's current fingerprint and the global coverage

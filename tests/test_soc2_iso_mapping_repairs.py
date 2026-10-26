@@ -129,7 +129,7 @@ def test_published_packets_bind_current_semantics_and_contain_no_decisions(frame
     assert (
         len(requirements)
         == len(set(requirements))
-        == {"soc2": 28, "iso-27001-2022": 76, "iso-42001-2023": 26}[framework]
+        == {"soc2": 0, "iso-27001-2022": 40, "iso-42001-2023": 26}[framework]
     )
     assert set(requirements) == expected - reviewed
 
@@ -170,25 +170,40 @@ def test_source_digest_mismatch_is_rejected():
         GENERATOR["verify_source"](b"changed source", PLAN["sources"]["cisco"])
 
 
-@pytest.mark.parametrize("change", ["decision", "duplicate", "fingerprint", "packet", "contract"])
-def test_generator_rejects_unbound_or_changed_recorded_review(change, tmp_path, monkeypatch):
-    from test_soc2_iso_review_receipt import PACKET, RECEIPT
-
+@pytest.mark.parametrize("change", ["decision", "duplicate", "fingerprint", "packet", "contract", "parent"])
+@pytest.mark.parametrize("bound", sorted(GENERATOR["REVIEW_RECEIPTS"]))
+def test_generator_rejects_unbound_or_changed_recorded_review(change, bound, tmp_path, monkeypatch):
+    receipts = GENERATOR["REVIEW_RECEIPTS"]
+    for path in [*receipts, *receipts.values()]:
+        target = tmp_path / path
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text((ROOT / path).read_text())
     payload = json.loads((ROOT / "controls/safeguards.json").read_text())
-    receipt = json.loads((ROOT / RECEIPT).read_text())
-    packet = json.loads((ROOT / PACKET).read_text())
+    receipt = json.loads((ROOT / bound).read_text())
+    packet = json.loads((ROOT / receipts[bound]).read_text())
+    approved = {(row["safeguard_id"], row["control_id"]) for row in receipt["mappings"]}
+    # The generator re-validates only its own SG-REVIEW entries; tamper with one of those.
+    row = next(i for i, r in enumerate(receipt["mappings"]) if r["safeguard_id"].startswith("SG-REVIEW-"))
+    item = next(i for i, r in enumerate(packet["items"]) if r["safeguard_id"].startswith("SG-REVIEW-"))
     if change == "decision":
         receipt["decision"] = "reject"
     elif change == "duplicate":
-        receipt["mappings"].append(deepcopy(receipt["mappings"][0]))
+        receipt["mappings"].append(deepcopy(receipt["mappings"][row]))
     elif change == "fingerprint":
-        receipt["mappings"][0]["inspected_basis_sha256"] = "0" * 64
+        receipt["mappings"][row]["inspected_basis_sha256"] = "0" * 64
     elif change == "packet":
-        packet["items"][0]["operating_contract"]["evidence_requirement"] = "weaker"
+        packet["items"][item]["operating_contract"]["evidence_requirement"] = "weaker"
+    elif change == "parent":
+        receipt["parent_packet"] = "docs/reviews/another-packet.json"
     else:
-        entry = next(e for e in payload["safeguards"] if e["safeguard_id"].startswith("SG-REVIEW-"))
+        entry = next(
+            e
+            for e in payload["safeguards"]
+            if e["safeguard_id"].startswith("SG-REVIEW-")
+            and (e["safeguard_id"], e["satisfies"][0]["control_id"]) in approved
+        )
         entry["evidence_requirement"] = "weaker"
-    for path, content in ((RECEIPT, receipt), (PACKET, packet)):
+    for path, content in ((bound, receipt), (receipts[bound], packet)):
         target = tmp_path / path
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(json.dumps(content))

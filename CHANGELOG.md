@@ -9,6 +9,8 @@ Python package, Helm chart, and bundled web console.
 
 - Discover installed connector plugins once per process instead of on every catalog load. Safeguard evaluation reloads the connector catalog for each evaluation, and each reload scanned every installed distribution's entry points (about 40 ms); the NIST SP 800-53 assessment tests drop from 114 s to 12 s locally, and evaluation-heavy API and pipeline paths stop paying the scan.
 
+- Record msaad00's batch approval of the SOC 2 and ISO 27001 mapping queue as one decision, without per-mapping rationales. The receipt binds 73 mappings (37 SOC 2, 36 ISO 27001) to the fingerprints in the archived 123-candidate queue. The 50 title-theme ISO 27001 candidates are listed as excluded and stay proposed. Reviewed requirements rise from 1,163 to 1,227 (53.8%): SOC 2 from 33/61 to 61/61 and ISO 27001 from 17/93 to 53/93. Mapping coverage is unchanged and ISO 42001 stays pending. This is a mapping approval only; operating effectiveness and certification need separate evidence.
+
 - Refresh the README structure and console screenshots, expose the bounded graph performance profile, and reconcile connector summaries with the catalog. Preview qualification now distinguishes limited live receipts from provider-wide coverage. Add a regression check for overview counts and remove an unmeasured hosted-demo setup-time claim.
 
 - Add a repeatable local graph performance acceptance check for two tenants at 1k/10k records each. It checks cold and warm latency, idle-expiry reads, memory and tenant progress while reporting admission rejections separately. These bounded synthetic measurements do not qualify production capacity.

@@ -48,7 +48,9 @@ def test_full_bundle_is_schema_valid_and_every_mapping_resolves_offline():
         validate_schema(catalog, "oscal_catalog_schema.json")
         assert row["catalogued_controls"] == len(catalog["catalog"]["controls"])
         assert row["reviewed_requirement_count"] <= row["catalogued_controls"]
-    assert frameworks["soc2"]["reviewed_requirement_count"] < frameworks["soc2"]["catalogued_controls"]
+    assert (
+        frameworks["iso-27001-2022"]["reviewed_requirement_count"] < frameworks["iso-27001-2022"]["catalogued_controls"]
+    )
 
 
 def test_proposed_and_rejected_mappings_remain_catalogued_but_not_asserted():

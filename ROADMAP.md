@@ -65,9 +65,10 @@ Public repository URL onboarding shipped in 0.3.4 ([#911](https://github.com/kod
 ## Coverage still incomplete
 
 The current catalog has 96.2% mapped requirements and
-51.0% with reviewed mappings. The [NIST assessment expansion](docs/NIST53_ASSESSMENTS.md) and
+53.8% with reviewed mappings. The [NIST assessment expansion](docs/NIST53_ASSESSMENTS.md),
 [maintainer approval of 33 source-review batches](controls/reviews/2026-10-14-source-batches.json)
-provide the mapping and review increases. The 51.0% is a blended aggregate: 381 of
+and the [SOC 2 and ISO 27001 batch decision](controls/reviews/2026-10-25-soc2-iso27001-batch.json)
+provide the mapping and review increases. The 53.8% is a blended aggregate: 381 of
 those reviewed requirements are source-native NIST 800-53 self-maps, not
 crosswalk judgements. Read reviewed coverage per framework, split into self-maps
 and crosswalk reviews, in the [coverage matrix](docs/FRAMEWORK_COVERAGE.md).
@@ -75,11 +76,14 @@ Release qualification passed; it does
 not approve additional mappings. A merged proposal or passing CI does not
 approve a mapping.
 
-Prioritize the next bounded review batches for SOC 2, ISO 27001 and ISO 42001.
-Prepare clause-specific source evidence, safeguard rationale, evidence requirements
-and limitations before requesting new human decisions. Report progress per
-framework; the aggregate milestone does not establish balanced review depth.
-Do not extend the 33-batch approval to these remaining proposals.
+Every SOC 2 criterion now has a reviewed mapping. Prioritize the next bounded
+review batches for ISO 42001 and for the 40 ISO 27001 controls whose only
+candidates are title-theme suggestions; those need requirement-specific
+contracts before a maintainer decision. Prepare clause-specific source evidence,
+safeguard rationale, evidence requirements and limitations before requesting new
+human decisions. Report progress per framework; the aggregate milestone does not
+establish balanced review depth. Earlier approvals do not extend to remaining
+proposals.
 
 ISO 27701:2025 is a limited pack (10 of 78 Annex A controls). SOC 1 is planned
 without an official catalog. NIST 800-171 Rev 3, NIS2, DORA and NIST RMF now have
@@ -88,7 +92,7 @@ ISO 27701 still needs mapping review. CIS Azure/GCP benchmarks remain gaps.
 ISO 27001 management-clause mappings still need review. The [ISMS companion pack](docs/ISO27001_ISMS_ASSESSMENTS.md)
 now catalogues 30 clause identifiers with proposed assessor contracts; it grants no new review credit.
 
-1,516 of 2,755 safeguard-to-requirement mapping rows are proposed, so 1,033 of the 2,196 mapped requirements have no reviewed mapping.
+1,443 of 2,755 safeguard-to-requirement mapping rows are proposed, so 969 of the 2,196 mapped requirements have no reviewed mapping.
 
 Mapping counts are effective review states: a mapping marked reviewed against an
 older control version counts as proposed until it is re-reviewed.

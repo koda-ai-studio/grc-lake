@@ -199,3 +199,12 @@ def test_ccf_doc_lists_the_broadest_safeguards_from_the_data() -> None:
     for row in rows:
         assert f"`{row['safeguard_id']}`" in block
     assert "a pass on one does not demonstrate each requirement" in doc
+
+
+def test_ccf_doc_headline_matches_the_cli_safeguards_table(capsys) -> None:
+    from security_lakehouse.cli import main
+
+    assert main(["frameworks", "safeguards", "--format", "table"]) == 0
+    headline = capsys.readouterr().out.splitlines()[0]
+    doc = (ROOT / "docs/COMMON_CONTROL_FRAMEWORK.md").read_text()
+    assert headline in doc.splitlines(), "CCF doc headline is stale; run tools/sync_ccf_doc.py"
