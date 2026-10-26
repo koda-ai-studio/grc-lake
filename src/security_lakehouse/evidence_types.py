@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 PROVIDER_EVENT_ALIASES: dict[str, tuple[str, ...]] = {
+    "intune.device.encryption": ("device.encryption",),
+    "jamf.device.encryption": ("device.encryption",),
     "iam.access_review": ("identity.access_review",),
     "monitoring.detection": ("detection.alert",),
     "scanner.dependency": ("vulnerability.finding",),

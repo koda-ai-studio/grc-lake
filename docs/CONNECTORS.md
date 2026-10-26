@@ -1489,3 +1489,27 @@ recorded as failed syncs before the prior raw inventory is replaced. These
 contracts are exercised offline by
 [`test_azure_collection_integrity.py`](../tests/test_azure_collection_integrity.py);
 they do not establish live subscription coverage or credential qualification.
+
+## Device evidence and CCF scope
+
+Intune and Jamf encryption signals bind to `SG-ENDPOINTENCRYPTION-001` on
+`managed_device` assets. CrowdStrike sensor and prevention-policy signals bind to
+`SG-ENDPOINTPREVENTION-001` on `endpoint_host` assets. Raw control tags stay inside
+those safeguards' crosswalks; other device signals remain separate.
+
+An explicit negative report produces an open finding. Missing encryption,
+conflicting FileVault states, missing sensor state, or unavailable policy details
+produce `not_evaluated`. A device population with an unknown encryption result
+cannot pass the encryption safeguard. CrowdStrike requires both sensor and policy
+evidence; an enabled policy alone is insufficient.
+
+These safeguards report bounded operating evidence. Their NIST SC-28.1 and SI-3
+mappings are **proposed**: they do not attest cryptographic integrity, organization
+defined scope, full malicious-code protection, or framework compliance. Only a
+human requirement-text review can approve a mapping. Existing receipt-bound
+safeguard definitions are unchanged. Synthetic fixture tests establish the local
+collection-to-assessment contract; they do not add live provider qualification.
+
+Provider field references: [Microsoft Graph managed devices](https://learn.microsoft.com/en-us/graph/api/resources/intune-devices-manageddevice?view=graph-rest-1.0),
+[Jamf computer inventory](https://developer.jamf.com/jamf-pro/reference/get_v4-computers-inventory),
+and [CrowdStrike prevention policies](https://falconpy.io/Service-Collections/Prevention-Policy.html).

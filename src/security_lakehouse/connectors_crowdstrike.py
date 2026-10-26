@@ -85,15 +85,8 @@ POLICY_FIELDS = ("id", "name", "enabled", "platform_name")
 ALERT_FIELDS = ("composite_id", "status", "severity", "severity_name", "created_timestamp")
 
 # Controls verified to exist in controls/catalog.json.
-SENSOR_CONTROLS = [
-    "SOC2-CC6.8",
-    "FEDRAMP-SI-3",
-    "CMMC-3.14.2",
-    "ISO27001-A.8.7",
-    "CIS-CONTROLS-10",
-    "NIST-CSF-DE.CM-09",
-]
-PREVENTION_CONTROLS = ["SOC2-CC6.8", "FEDRAMP-SI-3", "CMMC-3.14.2", "ISO27001-A.8.7"]
+SENSOR_CONTROLS = ["NIST-800-53-SI-3"]
+PREVENTION_CONTROLS = ["NIST-800-53-SI-3"]
 DETECTION_CONTROLS = ["SOC2-CC7.2", "FEDRAMP-SI-4", "CMMC-3.14.6", "ISO27001-A.8.16", "NIST-CSF-DE.CM-09"]
 
 UNRESOLVED_ALERT_STATUSES = {"new", "in_progress", "reopened"}
@@ -312,7 +305,9 @@ def _host_attributes(host: dict[str, Any]) -> dict[str, Any]:
         "first_seen": host.get("first_seen"),
         "last_seen": host.get("last_seen"),
         "containment_status": host.get("status"),
-        "reduced_functionality_mode": str(host.get("reduced_functionality_mode") or "").lower() == "yes",
+        "reduced_functionality_mode": {"yes": True, "no": False}.get(
+            str(host.get("reduced_functionality_mode") or "").lower()
+        ),
     }
 
 
@@ -323,9 +318,11 @@ def _sensor_event(
     if attributes["reduced_functionality_mode"]:
         status, severity, reason = "open", "high", "reduced_functionality_mode"
     elif last_seen is None:
-        status, severity, reason = "open", "medium", "last_seen_not_reported"
+        status, severity, reason = "not_evaluated", "info", "last_seen_not_reported"
     elif now - last_seen > SENSOR_STALE_AFTER:
         status, severity, reason = "open", "medium", "sensor_not_reporting"
+    elif attributes["reduced_functionality_mode"] is None:
+        status, severity, reason = "not_evaluated", "info", "sensor_mode_not_reported"
     else:
         status, severity, reason = "pass", "info", None
     return _event(
@@ -356,13 +353,15 @@ def _prevention_event(
     policy_id = str(assigned.get("policy_id") or "")
     policy = policies.get(policy_id)
     if not policy_id:
-        status, severity, reason = "open", "high", "no_prevention_policy"
-    elif assigned.get("applied") is not True:
+        status, severity, reason = "not_evaluated", "info", "no_prevention_policy"
+    elif assigned.get("applied") is False:
         status, severity, reason = "open", "high", "policy_not_applied"
     elif policy is None:
-        status, severity, reason = "open", "high", "policy_not_found"
-    elif policy.get("enabled") is not True:
+        status, severity, reason = "not_evaluated", "info", "policy_not_found"
+    elif policy.get("enabled") is False:
         status, severity, reason = "open", "high", "policy_disabled"
+    elif assigned.get("applied") is not True or policy.get("enabled") is not True:
+        status, severity, reason = "not_evaluated", "info", "policy_state_not_reported"
     else:
         status, severity, reason = "pass", "info", None
     return _event(
@@ -377,8 +376,10 @@ def _prevention_event(
             **attributes,
             "prevention_policy_id": policy_id or None,
             "prevention_policy_name": (policy or {}).get("name"),
-            "prevention_policy_applied": assigned.get("applied") is True,
-            "prevention_policy_enabled": (policy or {}).get("enabled") is True,
+            "prevention_policy_applied": assigned.get("applied") if isinstance(assigned.get("applied"), bool) else None,
+            "prevention_policy_enabled": (policy or {}).get("enabled")
+            if isinstance((policy or {}).get("enabled"), bool)
+            else None,
             "finding_reason": reason,
         },
         evidence_ref=f"https://{client.host}/policy/entities/prevention/v1?ids={urllib.parse.quote(policy_id)}"
@@ -487,6 +488,7 @@ def _event(
         "severity": severity,
         "status": status,
         "controls": list(controls),
+        "safeguard_ids": ["SG-ENDPOINTPREVENTION-001"] if signal in {"host.sensor", "host.prevention_policy"} else [],
         "evidence": {
             "evidence_id": f"ev-{stable}",
             "evidence_ref": evidence_ref,

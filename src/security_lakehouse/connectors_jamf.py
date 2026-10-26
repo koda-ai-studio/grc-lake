@@ -329,15 +329,18 @@ def _mobile_events(ctx: _Context, mobile: dict[str, Any], updates: dict[str, lis
     device = _Device(ctx, "mobile_device", device_id, f"/api/v2/mobile-devices/{device_id}/detail", base)
     events = [_management(device, jailbroken=security.get("jailBreakDetected") is True)]
 
-    if "dataProtected" in security:
-        protected = security.get("dataProtected") is True
-        events.append(
-            device.event(
-                "encryption",
-                ("pass", "info", None) if protected else ("open", "high", "not_data_protected"),
-                {"data_protected": protected},
-            )
+    protected = security.get("dataProtected")
+    events.append(
+        device.event(
+            "encryption",
+            ("pass", "info", None)
+            if protected is True
+            else ("open", "high", "not_data_protected")
+            if protected is False
+            else ("not_evaluated", "info", "encryption_not_reported"),
+            {"data_protected": protected if isinstance(protected, bool) else None},
         )
+    )
     if "passcodePresent" in security:
         present = security.get("passcodePresent") is True
         compliant = security.get("passcodeCompliant") is True
@@ -363,7 +366,13 @@ def _computer_encryption(device: _Device, os_info: dict[str, Any], disk: dict[st
     status = str(os_info.get("fileVault2Status") or "")
     partition = str(_obj(disk.get("bootPartitionEncryptionDetails")).get("partitionFileVault2State") or "")
     verdict: tuple[str, str, str | None]
-    if status in ENCRYPTED_FILEVAULT_STATUSES or partition == "ENCRYPTED":
+    conflicting = (
+        status in ENCRYPTED_FILEVAULT_STATUSES
+        and partition in {"UNENCRYPTED", "DECRYPTED", "DECRYPTING", *IN_PROGRESS_PARTITION_STATES}
+    ) or (partition == "ENCRYPTED" and status in {"NOT_ENCRYPTED", "SOME_ENCRYPTED"})
+    if conflicting:
+        verdict = ("not_evaluated", "info", "conflicting_encryption_reports")
+    elif status in ENCRYPTED_FILEVAULT_STATUSES or partition == "ENCRYPTED":
         verdict = ("pass", "info", None)
     elif partition in IN_PROGRESS_PARTITION_STATES:
         verdict = ("open", "low", "encryption_in_progress")
@@ -372,7 +381,7 @@ def _computer_encryption(device: _Device, os_info: dict[str, Any], disk: dict[st
     elif status == "NOT_ENCRYPTED" or partition in {"UNENCRYPTED", "DECRYPTED", "DECRYPTING"}:
         verdict = ("open", "high", "not_encrypted")
     else:
-        verdict = ("open", "medium", "encryption_not_reported")
+        verdict = ("not_evaluated", "info", "encryption_not_reported")
     return device.event(
         "encryption", verdict, {"file_vault_status": status or None, "boot_partition_state": partition or None}
     )
@@ -441,6 +450,7 @@ class _Device:
             "severity": severity,
             "status": status,
             "controls": list(SIGNAL_CONTROLS[signal]),
+            "safeguard_ids": ["SG-ENDPOINTENCRYPTION-001"] if signal == "encryption" else [],
             "evidence": {
                 "evidence_id": f"ev-{stable}",
                 "evidence_ref": f"{self.ctx.base_url}{self.ref_path}",
