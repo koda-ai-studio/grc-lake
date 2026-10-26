@@ -39,6 +39,7 @@ remain outside the accepted local interactive profile.
 
 ## 0.3.16 candidate
 
+0.3.16 is published; see the [publication receipt](#verified-0316-publication).
 A correctness patch on the verified 0.3.15 release that removes a false pass. It
 introduces no database migration and no safeguard or review-state change.
 
@@ -163,6 +164,35 @@ for security, correctness, supported-workload performance and setup/documentatio
 repairs. Independent human review, required PR checks, exact-main CI and published
 artifact/runtime verification remain release gates; this candidate section is not
 a completion receipt.
+
+## Verified 0.3.16 publication
+
+The [release workflow](https://github.com/koda-ai-studio/grc-lake/actions/runs/40362446730)
+passed on source `15a12a0a0c82dc04d3c385f2f7b46f48c445404f`, after that exact
+main commit [passed CI](https://github.com/koda-ai-studio/grc-lake/actions/runs/40359572087).
+The `v0.3.16` tag resolves to that commit. Wheel and sdist bytes match between
+PyPI and the GitHub release:
+
+| Artifact                           | SHA-256                                                            |
+| ---------------------------------- | ------------------------------------------------------------------ |
+| `grc_lake-0.3.16-py3-none-any.whl` | `8b0bb7085bb8a7703068d82eda1f3707ae2612ad58b9dcfdf386a9ae4d359ebc` |
+| `grc_lake-0.3.16.tar.gz`           | `0db3e57cc9c4b0f55aed43bf7a9008b0e387a3332806a32da1f9d7d167902393` |
+
+The Python provenance for the wheel and the registry image attestation verify
+against this repository with `gh attestation verify`. The multi-platform image
+index `ghcr.io/koda-ai-studio/grc-lake:0.3.16` (digest
+`sha256:97ec2ac1639cd6ff118b99ee4e5fa4d74757e342030fd745d0a1b69baf7c9de9`)
+publishes `linux/amd64` and `linux/arm64`. The GitHub release carries the wheel,
+sdist, CycloneDX SBOM and Sigstore provenance.
+
+A fresh installation of `grc-lake[server]==0.3.16` from PyPI loaded the golden
+fixture, printed the framework summary (3 attested, 0 failing), exported OSCAL
+assessment results with exactly the three attested requirements `satisfied`, and
+verified a new assessment snapshot. Its framework registry declares CIS AWS
+`provider_sources` as `aws` and `aws_config`, and the provider-scope tests, run
+against the installed package, show GCP-only evidence leaving `CIS-AWS-1.10`
+`not_evaluated` while AWS evidence still fails it. The hosted demo was redeployed
+from the release commit.
 
 ## Verified 0.3.15 publication
 

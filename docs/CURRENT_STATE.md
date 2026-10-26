@@ -1,16 +1,18 @@
 # Current state and coverage
 
-Release verification: **2026-10-26**. Latest published release checked: **v0.3.15**.
-See the [publication receipt](RELEASE_READINESS.md#verified-0315-publication) for artifact and runtime evidence.
+Release verification: **2026-10-26**. Latest published release checked: **v0.3.16**.
+See the [publication receipt](RELEASE_READINESS.md#verified-0316-publication) for artifact and runtime evidence.
 Changes on `main` or in a pull request can be newer than the published package. Check the [releases](https://github.com/koda-ai-studio/grc-lake/releases)
 and [changelog](../CHANGELOG.md) for the version you install.
 
-0.3.15 is a security and correctness patch: the image's Python CA bundle drops
-the two distrusted emSign roots, GCP reads inherited organization policies from
-the effective policy, and Azure binds Microsoft Defender for Cloud verdicts to
-safeguards. It builds on 0.3.14, which reports a framework result only for a CCF
-pass through reviewed mappings. See the [0.3.15 notes](RELEASE_READINESS.md#0315-candidate)
-and [publication receipt](RELEASE_READINESS.md#verified-0315-publication). The [pilot guide](PILOT.md) provides an
+0.3.16 assesses provider benchmarks only from their own provider's evidence (CIS
+AWS from AWS sources), so GCP or identity-provider evidence can no longer pass
+or fail a CIS AWS requirement, and keeps a denied read from hiding a failing AWS
+or GCP verdict. It builds on 0.3.15 (distrusted emSign roots removed, GCP
+effective policy, Azure Defender verdicts) and 0.3.14, which reports a framework
+result only for a CCF pass through reviewed mappings. See the
+[0.3.16 notes](RELEASE_READINESS.md#0316-candidate) and
+[publication receipt](RELEASE_READINESS.md#verified-0316-publication). The [pilot guide](PILOT.md) provides an
 optional real-workflow evaluation and repeat-use check without telemetry.
 
 ## What you can use
