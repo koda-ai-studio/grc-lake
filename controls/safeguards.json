@@ -5643,11 +5643,8 @@
           "control_id": "SOC2-A1.3",
           "framework_id": "soc2",
           "role": "equivalent",
-          "review_status": "reviewed",
-          "control_version": "1.0.0",
-          "reviewed_by": "msaad00",
-          "reviewed_at": "2026-10-25T23:17:46.411468Z",
-          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
+          "review_status": "proposed",
+          "control_version": "1.0.0"
         },
         {
           "control_id": "SOC2-CC7.5",
@@ -9641,11 +9638,8 @@
           "control_id": "SOC2-C1.1",
           "framework_id": "soc2",
           "role": "equivalent",
-          "review_status": "reviewed",
-          "control_version": "1.0.0",
-          "reviewed_by": "msaad00",
-          "reviewed_at": "2026-10-25T23:17:46.411468Z",
-          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
+          "review_status": "proposed",
+          "control_version": "1.0.0"
         },
         {
           "control_id": "FEDRAMP-CM-2",

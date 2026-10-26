@@ -12,7 +12,7 @@ The three JSON companions contain exact candidate fingerprints, operating contra
 
 ## Review scope and reproduction
 
-This queue contains 66 requirements and 78 candidate relationships in 7 batches: soc2 (0 requirements), iso-27001-2022 (40 requirements), iso-42001-2023 (26 requirements). 35 requirement-specific assessment contracts replaced 41 weak proposed relationships. 15 additional contracts propose mappings for previously unmapped requirements. Reviewed requirements are excluded from this pending queue; separate alternatives do not inherit their approval.
+This queue contains 68 requirements and 80 candidate relationships in 8 batches: soc2 (2 requirements), iso-27001-2022 (40 requirements), iso-42001-2023 (26 requirements). 35 requirement-specific assessment contracts replaced 41 weak proposed relationships. 15 additional contracts propose mappings for previously unmapped requirements. Reviewed requirements are excluded from this pending queue; separate alternatives do not inherit their approval.
 
 Cisco references use explicit SOC 2 IDs and the ISO/IEC 27002:2022 column corresponding to ISO 27001:2022 Annex A. Older ISO columns and broad X markers are excluded. Processing Integrity requirements without a Cisco reference stay explicitly unsourced. Oracle articles provide AI governance examples; they do not supply the complete ISO 42001 requirement text. Proposed coverage is not reviewed coverage or operating assurance; incomplete normative source access must be resolved during review.
 
@@ -89,7 +89,23 @@ The [SOC 2 and ISO 27001 batch decision receipt](../../controls/reviews/2026-10-
 
 ## soc2
 
-No pending requirements. Every mapped requirement has a recorded review.
+### soc2-review-001
+
+**SOC2-A1.3** — Recovery procedures are established, maintained, and tested
+
+Candidates: `SG-AVAILABILITY-001`.
+
+Check that recovery exercises record results and corrective actions; a backup configuration or successful backup alone does not test recovery.
+
+Source locators: CCF 10 (BE16), CCF 24 (BE30), CCF 25 (BE31), CCF 329 (BE335), CCF 331 (BE337).
+
+**SOC2-C1.1** — Confidential information is identified and protected
+
+Candidates: `SG-DATAINVENTORY-001`.
+
+An inventory identifies data but does not demonstrate its protection. Require the protection decisions and tested enforcement for the same inventory scope.
+
+Source locators: CCF 69 (BF75), CCF 73 (BF79), CCF 83 (BF89), CCF 85 (BF91), CCF 87 (BF93), CCF 88 (BF94), CCF 100 (BF106), CCF 200 (BF206), CCF 329 (BF335), CCF 331 (BF337), CCF 339 (BF345).
 
 ## iso-27001-2022
 

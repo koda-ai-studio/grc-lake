@@ -8,7 +8,7 @@
     "frameworks": "38590e35a19602135663e64155b395f038c183364ae0e8f3eedaad093dc7cf95",
     "controls": "68fe185fa57902775f66c22d687cb0950f07b131237f986091e7245534787776",
     "crosswalk": "233d66f343b9c08aee346b5b6ef6c001b42d275a199586f8f4974f54eeb83ea1",
-    "safeguards": "b2b6bc51e99288f3e9563aa5787f9c67987e2a64363036118c55cfcf0ab5203f"
+    "safeguards": "0fbd2c5e48778c8dfd736d084879ee45e842a369900d2af97d8157dd93306905"
   },
   "framework_versions": [
     {
@@ -16149,5 +16149,5 @@
       "lifecycle_status": "active"
     }
   ],
-  "bundle_sha256": "1f0e0b3955e821a6a80fea570cb0bf86b431d9cb30553aff5102991f5d8c89e3"
+  "bundle_sha256": "0fbb19db10936863d0f89a0cbb5d9b706deb35d7638c6c6507ca123defc12b0e"
 }

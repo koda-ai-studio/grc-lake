@@ -129,7 +129,7 @@ def test_published_packets_bind_current_semantics_and_contain_no_decisions(frame
     assert (
         len(requirements)
         == len(set(requirements))
-        == {"soc2": 0, "iso-27001-2022": 40, "iso-42001-2023": 26}[framework]
+        == {"soc2": 2, "iso-27001-2022": 40, "iso-42001-2023": 26}[framework]
     )
     assert set(requirements) == expected - reviewed
 

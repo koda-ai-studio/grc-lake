@@ -51,24 +51,29 @@ def test_receipt_discloses_a_single_batch_decision_by_the_maintainer():
     assert receipt["parent_packet"] == PACKET
     assert receipt["parent_packet_sha256"] == canonical_sha256(packet)
     assert {row["framework_id"] for row in receipt["mappings"]} == FRAMEWORKS
-    assert sum(row["framework_id"] == "soc2" for row in receipt["mappings"]) == 37
+    assert sum(row["framework_id"] == "soc2" for row in receipt["mappings"]) == 35
     assert sum(row["framework_id"] == "iso-27001-2022" for row in receipt["mappings"]) == 36
     expected = {(x["safeguard_id"], x["control_id"]): x["review_basis_sha256"] for x in packet["items"]}
     assert len(expected) == len(packet["items"]) == 123
     assert {x["framework_id"] for x in packet["items"]} == FRAMEWORKS
     approved = {(x["safeguard_id"], x["control_id"]): x["inspected_basis_sha256"] for x in receipt["mappings"]}
     excluded = {(x["safeguard_id"], x["control_id"]): x["inspected_basis_sha256"] for x in receipt["excluded"]}
-    assert len(approved) == 73 and len(excluded) == 50
+    assert len(approved) == 71 and len(excluded) == 52
     assert approved.keys().isdisjoint(excluded) and approved | excluded == expected
     assert all(x["decision"] is x["reviewer"] is x["rationale"] is None for x in packet["items"])
 
 
-def test_only_title_theme_suggestions_are_excluded_and_they_stay_proposed():
+def test_title_theme_and_open_recommendation_candidates_are_excluded_and_stay_proposed():
     receipt = _receipt()
     basis = {(x["safeguard_id"], x["control_id"]): x["mapping_basis"] for x in _packet()["items"]}
     excluded = {(x["safeguard_id"], x["control_id"]) for x in receipt["excluded"]}
-    assert excluded == {key for key, value in basis.items() if value == "title_theme"}
-    assert all(x["framework_id"] == "iso-27001-2022" and "title_theme" in x["reason"] for x in receipt["excluded"])
+    open_recommendations = {("SG-AVAILABILITY-001", "SOC2-A1.3"), ("SG-DATAINVENTORY-001", "SOC2-C1.1")}
+    assert excluded == {key for key, value in basis.items() if value == "title_theme"} | open_recommendations
+    for x in receipt["excluded"]:
+        if (x["safeguard_id"], x["control_id"]) in open_recommendations:
+            assert "RECOVERY_CONFIDENTIALITY.md" in x["reason"]
+        else:
+            assert x["framework_id"] == "iso-27001-2022" and "title_theme" in x["reason"]
     for entry in load_safeguards()["safeguards"]:
         for member in entry["satisfies"]:
             if (entry["safeguard_id"], member["control_id"]) in excluded:
@@ -104,9 +109,12 @@ def test_pending_queues_hold_only_excluded_items_and_iso42001_is_untouched(tmp_p
     receipt = _receipt()
     excluded = {(x["safeguard_id"], x["control_id"]): x["inspected_basis_sha256"] for x in receipt["excluded"]}
     reviewed_ids = {x["control_id"] for x in receipt["mappings"]}
-    assert _queue(payload, "soc2", tmp_path) == {}
+    open_recommendations = {("SG-AVAILABILITY-001", "SOC2-A1.3"), ("SG-DATAINVENTORY-001", "SOC2-C1.1")}
+    assert _queue(payload, "soc2", tmp_path) == {k: v for k, v in excluded.items() if k in open_recommendations}
     iso = _queue(payload, "iso-27001-2022", tmp_path)
-    assert iso == {key: value for key, value in excluded.items() if key[1] not in reviewed_ids}
+    assert iso == {
+        key: value for key, value in excluded.items() if key[1] not in reviewed_ids and key not in open_recommendations
+    }
     assert len({key[1] for key in iso}) == 40
     before = without_repair_approvals(payload, receipts=(BATCH_RECEIPT,))
     assert _queue(payload, "iso-42001-2023", tmp_path) == _queue(before, "iso-42001-2023", tmp_path)
@@ -118,7 +126,8 @@ def test_pending_queues_hold_only_excluded_items_and_iso42001_is_untouched(tmp_p
         if member["framework_id"] not in FRAMEWORKS
     )
     soc2 = json.loads((ROOT / "docs/reviews/soc2-batches.json").read_text())
-    assert all(not framework["batches"] for framework in soc2["frameworks"])
+    pending = {r["control_id"] for f in soc2["frameworks"] for b in f["batches"] for r in b["requirements"]}
+    assert pending == {"SOC2-A1.3", "SOC2-C1.1"}
     published = json.loads((ROOT / "docs/reviews/iso-27001-2022-batches.json").read_text())
     rows = [r for f in published["frameworks"] for b in f["batches"] for r in b["requirements"]]
     assert {(c["safeguard_id"], r["control_id"]) for r in rows for c in r["candidates"]} == set(iso)
@@ -130,9 +139,9 @@ def test_review_credit_changes_reviewed_counts_only_not_mapping_or_evidence():
     new = coverage_by_framework(payload)
     assert old["covered"] == new["covered"] == 2196
     assert old["reviewed"] == 1163
-    assert new["reviewed"] == 1163 + 28 + 36
+    assert new["reviewed"] == 1163 + 26 + 36
     frameworks = new["frameworks"]
-    assert frameworks["soc2"]["reviewed"] == frameworks["soc2"]["controls"] == 61
+    assert (frameworks["soc2"]["reviewed"], frameworks["soc2"]["controls"]) == (59, 61)
     assert frameworks["iso-27001-2022"]["reviewed"] == 17 + 36
     assert frameworks["iso-42001-2023"]["reviewed"] == 14
     result = evaluate_safeguards([], {**payload, "review_log_verified": True}, load_control_catalog())

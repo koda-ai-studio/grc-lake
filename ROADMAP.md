@@ -65,10 +65,10 @@ Public repository URL onboarding shipped in 0.3.4 ([#911](https://github.com/kod
 ## Coverage still incomplete
 
 The current catalog has 96.2% mapped requirements and
-53.8% with reviewed mappings. The [NIST assessment expansion](docs/NIST53_ASSESSMENTS.md),
+53.7% with reviewed mappings. The [NIST assessment expansion](docs/NIST53_ASSESSMENTS.md),
 [maintainer approval of 33 source-review batches](controls/reviews/2026-10-14-source-batches.json)
 and the [SOC 2 and ISO 27001 batch decision](controls/reviews/2026-10-25-soc2-iso27001-batch.json)
-provide the mapping and review increases. The 53.8% is a blended aggregate: 381 of
+provide the mapping and review increases. The 53.7% is a blended aggregate: 381 of
 those reviewed requirements are source-native NIST 800-53 self-maps, not
 crosswalk judgements. Read reviewed coverage per framework, split into self-maps
 and crosswalk reviews, in the [coverage matrix](docs/FRAMEWORK_COVERAGE.md).
@@ -92,7 +92,7 @@ ISO 27701 still needs mapping review. CIS Azure/GCP benchmarks remain gaps.
 ISO 27001 management-clause mappings still need review. The [ISMS companion pack](docs/ISO27001_ISMS_ASSESSMENTS.md)
 now catalogues 30 clause identifiers with proposed assessor contracts; it grants no new review credit.
 
-1,443 of 2,755 safeguard-to-requirement mapping rows are proposed, so 969 of the 2,196 mapped requirements have no reviewed mapping.
+1,445 of 2,755 safeguard-to-requirement mapping rows are proposed, so 971 of the 2,196 mapped requirements have no reviewed mapping.
 
 Mapping counts are effective review states: a mapping marked reviewed against an
 older control version counts as proposed until it is re-reviewed.

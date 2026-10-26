@@ -8,7 +8,7 @@ retain `evaluatable` and `attestable` names for compatibility.
 Framework packs: 21 with catalogued requirements (2 more registry entries planned or superseded)
 Requirements catalogued: 2282 (all source-cited)
 Mapped (touched by a safeguard): 2196 (96.2%)
-Reviewed safeguard mappings: 1227 (53.8%), of which 381 are source-native self-maps and 846 are crosswalk-reviewed (37.1%); 339 rest only on legacy reviews with no recorded reviewer
+Reviewed safeguard mappings: 1225 (53.7%), of which 381 are source-native self-maps and 844 are crosswalk-reviewed (37.0%); 339 rest only on legacy reviews with no recorded reviewer
 Asset types modeled: 20
 
 > `Source-cited` = the requirement has an official source link. `Mapped` = a safeguard claims it (reviewed or proposed). `Reviewed` = a human has confirmed the safeguard-to-requirement mapping. `Source-native self-maps` = requirements reviewed only through a safeguard that maps that one requirement and cites the framework's own pinned source (registry SHA-256); review confirms extraction fidelity, not a cross-framework judgement. `Crosswalk reviewed` = requirements with at least one reviewed mapping from a reusable or cross-framework safeguard. The blended total spans uneven frameworks; read coverage per row. `No recorded reviewer` = reviewed requirements whose only reviewed mappings predate decision receipts and name no reviewer (controls/reviews/legacy-unattributed.json). An assessment still needs scoped evidence and tests of operating effectiveness.
@@ -37,7 +37,7 @@ Asset types modeled: 20
 | NIST Risk Management Framework (SP 800-37 Rev 2) | [NIST SP 800-37 Rev. 2](https://csrc.nist.gov/pubs/sp/800/37/r2/final) | implemented_limited_mapping | 47 | 47 | 46 | 46 | 97.9% | 0 | 46 | 97.9% | 0 | fresh |
 | PCI DSS v4.0.1 Payment Card Industry Data Security Standard (top-level coverage) | [PCI Security Standards Council - PCI DSS v4.0.1](https://www.pcisecuritystandards.org/document_library/?category=pcidss) | implemented_limited_mapping | 12 | 12 | 11 | 0 | 0.0% | 0 | 0 | 0.0% | 0 | never pulled |
 | SOC 1 Type II (ICFR) | [AICPA SOC 1 Reporting on Controls at a Service Organization](https://www.aicpa-cima.com/topic/audit-assurance/audit-and-assurance-greater-than-soc-2) | planned | 0 | 0 | 0 | 0 | 0.0% | 0 | 0 | 0.0% | 0 | never pulled |
-| SOC 2 Trust Services Criteria | [AICPA & CIMA 2017 Trust Services Criteria (With Revised Points of Focus - 2022)](https://www.aicpa-cima.com/resources/download/2017-trust-services-criteria-with-revised-points-of-focus-2022) | implemented_full_pack | 61 | 61 | 61 | 61 | 100.0% | 0 | 61 | 100.0% | 10 | never pulled |
+| SOC 2 Trust Services Criteria | [AICPA & CIMA 2017 Trust Services Criteria (With Revised Points of Focus - 2022)](https://www.aicpa-cima.com/resources/download/2017-trust-services-criteria-with-revised-points-of-focus-2022) | implemented_full_pack | 61 | 61 | 61 | 59 | 96.7% | 0 | 59 | 96.7% | 10 | never pulled |
 
 ## Control-To-Asset Applicability
 

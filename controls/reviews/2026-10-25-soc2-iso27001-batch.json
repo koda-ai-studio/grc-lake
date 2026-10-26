@@ -2,7 +2,7 @@
   "schema": "grc-lake.maintainer-mapping-review.v1",
   "reviewer": "msaad00",
   "decision": "approve",
-  "scope": "Batch approval of the SOC 2 (28 requirements, 37 candidates) and ISO 27001:2022 (76 requirements, 86 candidates) pending queue: 73 mappings approved (37 SOC 2, 36 ISO 27001). 50 title-theme ISO 27001 candidates are listed as excluded and stay proposed. ISO 42001 candidates and other frameworks are outside this decision.",
+  "scope": "Batch approval of the SOC 2 (28 requirements, 37 candidates) and ISO 27001:2022 (76 requirements, 86 candidates) pending queue: 71 mappings approved (35 SOC 2, 36 ISO 27001). 50 title-theme ISO 27001 candidates and the SOC2-A1.3 and SOC2-C1.1 candidates (open recommendations in docs/reviews/RECOVERY_CONFIDENTIALITY.md) are listed as excluded and stay proposed. ISO 42001 candidates and other frameworks are outside this decision.",
   "rationale": "Maintainer batch approval on 2026-10-25 after reviewing the SOC 2 and ISO 27001 pending queue against the requirement text; recorded as one decision for all listed mappings, not per-mapping rationales.",
   "base_commit": "758b81f885ba63d273af9b39a6fe778947566080",
   "parent_packet": "docs/reviews/2026-10-25-soc2-iso27001-pending-queue.json",
@@ -409,23 +409,25 @@
       "inspected_basis_sha256": "47216c25a0f9c66c43ddea5b10e44cc228f2d11d4529688e20e77966199f5667",
       "framework_ref": "ISO 27001:2022 A.8.7",
       "reason": "Title-theme suggestion (mapping_basis title_theme). Shipped title-theme mappings are evaluatable coverage, never maintainer-reviewed coverage; the mapping stays proposed and an organization can still decide it through the mapping review workflow."
-    }
-  ],
-  "mappings": [
+    },
     {
       "safeguard_id": "SG-AVAILABILITY-001",
       "framework_id": "soc2",
       "control_id": "SOC2-A1.3",
       "inspected_basis_sha256": "8650cc2797047782d6bec5653ad89e0e13a6d07c5b4c2a75f9c3fbd208cb0a95",
-      "framework_ref": "SOC 2 A1.3"
+      "framework_ref": "SOC 2 A1.3",
+      "reason": "Excluded by the maintainer on 2026-10-25: docs/reviews/RECOVERY_CONFIDENTIALITY.md recommends requiring recovery-test evidence first; backup evidence alone does not show that recovery procedures are tested."
     },
     {
       "safeguard_id": "SG-DATAINVENTORY-001",
       "framework_id": "soc2",
       "control_id": "SOC2-C1.1",
       "inspected_basis_sha256": "2d19a29666f29c662ad4979477bae1c4a4d2795a4a4cd35c673599262c11ece7",
-      "framework_ref": "SOC 2 C1.1"
-    },
+      "framework_ref": "SOC 2 C1.1",
+      "reason": "Excluded by the maintainer on 2026-10-25: docs/reviews/RECOVERY_CONFIDENTIALITY.md recommends requiring data-protection evidence first; an inventory alone does not show confidential information is protected."
+    }
+  ],
+  "mappings": [
     {
       "safeguard_id": "SG-DATARETENTION-001",
       "framework_id": "soc2",

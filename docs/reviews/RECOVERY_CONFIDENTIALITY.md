@@ -1,19 +1,10 @@
 # Recovery and confidentiality: focused review
 
-**Decision recorded.** On 2026-10-25 the maintainer approved both candidates below
-as part of the [SOC 2 and ISO 27001 batch decision](../../controls/reviews/2026-10-25-soc2-iso27001-batch.json).
-That decision did not adopt the engineering recommendations on this page and
-records no separate rationale for either mapping. Both mappings now count as
-maintainer-reviewed. The substantiation described below is still what an
-assessor should require before relying on an `SG-AVAILABILITY-001` or
-`SG-DATAINVENTORY-001` result for these criteria.
-
-The [archived candidate packet](stability-review-packet.json) holds the two
-requirements as they were before that decision, with exact operating contracts
-and review fingerprints. It records no human decisions. The
-[archived SOC 2 and ISO 27001 queue](2026-10-25-soc2-iso27001-pending-queue.json)
-keeps the source locators and questions that were presented. Vendor guidance is
-not the full normative requirement.
+The [current candidate packet](stability-review-packet.json) contains two pending
+SOC 2 requirements with exact operating contracts and review fingerprints. It
+records no human decisions and grants no additional reviewed coverage. The
+existing [SOC 2 review queue](SOC2_ISO_REVIEW.md#soc2-review-001) supplies source
+locators and questions; vendor guidance is not the full normative requirement.
 
 ## Recovery testing: SOC2-A1.3
 
@@ -46,16 +37,17 @@ that same scope, enforcement tests, exceptions and treatment decisions. Separate
 population completeness from a tested sample. The presence of an inventory or
 an imported pass flag is not proof of protection.
 
-## Engineering recommendations and the recorded decision
+## Record an actual decision
 
-These were engineering review recommendations, not human mapping decisions. The
-maintainer's batch decision is the recorded human decision. An organization
-that agrees with these recommendations can reject or send back either mapping
-for its own tenant through [Mapping review](../MAPPING_REVIEW.md). Do not change
-an existing reviewed safeguard's definition without reviewing the affected
-mappings again.
+These are engineering review recommendations, not human mapping decisions.
+Keep both mappings proposed until an eligible person checks the full requirement
+text and the exact candidate contract. Record the source/version, inspected
+fingerprint, decision, rationale, reviewer and limits through
+[Mapping review](../MAPPING_REVIEW.md). Do not treat approval of the code PR as
+approval of these mappings. Do not change an existing reviewed safeguard's
+definition without reviewing the affected mappings again.
 
-The packet was produced from the catalog before the decision with:
+The focused packet can be reproduced from the current catalog:
 
 ```bash
 grc-lake frameworks review packet --framework soc2 \
@@ -63,9 +55,8 @@ grc-lake frameworks review packet --framework soc2 \
   --out docs/reviews/stability-review-packet.json
 ```
 
-Both requirements are no longer pending, so the command now fails rather than
-publishing an incomplete selection. Regression coverage checks the archived
-packet against the catalog before the decision. It also sends synthetic passing
-operational evidence through the pipeline against that catalog and verifies that
-evidence alone never turns a proposed candidate into an attested requirement
-pass.
+If a requested requirement is no longer pending, the command fails rather than
+silently publishing an incomplete selection. Refresh the selection and review
+state deliberately. Regression coverage also sends synthetic passing operational
+evidence through the pipeline and verifies that neither proposed candidate
+becomes an attested requirement pass.

@@ -123,9 +123,8 @@ def test_complete_mappings_do_not_imply_full_standard_or_company_assurance() -> 
         row = rows[fid]
         assert row["evaluatable_requirement_count"] == row["seeded_control_count"]
         assert row["attestable_requirement_count"] <= row["seeded_control_count"]
-    # Reviewed mappings for every SOC 2 criterion still do not claim the full standard.
-    assert rows["soc2"]["attestable_requirement_count"] == rows["soc2"]["seeded_control_count"] == 61
-    for fid in ("iso-27001-2022", "nist-csf-2.0", "nist-800-53-rev5"):
+    assert (rows["soc2"]["attestable_requirement_count"], rows["soc2"]["seeded_control_count"]) == (59, 61)
+    for fid in ("soc2", "iso-27001-2022", "nist-csf-2.0", "nist-800-53-rev5"):
         assert rows[fid]["attestable_requirement_count"] < rows[fid]["seeded_control_count"]
 
 

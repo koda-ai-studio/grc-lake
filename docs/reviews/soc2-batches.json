@@ -21,8 +21,176 @@
   "frameworks": [
     {
       "framework_id": "soc2",
-      "batches": []
+      "batches": [
+        {
+          "batch_id": "soc2-review-001",
+          "basis_sha256": "dee8177fd9a9dade580b3dca8f0603560c2270234c66899ce67bef29c65ef76f",
+          "requirements": [
+            {
+              "control_id": "SOC2-A1.3",
+              "framework_ref": "SOC 2 A1.3",
+              "question": "Check that recovery exercises record results and corrective actions; a backup configuration or successful backup alone does not test recovery.",
+              "cisco_candidates": [
+                {
+                  "control": "CCF 10",
+                  "cell": "BE16",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 10"
+                },
+                {
+                  "control": "CCF 24",
+                  "cell": "BE30",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 24"
+                },
+                {
+                  "control": "CCF 25",
+                  "cell": "BE31",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 25"
+                },
+                {
+                  "control": "CCF 329",
+                  "cell": "BE335",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 329"
+                },
+                {
+                  "control": "CCF 331",
+                  "cell": "BE337",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 331"
+                }
+              ],
+              "source_scope": "vendor implementation context, not verified normative equivalence",
+              "oracle_context": [],
+              "candidates": [
+                {
+                  "safeguard_id": "SG-AVAILABILITY-001",
+                  "role": "equivalent",
+                  "review_state": "proposed",
+                  "review_basis_sha256": "8650cc2797047782d6bec5653ad89e0e13a6d07c5b4c2a75f9c3fbd208cb0a95",
+                  "operating_contract": {
+                    "objective": "Backup and recovery evidence maps to SOC 2 A1.2, ISO 27001 A.8.13, and NIST CSF PR.DS-01.",
+                    "evidence_requirement": "Current evidence demonstrates environmental protections and backup processes support availability objectives with no open high-risk failure or stale proof.",
+                    "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+                    "asset_types": [
+                      "audit_log",
+                      "cloud_policy",
+                      "cloud_resource",
+                      "container_image",
+                      "data_store",
+                      "host",
+                      "repo",
+                      "service"
+                    ],
+                    "required_evidence_types": null,
+                    "frequency": "continuous",
+                    "owner": "platform-engineering"
+                  },
+                  "mapping_source": null,
+                  "decision": null,
+                  "reviewer": null,
+                  "rationale": null
+                }
+              ]
+            },
+            {
+              "control_id": "SOC2-C1.1",
+              "framework_ref": "SOC 2 C1.1",
+              "question": "An inventory identifies data but does not demonstrate its protection. Require the protection decisions and tested enforcement for the same inventory scope.",
+              "cisco_candidates": [
+                {
+                  "control": "CCF 69",
+                  "cell": "BF75",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 69"
+                },
+                {
+                  "control": "CCF 73",
+                  "cell": "BF79",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 73"
+                },
+                {
+                  "control": "CCF 83",
+                  "cell": "BF89",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 83"
+                },
+                {
+                  "control": "CCF 85",
+                  "cell": "BF91",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 85"
+                },
+                {
+                  "control": "CCF 87",
+                  "cell": "BF93",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 87"
+                },
+                {
+                  "control": "CCF 88",
+                  "cell": "BF94",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 88"
+                },
+                {
+                  "control": "CCF 100",
+                  "cell": "BF106",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 100"
+                },
+                {
+                  "control": "CCF 200",
+                  "cell": "BF206",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 200"
+                },
+                {
+                  "control": "CCF 329",
+                  "cell": "BF335",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 329"
+                },
+                {
+                  "control": "CCF 331",
+                  "cell": "BF337",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 331"
+                },
+                {
+                  "control": "CCF 339",
+                  "cell": "BF345",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 339"
+                }
+              ],
+              "source_scope": "vendor implementation context, not verified normative equivalence",
+              "oracle_context": [],
+              "candidates": [
+                {
+                  "safeguard_id": "SG-DATAINVENTORY-001",
+                  "role": "equivalent",
+                  "review_state": "proposed",
+                  "review_basis_sha256": "2d19a29666f29c662ad4979477bae1c4a4d2795a4a4cd35c673599262c11ece7",
+                  "operating_contract": {
+                    "objective": "Knowing what data is held and where is the precondition for every other data obligation.",
+                    "evidence_requirement": "Processing-activity records evidence exists within freshness SLA and covers every in-scope system.",
+                    "evaluation_rule": "fail_when_stale_evidence",
+                    "asset_types": [
+                      "ai_agent",
+                      "ai_model",
+                      "audit_log",
+                      "cloud_policy",
+                      "cloud_resource",
+                      "container_image",
+                      "data_store",
+                      "host",
+                      "repo",
+                      "s3_bucket",
+                      "service"
+                    ],
+                    "required_evidence_types": null,
+                    "frequency": "annually",
+                    "owner": "privacy-office"
+                  },
+                  "mapping_source": null,
+                  "decision": null,
+                  "reviewer": null,
+                  "rationale": null
+                }
+              ]
+            }
+          ]
+        }
+      ]
     }
   ],
-  "sha256": "7a24b3d238509e71d1bafc6b5add45321880638b46e183ac4ab7f02f6e259591"
+  "sha256": "c9c32a9366742f5a2c318fac2f0c3467990894705b78a5ba033dd593f484aa1b"
 }

@@ -28,22 +28,24 @@ that decision once for all listed mappings; it does not carry per-mapping
 rationales. It binds each mapping to the fingerprint in the
 [archived queue](reviews/2026-10-25-soc2-iso27001-pending-queue.json), which holds
 all 123 presented candidates (37 SOC 2 for 28 requirements, 86 ISO 27001 for 76
-requirements). It approves 73 mappings: 37 SOC 2 and 36 ISO 27001.
+requirements). It approves 71 mappings: 35 SOC 2 and 36 ISO 27001.
 
 The other 50 ISO 27001 candidates are title-theme suggestions. The receipt lists
 them as excluded because a shipped title-theme mapping is never counted as
-maintainer-reviewed. They stay proposed, and your organization can still decide
-them in Mapping review. 61 of the approved mappings have no citation of their
+maintainer-reviewed. SOC2-A1.3 and SOC2-C1.1 are also excluded: their
+[recovery-testing and data-protection recommendations](reviews/RECOVERY_CONFIDENTIALITY.md)
+remain open. All excluded candidates stay proposed, and your organization can
+still decide them in Mapping review. 59 of the approved mappings have no citation of their
 own; the queue gave only requirement-level Cisco locators for them. ISO 42001 was
 not part of the decision. The same limits apply as for the earlier record: this
 is a mapping approval only, and operating effectiveness and certification need
 separate evidence.
 
-At the current source revision, 1,227/2,282 requirements have reviewed mappings
-(53.8%) and 2,196/2,282 are mapped (96.2%). SOC 2 has 61/61 reviewed requirements
-(100.0%), ISO 27001 has 53/93 (57.0%), and ISO 42001 has 14/40 (35.0%). The
-remaining SOC 2 and ISO queue contains 66 requirements: 40 ISO 27001, whose only
-candidates are title-theme suggestions, and 26 ISO 42001. Alternative mappings
+At the current source revision, 1,225/2,282 requirements have reviewed mappings
+(53.7%) and 2,196/2,282 are mapped (96.2%). SOC 2 has 59/61 reviewed requirements
+(96.7%), ISO 27001 has 53/93 (57.0%), and ISO 42001 has 14/40 (35.0%). The
+remaining SOC 2 and ISO queue contains 68 requirements: 2 SOC 2 (A1.3 and C1.1),
+40 ISO 27001, whose only candidates are title-theme suggestions, and 26 ISO 42001. Alternative mappings
 to already reviewed requirements remain proposed and receive no inherited approval.
 
 Prepare bounded, current-fingerprint packets for independent review with
