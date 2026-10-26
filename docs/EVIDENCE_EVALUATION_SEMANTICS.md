@@ -130,8 +130,9 @@ GCP organization-policy v2 resource names and fixture constraint names resolve
 to the same constraint. Only a recognized relevant constraint with an explicit
 unconditional boolean enforcement rule establishes this policy signal's pass.
 Conditional, reset and unsupported rule shapes remain unevaluated; unrelated
-constraints remain observations. This does not prove the effective inherited
-policy or the state of existing resources. See [GCP policy rules](https://docs.cloud.google.com/organization-policy/create-organization-policies).
+constraints remain observations. A relevant constraint not set on the project
+is evaluated from its effective (inherited) policy. Neither proves the state of
+existing resources. See [GCP policy rules](https://docs.cloud.google.com/organization-policy/create-organization-policies).
 
 ## Collection and version boundaries
 
@@ -148,6 +149,19 @@ count as observations of enforcement. Okta factor-read errors remain unknown;
 a security question alone does not establish independent-factor enrollment.
 Pagination exhaustion fails collection rather than silently returning a complete
 result. These contracts are fixture-tested; they do not qualify a live provider.
+
+Coverage-gap and absence rows sit on their own assets, never on the asset that
+carries a verdict, so a denied read cannot turn a failing verdict into
+`not_evaluated`. A source's coverage gap keeps every safeguard that source binds
+from passing; a failure still wins.
+
+A provider benchmark is assessed only from its own provider's evidence. The
+framework registry declares the accepted evidence sources (`provider_sources`;
+CIS AWS accepts `aws` and `aws_config`). For such a requirement, only asset
+results from those sources count: GCP or identity-provider evidence on a shared
+safeguard can neither pass nor fail a CIS AWS requirement, which stays
+`not_evaluated` until AWS evidence is assessed. Cross-framework requirements
+(SOC 2, ISO 27001, NIST) keep every source.
 
 A bronze pointer always preserves lineage. `evidence_available` separately records
 whether source evidence was supplied, so a missing-evidence rule can fail even

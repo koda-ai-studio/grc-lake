@@ -192,6 +192,7 @@
       "pulled_at": null,
       "implementation_status": "implemented_full_pack",
       "copyright_guardrail": "Do not reproduce licensed CIS recommendation text. Store local control IDs, short internal titles, evidence requirements, and official source references only.",
+      "provider_sources": ["aws", "aws_config"],
       "sync_cadence_days": 90
     },
     {
