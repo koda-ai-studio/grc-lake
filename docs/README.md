@@ -23,7 +23,7 @@ For a real evaluation and contribution feedback, use the [bounded pilot guide](P
 
 [Current state and coverage](CURRENT_STATE.md) · [Contributor roadmap](../ROADMAP.md) · [Contributing](../CONTRIBUTING.md)
 
-[Connector qualification matrix](CONNECTOR_QUALIFICATION.md) · [GitHub collection contracts](GITHUB_QUALIFICATION.md) · [Live receipts, 2026-10-24](qualification/live/2026-10-24.md) · [Databricks trial receipt](qualification/live/2026-10-25-databricks.md)
+[Connector qualification matrix](CONNECTOR_QUALIFICATION.md) · [GitHub collection contracts](GITHUB_QUALIFICATION.md) · [Live receipts, 2026-10-24](qualification/live/2026-10-24.md) · [Databricks trial receipt](qualification/live/2026-10-25-databricks.md) · [AWS and GitHub binding receipt](qualification/live/2026-10-26-aws-github-binding.md)
 
 ## Operate
 
@@ -74,7 +74,7 @@ For a real evaluation and contribution feedback, use the [bounded pilot guide](P
 | [ISO 27001 ISMS assessments](ISO27001_ISMS_ASSESSMENTS.md)                 | Management-clause contracts, evidence, and review boundaries      |
 | [Mapping review](MAPPING_REVIEW.md)                                        | Reviewing proposed safeguard mappings                             |
 | [SOC 2 and ISO review batches](reviews/SOC2_ISO_REVIEW.md)                 | Source-guided proposals, operating contracts and review questions |
-| [Recovery and confidentiality review](reviews/RECOVERY_CONFIDENTIALITY.md) | Focused pending SOC 2 candidates and required substantiation      |
+| [Recovery and confidentiality review](reviews/RECOVERY_CONFIDENTIALITY.md) | Focused SOC 2 candidates and required substantiation              |
 | [NIST assessment expansion](NIST53_ASSESSMENTS.md)                         | Source-native assessment contracts and review boundaries          |
 | [Catalog versioning](CATALOG_VERSIONING.md)                                | Catalog versions and audit pinning                                |
 | [AI bill of materials](AIBOM.md)                                           | AI inventory evidence                                             |

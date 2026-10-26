@@ -529,8 +529,11 @@
           "control_id": "SOC2-CC6.3",
           "framework_id": "soc2",
           "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         },
         {
           "control_id": "CIS-AWS-1.15",
@@ -2604,29 +2607,41 @@
           "control_id": "SOC2-CC4.1",
           "framework_id": "soc2",
           "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         },
         {
           "control_id": "SOC2-CC6.6",
           "framework_id": "soc2",
           "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         },
         {
           "control_id": "SOC2-CC7.3",
           "framework_id": "soc2",
           "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         },
         {
           "control_id": "SOC2-P8.1",
           "framework_id": "soc2",
           "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         },
         {
           "control_id": "FEDRAMP-AC-17.1",
@@ -3965,8 +3980,11 @@
           "control_id": "SOC2-CC3.4",
           "framework_id": "soc2",
           "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         },
         {
           "control_id": "CMMC-3.4.6",
@@ -4411,8 +4429,11 @@
           "control_id": "SOC2-CC6.8",
           "framework_id": "soc2",
           "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         },
         {
           "control_id": "FEDRAMP-RA-5",
@@ -5280,8 +5301,11 @@
           "control_id": "SOC2-CC3.3",
           "framework_id": "soc2",
           "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         },
         {
           "control_id": "FEDRAMP-RA-2",
@@ -5609,8 +5633,11 @@
           "control_id": "ISO27001-A.5.30",
           "framework_id": "iso-27001-2022",
           "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         },
         {
           "control_id": "SOC2-A1.3",
@@ -5623,8 +5650,11 @@
           "control_id": "SOC2-CC7.5",
           "framework_id": "soc2",
           "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         },
         {
           "control_id": "FEDRAMP-CP-10",
@@ -6699,8 +6729,11 @@
           "control_id": "SOC2-CC7.4",
           "framework_id": "soc2",
           "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         },
         {
           "control_id": "FEDRAMP-IR-2",
@@ -9485,43 +9518,61 @@
           "control_id": "SOC2-P1.1",
           "framework_id": "soc2",
           "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         },
         {
           "control_id": "SOC2-P2.1",
           "framework_id": "soc2",
           "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         },
         {
           "control_id": "SOC2-P5.1",
           "framework_id": "soc2",
           "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         },
         {
           "control_id": "SOC2-P5.2",
           "framework_id": "soc2",
           "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         },
         {
           "control_id": "SOC2-P6.1",
           "framework_id": "soc2",
           "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         },
         {
           "control_id": "SOC2-P7.1",
           "framework_id": "soc2",
           "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         },
         {
           "control_id": "ISO27001-A.5.34",
@@ -9901,22 +9952,31 @@
           "control_id": "SOC2-C1.2",
           "framework_id": "soc2",
           "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         },
         {
           "control_id": "SOC2-P4.2",
           "framework_id": "soc2",
           "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         },
         {
           "control_id": "SOC2-P4.3",
           "framework_id": "soc2",
           "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         },
         {
           "control_id": "FEDRAMP-AU-11",
@@ -10116,36 +10176,51 @@
           "control_id": "SOC2-PI1.1",
           "framework_id": "soc2",
           "role": "primary",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         },
         {
           "control_id": "SOC2-PI1.2",
           "framework_id": "soc2",
           "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         },
         {
           "control_id": "SOC2-PI1.3",
           "framework_id": "soc2",
           "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         },
         {
           "control_id": "SOC2-PI1.4",
           "framework_id": "soc2",
           "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         },
         {
           "control_id": "SOC2-PI1.5",
           "framework_id": "soc2",
           "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         }
       ],
       "asset_types": ["audit_log", "data_store", "service"]
@@ -11420,8 +11495,11 @@
           "control_id": "ISO27001-A.5.1",
           "framework_id": "iso-27001-2022",
           "role": "primary",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         },
         {
           "control_id": "ISO27017-5.1.1",
@@ -11904,8 +11982,11 @@
           "control_id": "ISO27001-A.5.2",
           "framework_id": "iso-27001-2022",
           "role": "primary",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         },
         {
           "control_id": "NIST-CSF-GV.RR-02",
@@ -12262,15 +12343,21 @@
           "control_id": "ISO27001-A.5.31",
           "framework_id": "iso-27001-2022",
           "role": "primary",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         },
         {
           "control_id": "ISO27001-A.5.36",
           "framework_id": "iso-27001-2022",
           "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         },
         {
           "control_id": "NIST-CSF-GV.OC-03",
@@ -13002,8 +13089,11 @@
           "control_id": "ISO27001-A.5.24",
           "framework_id": "iso-27001-2022",
           "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         },
         {
           "control_id": "CIS-CONTROLS-17",
@@ -13447,36 +13537,51 @@
           "control_id": "ISO27001-A.5.25",
           "framework_id": "iso-27001-2022",
           "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         },
         {
           "control_id": "ISO27001-A.5.26",
           "framework_id": "iso-27001-2022",
           "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         },
         {
           "control_id": "ISO27001-A.5.27",
           "framework_id": "iso-27001-2022",
           "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         },
         {
           "control_id": "ISO27001-A.6.8",
           "framework_id": "iso-27001-2022",
           "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         },
         {
           "control_id": "SOC2-CC7.4",
           "framework_id": "soc2",
           "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         },
         {
           "control_id": "FEDRAMP-IR-4",
@@ -13879,8 +13984,11 @@
           "control_id": "ISO27001-A.5.5",
           "framework_id": "iso-27001-2022",
           "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         },
         {
           "control_id": "ISO27017-6.1.3",
@@ -14181,22 +14289,31 @@
           "control_id": "SOC2-P5.1",
           "framework_id": "soc2",
           "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         },
         {
           "control_id": "SOC2-P5.2",
           "framework_id": "soc2",
           "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         },
         {
           "control_id": "SOC2-P7.1",
           "framework_id": "soc2",
           "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         }
       ],
       "asset_types": ["audit_log", "data_store", "identity_user", "service"]
@@ -14263,15 +14380,21 @@
           "control_id": "SOC2-P1.1",
           "framework_id": "soc2",
           "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         },
         {
           "control_id": "SOC2-P2.1",
           "framework_id": "soc2",
           "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         },
         {
           "control_id": "NIST-800-53-PT-4",
@@ -14345,15 +14468,21 @@
           "control_id": "SOC2-P3.1",
           "framework_id": "soc2",
           "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         },
         {
           "control_id": "SOC2-P4.1",
           "framework_id": "soc2",
           "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         },
         {
           "control_id": "NIST-800-53-PT-2",
@@ -15168,15 +15297,21 @@
           "control_id": "ISO27001-A.8.31",
           "framework_id": "iso-27001-2022",
           "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         },
         {
           "control_id": "ISO27001-A.8.4",
           "framework_id": "iso-27001-2022",
           "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         },
         {
           "control_id": "NIST-800-171R3-03.04.05",
@@ -15252,15 +15387,21 @@
           "control_id": "ISO27001-A.8.28",
           "framework_id": "iso-27001-2022",
           "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         },
         {
           "control_id": "ISO27001-A.8.29",
           "framework_id": "iso-27001-2022",
           "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         },
         {
           "control_id": "CIS-CONTROLS-16",
@@ -15379,22 +15520,31 @@
           "control_id": "ISO27001-A.8.25",
           "framework_id": "iso-27001-2022",
           "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         },
         {
           "control_id": "ISO27001-A.8.26",
           "framework_id": "iso-27001-2022",
           "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         },
         {
           "control_id": "ISO27001-A.8.30",
           "framework_id": "iso-27001-2022",
           "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         },
         {
           "control_id": "GDPR-Art.25",
@@ -15508,8 +15658,11 @@
           "control_id": "ISO27001-A.8.9",
           "framework_id": "iso-27001-2022",
           "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         },
         {
           "control_id": "CIS-CONTROLS-4",
@@ -15777,8 +15930,11 @@
           "control_id": "ISO27001-A.8.27",
           "framework_id": "iso-27001-2022",
           "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         },
         {
           "control_id": "NIST-RMF-P-16",
@@ -15861,8 +16017,11 @@
           "control_id": "SOC2-PI1.2",
           "framework_id": "soc2",
           "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         }
       ],
       "asset_types": ["audit_log", "data_store", "host", "service"]
@@ -15929,8 +16088,11 @@
           "control_id": "SOC2-PI1.5",
           "framework_id": "soc2",
           "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         },
         {
           "control_id": "NIST-CSF-ID.RA-09",
@@ -16700,8 +16862,11 @@
           "control_id": "ISO27001-A.5.35",
           "framework_id": "iso-27001-2022",
           "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         },
         {
           "control_id": "HIPAA-164.308(a)(8)",
@@ -16714,8 +16879,11 @@
           "control_id": "SOC2-CC4.1",
           "framework_id": "soc2",
           "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         },
         {
           "control_id": "NIST-RMF-A-3",
@@ -17631,8 +17799,11 @@
           "control_id": "ISO27001-A.7.13",
           "framework_id": "iso-27001-2022",
           "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         },
         {
           "control_id": "NIST-CSF-PR.PS-03",
@@ -18324,8 +18495,11 @@
           "control_id": "ISO27001-A.5.21",
           "framework_id": "iso-27001-2022",
           "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         }
       ],
       "asset_types": [
@@ -18727,8 +18901,11 @@
           "control_id": "ISO27001-A.8.3",
           "framework_id": "iso-27001-2022",
           "role": "equivalent",
-          "review_status": "proposed",
-          "control_version": "1.0.0"
+          "review_status": "reviewed",
+          "control_version": "1.0.0",
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         }
       ],
       "asset_types": [
@@ -52421,14 +52598,17 @@
           "framework_id": "iso-27001-2022",
           "role": "primary",
           "control_version": "1.0.0",
-          "review_status": "proposed",
+          "review_status": "reviewed",
           "mapping_basis": "vendor_guided_proposal",
           "mapping_source": {
             "name": "Cisco Cloud Controls Framework 4.0",
             "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
             "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
             "locator": "CCF 229; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Cisco provides a return-of-property workflow; local timing, worker scope and exceptions must be justified."
-          }
+          },
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         }
       ]
     },
@@ -52451,14 +52631,17 @@
           "framework_id": "iso-27001-2022",
           "role": "primary",
           "control_version": "1.0.0",
-          "review_status": "proposed",
+          "review_status": "reviewed",
           "mapping_basis": "vendor_guided_proposal",
           "mapping_source": {
             "name": "Cisco Cloud Controls Framework 4.0",
             "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
             "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
             "locator": "CCF 39; CCF 226; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Production change separation is one example; the assessor must also identify other incompatible duties in scope."
-          }
+          },
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         }
       ]
     },
@@ -52481,14 +52664,17 @@
           "framework_id": "iso-27001-2022",
           "role": "primary",
           "control_version": "1.0.0",
-          "review_status": "proposed",
+          "review_status": "reviewed",
           "mapping_basis": "vendor_guided_proposal",
           "mapping_source": {
             "name": "Cisco Cloud Controls Framework 4.0",
             "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
             "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
             "locator": "CCF 366; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Software licensing guidance is narrower than all intellectual property rights; non-software material needs separate evidence."
-          }
+          },
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         }
       ]
     },
@@ -52511,14 +52697,17 @@
           "framework_id": "iso-27001-2022",
           "role": "primary",
           "control_version": "1.0.0",
-          "review_status": "proposed",
+          "review_status": "reviewed",
           "mapping_basis": "vendor_guided_proposal",
           "mapping_source": {
             "name": "Cisco Cloud Controls Framework 4.0",
             "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
             "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
             "locator": "CCF 30; CCF 96; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. SDLC and key-management procedures illustrate operating documentation; they do not establish completeness of all operating procedures."
-          }
+          },
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         }
       ]
     },
@@ -52541,14 +52730,17 @@
           "framework_id": "iso-27001-2022",
           "role": "primary",
           "control_version": "1.0.0",
-          "review_status": "proposed",
+          "review_status": "reviewed",
           "mapping_basis": "vendor_guided_proposal",
           "mapping_source": {
             "name": "Cisco Cloud Controls Framework 4.0",
             "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
             "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
             "locator": "CCF 357; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Subscription records alone do not demonstrate active use of advice or complete coverage of relevant groups."
-          }
+          },
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         }
       ]
     },
@@ -52571,14 +52763,17 @@
           "framework_id": "iso-27001-2022",
           "role": "primary",
           "control_version": "1.0.0",
-          "review_status": "proposed",
+          "review_status": "reviewed",
           "mapping_basis": "vendor_guided_proposal",
           "mapping_source": {
             "name": "Cisco Cloud Controls Framework 4.0",
             "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
             "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
             "locator": "CCF 162; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Cisco describes pre-employment screening; local law, proportionality and applicable contractor scope need assessor confirmation."
-          }
+          },
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         }
       ]
     },
@@ -52601,14 +52796,17 @@
           "framework_id": "iso-27001-2022",
           "role": "primary",
           "control_version": "1.0.0",
-          "review_status": "proposed",
+          "review_status": "reviewed",
           "mapping_basis": "vendor_guided_proposal",
           "mapping_source": {
             "name": "Cisco Cloud Controls Framework 4.0",
             "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
             "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
             "locator": "CCF 165; CCF 166; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Confidentiality agreements are examples within employment terms; they do not establish every security obligation."
-          }
+          },
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         }
       ]
     },
@@ -52631,14 +52829,17 @@
           "framework_id": "iso-27001-2022",
           "role": "primary",
           "control_version": "1.0.0",
-          "review_status": "proposed",
+          "review_status": "reviewed",
           "mapping_basis": "vendor_guided_proposal",
           "mapping_source": {
             "name": "Cisco Cloud Controls Framework 4.0",
             "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
             "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
             "locator": "CCF 160; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Published consequences and acknowledgements alone do not establish that the disciplinary process operated appropriately."
-          }
+          },
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         }
       ]
     },
@@ -52661,14 +52862,17 @@
           "framework_id": "iso-27001-2022",
           "role": "primary",
           "control_version": "1.0.0",
-          "review_status": "proposed",
+          "review_status": "reviewed",
           "mapping_basis": "vendor_guided_proposal",
           "mapping_source": {
             "name": "Cisco Cloud Controls Framework 4.0",
             "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
             "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
             "locator": "CCF 194; CCF 227; CCF 228; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Access revocation and review support only part of continuing responsibilities; confidentiality and other surviving duties need separate evidence."
-          }
+          },
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         }
       ]
     },
@@ -52691,14 +52895,17 @@
           "framework_id": "iso-27001-2022",
           "role": "primary",
           "control_version": "1.0.0",
-          "review_status": "proposed",
+          "review_status": "reviewed",
           "mapping_basis": "vendor_guided_proposal",
           "mapping_source": {
             "name": "Cisco Cloud Controls Framework 4.0",
             "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
             "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
             "locator": "CCF 165; CCF 166; CCF 339; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Vendor examples cover employee and supplier agreements; enforceability and the local information scope require separate review."
-          }
+          },
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         }
       ]
     },
@@ -52721,14 +52928,17 @@
           "framework_id": "iso-27001-2022",
           "role": "primary",
           "control_version": "1.0.0",
-          "review_status": "proposed",
+          "review_status": "reviewed",
           "mapping_basis": "vendor_guided_proposal",
           "mapping_source": {
             "name": "Cisco Cloud Controls Framework 4.0",
             "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
             "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
             "locator": "CCF 99; CCF 170; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Mobile-device enrollment and encryption are partial examples; all applicable endpoint classes and configurations must be assessed."
-          }
+          },
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         }
       ]
     },
@@ -52751,14 +52961,17 @@
           "framework_id": "iso-27001-2022",
           "role": "primary",
           "control_version": "1.0.0",
-          "review_status": "proposed",
+          "review_status": "reviewed",
           "mapping_basis": "vendor_guided_proposal",
           "mapping_source": {
             "name": "Cisco Cloud Controls Framework 4.0",
             "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip",
             "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
             "locator": "CCF 1; CCF 161; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Cisco cites this target in broad audit and risk controls but does not specify all audit-test protections; these original checks require direct requirement review."
-          }
+          },
+          "reviewed_by": "msaad00",
+          "reviewed_at": "2026-10-25T23:17:46.411468Z",
+          "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
         }
       ]
     },

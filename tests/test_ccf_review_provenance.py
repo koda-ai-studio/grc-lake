@@ -70,14 +70,14 @@ def test_provenance_separates_receipts_from_legacy_and_org_decisions() -> None:
 
 def test_coverage_reports_requirements_resting_only_on_legacy_reviews() -> None:
     cov = coverage_by_framework()
-    assert cov["reviewed"] == 1163
+    assert cov["reviewed"] == 1225
     # 354 listed rows less 13 whose control version is stale (already proposed)
     # and 1 supporting relationship that never earns coverage.
     assert cov["legacy_unattributed_mappings"] == 340
     assert cov["legacy_only_reviewed"] == 339
-    assert cov["receipt_reviewed"] == cov["reviewed"] - cov["legacy_only_reviewed"] == 824
+    assert cov["receipt_reviewed"] == cov["reviewed"] - cov["legacy_only_reviewed"] == 886
     soc2 = cov["frameworks"]["soc2"]
-    assert soc2["reviewed"] == 33
+    assert soc2["reviewed"] == 59
     assert soc2["legacy_only_reviewed"] == 10
     assert cov["frameworks"]["cis_aws"]["legacy_only_reviewed"] == cov["frameworks"]["cis_aws"]["reviewed"] == 39
     assert cov["frameworks"]["dora-2022-2554"]["legacy_only_reviewed"] == 0

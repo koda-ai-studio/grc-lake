@@ -29,7 +29,11 @@ PLAN = ROOT / "controls/soc2_iso_review_plan.json"
 PREFIX = "SG-REVIEW-"
 FRAMEWORKS = ("soc2", "iso-27001-2022", "iso-42001-2023")
 NS = {"s": "http://schemas.openxmlformats.org/spreadsheetml/2006/main"}
-REVIEW_RECEIPT = "controls/reviews/2026-10-15-soc2-iso-repairs.json"
+# Each decision receipt is bound to the exact packet the maintainer inspected.
+REVIEW_RECEIPTS = {
+    "controls/reviews/2026-10-15-soc2-iso-repairs.json": "docs/reviews/2026-10-15-repaired-proposals.json",
+    "controls/reviews/2026-10-25-soc2-iso27001-batch.json": "docs/reviews/2026-10-25-soc2-iso27001-pending-queue.json",
+}
 
 
 def preserve_recorded_review(existing: dict, proposed: dict, control: dict) -> dict:
@@ -40,10 +44,11 @@ def preserve_recorded_review(existing: dict, proposed: dict, control: dict) -> d
     for field in ("maintainer_review_ref", "reviewed_by", "reviewed_at"):
         member.pop(field, None)
     member["review_status"] = "proposed"
-    if normalized != proposed or reviewed.get("maintainer_review_ref") != REVIEW_RECEIPT:
+    ref = reviewed.get("maintainer_review_ref")
+    if normalized != proposed or ref not in REVIEW_RECEIPTS:
         raise ValueError("refusing to overwrite changed or reviewed contract")
-    receipt = json.loads((ROOT / REVIEW_RECEIPT).read_text())
-    packet = json.loads((ROOT / "docs/reviews/2026-10-15-repaired-proposals.json").read_text())
+    receipt = json.loads((ROOT / ref).read_text())
+    packet = json.loads((ROOT / REVIEW_RECEIPTS[ref]).read_text())
     identity = proposed["safeguard_id"], member["control_id"]
     rows = [r for r in receipt["mappings"] if (r["safeguard_id"], r["control_id"]) == identity]
     inspected = [r for r in packet["items"] if (r["safeguard_id"], r["control_id"]) == identity]
@@ -53,6 +58,7 @@ def preserve_recorded_review(existing: dict, proposed: dict, control: dict) -> d
     if (
         len(rows) != 1
         or len(inspected) != 1
+        or receipt.get("parent_packet") != REVIEW_RECEIPTS[ref]
         or receipt["parent_packet_sha256"] != canonical_sha256(packet)
         or receipt["decision"] != "approve"
         or reviewed.get("review_status") != "reviewed"
@@ -273,11 +279,15 @@ def review_artifacts(payload: dict, plan: dict, index: dict) -> tuple[dict, str]
     lines += [
         "",
         "The [35-proposal decision receipt](../../controls/reviews/2026-10-15-soc2-iso-repairs.json) records msaad00's approval of the [archived focused packet](2026-10-15-repaired-proposals.json). Other candidates remain unchanged. The decision does not supply operating evidence, an independent review, or normative source text.",
+        "",
+        "The [SOC 2 and ISO 27001 batch decision receipt](../../controls/reviews/2026-10-25-soc2-iso27001-batch.json) records msaad00's batch approval of the [archived SOC 2 and ISO 27001 queue](2026-10-25-soc2-iso27001-pending-queue.json): one decision for all listed mappings, not per-mapping rationales. Title-theme ISO 27001 candidates are listed there as excluded and remain pending below. ISO 42001 candidates were not part of that decision.",
     ]
     for framework in FRAMEWORKS:
         packet = build_review_packet(payload=runtime_payload, framework_id=framework, batch_size=10)
         batches = []
         lines += ["", f"## {framework}", ""]
+        if not packet["batches"]:
+            lines += ["No pending requirements. Every mapped requirement has a recorded review.", ""]
         for batch in packet["batches"]:
             bid = framework + "-" + batch["batch_id"]
             rows = []

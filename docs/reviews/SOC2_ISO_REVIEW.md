@@ -12,7 +12,7 @@ The three JSON companions contain exact candidate fingerprints, operating contra
 
 ## Review scope and reproduction
 
-This queue contains 130 requirements and 161 candidate relationships in 14 batches: soc2 (28 requirements), iso-27001-2022 (76 requirements), iso-42001-2023 (26 requirements). 35 requirement-specific assessment contracts replaced 41 weak proposed relationships. 15 additional contracts propose mappings for previously unmapped requirements. Reviewed requirements are excluded from this pending queue; separate alternatives do not inherit their approval.
+This queue contains 68 requirements and 80 candidate relationships in 8 batches: soc2 (2 requirements), iso-27001-2022 (40 requirements), iso-42001-2023 (26 requirements). 35 requirement-specific assessment contracts replaced 41 weak proposed relationships. 15 additional contracts propose mappings for previously unmapped requirements. Reviewed requirements are excluded from this pending queue; separate alternatives do not inherit their approval.
 
 Cisco references use explicit SOC 2 IDs and the ISO/IEC 27002:2022 column corresponding to ISO 27001:2022 Annex A. Older ISO columns and broad X markers are excluded. Processing Integrity requirements without a Cisco reference stay explicitly unsourced. Oracle articles provide AI governance examples; they do not supply the complete ISO 42001 requirement text. Proposed coverage is not reviewed coverage or operating assurance; incomplete normative source access must be resolved during review.
 
@@ -85,6 +85,8 @@ Omit `--check` to regenerate. JSON verification compares parsed content, so repo
 
 The [35-proposal decision receipt](../../controls/reviews/2026-10-15-soc2-iso-repairs.json) records msaad00's approval of the [archived focused packet](2026-10-15-repaired-proposals.json). Other candidates remain unchanged. The decision does not supply operating evidence, an independent review, or normative source text.
 
+The [SOC 2 and ISO 27001 batch decision receipt](../../controls/reviews/2026-10-25-soc2-iso27001-batch.json) records msaad00's batch approval of the [archived SOC 2 and ISO 27001 queue](2026-10-25-soc2-iso27001-pending-queue.json): one decision for all listed mappings, not per-mapping rationales. Title-theme ISO 27001 candidates are listed there as excluded and remain pending below. ISO 42001 candidates were not part of that decision.
+
 ## soc2
 
 ### soc2-review-001
@@ -105,229 +107,9 @@ An inventory identifies data but does not demonstrate its protection. Require th
 
 Source locators: CCF 69 (BF75), CCF 73 (BF79), CCF 83 (BF89), CCF 85 (BF91), CCF 87 (BF93), CCF 88 (BF94), CCF 100 (BF106), CCF 200 (BF206), CCF 329 (BF335), CCF 331 (BF337), CCF 339 (BF345).
 
-**SOC2-C1.2** — Confidential information is disposed of securely
-
-Candidates: `SG-DATARETENTION-001`.
-
-Bind disposal proof to the confidential-data inventory, retention decisions, disposal method, and completion records; do not accept a policy alone.
-
-Source locators: CCF 69 (BF75), CCF 86 (BF92), CCF 87 (BF93), CCF 329 (BF335), CCF 331 (BF337), CCF 339 (BF345).
-
-**SOC2-CC3.3** — Fraud risk is considered in risk assessment
-
-Candidates: `SG-RISKMANAGEMENT-001`.
-
-Require explicit fraud scenarios and analysis. A generic risk register may omit fraud even when its normal risk assessment workflow passes.
-
-Source locators: CCF 122 (BD128), CCF 124 (BD130).
-
-**SOC2-CC3.4** — Changes that affect internal control are identified and assessed
-
-Candidates: `SG-CHANGEMANAGEMENT-001`.
-
-Software change authorization does not cover all changes to the control environment. Check organizational, operational, regulatory, and technology change impacts on risks and controls.
-
-Source locators: CCF 8 (BD14), CCF 12 (BD18), CCF 30 (BD36), CCF 35 (BD41), CCF 122 (BD128), CCF 124 (BD130), CCF 127 (BD133), CCF 128 (BD134), CCF 129 (BD135), CCF 161 (BD167), CCF 329 (BD335), CCF 331 (BD337), CCF 339 (BD345).
-
-**SOC2-CC4.1** — Ongoing and separate monitoring activities are performed
-
-Candidates: `SG-CONTROLASSESSMENT-001`, `SG-DETECTION-001`.
-
-Compare the control-assessment and detection candidates separately. Monitoring security events does not by itself evaluate whether the internal control system continues to function.
-
-Source locators: CCF 1 (BD7), CCF 124 (BD130), CCF 127 (BD133), CCF 128 (BD134), CCF 161 (BD167), CCF 355 (BD361).
-
-**SOC2-CC6.3** — Role-based access is provisioned and reviewed
-
-Candidates: `SG-IDENTITY-001`.
-
-Check access authorization, changes, removal, role restrictions, and review results. MFA configuration alone does not establish the complete access lifecycle.
-
-Source locators: CCF 53 (BD59), CCF 64 (BD70), CCF 83 (BD89), CCF 182 (BD188), CCF 183 (BD189), CCF 191 (BD197), CCF 192 (BD198), CCF 194 (BD200), CCF 196 (BD202), CCF 197 (BD203), CCF 198 (BD204), CCF 227 (BD233), CCF 228 (BD234).
-
-**SOC2-CC6.6** — Logical access protections address threats from outside the system
-
-Candidates: `SG-DETECTION-001`.
-
-Security detection is not the same as preventing unauthorized access from outside the system. Require boundary/access safeguards and their enforcement evidence, with detection treated as a separate contribution.
-
-Source locators: CCF 100 (BD106), CCF 119 (BD125), CCF 183 (BD189), CCF 191 (BD197), CCF 196 (BD202), CCF 197 (BD203), CCF 198 (BD204), CCF 236 (BD242), CCF 243 (BD249), CCF 244 (BD250), CCF 360 (BD366).
-
-**SOC2-CC6.8** — Malware and endpoint protections are in place
-
-Candidates: `SG-VULNERABILITYMANAGEMENT-001`.
-
-A vulnerability scan does not necessarily test anti-malware protections. Identify endpoint coverage, detection/prevention configuration, update health, and response validation.
-
-Source locators: CCF 30 (BD36), CCF 32 (BD38), CCF 39 (BD45), CCF 40 (BD46), CCF 80 (BD86), CCF 100 (BD106), CCF 317 (BD323), CCF 334 (BD340), CCF 349 (BD355), CCF 350 (BD356), CCF 355 (BD361), CCF 360 (BD366).
-
-**SOC2-CC7.3** — Security events are analyzed to identify anomalies
-
-Candidates: `SG-DETECTION-001`.
-
-Require documented event analysis, classification, and disposition. Collection of alerts without analysis cannot establish this catalog topic.
-
-Source locators: CCF 236 (BD242), CCF 302 (BD308), CCF 317 (BD323), CCF 322 (BD328), CCF 334 (BD340), CCF 349 (BD355), CCF 350 (BD356), CCF 355 (BD361), CCF 356 (BD362), CCF 360 (BD366).
-
-### soc2-review-002
-
-**SOC2-CC7.4** — Security incidents are responded to and contained
-
-Candidates: `SG-INCIDENTHANDLING-001`, `SG-INCIDENTRESPONSE-001`.
-
-Evaluate incident handling separately from privacy notification. Notification timers alone do not demonstrate incident containment, investigation, and response execution.
-
-Source locators: CCF 10 (BD16), CCF 24 (BD30), CCF 25 (BD31), CCF 80 (BD86), CCF 147 (BD153), CCF 160 (BD166), CCF 236 (BD242), CCF 317 (BD323), CCF 318 (BD324), CCF 322 (BD328), CCF 334 (BD340), CCF 349 (BD355), CCF 350 (BD356), CCF 355 (BD361), CCF 356 (BD362), CCF 360 (BD366), CCF 364 (BD370).
-
-**SOC2-CC7.5** — Recovery activities address identified security incidents
-
-Candidates: `SG-AVAILABILITY-001`.
-
-Tie restoration and verification to actual incident scenarios. A backup record without incident recovery decisions and validation is incomplete evidence.
-
-Source locators: CCF 10 (BD16), CCF 24 (BD30), CCF 25 (BD31), CCF 80 (BD86), CCF 317 (BD323), CCF 322 (BD328), CCF 334 (BD340).
-
-**SOC2-P1.1** — Privacy notice communicates objectives and practices to data subjects
-
-Candidates: `SG-PRIVACYNOTICE-001`, `SG-PRIVACYRIGHTS-001`.
-
-Check current notices against the actual processing inventory and delivery to affected audiences. Review the two privacy candidates independently to avoid counting overlapping summaries as complete evidence.
-
-Source locators: CCF 143 (BC149), CCF 274 (BC280), CCF 276 (BC282), CCF 277 (BC283), CCF 284 (BC290), CCF 286 (BC292), CCF 289 (BC295), CCF 294 (BC300), CCF 303 (BC309).
-
-**SOC2-P2.1** — Choice and consent for personal information collection and use
-
-Candidates: `SG-PRIVACYNOTICE-001`, `SG-PRIVACYRIGHTS-001`.
-
-Require traceable choices, consent status where applicable, withdrawal handling, and their enforcement in the processing workflow. A notice alone does not establish the choice mechanism.
-
-Source locators: CCF 143 (BC149), CCF 272 (BC278), CCF 276 (BC282), CCF 277 (BC283), CCF 292 (BC298), CCF 294 (BC300), CCF 303 (BC309).
-
-**SOC2-P3.1** — Personal information collection is limited to identified objectives
-
-Candidates: `SG-PROCESSINGRECORDS-001`.
-
-Trace collected data fields and sources to stated processing purposes and the permitted collection design. An inventory alone does not establish collection limits.
-
-Source locators: CCF 143 (BC149), CCF 272 (BC278), CCF 280 (BC286), CCF 294 (BC300), CCF 303 (BC309).
-
-**SOC2-P4.1** — Personal information use is limited to identified objectives
-
-Candidates: `SG-PROCESSINGRECORDS-001`.
-
-Trace actual uses to the approved purposes and investigate deviations; a processing record that merely lists intended uses is insufficient.
-
-Source locators: CCF 143 (BC149), CCF 270 (BC276), CCF 271 (BC277), CCF 272 (BC278), CCF 280 (BC286), CCF 294 (BC300).
-
-**SOC2-P4.2** — Personal information retention aligns with objectives and legal requirements
-
-Candidates: `SG-DATARETENTION-001`.
-
-Check retention decisions against applicable obligations and operation of expiry, exception, and hold workflows. Generic secure-disposal evidence is only part of this assessment.
-
-Source locators: CCF 143 (BC149), CCF 274 (BC280), CCF 277 (BC283), CCF 279 (BC285), CCF 280 (BC286), CCF 281 (BC287), CCF 282 (BC288), CCF 283 (BC289), CCF 284 (BC290), CCF 316 (BC322).
-
-**SOC2-P4.3** — Personal information disposal is secure and documented
-
-Candidates: `SG-DATARETENTION-001`.
-
-Require completed disposal records, handling of copies, applicable exceptions, and verification that the selected disposal method operated.
-
-Source locators: CCF 143 (BC149), CCF 274 (BC280), CCF 277 (BC283), CCF 279 (BC285), CCF 280 (BC286), CCF 281 (BC287), CCF 282 (BC288), CCF 284 (BC290).
-
-**SOC2-P5.1** — Data subjects can access their personal information
-
-Candidates: `SG-DATASUBJECTRIGHTS-001`, `SG-PRIVACYRIGHTS-001`.
-
-Inspect authenticated access-request handling and fulfillment evidence, including exceptions. Generic privacy notices do not demonstrate fulfillment.
-
-Source locators: CCF 274 (BC280), CCF 277 (BC283), CCF 284 (BC290), CCF 286 (BC292), CCF 288 (BC294), CCF 291 (BC297), CCF 292 (BC298), CCF 293 (BC299), CCF 313 (BC319).
-
-**SOC2-P5.2** — Personal data correction requests and denials are communicated
-
-Candidates: `SG-DATASUBJECTRIGHTS-001`, `SG-PRIVACYRIGHTS-001`.
-
-Inspect correction and denial decisions, requester communication, and propagation of accepted corrections. A request deadline metric alone is insufficient.
-
-Source locators: CCF 274 (BC280), CCF 277 (BC283), CCF 284 (BC290), CCF 286 (BC292), CCF 288 (BC294), CCF 292 (BC298), CCF 293 (BC299), CCF 313 (BC319).
-
-### soc2-review-003
-
-**SOC2-P6.1** — Personal information disclosure is authorized and logged
-
-Candidates: `SG-PRIVACYRIGHTS-001`.
-
-The broad privacy-rights candidate needs disclosure authorization and transaction records. A notice or subject-access workflow alone does not establish disclosure control.
-
-Source locators: CCF 143 (BC149), CCF 274 (BC280), CCF 279 (BC285), CCF 285 (BC291), CCF 286 (BC292).
-
-**SOC2-P7.1** — Personal information quality is maintained and corrected
-
-Candidates: `SG-DATASUBJECTRIGHTS-001`, `SG-PRIVACYRIGHTS-001`.
-
-Correction-request handling is only one way to find data-quality problems. Inspect preventative and detective checks and resolution of quality issues throughout processing.
-
-Source locators: CCF 271 (BC277), CCF 280 (BC286), CCF 281 (BC287), CCF 282 (BC288), CCF 283 (BC289), CCF 284 (BC290), CCF 287 (BC293), CCF 290 (BC296), CCF 292 (BC298), CCF 293 (BC299).
-
-**SOC2-P8.1** — Privacy compliance is monitored and enforced
-
-Candidates: `SG-DETECTION-001`.
-
-Generic security monitoring does not establish privacy compliance monitoring. Identify privacy-specific checks, exceptions, investigation, and corrective enforcement.
-
-Source locators: CCF 143 (BC149), CCF 271 (BC277), CCF 274 (BC280), CCF 277 (BC283), CCF 279 (BC285), CCF 285 (BC291), CCF 286 (BC292), CCF 288 (BC294), CCF 294 (BC300), CCF 302 (BC308), CCF 311 (BC317), CCF 313 (BC319), CCF 323 (BC329), CCF 369 (BC375).
-
-**SOC2-PI1.1** — Processing specifications define complete and accurate processing objectives
-
-Candidates: `SG-PROCESSINGINTEGRITY-001`.
-
-Inspect documented processing objectives and specifications and their approval. This is the shared safeguard's evidence anchor; do not automatically extend it to all processing stages.
-
-Source locators: No target-specific vendor reference found.
-
-**SOC2-PI1.2** — System inputs are complete, accurate, and authorized
-
-Candidates: `SG-INPUTVALIDATION-001`, `SG-PROCESSINGINTEGRITY-001`.
-
-Input validation must address completeness and authorization as well as format checks; require reconciliation and exception evidence for the scoped input population.
-
-Source locators: No target-specific vendor reference found.
-
-**SOC2-PI1.3** — System processing is complete, accurate, timely, and authorized
-
-Candidates: `SG-PROCESSINGINTEGRITY-001`.
-
-A processing specification does not prove execution. Require processing-run checks, reconciliations, authorization, timing, and resolved exceptions.
-
-Source locators: No target-specific vendor reference found.
-
-**SOC2-PI1.4** — System outputs are complete, accurate, and timely
-
-Candidates: `SG-PROCESSINGINTEGRITY-001`.
-
-Require output validation, reconciliation, authorized delivery, and exception handling. Do not infer correct outputs from input validation alone.
-
-Source locators: No target-specific vendor reference found.
-
-**SOC2-PI1.5** — Stored inputs, processing items, and outputs remain complete and accurate
-
-Candidates: `SG-INTEGRITYVERIFICATION-001`, `SG-PROCESSINGINTEGRITY-001`.
-
-Inspect retained-data integrity, completeness, retrieval, and alteration controls. A software checksum or processing specification alone does not cover every stored processing artifact.
-
-Source locators: No target-specific vendor reference found.
-
 ## iso-27001-2022
 
 ### iso-27001-2022-review-001
-
-**ISO27001-A.5.1** — Policies for information security
-
-Candidates: `SG-GOVERNANCE-002`, `SG-POLICYMANAGEMENT-001`.
-
-For policies for information security, compare each candidate (Governance and control environment; Security policy set approved, published, and reviewed) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.
-
-Source locators: CCF 67 (BI73), CCF 68 (BI74), CCF 69 (BI75), CCF 142 (BI148), CCF 147 (BI153).
 
 **ISO27001-A.5.10** — Acceptable use of information and other associated assets
 
@@ -336,14 +118,6 @@ Candidates: `SG-GOVERNANCE-002`.
 For acceptable use of information and other associated assets, compare each candidate (Governance and control environment) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.
 
 Source locators: CCF 64 (BI70), CCF 67 (BI73), CCF 69 (BI75), CCF 73 (BI79), CCF 85 (BI91), CCF 88 (BI94), CCF 165 (BI171), CCF 166 (BI172), CCF 167 (BI173).
-
-**ISO27001-A.5.11** — Return of assets
-
-Candidates: `SG-REVIEW-ISO27001-A-5-11`.
-
-Requirement-specific proposal: verify the issued-asset register reconciled to leavers and role changes, return responsibilities and deadlines, notifications, dated custody receipts, inventory updates, and escalation and recovery actions for unreturned assets. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Cisco provides a return-of-property workflow; local timing, worker scope and exceptions must be justified.
-
-Source locators: CCF 67 (BI73), CCF 227 (BI233), CCF 228 (BI234), CCF 229 (BI235).
 
 **ISO27001-A.5.12** — Classification of information
 
@@ -385,14 +159,6 @@ For access rights, compare each candidate (Access review and recertification) se
 
 Source locators: CCF 32 (BI38), CCF 39 (BI45), CCF 40 (BI46), CCF 53 (BI59), CCF 182 (BI188), CCF 191 (BI197), CCF 192 (BI198), CCF 194 (BI200), CCF 227 (BI233), CCF 228 (BI234), CCF 329 (BI335), CCF 331 (BI337).
 
-**ISO27001-A.5.2** — Information security roles and responsibilities
-
-Candidates: `SG-GOVERNANCE-002`, `SG-ROLESRESPONSIBILITIES-001`.
-
-For information security roles and responsibilities, compare each candidate (Governance and control environment; Security, privacy, and risk roles assigned) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.
-
-Source locators: CCF 127 (BI133), CCF 128 (BI134), CCF 129 (BI135), CCF 142 (BI148), CCF 167 (BI173), CCF 171 (BI177).
-
 **ISO27001-A.5.20** — Addressing information security within supplier agreements
 
 Candidates: `SG-THIRDPARTYRISK-001`.
@@ -400,16 +166,6 @@ Candidates: `SG-THIRDPARTYRISK-001`.
 For addressing information security within supplier agreements, compare each candidate (Vendor and third-party risk) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.
 
 Source locators: CCF 100 (BI106), CCF 122 (BI128), CCF 124 (BI130), CCF 165 (BI171), CCF 166 (BI172), CCF 329 (BI335), CCF 331 (BI337), CCF 339 (BI345), CCF 340 (BI346).
-
-### iso-27001-2022-review-002
-
-**ISO27001-A.5.21** — Managing information security in the ICT supply chain
-
-Candidates: `SG-AIPROVENANCE-001`, `SG-THIRDPARTYRISK-001`.
-
-For managing information security in the ict supply chain, compare each candidate (Third-party model and dataset provenance (AI-BOM); Vendor and third-party risk) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.
-
-Source locators: CCF 165 (BI171), CCF 166 (BI172), CCF 329 (BI335), CCF 331 (BI337), CCF 339 (BI345).
 
 **ISO27001-A.5.22** — Monitoring, review and change management of supplier services
 
@@ -427,38 +183,6 @@ For information security for use of cloud services, compare each candidate (Vend
 
 Source locators: CCF 30 (BI36), CCF 32 (BI38), CCF 40 (BI46), CCF 64 (BI70), CCF 329 (BI335), CCF 331 (BI337), CCF 339 (BI345).
 
-**ISO27001-A.5.24** — Information security incident management planning and preparation
-
-Candidates: `SG-INCIDENTPLAN-001`.
-
-For information security incident management planning and preparation, compare each candidate (Incident response plan maintained and exercised) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.
-
-Source locators: CCF 10 (BI16), CCF 80 (BI86), CCF 127 (BI133), CCF 236 (BI242), CCF 317 (BI323), CCF 322 (BI328), CCF 334 (BI340).
-
-**ISO27001-A.5.25** — Assessment and decision on information security events
-
-Candidates: `SG-DETECTION-001`, `SG-INCIDENTHANDLING-001`.
-
-For assessment and decision on information security events, compare each candidate (Monitoring and incident detection; Incidents triaged, contained, and closed) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.
-
-Source locators: CCF 80 (BI86), CCF 122 (BI128), CCF 124 (BI130), CCF 161 (BI167), CCF 322 (BI328).
-
-**ISO27001-A.5.26** — Response to information security incidents
-
-Candidates: `SG-INCIDENTHANDLING-001`, `SG-INCIDENTRESPONSE-001`.
-
-For response to information security incidents, compare each candidate (Incidents triaged, contained, and closed; Privacy breach notification) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.
-
-Source locators: CCF 80 (BI86), CCF 122 (BI128), CCF 124 (BI130), CCF 161 (BI167), CCF 317 (BI323), CCF 322 (BI328), CCF 334 (BI340).
-
-**ISO27001-A.5.27** — Learning from information security incidents
-
-Candidates: `SG-INCIDENTHANDLING-001`.
-
-For learning from information security incidents, compare each candidate (Incidents triaged, contained, and closed) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.
-
-Source locators: CCF 161 (BI167), CCF 317 (BI323), CCF 322 (BI328).
-
 **ISO27001-A.5.29** — Information security during disruption
 
 Candidates: `SG-AVAILABILITY-001`.
@@ -467,39 +191,7 @@ For information security during disruption, compare each candidate (Backup and a
 
 Source locators: CCF 10 (BI16), CCF 25 (BI31), CCF 122 (BI128), CCF 124 (BI130), CCF 161 (BI167), CCF 335 (BI341), CCF 336 (BI342).
 
-**ISO27001-A.5.3** — Segregation of duties
-
-Candidates: `SG-REVIEW-ISO27001-A-5-3`.
-
-Requirement-specific proposal: verify the documented incompatible-duty matrix, actual production and administrative entitlements, independent change approvals, attempted self-approval tests, periodic conflict reviews, and approved compensating controls with owners and expiry dates. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Production change separation is one example; the assessor must also identify other incompatible duties in scope.
-
-Source locators: CCF 39 (BI45), CCF 226 (BI232).
-
-**ISO27001-A.5.30** — ICT readiness for business continuity
-
-Candidates: `SG-AVAILABILITY-001`.
-
-For ict readiness for business continuity, compare each candidate (Backup and availability) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.
-
-Source locators: CCF 10 (BI16), CCF 11 (BI17), CCF 12 (BI18), CCF 25 (BI31), CCF 122 (BI128), CCF 124 (BI130), CCF 161 (BI167).
-
-### iso-27001-2022-review-003
-
-**ISO27001-A.5.31** — Legal, statutory, regulatory and contractual requirements
-
-Candidates: `SG-COMPLIANCEOBLIGATIONS-001`.
-
-For legal, statutory, regulatory and contractual requirements, compare each candidate (Legal, regulatory, and contractual obligations tracked) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.
-
-Source locators: CCF 1 (BI7), CCF 8 (BI14), CCF 96 (BI102), CCF 100 (BI106), CCF 130 (BI136), CCF 162 (BI168), CCF 165 (BI171), CCF 340 (BI346).
-
-**ISO27001-A.5.32** — Intellectual property rights
-
-Candidates: `SG-REVIEW-ISO27001-A-5-32`.
-
-Requirement-specific proposal: verify the inventory of licensed software and protected material, acquisition and use rights, entitlement counts reconciled to actual use, restrictions on copying or distribution, periodic checks and remediation of unauthorized use. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Software licensing guidance is narrower than all intellectual property rights; non-software material needs separate evidence.
-
-Source locators: CCF 165 (BI171), CCF 166 (BI172), CCF 167 (BI173), CCF 173 (BI179), CCF 329 (BI335), CCF 331 (BI337), CCF 339 (BI345), CCF 366 (BI372).
+### iso-27001-2022-review-002
 
 **ISO27001-A.5.33** — Protection of records
 
@@ -517,30 +209,6 @@ For privacy and protection of pii, compare each candidate (Privacy notices and d
 
 Source locators: CCF 73 (BI79), CCF 87 (BI93), CCF 100 (BI106), CCF 271 (BI277), CCF 273 (BI279), CCF 280 (BI286), CCF 288 (BI294), CCF 340 (BI346).
 
-**ISO27001-A.5.35** — Independent review of information security
-
-Candidates: `SG-CONTROLASSESSMENT-001`.
-
-For independent review of information security, compare each candidate (Independent control assessment) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.
-
-Source locators: CCF 1 (BI7), CCF 127 (BI133), CCF 129 (BI135), CCF 161 (BI167).
-
-**ISO27001-A.5.36** — Compliance with policies, rules and standards for information security
-
-Candidates: `SG-COMPLIANCEOBLIGATIONS-001`.
-
-For compliance with policies, rules and standards for information security, compare each candidate (Legal, regulatory, and contractual obligations tracked) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.
-
-Source locators: CCF 1 (BI7), CCF 127 (BI133), CCF 129 (BI135), CCF 147 (BI153), CCF 161 (BI167).
-
-**ISO27001-A.5.37** — Documented operating procedures
-
-Candidates: `SG-REVIEW-ISO27001-A-5-37`.
-
-Requirement-specific proposal: verify the inventory of operational procedures, accountable owners, approved current versions accessible to operators, dependencies and failure handling, sampled execution records, and change-driven review of procedures for critical operations. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. SDLC and key-management procedures illustrate operating documentation; they do not establish completeness of all operating procedures.
-
-Source locators: CCF 30 (BI36), CCF 81 (BI87), CCF 96 (BI102).
-
 **ISO27001-A.5.4** — Management responsibilities
 
 Candidates: `SG-GOVERNANCE-002`.
@@ -548,24 +216,6 @@ Candidates: `SG-GOVERNANCE-002`.
 For management responsibilities, compare each candidate (Governance and control environment) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.
 
 Source locators: CCF 160 (BI166), CCF 165 (BI171), CCF 166 (BI172), CCF 167 (BI173), CCF 173 (BI179), CCF 174 (BI180), CCF 181 (BI187), CCF 329 (BI335), CCF 331 (BI337).
-
-**ISO27001-A.5.5** — Contact with authorities
-
-Candidates: `SG-INCIDENTNOTIFICATION-001`.
-
-For contact with authorities, compare each candidate (Incident and breach notification within deadlines) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.
-
-Source locators: CCF 171 (BI177), CCF 317 (BI323), CCF 329 (BI335), CCF 364 (BI370).
-
-**ISO27001-A.5.6** — Contact with special interest groups
-
-Candidates: `SG-REVIEW-ISO27001-A-5-6`.
-
-Requirement-specific proposal: verify the relevant professional and security groups or advisory channels, designated contacts, active subscriptions or participation records, triage and distribution of received information, and tracked decisions responding to relevant security developments. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Subscription records alone do not demonstrate active use of advice or complete coverage of relevant groups.
-
-Source locators: CCF 122 (BI128), CCF 124 (BI130), CCF 128 (BI134), CCF 129 (BI135), CCF 356 (BI362), CCF 357 (BI363).
-
-### iso-27001-2022-review-004
 
 **ISO27001-A.5.7** — Threat intelligence
 
@@ -583,22 +233,6 @@ For inventory of information and other associated assets, compare each candidate
 
 Source locators: CCF 64 (BI70), CCF 67 (BI73), CCF 70 (BI76), CCF 100 (BI106).
 
-**ISO27001-A.6.1** — Screening
-
-Candidates: `SG-REVIEW-ISO27001-A-6-1`.
-
-Requirement-specific proposal: verify the role-based screening policy and lawful jurisdictional scope, joiner population reconciled to personnel records, screening completion before relevant access, authorized exceptions, and protections and retention limits for sensitive screening records. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Cisco describes pre-employment screening; local law, proportionality and applicable contractor scope need assessor confirmation.
-
-Source locators: CCF 162 (BI168).
-
-**ISO27001-A.6.2** — Terms and conditions of employment
-
-Candidates: `SG-REVIEW-ISO27001-A-6-2`.
-
-Requirement-specific proposal: verify the approved employment and contractor terms defining security responsibilities, signed acceptance reconciled to the onboarding population, communication before access, updates after role changes, and documented handling of missing or outdated agreements. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Confidentiality agreements are examples within employment terms; they do not establish every security obligation.
-
-Source locators: CCF 165 (BI171), CCF 166 (BI172), CCF 167 (BI173), CCF 339 (BI345).
-
 **ISO27001-A.6.3** — Information security awareness, education and training
 
 Candidates: `SG-TRAINING-001`.
@@ -607,38 +241,6 @@ For information security awareness, education and training, compare each candida
 
 Source locators: CCF 168 (BI174), CCF 173 (BI179), CCF 174 (BI180).
 
-**ISO27001-A.6.4** — Disciplinary process
-
-Candidates: `SG-REVIEW-ISO27001-A-6-4`.
-
-Requirement-specific proposal: verify the documented response to security policy breaches, communication and acknowledgement of consequences, fair and authorized investigation steps, restricted case records, consistent application to sampled cases, and recorded escalation and closure decisions. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Published consequences and acknowledgements alone do not establish that the disciplinary process operated appropriately.
-
-Source locators: CCF 160 (BI166).
-
-**ISO27001-A.6.5** — Responsibilities after termination or change of employment
-
-Candidates: `SG-REVIEW-ISO27001-A-6-5`.
-
-Requirement-specific proposal: verify the leaver and role-change population, documented continuing security obligations, handover and notice records, approvals for changed duties, dated removal or adjustment of access, and reconciliation of unresolved exceptions against personnel records. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Access revocation and review support only part of continuing responsibilities; confidentiality and other surviving duties need separate evidence.
-
-Source locators: CCF 53 (BI59), CCF 194 (BI200), CCF 227 (BI233), CCF 228 (BI234).
-
-**ISO27001-A.6.6** — Confidentiality or non-disclosure agreements
-
-Candidates: `SG-REVIEW-ISO27001-A-6-6`.
-
-Requirement-specific proposal: verify the inventory of confidentiality agreements and protected information, employee and external-party applicability, approved terms and duration, signed agreements before relevant disclosure, periodic review, and handling of missing signatures or changed obligations. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Vendor examples cover employee and supplier agreements; enforceability and the local information scope require separate review.
-
-Source locators: CCF 165 (BI171), CCF 166 (BI172), CCF 339 (BI345).
-
-**ISO27001-A.6.8** — Information security event reporting
-
-Candidates: `SG-INCIDENTHANDLING-001`.
-
-For information security event reporting, compare each candidate (Incidents triaged, contained, and closed) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.
-
-Source locators: CCF 80 (BI86), CCF 171 (BI177), CCF 181 (BI187), CCF 317 (BI323).
-
 **ISO27001-A.7.1** — Physical security perimeters
 
 Candidates: `SG-PHYSICAL-001`.
@@ -646,8 +248,6 @@ Candidates: `SG-PHYSICAL-001`.
 For physical security perimeters, compare each candidate (Physical and environmental security) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.
 
 Source locators: CCF 47 (BI53).
-
-### iso-27001-2022-review-005
 
 **ISO27001-A.7.10** — Storage media
 
@@ -673,13 +273,7 @@ For cabling security, compare each candidate (Physical and environmental securit
 
 Source locators: CCF 10 (BI16), CCF 48 (BI54), CCF 49 (BI55).
 
-**ISO27001-A.7.13** — Equipment maintenance
-
-Candidates: `SG-TIMELYMAINTENANCE-001`.
-
-For equipment maintenance, compare each candidate (Timely maintenance and end-of-life replacement) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.
-
-Source locators: CCF 48 (BI54), CCF 49 (BI55).
+### iso-27001-2022-review-003
 
 **ISO27001-A.7.14** — Secure disposal or re-use of equipment
 
@@ -729,8 +323,6 @@ For working in secure areas, compare each candidate (Physical and environmental 
 
 Source locators: CCF 47 (BI53), CCF 68 (BI74).
 
-### iso-27001-2022-review-006
-
 **ISO27001-A.7.8** — Equipment siting and protection
 
 Candidates: `SG-PHYSICAL-001`.
@@ -747,14 +339,6 @@ For security of assets off-premises, compare each candidate (Physical and enviro
 
 Source locators: CCF 64 (BI70), CCF 67 (BI73), CCF 99 (BI105), CCF 191 (BI197).
 
-**ISO27001-A.8.1** — User endpoint devices
-
-Candidates: `SG-REVIEW-ISO27001-A-8-1`.
-
-Requirement-specific proposal: verify the endpoint inventory reconciled to users and access records, approved configurations, encryption and management enrollment, access restrictions for unmanaged devices, monitoring of deviations, and dated remediation or time-limited exceptions. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Mobile-device enrollment and encryption are partial examples; all applicable endpoint classes and configurations must be assessed.
-
-Source locators: CCF 67 (BI73), CCF 99 (BI105), CCF 165 (BI171), CCF 166 (BI172), CCF 167 (BI173), CCF 170 (BI176), CCF 191 (BI197), CCF 197 (BI203), CCF 198 (BI204).
-
 **ISO27001-A.8.10** — Information deletion
 
 Candidates: `SG-DATARETENTION-001`.
@@ -770,6 +354,8 @@ Candidates: `SG-DATAPROTECTION-001`.
 For data leakage prevention, compare each candidate (Encryption and data protection) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.
 
 Source locators: CCF 69 (BI75), CCF 73 (BI79), CCF 83 (BI89), CCF 85 (BI91), CCF 86 (BI92), CCF 88 (BI94), CCF 99 (BI105), CCF 100 (BI106), CCF 119 (BI125).
+
+### iso-27001-2022-review-004
 
 **ISO27001-A.8.14** — Redundancy of information processing facilities
 
@@ -811,8 +397,6 @@ For security of network services, compare each candidate (Network security contr
 
 Source locators: CCF 47 (BI53), CCF 100 (BI106), CCF 120 (BI126), CCF 191 (BI197), CCF 197 (BI203), CCF 198 (BI204), CCF 243 (BI249), CCF 244 (BI250), CCF 252 (BI258).
 
-### iso-27001-2022-review-007
-
 **ISO27001-A.8.22** — Segregation of networks
 
 Candidates: `SG-NETWORK-001`.
@@ -829,72 +413,6 @@ For web filtering, compare each candidate (Network security controls) separately
 
 Source locators: CCF 120 (BI126), CCF 160 (BI166), CCF 170 (BI176), CCF 350 (BI356).
 
-**ISO27001-A.8.25** — Secure development life cycle
-
-Candidates: `SG-SECUREDEV-001`, `SG-SECURESDLC-001`.
-
-For secure development life cycle, compare each candidate (Secure development; Secure development life cycle) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.
-
-Source locators: CCF 30 (BI36), CCF 32 (BI38), CCF 39 (BI45), CCF 254 (BI260), CCF 355 (BI361).
-
-**ISO27001-A.8.26** — Application security requirements
-
-Candidates: `SG-SECURESDLC-001`.
-
-For application security requirements, compare each candidate (Secure development life cycle) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.
-
-Source locators: CCF 8 (BI14), CCF 30 (BI36), CCF 32 (BI38), CCF 34 (BI40), CCF 39 (BI45), CCF 81 (BI87), CCF 100 (BI106), CCF 122 (BI128), CCF 124 (BI130), CCF 129 (BI135), CCF 161 (BI167), CCF 181 (BI187), CCF 183 (BI189), CCF 192 (BI198), CCF 317 (BI323), CCF 322 (BI328), CCF 355 (BI361), CCF 362 (BI368), CCF 363 (BI369).
-
-**ISO27001-A.8.27** — Secure system architecture and engineering principles
-
-Candidates: `SG-ARCHITECTUREREVIEW-001`.
-
-For secure system architecture and engineering principles, compare each candidate (Security architecture documented and reviewed) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.
-
-Source locators: CCF 30 (BI36), CCF 32 (BI38), CCF 39 (BI45), CCF 83 (BI89), CCF 119 (BI125), CCF 182 (BI188), CCF 191 (BI197).
-
-**ISO27001-A.8.28** — Secure coding
-
-Candidates: `SG-CODESCANNING-001`, `SG-SECUREDEV-001`.
-
-For secure coding, compare each candidate (Static, secret, and dependency scanning in CI; Secure development) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.
-
-Source locators: CCF 30 (BI36), CCF 173 (BI179).
-
-**ISO27001-A.8.29** — Security testing in development and acceptance
-
-Candidates: `SG-CODESCANNING-001`, `SG-SECUREDEV-001`.
-
-For security testing in development and acceptance, compare each candidate (Static, secret, and dependency scanning in CI; Secure development) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.
-
-Source locators: CCF 30 (BI36), CCF 32 (BI38), CCF 355 (BI361), CCF 362 (BI368).
-
-**ISO27001-A.8.3** — Information access restriction
-
-Candidates: `SG-AIRUNTIMEACCESS-001`, `SG-IDENTITY-001`.
-
-For information access restriction, compare each candidate (Access control for AI inference endpoints and agent tools; Logical access and MFA) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.
-
-Source locators: CCF 53 (BI59), CCF 182 (BI188), CCF 191 (BI197), CCF 192 (BI198), CCF 194 (BI200), CCF 196 (BI202), CCF 197 (BI203), CCF 198 (BI204), CCF 200 (BI206).
-
-**ISO27001-A.8.30** — Outsourced development
-
-Candidates: `SG-SECURESDLC-001`.
-
-For outsourced development, compare each candidate (Secure development life cycle) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.
-
-Source locators: CCF 32 (BI38), CCF 165 (BI171), CCF 329 (BI335), CCF 331 (BI337), CCF 339 (BI345).
-
-**ISO27001-A.8.31** — Separation of development, test and production environments
-
-Candidates: `SG-CHANGESEGREGATION-001`, `SG-SECUREDEV-001`.
-
-For separation of development, test and production environments, compare each candidate (Change access restricted and environments separated; Secure development) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.
-
-Source locators: CCF 30 (BI36), CCF 32 (BI38), CCF 39 (BI45), CCF 40 (BI46), CCF 83 (BI89), CCF 243 (BI249), CCF 252 (BI258), CCF 254 (BI260).
-
-### iso-27001-2022-review-008
-
 **ISO27001-A.8.33** — Test information
 
 Candidates: `SG-SECUREDEV-001`.
@@ -902,22 +420,6 @@ Candidates: `SG-SECUREDEV-001`.
 For test information, compare each candidate (Secure development) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.
 
 Source locators: CCF 69 (BI75), CCF 83 (BI89).
-
-**ISO27001-A.8.34** — Protection of information systems during audit testing
-
-Candidates: `SG-REVIEW-ISO27001-A-8-34`.
-
-Requirement-specific proposal: verify the authorization and risk review for audit tests, agreed scope and timing, least-privilege test access, protection of copied data, monitoring and recovery arrangements, and removal of temporary access and test artifacts. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Cisco cites this target in broad audit and risk controls but does not specify all audit-test protections; these original checks require direct requirement review.
-
-Source locators: CCF 1 (BI7), CCF 129 (BI135), CCF 161 (BI167).
-
-**ISO27001-A.8.4** — Access to source code
-
-Candidates: `SG-CHANGESEGREGATION-001`.
-
-For access to source code, compare each candidate (Change access restricted and environments separated) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.
-
-Source locators: CCF 32 (BI38), CCF 39 (BI45), CCF 182 (BI188), CCF 192 (BI198), CCF 194 (BI200), CCF 243 (BI249).
 
 **ISO27001-A.8.5** — Secure authentication
 
@@ -934,14 +436,6 @@ Candidates: `SG-VULNERABILITYMANAGEMENT-001`.
 For protection against malware, compare each candidate (Vulnerability management) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.
 
 Source locators: CCF 10 (BI16), CCF 24 (BI30), CCF 25 (BI31), CCF 30 (BI36), CCF 34 (BI40), CCF 173 (BI179), CCF 349 (BI355), CCF 350 (BI356), CCF 355 (BI361), CCF 356 (BI362), CCF 362 (BI368), CCF 374 (BI380).
-
-**ISO27001-A.8.9** — Configuration management
-
-Candidates: `SG-CONFIGBASELINE-001`.
-
-For configuration management, compare each candidate (Hardened configuration baselines) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.
-
-Source locators: CCF 32 (BI38), CCF 35 (BI41), CCF 119 (BI125), CCF 360 (BI366).
 
 ## iso-42001-2023
 

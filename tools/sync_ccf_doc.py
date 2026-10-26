@@ -50,7 +50,8 @@ def main():
     text = path.read_text()
     headline = (
         f"{coverage['safeguards']} safeguards map {coverage['covered']} of {coverage['controls']} requirements "
-        f"({coverage['coverage_pct']}%) — {coverage['maintainer_reviewed']} maintainer-reviewed, "
+        f"({coverage['coverage_pct']}%) — {coverage['maintainer_reviewed']} maintainer-reviewed "
+        f"({coverage['legacy_only_reviewed']} rest only on legacy reviews with no recorded reviewer), "
         f"{coverage['org_reviewed']} org-reviewed ({coverage['reviewed_pct']}% attestable), "
         f"{coverage['proposed']} proposed; {coverage['rejected_mappings']} mapping(s) rejected by the org"
     )

@@ -1,0 +1,929 @@
+{
+  "schema": "grc-lake.maintainer-mapping-review.v1",
+  "reviewer": "msaad00",
+  "decision": "approve",
+  "scope": "Batch approval of the SOC 2 (28 requirements, 37 candidates) and ISO 27001:2022 (76 requirements, 86 candidates) pending queue: 71 mappings approved (35 SOC 2, 36 ISO 27001). 50 title-theme ISO 27001 candidates and the SOC2-A1.3 and SOC2-C1.1 candidates (open recommendations in docs/reviews/RECOVERY_CONFIDENTIALITY.md) are listed as excluded and stay proposed. ISO 42001 candidates and other frameworks are outside this decision.",
+  "rationale": "Maintainer batch approval on 2026-10-25 after reviewing the SOC 2 and ISO 27001 pending queue against the requirement text; recorded as one decision for all listed mappings, not per-mapping rationales.",
+  "base_commit": "758b81f885ba63d273af9b39a6fe778947566080",
+  "parent_packet": "docs/reviews/2026-10-25-soc2-iso27001-pending-queue.json",
+  "parent_packet_sha256": "0b570b0dd4865ca19062c6331421350053bedd0acf7bc87e33a4226a56234209",
+  "recorded_at": "2026-10-25T23:17:46.411468Z",
+  "limitations": "Mapping approval only. Cisco and Oracle references provide implementation guidance, not complete normative requirement text or independently verified equivalence. Operating effectiveness and certification require separate evidence.",
+  "excluded": [
+    {
+      "safeguard_id": "SG-GOVERNANCE-002",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.5.1",
+      "inspected_basis_sha256": "b2542e9066fb6e9119e6bc7a72eb96f6ca746dbb27b995442183b98984925073",
+      "framework_ref": "ISO 27001:2022 A.5.1",
+      "reason": "Title-theme suggestion (mapping_basis title_theme). Shipped title-theme mappings are evaluatable coverage, never maintainer-reviewed coverage; the mapping stays proposed and an organization can still decide it through the mapping review workflow."
+    },
+    {
+      "safeguard_id": "SG-GOVERNANCE-002",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.5.10",
+      "inspected_basis_sha256": "50a4cd139b5b9e073bdb08fde69155d3fe8d59217cef32d024c1f870fd486cbb",
+      "framework_ref": "ISO 27001:2022 A.5.10",
+      "reason": "Title-theme suggestion (mapping_basis title_theme). Shipped title-theme mappings are evaluatable coverage, never maintainer-reviewed coverage; the mapping stays proposed and an organization can still decide it through the mapping review workflow."
+    },
+    {
+      "safeguard_id": "SG-DATAINVENTORY-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.5.12",
+      "inspected_basis_sha256": "e68f5ab44efd0b49cb8a6fabeec13e05f2e50c9e31d922beb5d6e9df2b3e30fc",
+      "framework_ref": "ISO 27001:2022 A.5.12",
+      "reason": "Title-theme suggestion (mapping_basis title_theme). Shipped title-theme mappings are evaluatable coverage, never maintainer-reviewed coverage; the mapping stays proposed and an organization can still decide it through the mapping review workflow."
+    },
+    {
+      "safeguard_id": "SG-DATAPROTECTION-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.5.14",
+      "inspected_basis_sha256": "3b327d5c3928e9500fd8e0062c7f4f1237ed2ce6b6e3260c2ab04dd396b8477a",
+      "framework_ref": "ISO 27001:2022 A.5.14",
+      "reason": "Title-theme suggestion (mapping_basis title_theme). Shipped title-theme mappings are evaluatable coverage, never maintainer-reviewed coverage; the mapping stays proposed and an organization can still decide it through the mapping review workflow."
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.5.16",
+      "inspected_basis_sha256": "8546e99c63181ca2590f679ef639868dd6617d1521d993ffae1c77c79e8a8056",
+      "framework_ref": "ISO 27001:2022 A.5.16",
+      "reason": "Title-theme suggestion (mapping_basis title_theme). Shipped title-theme mappings are evaluatable coverage, never maintainer-reviewed coverage; the mapping stays proposed and an organization can still decide it through the mapping review workflow."
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.5.17",
+      "inspected_basis_sha256": "7a4b48ede12c3f854b6e73c445958d8f4ed96f164ab37166b528b703968f3483",
+      "framework_ref": "ISO 27001:2022 A.5.17",
+      "reason": "Title-theme suggestion (mapping_basis title_theme). Shipped title-theme mappings are evaluatable coverage, never maintainer-reviewed coverage; the mapping stays proposed and an organization can still decide it through the mapping review workflow."
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-002",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.5.18",
+      "inspected_basis_sha256": "d633f784c4f6ddf25ee0bec0372353ccf1d49dffc45ed26f5745bc885b9658c1",
+      "framework_ref": "ISO 27001:2022 A.5.18",
+      "reason": "Title-theme suggestion (mapping_basis title_theme). Shipped title-theme mappings are evaluatable coverage, never maintainer-reviewed coverage; the mapping stays proposed and an organization can still decide it through the mapping review workflow."
+    },
+    {
+      "safeguard_id": "SG-GOVERNANCE-002",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.5.2",
+      "inspected_basis_sha256": "11c09417e5eb907f26c56234335c8acb95a8eab0a9e16deadd597ae504d8b00c",
+      "framework_ref": "ISO 27001:2022 A.5.2",
+      "reason": "Title-theme suggestion (mapping_basis title_theme). Shipped title-theme mappings are evaluatable coverage, never maintainer-reviewed coverage; the mapping stays proposed and an organization can still decide it through the mapping review workflow."
+    },
+    {
+      "safeguard_id": "SG-THIRDPARTYRISK-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.5.20",
+      "inspected_basis_sha256": "31ed81750374ebf55e32cf73aacb28d5e7627608d723620dd9cd5c8393a771c0",
+      "framework_ref": "ISO 27001:2022 A.5.20",
+      "reason": "Title-theme suggestion (mapping_basis title_theme). Shipped title-theme mappings are evaluatable coverage, never maintainer-reviewed coverage; the mapping stays proposed and an organization can still decide it through the mapping review workflow."
+    },
+    {
+      "safeguard_id": "SG-THIRDPARTYRISK-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.5.21",
+      "inspected_basis_sha256": "f7d6b049932cfcafec911b68c737c7c70e5d0a8a1fdc3cd4bd3582cdb00268b6",
+      "framework_ref": "ISO 27001:2022 A.5.21",
+      "reason": "Title-theme suggestion (mapping_basis title_theme). Shipped title-theme mappings are evaluatable coverage, never maintainer-reviewed coverage; the mapping stays proposed and an organization can still decide it through the mapping review workflow."
+    },
+    {
+      "safeguard_id": "SG-THIRDPARTYRISK-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.5.22",
+      "inspected_basis_sha256": "01fe028074a4901d455dcd962a4bedd4f27c5219825ffe20c7a07ecb7dbb57f2",
+      "framework_ref": "ISO 27001:2022 A.5.22",
+      "reason": "Title-theme suggestion (mapping_basis title_theme). Shipped title-theme mappings are evaluatable coverage, never maintainer-reviewed coverage; the mapping stays proposed and an organization can still decide it through the mapping review workflow."
+    },
+    {
+      "safeguard_id": "SG-THIRDPARTYRISK-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.5.23",
+      "inspected_basis_sha256": "bf04ad24f03e49f62890bc7c17e7036e284f00de810bc32fc35ff73ef1920f90",
+      "framework_ref": "ISO 27001:2022 A.5.23",
+      "reason": "Title-theme suggestion (mapping_basis title_theme). Shipped title-theme mappings are evaluatable coverage, never maintainer-reviewed coverage; the mapping stays proposed and an organization can still decide it through the mapping review workflow."
+    },
+    {
+      "safeguard_id": "SG-DETECTION-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.5.25",
+      "inspected_basis_sha256": "cb34ada91372213533f4b82c2d055e6731bae73e12f6ada99b573772817d98f6",
+      "framework_ref": "ISO 27001:2022 A.5.25",
+      "reason": "Title-theme suggestion (mapping_basis title_theme). Shipped title-theme mappings are evaluatable coverage, never maintainer-reviewed coverage; the mapping stays proposed and an organization can still decide it through the mapping review workflow."
+    },
+    {
+      "safeguard_id": "SG-INCIDENTRESPONSE-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.5.26",
+      "inspected_basis_sha256": "a70f3f68cf0d57e49a33e7a3c3404c49acef7deef2e07c74cb07ddae38eb6cae",
+      "framework_ref": "ISO 27001:2022 A.5.26",
+      "reason": "Title-theme suggestion (mapping_basis title_theme). Shipped title-theme mappings are evaluatable coverage, never maintainer-reviewed coverage; the mapping stays proposed and an organization can still decide it through the mapping review workflow."
+    },
+    {
+      "safeguard_id": "SG-AVAILABILITY-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.5.29",
+      "inspected_basis_sha256": "96d3d6370a3fc9cb873d4790249cea79d20a05ccc94acbe380b137792a178636",
+      "framework_ref": "ISO 27001:2022 A.5.29",
+      "reason": "Title-theme suggestion (mapping_basis title_theme). Shipped title-theme mappings are evaluatable coverage, never maintainer-reviewed coverage; the mapping stays proposed and an organization can still decide it through the mapping review workflow."
+    },
+    {
+      "safeguard_id": "SG-DATARETENTION-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.5.33",
+      "inspected_basis_sha256": "f5fea707db72d057632ff006702d7c8af5e8f67249e92d094adb9f923a40f9d6",
+      "framework_ref": "ISO 27001:2022 A.5.33",
+      "reason": "Title-theme suggestion (mapping_basis title_theme). Shipped title-theme mappings are evaluatable coverage, never maintainer-reviewed coverage; the mapping stays proposed and an organization can still decide it through the mapping review workflow."
+    },
+    {
+      "safeguard_id": "SG-PRIVACYRIGHTS-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.5.34",
+      "inspected_basis_sha256": "8e65f18fbf7bdffe6c7a00f49997913db7e745efb8a517592c815e3a3a8f09c0",
+      "framework_ref": "ISO 27001:2022 A.5.34",
+      "reason": "Title-theme suggestion (mapping_basis title_theme). Shipped title-theme mappings are evaluatable coverage, never maintainer-reviewed coverage; the mapping stays proposed and an organization can still decide it through the mapping review workflow."
+    },
+    {
+      "safeguard_id": "SG-GOVERNANCE-002",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.5.4",
+      "inspected_basis_sha256": "e5281cb733650ecc4ba204c4566da94aa4742fbaa576cb32fade8b8e98447549",
+      "framework_ref": "ISO 27001:2022 A.5.4",
+      "reason": "Title-theme suggestion (mapping_basis title_theme). Shipped title-theme mappings are evaluatable coverage, never maintainer-reviewed coverage; the mapping stays proposed and an organization can still decide it through the mapping review workflow."
+    },
+    {
+      "safeguard_id": "SG-DETECTION-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.5.7",
+      "inspected_basis_sha256": "99740e4199abe313a5b6d1167fb332ac48613902e7ea0b450e068d3871b47107",
+      "framework_ref": "ISO 27001:2022 A.5.7",
+      "reason": "Title-theme suggestion (mapping_basis title_theme). Shipped title-theme mappings are evaluatable coverage, never maintainer-reviewed coverage; the mapping stays proposed and an organization can still decide it through the mapping review workflow."
+    },
+    {
+      "safeguard_id": "SG-DATAINVENTORY-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.5.9",
+      "inspected_basis_sha256": "f6a2b1ccccf8f1ffdcafc1006dac6c2b516856c5b3a5294342a545b7a9349969",
+      "framework_ref": "ISO 27001:2022 A.5.9",
+      "reason": "Title-theme suggestion (mapping_basis title_theme). Shipped title-theme mappings are evaluatable coverage, never maintainer-reviewed coverage; the mapping stays proposed and an organization can still decide it through the mapping review workflow."
+    },
+    {
+      "safeguard_id": "SG-TRAINING-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.6.3",
+      "inspected_basis_sha256": "db51013e39363fad3ad0db5e9f339238954e0937aba19333447c68ae307a7210",
+      "framework_ref": "ISO 27001:2022 A.6.3",
+      "reason": "Title-theme suggestion (mapping_basis title_theme). Shipped title-theme mappings are evaluatable coverage, never maintainer-reviewed coverage; the mapping stays proposed and an organization can still decide it through the mapping review workflow."
+    },
+    {
+      "safeguard_id": "SG-PHYSICAL-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.7.1",
+      "inspected_basis_sha256": "229e34aa79d476354d389afae6530efbbfbe6b24b06fa8f1d761725b913f33d1",
+      "framework_ref": "ISO 27001:2022 A.7.1",
+      "reason": "Title-theme suggestion (mapping_basis title_theme). Shipped title-theme mappings are evaluatable coverage, never maintainer-reviewed coverage; the mapping stays proposed and an organization can still decide it through the mapping review workflow."
+    },
+    {
+      "safeguard_id": "SG-PHYSICAL-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.7.10",
+      "inspected_basis_sha256": "3ed5f976bed23ec6efde0fed93a60bf7b61fc9e6e1dee17477bd1525edfb0c05",
+      "framework_ref": "ISO 27001:2022 A.7.10",
+      "reason": "Title-theme suggestion (mapping_basis title_theme). Shipped title-theme mappings are evaluatable coverage, never maintainer-reviewed coverage; the mapping stays proposed and an organization can still decide it through the mapping review workflow."
+    },
+    {
+      "safeguard_id": "SG-PHYSICAL-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.7.11",
+      "inspected_basis_sha256": "04e226b92bc65d41a9fcbb184f9219a9c1fe124857339cd58a421113f41c3c10",
+      "framework_ref": "ISO 27001:2022 A.7.11",
+      "reason": "Title-theme suggestion (mapping_basis title_theme). Shipped title-theme mappings are evaluatable coverage, never maintainer-reviewed coverage; the mapping stays proposed and an organization can still decide it through the mapping review workflow."
+    },
+    {
+      "safeguard_id": "SG-PHYSICAL-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.7.12",
+      "inspected_basis_sha256": "7d38e2d0054444be42ae49ce387feabc3fb55c85f8bd69319f28ab089462a711",
+      "framework_ref": "ISO 27001:2022 A.7.12",
+      "reason": "Title-theme suggestion (mapping_basis title_theme). Shipped title-theme mappings are evaluatable coverage, never maintainer-reviewed coverage; the mapping stays proposed and an organization can still decide it through the mapping review workflow."
+    },
+    {
+      "safeguard_id": "SG-DATARETENTION-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.7.14",
+      "inspected_basis_sha256": "bf2377088149bcd9fbe9ebe8c83cf2a3a3ed80fb29bfd59d064037fd30cc9c31",
+      "framework_ref": "ISO 27001:2022 A.7.14",
+      "reason": "Title-theme suggestion (mapping_basis title_theme). Shipped title-theme mappings are evaluatable coverage, never maintainer-reviewed coverage; the mapping stays proposed and an organization can still decide it through the mapping review workflow."
+    },
+    {
+      "safeguard_id": "SG-PHYSICAL-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.7.2",
+      "inspected_basis_sha256": "86cc84e0fa2cff8ef625030856657ffa6c25f5f7c111b05aee278ae335c22647",
+      "framework_ref": "ISO 27001:2022 A.7.2",
+      "reason": "Title-theme suggestion (mapping_basis title_theme). Shipped title-theme mappings are evaluatable coverage, never maintainer-reviewed coverage; the mapping stays proposed and an organization can still decide it through the mapping review workflow."
+    },
+    {
+      "safeguard_id": "SG-PHYSICAL-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.7.3",
+      "inspected_basis_sha256": "a47d961cf7485d4708032fc44b997fcc9b546c8bb843f698700ff9373bffdc15",
+      "framework_ref": "ISO 27001:2022 A.7.3",
+      "reason": "Title-theme suggestion (mapping_basis title_theme). Shipped title-theme mappings are evaluatable coverage, never maintainer-reviewed coverage; the mapping stays proposed and an organization can still decide it through the mapping review workflow."
+    },
+    {
+      "safeguard_id": "SG-PHYSICAL-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.7.4",
+      "inspected_basis_sha256": "ebd5fa9a67154274cde318ae41eac39eee1395a03cb01c2b94cbcdf537c7cd3b",
+      "framework_ref": "ISO 27001:2022 A.7.4",
+      "reason": "Title-theme suggestion (mapping_basis title_theme). Shipped title-theme mappings are evaluatable coverage, never maintainer-reviewed coverage; the mapping stays proposed and an organization can still decide it through the mapping review workflow."
+    },
+    {
+      "safeguard_id": "SG-PHYSICAL-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.7.5",
+      "inspected_basis_sha256": "d64716623c80c3291ea204af0b26c7b17b453602ca0ba995661d8d100bd08065",
+      "framework_ref": "ISO 27001:2022 A.7.5",
+      "reason": "Title-theme suggestion (mapping_basis title_theme). Shipped title-theme mappings are evaluatable coverage, never maintainer-reviewed coverage; the mapping stays proposed and an organization can still decide it through the mapping review workflow."
+    },
+    {
+      "safeguard_id": "SG-PHYSICAL-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.7.6",
+      "inspected_basis_sha256": "4a95565da3e85337e2cc075746af2a4ca38ce9f8b878ba0efed3edaf834b7621",
+      "framework_ref": "ISO 27001:2022 A.7.6",
+      "reason": "Title-theme suggestion (mapping_basis title_theme). Shipped title-theme mappings are evaluatable coverage, never maintainer-reviewed coverage; the mapping stays proposed and an organization can still decide it through the mapping review workflow."
+    },
+    {
+      "safeguard_id": "SG-PHYSICAL-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.7.8",
+      "inspected_basis_sha256": "fa477eddcc8bc19140e98e012fcbbe3e363c1d563745136cd555bac56e65dcba",
+      "framework_ref": "ISO 27001:2022 A.7.8",
+      "reason": "Title-theme suggestion (mapping_basis title_theme). Shipped title-theme mappings are evaluatable coverage, never maintainer-reviewed coverage; the mapping stays proposed and an organization can still decide it through the mapping review workflow."
+    },
+    {
+      "safeguard_id": "SG-PHYSICAL-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.7.9",
+      "inspected_basis_sha256": "1ca7242ba4eccd1adcf113c8f3291a749b1cff07c9c2266803ac817c81a76710",
+      "framework_ref": "ISO 27001:2022 A.7.9",
+      "reason": "Title-theme suggestion (mapping_basis title_theme). Shipped title-theme mappings are evaluatable coverage, never maintainer-reviewed coverage; the mapping stays proposed and an organization can still decide it through the mapping review workflow."
+    },
+    {
+      "safeguard_id": "SG-DATARETENTION-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.8.10",
+      "inspected_basis_sha256": "8211a95526fc90e19913d5ea33db4b4a8111c01e305d0d32dfe900b769b9c188",
+      "framework_ref": "ISO 27001:2022 A.8.10",
+      "reason": "Title-theme suggestion (mapping_basis title_theme). Shipped title-theme mappings are evaluatable coverage, never maintainer-reviewed coverage; the mapping stays proposed and an organization can still decide it through the mapping review workflow."
+    },
+    {
+      "safeguard_id": "SG-DATAPROTECTION-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.8.12",
+      "inspected_basis_sha256": "c18893c0740ee382b6fb9eee5c665484ac2bb6413a9a0ae5bc04ee2e491c047c",
+      "framework_ref": "ISO 27001:2022 A.8.12",
+      "reason": "Title-theme suggestion (mapping_basis title_theme). Shipped title-theme mappings are evaluatable coverage, never maintainer-reviewed coverage; the mapping stays proposed and an organization can still decide it through the mapping review workflow."
+    },
+    {
+      "safeguard_id": "SG-AVAILABILITY-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.8.14",
+      "inspected_basis_sha256": "e9379a9f096b18e91a9997600936029c6b3d1fbb95dc319959592a9333260525",
+      "framework_ref": "ISO 27001:2022 A.8.14",
+      "reason": "Title-theme suggestion (mapping_basis title_theme). Shipped title-theme mappings are evaluatable coverage, never maintainer-reviewed coverage; the mapping stays proposed and an organization can still decide it through the mapping review workflow."
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.8.18",
+      "inspected_basis_sha256": "f90b12f71967f4cdeee29099aafe2228ad0e3bf6bdf38cae5a50f2f4726acac8",
+      "framework_ref": "ISO 27001:2022 A.8.18",
+      "reason": "Title-theme suggestion (mapping_basis title_theme). Shipped title-theme mappings are evaluatable coverage, never maintainer-reviewed coverage; the mapping stays proposed and an organization can still decide it through the mapping review workflow."
+    },
+    {
+      "safeguard_id": "SG-CHANGEMANAGEMENT-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.8.19",
+      "inspected_basis_sha256": "b79c2ead369f00221be9c22057f83be3dd742c5aea053e2f83cf66698b008642",
+      "framework_ref": "ISO 27001:2022 A.8.19",
+      "reason": "Title-theme suggestion (mapping_basis title_theme). Shipped title-theme mappings are evaluatable coverage, never maintainer-reviewed coverage; the mapping stays proposed and an organization can still decide it through the mapping review workflow."
+    },
+    {
+      "safeguard_id": "SG-NETWORK-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.8.20",
+      "inspected_basis_sha256": "4837e50101e30cdb8a4014eb3081b393c55954bb54af640ec7876556c0b2ae7e",
+      "framework_ref": "ISO 27001:2022 A.8.20",
+      "reason": "Title-theme suggestion (mapping_basis title_theme). Shipped title-theme mappings are evaluatable coverage, never maintainer-reviewed coverage; the mapping stays proposed and an organization can still decide it through the mapping review workflow."
+    },
+    {
+      "safeguard_id": "SG-NETWORK-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.8.21",
+      "inspected_basis_sha256": "98c0cef7f1b83ab225ace75e35b9787915f0b8bfc20bd9a3e68f4047bdc20c17",
+      "framework_ref": "ISO 27001:2022 A.8.21",
+      "reason": "Title-theme suggestion (mapping_basis title_theme). Shipped title-theme mappings are evaluatable coverage, never maintainer-reviewed coverage; the mapping stays proposed and an organization can still decide it through the mapping review workflow."
+    },
+    {
+      "safeguard_id": "SG-NETWORK-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.8.22",
+      "inspected_basis_sha256": "7b3977fdbff20713b446d9cc5fec3f2401344c7c225fbc92a338b138c9864697",
+      "framework_ref": "ISO 27001:2022 A.8.22",
+      "reason": "Title-theme suggestion (mapping_basis title_theme). Shipped title-theme mappings are evaluatable coverage, never maintainer-reviewed coverage; the mapping stays proposed and an organization can still decide it through the mapping review workflow."
+    },
+    {
+      "safeguard_id": "SG-NETWORK-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.8.23",
+      "inspected_basis_sha256": "b1427e87593dc4879923cbc97ed0b8183c89ab0400bfc7890667dcc2a0a169dd",
+      "framework_ref": "ISO 27001:2022 A.8.23",
+      "reason": "Title-theme suggestion (mapping_basis title_theme). Shipped title-theme mappings are evaluatable coverage, never maintainer-reviewed coverage; the mapping stays proposed and an organization can still decide it through the mapping review workflow."
+    },
+    {
+      "safeguard_id": "SG-SECUREDEV-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.8.25",
+      "inspected_basis_sha256": "9b9e48097897186106cf958022998032ff70ca84ea525555e178a74ccd439d87",
+      "framework_ref": "ISO 27001:2022 A.8.25",
+      "reason": "Title-theme suggestion (mapping_basis title_theme). Shipped title-theme mappings are evaluatable coverage, never maintainer-reviewed coverage; the mapping stays proposed and an organization can still decide it through the mapping review workflow."
+    },
+    {
+      "safeguard_id": "SG-SECUREDEV-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.8.28",
+      "inspected_basis_sha256": "3035c37c7c54146400fd3e3c914bf1f65baf3727b68b4aa22ec63a27080202c2",
+      "framework_ref": "ISO 27001:2022 A.8.28",
+      "reason": "Title-theme suggestion (mapping_basis title_theme). Shipped title-theme mappings are evaluatable coverage, never maintainer-reviewed coverage; the mapping stays proposed and an organization can still decide it through the mapping review workflow."
+    },
+    {
+      "safeguard_id": "SG-SECUREDEV-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.8.29",
+      "inspected_basis_sha256": "b165c04c1783ba5043f5935783ec4547d4670f93c1c21364435efee20543cb7c",
+      "framework_ref": "ISO 27001:2022 A.8.29",
+      "reason": "Title-theme suggestion (mapping_basis title_theme). Shipped title-theme mappings are evaluatable coverage, never maintainer-reviewed coverage; the mapping stays proposed and an organization can still decide it through the mapping review workflow."
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.8.3",
+      "inspected_basis_sha256": "2b391dd361f7e430191eecbfc9c5b24d7de5c0280e8b744ce9c6990e98a0a45a",
+      "framework_ref": "ISO 27001:2022 A.8.3",
+      "reason": "Title-theme suggestion (mapping_basis title_theme). Shipped title-theme mappings are evaluatable coverage, never maintainer-reviewed coverage; the mapping stays proposed and an organization can still decide it through the mapping review workflow."
+    },
+    {
+      "safeguard_id": "SG-SECUREDEV-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.8.31",
+      "inspected_basis_sha256": "92ae767b1d2fe74ddd7f4289e7e5776e35f5b562ad8f4f29a29e7ea103913ea4",
+      "framework_ref": "ISO 27001:2022 A.8.31",
+      "reason": "Title-theme suggestion (mapping_basis title_theme). Shipped title-theme mappings are evaluatable coverage, never maintainer-reviewed coverage; the mapping stays proposed and an organization can still decide it through the mapping review workflow."
+    },
+    {
+      "safeguard_id": "SG-SECUREDEV-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.8.33",
+      "inspected_basis_sha256": "5cb3692b0e6f64e5330eeb2e9d1060ac501f96201980c992e948365c5dd246db",
+      "framework_ref": "ISO 27001:2022 A.8.33",
+      "reason": "Title-theme suggestion (mapping_basis title_theme). Shipped title-theme mappings are evaluatable coverage, never maintainer-reviewed coverage; the mapping stays proposed and an organization can still decide it through the mapping review workflow."
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.8.5",
+      "inspected_basis_sha256": "38be047ca5d9bae26733ebc5dd2a8b6794fa786fff82b88d1295e855867020d4",
+      "framework_ref": "ISO 27001:2022 A.8.5",
+      "reason": "Title-theme suggestion (mapping_basis title_theme). Shipped title-theme mappings are evaluatable coverage, never maintainer-reviewed coverage; the mapping stays proposed and an organization can still decide it through the mapping review workflow."
+    },
+    {
+      "safeguard_id": "SG-VULNERABILITYMANAGEMENT-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.8.7",
+      "inspected_basis_sha256": "47216c25a0f9c66c43ddea5b10e44cc228f2d11d4529688e20e77966199f5667",
+      "framework_ref": "ISO 27001:2022 A.8.7",
+      "reason": "Title-theme suggestion (mapping_basis title_theme). Shipped title-theme mappings are evaluatable coverage, never maintainer-reviewed coverage; the mapping stays proposed and an organization can still decide it through the mapping review workflow."
+    },
+    {
+      "safeguard_id": "SG-AVAILABILITY-001",
+      "framework_id": "soc2",
+      "control_id": "SOC2-A1.3",
+      "inspected_basis_sha256": "8650cc2797047782d6bec5653ad89e0e13a6d07c5b4c2a75f9c3fbd208cb0a95",
+      "framework_ref": "SOC 2 A1.3",
+      "reason": "Excluded by the maintainer on 2026-10-25: docs/reviews/RECOVERY_CONFIDENTIALITY.md recommends requiring recovery-test evidence first; backup evidence alone does not show that recovery procedures are tested."
+    },
+    {
+      "safeguard_id": "SG-DATAINVENTORY-001",
+      "framework_id": "soc2",
+      "control_id": "SOC2-C1.1",
+      "inspected_basis_sha256": "2d19a29666f29c662ad4979477bae1c4a4d2795a4a4cd35c673599262c11ece7",
+      "framework_ref": "SOC 2 C1.1",
+      "reason": "Excluded by the maintainer on 2026-10-25: docs/reviews/RECOVERY_CONFIDENTIALITY.md recommends requiring data-protection evidence first; an inventory alone does not show confidential information is protected."
+    }
+  ],
+  "mappings": [
+    {
+      "safeguard_id": "SG-DATARETENTION-001",
+      "framework_id": "soc2",
+      "control_id": "SOC2-C1.2",
+      "inspected_basis_sha256": "8bc4815762659f96c05aff964cf8f82b2fda76f618b3a4fae766bbcf58bab9cb",
+      "framework_ref": "SOC 2 C1.2"
+    },
+    {
+      "safeguard_id": "SG-RISKMANAGEMENT-001",
+      "framework_id": "soc2",
+      "control_id": "SOC2-CC3.3",
+      "inspected_basis_sha256": "79019e60b5649faff7b7d9247e50afebbd069f15aac2484e028e086a311894f4",
+      "framework_ref": "SOC 2 CC3.3"
+    },
+    {
+      "safeguard_id": "SG-CHANGEMANAGEMENT-001",
+      "framework_id": "soc2",
+      "control_id": "SOC2-CC3.4",
+      "inspected_basis_sha256": "24aff3f9ae4d2b1fa217cd4be8e1099d61abf7bc8c319dcfaa7ac7fb640b63e6",
+      "framework_ref": "SOC 2 CC3.4"
+    },
+    {
+      "safeguard_id": "SG-CONTROLASSESSMENT-001",
+      "framework_id": "soc2",
+      "control_id": "SOC2-CC4.1",
+      "inspected_basis_sha256": "1422664323b5d45a144b8e35670c49d43f78c25cb4f5191c4c39efc2720c38a7",
+      "framework_ref": "SOC 2 CC4.1"
+    },
+    {
+      "safeguard_id": "SG-DETECTION-001",
+      "framework_id": "soc2",
+      "control_id": "SOC2-CC4.1",
+      "inspected_basis_sha256": "c8ef40d70b5d72231d58aa9058e6de2987e76e28acf91da54b1c8913223fb610",
+      "framework_ref": "SOC 2 CC4.1"
+    },
+    {
+      "safeguard_id": "SG-IDENTITY-001",
+      "framework_id": "soc2",
+      "control_id": "SOC2-CC6.3",
+      "inspected_basis_sha256": "4d5356a796db46b6445c290d79b506ab37b4a31a10296a41f71f76b78c327f07",
+      "framework_ref": "SOC 2 CC6.3"
+    },
+    {
+      "safeguard_id": "SG-DETECTION-001",
+      "framework_id": "soc2",
+      "control_id": "SOC2-CC6.6",
+      "inspected_basis_sha256": "857028176dfa20afe3f29c2fef856b9eafc350d82ab9b8cd84d46fafd9f6a7d7",
+      "framework_ref": "SOC 2 CC6.6"
+    },
+    {
+      "safeguard_id": "SG-VULNERABILITYMANAGEMENT-001",
+      "framework_id": "soc2",
+      "control_id": "SOC2-CC6.8",
+      "inspected_basis_sha256": "b9346fa976132cc93b45b8cd1cc3bfceb9cfe57ac3c0937049c0e22727782901",
+      "framework_ref": "SOC 2 CC6.8"
+    },
+    {
+      "safeguard_id": "SG-DETECTION-001",
+      "framework_id": "soc2",
+      "control_id": "SOC2-CC7.3",
+      "inspected_basis_sha256": "c03545dfe44a39f36a614f898630604309307db92f5a493ade6372718b657df4",
+      "framework_ref": "SOC 2 CC7.3"
+    },
+    {
+      "safeguard_id": "SG-INCIDENTHANDLING-001",
+      "framework_id": "soc2",
+      "control_id": "SOC2-CC7.4",
+      "inspected_basis_sha256": "dd989c5880ccb13bf062c9cef4d91abdeb529f8125ea5d2d36fc70aa7b630e4e",
+      "framework_ref": "SOC 2 CC7.4"
+    },
+    {
+      "safeguard_id": "SG-INCIDENTRESPONSE-001",
+      "framework_id": "soc2",
+      "control_id": "SOC2-CC7.4",
+      "inspected_basis_sha256": "b7a3ea4fa1e580f6ad762adcfdd0b1c06d7e8288b5bbdb1e3c02185c19d73200",
+      "framework_ref": "SOC 2 CC7.4"
+    },
+    {
+      "safeguard_id": "SG-AVAILABILITY-001",
+      "framework_id": "soc2",
+      "control_id": "SOC2-CC7.5",
+      "inspected_basis_sha256": "e9e659db6a9db133d96e3ea2897d50193fcde90c06d25d5035974ce3f047afbc",
+      "framework_ref": "SOC 2 CC7.5"
+    },
+    {
+      "safeguard_id": "SG-PRIVACYNOTICE-001",
+      "framework_id": "soc2",
+      "control_id": "SOC2-P1.1",
+      "inspected_basis_sha256": "029ab35921791717066b3732adff0548db06777de3129c8d9d930db40b34b468",
+      "framework_ref": "SOC 2 P1.1"
+    },
+    {
+      "safeguard_id": "SG-PRIVACYRIGHTS-001",
+      "framework_id": "soc2",
+      "control_id": "SOC2-P1.1",
+      "inspected_basis_sha256": "659dedc1fae4db63b4a003d2b98042b65983e730750db34ce116d4fb4290a921",
+      "framework_ref": "SOC 2 P1.1"
+    },
+    {
+      "safeguard_id": "SG-PRIVACYNOTICE-001",
+      "framework_id": "soc2",
+      "control_id": "SOC2-P2.1",
+      "inspected_basis_sha256": "7952681cbb489586e197b3b63ae149e5bede848db2403822bb60f10b21515f38",
+      "framework_ref": "SOC 2 P2.1"
+    },
+    {
+      "safeguard_id": "SG-PRIVACYRIGHTS-001",
+      "framework_id": "soc2",
+      "control_id": "SOC2-P2.1",
+      "inspected_basis_sha256": "10c841f9a42a136cbd025e78dc56825ac0668bfe774956f35c2d13d13bdea0c6",
+      "framework_ref": "SOC 2 P2.1"
+    },
+    {
+      "safeguard_id": "SG-PROCESSINGRECORDS-001",
+      "framework_id": "soc2",
+      "control_id": "SOC2-P3.1",
+      "inspected_basis_sha256": "9079bdcdf734370eb732d50dc4ac8eb4672b313dc567a497f6e476fc4032c366",
+      "framework_ref": "SOC 2 P3.1"
+    },
+    {
+      "safeguard_id": "SG-PROCESSINGRECORDS-001",
+      "framework_id": "soc2",
+      "control_id": "SOC2-P4.1",
+      "inspected_basis_sha256": "db40ad017d1987c08f4fa0604dceb52846c48f96548fbb22cf065cd05325a37d",
+      "framework_ref": "SOC 2 P4.1"
+    },
+    {
+      "safeguard_id": "SG-DATARETENTION-001",
+      "framework_id": "soc2",
+      "control_id": "SOC2-P4.2",
+      "inspected_basis_sha256": "89c01af4633f123945b72a018321753156d125bde92a45b6160398f42bff8f71",
+      "framework_ref": "SOC 2 P4.2"
+    },
+    {
+      "safeguard_id": "SG-DATARETENTION-001",
+      "framework_id": "soc2",
+      "control_id": "SOC2-P4.3",
+      "inspected_basis_sha256": "a8bd30078e0a01085a20d37247940c231e51bdfa0519ad02c954b33914c6ee4e",
+      "framework_ref": "SOC 2 P4.3"
+    },
+    {
+      "safeguard_id": "SG-DATASUBJECTRIGHTS-001",
+      "framework_id": "soc2",
+      "control_id": "SOC2-P5.1",
+      "inspected_basis_sha256": "987eac205eb0bfd2eaabc6036dcef24ff715f214a7fd8ae0f24eb61dee674595",
+      "framework_ref": "SOC 2 P5.1"
+    },
+    {
+      "safeguard_id": "SG-PRIVACYRIGHTS-001",
+      "framework_id": "soc2",
+      "control_id": "SOC2-P5.1",
+      "inspected_basis_sha256": "b5000a3c2521639b6917afec901e54207d019859906885f627731078f296390f",
+      "framework_ref": "SOC 2 P5.1"
+    },
+    {
+      "safeguard_id": "SG-DATASUBJECTRIGHTS-001",
+      "framework_id": "soc2",
+      "control_id": "SOC2-P5.2",
+      "inspected_basis_sha256": "3d6666e96f29a4f6c16fc273a3be514c6c4cba7e93af0b0526a1a61995f71fb7",
+      "framework_ref": "SOC 2 P5.2"
+    },
+    {
+      "safeguard_id": "SG-PRIVACYRIGHTS-001",
+      "framework_id": "soc2",
+      "control_id": "SOC2-P5.2",
+      "inspected_basis_sha256": "372336dbb5e63395db78ff5fbaaa3f3d2afa4046cf96420f73fb799172dff8e7",
+      "framework_ref": "SOC 2 P5.2"
+    },
+    {
+      "safeguard_id": "SG-PRIVACYRIGHTS-001",
+      "framework_id": "soc2",
+      "control_id": "SOC2-P6.1",
+      "inspected_basis_sha256": "4371877cb586873bb34420de6cff6d1d218b5a736ed6ebf4a448f4baa61ad3b9",
+      "framework_ref": "SOC 2 P6.1"
+    },
+    {
+      "safeguard_id": "SG-DATASUBJECTRIGHTS-001",
+      "framework_id": "soc2",
+      "control_id": "SOC2-P7.1",
+      "inspected_basis_sha256": "dfca03cf762985a4c9090a4fad6b5868aecfe72bdc8d10e80b4fa2cc844d19e0",
+      "framework_ref": "SOC 2 P7.1"
+    },
+    {
+      "safeguard_id": "SG-PRIVACYRIGHTS-001",
+      "framework_id": "soc2",
+      "control_id": "SOC2-P7.1",
+      "inspected_basis_sha256": "a88bc708b0162420d351a8f37b3e32ee38cba19b13a8c7fbc05c05768db65ae6",
+      "framework_ref": "SOC 2 P7.1"
+    },
+    {
+      "safeguard_id": "SG-DETECTION-001",
+      "framework_id": "soc2",
+      "control_id": "SOC2-P8.1",
+      "inspected_basis_sha256": "771dcba94141a4671f6a2e633527bbd020cf7ae6f5589b5f5d2efd47efa2f40e",
+      "framework_ref": "SOC 2 P8.1"
+    },
+    {
+      "safeguard_id": "SG-PROCESSINGINTEGRITY-001",
+      "framework_id": "soc2",
+      "control_id": "SOC2-PI1.1",
+      "inspected_basis_sha256": "53e15e2528bf25cfdc37ad263ff8dbd07595d056b26355b1f8cb146b3a36aed7",
+      "framework_ref": "SOC 2 PI1.1"
+    },
+    {
+      "safeguard_id": "SG-INPUTVALIDATION-001",
+      "framework_id": "soc2",
+      "control_id": "SOC2-PI1.2",
+      "inspected_basis_sha256": "1f424c76c281788f2e601a7bad1ed037faaf798492a0247b4216455b25ef1894",
+      "framework_ref": "SOC 2 PI1.2"
+    },
+    {
+      "safeguard_id": "SG-PROCESSINGINTEGRITY-001",
+      "framework_id": "soc2",
+      "control_id": "SOC2-PI1.2",
+      "inspected_basis_sha256": "7bde9ecb2ca0420a1d80fa12c938d79b60d528f19a3caeb9915d5e2faf968f5c",
+      "framework_ref": "SOC 2 PI1.2"
+    },
+    {
+      "safeguard_id": "SG-PROCESSINGINTEGRITY-001",
+      "framework_id": "soc2",
+      "control_id": "SOC2-PI1.3",
+      "inspected_basis_sha256": "5ce08331ee37223531cc7aa2d324dd7ba8afd10eaa9526ba60d68886f1ed6b53",
+      "framework_ref": "SOC 2 PI1.3"
+    },
+    {
+      "safeguard_id": "SG-PROCESSINGINTEGRITY-001",
+      "framework_id": "soc2",
+      "control_id": "SOC2-PI1.4",
+      "inspected_basis_sha256": "62ced2fb9223be813a0d7d002b2abd3a6f4047889dca3d001053cd9c5ef0fd81",
+      "framework_ref": "SOC 2 PI1.4"
+    },
+    {
+      "safeguard_id": "SG-INTEGRITYVERIFICATION-001",
+      "framework_id": "soc2",
+      "control_id": "SOC2-PI1.5",
+      "inspected_basis_sha256": "025085937fc38eea7b0a77f608e6b230bbd235edefb28eb256beb9220c2645cf",
+      "framework_ref": "SOC 2 PI1.5"
+    },
+    {
+      "safeguard_id": "SG-PROCESSINGINTEGRITY-001",
+      "framework_id": "soc2",
+      "control_id": "SOC2-PI1.5",
+      "inspected_basis_sha256": "6537e6e72ebcabfa3abc413991b39f1e8c7192fe2adfe6910d89fae12649bf8d",
+      "framework_ref": "SOC 2 PI1.5"
+    },
+    {
+      "safeguard_id": "SG-POLICYMANAGEMENT-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.5.1",
+      "inspected_basis_sha256": "190c31ddf2d9cd26eff9c597098a7cb4c61e7222c7a03f276b6eaa9496616ed3",
+      "framework_ref": "ISO 27001:2022 A.5.1"
+    },
+    {
+      "safeguard_id": "SG-REVIEW-ISO27001-A-5-11",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.5.11",
+      "inspected_basis_sha256": "8faa7a9533cad2012b6b4c40838037fc3767f1ddb93c449a9a876c76ffe94028",
+      "framework_ref": "ISO 27001:2022 A.5.11"
+    },
+    {
+      "safeguard_id": "SG-ROLESRESPONSIBILITIES-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.5.2",
+      "inspected_basis_sha256": "56b229143790930342a4077ff3564be8b65587558706910ac02fda3747e401f4",
+      "framework_ref": "ISO 27001:2022 A.5.2"
+    },
+    {
+      "safeguard_id": "SG-AIPROVENANCE-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.5.21",
+      "inspected_basis_sha256": "253b4d0b126b6c07ea31c9c7f4163fc9fa2a96630e30b9b8b0e0e400afada50f",
+      "framework_ref": "ISO 27001:2022 A.5.21"
+    },
+    {
+      "safeguard_id": "SG-INCIDENTPLAN-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.5.24",
+      "inspected_basis_sha256": "69d93a6464c5995c2a96a71b6b3493ca6a1561d5a3403ae71c9620811c64b596",
+      "framework_ref": "ISO 27001:2022 A.5.24"
+    },
+    {
+      "safeguard_id": "SG-INCIDENTHANDLING-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.5.25",
+      "inspected_basis_sha256": "4679abbaa1a12b1934a249deee5e41a90b183d15c676b0ba112994b30d7f8c90",
+      "framework_ref": "ISO 27001:2022 A.5.25"
+    },
+    {
+      "safeguard_id": "SG-INCIDENTHANDLING-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.5.26",
+      "inspected_basis_sha256": "e917365ddfb55c2b8b5669b3459271c9c840058258e9b942fefc4682f91e5c23",
+      "framework_ref": "ISO 27001:2022 A.5.26"
+    },
+    {
+      "safeguard_id": "SG-INCIDENTHANDLING-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.5.27",
+      "inspected_basis_sha256": "e5dc33f990384fc8d8d47adbde750a63d50d483403d28d34344b4587d0475055",
+      "framework_ref": "ISO 27001:2022 A.5.27"
+    },
+    {
+      "safeguard_id": "SG-REVIEW-ISO27001-A-5-3",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.5.3",
+      "inspected_basis_sha256": "a211ce5b4a737a91b397581ed4dec172e589f624443e5026200ed5dde1393564",
+      "framework_ref": "ISO 27001:2022 A.5.3"
+    },
+    {
+      "safeguard_id": "SG-AVAILABILITY-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.5.30",
+      "inspected_basis_sha256": "82f6c1696c9bdfba30ea69cbbb83ca7c0d35f5ae70cb7b3e68b11199913b2678",
+      "framework_ref": "ISO 27001:2022 A.5.30"
+    },
+    {
+      "safeguard_id": "SG-COMPLIANCEOBLIGATIONS-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.5.31",
+      "inspected_basis_sha256": "8440dafd7b660fc327fd22421a0d1367d8ed719ee62ffd1a161fa25aa878f7af",
+      "framework_ref": "ISO 27001:2022 A.5.31"
+    },
+    {
+      "safeguard_id": "SG-REVIEW-ISO27001-A-5-32",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.5.32",
+      "inspected_basis_sha256": "46f8f4273c174602eceeb1e832dbdc5ebe0ffdca40c55825994718b4cbb5d15f",
+      "framework_ref": "ISO 27001:2022 A.5.32"
+    },
+    {
+      "safeguard_id": "SG-CONTROLASSESSMENT-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.5.35",
+      "inspected_basis_sha256": "c49a717bbadf8387b688dfc5fc1a76b286cdf11ffdbef7b58cfd88d7e407ed92",
+      "framework_ref": "ISO 27001:2022 A.5.35"
+    },
+    {
+      "safeguard_id": "SG-COMPLIANCEOBLIGATIONS-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.5.36",
+      "inspected_basis_sha256": "3fbb9233fde065ee9e67921b89be1768125d15f1ffd5094be65ce7509f34f60e",
+      "framework_ref": "ISO 27001:2022 A.5.36"
+    },
+    {
+      "safeguard_id": "SG-REVIEW-ISO27001-A-5-37",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.5.37",
+      "inspected_basis_sha256": "729163be4d4455bdd77dceb4db77e5d6b2c414d0cf9dfb434e213863d6dbbd6c",
+      "framework_ref": "ISO 27001:2022 A.5.37"
+    },
+    {
+      "safeguard_id": "SG-INCIDENTNOTIFICATION-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.5.5",
+      "inspected_basis_sha256": "d86080814f4a8bfca971172d8c71257add901ce2624f90eef9ddbb11d185388b",
+      "framework_ref": "ISO 27001:2022 A.5.5"
+    },
+    {
+      "safeguard_id": "SG-REVIEW-ISO27001-A-5-6",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.5.6",
+      "inspected_basis_sha256": "38c4466bf29f32cf0c5a4ea8f478616adcd89af31a3cb1cefe3e179339f824d7",
+      "framework_ref": "ISO 27001:2022 A.5.6"
+    },
+    {
+      "safeguard_id": "SG-REVIEW-ISO27001-A-6-1",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.6.1",
+      "inspected_basis_sha256": "8431950b41bd5124c2a4682a1d67b6a731f50a72112ecb8d647532d814c3b8e6",
+      "framework_ref": "ISO 27001:2022 A.6.1"
+    },
+    {
+      "safeguard_id": "SG-REVIEW-ISO27001-A-6-2",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.6.2",
+      "inspected_basis_sha256": "cedbee799e48f9e0361c00d234ff0c63bc94f5d7f249773142d322c8f62547d6",
+      "framework_ref": "ISO 27001:2022 A.6.2"
+    },
+    {
+      "safeguard_id": "SG-REVIEW-ISO27001-A-6-4",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.6.4",
+      "inspected_basis_sha256": "7819461fed865b33e63e7a82900997ec0a5fd1a31bbfb4d077b2a1d798257ab2",
+      "framework_ref": "ISO 27001:2022 A.6.4"
+    },
+    {
+      "safeguard_id": "SG-REVIEW-ISO27001-A-6-5",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.6.5",
+      "inspected_basis_sha256": "428344deca50165e5386c5af6ecb075ae074ed76d7b3216ae16fcaf2a3168ca9",
+      "framework_ref": "ISO 27001:2022 A.6.5"
+    },
+    {
+      "safeguard_id": "SG-REVIEW-ISO27001-A-6-6",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.6.6",
+      "inspected_basis_sha256": "f046f3d36dd3546e5482f703fa93f76480b6fd9bb1dd6304c5d53c87222382fc",
+      "framework_ref": "ISO 27001:2022 A.6.6"
+    },
+    {
+      "safeguard_id": "SG-INCIDENTHANDLING-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.6.8",
+      "inspected_basis_sha256": "f9655530cc8d349295565f84396a55c671ee9ee333d400c721cd0e4275fe7c60",
+      "framework_ref": "ISO 27001:2022 A.6.8"
+    },
+    {
+      "safeguard_id": "SG-TIMELYMAINTENANCE-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.7.13",
+      "inspected_basis_sha256": "eca0a1e670ac5954281a4f3423a4aed55bc59c15fda7bdc6cdf8ced942ec8053",
+      "framework_ref": "ISO 27001:2022 A.7.13"
+    },
+    {
+      "safeguard_id": "SG-REVIEW-ISO27001-A-8-1",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.8.1",
+      "inspected_basis_sha256": "9ff0504f58174bb4de3b5846520ea3313191463509dffed0192e90a48c14b1d5",
+      "framework_ref": "ISO 27001:2022 A.8.1"
+    },
+    {
+      "safeguard_id": "SG-SECURESDLC-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.8.25",
+      "inspected_basis_sha256": "7a2a296a05bbc68b4e9289db1c564bd43f70c8d4f8659794eb6274bead5ac056",
+      "framework_ref": "ISO 27001:2022 A.8.25"
+    },
+    {
+      "safeguard_id": "SG-SECURESDLC-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.8.26",
+      "inspected_basis_sha256": "b3a5862f96561c35fcb5b74657d8a9bf8d79fdb87be5f99d8d28deedf485a42f",
+      "framework_ref": "ISO 27001:2022 A.8.26"
+    },
+    {
+      "safeguard_id": "SG-ARCHITECTUREREVIEW-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.8.27",
+      "inspected_basis_sha256": "40ef7ff9567080bbbe00ef5c399f1cda17f2202c2e59214bc82c35df7e1dadf3",
+      "framework_ref": "ISO 27001:2022 A.8.27"
+    },
+    {
+      "safeguard_id": "SG-CODESCANNING-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.8.28",
+      "inspected_basis_sha256": "16e786b4a6f95825f8ef7a0307c517f8705b824d4bd9958a28e217f3519d6d9c",
+      "framework_ref": "ISO 27001:2022 A.8.28"
+    },
+    {
+      "safeguard_id": "SG-CODESCANNING-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.8.29",
+      "inspected_basis_sha256": "6eaa0a0d940178059c4a84f1aad022d0b244dd79529dd6a1400784451000d0d0",
+      "framework_ref": "ISO 27001:2022 A.8.29"
+    },
+    {
+      "safeguard_id": "SG-AIRUNTIMEACCESS-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.8.3",
+      "inspected_basis_sha256": "52fa635d90032ce51e8963eea92b33512b80a3b66623dcaeb935867e5eb40d0f",
+      "framework_ref": "ISO 27001:2022 A.8.3"
+    },
+    {
+      "safeguard_id": "SG-SECURESDLC-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.8.30",
+      "inspected_basis_sha256": "0799efd01960a51fc97ed957a166d4e6ade36bb69183be4e09c446cc7926d63d",
+      "framework_ref": "ISO 27001:2022 A.8.30"
+    },
+    {
+      "safeguard_id": "SG-CHANGESEGREGATION-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.8.31",
+      "inspected_basis_sha256": "ce0603f8e141c3898111fe09e1e80267631360c10aab040001d69fa46c8a753c",
+      "framework_ref": "ISO 27001:2022 A.8.31"
+    },
+    {
+      "safeguard_id": "SG-REVIEW-ISO27001-A-8-34",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.8.34",
+      "inspected_basis_sha256": "bb67e93440636afb60474dd9cdcb6930c111f65f6f77e46a8e365e6cefb10d36",
+      "framework_ref": "ISO 27001:2022 A.8.34"
+    },
+    {
+      "safeguard_id": "SG-CHANGESEGREGATION-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.8.4",
+      "inspected_basis_sha256": "d334b12a6dc4448b88eda7dadfa3b38711dd854a77496c673be68161484fc1ec",
+      "framework_ref": "ISO 27001:2022 A.8.4"
+    },
+    {
+      "safeguard_id": "SG-CONFIGBASELINE-001",
+      "framework_id": "iso-27001-2022",
+      "control_id": "ISO27001-A.8.9",
+      "inspected_basis_sha256": "b697a36e01b3808d1d0562133f3cdd6662f4f1a600f615327cf77bc3e75d70e4",
+      "framework_ref": "ISO 27001:2022 A.8.9"
+    }
+  ]
+}

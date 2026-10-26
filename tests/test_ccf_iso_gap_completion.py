@@ -8,6 +8,7 @@ import pytest
 from security_lakehouse.catalog import load_control_catalog
 from security_lakehouse.safeguards import coverage_by_framework, load_safeguards
 from test_soc2_iso_mapping_repairs import GENERATOR, PLAN, ROOT, source_index
+from test_soc2_iso_review_receipt import BATCH_RECEIPT, without_repair_approvals
 
 TARGETS = [
     *[
@@ -22,7 +23,7 @@ TARGETS = [
 
 @pytest.mark.parametrize("cid", TARGETS)
 def test_iso_gaps_have_distinct_unapproved_assessment_contracts(cid):
-    payload = load_safeguards()
+    payload = without_repair_approvals(load_safeguards(), receipts=(BATCH_RECEIPT,))
     entries = [(s, m) for s in payload["safeguards"] for m in s["satisfies"] if m["control_id"] == cid]
     assert len(entries) == 1
     safeguard, member = entries[0]
@@ -38,7 +39,7 @@ def test_iso_gaps_have_distinct_unapproved_assessment_contracts(cid):
 
 
 def test_iso_additions_change_only_proposed_coverage():
-    coverage = coverage_by_framework(load_safeguards())
+    coverage = coverage_by_framework(without_repair_approvals(load_safeguards(), receipts=(BATCH_RECEIPT,)))
     assert (coverage["covered"], coverage["reviewed"]) == (2196, 1163)
 
 

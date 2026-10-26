@@ -43,10 +43,10 @@
         "tests/test_connector_runner.py"
       ],
       "live_record": {
-        "date": "2026-10-24",
-        "source_basis": "f4532d21",
-        "scope": "One public repository with a user OAuth token: 6 governance signals; alert counts reconciled with the GitHub API after fixing Dependabot cursor pagination. Probe is config-only; not a GitHub App installation, private repositories or multi-page lists.",
-        "reference": "docs/qualification/live/2026-10-24.md#github-security"
+        "date": "2026-10-26",
+        "source_basis": "0dbe7c73",
+        "scope": "One public repository with a user OAuth token, before and after safeguard binding: 7 records including a change-approval verdict reconciled with the GitHub branch-protection API; SG-CHANGEAPPROVAL-001 passes. Not a GitHub App installation, private repositories or rulesets.",
+        "reference": "docs/qualification/live/2026-10-26-aws-github-binding.md#github-security"
       },
       "owner": "maintainer"
     },
@@ -82,10 +82,10 @@
         "tests/test_aws_role_policies.py"
       ],
       "live_record": {
-        "date": "2026-10-24",
-        "source_basis": "f4532d21",
-        "scope": "One test account, read-only: IAM posture 12 raw records in assume-role and local-profile modes; with role policies and seven inventory services in one region, 29 records including 2 coverage gaps. Counts reconciled with the AWS CLI; not other regions, accounts or organization-wide posture.",
-        "reference": "docs/qualification/live/2026-10-24.md#aws-posture"
+        "date": "2026-10-26",
+        "source_basis": "0dbe7c73",
+        "scope": "One test account, read-only IAM posture before and after safeguard binding: 12 records; access-key and password-policy verdicts bind to SG-IDENTITY-001 and move 103 framework requirements to fail. Counts reconciled with the IAM credential report; not other services, regions or accounts.",
+        "reference": "docs/qualification/live/2026-10-26-aws-github-binding.md#aws-posture"
       },
       "owner": "maintainer"
     },

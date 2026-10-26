@@ -23,6 +23,7 @@ docs/*
 !docs/reviews/
 docs/reviews/*
 !docs/reviews/2026-10-15-repaired-proposals.json
+!docs/reviews/2026-10-25-soc2-iso27001-pending-queue.json
 examples/
 data/
 tools/*
