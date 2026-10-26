@@ -64,7 +64,11 @@ def test_iam_members_cannot_be_coerced_to_principals(tmp_path, members):
 def test_explicit_empty_collections_remain_valid(tmp_path):
     for method in METHODS:
         (tmp_path / f"{method}.json").write_text("[]")
-    assert collect_gcp_evidence(GCPFixtureClient(tmp_path)) == []
+    rows = collect_gcp_evidence(GCPFixtureClient(tmp_path))
+    # No project policies: each expected constraint's enforcement is unestablished.
+    assert [(row["event_type"], row["status"], row["attributes"]["set_on_project"]) for row in rows] == [
+        ("gcp.cloud.org_policy", "not_evaluated", False)
+    ] * 2
 
 
 @pytest.mark.parametrize("method,key", [("iam_bindings", "bindings"), ("assets", "assets")])

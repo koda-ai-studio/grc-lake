@@ -42,6 +42,12 @@ from security_lakehouse.models import utc_iso
 IDENTITY_CONTROLS = ["SOC2-CC6.1", "ISO27001-A.5.15", "HIPAA-164.308(a)(4)"]
 MFA_CONTROLS = ["SOC2-CC6.1", "HIPAA-164.308(a)(4)"]
 POLICY_CONTROLS = ["SOC2-CC6.1", "ISO27001-A.5.15"]
+# MFA enrollment verdicts bind to the logical access and MFA safeguard, which
+# accepts identity_account and carries MFA_CONTROLS. A bound not_evaluated keeps
+# an unreadable factor list from leaving a pass. Lifecycle states, policy status
+# and observations stay unbound.
+IDENTITY_SAFEGUARD = "SG-IDENTITY-001"
+BINDABLE_STATUSES = {"pass", "open", "not_evaluated"}
 
 # Okta user lifecycle states that mean the account can authenticate. Anything
 # else (STAGED, DEPROVISIONED, SUSPENDED, LOCKED_OUT, ...) is an access signal
@@ -291,7 +297,16 @@ def _mfa_event(
     # An active account with no usable MFA factor is the finding worth raising.
     needs_mfa = can_authenticate and factors is not None and not enrolled
     evidence_ref = f"{org_url}/api/v1/users/{user_id}/factors"
-    return _event(
+    status = (
+        "not_evaluated"
+        if factors is None or applicable is None
+        else "observed"
+        if not applicable
+        else "open"
+        if needs_mfa
+        else "pass"
+    )
+    row = _event(
         org=org,
         org_url=org_url,
         collected_at=collected_at,
@@ -301,15 +316,7 @@ def _mfa_event(
         asset_id=f"okta:user:{user_id}",
         asset_type="identity_account",
         controls=MFA_CONTROLS,
-        status=(
-            "not_evaluated"
-            if factors is None or applicable is None
-            else "observed"
-            if not applicable
-            else "open"
-            if needs_mfa
-            else "pass"
-        ),
+        status=status,
         severity="high" if needs_mfa else "info",
         evidence_ref=evidence_ref,
         attributes={
@@ -323,6 +330,9 @@ def _mfa_event(
             "needs_mfa": needs_mfa,
         },
     )
+    if status in BINDABLE_STATUSES:
+        row["safeguard_ids"] = [IDENTITY_SAFEGUARD]
+    return row
 
 
 def _policy_event(

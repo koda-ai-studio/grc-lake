@@ -65,6 +65,13 @@ EXPECTED_ENFORCED_CONSTRAINTS = {
     "constraints/iam.disableServiceAccountKeyCreation",
     "constraints/compute.requireOsLogin",
 }
+# Expected-constraint verdicts bind to the logical access and MFA safeguard,
+# which accepts account_config and carries POLICY_CONTROLS. The project passes
+# only when every expected constraint is enforced: a bound not_evaluated (unset
+# or conditional) blocks the pass. Privileged-role and public-member bindings
+# are review signals, and observations stay unbound.
+IDENTITY_SAFEGUARD = "SG-IDENTITY-001"
+BINDABLE_STATUSES = {"pass", "open", "not_evaluated"}
 
 
 # Each sub-collection, the API that serves it, and the IAM permission it needs.
@@ -442,8 +449,17 @@ def collect_gcp_evidence(
     for binding in bindings:
         rows.append(_iam_event(project, binding, now, tenant_id))
 
-    for policy in read(client.org_policies, ORG_POLICY_COLLECTION):
-        rows.append(_policy_event(project, policy, now, tenant_id))
+    policies = read(client.org_policies, ORG_POLICY_COLLECTION)
+    policy_rows = [_policy_event(project, policy, now, tenant_id) for policy in policies]
+    rows.extend(policy_rows)
+    if not any(gap.collection == ORG_POLICY_COLLECTION.key for gap in gaps):
+        # The listing returns only policies set on the project; an expected
+        # constraint missing from it is inherited or at its default, which only
+        # an effective-policy read could establish.
+        listed = {row["attributes"]["constraint"] for row in policy_rows}
+        for constraint in sorted(EXPECTED_ENFORCED_CONSTRAINTS - listed):
+            unset = {"name": f"projects/{project}/policies/{constraint}", "constraint": constraint, "enforced": None}
+            rows.append(_policy_event(project, unset, now, tenant_id, set_on_project=False))
 
     for asset in read(client.assets, ASSET_COLLECTION):
         rows.append(_asset_event(project, asset, now, tenant_id))
@@ -618,6 +634,8 @@ def _policy_event(
     policy: dict[str, Any],
     collected_at: datetime,
     tenant_id: str,
+    *,
+    set_on_project: bool = True,
 ) -> dict[str, Any]:
     resource = str(policy.get("constraint") or policy.get("name") or "")
     identifier = resource.split("/policies/")[-1].removeprefix("constraints/")
@@ -627,7 +645,10 @@ def _policy_event(
     expected = constraint in EXPECTED_ENFORCED_CONSTRAINTS
     # An expected-on constraint that is not enforced is the finding to raise.
     needs_enforcement = expected and enforced is False
-    return _event(
+    status = (
+        "observed" if not expected else "not_evaluated" if enforced is None else "open" if needs_enforcement else "pass"
+    )
+    row = _event(
         project=project,
         collected_at=collected_at,
         tenant_id=tenant_id,
@@ -637,15 +658,7 @@ def _policy_event(
         asset_id=f"gcp:project:{project}",
         asset_type="account_config",
         controls=POLICY_CONTROLS,
-        status=(
-            "observed"
-            if not expected
-            else "not_evaluated"
-            if enforced is None
-            else "open"
-            if needs_enforcement
-            else "pass"
-        ),
+        status=status,
         severity="medium" if needs_enforcement else "info",
         evidence_ref=f"//orgpolicy.googleapis.com/projects/{project}/policies/{identifier}",
         attributes={
@@ -653,8 +666,12 @@ def _policy_event(
             "enforced": enforced,
             "expected_enforced": expected,
             "needs_enforcement": needs_enforcement,
+            "set_on_project": set_on_project,
         },
     )
+    if status in BINDABLE_STATUSES:
+        row["safeguard_ids"] = [IDENTITY_SAFEGUARD]
+    return row
 
 
 def _asset_event(

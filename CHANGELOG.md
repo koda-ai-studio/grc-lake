@@ -7,6 +7,8 @@ Python package, Helm chart, and bundled web console.
 
 - Record a live AWS and GitHub pilot before and after flagship safeguard binding: the same read-only collection moved from no framework results to 103 failing requirements from verified IAM findings and one attested pass from a verified branch-protection verdict.
 
+- Okta and Google Workspace MFA enrollment and GCP expected org-policy constraints now reach framework (CCF) results through `SG-IDENTITY-001`. An active user without MFA, or an unenforced `iam.disableServiceAccountKeyCreation` or `compute.requireOsLogin`, fails the safeguard. It passes only when every accepted asset is assessed and passing. Unreadable factors, unknown enrollment, conditional rules and constraints not set on the project (newly recorded as `not_evaluated`) block a pass, and observations stay unbound. Azure, Entra, Jira, Intune, Jamf and CrowdStrike stay unbound: their signals are heuristic or observations, or no safeguard accepts their asset types and control tags.
+
 - Record a second Databricks live run against a populated system audit log: 928 rows recollected without duplicates, with open audit events reconciled to the provider's count of failed requests. The connector stays Preview until multi-chunk, throttling and credential-expiry behavior are exercised.
 
 - Discover installed connector plugins once per process instead of on every catalog load. Safeguard evaluation reloads the connector catalog for each evaluation, and each reload scanned every installed distribution's entry points (about 40 ms); the NIST SP 800-53 assessment tests drop from 114 s to 12 s locally, and evaluation-heavy API and pipeline paths stop paying the scan.
