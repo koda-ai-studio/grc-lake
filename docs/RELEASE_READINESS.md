@@ -39,6 +39,7 @@ remain outside the accepted local interactive profile.
 
 ## 0.3.15 candidate
 
+0.3.15 is published; see the [publication receipt](#verified-0315-publication).
 A security and correctness patch on the verified 0.3.14 release. It introduces no
 database migration.
 
@@ -142,6 +143,36 @@ for security, correctness, supported-workload performance and setup/documentatio
 repairs. Independent human review, required PR checks, exact-main CI and published
 artifact/runtime verification remain release gates; this candidate section is not
 a completion receipt.
+
+## Verified 0.3.15 publication
+
+The [release workflow](https://github.com/koda-ai-studio/grc-lake/actions/runs/40339679764)
+passed on source `26c75d8aed33d92ce6987d824a1fd7d656953857`, after that exact
+main commit [passed CI](https://github.com/koda-ai-studio/grc-lake/actions/runs/40337907024).
+The `v0.3.15` tag resolves to that commit. Wheel and sdist bytes match between
+PyPI and the GitHub release:
+
+| Artifact                           | SHA-256                                                            |
+| ---------------------------------- | ------------------------------------------------------------------ |
+| `grc_lake-0.3.15-py3-none-any.whl` | `66dd576a8189ad63f0d82b267b948d53067ead16e87a4800fff06e86d6a4f002` |
+| `grc_lake-0.3.15.tar.gz`           | `1c74bbfdf0df1c48c44fb0385a39de577fe60c222a14cf6fc39651038879bef3` |
+
+The Python provenance for the wheel and the registry image attestation verify
+against this repository with `gh attestation verify`. The multi-platform image
+index `ghcr.io/koda-ai-studio/grc-lake:0.3.15` (digest
+`sha256:e990ca316739f66e2bee04752aaff41b6528f031e69064cf88500e7f5c81cfc9`)
+publishes `linux/amd64` and `linux/arm64`. The GitHub release carries the wheel,
+sdist, CycloneDX SBOM and Sigstore provenance.
+
+The image's Python environment has certifi 2026.10.23, and its bundle no longer
+contains "emSign ECC Root CA - C3" or "emSign Root CA - C1"; the only remaining
+emSign entry is "emSign Root CA - G1". The image ships no pip.
+
+A fresh installation of `grc-lake[server]==0.3.15` from PyPI loaded the golden
+fixture, printed the framework summary (3 attested, 0 failing), exported OSCAL
+assessment results with exactly the three attested requirements `satisfied`, and
+verified a new assessment snapshot. The hosted demo was redeployed from main,
+which contains the release commit.
 
 ## Verified 0.3.14 publication
 

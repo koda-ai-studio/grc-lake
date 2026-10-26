@@ -1,16 +1,16 @@
 # Current state and coverage
 
-Release verification: **2026-10-26**. Latest published release checked: **v0.3.14**.
-See the [publication receipt](RELEASE_READINESS.md#verified-0314-publication) for artifact and runtime evidence.
+Release verification: **2026-10-26**. Latest published release checked: **v0.3.15**.
+See the [publication receipt](RELEASE_READINESS.md#verified-0315-publication) for artifact and runtime evidence.
 Changes on `main` or in a pull request can be newer than the published package. Check the [releases](https://github.com/koda-ai-studio/grc-lake/releases)
 and [changelog](../CHANGELOG.md) for the version you install.
 
-0.3.14 reports a framework result only for a CCF pass through reviewed mappings,
-in the console, OSCAL export, public trust summary and CLI; binds AWS, GitHub,
-Okta, Google Workspace and GCP verdicts to safeguards; records the maintainer's
-SOC 2 and ISO 27001 batch review; and adds Databricks completeness checks. See the
-[0.3.14 notes](RELEASE_READINESS.md#0314-candidate) and
-[publication receipt](RELEASE_READINESS.md#verified-0314-publication). The [pilot guide](PILOT.md) provides an
+0.3.15 is a security and correctness patch: the image's Python CA bundle drops
+the two distrusted emSign roots, GCP reads inherited organization policies from
+the effective policy, and Azure binds Microsoft Defender for Cloud verdicts to
+safeguards. It builds on 0.3.14, which reports a framework result only for a CCF
+pass through reviewed mappings. See the [0.3.15 notes](RELEASE_READINESS.md#0315-candidate)
+and [publication receipt](RELEASE_READINESS.md#verified-0315-publication). The [pilot guide](PILOT.md) provides an
 optional real-workflow evaluation and repeat-use check without telemetry.
 
 ## What you can use
