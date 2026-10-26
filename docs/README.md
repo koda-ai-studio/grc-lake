@@ -74,7 +74,7 @@ For a real evaluation and contribution feedback, use the [bounded pilot guide](P
 | [ISO 27001 ISMS assessments](ISO27001_ISMS_ASSESSMENTS.md)                 | Management-clause contracts, evidence, and review boundaries      |
 | [Mapping review](MAPPING_REVIEW.md)                                        | Reviewing proposed safeguard mappings                             |
 | [SOC 2 and ISO review batches](reviews/SOC2_ISO_REVIEW.md)                 | Source-guided proposals, operating contracts and review questions |
-| [Recovery and confidentiality review](reviews/RECOVERY_CONFIDENTIALITY.md) | Focused pending SOC 2 candidates and required substantiation      |
+| [Recovery and confidentiality review](reviews/RECOVERY_CONFIDENTIALITY.md) | Focused SOC 2 candidates and required substantiation              |
 | [NIST assessment expansion](NIST53_ASSESSMENTS.md)                         | Source-native assessment contracts and review boundaries          |
 | [Catalog versioning](CATALOG_VERSIONING.md)                                | Catalog versions and audit pinning                                |
 | [AI bill of materials](AIBOM.md)                                           | AI inventory evidence                                             |

@@ -36,6 +36,8 @@ REQUIRED: dict[str, str] = {
     "controls/reviews/2026-10-15-soc2-iso-repairs.json": "the SOC 2 and ISO maintainer decision receipt",
     "controls/reviews/legacy-unattributed.json": "the legacy unattributed mapping review record",
     "docs/reviews/2026-10-15-repaired-proposals.json": "the inspected SOC 2 and ISO review basis",
+    "controls/reviews/2026-10-25-soc2-iso27001-batch.json": "the SOC 2 and ISO 27001 maintainer batch decision receipt",
+    "docs/reviews/2026-10-25-soc2-iso27001-pending-queue.json": "the inspected SOC 2 and ISO 27001 queue",
     "controls/families.json": "the CCF family taxonomy (safeguard validation and family ledger)",
 }
 

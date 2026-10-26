@@ -13,13 +13,14 @@ from security_lakehouse.safeguards import coverage_by_framework, load_safeguards
 ROOT = Path(__file__).resolve().parents[1]
 RECEIPT = "controls/reviews/2026-10-15-soc2-iso-repairs.json"
 PACKET = "docs/reviews/2026-10-15-repaired-proposals.json"
+BATCH_RECEIPT = "controls/reviews/2026-10-25-soc2-iso27001-batch.json"
 
 
-def without_repair_approvals(payload):
+def without_repair_approvals(payload, receipts=(RECEIPT, BATCH_RECEIPT)):
     result = deepcopy(payload)
     for entry in result["safeguards"]:
         for member in entry["satisfies"]:
-            if member.get("maintainer_review_ref") == RECEIPT:
+            if member.get("maintainer_review_ref") in receipts:
                 member["review_status"] = "proposed"
                 for field in ("maintainer_review_ref", "reviewed_by", "reviewed_at"):
                     member.pop(field)
@@ -62,7 +63,7 @@ def test_decision_is_bound_to_the_presented_35_contracts_only():
 def test_review_credit_changes_only_the_approved_requirements_not_mapping_or_evidence():
     payload = load_safeguards()
     old = coverage_by_framework(without_repair_approvals(payload))
-    new = coverage_by_framework(payload)
+    new = coverage_by_framework(without_repair_approvals(payload, receipts=(BATCH_RECEIPT,)))
     assert old["covered"] == new["covered"] == 2196
     assert old["reviewed"] == 1128
     assert new["reviewed"] == 1163

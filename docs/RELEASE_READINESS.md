@@ -73,9 +73,11 @@ or horizontal overflow at the inspected widths; these are layout checks, not a
 browser capacity qualification.
 
 The [focused recovery/confidentiality packet](reviews/RECOVERY_CONFIDENTIALITY.md)
-records the additional evidence needed for SOC2-A1.3 and SOC2-C1.1. Both mappings
-remain proposed. Only an eligible human reviewing the full requirement text can
-approve a mapping; code approval does not substitute for that decision.
+records the additional evidence needed for SOC2-A1.3 and SOC2-C1.1. The
+maintainer's 2026-10-25 [batch decision](MAPPING_REVIEW.md#pending-soc-2-and-iso-review)
+approved both mappings without adopting those recommendations. Only an eligible
+human reviewing the full requirement text can approve a mapping; code approval
+does not substitute for that decision.
 
 Databricks remains Preview. Synthetic regression coverage exercises malformed and
 multi-chunk results, expiry, one bounded authorization retry and rate limiting.
