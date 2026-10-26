@@ -42,6 +42,12 @@ from security_lakehouse.models import utc_iso
 IDENTITY_CONTROLS = ["SOC2-CC6.1", "ISO27001-A.5.15", "HIPAA-164.308(a)(4)"]
 MFA_CONTROLS = ["SOC2-CC6.1", "HIPAA-164.308(a)(4)"]
 GROUP_CONTROLS = ["SOC2-CC6.1", "ISO27001-A.5.15"]
+# 2-step verification verdicts bind to the logical access and MFA safeguard,
+# which accepts identity_account and carries MFA_CONTROLS. A bound not_evaluated
+# keeps an unknown enrollment from leaving a pass. Account lifecycle, group roles
+# and observations stay unbound.
+IDENTITY_SAFEGUARD = "SG-IDENTITY-001"
+BINDABLE_STATUSES = {"pass", "open", "not_evaluated"}
 
 # Directory API base URL for the Admin SDK Directory resource.
 DIRECTORY_API_BASE = "https://admin.googleapis.com/admin/directory/v1"
@@ -393,7 +399,16 @@ def _mfa_event(
     # An active account without 2-step verification is the finding to raise.
     needs_mfa = active and known and complete and not enrolled
     evidence_ref = f"{DIRECTORY_API_BASE}/users/{user_id}"
-    return _event(
+    status = (
+        "observed"
+        if applicable is False
+        else "not_evaluated"
+        if applicable is None or not complete
+        else "open"
+        if needs_mfa
+        else "pass"
+    )
+    row = _event(
         org=org,
         collected_at=collected_at,
         tenant_id=tenant_id,
@@ -402,15 +417,7 @@ def _mfa_event(
         asset_id=f"google_workspace:user:{user_id}",
         asset_type="identity_account",
         controls=MFA_CONTROLS,
-        status=(
-            "observed"
-            if applicable is False
-            else "not_evaluated"
-            if applicable is None or not complete
-            else "open"
-            if needs_mfa
-            else "pass"
-        ),
+        status=status,
         severity="high" if needs_mfa else "info",
         evidence_ref=evidence_ref,
         attributes={
@@ -422,6 +429,9 @@ def _mfa_event(
             "needs_mfa": needs_mfa,
         },
     )
+    if status in BINDABLE_STATUSES:
+        row["safeguard_ids"] = [IDENTITY_SAFEGUARD]
+    return row
 
 
 def _group_event(

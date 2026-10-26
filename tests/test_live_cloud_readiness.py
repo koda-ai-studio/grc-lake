@@ -526,7 +526,7 @@ def test_gcp_long_asset_names_do_not_collapse_into_one_event(tmp_path: Path) -> 
     (fixture / "assets.json").write_text(json.dumps(assets), encoding="utf-8")
     rows = collect_gcp_evidence(GCPFixtureClient(fixture, project_id=PROJECT), collected_at=NOW)
     assert validate_raw_events(rows) == []
-    assert len({row["event_id"] for row in rows}) == 25
+    assert len({row["event_id"] for row in rows if row["event_type"] == "gcp.cloud.asset"}) == 25
 
 
 def test_sync_evidence_count_matches_rows_landed(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

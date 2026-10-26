@@ -692,6 +692,33 @@ The fixture `tests/fixtures/gcp/service_accounts.json` exercises this path
 offline; it does not establish live-provider qualification. Agent-Bom remains
 an independent product and is not installed or invoked by GRC Lake.
 
+## Identity and cloud posture safeguard bindings
+
+These verdicts bind to `SG-IDENTITY-001` (logical access and MFA) in the
+connector, so they reach framework (CCF) results without operator
+`safeguard_bindings`. A `not_evaluated` verdict also binds, so an unreadable
+or unknown result keeps its asset from passing. Observations never bind.
+
+| Event                                      | Asset type         | Bound result                                                                                                                                                                                                                       |
+| ------------------------------------------ | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `okta.identity.mfa_enrollment`             | `identity_account` | Active user with an active factor: `pass`. Without one: `open`. Unreadable factors or unknown lifecycle: `not_evaluated`. Inactive users stay `observed`.                                                                          |
+| `google_workspace.identity.mfa_enrollment` | `identity_account` | Active user enrolled in 2-step verification: `pass`. Not enrolled: `open`. Unknown enrollment or lifecycle: `not_evaluated`. Suspended or archived users stay `observed`.                                                          |
+| `gcp.cloud.org_policy`                     | `account_config`   | `iam.disableServiceAccountKeyCreation` and `compute.requireOsLogin`, set on the project: enforced `pass`, not enforced `open`. A conditional rule, or a constraint not set on the project (inherited or default): `not_evaluated`. |
+
+The safeguard passes only when every asset type it accepts is assessed, so
+these stay `not_evaluated` while other accepted assets are present unassessed:
+inactive identity-provider users, Google Workspace groups, and GCP asset
+inventory (`cloud_resource`). A collection gap is recorded on the GCP project
+asset, which then carries two asset types and reads `not_evaluated`.
+
+Left unbound: lifecycle, group-role, privileged-role, public-member and policy
+status signals (review signals rather than assessed failures); Azure role and
+policy assignments (name-based privilege, no passing state); Entra and
+non-human identity metadata (observations); Jira tickets and projects (no
+safeguard accepts workflow assets); Intune, Jamf and CrowdStrike device events
+(no safeguard accepts `managed_device`, `endpoint_host` or `edr_tenant`, and no
+safeguard's crosswalk holds their control tags).
+
 ## Microsoft Entra identity metadata (preview)
 
 `entra-identity` reads service principals of type `Application` or
