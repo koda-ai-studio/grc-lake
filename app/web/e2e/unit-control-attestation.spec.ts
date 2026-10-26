@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import {
   attestedHeadline,
+  attestedPassCount,
   controlResultPresentation,
   mappingCountsLabel,
 } from "../src/lib/control-attestation";
@@ -65,4 +66,15 @@ test.describe("control result presentation", () => {
     expect(attestedHeadline(8, 0)).toBe("8 control tests passing · 0 attested");
     expect(attestedHeadline(1, 1)).toBe("1 control test passing · 1 attested");
   });
+});
+
+test("attested pass count needs both a passing test and a CCF pass", () => {
+  expect(
+    attestedPassCount([
+      { result: "pass", ccf_status: "pass" },
+      { result: "pass", ccf_status: "not_evaluated" },
+      { result: "fail", ccf_status: "pass" },
+      { result: "pass" },
+    ]),
+  ).toBe(1);
 });

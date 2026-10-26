@@ -5,6 +5,8 @@ Python package, Helm chart, and bundled web console.
 
 ## 0.3.14 - 2026-10-26
 
+- The Overview's assessed-coverage tile now states how many requirements are attested ("3 attested" on the demo), using the same count as the Controls page, and an overflowing graph node inspector fades at its bottom edge so it reads as scrollable. All 42 demo screenshots were retaken; the Evidence capture had still shown 56 records instead of 59.
+
 - `grc-lake assessment status --format summary` adds a framework line with attested, failing and not-assessed CCF requirements, matching the console and trust page. The graph workspace tabs now align with the page content instead of touching the top bar.
 
 - Record a live AWS and GitHub pilot before and after flagship safeguard binding: the same read-only collection moved from no framework results to 103 failing requirements from verified IAM findings and one attested pass from a verified branch-protection verdict.
