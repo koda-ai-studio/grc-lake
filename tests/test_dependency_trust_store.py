@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import certifi
 
 # certifi 2026.10.23 removed these roots after their distrust; outbound HTTPS from
@@ -10,5 +12,5 @@ DISTRUSTED_ROOTS = ("emSign ECC Root CA - C3", "emSign Root CA - C1")
 
 
 def test_certifi_bundle_excludes_distrusted_roots() -> None:
-    bundle = open(certifi.where(), encoding="utf-8").read()
+    bundle = Path(certifi.where()).read_text(encoding="utf-8")
     assert not [label for label in DISTRUSTED_ROOTS if f'# Label: "{label}"' in bundle]
