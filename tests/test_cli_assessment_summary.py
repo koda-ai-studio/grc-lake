@@ -49,7 +49,7 @@ def test_summary_reports_the_golden_assessment_counts(tmp_path, capsys) -> None:
         f"Evidence   {payload['evidence_freshness']['count']} records, {posture['stale_evidence_count']} stale/expired/missing"
         in output
     )
-    assert len(output.splitlines()) == 5
+    assert len(output.splitlines()) == 6
 
 
 @pytest.mark.parametrize("format_args", [[], ["--format", "json"]])
@@ -110,3 +110,18 @@ def test_failed_assessment_does_not_print_a_success_summary(monkeypatch, capsys,
     output = capsys.readouterr()
     assert output.out == ""
     assert output.err == "error: assessment unavailable\n"
+
+
+def test_summary_states_attested_framework_results_next_to_control_tests(tmp_path, capsys) -> None:
+    lake = tmp_path / "lake"
+    assert main(["fixtures", "load", "--company", "golden", "--out", str(lake), "--rebase-times"]) == 0
+    capsys.readouterr()
+    assert main(["assessment", "status", "--lake", str(lake), "--format", "summary"]) == 0
+    output = capsys.readouterr().out
+    ccf = json.loads((lake / "gold" / "ccf_assessment.json").read_text(encoding="utf-8"))
+    counts = {status: sum(r["status"] == status for r in ccf["requirements"]) for status in ("pass", "fail")}
+    not_assessed = len(ccf["requirements"]) - counts["pass"] - counts["fail"]
+    assert (
+        f"Framework  {counts['pass']} attested, {counts['fail']} failing, {not_assessed} not assessed "
+        "(CCF requirements through reviewed mappings)"
+    ) in output

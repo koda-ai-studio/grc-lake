@@ -3,7 +3,9 @@
 All notable GRC Lake changes are summarized here. Versions follow semver for the
 Python package, Helm chart, and bundled web console.
 
-## 0.3.14 - 2026-10-25
+## 0.3.14 - 2026-10-26
+
+- `grc-lake assessment status --format summary` adds a framework line with attested, failing and not-assessed CCF requirements, matching the console and trust page. The graph workspace tabs now align with the page content instead of touching the top bar.
 
 - Record a live AWS and GitHub pilot before and after flagship safeguard binding: the same read-only collection moved from no framework results to 103 failing requirements from verified IAM findings and one attested pass from a verified branch-protection verdict.
 

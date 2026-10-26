@@ -2007,9 +2007,15 @@ def _assessment_status(args: argparse.Namespace) -> int:
         raise ValueError("assessment lake directory does not exist")
     assessment = build_current_posture(args.lake, freshness_days=args.freshness_days)
     if args.format == "summary":
+        from security_lakehouse.ccf_requirement_results import load_requirement_results
+
         posture = assessment["posture"]
+        framework = [row["ccf_status"] for row in load_requirement_results(args.lake).values()]
+        attested, failing = framework.count("pass"), framework.count("fail")
         print(
             f"Posture    {posture['score']} / 100  {posture['state']}\n"
+            f"Framework  {attested} attested, {failing} failing, {len(framework) - attested - failing} not assessed "
+            "(CCF requirements through reviewed mappings)\n"
             f"Controls   {posture['control_count']} total, "
             f"{posture['not_evaluated_control_count']} not evaluated, {posture['stale_control_count']} stale\n"
             f"Tests      {posture['failed_control_test_count']} failing, "

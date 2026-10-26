@@ -330,3 +330,23 @@ test("starting points do not repeat their kind and empty layers are dimmed", asy
     Number(await empty.first().evaluate((el) => getComputedStyle(el).opacity)),
   ).toBeLessThan(1);
 });
+
+test("graph workspace tabs align with the page content instead of touching the top bar", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/console/graph/");
+  const tabs = page.getByRole("group", { name: "Graph workspace" });
+  const heading = page.getByRole("heading", {
+    level: 1,
+    name: "Evidence investigation",
+  });
+  await expect(heading).toBeVisible();
+  const [tabBox, headingBox, mainBox] = [
+    await tabs.getByRole("button").first().boundingBox(),
+    await heading.boundingBox(),
+    await page.locator("main").first().boundingBox(),
+  ];
+  expect(Math.abs(tabBox!.x - headingBox!.x)).toBeLessThanOrEqual(1);
+  expect(tabBox!.y - mainBox!.y).toBeGreaterThanOrEqual(16);
+});

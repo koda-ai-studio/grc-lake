@@ -72,10 +72,37 @@ coverage counts expandable. Desktop/mobile preview checks found no broken images
 or horizontal overflow at the inspected widths; these are layout checks, not a
 browser capacity qualification.
 
+Accuracy and value changes since the candidate was opened:
+
+- A control test is not an attestation anywhere it is reported. OSCAL
+  assessment results mark a finding `satisfied` only for a framework (CCF) pass
+  through reviewed mappings; the public trust summary adds attested counts and
+  reads `ready` only when every requirement is attested; the CLI status summary
+  adds an attested framework line. On the golden demo, OSCAL satisfied findings
+  equal the three attested requirements exactly.
+- Flagship connectors now bind evaluated evidence to safeguards inside the
+  connector: AWS IAM, GitHub change approval, Okta and Google Workspace MFA and
+  GCP organization policies. A live read-only pilot on one AWS account and this
+  repository moved from no framework results to 103 failing requirements and one
+  attested pass, each verified against the provider
+  ([receipt](qualification/live/2026-10-26-aws-github-binding.md)).
+- The maintainer approved 71 SOC 2 and ISO 27001 mappings as one recorded batch
+  decision (SOC 2 59/61, ISO 27001 53/93 reviewed; 1,225 reviewed requirements in
+  total). Title-theme suggestions and two requirements with open recommendations
+  stay proposed.
+- The golden demo reaches three honest attested ISO 27001 passes alongside its
+  failures and unattested control tests.
+- Databricks was re-run against a populated system audit log (928 records,
+  failed requests reconciled 16/16) and stays Preview
+  ([receipt](qualification/live/2026-10-25-databricks.md#databricks-populated-audit)).
+- Connector plugin discovery is cached per process, and CI balances six Python
+  shards by recorded time and splits console e2e in two; a full CI run fell from
+  15–18 to about 9 minutes.
+
 The [focused recovery/confidentiality packet](reviews/RECOVERY_CONFIDENTIALITY.md)
 records the additional evidence needed for SOC2-A1.3 and SOC2-C1.1. The
 maintainer's 2026-10-25 [batch decision](MAPPING_REVIEW.md#pending-soc-2-and-iso-review)
-approved both mappings without adopting those recommendations. Only an eligible
+excluded both, so they stay proposed until those recommendations are met. Only an eligible
 human reviewing the full requirement text can approve a mapping; code approval
 does not substitute for that decision.
 
