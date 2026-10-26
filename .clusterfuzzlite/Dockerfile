@@ -4,7 +4,7 @@
 # It and uv are pinned by digest; Dependabot's docker ecosystem can bump them.
 # The build_fuzzers action replaces $SRC/grc-lake with the commit under test
 # before build.sh runs, so the source copied here only serves local builds.
-FROM ghcr.io/astral-sh/uv:0.13.1@sha256:4a1f3666816dafadd20ceb71eac9a7d56d7ef30279f7d64048519ab901ada336 AS uv
+FROM ghcr.io/astral-sh/uv:0.13.5@sha256:32a7bb39b496babbd997b0a39a4d66c126bdaf5661b302bf6f06abda8deca6ff AS uv
 
 FROM gcr.io/oss-fuzz-base/base-builder-python:v1@sha256:756c7196c97d62a66c448e70bdeecce400e68ae2ee96d4393cb38d58ffca18d2
 COPY --from=uv /uv /usr/local/bin/uv
