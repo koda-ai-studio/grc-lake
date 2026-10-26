@@ -648,7 +648,7 @@ def _gap_event(project: str, gap: CollectionGapError, collected_at: datetime, te
         signal="collection_gap",
         dedupe_key=gap.collection,
         event_type="gcp.collection_gap",
-        asset_id=f"gcp:project:{project}",
+        asset_id=f"gcp:project:{project}:collection:{gap.collection}",
         asset_type="collection_scope",
         controls=[],
         status="open",

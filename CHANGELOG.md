@@ -3,6 +3,10 @@
 All notable GRC Lake changes are summarized here. Versions follow semver for the
 Python package, Helm chart, and bundled web console.
 
+## Unreleased
+
+- AWS and GCP collection-gap rows, and AWS inventory-absence rows, now sit on their own assets (`aws:account:<id>:collection:<collection>`, `aws:account:<id>:inventory`, `gcp:project:<id>:collection:<collection>`) instead of the account or project asset that carries the password-policy or org-policy verdict. A denied read or a missing CloudTrail trail no longer hides a failing verdict as `not_evaluated`. A collection gap from a source still keeps every safeguard that source binds from passing.
+
 ## 0.3.15 - 2026-10-26
 
 - Databricks: document the `databricks-sql-access` entitlement in the reader's minimum permissions (a new service principal without it gets HTTP 403), and record a live multi-chunk run (77,036 records over 3 result chunks, reconciled with the provider). The connector stays Preview.
