@@ -208,16 +208,21 @@ grc-lake connectors sync --lake build/lakehouse --connector-id azure-posture
 
 The GCP runner uses Application Default Credentials (`gcloud auth
 application-default login` for a local proof; workload identity or an attached
-service account in production). It reads three sub-collections:
+service account in production). It reads three sub-collections, plus the
+effective policy of each expected constraint that is not set on the project:
 
 | Sub-collection     | API                                   | Permission                              |
 | ------------------ | ------------------------------------- | --------------------------------------- |
 | project IAM policy | `cloudresourcemanager.googleapis.com` | `resourcemanager.projects.getIamPolicy` |
 | org policies       | `orgpolicy.googleapis.com`            | `orgpolicy.policies.list`               |
+| effective policies | `orgpolicy.googleapis.com`            | `orgpolicy.policy.get`                  |
 | asset inventory    | `cloudasset.googleapis.com`           | `cloudasset.assets.listResource`        |
 
 Grant the identity a read-only role that carries these permissions (for asset
-inventory, Google documents `roles/cloudasset.viewer`). Enable the APIs you want
+inventory, Google documents `roles/cloudasset.viewer`; both org-policy
+permissions are in `roles/orgpolicy.policyViewer`). A denied or unreadable
+effective policy leaves that constraint `not_evaluated` and is reported as a
+coverage gap. Enable the APIs you want
 collected:
 
 ```bash

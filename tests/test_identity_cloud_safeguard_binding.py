@@ -51,7 +51,7 @@ def _fixture(tmp_path: Path, name: str, **files: object) -> Path:
     for filename, payload in files.items():
         path = target / f"{filename}.json"
         if payload is None:
-            path.unlink()
+            path.unlink(missing_ok=True)
         else:
             path.write_text(json.dumps(payload), encoding="utf-8")
     return target
@@ -295,6 +295,115 @@ def test_gcp_collection_gaps_never_produce_a_pass(
     safeguard, results = _identity(lake)
     assert results.get(GCP_PROJECT, {}).get("status") != "pass"
     assert safeguard["status"] == "not_evaluated"
+
+
+def _effective(**enforced: bool | None) -> list[dict[str, Any]]:
+    return [{"constraint": f"constraints/{name}", "enforced": value} for name, value in enforced.items()]
+
+
+INHERITED_ENFORCED = _effective(**{"iam.disableServiceAccountKeyCreation": True, "compute.requireOsLogin": True})
+
+
+def test_gcp_inherited_enforced_constraints_pass_from_the_effective_policy(tmp_path: Path) -> None:
+    fixture = _fixture(
+        tmp_path, "gcp", org_policies=[], effective_org_policies=INHERITED_ENFORCED, assets={"assets": []}
+    )
+    lake = tmp_path / "lake"
+    _sync(lake, "gcp-posture", fixture)
+
+    events = _gcp_policy_events(lake)
+    for constraint in EXPECTED_CONSTRAINTS:
+        row = events[f"constraints/{constraint}"]
+        assert row["status"] == "pass"
+        assert row["safeguard_ids"] == [IDENTITY]
+        assert row["attributes"]["effective"] is True
+        assert row["attributes"]["set_on_project"] is False
+        assert row["evidence"]["evidence_ref"].endswith(f"/policies/{constraint}:getEffectivePolicy")
+    safeguard, results = _identity(lake)
+    assert results[GCP_PROJECT]["status"] == "pass"
+    assert safeguard["status"] == "pass"
+    assert safeguard["assessed_asset_count"] == safeguard["applicable_asset_count"] == 1
+
+
+def test_gcp_inherited_enforcement_still_needs_every_accepted_asset_assessed(tmp_path: Path) -> None:
+    fixture = _fixture(tmp_path, "gcp", org_policies=[], effective_org_policies=INHERITED_ENFORCED)
+    lake = tmp_path / "lake"
+    _sync(lake, "gcp-posture", fixture)
+
+    safeguard, results = _identity(lake)
+    assert results[GCP_PROJECT]["status"] == "pass"
+    assert safeguard["status"] == "not_evaluated"
+
+
+def test_gcp_inherited_unenforced_constraint_fails_the_identity_safeguard(tmp_path: Path) -> None:
+    effective = _effective(**{"iam.disableServiceAccountKeyCreation": True, "compute.requireOsLogin": False})
+    fixture = _fixture(tmp_path, "gcp", org_policies=[], effective_org_policies=effective, assets={"assets": []})
+    lake = tmp_path / "lake"
+    _sync(lake, "gcp-posture", fixture)
+
+    events = _gcp_policy_events(lake)
+    assert events["constraints/compute.requireOsLogin"]["status"] == "open"
+    assert events["constraints/compute.requireOsLogin"]["attributes"]["needs_enforcement"] is True
+    safeguard, results = _identity(lake)
+    assert results[GCP_PROJECT]["status"] == "fail"
+    assert safeguard["status"] == "fail"
+
+
+@pytest.mark.parametrize(
+    "effective",
+    [
+        _effective(**{"iam.disableServiceAccountKeyCreation": True, "compute.requireOsLogin": None}),
+        _effective(**{"iam.disableServiceAccountKeyCreation": True}),
+        None,
+    ],
+    ids=["conditional-effective-rule", "effective-read-failed", "effective-not-readable"],
+)
+def test_gcp_unestablished_effective_policy_is_never_a_pass(
+    tmp_path: Path, effective: list[dict[str, Any]] | None
+) -> None:
+    fixture = _fixture(tmp_path, "gcp", org_policies=[], effective_org_policies=effective, assets={"assets": []})
+    lake = tmp_path / "lake"
+    _sync(lake, "gcp-posture", fixture)
+
+    row = _gcp_policy_events(lake)["constraints/compute.requireOsLogin"]
+    assert row["status"] == "not_evaluated"
+    assert row["safeguard_ids"] == [IDENTITY]
+    gaps = [r for r in _raw(lake) if r["event_type"] == "gcp.collection_gap"]
+    if effective is None or len(effective) == 1:
+        assert row["attributes"]["effective"] is False
+        collections = {gap["attributes"]["collection"] for gap in gaps}
+        assert "effective_org_policies:compute.requireOsLogin" in collections
+    else:
+        assert row["attributes"]["effective"] is True
+        assert not gaps
+    safeguard, results = _identity(lake)
+    assert results.get(GCP_PROJECT, {}).get("status") != "pass"
+    assert safeguard["status"] == "not_evaluated"
+
+
+def test_gcp_constraint_set_on_project_does_not_read_the_effective_policy(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    calls: list[str] = []
+
+    def effective(self: GCPFixtureClient, constraint: str) -> dict[str, Any]:
+        calls.append(constraint)
+        return {"constraint": constraint, "enforced": True}
+
+    monkeypatch.setattr(GCPFixtureClient, "effective_org_policy", effective, raising=False)
+    project_policies = _policies(**{"iam.disableServiceAccountKeyCreation": False})
+    fixture = _fixture(tmp_path, "gcp", org_policies=project_policies, assets={"assets": []})
+    lake = tmp_path / "lake"
+    _sync(lake, "gcp-posture", fixture)
+
+    assert calls == ["constraints/compute.requireOsLogin"]
+    events = _gcp_policy_events(lake)
+    listed = events["constraints/iam.disableServiceAccountKeyCreation"]
+    assert listed["status"] == "open"
+    assert listed["attributes"]["set_on_project"] is True
+    assert listed["attributes"]["effective"] is False
+    safeguard, _results = _identity(lake)
+    assert safeguard["status"] == "fail"
 
 
 @pytest.mark.parametrize(
