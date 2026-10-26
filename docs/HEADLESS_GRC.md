@@ -87,7 +87,8 @@ Console actions hit the **same API** as headless callers and appear in request a
 
 ## MCP local trust boundary
 
-`grc-lake-mcp` can run in two modes:
+`grc-lake-mcp` (also `grc-lake mcp`, which MCP Registry clients launch with
+`uvx --from "grc-lake[mcp]" grc-lake mcp`) can run in two modes:
 
 | Mode              | Env                                        | RBAC                                                               | Typical use                                         |
 | ----------------- | ------------------------------------------ | ------------------------------------------------------------------ | --------------------------------------------------- |

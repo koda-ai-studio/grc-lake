@@ -27,6 +27,8 @@ def test_release_version_is_consistent_across_package_chart_and_console() -> Non
     assert re.search(rf'^appVersion: "{re.escape(RELEASE_VERSION)}"$', chart, re.MULTILINE)
     assert f'version: "{RELEASE_VERSION}"' in brand
     assert f"## {RELEASE_VERSION} - {RELEASE_DATE}" in changelog
+    server = json.loads((ROOT / "server.json").read_text(encoding="utf-8"))
+    assert server["version"] == server["packages"][0]["version"] == RELEASE_VERSION
     compose = (ROOT / "compose.yaml").read_text(encoding="utf-8")
     assert compose.count(f"ghcr.io/koda-ai-studio/grc-lake:${{GRC_LAKE_VERSION:-{RELEASE_VERSION}}}") == 2
     for doc in (
