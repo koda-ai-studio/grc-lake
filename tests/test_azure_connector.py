@@ -297,6 +297,9 @@ class _StubAzureClient:
     def resources(self) -> list[dict[str, Any]]:
         return []
 
+    def security_assessments(self) -> list[dict[str, Any]]:
+        return []
+
 
 def _assignment_id_only(sub: str, role_definition_id: str, *, scope: str) -> dict[str, Any]:
     return {

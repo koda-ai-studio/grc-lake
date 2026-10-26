@@ -713,11 +713,61 @@ asset, which then carries two asset types and reads `not_evaluated`.
 
 Left unbound: lifecycle, group-role, privileged-role, public-member and policy
 status signals (review signals rather than assessed failures); Azure role and
-policy assignments (name-based privilege, no passing state); Entra and
+policy assignments (name-based privilege, no passing state; Azure verdicts come
+from [Defender for Cloud assessments](#azure-defender-for-cloud-assessments)); Entra and
 non-human identity metadata (observations); Jira tickets and projects (no
 safeguard accepts workflow assets); Intune, Jamf and CrowdStrike device events
 (no safeguard accepts `managed_device`, `endpoint_host` or `edr_tenant`, and no
 safeguard's crosswalk holds their control tags).
+
+## Azure Defender for Cloud assessments
+
+`azure-posture` reads the subscription's Microsoft Defender for Cloud
+assessments: `GET
+https://management.azure.com/subscriptions/{id}/providers/Microsoft.Security/assessments?api-version=2021-06-01`
+([Assessments - List](https://learn.microsoft.com/rest/api/defenderforcloud-composite/assessments/list)),
+with the SDK credential's ARM token, or `az security assessment list` on the
+CLI fallback. Requests go only to `management.azure.com` over HTTPS; a `nextLink`
+on any other host, a malformed page or an exhausted page budget (200 pages)
+records a `security_assessments` coverage gap instead of a partial list. 429 and
+transient 5xx responses retry and honor `Retry-After`.
+
+The read needs `Microsoft.Security/assessments/read`, which the built-in Reader
+role the connector already uses includes (`*/read`); Security Reader also works
+([Defender for Cloud permissions](https://learn.microsoft.com/azure/defender-for-cloud/permissions)).
+A denied or failed read is a coverage gap on its own `collection_scope` asset:
+role, policy and resource evidence still lands and the run is marked partial.
+
+Each assessment becomes one `azure.security.assessment` row on the assessed
+resource (`cloud_resource`, matched case-insensitively to the inventory listing)
+or, for subscription-scoped assessments, on the subscription (`account_config`).
+`Healthy` is `pass`, `Unhealthy` is `open`, `NotApplicable` is `observed` (it
+never passes), and any other or missing status code is `not_evaluated`.
+
+Only these built-in assessment keys bind, when reported on the listed asset
+type. Keys are verified against Microsoft's published assessment metadata;
+every other assessment keeps its verdict, carries no control tags and binds to
+nothing.
+
+| Assessment key(s)                                                                                                                                              | Defender recommendation                                                                     | Safeguard                        | Asset type       | Control tags                                     |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | -------------------------------- | ---------------- | ------------------------------------------------ |
+| `050ac097-3dda-4d24-ab6d-82568e7a50cf`, `a4899b81-b689-4e0d-aa29-45983ab8b7fc`, `1ff0b4c9-ed56-4de6-be9c-d7ab39645926`, `9b4f4dd4-24fc-42ba-9978-2a1cf575d36d` | Disabled accounts with owner, or read and write, permissions on Azure resources are removed | `SG-IDENTITY-001`                | `account_config` | SOC2-CC6.1, ISO27001-A.5.15, HIPAA-164.308(a)(4) |
+| `20606e75-05c4-48c0-9d97-add6daa2109a`, `f2864482-b329-4310-8c06-3cf74fe880c5`, `0354476c-a12a-4fcc-a79d-f0ab7ffffdbb`, `009678ce-adce-4c94-9cc8-cfc2bd0c6a06` | Guest accounts with owner or write permissions on Azure resources are removed               | `SG-IDENTITY-001`                | `account_config` | SOC2-CC6.1, ISO27001-A.5.15, HIPAA-164.308(a)(4) |
+| `1c5de8e1-f68d-6a17-e0d2-ec259c42768c`                                                                                                                         | Secure transfer to storage accounts is enabled (encryption in transit)                      | `SG-DATAPROTECTION-001`          | `cloud_resource` | SOC2-CC6.7, ISO27001-A.8.24                      |
+| `651967bf-044e-4bde-8376-3e08e0600105`                                                                                                                         | Transparent Data Encryption on SQL databases is enabled (encryption at rest)                | `SG-DATAPROTECTION-001`          | `cloud_resource` | SOC2-CC6.7, ISO27001-A.8.24                      |
+| `88bbc99c-e5af-ddd7-6105-6150b2bfa519`                                                                                                                         | Diagnostic logs in Key Vault are enabled                                                    | `SG-LOGGING-001`                 | `cloud_resource` | SOC2-CC7.2, ISO27001-A.8.15, HIPAA-164.312(b)    |
+| `1195afff-c881-495e-9bc5-1486211ae03f`                                                                                                                         | Machines have vulnerability findings resolved                                               | `SG-VULNERABILITYMANAGEMENT-001` | `cloud_resource` | SOC2-CC7.1, ISO27001-A.8.8                       |
+
+A safeguard still passes only when every asset it accepts is assessed and
+passing. Azure role assignments, policy assignments and unassessed resources
+are accepted but unbound, so in a real subscription these verdicts can fail a
+safeguard but rarely pass one. Not bound: endpoint protection and EDR
+recommendations (`SG-MALWARESCANNING-001` accepts `host`, `audit_log` and
+`service`, not `cloud_resource`, and the virtual machine is already a
+`cloud_resource` asset); Defender plan enablement, security contacts, owner
+counts and network exposure recommendations (no safeguard definition assesses
+that subject closely enough). Microsoft no longer publishes the built-in
+subscription MFA assessments, so no MFA mapping exists.
 
 ## Microsoft Entra identity metadata (preview)
 
