@@ -12,7 +12,7 @@ The three JSON companions contain exact candidate fingerprints, operating contra
 
 ## Review scope and reproduction
 
-This queue contains 68 requirements and 80 candidate relationships in 8 batches: soc2 (2 requirements), iso-27001-2022 (40 requirements), iso-42001-2023 (26 requirements). 35 requirement-specific assessment contracts replaced 41 weak proposed relationships. 15 additional contracts propose mappings for previously unmapped requirements. Reviewed requirements are excluded from this pending queue; separate alternatives do not inherit their approval.
+This queue contains 97 requirements and 119 candidate relationships in 11 batches: soc2 (12 requirements), iso-27001-2022 (50 requirements), iso-42001-2023 (35 requirements). 35 requirement-specific assessment contracts replaced 41 weak proposed relationships. 15 additional contracts propose mappings for previously unmapped requirements. Reviewed requirements are excluded from this pending queue; separate alternatives do not inherit their approval.
 
 Cisco references use explicit SOC 2 IDs and the ISO/IEC 27002:2022 column corresponding to ISO 27001:2022 Annex A. Older ISO columns and broad X markers are excluded. Processing Integrity requirements without a Cisco reference stay explicitly unsourced. Oracle articles provide AI governance examples; they do not supply the complete ISO 42001 requirement text. Proposed coverage is not reviewed coverage or operating assurance; incomplete normative source access must be resolved during review.
 
@@ -91,6 +91,14 @@ The [SOC 2 and ISO 27001 batch decision receipt](../../controls/reviews/2026-10-
 
 ### soc2-review-001
 
+**SOC2-A1.2** — Environmental protections and backup processes support availability objectives
+
+Candidates: `SG-AVAILABILITY-001`.
+
+Reopened mapping review for SOC2-A1.2: Environmental protections and backup processes support availability objectives. Check each candidate's operating contract against the requirement text, including scope and missing obligations. Historical review status is not a decision receipt; record a named human decision against the current fingerprint.
+
+Source locators: CCF 10 (BE16), CCF 12 (BE18), CCF 24 (BE30), CCF 25 (BE31), CCF 48 (BE54), CCF 49 (BE55), CCF 64 (BE70), CCF 67 (BE73), CCF 329 (BE335), CCF 331 (BE337).
+
 **SOC2-A1.3** — Recovery procedures are established, maintained, and tested
 
 Candidates: `SG-AVAILABILITY-001`.
@@ -106,6 +114,80 @@ Candidates: `SG-DATAINVENTORY-001`.
 An inventory identifies data but does not demonstrate its protection. Require the protection decisions and tested enforcement for the same inventory scope.
 
 Source locators: CCF 69 (BF75), CCF 73 (BF79), CCF 83 (BF89), CCF 85 (BF91), CCF 87 (BF93), CCF 88 (BF94), CCF 100 (BF106), CCF 200 (BF206), CCF 329 (BF335), CCF 331 (BF337), CCF 339 (BF345).
+
+**SOC2-CC3.2** — Risk to objectives is identified and analyzed
+
+Candidates: `SG-RISKMANAGEMENT-001`.
+
+Reopened mapping review for SOC2-CC3.2: Risk to objectives is identified and analyzed. Check each candidate's operating contract against the requirement text, including scope and missing obligations. Historical review status is not a decision receipt; record a named human decision against the current fingerprint.
+
+Source locators: CCF 1 (BD7), CCF 10 (BD16), CCF 80 (BD86), CCF 81 (BD87), CCF 122 (BD128), CCF 124 (BD130), CCF 127 (BD133), CCF 161 (BD167), CCF 317 (BD323), CCF 329 (BD335), CCF 331 (BD337), CCF 334 (BD340), CCF 335 (BD341), CCF 336 (BD342), CCF 349 (BD355), CCF 355 (BD361), CCF 356 (BD362), CCF 360 (BD366).
+
+**SOC2-CC6.1** — Logical access controls are evaluated from identity and authorization evidence
+
+Candidates: `SG-IDENTITY-001`.
+
+Reopened mapping review for SOC2-CC6.1: Logical access controls are evaluated from identity and authorization evidence. Check each candidate's operating contract against the requirement text, including scope and missing obligations. Historical review status is not a decision receipt; record a named human decision against the current fingerprint.
+
+Source locators: CCF 30 (BD36), CCF 32 (BD38), CCF 39 (BD45), CCF 40 (BD46), CCF 47 (BD53), CCF 53 (BD59), CCF 69 (BD75), CCF 70 (BD76), CCF 81 (BD87), CCF 83 (BD89), CCF 96 (BD102), CCF 100 (BD106), CCF 182 (BD188), CCF 183 (BD189), CCF 191 (BD197), CCF 192 (BD198), CCF 194 (BD200), CCF 196 (BD202), CCF 197 (BD203), CCF 198 (BD204), CCF 227 (BD233), CCF 228 (BD234), CCF 252 (BD258), CCF 329 (BD335), CCF 331 (BD337), CCF 349 (BD355), CCF 363 (BD369).
+
+**SOC2-CC6.2** — User registration and authorization are controlled
+
+Candidates: `SG-IDENTITY-002`.
+
+Reopened mapping review for SOC2-CC6.2: User registration and authorization are controlled. Check each candidate's operating contract against the requirement text, including scope and missing obligations. Historical review status is not a decision receipt; record a named human decision against the current fingerprint.
+
+Source locators: CCF 192 (BD198), CCF 194 (BD200), CCF 228 (BD234).
+
+**SOC2-CC6.7** — Data transmission and movement are protected
+
+Candidates: `SG-DATAPROTECTION-001`.
+
+Reopened mapping review for SOC2-CC6.7: Data transmission and movement are protected. Check each candidate's operating contract against the requirement text, including scope and missing obligations. Historical review status is not a decision receipt; record a named human decision against the current fingerprint.
+
+Source locators: CCF 83 (BD89), CCF 87 (BD93), CCF 96 (BD102), CCF 99 (BD105), CCF 100 (BD106), CCF 170 (BD176), CCF 200 (BD206), CCF 243 (BD249), CCF 244 (BD250), CCF 349 (BD355), CCF 350 (BD356).
+
+**SOC2-CC7.1** — Vulnerabilities are identified and remediated
+
+Candidates: `SG-VULNERABILITYMANAGEMENT-001`, `SG-VULNREMEDIATION-001`.
+
+Reopened mapping review for SOC2-CC7.1: Vulnerabilities are identified and remediated. Check each candidate's operating contract against the requirement text, including scope and missing obligations. Historical review status is not a decision receipt; record a named human decision against the current fingerprint.
+
+Source locators: CCF 30 (BD36), CCF 32 (BD38), CCF 35 (BD41), CCF 39 (BD45), CCF 40 (BD46), CCF 317 (BD323), CCF 322 (BD328), CCF 334 (BD340), CCF 349 (BD355), CCF 350 (BD356), CCF 355 (BD361), CCF 356 (BD362), CCF 360 (BD366).
+
+**SOC2-CC7.2** — Security monitoring controls are evaluated from runtime, audit, and detection evidence
+
+Candidates: `SG-DETECTION-001`, `SG-LOGGING-001`.
+
+Reopened mapping review for SOC2-CC7.2: Security monitoring controls are evaluated from runtime, audit, and detection evidence. Check each candidate's operating contract against the requirement text, including scope and missing obligations. Historical review status is not a decision receipt; record a named human decision against the current fingerprint.
+
+Source locators: CCF 35 (BD41), CCF 124 (BD130), CCF 236 (BD242), CCF 317 (BD323), CCF 322 (BD328), CCF 334 (BD340), CCF 349 (BD355), CCF 350 (BD356), CCF 355 (BD361), CCF 356 (BD362), CCF 360 (BD366).
+
+**SOC2-CC8.1** — Changes to infrastructure and software are authorized and tested
+
+Candidates: `SG-CHANGEAPPROVAL-001`, `SG-CHANGEMANAGEMENT-001`.
+
+Reopened mapping review for SOC2-CC8.1: Changes to infrastructure and software are authorized and tested. Check each candidate's operating contract against the requirement text, including scope and missing obligations. Historical review status is not a decision receipt; record a named human decision against the current fingerprint.
+
+Source locators: CCF 10 (BD16), CCF 30 (BD36), CCF 32 (BD38), CCF 39 (BD45), CCF 40 (BD46), CCF 271 (BD277), CCF 280 (BD286), CCF 335 (BD341), CCF 360 (BD366).
+
+### soc2-review-002
+
+**SOC2-CC9.2** — Vendor and partner relationships are monitored over time
+
+Candidates: `SG-THIRDPARTYRISK-001`.
+
+Reopened mapping review for SOC2-CC9.2: Vendor and partner relationships are monitored over time. Check each candidate's operating contract against the requirement text, including scope and missing obligations. Historical review status is not a decision receipt; record a named human decision against the current fingerprint.
+
+Source locators: CCF 329 (BD335), CCF 331 (BD337), CCF 339 (BD345), CCF 355 (BD361), CCF 356 (BD362), CCF 360 (BD366).
+
+**SOC2-P3.2** — Collection methods are communicated and consented where required
+
+Candidates: `SG-INCIDENTRESPONSE-001`.
+
+Reopened mapping review for SOC2-P3.2: Collection methods are communicated and consented where required. Check each candidate's operating contract against the requirement text, including scope and missing obligations. Historical review status is not a decision receipt; record a named human decision against the current fingerprint.
+
+Source locators: CCF 272 (BC278).
 
 ## iso-27001-2022
 
@@ -135,6 +217,14 @@ For information transfer, compare each candidate (Encryption and data protection
 
 Source locators: CCF 34 (BI40), CCF 67 (BI73), CCF 100 (BI106), CCF 329 (BI335), CCF 331 (BI337), CCF 338 (BI344), CCF 339 (BI345).
 
+**ISO27001-A.5.15** — Access control
+
+Candidates: `SG-IDENTITY-001`.
+
+Reopened mapping review for ISO27001-A.5.15: Access control. Check each candidate's operating contract against the requirement text, including scope and missing obligations. Historical review status is not a decision receipt; record a named human decision against the current fingerprint.
+
+Source locators: CCF 39 (BI45), CCF 40 (BI46), CCF 47 (BI53), CCF 53 (BI59), CCF 182 (BI188), CCF 191 (BI197), CCF 192 (BI198), CCF 194 (BI200), CCF 197 (BI203), CCF 198 (BI204), CCF 363 (BI369).
+
 **ISO27001-A.5.16** — Identity management
 
 Candidates: `SG-IDENTITY-001`.
@@ -159,6 +249,14 @@ For access rights, compare each candidate (Access review and recertification) se
 
 Source locators: CCF 32 (BI38), CCF 39 (BI45), CCF 40 (BI46), CCF 53 (BI59), CCF 182 (BI188), CCF 191 (BI197), CCF 192 (BI198), CCF 194 (BI200), CCF 227 (BI233), CCF 228 (BI234), CCF 329 (BI335), CCF 331 (BI337).
 
+**ISO27001-A.5.19** — Information security in supplier relationships
+
+Candidates: `SG-THIRDPARTYRISK-001`.
+
+Reopened mapping review for ISO27001-A.5.19: Information security in supplier relationships. Check each candidate's operating contract against the requirement text, including scope and missing obligations. Historical review status is not a decision receipt; record a named human decision against the current fingerprint.
+
+Source locators: CCF 34 (BI40), CCF 122 (BI128), CCF 124 (BI130), CCF 173 (BI179), CCF 329 (BI335), CCF 331 (BI337), CCF 339 (BI345).
+
 **ISO27001-A.5.20** — Addressing information security within supplier agreements
 
 Candidates: `SG-THIRDPARTYRISK-001`.
@@ -175,6 +273,8 @@ For monitoring, review and change management of supplier services, compare each 
 
 Source locators: CCF 329 (BI335), CCF 331 (BI337), CCF 339 (BI345), CCF 340 (BI346).
 
+### iso-27001-2022-review-002
+
 **ISO27001-A.5.23** — Information security for use of cloud services
 
 Candidates: `SG-THIRDPARTYRISK-001`.
@@ -190,8 +290,6 @@ Candidates: `SG-AVAILABILITY-001`.
 For information security during disruption, compare each candidate (Backup and availability) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.
 
 Source locators: CCF 10 (BI16), CCF 25 (BI31), CCF 122 (BI128), CCF 124 (BI130), CCF 161 (BI167), CCF 335 (BI341), CCF 336 (BI342).
-
-### iso-27001-2022-review-002
 
 **ISO27001-A.5.33** — Protection of records
 
@@ -225,6 +323,14 @@ For threat intelligence, compare each candidate (Monitoring and incident detecti
 
 Source locators: CCF 236 (BI242), CCF 322 (BI328), CCF 357 (BI363).
 
+**ISO27001-A.5.8** — Information security in project management
+
+Candidates: `SG-RISKMANAGEMENT-001`.
+
+Reopened mapping review for ISO27001-A.5.8: Information security in project management. Check each candidate's operating contract against the requirement text, including scope and missing obligations. Historical review status is not a decision receipt; record a named human decision against the current fingerprint.
+
+Source locators: CCF 30 (BI36), CCF 32 (BI38), CCF 39 (BI45), CCF 122 (BI128), CCF 124 (BI130), CCF 161 (BI167), CCF 183 (BI189), CCF 192 (BI198), CCF 236 (BI242), CCF 317 (BI323), CCF 322 (BI328), CCF 334 (BI340), CCF 335 (BI341), CCF 336 (BI342), CCF 355 (BI361), CCF 356 (BI362), CCF 362 (BI368).
+
 **ISO27001-A.5.9** — Inventory of information and other associated assets
 
 Candidates: `SG-DATAINVENTORY-001`.
@@ -249,6 +355,8 @@ For physical security perimeters, compare each candidate (Physical and environme
 
 Source locators: CCF 47 (BI53).
 
+### iso-27001-2022-review-003
+
 **ISO27001-A.7.10** — Storage media
 
 Candidates: `SG-PHYSICAL-001`.
@@ -272,8 +380,6 @@ Candidates: `SG-PHYSICAL-001`.
 For cabling security, compare each candidate (Physical and environmental security) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.
 
 Source locators: CCF 10 (BI16), CCF 48 (BI54), CCF 49 (BI55).
-
-### iso-27001-2022-review-003
 
 **ISO27001-A.7.14** — Secure disposal or re-use of equipment
 
@@ -331,6 +437,8 @@ For equipment siting and protection, compare each candidate (Physical and enviro
 
 Source locators: CCF 48 (BI54), CCF 49 (BI55), CCF 64 (BI70), CCF 67 (BI73).
 
+### iso-27001-2022-review-004
+
 **ISO27001-A.7.9** — Security of assets off-premises
 
 Candidates: `SG-PHYSICAL-001`.
@@ -355,7 +463,13 @@ For data leakage prevention, compare each candidate (Encryption and data protect
 
 Source locators: CCF 69 (BI75), CCF 73 (BI79), CCF 83 (BI89), CCF 85 (BI91), CCF 86 (BI92), CCF 88 (BI94), CCF 99 (BI105), CCF 100 (BI106), CCF 119 (BI125).
 
-### iso-27001-2022-review-004
+**ISO27001-A.8.13** — Information backup
+
+Candidates: `SG-AVAILABILITY-001`.
+
+Reopened mapping review for ISO27001-A.8.13: Information backup. Check each candidate's operating contract against the requirement text, including scope and missing obligations. Historical review status is not a decision receipt; record a named human decision against the current fingerprint.
+
+Source locators: CCF 10 (BI16), CCF 24 (BI30), CCF 25 (BI31).
 
 **ISO27001-A.8.14** — Redundancy of information processing facilities
 
@@ -364,6 +478,22 @@ Candidates: `SG-AVAILABILITY-001`.
 For redundancy of information processing facilities, compare each candidate (Backup and availability) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.
 
 Source locators: CCF 21 (BI27), CCF 24 (BI30), CCF 25 (BI31), CCF 335 (BI341), CCF 336 (BI342).
+
+**ISO27001-A.8.15** — Logging
+
+Candidates: `SG-LOGGING-001`.
+
+Reopened mapping review for ISO27001-A.8.15: Logging. Check each candidate's operating contract against the requirement text, including scope and missing obligations. Historical review status is not a decision receipt; record a named human decision against the current fingerprint.
+
+Source locators: CCF 182 (BI188), CCF 183 (BI189), CCF 322 (BI328), CCF 349 (BI355), CCF 350 (BI356).
+
+**ISO27001-A.8.16** — Monitoring activities
+
+Candidates: `SG-DETECTION-001`.
+
+Reopened mapping review for ISO27001-A.8.16: Monitoring activities. Check each candidate's operating contract against the requirement text, including scope and missing obligations. Historical review status is not a decision receipt; record a named human decision against the current fingerprint.
+
+Source locators: CCF 236 (BI242), CCF 243 (BI249), CCF 322 (BI328), CCF 355 (BI361), CCF 356 (BI362).
 
 **ISO27001-A.8.18** — Use of privileged utility programs
 
@@ -380,6 +510,16 @@ Candidates: `SG-CHANGEMANAGEMENT-001`.
 For installation of software on operational systems, compare each candidate (Change management) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.
 
 Source locators: CCF 32 (BI38), CCF 35 (BI41), CCF 40 (BI46), CCF 374 (BI380).
+
+**ISO27001-A.8.2** — Privileged access rights
+
+Candidates: `SG-IDENTITY-002`.
+
+Reopened mapping review for ISO27001-A.8.2: Privileged access rights. Check each candidate's operating contract against the requirement text, including scope and missing obligations. Historical review status is not a decision receipt; record a named human decision against the current fingerprint.
+
+Source locators: CCF 39 (BI45), CCF 53 (BI59), CCF 182 (BI188), CCF 191 (BI197), CCF 192 (BI198), CCF 194 (BI200), CCF 200 (BI206).
+
+### iso-27001-2022-review-005
 
 **ISO27001-A.8.20** — Networks security
 
@@ -413,6 +553,22 @@ For web filtering, compare each candidate (Network security controls) separately
 
 Source locators: CCF 120 (BI126), CCF 160 (BI166), CCF 170 (BI176), CCF 350 (BI356).
 
+**ISO27001-A.8.24** — Use of cryptography
+
+Candidates: `SG-DATAPROTECTION-001`.
+
+Reopened mapping review for ISO27001-A.8.24: Use of cryptography. Check each candidate's operating contract against the requirement text, including scope and missing obligations. Historical review status is not a decision receipt; record a named human decision against the current fingerprint.
+
+Source locators: CCF 96 (BI102), CCF 100 (BI106), CCF 191 (BI197), CCF 197 (BI203), CCF 198 (BI204), CCF 322 (BI328).
+
+**ISO27001-A.8.32** — Change management
+
+Candidates: `SG-AILIFECYCLECHANGE-001`, `SG-CHANGEAPPROVAL-001`, `SG-CHANGEMANAGEMENT-001`.
+
+Reopened mapping review for ISO27001-A.8.32: Change management. Check each candidate's operating contract against the requirement text, including scope and missing obligations. Historical review status is not a decision receipt; record a named human decision against the current fingerprint.
+
+Source locators: CCF 30 (BI36), CCF 32 (BI38), CCF 33 (BI39), CCF 34 (BI40), CCF 39 (BI45).
+
 **ISO27001-A.8.33** — Test information
 
 Candidates: `SG-SECUREDEV-001`.
@@ -437,9 +593,25 @@ For protection against malware, compare each candidate (Vulnerability management
 
 Source locators: CCF 10 (BI16), CCF 24 (BI30), CCF 25 (BI31), CCF 30 (BI36), CCF 34 (BI40), CCF 173 (BI179), CCF 349 (BI355), CCF 350 (BI356), CCF 355 (BI361), CCF 356 (BI362), CCF 362 (BI368), CCF 374 (BI380).
 
+**ISO27001-A.8.8** — Management of technical vulnerabilities
+
+Candidates: `SG-VULNERABILITYMANAGEMENT-001`, `SG-VULNSCANNING-001`.
+
+Reopened mapping review for ISO27001-A.8.8: Management of technical vulnerabilities. Check each candidate's operating contract against the requirement text, including scope and missing obligations. Historical review status is not a decision receipt; record a named human decision against the current fingerprint.
+
+Source locators: CCF 122 (BI128), CCF 124 (BI130), CCF 161 (BI167), CCF 236 (BI242), CCF 355 (BI361), CCF 356 (BI362), CCF 357 (BI363), CCF 360 (BI366), CCF 362 (BI368).
+
 ## iso-42001-2023
 
 ### iso-42001-2023-review-001
+
+**ISO42001-10.3** — Suppliers
+
+Candidates: `SG-AIPROVENANCE-001`, `SG-THIRDPARTYRISK-001`.
+
+Reopened mapping review for ISO42001-10.3: Suppliers. Check each candidate's operating contract against the requirement text, including scope and missing obligations. Historical review status is not a decision receipt; record a named human decision against the current fingerprint.
+
+Source locators: Oracle implementation context; no published clause crosswalk.
 
 **ISO42001-10.4** — Customers
 
@@ -449,11 +621,35 @@ Requirement-specific proposal: verify the customer-facing allocation of AI respo
 
 Source locators: Oracle implementation context; no published clause crosswalk.
 
+**ISO42001-2.2** — AI policy
+
+Candidates: `SG-AIGOVERNANCE-001`.
+
+Reopened mapping review for ISO42001-2.2: AI policy. Check each candidate's operating contract against the requirement text, including scope and missing obligations. Historical review status is not a decision receipt; record a named human decision against the current fingerprint.
+
+Source locators: Oracle implementation context; no published clause crosswalk.
+
 **ISO42001-2.3** — Alignment with other organizational policies
 
 Candidates: `SG-REVIEW-ISO42001-2-3`.
 
 Requirement-specific proposal: verify the AI policy cross-reference to security, privacy, risk, quality and other applicable organizational policies, identified conflicts, accountable resolution and approval, communicated changes, and scheduled or event-triggered checks of continuing alignment. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Oracle describes corporate governance integration, not normative requirements for policy alignment.
+
+Source locators: Oracle implementation context; no published clause crosswalk.
+
+**ISO42001-2.4** — Review of the AI policy
+
+Candidates: `SG-AIGOVERNANCE-001`.
+
+Reopened mapping review for ISO42001-2.4: Review of the AI policy. Check each candidate's operating contract against the requirement text, including scope and missing obligations. Historical review status is not a decision receipt; record a named human decision against the current fingerprint.
+
+Source locators: Oracle implementation context; no published clause crosswalk.
+
+**ISO42001-3.2** — AI roles and responsibilities
+
+Candidates: `SG-AIGOVERNANCE-001`.
+
+Reopened mapping review for ISO42001-3.2: AI roles and responsibilities. Check each candidate's operating contract against the requirement text, including scope and missing obligations. Historical review status is not a decision receipt; record a named human decision against the current fingerprint.
 
 Source locators: Oracle implementation context; no published clause crosswalk.
 
@@ -489,11 +685,29 @@ For tooling resources, compare each candidate (Third-party model and dataset pro
 
 Source locators: Oracle implementation context; no published clause crosswalk.
 
+### iso-42001-2023-review-002
+
 **ISO42001-4.5** — System and computing resources
 
 Candidates: `SG-AICOMPUTE-001`.
 
 For system and computing resources, compare each candidate (AI compute capacity and environmental footprint) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.
+
+Source locators: Oracle implementation context; no published clause crosswalk.
+
+**ISO42001-5.2** — AI system impact assessment process
+
+Candidates: `SG-AIIMPACT-001`, `SG-RISKMANAGEMENT-001`.
+
+Reopened mapping review for ISO42001-5.2: AI system impact assessment process. Check each candidate's operating contract against the requirement text, including scope and missing obligations. Historical review status is not a decision receipt; record a named human decision against the current fingerprint.
+
+Source locators: Oracle implementation context; no published clause crosswalk.
+
+**ISO42001-5.3** — Documentation of AI system impact assessments
+
+Candidates: `SG-AIIMPACT-001`, `SG-RISKMANAGEMENT-001`.
+
+Reopened mapping review for ISO42001-5.3: Documentation of AI system impact assessments. Check each candidate's operating contract against the requirement text, including scope and missing obligations. Historical review status is not a decision receipt; record a named human decision against the current fingerprint.
 
 Source locators: Oracle implementation context; no published clause crosswalk.
 
@@ -520,8 +734,6 @@ Candidates: `SG-AIGOVERNANCE-001`.
 For objectives for responsible development of ai system, compare each candidate (AI governance and model inventory) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.
 
 Source locators: Oracle implementation context; no published clause crosswalk.
-
-### iso-42001-2023-review-002
 
 **ISO42001-6.2.2** — AI system requirements and specification
 
@@ -555,11 +767,21 @@ For ai system deployment, compare each candidate (Pre-deployment AI evaluation (
 
 Source locators: Oracle implementation context; no published clause crosswalk.
 
+### iso-42001-2023-review-003
+
 **ISO42001-6.2.6** — AI system operation and monitoring
 
 Candidates: `SG-AIPERFORMANCEMONITORING-001`, `SG-DETECTION-001`.
 
 For ai system operation and monitoring, compare each candidate (Production AI performance and drift monitoring; Monitoring and incident detection) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.
+
+Source locators: Oracle implementation context; no published clause crosswalk.
+
+**ISO42001-6.2.7** — AI system technical documentation
+
+Candidates: `SG-AIGOVERNANCE-001`, `SG-AITRANSPARENCY-001`.
+
+Reopened mapping review for ISO42001-6.2.7: AI system technical documentation. Check each candidate's operating contract against the requirement text, including scope and missing obligations. Historical review status is not a decision receipt; record a named human decision against the current fingerprint.
 
 Source locators: Oracle implementation context; no published clause crosswalk.
 
@@ -603,7 +825,13 @@ For data preparation, compare each candidate (AI training and evaluation data go
 
 Source locators: Oracle implementation context; no published clause crosswalk.
 
-### iso-42001-2023-review-003
+**ISO42001-8.1** — Operational AI controls produce continuous evidence
+
+Candidates: `SG-AIGOVERNANCE-001`.
+
+Reopened mapping review for ISO42001-8.1: Operational AI controls produce continuous evidence. Check each candidate's operating contract against the requirement text, including scope and missing obligations. Historical review status is not a decision receipt; record a named human decision against the current fingerprint.
+
+Source locators: Oracle implementation context; no published clause crosswalk.
 
 **ISO42001-8.3** — External reporting
 
@@ -620,6 +848,8 @@ Candidates: `SG-AIINCIDENT-001`, `SG-INCIDENTNOTIFICATION-001`, `SG-INCIDENTRESP
 For communication of incidents, compare each candidate (AI incident handling and reporting; Incident and breach notification within deadlines; Privacy breach notification) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.
 
 Source locators: Oracle implementation context; no published clause crosswalk.
+
+### iso-42001-2023-review-004
 
 **ISO42001-8.5** — Information for interested parties
 
@@ -642,6 +872,14 @@ Source locators: Oracle implementation context; no published clause crosswalk.
 Candidates: `SG-AIGOVERNANCE-001`.
 
 For objectives for responsible use of ai system, compare each candidate (AI governance and model inventory) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.
+
+Source locators: Oracle implementation context; no published clause crosswalk.
+
+**ISO42001-9.4** — Intended use of the AI system
+
+Candidates: `SG-AIGOVERNANCE-001`.
+
+Reopened mapping review for ISO42001-9.4: Intended use of the AI system. Check each candidate's operating contract against the requirement text, including scope and missing obligations. Historical review status is not a decision receipt; record a named human decision against the current fingerprint.
 
 Source locators: Oracle implementation context; no published clause crosswalk.
 

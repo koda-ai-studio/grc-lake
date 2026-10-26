@@ -147,8 +147,12 @@ def test_queue_reports_who_stands_behind_each_reviewed_mapping(tmp_path: Path) -
         "/api/v1/mapping-reviews/queue", tmp_path, status="maintainer_reviewed", q="sg-identity-001", limit="1000"
     )
     provenance = {(row["safeguard_id"], row["control_id"]): row["review_provenance"] for row in body["data"]}
-    assert provenance[("SG-IDENTITY-001", "SOC2-CC6.1")] == "legacy_unattributed"
-    assert set(provenance.values()) == {"legacy_unattributed", "maintainer_receipt"}
+    assert ("SG-IDENTITY-001", "SOC2-CC6.1") not in provenance
+    assert set(provenance.values()) == {"maintainer_receipt"}
+    _status, body = _get("/api/v1/mapping-reviews/queue", tmp_path, q="sg-identity-001", limit="1000")
+    proposed = {(row["safeguard_id"], row["control_id"]): row for row in body["data"]}
+    assert proposed[("SG-IDENTITY-001", "SOC2-CC6.1")]["review_state"] == "proposed"
+    assert proposed[("SG-IDENTITY-001", "SOC2-CC6.1")]["review_provenance"] is None
     _status, body = _get("/api/v1/mapping-reviews/queue", tmp_path, limit="25")
     assert {row["review_provenance"] for row in body["data"]} == {None}
 

@@ -41,11 +41,17 @@ not part of the decision. The same limits apply as for the earlier record: this
 is a mapping approval only, and operating effectiveness and certification need
 separate evidence.
 
-At the current source revision, 1,225/2,282 requirements have reviewed mappings
-(53.7%) and 2,196/2,282 are mapped (96.2%). SOC 2 has 59/61 reviewed requirements
-(96.7%), ISO 27001 has 53/93 (57.0%), and ISO 42001 has 14/40 (35.0%). The
-remaining SOC 2 and ISO queue contains 68 requirements: 2 SOC 2 (A1.3 and C1.1),
-40 ISO 27001, whose only candidates are title-theme suggestions, and 26 ISO 42001. Alternative mappings
+At the current source revision, 886/2,282 requirements have reviewed mappings
+(38.8%) and 2,196/2,282 are mapped (96.2%). SOC 2 has 49/61 reviewed requirements
+(80.3%), ISO 27001 has 43/93 (46.2%), and ISO 42001 has 5/40 (12.5%).
+The 354 historical mappings without decision receipts are now proposed. Their
+[historical inventory](../controls/reviews/legacy-unattributed.json) preserves the
+origin commits without asserting a reviewer or granting review credit. Existing
+receipted approvals and safeguard definitions are unchanged. Passing evidence
+for a safeguard does not make a proposed mapping attestable.
+
+Regenerate the current SOC 2 and ISO queue before review; demotion reopens
+requirements that previously relied on legacy mappings. Alternative mappings
 to already reviewed requirements remain proposed and receive no inherited approval.
 
 Prepare bounded, current-fingerprint packets for independent review with

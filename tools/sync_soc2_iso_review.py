@@ -303,7 +303,13 @@ def review_artifacts(payload: dict, plan: dict, index: dict) -> tuple[dict, str]
                         + repair["source_limit"]
                     )
                     if repair
-                    else questions[cid]
+                    else questions.get(
+                        cid,
+                        f"Reopened mapping review for {cid}: {requirement['control_title']}. "
+                        "Check each candidate's operating contract against the requirement text, "
+                        "including scope and missing obligations. Historical review status is not "
+                        "a decision receipt; record a named human decision against the current fingerprint.",
+                    )
                 )
                 references = index.get(cid, [])
                 candidates = [

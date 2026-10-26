@@ -39,7 +39,7 @@ def test_no_safeguard_names_a_placeholder_reviewer() -> None:
         assert entry.get("reviewed_at") is None, entry["safeguard_id"]
 
 
-def test_legacy_record_lists_exactly_the_unreceipted_reviewed_mappings() -> None:
+def test_legacy_record_preserves_demoted_mappings_and_their_origins() -> None:
     record = _record()
     assert record["schema"] == "grc-lake.legacy-mapping-review.v1"
     assert record["reviewer"] is None
@@ -49,7 +49,8 @@ def test_legacy_record_lists_exactly_the_unreceipted_reviewed_mappings() -> None
     assert len(listed) <= LEGACY_CEILING
     actual = _unreceipted_reviewed(load_safeguards())
     assert actual - listed == set(), "new reviewed mappings need a decision receipt, not a legacy entry"
-    assert listed - actual == set(), "remove rows that now carry a receipt or are no longer reviewed"
+    assert actual == set(), "no shipped reviewed mapping may lack a receipt"
+    assert record["status"] == "demoted_to_proposed"
     origins = {row["commit"] for row in record["origins"]}
     assert all(row["origin_commit"] in origins for row in record["mappings"])
     assert sum(row["mapping_count"] for row in record["origins"]) == len(listed)
@@ -70,36 +71,36 @@ def test_provenance_separates_receipts_from_legacy_and_org_decisions() -> None:
 
 def test_coverage_reports_requirements_resting_only_on_legacy_reviews() -> None:
     cov = coverage_by_framework()
-    assert cov["reviewed"] == 1225
-    # 354 listed rows less 13 whose control version is stale (already proposed)
-    # and 1 supporting relationship that never earns coverage.
-    assert cov["legacy_unattributed_mappings"] == 340
-    assert cov["legacy_only_reviewed"] == 339
+    assert cov["reviewed"] == 886
+    # Historical mappings remain mapped but earn no review credit.
+    assert cov["legacy_unattributed_mappings"] == 0
+    assert cov["legacy_only_reviewed"] == 0
     assert cov["receipt_reviewed"] == cov["reviewed"] - cov["legacy_only_reviewed"] == 886
     soc2 = cov["frameworks"]["soc2"]
-    assert soc2["reviewed"] == 59
-    assert soc2["legacy_only_reviewed"] == 10
-    assert cov["frameworks"]["cis_aws"]["legacy_only_reviewed"] == cov["frameworks"]["cis_aws"]["reviewed"] == 39
+    assert soc2["reviewed"] == 49
+    assert soc2["legacy_only_reviewed"] == 0
+    assert cov["frameworks"]["cis_aws"]["legacy_only_reviewed"] == cov["frameworks"]["cis_aws"]["reviewed"] == 0
     assert cov["frameworks"]["dora-2022-2554"]["legacy_only_reviewed"] == 0
     assert sum(row["legacy_only_reviewed"] for row in cov["frameworks"].values()) == cov["legacy_only_reviewed"]
 
 
-def test_a_receipt_moves_a_requirement_out_of_legacy_only() -> None:
+def test_a_receipt_and_explicit_review_can_credit_a_former_legacy_mapping() -> None:
     payload = load_safeguards()
     before = coverage_by_framework(payload)
     changed = deepcopy(payload)
     entry = next(e for e in changed["safeguards"] if e["safeguard_id"] == "SG-IDENTITY-001")
     member = next(m for m in entry["satisfies"] if m["control_id"] == "CIS-AWS-1.10")
     member["maintainer_review_ref"] = "controls/reviews/example.json"
+    member["review_status"] = "reviewed"
     after = coverage_by_framework(changed)
-    assert after["reviewed"] == before["reviewed"]
-    assert after["legacy_only_reviewed"] == before["legacy_only_reviewed"] - 1
-    assert after["frameworks"]["cis_aws"]["legacy_only_reviewed"] == 38
+    assert after["reviewed"] == before["reviewed"] + 1
+    assert after["legacy_only_reviewed"] == before["legacy_only_reviewed"] == 0
+    assert after["frameworks"]["cis_aws"]["legacy_only_reviewed"] == 0
 
 
 def test_review_items_carry_provenance() -> None:
     items = {(i["safeguard_id"], i["control_id"]): i for i in mapping_review_items()}
-    assert items[("SG-IDENTITY-001", "SOC2-CC6.1")]["review_provenance"] == "legacy_unattributed"
+    assert items[("SG-IDENTITY-001", "SOC2-CC6.1")]["review_provenance"] is None
     receipt = next(i for i in items.values() if i["review_provenance"] == "maintainer_receipt")
     assert receipt["review_state"] == "maintainer_reviewed"
     assert all(i["review_provenance"] is None for i in items.values() if i["review_state"] == "proposed")

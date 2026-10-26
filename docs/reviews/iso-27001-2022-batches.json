@@ -24,7 +24,7 @@
       "batches": [
         {
           "batch_id": "iso-27001-2022-review-001",
-          "basis_sha256": "1dd480b5a5c9a1128ecd4814a087cdd93cc174c85581b33c8cd7e41a021dcda0",
+          "basis_sha256": "92a140af317249429694fe942ac351218af7d53ba2268e3389ec28349777f0f8",
           "requirements": [
             {
               "control_id": "ISO27001-A.5.10",
@@ -246,6 +246,105 @@
                       "repo",
                       "s3_bucket",
                       "service"
+                    ],
+                    "required_evidence_types": null,
+                    "frequency": "continuous",
+                    "owner": "security-platform"
+                  },
+                  "mapping_source": null,
+                  "decision": null,
+                  "reviewer": null,
+                  "rationale": null
+                }
+              ]
+            },
+            {
+              "control_id": "ISO27001-A.5.15",
+              "framework_ref": "ISO 27001:2022 A.5.15",
+              "question": "Reopened mapping review for ISO27001-A.5.15: Access control. Check each candidate's operating contract against the requirement text, including scope and missing obligations. Historical review status is not a decision receipt; record a named human decision against the current fingerprint.",
+              "cisco_candidates": [
+                {
+                  "control": "CCF 39",
+                  "cell": "BI45",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 39"
+                },
+                {
+                  "control": "CCF 40",
+                  "cell": "BI46",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 40"
+                },
+                {
+                  "control": "CCF 47",
+                  "cell": "BI53",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 47"
+                },
+                {
+                  "control": "CCF 53",
+                  "cell": "BI59",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 53"
+                },
+                {
+                  "control": "CCF 182",
+                  "cell": "BI188",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 182"
+                },
+                {
+                  "control": "CCF 191",
+                  "cell": "BI197",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 191"
+                },
+                {
+                  "control": "CCF 192",
+                  "cell": "BI198",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 192"
+                },
+                {
+                  "control": "CCF 194",
+                  "cell": "BI200",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 194"
+                },
+                {
+                  "control": "CCF 197",
+                  "cell": "BI203",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 197"
+                },
+                {
+                  "control": "CCF 198",
+                  "cell": "BI204",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 198"
+                },
+                {
+                  "control": "CCF 363",
+                  "cell": "BI369",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 363"
+                }
+              ],
+              "source_scope": "vendor implementation context, not verified normative equivalence",
+              "oracle_context": [],
+              "candidates": [
+                {
+                  "safeguard_id": "SG-IDENTITY-001",
+                  "role": "equivalent",
+                  "review_state": "proposed",
+                  "review_basis_sha256": "d870dd83c5727d742ed7a253bc24be23cb2ec0a78855c08e26cbf4e522a72c1b",
+                  "operating_contract": {
+                    "objective": "Logical access restrictions and MFA are assessed across SOC 2 CC6, ISO 27001 A.5.15, NIST CSF PR.AA, FedRAMP AC-2, CIS IAM, and HIPAA access management.",
+                    "evidence_requirement": "Current identity, access review, privileged access, or authorization policy evidence exists and has no open high-risk failure.",
+                    "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+                    "asset_types": [
+                      "account_config",
+                      "audit_log",
+                      "cloud_policy",
+                      "cloud_resource",
+                      "iam_role",
+                      "identity_account",
+                      "identity_group",
+                      "identity_role_assignment",
+                      "identity_user",
+                      "okta_user",
+                      "s3_bucket",
+                      "service",
+                      "user"
                     ],
                     "required_evidence_types": null,
                     "frequency": "continuous",
@@ -502,6 +601,82 @@
               ]
             },
             {
+              "control_id": "ISO27001-A.5.19",
+              "framework_ref": "ISO 27001:2022 A.5.19",
+              "question": "Reopened mapping review for ISO27001-A.5.19: Information security in supplier relationships. Check each candidate's operating contract against the requirement text, including scope and missing obligations. Historical review status is not a decision receipt; record a named human decision against the current fingerprint.",
+              "cisco_candidates": [
+                {
+                  "control": "CCF 34",
+                  "cell": "BI40",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 34"
+                },
+                {
+                  "control": "CCF 122",
+                  "cell": "BI128",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 122"
+                },
+                {
+                  "control": "CCF 124",
+                  "cell": "BI130",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 124"
+                },
+                {
+                  "control": "CCF 173",
+                  "cell": "BI179",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 173"
+                },
+                {
+                  "control": "CCF 329",
+                  "cell": "BI335",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 329"
+                },
+                {
+                  "control": "CCF 331",
+                  "cell": "BI337",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 331"
+                },
+                {
+                  "control": "CCF 339",
+                  "cell": "BI345",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 339"
+                }
+              ],
+              "source_scope": "vendor implementation context, not verified normative equivalence",
+              "oracle_context": [],
+              "candidates": [
+                {
+                  "safeguard_id": "SG-THIRDPARTYRISK-001",
+                  "role": "equivalent",
+                  "review_state": "proposed",
+                  "review_basis_sha256": "118a9fb93c90ac97d1fdc5ae55e0ba230846a4d969254d984affa42ae5fc5a31",
+                  "operating_contract": {
+                    "objective": "Third-party oversight maps to SOC 2 CC9.2, ISO 27001 A.5.19, GDPR Art.28, and NIST CSF GV.SC-05.",
+                    "evidence_requirement": "Current evidence demonstrates vendor and partner relationships are monitored over time with no open high-risk failure or stale proof.",
+                    "evaluation_rule": "fail_when_high_severity_open",
+                    "asset_types": [
+                      "ai_agent",
+                      "ai_model",
+                      "audit_log",
+                      "cloud_policy",
+                      "cloud_resource",
+                      "data_store",
+                      "host",
+                      "identity_user",
+                      "repo",
+                      "service"
+                    ],
+                    "required_evidence_types": null,
+                    "frequency": "continuous",
+                    "owner": "grc"
+                  },
+                  "mapping_source": null,
+                  "decision": null,
+                  "reviewer": null,
+                  "rationale": null
+                }
+              ]
+            },
+            {
               "control_id": "ISO27001-A.5.20",
               "framework_ref": "ISO 27001:2022 A.5.20",
               "question": "For addressing information security within supplier agreements, compare each candidate (Vendor and third-party risk) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.",
@@ -647,7 +822,13 @@
                   "rationale": null
                 }
               ]
-            },
+            }
+          ]
+        },
+        {
+          "batch_id": "iso-27001-2022-review-002",
+          "basis_sha256": "c9b28f7d504dded524222c933017801016d1ed1732eb9c324d7b287ac14a89a5",
+          "requirements": [
             {
               "control_id": "ISO27001-A.5.23",
               "framework_ref": "ISO 27001:2022 A.5.23",
@@ -797,13 +978,7 @@
                   "rationale": null
                 }
               ]
-            }
-          ]
-        },
-        {
-          "batch_id": "iso-27001-2022-review-002",
-          "basis_sha256": "8b5c0ea59404603751c729753f5af4d1137737b71ead0066b6253a4099d3ddc1",
-          "requirements": [
+            },
             {
               "control_id": "ISO27001-A.5.33",
               "framework_ref": "ISO 27001:2022 A.5.33",
@@ -1101,6 +1276,130 @@
               ]
             },
             {
+              "control_id": "ISO27001-A.5.8",
+              "framework_ref": "ISO 27001:2022 A.5.8",
+              "question": "Reopened mapping review for ISO27001-A.5.8: Information security in project management. Check each candidate's operating contract against the requirement text, including scope and missing obligations. Historical review status is not a decision receipt; record a named human decision against the current fingerprint.",
+              "cisco_candidates": [
+                {
+                  "control": "CCF 30",
+                  "cell": "BI36",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 30"
+                },
+                {
+                  "control": "CCF 32",
+                  "cell": "BI38",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 32"
+                },
+                {
+                  "control": "CCF 39",
+                  "cell": "BI45",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 39"
+                },
+                {
+                  "control": "CCF 122",
+                  "cell": "BI128",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 122"
+                },
+                {
+                  "control": "CCF 124",
+                  "cell": "BI130",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 124"
+                },
+                {
+                  "control": "CCF 161",
+                  "cell": "BI167",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 161"
+                },
+                {
+                  "control": "CCF 183",
+                  "cell": "BI189",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 183"
+                },
+                {
+                  "control": "CCF 192",
+                  "cell": "BI198",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 192"
+                },
+                {
+                  "control": "CCF 236",
+                  "cell": "BI242",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 236"
+                },
+                {
+                  "control": "CCF 317",
+                  "cell": "BI323",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 317"
+                },
+                {
+                  "control": "CCF 322",
+                  "cell": "BI328",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 322"
+                },
+                {
+                  "control": "CCF 334",
+                  "cell": "BI340",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 334"
+                },
+                {
+                  "control": "CCF 335",
+                  "cell": "BI341",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 335"
+                },
+                {
+                  "control": "CCF 336",
+                  "cell": "BI342",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 336"
+                },
+                {
+                  "control": "CCF 355",
+                  "cell": "BI361",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 355"
+                },
+                {
+                  "control": "CCF 356",
+                  "cell": "BI362",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 356"
+                },
+                {
+                  "control": "CCF 362",
+                  "cell": "BI368",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 362"
+                }
+              ],
+              "source_scope": "vendor implementation context, not verified normative equivalence",
+              "oracle_context": [],
+              "candidates": [
+                {
+                  "safeguard_id": "SG-RISKMANAGEMENT-001",
+                  "role": "equivalent",
+                  "review_state": "proposed",
+                  "review_basis_sha256": "cba0875294deea1dd12c14b0ce7d161ac3697cd98433a4e351b59c98fcedede6",
+                  "operating_contract": {
+                    "objective": "Formal risk assessment aligns SOC 2 CC3.2, ISO 27001 A.5.8, NIST CSF ID.RA-01, and HIPAA 164.308 risk analysis.",
+                    "evidence_requirement": "Current evidence demonstrates risk to objectives is identified and analyzed with no open high-risk failure or stale proof.",
+                    "evaluation_rule": "fail_when_missing_evidence",
+                    "asset_types": [
+                      "ai_agent",
+                      "ai_model",
+                      "audit_log",
+                      "container_image",
+                      "data_store",
+                      "repo",
+                      "s3_bucket",
+                      "service"
+                    ],
+                    "required_evidence_types": null,
+                    "frequency": "continuous",
+                    "owner": "grc"
+                  },
+                  "mapping_source": null,
+                  "decision": null,
+                  "reviewer": null,
+                  "rationale": null
+                }
+              ]
+            },
+            {
               "control_id": "ISO27001-A.5.9",
               "framework_ref": "ISO 27001:2022 A.5.9",
               "question": "For inventory of information and other associated assets, compare each candidate (Data inventory and records of processing) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.",
@@ -1263,7 +1562,13 @@
                   "rationale": null
                 }
               ]
-            },
+            }
+          ]
+        },
+        {
+          "batch_id": "iso-27001-2022-review-003",
+          "basis_sha256": "0a17235f21e5b88f04d737ed38598b934e8e4d29043cec55937021efc086c302",
+          "requirements": [
             {
               "control_id": "ISO27001-A.7.10",
               "framework_ref": "ISO 27001:2022 A.7.10",
@@ -1454,13 +1759,7 @@
                   "rationale": null
                 }
               ]
-            }
-          ]
-        },
-        {
-          "batch_id": "iso-27001-2022-review-003",
-          "basis_sha256": "3fe96db88d0e83266b1e583b1e5e3cdf0bc9d1b4547a438f88171100575f6c80",
-          "requirements": [
+            },
             {
               "control_id": "ISO27001-A.7.14",
               "framework_ref": "ISO 27001:2022 A.7.14",
@@ -1848,7 +2147,13 @@
                   "rationale": null
                 }
               ]
-            },
+            }
+          ]
+        },
+        {
+          "batch_id": "iso-27001-2022-review-004",
+          "basis_sha256": "5bbb56ed2c69dec1631b42cd8c50c85d17ff8ccd8686f4ae0d80612652f96e92",
+          "requirements": [
             {
               "control_id": "ISO27001-A.7.9",
               "framework_ref": "ISO 27001:2022 A.7.9",
@@ -2061,13 +2366,61 @@
                   "rationale": null
                 }
               ]
-            }
-          ]
-        },
-        {
-          "batch_id": "iso-27001-2022-review-004",
-          "basis_sha256": "6f9f180bb8ba0bc3c0054ec62a448caadf98c53c9ba60029d29a9d19dad6e3f1",
-          "requirements": [
+            },
+            {
+              "control_id": "ISO27001-A.8.13",
+              "framework_ref": "ISO 27001:2022 A.8.13",
+              "question": "Reopened mapping review for ISO27001-A.8.13: Information backup. Check each candidate's operating contract against the requirement text, including scope and missing obligations. Historical review status is not a decision receipt; record a named human decision against the current fingerprint.",
+              "cisco_candidates": [
+                {
+                  "control": "CCF 10",
+                  "cell": "BI16",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 10"
+                },
+                {
+                  "control": "CCF 24",
+                  "cell": "BI30",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 24"
+                },
+                {
+                  "control": "CCF 25",
+                  "cell": "BI31",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 25"
+                }
+              ],
+              "source_scope": "vendor implementation context, not verified normative equivalence",
+              "oracle_context": [],
+              "candidates": [
+                {
+                  "safeguard_id": "SG-AVAILABILITY-001",
+                  "role": "equivalent",
+                  "review_state": "proposed",
+                  "review_basis_sha256": "c1a01b11af7e061b0d6f85763efe776af4e02196e3e76e0134b484690db22e40",
+                  "operating_contract": {
+                    "objective": "Backup and recovery evidence maps to SOC 2 A1.2, ISO 27001 A.8.13, and NIST CSF PR.DS-01.",
+                    "evidence_requirement": "Current evidence demonstrates environmental protections and backup processes support availability objectives with no open high-risk failure or stale proof.",
+                    "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+                    "asset_types": [
+                      "audit_log",
+                      "cloud_policy",
+                      "cloud_resource",
+                      "container_image",
+                      "data_store",
+                      "host",
+                      "repo",
+                      "service"
+                    ],
+                    "required_evidence_types": null,
+                    "frequency": "continuous",
+                    "owner": "platform-engineering"
+                  },
+                  "mapping_source": null,
+                  "decision": null,
+                  "reviewer": null,
+                  "rationale": null
+                }
+              ]
+            },
             {
               "control_id": "ISO27001-A.8.14",
               "framework_ref": "ISO 27001:2022 A.8.14",
@@ -2124,6 +2477,151 @@
                     "required_evidence_types": null,
                     "frequency": "continuous",
                     "owner": "platform-engineering"
+                  },
+                  "mapping_source": null,
+                  "decision": null,
+                  "reviewer": null,
+                  "rationale": null
+                }
+              ]
+            },
+            {
+              "control_id": "ISO27001-A.8.15",
+              "framework_ref": "ISO 27001:2022 A.8.15",
+              "question": "Reopened mapping review for ISO27001-A.8.15: Logging. Check each candidate's operating contract against the requirement text, including scope and missing obligations. Historical review status is not a decision receipt; record a named human decision against the current fingerprint.",
+              "cisco_candidates": [
+                {
+                  "control": "CCF 182",
+                  "cell": "BI188",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 182"
+                },
+                {
+                  "control": "CCF 183",
+                  "cell": "BI189",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 183"
+                },
+                {
+                  "control": "CCF 322",
+                  "cell": "BI328",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 322"
+                },
+                {
+                  "control": "CCF 349",
+                  "cell": "BI355",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 349"
+                },
+                {
+                  "control": "CCF 350",
+                  "cell": "BI356",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 350"
+                }
+              ],
+              "source_scope": "vendor implementation context, not verified normative equivalence",
+              "oracle_context": [],
+              "candidates": [
+                {
+                  "safeguard_id": "SG-LOGGING-001",
+                  "role": "equivalent",
+                  "review_state": "proposed",
+                  "review_basis_sha256": "af6d955cfe5a5e56a2916871374534937b300c520e88f028f6057c3c229faa20",
+                  "operating_contract": {
+                    "objective": "Immutable audit trails map to SOC 2 CC7.2, ISO 27001 A.8.15, PCI DSS Req 10, and FedRAMP AU-2.",
+                    "evidence_requirement": "Current monitoring, runtime policy, audit, or alert evidence exists and unresolved high-risk monitoring failures are tracked.",
+                    "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+                    "asset_types": [
+                      "ai_agent",
+                      "ai_model",
+                      "audit_log",
+                      "cloud_policy",
+                      "cloud_resource",
+                      "container_image",
+                      "data_store",
+                      "host",
+                      "iam_role",
+                      "identity_account",
+                      "identity_group",
+                      "identity_user",
+                      "okta_user",
+                      "repo",
+                      "s3_bucket",
+                      "service"
+                    ],
+                    "required_evidence_types": null,
+                    "frequency": "continuous",
+                    "owner": "detection-engineering"
+                  },
+                  "mapping_source": null,
+                  "decision": null,
+                  "reviewer": null,
+                  "rationale": null
+                }
+              ]
+            },
+            {
+              "control_id": "ISO27001-A.8.16",
+              "framework_ref": "ISO 27001:2022 A.8.16",
+              "question": "Reopened mapping review for ISO27001-A.8.16: Monitoring activities. Check each candidate's operating contract against the requirement text, including scope and missing obligations. Historical review status is not a decision receipt; record a named human decision against the current fingerprint.",
+              "cisco_candidates": [
+                {
+                  "control": "CCF 236",
+                  "cell": "BI242",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 236"
+                },
+                {
+                  "control": "CCF 243",
+                  "cell": "BI249",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 243"
+                },
+                {
+                  "control": "CCF 322",
+                  "cell": "BI328",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 322"
+                },
+                {
+                  "control": "CCF 355",
+                  "cell": "BI361",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 355"
+                },
+                {
+                  "control": "CCF 356",
+                  "cell": "BI362",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 356"
+                }
+              ],
+              "source_scope": "vendor implementation context, not verified normative equivalence",
+              "oracle_context": [],
+              "candidates": [
+                {
+                  "safeguard_id": "SG-DETECTION-001",
+                  "role": "equivalent",
+                  "review_state": "proposed",
+                  "review_basis_sha256": "b13b21abb440d9f738b51ddff259f538719bf6eb58804380682ecbe1366b9689",
+                  "operating_contract": {
+                    "objective": "Security monitoring and anomaly detection align across SOC 2 CC7.2, ISO 27001 A.8.16, PCI DSS Req 10, NIST CSF DE.AE, and FedRAMP AU-6.",
+                    "evidence_requirement": "Current monitoring, runtime policy, audit, or alert evidence exists and unresolved high-risk monitoring failures are tracked.",
+                    "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+                    "asset_types": [
+                      "ai_agent",
+                      "ai_model",
+                      "audit_log",
+                      "cloud_policy",
+                      "cloud_resource",
+                      "container_image",
+                      "data_store",
+                      "host",
+                      "iam_role",
+                      "identity_account",
+                      "identity_group",
+                      "identity_user",
+                      "network",
+                      "okta_user",
+                      "repo",
+                      "s3_bucket",
+                      "service"
+                    ],
+                    "required_evidence_types": null,
+                    "frequency": "continuous",
+                    "owner": "detection-engineering"
                   },
                   "mapping_source": null,
                   "decision": null,
@@ -2259,6 +2757,87 @@
                 }
               ]
             },
+            {
+              "control_id": "ISO27001-A.8.2",
+              "framework_ref": "ISO 27001:2022 A.8.2",
+              "question": "Reopened mapping review for ISO27001-A.8.2: Privileged access rights. Check each candidate's operating contract against the requirement text, including scope and missing obligations. Historical review status is not a decision receipt; record a named human decision against the current fingerprint.",
+              "cisco_candidates": [
+                {
+                  "control": "CCF 39",
+                  "cell": "BI45",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 39"
+                },
+                {
+                  "control": "CCF 53",
+                  "cell": "BI59",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 53"
+                },
+                {
+                  "control": "CCF 182",
+                  "cell": "BI188",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 182"
+                },
+                {
+                  "control": "CCF 191",
+                  "cell": "BI197",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 191"
+                },
+                {
+                  "control": "CCF 192",
+                  "cell": "BI198",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 192"
+                },
+                {
+                  "control": "CCF 194",
+                  "cell": "BI200",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 194"
+                },
+                {
+                  "control": "CCF 200",
+                  "cell": "BI206",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 200"
+                }
+              ],
+              "source_scope": "vendor implementation context, not verified normative equivalence",
+              "oracle_context": [],
+              "candidates": [
+                {
+                  "safeguard_id": "SG-IDENTITY-002",
+                  "role": "equivalent",
+                  "review_state": "proposed",
+                  "review_basis_sha256": "ea326d10e4b3f09738a21f8bb7ff7bd19aac0ed01a8305393579117aa0a327e1",
+                  "operating_contract": {
+                    "objective": "Periodic access reviews map to SOC 2 CC6.2, ISO 27001 A.8.2, and NIST CSF PR.AA-05.",
+                    "evidence_requirement": "Current evidence demonstrates user registration and authorization are controlled with no open high-risk failure or stale proof.",
+                    "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+                    "asset_types": [
+                      "audit_log",
+                      "cloud_policy",
+                      "cloud_resource",
+                      "iam_role",
+                      "identity_account",
+                      "identity_group",
+                      "identity_user",
+                      "okta_user",
+                      "service"
+                    ],
+                    "required_evidence_types": null,
+                    "frequency": "continuous",
+                    "owner": "security-platform"
+                  },
+                  "mapping_source": null,
+                  "decision": null,
+                  "reviewer": null,
+                  "rationale": null
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "batch_id": "iso-27001-2022-review-005",
+          "basis_sha256": "463420b56797297e8b881c1c52fef46989e74800961014c05e620945847275d8",
+          "requirements": [
             {
               "control_id": "ISO27001-A.8.20",
               "framework_ref": "ISO 27001:2022 A.8.20",
@@ -2601,6 +3180,238 @@
               ]
             },
             {
+              "control_id": "ISO27001-A.8.24",
+              "framework_ref": "ISO 27001:2022 A.8.24",
+              "question": "Reopened mapping review for ISO27001-A.8.24: Use of cryptography. Check each candidate's operating contract against the requirement text, including scope and missing obligations. Historical review status is not a decision receipt; record a named human decision against the current fingerprint.",
+              "cisco_candidates": [
+                {
+                  "control": "CCF 96",
+                  "cell": "BI102",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 96"
+                },
+                {
+                  "control": "CCF 100",
+                  "cell": "BI106",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 100"
+                },
+                {
+                  "control": "CCF 191",
+                  "cell": "BI197",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 191"
+                },
+                {
+                  "control": "CCF 197",
+                  "cell": "BI203",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 197"
+                },
+                {
+                  "control": "CCF 198",
+                  "cell": "BI204",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 198"
+                },
+                {
+                  "control": "CCF 322",
+                  "cell": "BI328",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 322"
+                }
+              ],
+              "source_scope": "vendor implementation context, not verified normative equivalence",
+              "oracle_context": [],
+              "candidates": [
+                {
+                  "safeguard_id": "SG-DATAPROTECTION-001",
+                  "role": "equivalent",
+                  "review_state": "proposed",
+                  "review_basis_sha256": "f22578444f5f69d0c30b084196608b6c0430caa9d9679a922f8977d83f2aa6b4",
+                  "operating_contract": {
+                    "objective": "Data encryption in transit and at rest spans SOC 2 CC6.7, ISO 27001 A.8.24, PCI DSS Req 7, HIPAA 164.312(e), and GDPR Art.32.",
+                    "evidence_requirement": "Current evidence demonstrates data transmission and movement are protected with no open high-risk failure or stale proof.",
+                    "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+                    "asset_types": [
+                      "audit_log",
+                      "cloud_policy",
+                      "cloud_resource",
+                      "container_image",
+                      "data_store",
+                      "iam_role",
+                      "identity_account",
+                      "identity_group",
+                      "identity_user",
+                      "network",
+                      "okta_user",
+                      "repo",
+                      "s3_bucket",
+                      "service"
+                    ],
+                    "required_evidence_types": null,
+                    "frequency": "continuous",
+                    "owner": "security-platform"
+                  },
+                  "mapping_source": null,
+                  "decision": null,
+                  "reviewer": null,
+                  "rationale": null
+                }
+              ]
+            },
+            {
+              "control_id": "ISO27001-A.8.32",
+              "framework_ref": "ISO 27001:2022 A.8.32",
+              "question": "Reopened mapping review for ISO27001-A.8.32: Change management. Check each candidate's operating contract against the requirement text, including scope and missing obligations. Historical review status is not a decision receipt; record a named human decision against the current fingerprint.",
+              "cisco_candidates": [
+                {
+                  "control": "CCF 30",
+                  "cell": "BI36",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 30"
+                },
+                {
+                  "control": "CCF 32",
+                  "cell": "BI38",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 32"
+                },
+                {
+                  "control": "CCF 33",
+                  "cell": "BI39",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 33"
+                },
+                {
+                  "control": "CCF 34",
+                  "cell": "BI40",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 34"
+                },
+                {
+                  "control": "CCF 39",
+                  "cell": "BI45",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 39"
+                }
+              ],
+              "source_scope": "vendor implementation context, not verified normative equivalence",
+              "oracle_context": [],
+              "candidates": [
+                {
+                  "safeguard_id": "SG-AILIFECYCLECHANGE-001",
+                  "role": "equivalent",
+                  "review_state": "proposed",
+                  "review_basis_sha256": "7081ffa71a83a0d9d20ca9713d836d8460f8e2b68c7532d1a96a0e921c98875e",
+                  "operating_contract": {
+                    "objective": "Control AI model and system updates, keep the ability to supersede, disengage or roll back a system performing outside its intended use, and retire AI systems without increasing risk.",
+                    "evidence_requirement": "`ticketing` change records and Attested evidence per AI system version: approved updates with the measured improvement, a tested rollback or disengagement path with a named owner, and decommissioning records covering model, data and endpoint retirement. A production AI system without a tested disengagement path is an open violation.",
+                    "evaluation_rule": {
+                      "fail_if": {
+                        "any": [
+                          {
+                            "evidence_present": false
+                          },
+                          {
+                            "evidence_status": {
+                              "in": ["stale", "expired", "missing"]
+                            }
+                          },
+                          {
+                            "open_violations": {
+                              "min": 1
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    "asset_types": [
+                      "ai_agent",
+                      "ai_model",
+                      "cloud_policy",
+                      "cloud_resource",
+                      "data_store",
+                      "service"
+                    ],
+                    "required_evidence_types": null,
+                    "frequency": "continuous",
+                    "owner": "ai-governance"
+                  },
+                  "mapping_source": null,
+                  "decision": null,
+                  "reviewer": null,
+                  "rationale": null
+                },
+                {
+                  "safeguard_id": "SG-CHANGEAPPROVAL-001",
+                  "role": "equivalent",
+                  "review_state": "proposed",
+                  "review_basis_sha256": "a0971367b5db822b2f0523a3904bef1f7ca0b287c6d0f083b507a025270a8799",
+                  "operating_contract": {
+                    "objective": "Review, assess the security impact of, test, and approve every change to production systems before it is deployed, and verify affected controls afterwards.",
+                    "evidence_requirement": "Derived from `github-security` or `gitlab-security` repository and branch-protection settings; impact-analysis, test, and post-change verification records are attested in the change record. A production branch that allows merging without an approving review is an open violation.",
+                    "evaluation_rule": {
+                      "fail_if": {
+                        "any": [
+                          {
+                            "evidence_present": false
+                          },
+                          {
+                            "evidence_status": {
+                              "in": ["stale", "expired", "missing"]
+                            }
+                          },
+                          {
+                            "open_violations": {
+                              "min": 1
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    "asset_types": [
+                      "audit_log",
+                      "cloud_policy",
+                      "cloud_resource",
+                      "container_image",
+                      "host",
+                      "repo",
+                      "service"
+                    ],
+                    "required_evidence_types": null,
+                    "frequency": "continuous",
+                    "owner": "platform-engineering"
+                  },
+                  "mapping_source": null,
+                  "decision": null,
+                  "reviewer": null,
+                  "rationale": null
+                },
+                {
+                  "safeguard_id": "SG-CHANGEMANAGEMENT-001",
+                  "role": "equivalent",
+                  "review_state": "proposed",
+                  "review_basis_sha256": "8d75316d765f99e8bb5eac2139de3e99a5c171e556a324286943c295fac3cc99",
+                  "operating_contract": {
+                    "objective": "Controlled changes to production systems map to SOC 2 CC8.1, ISO 27001 A.8.32, NIST CSF PR.DS-01, and FedRAMP CM-3.",
+                    "evidence_requirement": "Current evidence demonstrates changes to infrastructure and software are authorized and tested with no open high-risk failure or stale proof.",
+                    "evaluation_rule": "fail_when_missing_evidence",
+                    "asset_types": [
+                      "audit_log",
+                      "cloud_policy",
+                      "cloud_resource",
+                      "container_image",
+                      "data_store",
+                      "host",
+                      "iam_role",
+                      "identity_group",
+                      "identity_user",
+                      "okta_user",
+                      "repo",
+                      "service"
+                    ],
+                    "required_evidence_types": null,
+                    "frequency": "continuous",
+                    "owner": "platform-engineering"
+                  },
+                  "mapping_source": null,
+                  "decision": null,
+                  "reviewer": null,
+                  "rationale": null
+                }
+              ]
+            },
+            {
               "control_id": "ISO27001-A.8.33",
               "framework_ref": "ISO 27001:2022 A.8.33",
               "question": "For test information, compare each candidate (Secure development) separately with the applicable requirement. Identify the missing operating steps, scoped evidence and exceptions in each contract; classify partial contributions as supporting rather than equivalent. Record the actual decision and rationale.",
@@ -2818,11 +3629,145 @@
                   "rationale": null
                 }
               ]
+            },
+            {
+              "control_id": "ISO27001-A.8.8",
+              "framework_ref": "ISO 27001:2022 A.8.8",
+              "question": "Reopened mapping review for ISO27001-A.8.8: Management of technical vulnerabilities. Check each candidate's operating contract against the requirement text, including scope and missing obligations. Historical review status is not a decision receipt; record a named human decision against the current fingerprint.",
+              "cisco_candidates": [
+                {
+                  "control": "CCF 122",
+                  "cell": "BI128",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 122"
+                },
+                {
+                  "control": "CCF 124",
+                  "cell": "BI130",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 124"
+                },
+                {
+                  "control": "CCF 161",
+                  "cell": "BI167",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 161"
+                },
+                {
+                  "control": "CCF 236",
+                  "cell": "BI242",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 236"
+                },
+                {
+                  "control": "CCF 355",
+                  "cell": "BI361",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 355"
+                },
+                {
+                  "control": "CCF 356",
+                  "cell": "BI362",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 356"
+                },
+                {
+                  "control": "CCF 357",
+                  "cell": "BI363",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 357"
+                },
+                {
+                  "control": "CCF 360",
+                  "cell": "BI366",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 360"
+                },
+                {
+                  "control": "CCF 362",
+                  "cell": "BI368",
+                  "narrative_lookup": "Control Narrative RFI, column B=CCF 362"
+                }
+              ],
+              "source_scope": "vendor implementation context, not verified normative equivalence",
+              "oracle_context": [],
+              "candidates": [
+                {
+                  "safeguard_id": "SG-VULNERABILITYMANAGEMENT-001",
+                  "role": "equivalent",
+                  "review_state": "proposed",
+                  "review_basis_sha256": "fd2e2a2bf75d4d0f570279836f810878f3de3a37f48b802e4b23875821b0b2bd",
+                  "operating_contract": {
+                    "objective": "Vulnerability identification and remediation spans SOC 2 CC7.1, ISO 27001 A.8.8, PCI DSS Req 11, NIST CSF ID.RA-01, and CIS AWS logging/monitoring.",
+                    "evidence_requirement": "Current evidence demonstrates vulnerabilities are identified and remediated with no open high-risk failure or stale proof.",
+                    "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+                    "asset_types": [
+                      "audit_log",
+                      "cloud_policy",
+                      "cloud_resource",
+                      "container_image",
+                      "host",
+                      "iam_role",
+                      "identity_account",
+                      "identity_group",
+                      "identity_user",
+                      "okta_user",
+                      "repo",
+                      "s3_bucket",
+                      "service"
+                    ],
+                    "required_evidence_types": null,
+                    "frequency": "continuous",
+                    "owner": "detection-engineering"
+                  },
+                  "mapping_source": null,
+                  "decision": null,
+                  "reviewer": null,
+                  "rationale": null
+                },
+                {
+                  "safeguard_id": "SG-VULNSCANNING-001",
+                  "role": "equivalent",
+                  "review_state": "proposed",
+                  "review_basis_sha256": "4c9f902c7528dcd46f56847de1cac04063a9c40f6094734aa0dcc4ded222ff62",
+                  "operating_contract": {
+                    "objective": "Scan systems, code dependencies, and images for vulnerabilities on a defined cadence and when new vulnerabilities are announced, and accept externally reported vulnerabilities through a disclosure channel.",
+                    "evidence_requirement": "Derived from `github-security` or `gitlab-security` dependency and code-scanning results with their last-scan times. A repository or asset without a scan inside the cadence is stale evidence.",
+                    "evaluation_rule": {
+                      "fail_if": {
+                        "any": [
+                          {
+                            "evidence_present": false
+                          },
+                          {
+                            "evidence_status": {
+                              "in": ["stale", "expired", "missing"]
+                            }
+                          },
+                          {
+                            "open_violations": {
+                              "min": 1
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    "asset_types": [
+                      "audit_log",
+                      "cloud_policy",
+                      "cloud_resource",
+                      "container_image",
+                      "host",
+                      "repo",
+                      "service"
+                    ],
+                    "required_evidence_types": null,
+                    "frequency": "continuous",
+                    "owner": "security-platform"
+                  },
+                  "mapping_source": null,
+                  "decision": null,
+                  "reviewer": null,
+                  "rationale": null
+                }
+              ]
             }
           ]
         }
       ]
     }
   ],
-  "sha256": "0271404e829e412ee517ed4179eb44fe1efd5a73bf83e2adc95252a8226f0220"
+  "sha256": "c37b00c8582e8c5372d6ef5b62c710770834837f001b2c93c1db1b888d550612"
 }

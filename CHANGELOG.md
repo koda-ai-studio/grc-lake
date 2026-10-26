@@ -5,6 +5,8 @@ Python package, Helm chart, and bundled web console.
 
 ## Unreleased
 
+- Demote 354 historical mappings without a recorded reviewer or decision receipt to proposed. Mapped coverage stays 2,196/2,282; reviewed requirements fall from 1,225 (53.7%) to 886 (38.8%). Passing safeguard evidence cannot attest those proposed mappings or export them as reviewed OSCAL implementations. The historical inventory and origin commits remain available.
+
 - `grc-lake mcp` runs the MCP server (same as `grc-lake-mcp`), and the release workflow lists GRC Lake in the official MCP Registry as `io.github.koda-ai-studio/grc-lake` from `server.json`, verified by GitHub OIDC and a hidden `mcp-name` marker in the PyPI README. The registry entry launches `uvx --from "grc-lake[mcp]==<version>" grc-lake mcp`. A registry failure never blocks the PyPI package or the GitHub release.
 
 ## 0.3.16 - 2026-10-26
