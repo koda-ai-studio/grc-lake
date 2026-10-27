@@ -1964,6 +1964,8 @@ def _assessment_framework_report(args: argparse.Namespace) -> int:
 
 
 def _assessment_workpaper(args: argparse.Namespace) -> int:
+    import shlex
+
     from security_lakehouse.audit_workpapers import build_workpaper, export_workpaper
     from security_lakehouse.io import canonical_sha256, read_json
 
@@ -1972,8 +1974,19 @@ def _assessment_workpaper(args: argparse.Namespace) -> int:
         raise ValueError("workpaper export must be outside the evidence lake")
     content = build_workpaper(lake, plan=read_json(Path(args.plan)), baseline=read_json(Path(args.baseline)))
     export_workpaper(content, out)
+    digest = canonical_sha256(content)
     print(f"wrote draft auditor workpaper: {out / 'index.html'}")
-    print(f"content SHA-256 (retain independently): {canonical_sha256(content)}")
+    print(f"content SHA-256 (retain independently): {digest}")
+    command = [
+        "grc-lake",
+        "assessment",
+        "verify-workpaper",
+        "--dir",
+        str(out),
+        "--expected-content-sha256",
+        digest,
+    ]
+    print(f"verify handoff: {shlex.join(command)}")
     return 0
 
 
