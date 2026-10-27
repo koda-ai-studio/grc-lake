@@ -56,11 +56,21 @@ def main():
         f"{coverage['proposed']} proposed; {coverage['rejected_mappings']} mapping(s) rejected by the org"
     )
     text = re.sub(r"^\d+ safeguards map .*$", lambda _: headline, text, flags=re.M)
-    for row in coverage_by_family():
-        pattern = r"(^\|[^\n]*\| `" + re.escape(row["family_id"]) + r"`\s*\|)\s*\d+(\s*\|)"
-        text = re.sub(
-            pattern, lambda match, row=row: f"{match[1]} {row['safeguard_count']:10d}{match[2]}", text, flags=re.M
+    family_lines = [
+        "| Category | Family | ID | Safeguards | NIST SP 800-53 families | CIS Controls |",
+        "| --- | --- | --- | ---: | --- | --- |",
+    ]
+    for row in sorted(coverage_by_family(), key=lambda row: (row["category_label"], row["label"])):
+        family_lines.append(
+            f"| {row['category_label']} | {row['label']} | `{row['family_id']}` | {row['safeguard_count']} | "
+            f"{', '.join(row['nist_800_53_families']) or '—'} | {', '.join(row['cis_controls']) or '—'} |"
         )
+    text = re.sub(
+        r"^\| Category\s+\| Family[^\n]*\n(?:\|[^\n]*\n)+",
+        lambda _: "\n".join(family_lines) + "\n",
+        text,
+        flags=re.M,
+    )
     header = ["Framework", "Requirements", "Mapped", "Pct"]
     rows = [
         [name, str(row["controls"]), str(row["covered"]), f"{row['coverage_pct']:.1f}%"]

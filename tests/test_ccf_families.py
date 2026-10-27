@@ -11,6 +11,55 @@ from security_lakehouse.safeguards import coverage_by_family, load_ccf_families,
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def test_focused_families_keep_broad_contracts_and_source_assignments():
+    entries = {e["safeguard_id"]: e for e in load_safeguards()["safeguards"]}
+    expected = {
+        "SG-IDENTITY-001": "identity",
+        "SG-IDENTITY-002": "access-review",
+        "SG-IDENTITY-003": "authentication",
+        "SG-NIST53-AC-6.5": "privileged-access",
+        "SG-NIST53-IA-4": "identity-lifecycle",
+        "SG-SUPPLIERINVENTORY-001": "supplier-inventory",
+        "SG-AIPROVENANCE-001": "supply-chain-integrity",
+        "SG-NIST53-SR-6": "supplier-assurance",
+        "SG-AIEVALUATION-001": "ai-evaluation",
+        "SG-AIINVENTORY-001": "ai-inventory-context",
+        "SG-AIMONITORING-001": "ai-monitoring",
+        "SG-AIOVERSIGHT-001": "ai-oversight-transparency",
+        "SG-AIDATAGOVERNANCE-001": "ai-data-governance",
+        "SG-AIGOVERNANCE-001": "ai-governance",
+    }
+    for sid, family in expected.items():
+        assert entries[sid]["risk_domain"] == family
+    plan = json.loads((ROOT / "controls/nist53_assessment_expansion.json").read_text())
+    for cid, family in plan["control_families"].items():
+        assert entries["SG-NIST53-" + cid]["risk_domain"] == family
+
+
+def test_source_regrouping_retains_review_receipts_and_semantics():
+    from copy import deepcopy
+
+    from tools.sync_nist53_assessment_safeguards import reconcile_entries, source_contract
+
+    from security_lakehouse.ccf_contracts import definition_digest
+
+    old = deepcopy(next(e for e in load_safeguards()["safeguards"] if e["safeguard_id"] == "SG-NIST53-IA-4.1"))
+    old["risk_domain"] = "identity"
+    assert old["satisfies"][0]["review_status"] == "reviewed"
+    proposed = source_contract(old)
+    proposed["risk_domain"] = "identity-lifecycle"
+    result = reconcile_entries([old], [proposed])[0]
+    assert result["risk_domain"] == "identity-lifecycle"
+    assert result["satisfies"] == old["satisfies"]
+    assert definition_digest(result) == definition_digest(old)
+    changed = deepcopy(proposed)
+    changed["objective"] = "weakened contract"
+    import pytest
+
+    with pytest.raises(ValueError, match="refusing to change"):
+        reconcile_entries([old], [changed])
+
+
 def test_every_family_is_defined_and_used() -> None:
     families = load_ccf_families()
     used = Counter(entry["risk_domain"] for entry in load_safeguards()["safeguards"])
@@ -91,7 +140,9 @@ def test_unknown_family_is_rejected() -> None:
 
 def test_family_ledger_carries_definitions() -> None:
     families = load_ccf_families()
+    document = (ROOT / "docs/COMMON_CONTROL_FRAMEWORK.md").read_text()
     for row in coverage_by_family():
+        assert f"`{row['family_id']}`" in document
         assert row["label"] == families[row["family_id"]]["label"]
         assert row["description"] == families[row["family_id"]]["description"]
         assert row["nist_800_53_families"] == families[row["family_id"]]["nist_800_53_families"]

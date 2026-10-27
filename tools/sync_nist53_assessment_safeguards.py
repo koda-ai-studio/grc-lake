@@ -93,6 +93,9 @@ def build_entries(raw: bytes, plan: dict[str, Any], catalog: dict[str, Any]) -> 
     selected = plan["control_ids"]
     if len(set(selected)) != len(selected):
         raise ValueError("duplicate expansion target")
+    overrides = plan.get("control_families", {})
+    if set(overrides) - set(selected):
+        raise ValueError("family override names an unknown expansion target")
     if plan.get("coverage_scope") == "all_active_controls":
         active = {
             cid
@@ -112,7 +115,7 @@ def build_entries(raw: bytes, plan: dict[str, Any], catalog: dict[str, Any]) -> 
     taxonomy = load_ccf_families()
     for control_id in selected:
         family = control_id.split("-")[0]
-        risk_domain = plan["families"][family]
+        risk_domain = overrides.get(control_id, plan["families"][family])
         if family not in taxonomy.get(risk_domain, {}).get("nist_800_53_families", []):
             raise ValueError(f"source family {family} is not governed by CCF family {risk_domain}")
         source_control = controls[control_id]
@@ -202,17 +205,24 @@ def reconcile_entries(existing: list[dict], generated: list[dict]) -> list[dict]
     new = {entry["safeguard_id"]: entry for entry in generated}
     if len(old) != len(existing) or len(new) != len(generated):
         raise ValueError("duplicate NIST assessment safeguard")
+
+    def same_contract(before: dict, after: dict) -> bool:
+        contract = source_contract(before)
+        # Display grouping is outside the semantic definition/review digest.
+        contract["risk_domain"] = after["risk_domain"]
+        return contract == after
+
     for sid, entry in old.items():
         reviewed = bool(entry.get("reviewed_by") or entry.get("reviewed_at")) or any(
             member.get("review_status") != "proposed"
             or any(member.get(field) for field in ("reviewed_by", "reviewed_at", "maintainer_review_ref"))
             for member in entry["satisfies"]
         )
-        if reviewed and (sid not in new or source_contract(entry) != new[sid]):
+        if reviewed and (sid not in new or not same_contract(entry, new[sid])):
             raise ValueError(f"refusing to change or remove reviewed contract: {sid}")
     return [
-        deepcopy(old[entry["safeguard_id"]])
-        if entry["safeguard_id"] in old and source_contract(old[entry["safeguard_id"]]) == entry
+        {**deepcopy(old[entry["safeguard_id"]]), "risk_domain": entry["risk_domain"]}
+        if entry["safeguard_id"] in old and same_contract(old[entry["safeguard_id"]], entry)
         else deepcopy(entry)
         for entry in generated
     ]
