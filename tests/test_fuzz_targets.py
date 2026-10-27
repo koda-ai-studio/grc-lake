@@ -26,14 +26,17 @@ def test_fuzzer_replays_production_code_without_optional_dependencies(target_nam
     import subprocess
 
     env = {**os.environ, "PYTHONPATH": os.pathsep.join(map(str, (ROOT / "src", FUZZ)))}
+    probe = (
+        "import sys, importlib; from pathlib import Path; target = importlib.import_module(sys.argv[2]); "
+        "[target.TestOneInput(p.read_bytes()) for p in Path(sys.argv[1]).iterdir()]; "
+        "assert 'sqlalchemy' not in sys.modules"
+    )
     result = subprocess.run(
         [
             sys.executable,
             "-S",
             "-c",
-            "import sys, importlib; from pathlib import Path; target = importlib.import_module(sys.argv[2]); "
-            "[target.TestOneInput(p.read_bytes()) for p in Path(sys.argv[1]).iterdir()]; "
-            "assert 'sqlalchemy' not in sys.modules",
+            probe,
             str(FUZZ / "corpus" / target_name),
             target_name,
         ],

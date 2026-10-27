@@ -18,14 +18,17 @@ def test_core_pipeline_without_site_packages(tmp_path):
         entry.write_text("<!doctype html><title>Core package fixture</title>")
     env = {key: value for key, value in os.environ.items() if not key.startswith(("GRC_LAKE_", "TRUSTOPS_"))}
     env["PYTHONPATH"] = os.pathsep.join(str(ROOT / directory) for directory in ("src", "tools"))
+    probe = (
+        "import sys; from pathlib import Path; from security_lakehouse import web; "
+        "web.web_dist_dir = lambda: Path(sys.argv[2]); "
+        "from smoke_core_package import main; main()"
+    )
     result = subprocess.run(
         [
             sys.executable,
             "-S",
             "-c",
-            "import sys; from pathlib import Path; from security_lakehouse import web; "
-            "web.web_dist_dir = lambda: Path(sys.argv[2]); "
-            "from smoke_core_package import main; main()",
+            probe,
             str(ROOT),
             str(dist),
         ],
