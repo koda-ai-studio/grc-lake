@@ -325,13 +325,25 @@ test("an out-of-date maintainer review is not labeled as a current review", asyn
       mapping_basis?: string | null;
     }>;
   };
-  const stale = body.data.find(
-    (row) =>
-      row.shipped_review_status === "reviewed" &&
-      row.review_state === "proposed" &&
-      !row.mapping_source &&
-      !row.mapping_basis,
-  )!;
+  // Exercise the UI contract independently of which shipped mappings are pending.
+  const stale = body.data[0];
+  expect(stale).toBeDefined();
+  await page.route("**/api/v1/mapping-reviews/queue**", async (route) => {
+    const response = await route.fetch();
+    const payload = await response.json();
+    payload.data = payload.data.map((row: { control_id: string }) =>
+      row.control_id === stale.control_id
+        ? {
+            ...row,
+            shipped_review_status: "reviewed",
+            review_state: "proposed",
+            mapping_source: null,
+            mapping_basis: null,
+          }
+        : row,
+    );
+    await route.fulfill({ response, json: payload });
+  });
   const table = await openQueue(page);
   await page
     .getByPlaceholder("Search requirement or safeguard")
@@ -342,6 +354,7 @@ test("an out-of-date maintainer review is not labeled as a current review", asyn
     .first();
   await expect(row).toContainText("Earlier maintainer review");
   await expect(row).not.toContainText(/Maintainer review(?! )/);
+  await page.unrouteAll({ behavior: "wait" });
 });
 
 test("framework marks fit their badge on one line", async ({ page }) => {

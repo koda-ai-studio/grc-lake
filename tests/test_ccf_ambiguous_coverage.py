@@ -16,7 +16,7 @@ from security_lakehouse.safeguards import (
 
 def ambiguous_payload(kind, role="primary"):
     entry = deepcopy(load_safeguards()["safeguards"][0])
-    entry["satisfies"] = [{**entry["satisfies"][0], "role": role}]
+    entry["satisfies"] = [{**entry["satisfies"][0], "role": role, "review_status": "reviewed"}]
     payload = {"safeguards": [entry], "review_log_verified": True}
     if kind == "mapping":
         entry["satisfies"].append({**entry["satisfies"][0], "review_status": "proposed"})
@@ -74,6 +74,7 @@ def test_distinct_safeguards_may_cover_the_same_requirement():
 def test_unique_sibling_mapping_survives_a_duplicate_target():
     payload = ambiguous_payload("mapping")
     sibling = deepcopy(load_safeguards()["safeguards"][0]["satisfies"][1])
+    sibling["review_status"] = "reviewed"
     payload["safeguards"][0]["satisfies"].append(sibling)
     result = coverage_by_framework(payload)
     assert result["covered"] == result["reviewed"] == 1

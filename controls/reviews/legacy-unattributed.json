@@ -1,10 +1,10 @@
 {
   "schema": "grc-lake.legacy-mapping-review.v1",
-  "status": "legacy_unattributed",
+  "status": "demoted_to_proposed",
   "reviewer": null,
   "decision": null,
   "scope": "Safeguard-to-requirement mappings shipped as reviewed before decision receipts existed. Each row cites the commit since which it has been reviewed without a maintainer_review_ref, from the first-parent history of controls/safeguards.json.",
-  "limitations": "Not an approval. No reviewer, decision or per-mapping rationale was recorded. Coverage still counts these rows as maintainer-reviewed and reports them separately as legacy_unattributed_mappings and legacy_only_reviewed. A row leaves this list when a decision receipt replaces it or it returns to proposed; rows are never added.",
+  "limitations": "Historical inventory, not an approval. These 354 mappings were demoted to proposed because no reviewer, decision or per-mapping rationale was recorded. They earn no review credit without a later receipt-bound human decision. Preserve this inventory and its origin commits; do not add rows or invent reviewers.",
   "base_commit": "13cedfe2f60090238c3ca24b8aa8647a048f599f",
   "origins": [
     {

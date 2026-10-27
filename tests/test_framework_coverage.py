@@ -123,7 +123,7 @@ def test_complete_mappings_do_not_imply_full_standard_or_company_assurance() -> 
         row = rows[fid]
         assert row["evaluatable_requirement_count"] == row["seeded_control_count"]
         assert row["attestable_requirement_count"] <= row["seeded_control_count"]
-    assert (rows["soc2"]["attestable_requirement_count"], rows["soc2"]["seeded_control_count"]) == (59, 61)
+    assert (rows["soc2"]["attestable_requirement_count"], rows["soc2"]["seeded_control_count"]) == (49, 61)
     for fid in ("soc2", "iso-27001-2022", "nist-csf-2.0", "nist-800-53-rev5"):
         assert rows[fid]["attestable_requirement_count"] < rows[fid]["seeded_control_count"]
 
@@ -150,11 +150,11 @@ def test_coverage_separates_reviews_with_no_recorded_reviewer() -> None:
     rows = build_framework_coverage()
     by_id = {row["framework_id"]: row for row in rows}
     summary = framework_coverage_summary(rows)
-    assert summary["legacy_only_reviewed_requirement_count"] == 339
-    assert summary["legacy_unattributed_mapping_count"] == 340
-    assert by_id["soc2"]["legacy_only_reviewed_requirement_count"] == 10
+    assert summary["legacy_only_reviewed_requirement_count"] == 0
+    assert summary["legacy_unattributed_mapping_count"] == 0
+    assert by_id["soc2"]["legacy_only_reviewed_requirement_count"] == 0
     assert by_id["dora-2022-2554"]["legacy_only_reviewed_requirement_count"] == 0
     assert all(row["legacy_only_reviewed_requirement_count"] <= row["attestable_requirement_count"] for row in rows)
     markdown = render_framework_coverage_markdown(rows)
     assert "No recorded reviewer |" in markdown
-    assert "339 rest only on legacy reviews with no recorded reviewer" in markdown
+    assert "0 rest only on legacy reviews with no recorded reviewer" in markdown

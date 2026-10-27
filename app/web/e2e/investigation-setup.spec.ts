@@ -178,7 +178,7 @@ test("selected investigation highlights direct relationships and clears selectio
   ).toHaveCount(0);
   await expect(page.locator(".react-flow__edge-text")).toHaveCount(0);
   await expect(page.getByLabel("Mapping review states")).toContainText(
-    "maintainer reviewed",
+    "proposed",
   );
   await inspector.getByRole("button", { name: "Close node details" }).click();
   await expect(inspector).toHaveCount(0);

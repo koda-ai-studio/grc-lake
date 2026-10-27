@@ -21,7 +21,7 @@ def test_packet_is_deterministic_read_only_and_deduplicates_requirements(tmp_pat
     assert len(rows) == len({row["control_id"] for row in rows})
     assert len(rows) == first["summary"]["distinct_requirements_in_packet"]
     assert first["summary"]["reviewed_target"] == 1141
-    assert first["summary"]["additional_reviewed_needed"] == 802
+    assert first["summary"]["additional_reviewed_needed"] == 1141
     assert all(c["decision"] is c["reviewer"] is c["rationale"] is None for row in rows for c in row["candidates"])
     assert all(c["review_basis_sha256"] for row in rows for c in row["candidates"])
     assert all(batch["requirement_count"] <= 25 for batch in first["batches"])
@@ -44,7 +44,7 @@ def test_missing_sources_are_visible_and_do_not_become_approved_or_verified():
     before = deepcopy(payload)
     packet = build_review_packet(payload=payload)
     assert packet["summary"]["requirements_with_source_references"] == 0
-    assert packet["summary"]["reviewed_requirements"] == 339
+    assert packet["summary"]["reviewed_requirements"] == 0
     assert payload == before
 
 

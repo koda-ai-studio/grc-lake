@@ -57,10 +57,10 @@ def test_review_credit_is_distinct_and_does_not_expand_mapping_coverage():
     old, new = coverage_by_framework(before), coverage_by_framework(payload)
     assert old["covered"] == new["covered"] == 2196
     assert old["controls"] == new["controls"] == 2282
-    assert old["reviewed"] == 339
-    assert new["reviewed"] == 1128
+    assert old["reviewed"] == 0
+    assert new["reviewed"] == 789
     assert new["coverage_pct"] == 96.2
-    assert new["reviewed_pct"] == 49.4
+    assert new["reviewed_pct"] == 34.6
 
 
 def test_stale_approvals_remain_uncredited_and_fresh_evidence_is_still_required(tmp_path):
@@ -79,8 +79,8 @@ def test_stale_approvals_remain_uncredited_and_fresh_evidence_is_still_required(
     }
     assert len(approved_ids - credited_ids) == 17
     packet = build_review_packet(tmp_path, payload=payload)
-    assert packet["summary"]["reviewed_requirements"] == 1128
-    assert packet["summary"]["additional_reviewed_needed"] == 13
+    assert packet["summary"]["reviewed_requirements"] == 789
+    assert packet["summary"]["additional_reviewed_needed"] == 352
     assert not list(tmp_path.rglob("*"))
     result = evaluate_safeguards([], {**payload, "review_log_verified": True}, load_control_catalog())
     assert not any(r["status"] == "pass" for r in result["requirements"])

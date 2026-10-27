@@ -469,8 +469,8 @@ def test_ocsf_rows_reach_the_ccf_assessment_through_sync_and_pipeline(tmp_path: 
 
     # framework requirements come from the reviewed crosswalk, not from the preset's tags
     requirements = {row["control_id"]: row for row in assessment["requirements"]}
-    assert requirements["SOC2-CC6.1"]["status"] == "fail"
-    assert requirements["SOC2-CC6.1"]["reviewed_safeguard_ids"] == ["SG-IDENTITY-001"]
+    assert requirements["SOC2-CC6.1"]["status"] == "not_evaluated"
+    assert requirements["SOC2-CC6.1"]["reviewed_safeguard_ids"] == []
     # a provider benchmark ignores evidence from other sources, even on a shared safeguard
     assert requirements["CIS-AWS-1.10"]["status"] == "not_evaluated"
     # a proposed mapping is never attested, even when the safeguard has evidence
@@ -517,8 +517,8 @@ def test_ocsf_findings_reach_the_ccf_assessment_without_ambiguous_assets(tmp_pat
     assert (baseline["assessed_asset_count"], baseline["unassessed_asset_count"]) == (3, 0)
 
     requirements = {row["control_id"]: row for row in assessment["requirements"]}
-    assert VULN_SG in requirements["SOC2-CC7.1"]["reviewed_safeguard_ids"]
-    assert requirements["SOC2-CC7.1"]["status"] == "fail"
+    assert VULN_SG not in requirements["SOC2-CC7.1"]["reviewed_safeguard_ids"]
+    assert requirements["SOC2-CC7.1"]["status"] == "not_evaluated"
     assert requirements["NIST-CSF-PR.PS-01"]["reviewed_safeguard_ids"] == [BASELINE_SG]
     assert requirements["NIST-CSF-PR.PS-01"]["status"] == "fail"
     # the baseline safeguard's mapping to CM-6 is only proposed, so it is never attested
