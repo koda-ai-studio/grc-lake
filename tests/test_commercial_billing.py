@@ -368,3 +368,23 @@ def test_billing_migration_round_trips(tmp_path: Path) -> None:
     command.downgrade(migrate._config(database_url(tmp_path)), "0017_scim")
     assert "tenant_billing" not in set(inspect(create_engine_for(tmp_path)).get_table_names())
     migrate.upgrade(tmp_path)
+
+
+def test_webhook_non_json_oversize_is_rejected_before_billing(env, monkeypatch):
+    from security_lakehouse.commercial import billing
+
+    client, _, _, _ = env
+    handled = []
+
+    def unexpected_webhook(session, payload, signature):
+        handled.append(len(payload))
+        raise billing.BillingError(400, "invalid webhook")
+
+    monkeypatch.setattr(billing, "handle_webhook", unexpected_webhook)
+    response = client.post(
+        "/api/v1/billing/stripe/webhook",
+        content=b"x" * (6 * 1024 * 1024),
+        headers={"content-type": "text/plain"},
+    )
+    assert response.status_code == 413
+    assert handled == []

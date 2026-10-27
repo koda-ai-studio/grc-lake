@@ -314,6 +314,16 @@ traffic never trips them, low enough to blunt a runaway loop. Set
 in-process; a multi-replica deployment that needs a shared budget should front
 the API with a gateway limiter or a shared store (Redis).
 
+## Request body limits
+
+Server-mode mutation requests (`POST`, `PUT`, `PATCH`, `DELETE`) have a 5 MiB
+body limit for every content type. The SAML ACS endpoint has a smaller 256 KiB
+limit, including form encoding. Accounting uses received bytes, including chunked
+bodies, rather than trusting `Content-Length`. Oversized requests return `413`
+with `code=payload_too_large` before route handlers parse or process the body.
+In-limit form and webhook bytes are preserved; JSON validation still applies
+only to JSON content types or requests without a content type.
+
 ## Tenant data isolation
 
 Server mode binds to a lake _root_. Each tenant's bronze/silver/gold evidence

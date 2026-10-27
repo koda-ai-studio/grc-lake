@@ -627,3 +627,22 @@ def test_saml_acs_rejects_failed_response(tmp_path: Path, monkeypatch) -> None:
     client = TestClient(app)
     resp = _post_acs(client, _login_request_cookie(client))
     assert resp.status_code == HTTPStatus.UNAUTHORIZED
+
+
+def test_saml_oversized_form_is_rejected_before_parser(tmp_path, monkeypatch):
+    app, _ = _saml_app(tmp_path, monkeypatch)
+    parsed = []
+
+    def unexpected_parser(config, request_data):
+        parsed.append(request_data)
+        return _FakeSamlAuth(authenticated=False)
+
+    app.state.saml_auth_factory = unexpected_parser
+    with TestClient(app) as client:
+        response = client.post(
+            "/api/v1/auth/saml/acs",
+            content=b"SAMLResponse=" + b"x" * (256 * 1024),
+            headers={"content-type": "application/x-www-form-urlencoded"},
+        )
+    assert response.status_code == 413
+    assert parsed == []
