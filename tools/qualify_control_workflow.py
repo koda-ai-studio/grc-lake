@@ -15,7 +15,7 @@ from pathlib import Path
 from security_lakehouse.assessment import verify_snapshot_chain, write_assessment_snapshot
 from security_lakehouse.audit_workpapers import build_workpaper, export_workpaper, verify_workpaper_export
 from security_lakehouse.execution_mode import in_server_mode
-from security_lakehouse.io import canonical_sha256, file_sha256
+from security_lakehouse.io import canonical_sha256, file_sha256, read_json
 from security_lakehouse.pipeline import run_pipeline
 from security_lakehouse.runtime_environment import runtime_env
 
@@ -33,6 +33,7 @@ SCENARIOS = {
     "partial_collection": ("sample_pass", "incomplete"),
     "missing_asset": ("insufficient_evidence", "incomplete"),
     "stale_collection": ("sample_pass", "incomplete"),
+    "stale_design": ("sample_pass", "declared_scope_reconciled"),
 }
 
 
@@ -84,6 +85,9 @@ def case_inputs(safeguard: str, scenario: str) -> tuple[list[dict], dict, dict]:
         baseline["inventory"]["accounts"][0]["asset_ids"].append("synthetic-missing-asset")
     elif scenario == "stale_collection":
         baseline["collections"][0]["completed_at"] = "2025-12-01T00:00:00Z"
+    elif scenario == "stale_design":
+        design = next(row for row in events if row["event_id"] in plan["controls"][0]["design_event_ids"])
+        design["event_time"] = design["evidence"]["collected_at"] = "2024-12-30T00:00:00Z"
     return events, plan, baseline
 
 
@@ -95,7 +99,11 @@ def run_case(out: Path, safeguard: str, scenario: str) -> dict:
     result = {
         "safeguard_id": safeguard,
         "scenario": scenario,
-        "expected": {"design": "documented", "operating": expected_operating, "population": expected_population},
+        "expected": {
+            "design": "insufficient_evidence" if scenario == "stale_design" else "documented",
+            "operating": expected_operating,
+            "population": expected_population,
+        },
         "status": "error",
         "checks": {},
     }
@@ -126,7 +134,21 @@ def run_case(out: Path, safeguard: str, scenario: str) -> dict:
         checks["pinned_export_verified"] = (
             verify_workpaper_export(out / "workpaper", expected_content_sha256=result["content_sha256"])["ok"] is True
         )
-        checks["same_generation_replay"] = content == build_workpaper(lake, plan=plan, baseline=baseline)
+        replay = build_workpaper(lake, plan=plan, baseline=baseline)
+        checks["same_generation_replay"] = content == replay
+        export_workpaper(replay, out / "replayed-workpaper")
+        checks["export_bytes_reproducible"] = {
+            path.name: path.read_bytes() for path in (out / "workpaper").iterdir()
+        } == {path.name: path.read_bytes() for path in (out / "replayed-workpaper").iterdir()}
+        definition = next(
+            row for row in read_json(lake / "catalog/safeguards.json")["safeguards"] if row["safeguard_id"] == safeguard
+        )
+        checks["mapping_states_preserved"] = control["requirement_mappings"] == definition["satisfies"]
+        proposed = {row["control_id"] for row in definition["satisfies"] if row["effective_review_state"] == "proposed"}
+        requirements = {row["control_id"]: row for row in read_json(lake / "gold/ccf_assessment.json")["requirements"]}
+        checks["proposed_requirements_not_attested"] = bool(proposed) and all(
+            requirements[control_id]["status"] != "pass" for control_id in proposed
+        )
         checks["human_review_pending"] = (
             content["assurance"]["review_status"] == control["conclusion"] == "pending_human_review"
             and content["narrative"]["status"] == "unreviewed"
