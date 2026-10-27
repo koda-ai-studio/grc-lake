@@ -171,6 +171,13 @@
       "display_mode": "neutral_icon",
       "asset_path": null,
       "restriction": "ISO prohibits third-party use or copying of its logo without written permission."
+    },
+    "fedramp-ksi-2026": {
+      "official_name": "FedRAMP Key Security Indicators (bounded identity subset)",
+      "official_source_url": "https://github.com/FedRAMP/rules/tree/a89d78477ddea98dc57eca24f5007794c2b4eeb6",
+      "display_mode": "neutral_icon",
+      "asset_path": null,
+      "restriction": "The FedRAMP name and logo are permission-gated GSA marks and are not bundled."
     }
   }
 }

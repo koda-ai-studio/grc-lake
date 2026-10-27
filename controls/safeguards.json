@@ -54075,6 +54075,66 @@
           "mapping_rationale": "Proposed partial workflow evidence only. Human requirement-text review and a complete scoped plan of action and milestones assessment are required before equivalence can be claimed."
         }
       ]
+    },
+    {
+      "safeguard_id": "SG-KSI-IAM-AAM",
+      "title": "Automating Account Management",
+      "risk_domain": "identity-lifecycle",
+      "objective": "The lifecycle and privileges of all accounts, roles, and groups are securely managed using automation.",
+      "evidence_requirement": "An explicitly bound, scoped assessor record must identify the assessor, tenant and service boundary, source revision, assessment period, population reconciliation, applicability decision, evidence references, methods, outcomes and exceptions. Reconciled inventories of all scoped accounts, roles and groups; joiner, mover and leaver automation; privilege change records; execution results and exceptions; stale or orphaned identity detection; coverage of non-user identities and external identity providers. Record measure objectives, the documented cycle and interruptions for persistent measures, verification of automation accuracy and sufficiency (or why automation is unnecessary), and validation that measures are operating as intended. Missing evidence or unknown applicability blocks a conclusion. This is an assessor assertion, not an automated demonstration of the indicator or independent approval. A snapshot cannot establish persistent performance. Expected failure modes: Unmanaged groups or service identities, incomplete joiner/mover/leaver coverage, failed disablement jobs, unreviewed privilege changes, or missing population reconciliation.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment cycle and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["service"],
+      "required_evidence_types": ["ksi_iam_aam_assessment"],
+      "satisfies": [
+        {
+          "control_id": "KSI-IAM-AAM",
+          "framework_id": "fedramp-ksi-2026",
+          "role": "primary",
+          "review_status": "proposed",
+          "control_version": "2026.10.13.01",
+          "mapping_basis": "internal_assessment_proposal",
+          "mapping_source": {
+            "name": "FedRAMP Consolidated Rules for 2026",
+            "url": "https://raw.githubusercontent.com/FedRAMP/rules/a89d78477ddea98dc57eca24f5007794c2b4eeb6/fedramp-consolidated-rules.json",
+            "sha256": "fb48d677a85d77fb72735a325de2c1945a1e0ceab1d2e655292fe9ebe3e4e0b4",
+            "locator": "KSI.IAM.indicators.KSI-IAM-AAM; info.default_artifacts.KSI. A dedicated assessor record examines lifecycle and privilege automation for all three source populations; generic account inventory alone does not demonstrate the indicator."
+          }
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-KSI-IAM-APM",
+      "title": "Adopting Passwordless Methods",
+      "risk_domain": "authentication",
+      "objective": "Secure passwordless methods are used for user authentication and authorization when feasible, otherwise strong passwords with phishing-resistant MFA is used.",
+      "evidence_requirement": "An explicitly bound, scoped assessor record must identify the assessor, tenant and service boundary, source revision, assessment period, population reconciliation, applicability decision, evidence references, methods, outcomes and exceptions. Scoped user population and authentication methods; passwordless enforcement and validation; documented feasibility exceptions; strong-password and phishing-resistant MFA enforcement for each exception; enrollment, recovery and bypass paths; execution results and exceptions. Record measure objectives, the documented cycle and interruptions for persistent measures, verification of automation accuracy and sufficiency (or why automation is unnecessary), and validation that measures are operating as intended. Missing evidence or unknown applicability blocks a conclusion. This is an assessor assertion, not an automated demonstration of the indicator or independent approval. A snapshot cannot establish persistent performance. Expected failure modes: Password-only fallback, phishable MFA, undocumented feasibility exceptions, unenrolled users, bypass or recovery paths, and policy configuration without enforcement evidence.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "documented assessment cycle and after material change",
+      "owner": "security-assurance",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["service"],
+      "required_evidence_types": ["ksi_iam_apm_assessment"],
+      "satisfies": [
+        {
+          "control_id": "KSI-IAM-APM",
+          "framework_id": "fedramp-ksi-2026",
+          "role": "primary",
+          "review_status": "proposed",
+          "control_version": "2026.10.13.01",
+          "mapping_basis": "internal_assessment_proposal",
+          "mapping_source": {
+            "name": "FedRAMP Consolidated Rules for 2026",
+            "url": "https://raw.githubusercontent.com/FedRAMP/rules/a89d78477ddea98dc57eca24f5007794c2b4eeb6/fedramp-consolidated-rules.json",
+            "sha256": "fb48d677a85d77fb72735a325de2c1945a1e0ceab1d2e655292fe9ebe3e4e0b4",
+            "locator": "KSI.IAM.indicators.KSI-IAM-APM; info.default_artifacts.KSI. A dedicated assessor record distinguishes secure passwordless methods from the source fallback requiring both strong passwords and phishing-resistant MFA. A generic MFA-enabled flag is insufficient."
+          }
+        }
+      ]
     }
   ]
 }

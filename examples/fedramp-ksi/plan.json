@@ -1,0 +1,33 @@
+{
+  "schema_version": "trustops.control_test_plan.v1",
+  "tenant_id": "default",
+  "period_start": "2026-10-24T00:00:00Z",
+  "period_end": "2026-10-26T00:00:00Z",
+  "as_of": "2026-10-27T00:00:00Z",
+  "controls": [
+    {
+      "safeguard_id": "SG-KSI-IAM-AAM",
+      "owner": "Synthetic assessor",
+      "system": "Synthetic service",
+      "activity": "Reconciled inventories of all scoped accounts, roles and groups; joiner, mover and leaver automation; privilege change records; execution results and exceptions; stale or orphaned identity detection; coverage of non-user identities and external identity providers.",
+      "procedure": "Inspect scoped assessor record and linked evidence; reconcile exceptions and gaps against the pinned KSI source.",
+      "frequency": "daily",
+      "cadence_days": 1,
+      "sample_per_window": 1,
+      "sampling_rationale": "Illustrative non-statistical selection: one observation per asset per daily window; investigate all observed deviations.",
+      "design_event_ids": ["design-0"]
+    },
+    {
+      "safeguard_id": "SG-KSI-IAM-APM",
+      "owner": "Synthetic assessor",
+      "system": "Synthetic service",
+      "activity": "Scoped user population and authentication methods; passwordless enforcement and validation; documented feasibility exceptions; strong-password and phishing-resistant MFA enforcement for each exception; enrollment, recovery and bypass paths; execution results and exceptions.",
+      "procedure": "Inspect scoped assessor record and linked evidence; reconcile exceptions and gaps against the pinned KSI source.",
+      "frequency": "daily",
+      "cadence_days": 1,
+      "sample_per_window": 1,
+      "sampling_rationale": "Illustrative non-statistical selection: one observation per asset per daily window; investigate all observed deviations.",
+      "design_event_ids": ["design-1"]
+    }
+  ]
+}

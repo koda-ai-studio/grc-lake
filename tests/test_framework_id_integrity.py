@@ -27,6 +27,7 @@ from pathlib import Path
 # identifier for each framework so an invented id (wrong prefix, wrong
 # numbering) fails fast, before the allowlist check even runs.
 _FORMAT_PATTERNS: dict[str, str] = {
+    "fedramp-ksi-2026": r"^KSI-[A-Z]{3}-[A-Z]{3}$",
     "soc2": r"^(CC\d|A\d|C\d|PI\d|P\d)",
     "iso-27001-2022": r"^A\.\d",
     "iso-27001-isms-2022": r"^(?:[4-9]|10)\.\d+(?:\.\d+)?$",

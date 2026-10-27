@@ -92,7 +92,7 @@ ISO 27701 still needs mapping review. CIS Azure/GCP benchmarks remain gaps.
 ISO 27001 management-clause mappings still need review. The [ISMS companion pack](docs/ISO27001_ISMS_ASSESSMENTS.md)
 now catalogues 30 clause identifiers with proposed assessor contracts; it grants no new review credit.
 
-1,788 of 2,758 safeguard-to-requirement mapping rows are proposed, so 1,310 of the 2,196 mapped requirements have no reviewed mapping.
+1,790 of 2,760 safeguard-to-requirement mapping rows are proposed, so 1,312 of the 2,198 mapped requirements have no reviewed mapping.
 
 Mapping counts are effective review states: a mapping marked reviewed against an
 older control version counts as proposed until it is re-reviewed.

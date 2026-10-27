@@ -1,0 +1,405 @@
+{
+  "schema": "trustops.framework_pack_manifest.v1",
+  "source": {
+    "name": "FedRAMP Consolidated Rules for 2026",
+    "url": "https://raw.githubusercontent.com/FedRAMP/rules/a89d78477ddea98dc57eca24f5007794c2b4eeb6/fedramp-consolidated-rules.json",
+    "commit": "a89d78477ddea98dc57eca24f5007794c2b4eeb6",
+    "version": "2026.10.13.01",
+    "sha256": "fb48d677a85d77fb72735a325de2c1945a1e0ceab1d2e655292fe9ebe3e4e0b4",
+    "schema_url": "https://raw.githubusercontent.com/FedRAMP/rules/a89d78477ddea98dc57eca24f5007794c2b4eeb6/schemas/fedramp-consolidated-rules.schema.json",
+    "schema_sha256": "eb4710bee0b06d0f8f803302ac2e88b934ef2bc942d0b548738c7304f0cb418f",
+    "pulled_at": "2026-10-27"
+  },
+  "scope": "Two identity indicators only; all other indicators and process rules remain outside this assessment slice. No FedRAMP readiness, certification or authorization claim.",
+  "source_indicator_count": 46,
+  "selected_indicator_ids": ["KSI-IAM-AAM", "KSI-IAM-APM"],
+  "not_seeded": [
+    "KSI-CED-RAT",
+    "KSI-CMT-LMC",
+    "KSI-CMT-RMV",
+    "KSI-CMT-RVP",
+    "KSI-CMT-VTD",
+    "KSI-CNA-DFP",
+    "KSI-CNA-EIS",
+    "KSI-CNA-IBP",
+    "KSI-CNA-MAT",
+    "KSI-CNA-OFA",
+    "KSI-CNA-RNT",
+    "KSI-CNA-RVP",
+    "KSI-CNA-ULN",
+    "KSI-IAM-ELP",
+    "KSI-IAM-JIT",
+    "KSI-IAM-SNU",
+    "KSI-IAM-SUS",
+    "KSI-INR-AAR",
+    "KSI-INR-RIR",
+    "KSI-INR-RPI",
+    "KSI-MLA-ALA",
+    "KSI-MLA-EVC",
+    "KSI-MLA-LET",
+    "KSI-MLA-OSM",
+    "KSI-MLA-RVL",
+    "KSI-PIY-GIV",
+    "KSI-PIY-RES",
+    "KSI-PIY-RIS",
+    "KSI-PIY-RSD",
+    "KSI-PIY-RVD",
+    "KSI-RPL-ABO",
+    "KSI-RPL-ARP",
+    "KSI-RPL-RRO",
+    "KSI-RPL-TRC",
+    "KSI-SCR-MIT",
+    "KSI-SCR-MON",
+    "KSI-SVC-ACM",
+    "KSI-SVC-ASM",
+    "KSI-SVC-EIS",
+    "KSI-SVC-PRR",
+    "KSI-SVC-RUD",
+    "KSI-SVC-SIN",
+    "KSI-SVC-VCM",
+    "KSI-SVC-VRI"
+  ],
+  "default_artifacts": [
+    "Explanation of measures (and their objectives) that demonstrate the Key Security Indicator, or an explanation of the reason and resulting risk to customers for not having measures available for that Key Security Indicator.",
+    "Explanation of the cycle for any measures that are implemented persistently (if applicable).",
+    "Verification that the measures demonstrate the Key Security Indicator, or that the reason for not having them is accepted.",
+    "Verification that the automation in place is accurate and sufficient to demonstrate appropriate measures for the Key Security Indicator, or that automation is not necessary for each measure.",
+    "Validation that the measures are accurately produced and are in place and working as intended, or that the reason for not having them is valid."
+  ],
+  "applicability": {
+    "decision": "not_automatically_determined",
+    "boundary": "Review source rules, certification type/path, service class, effective dates and Minimum Assessment Scope before selecting these indicators. Process rules below are context, not implemented controls.",
+    "class_a_context": {
+      "name": "Mandatory FedRAMP Rules for Class A",
+      "statement": "Providers seeking a Class A FedRAMP Certification MUST address all rules in this FedRAMP Class A Certification subset (FRC-CLA) AND the following additional FedRAMP Class A rules; the appropriate artifacts or information mapping for all rules MUST be supplied in the FedRAMP Certification Package.",
+      "following_information": [
+        "FedRAMP Certification: FRC-CSO-PKG (FedRAMP Certification Package)",
+        "FedRAMP Certification: FRC-CSO-JSN (FedRAMP JSON Schemas)",
+        "FedRAMP Certification: FRC-CSO-POP (Pick One Program Certification Type)",
+        "Minimum Assessment Scope: MAS-CSO-IIR (Identify Information Resources)",
+        "Certification Data Sharing: CDS-CSO-PUB (Public Information)",
+        "Certification Data Sharing: CDS-CSO-UTC (Use Trust Centers)",
+        "Certification Data Sharing: CDS-UTC-AAD (Agency Access Denial)",
+        "Addressing FedRAMP Communication: AFC-CSO-INB (Maintain a FedRAMP Security Inbox)",
+        "Addressing FedRAMP Communication: AFC-CSO-RCV (Receive Email Without Disruption)",
+        "Addressing FedRAMP Communication: AFC-CSO-CRA (Complete Required Actions)",
+        "Incident Evaluation and Communication: IEC-CSO-EFR (Evaluate FedRAMP Reportability)",
+        "Incident Evaluation and Communication: IEC-CSO-FIR (Final Incident Report)",
+        "Vulnerability Detection and Response: VDR-CSO-DET (Vulnerability Detection)",
+        "Collaborative Continuous Monitoring: CCM-OCR-AVL (Report Availability)",
+        "Collaborative Continuous Monitoring: CCM-OCR-NRD (Next Report Date)",
+        "Independent Verification and Validation: IVV-CSX-AIA (Annual Independent Assessments for 20x)",
+        "Key Security Indicators: KSI-CMT-LMC (Logging Changes)",
+        "Key Security Indicators: KSI-CNA-RNT (Restricting Network Traffic)",
+        "Key Security Indicators: KSI-CED-RAT (Reviewing All Training)",
+        "Key Security Indicators: KSI-IAM-AAM (Automating Account Management)",
+        "Key Security Indicators: KSI-IAM-APM (Adopting Passwordless Methods)",
+        "Key Security Indicators: KSI-INR-RIR (Reviewing Incident Response Procedures)",
+        "Key Security Indicators: KSI-SVC-SIN (Securing Information)"
+      ],
+      "notes": [
+        "Some of these specific FedRAMP rules may not have similar counterparts in external frameworks and providers will need to implement new processes to follow these rules.",
+        "In general, for each of these FedRAMP requirements, providers should include a sufficiently detailed summary that reviewers will not need to dig into the related security framework materials to understand the related decisions - just saying \"see SOC 2 report\" is not particularly helpful.",
+        "Information about how the provider addresses the included Key Security Indicators are required to receive a class A certification even if the provider intends to pursue a Rev 5 Program Certification path in the future."
+      ],
+      "related": [
+        "FRC-CSO-POP",
+        "MAS-CSO-IIR",
+        "CDS-CSO-PUB",
+        "CDS-CSO-UTC",
+        "CDS-UTC-AAD",
+        "AFC-CSO-INB",
+        "AFC-CSO-RCV",
+        "AFC-CSO-CRA",
+        "IEC-CSO-EFR",
+        "IEC-CSO-FIR",
+        "VDR-CSO-DET",
+        "CCM-OCR-AVL",
+        "CCM-OCR-NRD",
+        "IVV-CSX-AIA",
+        "FRC-CSO-PKG",
+        "FRC-CSO-JSN",
+        "KSI-CMT-LMC",
+        "KSI-CNA-RNT",
+        "KSI-CED-RAT",
+        "KSI-IAM-AAM",
+        "KSI-INR-RIR",
+        "KSI-SVC-SIN",
+        "KSI-IAM-APM"
+      ],
+      "force": "MUST",
+      "affects": ["Providers"],
+      "terms": [
+        "Artifacts",
+        "Certification Data",
+        "Certification Package",
+        "Certification Path",
+        "Certification Type",
+        "FedRAMP Security Inbox",
+        "Final Incident Report (FIR)",
+        "Incident",
+        "Information Resource",
+        "Initial Incident Report (IIR)",
+        "Ongoing Certification Report (OCR)",
+        "Trust Center",
+        "Validation",
+        "Verification",
+        "Vulnerability",
+        "Vulnerability Detection",
+        "Vulnerability Response"
+      ],
+      "updated": [
+        {
+          "date": "2026-07-14",
+          "comment": "Clarified that providers MUST address the Key Security Indicators even if they intend to pursue a Rev 5 Program Certification path in the future."
+        },
+        {
+          "date": "2026-07-01",
+          "comment": "Removed reference to Independent Verification and Validation: IVV-CSF-AIA (Annual Independent Assessments for Rev5); Removed CDS-CSO-AVR (Availability Reporting) since this rule is defined as SHOULD and included in FRC-CLA-RFR (Recommended FedRAMP Rules for Class A)"
+        },
+        {
+          "date": "2026-06-24",
+          "comment": "Official launch of the FedRAMP Consolidated Rules for 2026."
+        }
+      ]
+    },
+    "scope_context": {
+      "name": "Application within MAS",
+      "statement": "Providers SHOULD apply ALL Key Security Indicators to ALL aspects of their cloud service offering that are within the FedRAMP Minimum Assessment Scope.",
+      "force": "SHOULD",
+      "affects": ["Providers"],
+      "terms": ["Cloud Service Offering"],
+      "updated": [
+        {
+          "date": "2026-06-24",
+          "comment": "Official launch of the FedRAMP Consolidated Rules for 2026."
+        }
+      ]
+    },
+    "automation_context": {
+      "name": "Automated Verification and Validation of Key Security Indicators",
+      "varies_by_class": {
+        "a": {
+          "statement": "Providers seeking 20x Class A Certification MAY implement automated methods to persistently verify and validate the accuracy and completeness of Key Security Indicators.",
+          "force": "MAY"
+        },
+        "b": {
+          "statement": "Providers seeking 20x Class B Certification SHOULD implement automated methods to persistently verify and validate the accuracy and completeness of Key Security Indicators with at least 1 automated method for each Key Security Indicator.",
+          "force": "SHOULD"
+        },
+        "c": {
+          "statement": "Providers seeking 20x Class C Certification MUST implement automated methods to persistently verify and validate the accuracy and completeness of Key Security Indicators with at least 2 automated methods for each Key Security Indicator.",
+          "force": "MUST"
+        },
+        "d": {
+          "statement": "Providers seeking 20x Class D Certification MUST implement automated methods to persistently verify and validate the accuracy and completeness of Key Security Indicators with at least 4 automated methods for each Key Security Indicator.",
+          "force": "MUST"
+        }
+      },
+      "affects": ["Providers"],
+      "controls": ["cm-2.2", "si-6"],
+      "terms": ["Persistently", "Validation", "Verification"],
+      "updated": [
+        {
+          "date": "2026-10-13",
+          "comment": "Updated control mappings: added cm-2.2, si-6."
+        },
+        {
+          "date": "2026-06-24",
+          "comment": "Official launch of the FedRAMP Consolidated Rules for 2026."
+        }
+      ]
+    },
+    "document_context": {
+      "name": "FedRAMP Certification",
+      "short_name": "FRC",
+      "web_name": "fedramp-certification",
+      "purpose": "This ruleset explains how cloud service offerings obtain and maintain FedRAMP Certification across certification classes and paths.",
+      "status": "stable",
+      "tag": "other",
+      "subsets": {
+        "CSO": {
+          "name": "General Provider Responsibilities",
+          "description": "These rules apply to cloud service providers obtaining and maintaining any FedRAMP Certification.",
+          "applicability": {
+            "types": ["20x", "Rev5"],
+            "paths": ["Program", "Agency"],
+            "classes": ["A", "B", "C", "D"],
+            "affects": ["Providers"]
+          }
+        },
+        "CLA": {
+          "name": "FedRAMP Class A Certification Rules",
+          "description": "These are specific rules that apply to providers seeking FedRAMP Class A Certifications.",
+          "applicability": {
+            "types": ["20x"],
+            "paths": ["Program"],
+            "classes": ["A"],
+            "affects": ["Providers"]
+          }
+        },
+        "APP": {
+          "name": "Applying for FedRAMP Certification",
+          "description": "These rules apply to cloud service providers who have met all other relevant rules and are ready to apply for any FedRAMP Certification.",
+          "applicability": {
+            "types": ["20x", "Rev5"],
+            "paths": ["Program", "Agency"],
+            "classes": ["A", "B", "C", "D"],
+            "affects": ["Providers"]
+          }
+        },
+        "APS": {
+          "name": "Applying for FedRAMP Certification with an Agency Sponsor",
+          "description": "These rules apply to cloud service providers with an Agency Sponsor who have met all other relevant rules and are ready to apply for any FedRAMP Certification.",
+          "applicability": {
+            "types": ["Rev5"],
+            "paths": ["Agency"],
+            "classes": ["B", "C", "D"],
+            "affects": ["Providers"]
+          }
+        },
+        "CCL": {
+          "name": "Changing Certification Class",
+          "description": "These rules apply to cloud service providers when changing their FedRAMP Certification Class.",
+          "applicability": {
+            "types": ["Rev5"],
+            "paths": ["Agency"],
+            "classes": ["B", "C", "D"],
+            "affects": ["Providers"]
+          }
+        }
+      },
+      "20x": {
+        "effective": {
+          "is": "required",
+          "current_status": "Consolidated Rules for 2026",
+          "date": {
+            "obtain": "2026-07-04",
+            "maintain": "2027-01-01",
+            "optional_adoption": "2026-07-04",
+            "grace": {
+              "default": "2027-01-01",
+              "until_next_assessment": true
+            }
+          }
+        },
+        "subsets": {
+          "CSX": {
+            "name": "20x-Specific Provider Responsibilities",
+            "description": "These rules apply to providers for FedRAMP 20x Certifications.",
+            "applicability": {
+              "types": ["20x"],
+              "paths": ["Program"],
+              "classes": ["B", "C", "D"],
+              "affects": ["Providers"]
+            }
+          }
+        }
+      },
+      "rev5": {
+        "effective": {
+          "is": "required",
+          "current_status": "Consolidated Rules for 2026",
+          "date": {
+            "obtain": "2027-01-01",
+            "maintain": "2027-01-01",
+            "optional_adoption": "2026-07-04",
+            "grace": {
+              "default": "2027-01-01",
+              "until_next_assessment": true
+            }
+          }
+        },
+        "subsets": {
+          "CSF": {
+            "name": "Rev5-Specific Provider Responsibilities",
+            "description": "These rules apply to providers for FedRAMP Rev5 Certifications.",
+            "applicability": {
+              "types": ["Rev5"],
+              "paths": ["Program", "Agency"],
+              "classes": ["B", "C", "D"],
+              "affects": ["Providers"]
+            }
+          }
+        }
+      }
+    }
+  },
+  "rows": [
+    {
+      "id": "KSI-IAM-AAM",
+      "risk_domain": "identity-lifecycle",
+      "evidence_checks": "Reconciled inventories of all scoped accounts, roles and groups; joiner, mover and leaver automation; privilege change records; execution results and exceptions; stale or orphaned identity detection; coverage of non-user identities and external identity providers.",
+      "mapping_rationale": "A dedicated assessor record examines lifecycle and privilege automation for all three source populations; generic account inventory alone does not demonstrate the indicator.",
+      "failure_modes": "Unmanaged groups or service identities, incomplete joiner/mover/leaver coverage, failed disablement jobs, unreviewed privilege changes, or missing population reconciliation.",
+      "title": "Automating Account Management",
+      "statement": "The lifecycle and privileges of all accounts, roles, and groups are securely managed using automation.",
+      "source_status": "stable",
+      "source_updated": [
+        {
+          "date": "2026-10-13",
+          "comment": "Updated control mappings: added ia-8.4."
+        },
+        {
+          "date": "2026-06-24",
+          "comment": "Official launch of the FedRAMP Consolidated Rules for 2026."
+        }
+      ],
+      "related_nist_controls": [
+        "ac-2.13",
+        "ac-2.2",
+        "ac-2.3",
+        "ac-6.7",
+        "ia-12",
+        "ia-12.2",
+        "ia-12.3",
+        "ia-12.5",
+        "ia-4.4",
+        "ia-8.4"
+      ],
+      "evidence_requirement": "An explicitly bound, scoped assessor record must identify the assessor, tenant and service boundary, source revision, assessment period, population reconciliation, applicability decision, evidence references, methods, outcomes and exceptions. Reconciled inventories of all scoped accounts, roles and groups; joiner, mover and leaver automation; privilege change records; execution results and exceptions; stale or orphaned identity detection; coverage of non-user identities and external identity providers. Record measure objectives, the documented cycle and interruptions for persistent measures, verification of automation accuracy and sufficiency (or why automation is unnecessary), and validation that measures are operating as intended. Missing evidence or unknown applicability blocks a conclusion. This is an assessor assertion, not an automated demonstration of the indicator or independent approval. A snapshot cannot establish persistent performance.",
+      "required_evidence_types": ["ksi_iam_aam_assessment"]
+    },
+    {
+      "id": "KSI-IAM-APM",
+      "risk_domain": "authentication",
+      "evidence_checks": "Scoped user population and authentication methods; passwordless enforcement and validation; documented feasibility exceptions; strong-password and phishing-resistant MFA enforcement for each exception; enrollment, recovery and bypass paths; execution results and exceptions.",
+      "mapping_rationale": "A dedicated assessor record distinguishes secure passwordless methods from the source fallback requiring both strong passwords and phishing-resistant MFA. A generic MFA-enabled flag is insufficient.",
+      "failure_modes": "Password-only fallback, phishable MFA, undocumented feasibility exceptions, unenrolled users, bypass or recovery paths, and policy configuration without enforcement evidence.",
+      "title": "Adopting Passwordless Methods",
+      "statement": "Secure passwordless methods are used for user authentication and authorization when feasible, otherwise strong passwords with phishing-resistant MFA is used.",
+      "source_status": "stable",
+      "source_updated": [
+        {
+          "date": "2026-10-13",
+          "comment": "Updated control mappings: added ia-2.6, ia-5.8, ia-8.2, ia-8.4."
+        },
+        {
+          "date": "2026-06-24",
+          "comment": "Official launch of the FedRAMP Consolidated Rules for 2026."
+        }
+      ],
+      "related_nist_controls": [
+        "ac-2",
+        "ac-3",
+        "ia-2",
+        "ia-2.1",
+        "ia-2.2",
+        "ia-2.6",
+        "ia-2.8",
+        "ia-5",
+        "ia-5.1",
+        "ia-5.2",
+        "ia-5.6",
+        "ia-5.8",
+        "ia-6",
+        "ia-8",
+        "ia-8.2",
+        "ia-8.4",
+        "sc-23"
+      ],
+      "evidence_requirement": "An explicitly bound, scoped assessor record must identify the assessor, tenant and service boundary, source revision, assessment period, population reconciliation, applicability decision, evidence references, methods, outcomes and exceptions. Scoped user population and authentication methods; passwordless enforcement and validation; documented feasibility exceptions; strong-password and phishing-resistant MFA enforcement for each exception; enrollment, recovery and bypass paths; execution results and exceptions. Record measure objectives, the documented cycle and interruptions for persistent measures, verification of automation accuracy and sufficiency (or why automation is unnecessary), and validation that measures are operating as intended. Missing evidence or unknown applicability blocks a conclusion. This is an assessor assertion, not an automated demonstration of the indicator or independent approval. A snapshot cannot establish persistent performance.",
+      "required_evidence_types": ["ksi_iam_apm_assessment"]
+    }
+  ]
+}

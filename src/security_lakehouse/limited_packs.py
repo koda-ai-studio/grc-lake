@@ -13,6 +13,7 @@ transform that turns a manifest row into a :class:`PackControlSpec`.
 
 from __future__ import annotations
 
+import json
 import re
 from collections.abc import Callable, Iterable
 
@@ -233,7 +234,35 @@ def iso_27001_isms_specs() -> list[PackControlSpec]:
     )
 
 
+def fedramp_ksi_specs() -> list[PackControlSpec]:
+    """Bounded source indicators with dedicated proposed assessor evidence."""
+    manifest = json.loads((PACK_DATA_DIR / "fedramp_ksi_2026.json").read_text())
+    return pack_from_manifest(
+        PACK_DATA_DIR / "fedramp_ksi_2026.json",
+        transform=lambda row: PackControlSpec(
+            control_id=row.id,
+            framework_id="fedramp-ksi-2026",
+            framework="FedRAMP KSI identity assessment subset",
+            framework_ref=row.id,
+            article_id=row.id,
+            title=row.title,
+            risk_domain=str(row.extra["risk_domain"]),
+            owner="security-assurance",
+            evaluation_rule="fail_when_open_violation_or_stale_evidence",
+            evidence_requirement=str(row.extra["evidence_requirement"]),
+            asset_types=("service",),
+            source_url=manifest["source"]["url"],
+            official_source_ref="fedramp-ksi-2026",
+            required_evidence_types=tuple(row.extra["required_evidence_types"]),
+            reconciled_at=manifest["source"]["pulled_at"],
+            version=manifest["source"]["version"],
+            frequency="documented assessment cycle and after material change",
+        ),
+    )
+
+
 LIMITED_PACK_BUILDERS = {
+    "fedramp-ksi": fedramp_ksi_specs,
     "iso-27001-isms": iso_27001_isms_specs,
     "gdpr": gdpr_limited_pack_specs,
     "hipaa": hipaa_limited_pack_specs,
@@ -247,6 +276,7 @@ LIMITED_PACK_BUILDERS = {
 
 # Expected minimum seeded counts after limited pack sync (existing + new).
 LIMITED_PACK_MINIMUMS = {
+    "fedramp-ksi-2026": 2,
     "iso-27001-isms-2022": 30,
     "gdpr-2016-679": 20,
     "hipaa-security-rule": 18,

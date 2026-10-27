@@ -1,14 +1,14 @@
 {
   "schema_version": "trustops.catalog_bundle.v1",
   "as_of": null,
-  "framework_count": 23,
-  "control_count": 2282,
-  "crosswalk_count": 2282,
+  "framework_count": 24,
+  "control_count": 2284,
+  "crosswalk_count": 2284,
   "components": {
-    "frameworks": "759caa8842d2efac6b9a835bd0ad32905ed1148d4b0030cbede8e6a51ec31c9e",
-    "controls": "68fe185fa57902775f66c22d687cb0950f07b131237f986091e7245534787776",
-    "crosswalk": "233d66f343b9c08aee346b5b6ef6c001b42d275a199586f8f4974f54eeb83ea1",
-    "safeguards": "e23ec10fb22af3f3d0c33a92191ebde51b94f88afd7d47601f3bbab9f9680825"
+    "frameworks": "092dd43d622d05a126e284ece7e91fbf36fb42df331b4366179c0b6617a7056e",
+    "controls": "155e570cffca31a963c8253e39f3bae856df17734e1019557bf57b3143b32900",
+    "crosswalk": "4830ce108b1429945999795f87ce90ed9b4c9073a780e45c026f311309d3f06b",
+    "safeguards": "c8b8f91f6c8bb2e5054df5886be73e79381d1acbd7cdd3a4caa016d5111fec59"
   },
   "framework_versions": [
     {
@@ -45,6 +45,13 @@
       "effective_date": "2024-08-01",
       "superseded_by": null,
       "source_sha256": null
+    },
+    {
+      "framework_id": "fedramp-ksi-2026",
+      "version": "2026.10.13.01",
+      "effective_date": null,
+      "superseded_by": null,
+      "source_sha256": "fb48d677a85d77fb72735a325de2c1945a1e0ceab1d2e655292fe9ebe3e4e0b4"
     },
     {
       "framework_id": "fedramp-moderate",
@@ -6164,6 +6171,20 @@
       "framework_id": "iso-42001-2023",
       "version": "1.0.0",
       "valid_from": "2026-10-06",
+      "lifecycle_status": "active"
+    },
+    {
+      "control_id": "KSI-IAM-AAM",
+      "framework_id": "fedramp-ksi-2026",
+      "version": "2026.10.13.01",
+      "valid_from": "2026-10-27",
+      "lifecycle_status": "active"
+    },
+    {
+      "control_id": "KSI-IAM-APM",
+      "framework_id": "fedramp-ksi-2026",
+      "version": "2026.10.13.01",
+      "valid_from": "2026-10-27",
       "lifecycle_status": "active"
     },
     {
@@ -16149,5 +16170,5 @@
       "lifecycle_status": "active"
     }
   ],
-  "bundle_sha256": "9add8d274b675251a6c95bee83fa3462267f50da6c354d22dc7cdc39d93e6afb"
+  "bundle_sha256": "037fd5809959a55d284873e3ee3f0d562e582b474ac55711fcdf1e99ed753816"
 }

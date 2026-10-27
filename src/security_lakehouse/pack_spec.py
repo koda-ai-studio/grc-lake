@@ -28,3 +28,5 @@ class PackControlSpec:
     # Date a row was reconciled with its pinned official source; such rows stay
     # proposed until a human reviews them.
     reconciled_at: str | None = None
+    version: str = "1.0.0"
+    frequency: str = "continuous"

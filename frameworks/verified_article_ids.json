@@ -317,6 +317,7 @@
       "Art.72",
       "Art.9"
     ],
+    "fedramp-ksi-2026": ["KSI-IAM-AAM", "KSI-IAM-APM"],
     "fedramp-moderate": [
       "AC-1",
       "AC-11",

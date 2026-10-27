@@ -10,7 +10,10 @@ from security_lakehouse.mappings import load_control_article_mappings
 def test_limited_pack_builders_emit_expected_counts() -> None:
     for pack_id, builder in LIMITED_PACK_BUILDERS.items():
         specs = list(builder())
-        assert len(specs) >= 9, f"{pack_id} should emit a meaningful subset"
+        if pack_id == "fedramp-ksi":
+            assert {spec.control_id for spec in specs} == {"KSI-IAM-AAM", "KSI-IAM-APM"}
+        else:
+            assert len(specs) >= 9, f"{pack_id} should emit a meaningful subset"
 
 
 def test_limited_frameworks_meet_minimum_seeded_counts() -> None:

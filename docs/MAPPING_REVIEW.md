@@ -41,8 +41,8 @@ not part of the decision. The same limits apply as for the earlier record: this
 is a mapping approval only, and operating effectiveness and certification need
 separate evidence.
 
-At the current source revision, 886/2,282 requirements have reviewed mappings
-(38.8%) and 2,196/2,282 are mapped (96.2%). SOC 2 has 49/61 reviewed requirements
+At the current source revision, 886/2,284 requirements have reviewed mappings
+(38.8%) and 2,198/2,284 are mapped (96.2%). SOC 2 has 49/61 reviewed requirements
 (80.3%), ISO 27001 has 43/93 (46.2%), and ISO 42001 has 5/40 (12.5%).
 The 354 historical mappings without decision receipts are now proposed. Their
 [historical inventory](../controls/reviews/legacy-unattributed.json) preserves the

@@ -12154,6 +12154,36 @@
       ]
     },
     {
+      "control_id": "KSI-IAM-AAM",
+      "framework_id": "fedramp-ksi-2026",
+      "articles": [
+        {
+          "article_id": "KSI-IAM-AAM",
+          "title": "Automating Account Management",
+          "official_source_url": "https://raw.githubusercontent.com/FedRAMP/rules/a89d78477ddea98dc57eca24f5007794c2b4eeb6/fedramp-consolidated-rules.json",
+          "source_reconciled_by": "automated-source-reconciliation",
+          "review_status": "proposed",
+          "source_reconciled_at": "2026-10-27T00:00:00Z",
+          "rationale": "Pack mapping to KSI-IAM-AAM."
+        }
+      ]
+    },
+    {
+      "control_id": "KSI-IAM-APM",
+      "framework_id": "fedramp-ksi-2026",
+      "articles": [
+        {
+          "article_id": "KSI-IAM-APM",
+          "title": "Adopting Passwordless Methods",
+          "official_source_url": "https://raw.githubusercontent.com/FedRAMP/rules/a89d78477ddea98dc57eca24f5007794c2b4eeb6/fedramp-consolidated-rules.json",
+          "source_reconciled_by": "automated-source-reconciliation",
+          "review_status": "proposed",
+          "source_reconciled_at": "2026-10-27T00:00:00Z",
+          "rationale": "Pack mapping to KSI-IAM-APM."
+        }
+      ]
+    },
+    {
       "control_id": "NIS2-Art21.2(a)",
       "framework_id": "nis2-2022-2555",
       "articles": [

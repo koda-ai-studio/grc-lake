@@ -58,7 +58,9 @@ REVIEWED_BY = "internal-trust-team"
 REVIEWED_DATE = "2026-06-30"
 # Packs whose identifier mappings are generated from a pinned official source
 # and have not been human-reviewed; rows stay ``proposed`` until promoted.
-PROPOSED_SOURCE_FRAMEWORKS = frozenset({"nist-csf-2.0", "nist-800-53-rev5", "nist-rmf-800-37r2", "iso-27001-isms-2022"})
+PROPOSED_SOURCE_FRAMEWORKS = frozenset(
+    {"nist-csf-2.0", "nist-800-53-rev5", "nist-rmf-800-37r2", "iso-27001-isms-2022", "fedramp-ksi-2026"}
+)
 NIST_800_53_SOURCE = "https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final"
 NIST_800_171_R3_SOURCE = "https://csrc.nist.gov/pubs/sp/800/171/r3/final"
 SOURCE_RECONCILED_BY = "automated-source-reconciliation"
@@ -644,11 +646,11 @@ def pack_control_row(spec: PackControlSpec) -> JsonObject:
             "owner": spec.owner,
             "evidence_requirement": spec.evidence_requirement,
             "evaluation_rule": spec.evaluation_rule,
-            "frequency": "continuous",
+            "frequency": spec.frequency,
             "implementation_status": "implemented_limited_mapping"
             if spec.framework_id in PROPOSED_SOURCE_FRAMEWORKS
             else "implemented",
-            "version": "1.0.0",
+            "version": spec.version,
             "valid_from": reconciled or REVIEWED_DATE,
             "valid_to": None,
             "supersedes": None,
