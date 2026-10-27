@@ -1,0 +1,306 @@
+[
+  {
+    "class_uid": 5002,
+    "category_uid": 5,
+    "type_uid": 500201,
+    "activity_id": 1,
+    "severity_id": 1,
+    "time": 1790000001000,
+    "cloud": {
+      "account": {
+        "uid": "synthetic-scope-a"
+      },
+      "provider": "Synthetic"
+    },
+    "metadata": {
+      "uid": "config_state-1",
+      "version": "1.5.0",
+      "product": {
+        "name": "Synthetic OCSF producer",
+        "vendor_name": "example.com",
+        "version": "test-1"
+      }
+    },
+    "status_id": 1,
+    "device": {
+      "uid": "synthetic-host",
+      "type_id": 1,
+      "hostname": "host.example.com"
+    },
+    "assessments": [
+      {
+        "name": "example-check",
+        "desc": "Synthetic assessment observation"
+      }
+    ],
+    "cis_benchmark_result": {
+      "name": "Synthetic baseline",
+      "score": 100
+    }
+  },
+  {
+    "class_uid": 5002,
+    "category_uid": 5,
+    "type_uid": 500201,
+    "activity_id": 1,
+    "severity_id": 1,
+    "time": 1790000005000,
+    "cloud": {
+      "account": {
+        "uid": "synthetic-scope-a"
+      },
+      "provider": "Synthetic"
+    },
+    "metadata": {
+      "uid": "config_state-5",
+      "version": "1.5.0",
+      "product": {
+        "name": "Synthetic OCSF producer",
+        "vendor_name": "example.com",
+        "version": "test-1"
+      }
+    },
+    "status_id": 2,
+    "device": {
+      "uid": "synthetic-host",
+      "type_id": 1,
+      "hostname": "host.example.com"
+    },
+    "assessments": [
+      {
+        "name": "example-check",
+        "desc": "Synthetic assessment observation"
+      }
+    ],
+    "cis_benchmark_result": {
+      "name": "Synthetic baseline",
+      "score": 100
+    }
+  },
+  {
+    "class_uid": 5001,
+    "category_uid": 5,
+    "type_uid": 500101,
+    "activity_id": 1,
+    "severity_id": 1,
+    "time": 1790000001000,
+    "cloud": {
+      "account": {
+        "uid": "synthetic-scope-a"
+      },
+      "provider": "Synthetic"
+    },
+    "metadata": {
+      "uid": "device_inventory-1",
+      "version": "1.5.0",
+      "product": {
+        "name": "Synthetic OCSF producer",
+        "vendor_name": "example.com",
+        "version": "test-1"
+      }
+    },
+    "status_id": 1,
+    "device": {
+      "uid": "synthetic-host",
+      "type_id": 1,
+      "hostname": "host.example.com"
+    }
+  },
+  {
+    "class_uid": 5001,
+    "category_uid": 5,
+    "type_uid": 500101,
+    "activity_id": 1,
+    "severity_id": 1,
+    "time": 1790000005000,
+    "cloud": {
+      "account": {
+        "uid": "synthetic-scope-a"
+      },
+      "provider": "Synthetic"
+    },
+    "metadata": {
+      "uid": "device_inventory-5",
+      "version": "1.5.0",
+      "product": {
+        "name": "Synthetic OCSF producer",
+        "vendor_name": "example.com",
+        "version": "test-1"
+      }
+    },
+    "status_id": 2,
+    "device": {
+      "uid": "synthetic-host",
+      "type_id": 1,
+      "hostname": "host.example.com"
+    }
+  },
+  {
+    "class_uid": 2006,
+    "category_uid": 2,
+    "type_uid": 200601,
+    "activity_id": 1,
+    "severity_id": 1,
+    "time": 1790000001000,
+    "cloud": {
+      "account": {
+        "uid": "synthetic-scope-a"
+      },
+      "provider": "Synthetic"
+    },
+    "metadata": {
+      "uid": "data_security_finding-1",
+      "version": "1.5.0",
+      "product": {
+        "name": "Synthetic OCSF producer",
+        "vendor_name": "example.com",
+        "version": "test-1"
+      }
+    },
+    "status_id": 1,
+    "finding_info": {
+      "uid": "synthetic-data-finding",
+      "title": "Synthetic sensitive-data signal",
+      "src_url": "https://example.com/findings/data"
+    },
+    "data_security": {
+      "policy": {
+        "name": "Synthetic DLP policy"
+      }
+    },
+    "resources": [
+      {
+        "uid": "resource-a",
+        "type": "AwsS3Bucket"
+      },
+      {
+        "uid": "resource-b",
+        "type": "database"
+      }
+    ],
+    "is_alert": true
+  },
+  {
+    "class_uid": 2006,
+    "category_uid": 2,
+    "type_uid": 200603,
+    "activity_id": 3,
+    "severity_id": 1,
+    "time": 1790000005000,
+    "cloud": {
+      "account": {
+        "uid": "synthetic-scope-a"
+      },
+      "provider": "Synthetic"
+    },
+    "metadata": {
+      "uid": "data_security_finding-5",
+      "version": "1.5.0",
+      "product": {
+        "name": "Synthetic OCSF producer",
+        "vendor_name": "example.com",
+        "version": "test-1"
+      }
+    },
+    "status_id": 5,
+    "finding_info": {
+      "uid": "synthetic-data-finding",
+      "title": "Synthetic sensitive-data signal",
+      "src_url": "https://example.com/findings/data"
+    },
+    "data_security": {
+      "policy": {
+        "name": "Synthetic DLP policy"
+      }
+    },
+    "resources": [
+      {
+        "uid": "resource-a",
+        "type": "AwsS3Bucket"
+      },
+      {
+        "uid": "resource-b",
+        "type": "database"
+      }
+    ],
+    "is_alert": false
+  },
+  {
+    "class_uid": 2005,
+    "category_uid": 2,
+    "type_uid": 200501,
+    "activity_id": 1,
+    "severity_id": 1,
+    "time": 1790000001000,
+    "cloud": {
+      "account": {
+        "uid": "synthetic-scope-a"
+      },
+      "provider": "Synthetic"
+    },
+    "metadata": {
+      "uid": "incident_finding-1",
+      "version": "1.5.0",
+      "product": {
+        "name": "Synthetic OCSF producer",
+        "vendor_name": "example.com",
+        "version": "test-1"
+      },
+      "profiles": ["incident"]
+    },
+    "status_id": 1,
+    "finding_info_list": [
+      {
+        "uid": "related-a",
+        "title": "Related signal A"
+      },
+      {
+        "uid": "related-b",
+        "title": "Related signal B"
+      }
+    ],
+    "assignee": {
+      "uid": "synthetic-reviewer"
+    },
+    "src_url": "https://example.com/incidents/one"
+  },
+  {
+    "class_uid": 2005,
+    "category_uid": 2,
+    "type_uid": 200503,
+    "activity_id": 3,
+    "severity_id": 1,
+    "time": 1790000005000,
+    "cloud": {
+      "account": {
+        "uid": "synthetic-scope-a"
+      },
+      "provider": "Synthetic"
+    },
+    "metadata": {
+      "uid": "incident_finding-5",
+      "version": "1.5.0",
+      "product": {
+        "name": "Synthetic OCSF producer",
+        "vendor_name": "example.com",
+        "version": "test-1"
+      },
+      "profiles": ["incident"]
+    },
+    "status_id": 5,
+    "finding_info_list": [
+      {
+        "uid": "related-a",
+        "title": "Related signal A"
+      },
+      {
+        "uid": "related-b",
+        "title": "Related signal B"
+      }
+    ],
+    "assignee": {
+      "uid": "synthetic-reviewer"
+    },
+    "src_url": "https://example.com/incidents/one"
+  }
+]

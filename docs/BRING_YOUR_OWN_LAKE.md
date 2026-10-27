@@ -325,16 +325,20 @@ IDs. Preserve existing evidence and re-ingest source history into a fresh lake. 
 rows alone does not rewrite their IDs. Avoid mixing old unscoped and new scoped
 records in one assessment; generic mappings without the new field keep their IDs.
 
-| Preset                       | OCSF class                      | OCSF version | Watermark         | Status                                              | Control hints                                                                     |
-| ---------------------------- | ------------------------------- | ------------ | ----------------- | --------------------------------------------------- | --------------------------------------------------------------------------------- |
-| `ocsf/authentication`        | Authentication (3002)           | 1.1.0        | `time_dt`         | Rules (see below); otherwise `observed`             | SOC2-CC6.1, ISO27001-A.8.5, ISO27001-A.8.15, NIST-800-53-IA-2, NIST-800-53-AU-2   |
-| `ocsf/account_change`        | Account Change (3001)           | 1.1.0        | `time_dt`         | Rules (see below); otherwise `observed`             | SOC2-CC6.2, SOC2-CC6.3, ISO27001-A.5.16, ISO27001-A.5.18, NIST-800-53-AC-2        |
-| `ocsf/group_management`      | Group Management (3006)         | 1.1.0        | `time_dt`         | Rules (see below); otherwise `observed`             | SOC2-CC6.2, SOC2-CC6.3, ISO27001-A.5.16, ISO27001-A.5.18, NIST-800-53-AC-2        |
-| `ocsf/api_activity`          | API Activity (6003)             | 1.1.0        | `time_dt`         | `observed`                                          | SOC2-CC7.2, ISO27001-A.8.15, ISO27001-A.8.16, NIST-800-53-AU-2, NIST-800-53-AU-12 |
-| `ocsf/detection_finding`     | Detection Finding (2004)        | 1.1.0        | `time_dt`         | `status_id` New/In Progress → open, Resolved → pass | SOC2-CC7.2, SOC2-CC7.3, ISO27001-A.8.16, NIST-800-53-SI-4                         |
-| `ocsf/vulnerability_finding` | Vulnerability Finding (2002)    | 1.1.0        | `time_dt`         | `status_id` as above                                | SOC2-CC7.1, ISO27001-A.8.8, NIST-800-53-RA-5, NIST-800-53-SI-2                    |
-| `ocsf/compliance_finding`    | Compliance Finding (2003)       | 1.1.0        | `time_dt`         | `compliance.status_id` Pass → pass, Fail → open     | SOC2-CC7.1, ISO27001-A.8.9, NIST-800-53-CM-6, NIST-800-53-CA-7                    |
-| `ocsf/security_finding`      | Security Finding (2001, legacy) | 1.0.0-rc.2   | `time` (epoch ms) | `state_id` New/In Progress → open, Resolved → pass  | SOC2-CC7.2, ISO27001-A.8.16, NIST-800-53-SI-4                                     |
+| Preset                       | OCSF class                             | OCSF version | Watermark         | Status                                              | Control hints                                                                     |
+| ---------------------------- | -------------------------------------- | ------------ | ----------------- | --------------------------------------------------- | --------------------------------------------------------------------------------- |
+| `ocsf/authentication`        | Authentication (3002)                  | 1.1.0        | `time_dt`         | Rules (see below); otherwise `observed`             | SOC2-CC6.1, ISO27001-A.8.5, ISO27001-A.8.15, NIST-800-53-IA-2, NIST-800-53-AU-2   |
+| `ocsf/account_change`        | Account Change (3001)                  | 1.1.0        | `time_dt`         | Rules (see below); otherwise `observed`             | SOC2-CC6.2, SOC2-CC6.3, ISO27001-A.5.16, ISO27001-A.5.18, NIST-800-53-AC-2        |
+| `ocsf/group_management`      | Group Management (3006)                | 1.1.0        | `time_dt`         | Rules (see below); otherwise `observed`             | SOC2-CC6.2, SOC2-CC6.3, ISO27001-A.5.16, ISO27001-A.5.18, NIST-800-53-AC-2        |
+| `ocsf/api_activity`          | API Activity (6003)                    | 1.1.0        | `time_dt`         | `observed`                                          | SOC2-CC7.2, ISO27001-A.8.15, ISO27001-A.8.16, NIST-800-53-AU-2, NIST-800-53-AU-12 |
+| `ocsf/detection_finding`     | Detection Finding (2004)               | 1.1.0        | `time_dt`         | `status_id` New/In Progress → open, Resolved → pass | SOC2-CC7.2, SOC2-CC7.3, ISO27001-A.8.16, NIST-800-53-SI-4                         |
+| `ocsf/vulnerability_finding` | Vulnerability Finding (2002)           | 1.1.0        | `time_dt`         | `status_id` as above                                | SOC2-CC7.1, ISO27001-A.8.8, NIST-800-53-RA-5, NIST-800-53-SI-2                    |
+| `ocsf/compliance_finding`    | Compliance Finding (2003)              | 1.1.0        | `time_dt`         | `compliance.status_id` Pass → pass, Fail → open     | SOC2-CC7.1, ISO27001-A.8.9, NIST-800-53-CM-6, NIST-800-53-CA-7                    |
+| `ocsf/security_finding`      | Security Finding (2001, legacy)        | 1.0.0-rc.2   | `time` (epoch ms) | `state_id` New/In Progress → open, Resolved → pass  | SOC2-CC7.2, ISO27001-A.8.16, NIST-800-53-SI-4                                     |
+| `ocsf/device_inventory`      | Device Inventory Info (5001)           | 1.5.0        | `time` (epoch ms) | `observed`                                          | ISO27001-A.5.9, NIST-800-53-CM-8                                                  |
+| `ocsf/config_state`          | Device Config State (5002, deprecated) | 1.5.0        | `time` (epoch ms) | `observed`                                          | ISO27001-A.8.9, NIST-800-53-CM-6                                                  |
+| `ocsf/data_security_finding` | Data Security Finding (2006)           | 1.5.0        | `time` (epoch ms) | `observed`                                          | SOC2-C1.1, ISO27001-A.8.12                                                        |
+| `ocsf/incident_finding`      | Incident Finding (2005)                | 1.5.0        | `time` (epoch ms) | `observed`                                          | SOC2-CC7.3, SOC2-CC7.4, ISO27001-A.5.26, NIST-800-53-IR-4                         |
 
 Severity comes from OCSF `severity_id` (1 Informational → info, 2 → low,
 3 → medium, 4 → high, 5 Critical and 6 Fatal → critical; 0 and 99 → info). Control
@@ -348,6 +352,45 @@ Change, and API Activity
 ([OCSF CloudTrail mappings](https://github.com/ocsf/examples/tree/main/mappings/markdown/AWS/v1.1.0/CloudTrail)).
 Use `ocsf/group_management` for directory or identity-provider logs that you
 normalize to OCSF yourself or receive through a Security Lake custom source.
+
+### Discovery, data-security and incident observations
+
+The four 1.5.0 presets target the upstream
+[release tag `1.5.0`](https://github.com/ocsf/ocsf-schema/tree/78bf68a24b38c0d6441ddd13b9028c1b1eb53f07),
+pinned to `78bf68a24b38c0d6441ddd13b9028c1b1eb53f07`. That tag's
+`version.json` contains `1.6.0-dev`; the provenance label here identifies the
+release tag, not that internal file. Input `metadata.version` is retained
+separately from the preset's source release and revision.
+
+The source contracts are
+[Device Inventory Info](https://github.com/ocsf/ocsf-schema/blob/78bf68a24b38c0d6441ddd13b9028c1b1eb53f07/events/discovery/inventory_info.json),
+[Device Config State](https://github.com/ocsf/ocsf-schema/blob/78bf68a24b38c0d6441ddd13b9028c1b1eb53f07/events/discovery/config_state.json),
+[Data Security Finding](https://github.com/ocsf/ocsf-schema/blob/78bf68a24b38c0d6441ddd13b9028c1b1eb53f07/events/findings/data_security_finding.json), and
+[Incident Finding](https://github.com/ocsf/ocsf-schema/blob/78bf68a24b38c0d6441ddd13b9028c1b1eb53f07/events/findings/incident_finding.json).
+Config State is deprecated upstream since 1.5.0; prefer Compliance Finding for
+new producers. It remains available for existing source tables.
+
+These presets require `metadata.uid`, `cloud.account.uid` and epoch-millisecond
+`time`. OCSF permits producers to omit some of these identifiers; this bounded
+mapping profile requires them for replay and source-account separation. Device
+rows additionally require `device.uid`; data-security rows require
+`finding_info.uid`. Missing identifiers or invalid timestamps produce mapping
+errors and partial-collection gaps through the reader. The mapper is not a full
+OCSF schema validator, and does not enforce the input's declared schema version.
+
+Device rows describe a host. Data-security rows describe a finding record and
+incident rows describe an event instance (`lake_record`), not a selected affected
+resource. Full resource/finding lists remain in attributes; no first-resource
+selection silently narrows the claimed population. The original workflow status,
+product version, source schema version, preset revision, raw content hash and
+source-account scope remain available for review.
+
+All four presets emit `observed` with no safeguard binding. Inventory presence,
+a configuration snapshot, an alert, suppression, resolution or incident closure
+cannot establish control effectiveness. Unknown or absent posture fields never
+become passes; control hints are navigation context only. Assess specific controls
+using separately qualified, explicitly bound evidence. These synthetic
+interchange tests do not qualify a live lake provider or approve framework mappings.
 
 ### OCSF events in the Common Control Framework
 

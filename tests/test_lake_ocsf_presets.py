@@ -36,6 +36,10 @@ EXPECTED_PRESETS = {
     "ocsf/vulnerability_finding": 2002,
     "ocsf/compliance_finding": 2003,
     "ocsf/security_finding": 2001,
+    "ocsf/config_state": 5002,
+    "ocsf/device_inventory": 5001,
+    "ocsf/data_security_finding": 2006,
+    "ocsf/incident_finding": 2005,
 }
 
 
@@ -409,7 +413,10 @@ def _fresh_fixture(target: Path, table: str) -> Path:
     rows = read_fixture_table(FIXTURES, table)
     base = datetime.now(UTC) - timedelta(hours=2)
     for offset, row in enumerate(rows):
-        row["time_dt"] = (base + timedelta(minutes=offset)).strftime("%Y-%m-%dT%H:%M:%SZ")
+        observed = base + timedelta(minutes=offset)
+        row["time_dt"] = observed.strftime("%Y-%m-%dT%H:%M:%SZ")
+        if "time" in row:
+            row["time"] = int(observed.timestamp() * 1000)
     (target / f"{table}.json").write_text(json.dumps(rows), encoding="utf-8")
     return target
 
@@ -650,3 +657,155 @@ def test_every_ocsf_preset_requires_an_explicit_source_scope(preset: str) -> Non
     expected = "cloud.account_uid" if preset == "ocsf/security_finding" else "cloud.account.uid"
     assert spec.fields["source_account_id"].column == expected
     assert "cloud" in spec.top_level_columns()
+
+
+DISCOVERY_TABLE = "ocsf_discovery_data_incidents"
+OBSERVATION_PRESETS = [
+    "ocsf/config_state",
+    "ocsf/device_inventory",
+    "ocsf/data_security_finding",
+    "ocsf/incident_finding",
+]
+OCSF_SOURCE_REVISION = "78bf68a24b38c0d6441ddd13b9028c1b1eb53f07"
+
+
+@pytest.mark.parametrize("preset", OBSERVATION_PRESETS)
+def test_discovery_and_incident_states_remain_source_observations(preset: str) -> None:
+    result = map_rows(_preset(preset), read_fixture_table(FIXTURES, DISCOVERY_TABLE), collected_at=COLLECTED)
+    assert result.errors == []
+    assert len(result.events) == 2
+    assert validate_raw_events(result.events) == []
+    assert {event["status"] for event in result.events} == {"observed"}
+    for event in result.events:
+        assert not event.get("safeguard_ids")
+        assert event["tenant_id"] == "synthetic-scope-a"
+        attrs = event["attributes"]
+        assert attrs["ocsf_version"] == "1.5.0"
+        assert attrs["ocsf_schema_release"] == "1.5.0"
+        assert attrs["ocsf_schema_revision"] == OCSF_SOURCE_REVISION
+        assert attrs["product_version"] == "test-1"
+        assert len(attrs["raw_sha256"]) == 64
+        assert attrs["source_id"] in {f"{preset.split('/')[1]}-1", f"{preset.split('/')[1]}-5"}
+        if preset == "ocsf/data_security_finding":
+            assert len(attrs["resources"]) == 2
+            assert event["entity"]["asset_id"] == "synthetic-data-finding"
+            assert event["entity"]["asset_type"] == "lake_record"
+        if preset == "ocsf/incident_finding":
+            assert len(attrs["finding_info_list"]) == 2
+            assert event["entity"]["asset_type"] == "lake_record"
+
+
+@pytest.mark.parametrize("preset", OBSERVATION_PRESETS)
+@pytest.mark.parametrize("missing", ["cloud", "metadata", "time"])
+def test_new_ocsf_presets_reject_missing_identity_scope_or_time(preset: str, missing: str) -> None:
+    row = next(r for r in read_fixture_table(FIXTURES, DISCOVERY_TABLE) if r["class_uid"] == EXPECTED_PRESETS[preset])
+    row.pop(missing)
+    result = map_rows(_preset(preset), [row])
+    assert not result.events
+    assert len(result.errors) == 1
+
+
+def test_new_ocsf_presets_replay_and_preserve_accounts_without_attestation(tmp_path: Path) -> None:
+    from copy import deepcopy
+
+    from security_lakehouse.io import read_jsonl
+
+    fixture_dir = _fresh_fixture(tmp_path / "fixtures", DISCOVERY_TABLE)
+    rows = read_fixture_table(fixture_dir, DISCOVERY_TABLE)
+    other = deepcopy(rows)
+    for row in other:
+        row["cloud"]["account"]["uid"] = "synthetic-scope-b"
+    (fixture_dir / f"{DISCOVERY_TABLE}.json").write_text(json.dumps(rows + other))
+    lake = tmp_path / "lake"
+    append_config_event(
+        lake,
+        connector_id="databricks-evidence-lake",
+        state="enabled",
+        actor="t",
+        credentials={"host": "dbc-a1b2345c-d6e7.cloud.databricks.com"},
+        options={"mappings": [{"preset": p, "source": {"table": DISCOVERY_TABLE}} for p in OBSERVATION_PRESETS]},
+    )
+    for _ in range(2):
+        sync = run_connector_sync(
+            lake, connector_id="databricks-evidence-lake", fixture_dir=fixture_dir, materialize=False
+        )
+        assert sync.evidence_count == 16
+        raw = read_jsonl(lake / CONNECTOR_RAW_FILE)
+        assert len(raw) == len({r["event_id"] for r in raw}) == 16
+        assert {r["tenant_id"] for r in raw} == {"synthetic-scope-a", "synthetic-scope-b"}
+        assert {r["status"] for r in raw} == {"observed"}
+    out = tmp_path / "out"
+    run_pipeline(lake / CONNECTOR_RAW_FILE, out, tenant_id="platform-tenant")
+    assessment = read_json(out / "gold/ccf_assessment.json")
+    assert assessment["ambiguous_asset_count"] == 0
+    assert all(r["invalid_binding_count"] == 0 for r in assessment["safeguards"])
+    assert not any(r["status"] == "pass" for r in assessment["requirements"])
+    assert assessment["asset_results"] == []
+    silver = read_jsonl(out / "silver/normalized_events.jsonl")
+    assert {r["tenant_id"] for r in silver} == {"synthetic-scope-a", "synthetic-scope-b"}
+    assert len(silver) == 16
+
+
+@pytest.mark.parametrize("preset", OBSERVATION_PRESETS)
+def test_new_ocsf_partial_reads_keep_the_gap_and_block_attestation(tmp_path: Path, preset: str) -> None:
+    from copy import deepcopy
+
+    from security_lakehouse.io import read_jsonl
+
+    fixture_dir = _fresh_fixture(tmp_path / "fixtures", DISCOVERY_TABLE)
+    row = next(
+        r for r in read_fixture_table(fixture_dir, DISCOVERY_TABLE) if r["class_uid"] == EXPECTED_PRESETS[preset]
+    )
+    bad = deepcopy(row)
+    bad["cloud"] = {}
+    (fixture_dir / f"{DISCOVERY_TABLE}.json").write_text(json.dumps([row, bad]))
+    lake = tmp_path / "lake"
+    append_config_event(
+        lake,
+        connector_id="databricks-evidence-lake",
+        state="enabled",
+        actor="t",
+        credentials={"host": "dbc-a1b2345c-d6e7.cloud.databricks.com"},
+        options={"mapping": {"preset": preset, "source": {"table": DISCOVERY_TABLE}}},
+    )
+    sync = run_connector_sync(lake, connector_id="databricks-evidence-lake", fixture_dir=fixture_dir, materialize=False)
+    assert sync.run["metadata"]["partial"] is True
+    raw = read_jsonl(lake / CONNECTOR_RAW_FILE)
+    [gap] = [r for r in raw if r["attributes"].get("collection_gap")]
+    assert gap["status"] == "not_evaluated"
+    assert gap["attributes"]["unmapped_rows"] == 1
+    assert len(raw) == 2
+    out = tmp_path / "out"
+    run_pipeline(lake / CONNECTOR_RAW_FILE, out, tenant_id="platform-tenant")
+    assessment = read_json(out / "gold/ccf_assessment.json")
+    assert not any(r["status"] == "pass" for r in assessment["requirements"])
+
+
+@pytest.mark.parametrize(
+    "preset,subject",
+    [
+        ("ocsf/config_state", "device"),
+        ("ocsf/device_inventory", "device"),
+        ("ocsf/data_security_finding", "finding_info"),
+    ],
+)
+def test_new_ocsf_presets_cannot_replace_missing_subject_with_account(preset: str, subject: str) -> None:
+    row = next(r for r in read_fixture_table(FIXTURES, DISCOVERY_TABLE) if r["class_uid"] == EXPECTED_PRESETS[preset])
+    row[subject] = {}
+    result = map_rows(_preset(preset), [row])
+    assert result.events == []
+    assert result.errors == [{"row": 1, "error": "fields.asset_id: no value"}]
+
+
+@pytest.mark.parametrize("preset", OBSERVATION_PRESETS)
+@pytest.mark.parametrize("state", [None, 0, 3, 4, 5, 99])
+def test_missing_unknown_or_closed_source_status_is_not_a_control_verdict(preset: str, state: int | None) -> None:
+    row = next(r for r in read_fixture_table(FIXTURES, DISCOVERY_TABLE) if r["class_uid"] == EXPECTED_PRESETS[preset])
+    if state is None:
+        row.pop("status_id")
+    else:
+        row["status_id"] = state
+    [event] = map_rows(_preset(preset), [row]).events
+    assert event["status"] == "observed"
+    assert event["attributes"]["source_status_id"] == state
+    assert not event.get("safeguard_ids")
