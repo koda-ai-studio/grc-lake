@@ -1,0 +1,60 @@
+# CI duration balancing
+
+CI keeps six Python runners and two browser runners. Whole test files are
+assigned deterministically to the currently lightest runner, longest estimated
+file first. No test, retry, timeout, security gate, or required job is removed.
+New files participate automatically using collected test counts and the measured
+average time per test. Ordinary local runs are unchanged.
+
+Before execution, each browser runner collects the complete Playwright inventory,
+then collects its selected file filters again. The selected inventory must exactly
+match the plan; collection errors and empty shards fail. The actual Playwright
+exit status remains the job result. This guards against a passing partial selection.
+
+## First hosted measurement
+
+[Run 40556129241](https://github.com/koda-ai-studio/grc-lake/actions/runs/40556129241)
+at source `730dc1dc452340c41c1d1c19eb09a3f9cf024795` completed the two
+browser steps in 240 and 258 seconds (18 seconds apart). Retained plans select
+174 and 223 tests: their disjoint union is all 397 tests across 75 files. Results
+contain 396 passes, one skip, no unexpected failures and no flaky retries.
+
+The overall run failed the documentation-index check because this new page lacked
+an index link; it was not a passing full-CI result. This single browser measurement
+supports improved balance, not a guaranteed workflow runtime. The subsequent
+index-link fix leaves the scheduler and recorded weights unchanged.
+
+## Measurement baseline
+
+The following successful runs used native browser sharding. Times are the
+`Console Playwright smoke` step, not queue time or entire-job duration.
+
+| CI run                                                                             | Browser shard 1 | Browser shard 2 |
+| ---------------------------------------------------------------------------------- | --------------: | --------------: |
+| [40515293336](https://github.com/koda-ai-studio/grc-lake/actions/runs/40515293336) |           252 s |           167 s |
+| [40546672365](https://github.com/koda-ai-studio/grc-lake/actions/runs/40546672365) |           301 s |           159 s |
+| [40548803542](https://github.com/koda-ai-studio/grc-lake/actions/runs/40548803542) |           291 s |           204 s |
+| [40548974608](https://github.com/koda-ai-studio/grc-lake/actions/runs/40548974608) |           258 s |           196 s |
+
+These show an execution imbalance, not proof that scheduling alone guarantees
+an eight-minute workflow. Queue delay, runner availability, build time, and
+individual slow files can still dominate. Evaluate complete workflow and individual
+step times separately on subsequent runs.
+
+The Python weights were regenerated from all six JUnit artifacts of successful
+run 40548803542 (503 modules). The initial browser weights come from a complete local run of 397 collected tests (396 passed, one skipped)
+against the console artifact from main run 40552460643; they are bootstrap
+estimates, not CI performance proof. Browser weights are refreshed from the two retained
+`e2e-timings-*` artifacts. Each contains the selected-file plan and Playwright JSON
+results, including retry timings; artifacts survive failures for diagnosis and
+expire after 14 days. Refresh weights only from successful complete runs.
+
+```bash
+uv run --frozen python tools/update_test_durations.py build/junit/*/pytest-results.xml
+uv run --frozen python tools/update_test_durations.py --format playwright \
+  build/timings/e2e-timings-1/results.json build/timings/e2e-timings-2/results.json
+```
+
+The refresh tool rejects duplicate browser cases, failed/incomplete reports and
+invalid timing values. Timings affect allocation only; they never define the test
+inventory. Retain the source CI run URL when updating recorded weights.

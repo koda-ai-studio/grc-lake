@@ -149,6 +149,9 @@ output directory and container; retain minimized crash inputs and remove the
 container/build output after testing. Add a deterministic regression test for
 any confirmed crash before fixing its parser or verifier.
 
+See [CI duration balancing](docs/benchmarks/CI_RUNTIME.md) for browser shard
+selection, timing artifacts, and the measured baseline.
+
 ## Commits and pull requests
 
 - Branch from `main`. One logical change per pull request.

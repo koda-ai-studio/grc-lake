@@ -38,6 +38,10 @@ until curl -sf "${BASE}/api/v1/healthz" >/dev/null 2>&1; do
 done
 
 echo "==> Run Playwright console smoke tests"
-PLAYWRIGHT_BASE_URL="$BASE" npm --prefix app/web run test:e2e -- ${E2E_SHARD:+--shard="$E2E_SHARD"}
+if [[ -n "${E2E_SHARD:-}" ]]; then
+  PLAYWRIGHT_BASE_URL="$BASE" uv run --frozen python -m tools.run_e2e_shard --shard "$E2E_SHARD"
+else
+  PLAYWRIGHT_BASE_URL="$BASE" npm --prefix app/web run test:e2e
+fi
 
 echo "==> E2E smoke passed"
