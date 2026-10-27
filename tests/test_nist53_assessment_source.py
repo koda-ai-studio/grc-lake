@@ -21,7 +21,8 @@ def test_all_catalogued_nist_obligations_have_source_assessment_contracts():
     assert len(plan["control_ids"]) == len(expected) == 1014
 
 
-def test_expansion_preserves_exact_reviewed_contracts_and_rejects_changed_or_removed_ones():
+@pytest.mark.parametrize("risk_domain", [None, "identity"])
+def test_expansion_preserves_exact_reviewed_contracts_and_rejects_changed_or_removed_ones(risk_domain):
     from copy import deepcopy
 
     from tools.sync_nist53_assessment_safeguards import reconcile_entries
@@ -31,6 +32,8 @@ def test_expansion_preserves_exact_reviewed_contracts_and_rejects_changed_or_rem
         "objective": "Assess the full source obligation.",
         "satisfies": [{"control_id": "NIST-800-53-AC-1", "review_status": "proposed"}],
     }
+    if risk_domain is not None:
+        proposed["risk_domain"] = risk_domain
     reviewed = deepcopy(proposed)
     reviewed["satisfies"][0].update(review_status="reviewed", reviewed_by="reviewer", maintainer_review_ref="receipt")
     new = {**deepcopy(proposed), "safeguard_id": "SG-NIST53-AC-2"}

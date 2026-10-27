@@ -109,7 +109,7 @@ NEW_SAFEGUARDS = {
     "SG-CONTROLASSESSMENT-001": "risk-management",
     "SG-POAM-001": "risk-management",
     "SG-SUPPLYCHAINPROGRAM-001": "third-party-risk",
-    "SG-SUPPLIERINVENTORY-001": "third-party-risk",
+    "SG-SUPPLIERINVENTORY-001": "supplier-inventory",
     "SG-NONLOCALMAINTENANCE-001": "system-maintenance",
     "SG-TIMELYMAINTENANCE-001": "system-maintenance",
 }

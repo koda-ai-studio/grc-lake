@@ -209,7 +209,8 @@ def reconcile_entries(existing: list[dict], generated: list[dict]) -> list[dict]
     def same_contract(before: dict, after: dict) -> bool:
         contract = source_contract(before)
         # Display grouping is outside the semantic definition/review digest.
-        contract["risk_domain"] = after["risk_domain"]
+        if "risk_domain" in contract and "risk_domain" in after:
+            contract["risk_domain"] = after["risk_domain"]
         return contract == after
 
     for sid, entry in old.items():
@@ -220,12 +221,17 @@ def reconcile_entries(existing: list[dict], generated: list[dict]) -> list[dict]
         )
         if reviewed and (sid not in new or not same_contract(entry, new[sid])):
             raise ValueError(f"refusing to change or remove reviewed contract: {sid}")
-    return [
-        {**deepcopy(old[entry["safeguard_id"]]), "risk_domain": entry["risk_domain"]}
-        if entry["safeguard_id"] in old and same_contract(old[entry["safeguard_id"]], entry)
-        else deepcopy(entry)
-        for entry in generated
-    ]
+    reconciled = []
+    for entry in generated:
+        previous = old.get(entry["safeguard_id"])
+        if previous is not None and same_contract(previous, entry):
+            retained = deepcopy(previous)
+            if "risk_domain" in entry:
+                retained["risk_domain"] = entry["risk_domain"]
+            reconciled.append(retained)
+        else:
+            reconciled.append(deepcopy(entry))
+    return reconciled
 
 
 def main() -> None:
