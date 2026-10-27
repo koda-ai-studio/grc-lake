@@ -45,12 +45,12 @@ def test_collect_jira_evidence_is_schema_valid_and_mapped() -> None:
     # exist in the control catalog.
     for row in rows:
         assert row["source"] == "jira"
-        assert "SOC2-CC7.2" in row["controls"]
+        assert ("NIST-800-53-CA-5" if row["event_type"] == "jira.workflow.ticket" else "SOC2-CC7.2") in row["controls"]
 
-    # A resolved remediation ticket is observed evidence (pass); an overdue open
+    # A resolved remediation ticket is observed evidence without a verdict; an overdue open
     # ticket is a medium open finding; an unassigned open ticket is also open.
     done = tickets["jira:issue:SEC-101"]
-    assert done["status"] == "pass"
+    assert done["status"] == "observed"
     assert done["attributes"]["is_done"] is True
     assert done["attributes"]["is_assigned"] is True
 

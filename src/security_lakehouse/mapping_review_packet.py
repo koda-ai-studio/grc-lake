@@ -20,6 +20,7 @@ def build_review_packet(
     payload: dict[str, Any] | None = None,
     framework_id: str | None = None,
     control_ids: Sequence[str] | None = None,
+    safeguard_ids: Sequence[str] | None = None,
     batch_size: int = 25,
     target_mapped_pct: int = 80,
     target_reviewed_pct: int = 50,
@@ -34,6 +35,9 @@ def build_review_packet(
         raise ValueError("batch_size must be between 1 and 100 requirements")
     if not 1 <= target_mapped_pct <= 100 or not 1 <= target_reviewed_pct <= 100:
         raise ValueError("coverage targets must be percentages between 1 and 100")
+    selected_safeguards = sorted(set(safeguard_ids)) if safeguard_ids is not None else None
+    if selected_safeguards == []:
+        raise ValueError("select at least one safeguard")
     shipped = payload if payload is not None else load_safeguards()
     effective = effective_safeguards(lake_dir, payload=shipped)
     coverage = coverage_by_framework(effective)
@@ -47,7 +51,9 @@ def build_review_packet(
     for item in items:
         if framework_id and item["framework_id"] != framework_id:
             continue
-        if item["control_id"] in reviewed or not item["contributes_to_coverage"]:
+        if selected_safeguards is not None and item["safeguard_id"] not in selected_safeguards:
+            continue
+        if (selected_safeguards is None and item["control_id"] in reviewed) or not item["contributes_to_coverage"]:
             continue
         if item["review_state"] not in {"proposed", "needs_changes"}:
             continue
@@ -60,6 +66,14 @@ def build_review_packet(
         if unavailable:
             raise ValueError("requirements are not pending in the requested scope: " + ", ".join(sorted(unavailable)))
         grouped = {control_id: grouped[control_id] for control_id in selected}
+    if selected_safeguards is not None:
+        found = {item["safeguard_id"] for candidates in grouped.values() for item in candidates}
+        unavailable_safeguards = set(selected_safeguards) - found
+        if unavailable_safeguards:
+            raise ValueError(
+                "safeguards have no pending mappings in the requested scope: "
+                + ", ".join(sorted(unavailable_safeguards))
+            )
     catalog = load_control_catalog()
     requirements = []
     for control_id, candidates in grouped.items():
@@ -101,6 +115,7 @@ def build_review_packet(
         "scope": "organization" if lake_dir is not None else "catalog",
         "framework_filter": framework_id,
         **({"control_filter": selected} if selected is not None else {}),
+        **({"safeguard_filter": selected_safeguards} if selected_safeguards is not None else {}),
         "summary": {
             "catalog_requirements": total,
             "mapped_requirements": coverage["covered"],
@@ -119,6 +134,11 @@ def build_review_packet(
                 any(c["requires_catalog_repair"] for c in row["candidates"]) for row in requirements
             ),
             "batch_count": len(batches),
+            **(
+                {"additional_coverage_candidates": sum(row["control_id"] not in reviewed for row in requirements)}
+                if selected_safeguards is not None
+                else {}
+            ),
         },
         "review_checklist": [
             "Compare the complete requirement and source with the safeguard operating contract; a related topic is not equivalence.",

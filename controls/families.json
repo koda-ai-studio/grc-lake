@@ -143,6 +143,14 @@
       "cis_controls": ["18"]
     },
     {
+      "family_id": "remediation-tracking",
+      "label": "Remediation tracking",
+      "category": "governance-risk",
+      "description": "Tracking ownership, due dates, and recorded resolution of corrective actions. Workflow closure alone does not verify the underlying remediation.",
+      "nist_800_53_families": ["CA"],
+      "cis_controls": []
+    },
+    {
       "family_id": "availability",
       "label": "Availability and recovery",
       "category": "resilience",

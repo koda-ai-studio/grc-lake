@@ -53982,6 +53982,99 @@
           }
         }
       ]
+    },
+    {
+      "safeguard_id": "SG-ENDPOINTENCRYPTION-001",
+      "title": "Provider-reported endpoint encryption",
+      "risk_domain": "data-protection",
+      "objective": "For the declared managed-device population, collect an explicit provider encryption verdict per device. Unknown or conflicting reports cannot pass.",
+      "evidence_requirement": "An explicit encryption or data-protection boolean, or a consistent FileVault encryption state, linked to the original managed-device record. This reports device encryption only; it does not establish cryptographic integrity, key management, organization-defined information scope, or all SC-28.1 obligations.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "continuous",
+      "owner": "endpoint-security",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["managed_device"],
+      "required_evidence_types": ["device.encryption"],
+      "satisfies": [
+        {
+          "control_id": "NIST-800-53-SC-28.1",
+          "framework_id": "nist-800-53-rev5",
+          "role": "primary",
+          "review_status": "proposed",
+          "control_version": "1.0.0",
+          "mapping_source": {
+            "name": "Electronic (OSCAL) Version of NIST SP 800-53 Rev 5.2.0 Controls and SP 800-53A Rev 5.2.0 Assessment Procedures",
+            "url": "https://raw.githubusercontent.com/usnistgov/oscal-content/78650f02ad9321bb7b817846f8fbd4f2bcd620de/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json",
+            "sha256": "01f37cf90ea99d92242c936cbfbdebcc338eef1f71454e2acac36cc56e9bc062",
+            "locator": "control sc-28.1; statement, parameters, assessment-objective and assessment-method parts"
+          },
+          "mapping_rationale": "Proposed partial operating evidence; requires human requirement-text review and additional scope and assessment evidence before equivalence can be claimed."
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-ENDPOINTPREVENTION-001",
+      "title": "Endpoint sensor and prevention policy",
+      "risk_domain": "processing-integrity",
+      "objective": "For the declared endpoint population, verify a reporting sensor and an explicitly applied, enabled prevention policy. Missing policy detail or telemetry cannot pass.",
+      "evidence_requirement": "Current sensor telemetry and a matching applied prevention-policy record for each endpoint. This reports deployment state only; it does not establish scan configuration, updates, detection efficacy, false-positive handling, or all SI-3 obligations.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "continuous",
+      "owner": "endpoint-security",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["endpoint_host"],
+      "required_evidence_types": [
+        "crowdstrike.host.sensor",
+        "crowdstrike.host.prevention_policy"
+      ],
+      "satisfies": [
+        {
+          "control_id": "NIST-800-53-SI-3",
+          "framework_id": "nist-800-53-rev5",
+          "role": "primary",
+          "review_status": "proposed",
+          "control_version": "1.0.0",
+          "mapping_source": {
+            "name": "Electronic (OSCAL) Version of NIST SP 800-53 Rev 5.2.0 Controls and SP 800-53A Rev 5.2.0 Assessment Procedures",
+            "url": "https://raw.githubusercontent.com/usnistgov/oscal-content/78650f02ad9321bb7b817846f8fbd4f2bcd620de/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json",
+            "sha256": "01f37cf90ea99d92242c936cbfbdebcc338eef1f71454e2acac36cc56e9bc062",
+            "locator": "control si-3; statement, parameters, assessment-objective and assessment-method parts"
+          },
+          "mapping_rationale": "Proposed partial operating evidence; requires human requirement-text review and additional scope and assessment evidence before equivalence can be claimed."
+        }
+      ]
+    },
+    {
+      "safeguard_id": "SG-REMEDIATIONTRACKING-001",
+      "title": "Remediation workflow tracking",
+      "risk_domain": "remediation-tracking",
+      "objective": "Track ownership, due dates and recorded resolution for the declared remediation-ticket population. Report overdue or explicitly unassigned open work; a closed ticket is not verified remediation.",
+      "evidence_requirement": "Read-only ticket lifecycle, assignee and due-date evidence linked to the source issue. Missing fields and recorded closure alone cannot pass. Separate verification of the underlying condition, system scope, planned actions and organization-defined review frequency is required to assess CA-5.",
+      "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+      "frequency": "continuous",
+      "owner": "security-operations",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "asset_types": ["workflow_ticket"],
+      "required_evidence_types": ["jira.workflow.ticket"],
+      "satisfies": [
+        {
+          "control_id": "NIST-800-53-CA-5",
+          "framework_id": "nist-800-53-rev5",
+          "role": "primary",
+          "review_status": "proposed",
+          "control_version": "1.0.0",
+          "mapping_source": {
+            "name": "Electronic (OSCAL) Version of NIST SP 800-53 Rev 5.2.0 Controls and SP 800-53A Rev 5.2.0 Assessment Procedures",
+            "url": "https://raw.githubusercontent.com/usnistgov/oscal-content/78650f02ad9321bb7b817846f8fbd4f2bcd620de/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json",
+            "sha256": "01f37cf90ea99d92242c936cbfbdebcc338eef1f71454e2acac36cc56e9bc062",
+            "locator": "control ca-5; statement, parameters, assessment-objective and assessment-method parts"
+          },
+          "mapping_rationale": "Proposed partial workflow evidence only. Human requirement-text review and a complete scoped plan of action and milestones assessment are required before equivalence can be claimed."
+        }
+      ]
     }
   ]
 }

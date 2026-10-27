@@ -104,7 +104,7 @@ def test_every_mapped_control_exists_in_the_control_catalog() -> None:
         (HEALTHY, "pass", "info", None),
         (STALE, "open", "medium", "sensor_not_reporting"),
         (RFM, "open", "high", "reduced_functionality_mode"),
-        (NO_TELEMETRY, "open", "medium", "last_seen_not_reported"),
+        (NO_TELEMETRY, "not_evaluated", "info", "last_seen_not_reported"),
         (NOT_APPLIED, "pass", "info", None),
     ],
 )
@@ -120,14 +120,14 @@ def test_sensor_status(device_id: str, status: str, severity: str, reason: str |
         (HEALTHY, "pass", None),
         (STALE, "pass", None),
         (RFM, "open", "policy_disabled"),
-        (NO_TELEMETRY, "open", "no_prevention_policy"),
+        (NO_TELEMETRY, "not_evaluated", "no_prevention_policy"),
         (NOT_APPLIED, "open", "policy_not_applied"),
     ],
 )
 def test_prevention_policy_status(device_id: str, status: str, reason: str | None) -> None:
     event = _event(_rows(), device_id, "host.prevention_policy")
     assert event["status"] == status
-    assert event["severity"] == ("info" if status == "pass" else "high")
+    assert event["severity"] == ("high" if status == "open" else "info")
     assert event["attributes"]["finding_reason"] == reason
 
 
@@ -467,7 +467,7 @@ def test_fixture_sync_materializes_crowdstrike_evidence(tmp_path: Path) -> None:
     assert result.evidence_count == 11
     raw_rows = read_jsonl(tmp_path / connector_runner.CONNECTOR_RAW_FILE)
     assert validate_raw_events(raw_rows) == []
-    assert "SOC2-CC6.8" in {c for r in raw_rows for c in r["controls"]}
+    assert "NIST-800-53-SI-3" in {c for r in raw_rows for c in r["controls"]}
 
 
 def test_live_sync_without_secret_fails_naming_client_secret_ref(

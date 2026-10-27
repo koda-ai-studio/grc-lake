@@ -758,6 +758,9 @@ def framework_mapping_coverage(
     legacy_by_framework: dict[str, int] = {}
     reviewed_kinds: dict[str, set[str]] = {}
     self_map_mappings: dict[str, int] = {}
+    reviewer_counts: Counter[str] = Counter()
+    receipt_counts: Counter[str] = Counter()
+    reviewer_buckets: Counter[str] = Counter()
     for entry in unambiguous_safeguards(data):
         for member in entry.get("satisfies", []):
             framework = mapping_target_framework(member, controls)
@@ -779,6 +782,23 @@ def framework_mapping_coverage(
             if provenance == "legacy_unattributed":
                 legacy_by_framework[framework] = legacy_by_framework.get(framework, 0) + 1
             if state in ATTESTABLE_STATES:
+                names: set[str] = set()
+                if state == "maintainer_reviewed":
+                    name = member.get("reviewed_by")
+                    if isinstance(name, str) and name.strip():
+                        names.add(name.strip())
+                    receipt = member.get("maintainer_review_ref")
+                    if isinstance(receipt, str) and receipt:
+                        receipt_counts[receipt] += 1
+                org_review = member.get("org_review") or {}
+                if data.get("review_log_verified", True) and org_review.get("decision") == "approve":
+                    name = org_review.get("reviewer")
+                    if isinstance(name, str) and name.strip():
+                        names.add(name.strip())
+                reviewer_counts.update(names)
+                reviewer_buckets[
+                    "unattributed" if not names else "single_reviewer" if len(names) == 1 else "multiple_reviewers"
+                ] += 1
                 native = is_source_native_mapping(entry, member, framework, sources)
                 reviewed_kinds.setdefault(control_id, set()).add("source_native" if native else "crosswalk")
                 if native:
@@ -852,6 +872,12 @@ def framework_mapping_coverage(
         # Split so unconfirmed curation is never reported as attested coverage,
         # and org confirmation is never blended into maintainer review.
         "reviewed": reviewed,
+        "reviewer_provenance": {
+            **{key: reviewer_buckets[key] for key in ("unattributed", "single_reviewer", "multiple_reviewers")},
+            "by_reviewer": dict(sorted(reviewer_counts.items())),
+            "by_receipt": dict(sorted(receipt_counts.items())),
+            "independence": "not_established",
+        },
         "maintainer_reviewed": buckets["maintainer_reviewed"],
         "org_reviewed": buckets["org_reviewed"],
         "proposed": covered - reviewed,

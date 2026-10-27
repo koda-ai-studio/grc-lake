@@ -72,6 +72,37 @@ denominator. Unknown, already-reviewed or out-of-framework selections fail befor
 writing output. This is review preparation, not an approval. See the
 [recovery and confidentiality review](reviews/RECOVERY_CONFIDENTIALITY.md).
 
+To review a specific alternative mapping even when another mapping already covers
+the requirement, select its safeguard explicitly:
+
+```bash
+grc-lake frameworks review packet --safeguard SG-CHANGEAPPROVAL-001 \
+  --control SOC2-CC8.1 --control ISO27001-A.8.32 --out change-approval-review.json
+```
+
+Only pending mappings on the selected safeguard enter that packet. Unknown or
+out-of-scope selections fail before writing output. `additional_coverage_candidates`
+counts only requirements without another reviewed mapping; approving an alternative
+cannot add the same requirement to coverage twice. The default requirement-only
+packet continues to exclude requirements that already have a reviewed mapping.
+
+## Recorded reviewers and independence
+
+The CCF coverage response includes `reviewer_provenance`: counts of currently
+attestable mappings with no named reviewer, one distinct recorded reviewer, or
+multiple distinct recorded reviewers, plus `by_reviewer` and `by_receipt` counts.
+A repeated name on a maintainer receipt and the current organization approval
+counts once for that mapping. Stale, rejected and proposed mappings do not count.
+Only the current organization decision is included; superseded decisions are history.
+
+These are provenance counts, not proof of independent review. Distinct names may
+belong to the same person, and the system does not verify separation from the
+author. `independence` therefore remains `not_established`. The three attributed
+maintainer receipts currently name one reviewer, `msaad00`; none establishes a
+second independent review. Have a separate person inspect a bounded sample of
+each receipt and record their actual decision, current fingerprint and per-mapping
+rationale. A prepared packet or passing test does not supply that human review.
+
 ## What "reviewed" means
 
 A maintainer review inherited through `review_basis.inherited_from` remains valid

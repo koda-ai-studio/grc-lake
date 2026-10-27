@@ -430,20 +430,30 @@ def test_bindings_accept_the_asset_type_and_stay_inside_the_crosswalk(
 
 
 @pytest.mark.parametrize(
-    ("connector_id", "fixture"),
+    ("connector_id", "fixture", "bindings"),
     [
-        ("azure-posture", "azure"),
-        ("entra-identity", "entra"),
-        ("jira-ticketing", "jira"),
-        ("intune-devices", "intune"),
-        ("jamf-devices", "jamf"),
-        ("crowdstrike-falcon", "crowdstrike"),
+        ("azure-posture", "azure", {}),
+        ("entra-identity", "entra", {}),
+        ("jira-ticketing", "jira", {"jira.workflow.ticket": "SG-REMEDIATIONTRACKING-001"}),
+        ("intune-devices", "intune", {"intune.device.encryption": "SG-ENDPOINTENCRYPTION-001"}),
+        ("jamf-devices", "jamf", {"jamf.device.encryption": "SG-ENDPOINTENCRYPTION-001"}),
+        (
+            "crowdstrike-falcon",
+            "crowdstrike",
+            {
+                "crowdstrike.host.sensor": "SG-ENDPOINTPREVENTION-001",
+                "crowdstrike.host.prevention_policy": "SG-ENDPOINTPREVENTION-001",
+            },
+        ),
     ],
 )
-def test_connectors_without_an_accepting_safeguard_stay_unbound(
-    tmp_path: Path, connector_id: str, fixture: str
+def test_connectors_bind_only_signals_with_an_accepting_safeguard(
+    tmp_path: Path, connector_id: str, fixture: str, bindings: dict[str, str]
 ) -> None:
     _sync(tmp_path, connector_id, FIXTURES / fixture)
     rows = _raw(tmp_path)
     assert rows
-    assert all(not row.get("safeguard_ids") for row in rows)
+    assert set(bindings) <= {row["event_type"] for row in rows}
+    for row in rows:
+        expected = [bindings[row["event_type"]]] if row["event_type"] in bindings else []
+        assert row.get("safeguard_ids", []) == expected
