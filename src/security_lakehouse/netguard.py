@@ -33,8 +33,10 @@ import socket
 import ssl
 import urllib.request
 from collections.abc import Callable
-from typing import Any
+from typing import IO, Any, cast
 from urllib.parse import unquote, urlparse, urlsplit
+
+from security_lakehouse.http_response import read_bytes
 
 ALLOWED_SCHEMES = {"http", "https"}
 
@@ -53,7 +55,15 @@ _SIXTOFOUR = ipaddress.IPv6Network("2002::/16")
 _TEREDO = ipaddress.IPv6Network("2001::/32")
 
 # Credential-bearing headers that must not ride a cross-origin redirect.
-_SENSITIVE_HEADERS = ("Authorization", "Cookie", "Proxy-Authorization")
+_SENSITIVE_HEADERS = (
+    "Authorization",
+    "Cookie",
+    "Proxy-Authorization",
+    "X-Api-Key",
+    "Private-Token",
+    "X-ClickHouse-Key",
+    "X-ClickHouse-User",
+)
 
 
 def _embedded_ipv4s(ip: ipaddress.IPv6Address) -> list[ipaddress.IPv4Address]:
@@ -141,6 +151,17 @@ def _origin(url: str) -> tuple[str, str, int]:
     return (scheme, (parsed.hostname or "").lower(), port)
 
 
+class _RedirectBody:
+    def __init__(self, response):
+        self.response = response
+
+    def read(self):
+        return read_bytes(self.response)
+
+    def __getattr__(self, name):
+        return getattr(self.response, name)
+
+
 class _GuardedRedirectHandler(urllib.request.HTTPRedirectHandler):
     """Re-validate each redirect hop and strip credentials across origins.
 
@@ -156,12 +177,21 @@ class _GuardedRedirectHandler(urllib.request.HTTPRedirectHandler):
         super().__init__()
         self._validate = validate
 
+    def http_error_302(self, req, fp, code, msg, headers):
+        try:
+            return super().http_error_302(req, cast(IO[bytes], _RedirectBody(fp)), code, msg, headers)
+        finally:
+            fp.close()
+
+    http_error_301 = http_error_303 = http_error_307 = http_error_308 = http_error_302
+
     def redirect_request(self, req, fp, code, msg, headers, newurl):
         self._validate(newurl)  # raises ValueError on a disallowed target
         new = super().redirect_request(req, fp, code, msg, headers, newurl)
         if new is not None and _origin(newurl) != _origin(req.full_url):
-            for name in _SENSITIVE_HEADERS:
-                new.remove_header(name)
+            for name, _value in new.header_items():
+                if name.lower() in {header.lower() for header in _SENSITIVE_HEADERS}:
+                    new.remove_header(name)
         return new
 
 

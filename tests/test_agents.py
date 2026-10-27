@@ -321,7 +321,7 @@ def test_model_context_budget_compacts_fact_lists() -> None:
 def test_model_client_receives_output_token_budget(monkeypatch: pytest.MonkeyPatch) -> None:
     captured: dict[str, object] = {}
 
-    def fake_post_json(url: str, payload: dict, *, headers: dict[str, str], timeout: float) -> dict:
+    def fake_post_json(url: str, payload: dict, *, headers: dict[str, str], timeout: float, local=False) -> dict:
         captured["url"] = url
         captured["payload"] = payload
         return {"message": {"content": "{}"}}
@@ -337,7 +337,7 @@ def test_model_client_receives_output_token_budget(monkeypatch: pytest.MonkeyPat
 
 
 def test_openai_compatible_choice_without_message_is_a_model_error(monkeypatch: pytest.MonkeyPatch) -> None:
-    def fake_post_json(url: str, payload: dict, *, headers: dict[str, str], timeout: float) -> dict:
+    def fake_post_json(url: str, payload: dict, *, headers: dict[str, str], timeout: float, local=False) -> dict:
         return {"choices": [{"finish_reason": "length"}]}
 
     monkeypatch.setattr(agent_model_client, "_post_json", fake_post_json)

@@ -88,9 +88,14 @@ Environment knobs:
 | `GRC_LAKE_AGENT_USE_MODEL`       | Set to `1` to actually call the provider; unset means deterministic harness only                            |
 | `GRC_LAKE_AGENT_TIMEOUT_SECONDS` | Optional provider request timeout, clamped between 1 and 120 seconds                                        |
 
-`openai_compatible` is supported for local or customer-chosen providers that
-serve `/chat/completions`. The harness records provider metadata but never
-prints raw API keys.
+`openai_compatible` supports customer-chosen public providers serving
+`/chat/completions`. OpenAI-compatible, Anthropic and Vertex HTTP calls validate
+public destinations on every redirect and pin direct connections to validated
+addresses. Cross-origin redirects discard credentials, including `x-api-key`.
+Model JSON responses are limited to 1 MiB; redirect bodies have the shared 8 MiB
+ceiling. An explicitly configured Ollama host may be local/private; that path
+refuses redirects and ambient proxies. The harness records provider metadata but
+never prints raw API keys.
 
 ### Bring-your-own cloud model
 

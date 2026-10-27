@@ -6,10 +6,12 @@ import json
 import urllib.error
 import urllib.request
 from typing import Any
+from urllib.parse import urlsplit
 
 from security_lakehouse import netguard
 from security_lakehouse.agents.model_contract import model_messages
 from security_lakehouse.agents.providers import ModelProviderConfig
+from security_lakehouse.http_response import ResponseLimitError, read_json_response
 from security_lakehouse.runtime_environment import runtime_env
 
 
@@ -49,14 +51,44 @@ def _max_output_tokens(context: dict[str, Any], default: int = 600) -> int:
         return default
 
 
-def _post_json(url: str, payload: dict[str, Any], *, headers: dict[str, str], timeout: float) -> dict[str, Any]:
+class _NoLocalRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        raise ValueError("local model redirects are not allowed")
+
+
+def _post_json(
+    url: str,
+    payload: dict[str, Any],
+    *,
+    headers: dict[str, str],
+    timeout: float,
+    local: bool = False,
+) -> dict[str, Any]:
     body = json.dumps(payload).encode("utf-8")
-    req = urllib.request.Request(url, data=body, method="POST", headers=headers)  # noqa: S310
     try:
-        with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310
-            return json.loads(resp.read().decode("utf-8"))
-    except (OSError, urllib.error.HTTPError, json.JSONDecodeError) as exc:
-        raise ModelClientError(str(exc)) from exc
+        parsed = urlsplit(url)
+        if parsed.scheme not in {"http", "https"} or not parsed.hostname or parsed.username or parsed.password:
+            raise ValueError("invalid model URL")
+        req = urllib.request.Request(url, data=body, method="POST", headers=headers)  # noqa: S310
+        if local:
+            # Ollama explicitly permits operator-configured private hosts. Never
+            # follow redirects or send this local request through an ambient proxy.
+            opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), _NoLocalRedirect())
+            response = opener.open(req, timeout=timeout)
+        else:
+            response = netguard.open_public(req, timeout=timeout, label="model provider")
+        with response as resp:
+            result = read_json_response(resp, limit=1024 * 1024)
+        if not isinstance(result, dict):
+            raise ValueError("model response is not an object")
+        return result
+    except ResponseLimitError as exc:
+        raise ModelClientError("model response byte limit exceeded") from exc
+    except urllib.error.HTTPError as exc:
+        exc.close()
+        raise ModelClientError(f"model provider request failed (HTTP {exc.code})") from None
+    except (OSError, ValueError) as exc:
+        raise ModelClientError("model provider request or response rejected") from exc
 
 
 def _parse_json_content(content: str) -> dict[str, Any]:
@@ -80,7 +112,9 @@ def _call_ollama(context: dict[str, Any], provider: ModelProviderConfig) -> dict
         "options": {"num_predict": _max_output_tokens(context)},
         "stream": False,
     }
-    response = _post_json(url, payload, headers={"Content-Type": "application/json"}, timeout=provider.timeout_seconds)
+    response = _post_json(
+        url, payload, headers={"Content-Type": "application/json"}, timeout=provider.timeout_seconds, local=True
+    )
     message = response.get("message")
     if not isinstance(message, dict):
         message = {}
