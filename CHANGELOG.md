@@ -3,9 +3,13 @@
 All notable GRC Lake changes are summarized here. Versions follow semver for the
 Python package, Helm chart, and bundled web console.
 
-## Unreleased
+## 0.3.18 - 2026-10-27
 
+- Explain first-run control tests, framework attestation, evidence completeness and human review separately; fixture loads and draft workpaper exports print the next verification commands. Verification checks content consistency, not reviewer identity.
+- Strengthen synthetic workpaper qualification with stale-design, byte-deterministic export, proposed-mapping, invalid-lineage and historical-generation regression proof. Exported workpapers remain drafts awaiting human review.
+- Update Authlib to 1.9.1 and msgpack to 1.2.3; preserve explicit OIDC nonce checks even when provider metadata does not advertise nonce support.
 - Add source-pinned OCSF Device Inventory, deprecated Config State, Data Security Finding and Incident Finding presets for existing lake readers. Preserve source-account identity, product/schema provenance, workflow states and complete resource/finding lists as unbound observations; inventory or incident closure never establishes a control pass.
+- Balance complete browser test files using recorded durations, refresh Python shard timings, and retain browser plans/results. Reject interrupted timing imports and exercise graph evidence navigation at narrow and desktop widths without reducing test or security gates.
 
 ## 0.3.17 - 2026-10-27
 
