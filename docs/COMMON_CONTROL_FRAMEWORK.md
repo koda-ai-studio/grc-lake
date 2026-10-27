@@ -93,9 +93,10 @@ rest of that control.
 | Category                     | Family                    | ID                         | Safeguards | NIST SP 800-53 families | CIS Controls |
 | ---------------------------- | ------------------------- | -------------------------- | ---------: | ----------------------- | ------------ |
 | Governance and risk          | Risk management           | `risk-management`          |         71 | RA, CA, PM              | 18           |
+| Governance and risk          | Remediation tracking      | `remediation-tracking`     |          1 | CA                      |              |
 | Governance and risk          | Governance                | `governance`               |         91 | PL, PM                  | —            |
 | Identity and access          | Identity and access       | `identity`                 |        198 | AC, IA                  | 5, 6         |
-| Data protection and privacy  | Data protection           | `data-protection`          |        165 | SC, MP                  | 1, 3         |
+| Data protection and privacy  | Data protection           | `data-protection`          |        166 | SC, MP                  | 1, 3         |
 | Data protection and privacy  | Privacy                   | `privacy`                  |         29 | PT                      | —            |
 | Secure engineering           | Change management         | `change-management`        |          5 | CM                      | —            |
 | Secure engineering           | Secure development        | `secure-development`       |        112 | SA                      | 16           |
@@ -108,7 +109,7 @@ rest of that control.
 | Detection and response       | Incident response         | `incident-response`        |         50 | IR                      | 17           |
 | Resilience and integrity     | Availability and recovery | `availability`             |         54 | CP                      | 11           |
 | Resilience and integrity     | System maintenance        | `system-maintenance`       |         32 | MA                      | —            |
-| Resilience and integrity     | Processing integrity      | `processing-integrity`     |        105 | SI                      | —            |
+| Resilience and integrity     | Processing integrity      | `processing-integrity`     |        106 | SI                      | —            |
 | Third-party and supply chain | Third-party risk          | `third-party-risk`         |         33 | SR, SA                  | 15           |
 | People and physical          | People security           | `people-security`          |         42 | AT, PS                  | 14           |
 | People and physical          | Physical security         | `physical-security`        |         55 | PE                      | —            |
@@ -118,7 +119,7 @@ rest of that control.
 
 ```
 $ grc-lake frameworks safeguards --format table
-1195 safeguards map 2196 of 2282 requirements (96.2%) — 886 maintainer-reviewed (0 rest only on legacy reviews with no recorded reviewer), 0 org-reviewed (38.8% attestable), 1310 proposed; 0 mapping(s) rejected by the org
+1198 safeguards map 2196 of 2282 requirements (96.2%) — 886 maintainer-reviewed (0 rest only on legacy reviews with no recorded reviewer), 0 org-reviewed (38.8% attestable), 1310 proposed; 0 mapping(s) rejected by the org
 ```
 
 A mapping is **reviewed** once a human has confirmed the requirements are the

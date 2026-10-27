@@ -55,7 +55,7 @@ GRAPH_MANAGED_DEVICES_URL = (
 )
 
 # Controls verified to exist in controls/catalog.json.
-ENCRYPTION_CONTROLS = ["FEDRAMP-AC-19.5", "CMMC-3.1.19", "ISO27001-A.8.1"]
+ENCRYPTION_CONTROLS = ["NIST-800-53-SC-28.1"]
 COMPLIANCE_CONTROLS = ["FEDRAMP-AC-19", "CMMC-3.1.18", "SOC2-CC6.8", "ISO27001-A.8.1"]
 
 # Graph complianceState values that are a policy failure, not merely unknown.
@@ -117,7 +117,7 @@ def _device_attributes(device_id: str, device: dict[str, Any]) -> dict[str, Any]
         "is_supervised": device.get("isSupervised"),
         "last_sync": device.get("lastSyncDateTime"),
         "enrolled": device.get("enrolledDateTime"),
-        "is_encrypted": device.get("isEncrypted") is True,
+        "is_encrypted": device.get("isEncrypted") if isinstance(device.get("isEncrypted"), bool) else None,
         "compliance_state": str(device.get("complianceState") or "unknown"),
         "jailbroken": str(device.get("jailBroken") or "").lower() == "true",
     }
@@ -127,14 +127,22 @@ def _encryption_event(
     graph_tenant: str, device_id: str, attributes: dict[str, Any], collected_at: datetime, tenant_id: str
 ) -> dict[str, Any]:
     encrypted = attributes["is_encrypted"]
+    status = "pass" if encrypted is True else "open" if encrypted is False else "not_evaluated"
     return _event(
         graph_tenant=graph_tenant,
         device_id=device_id,
         signal="encryption",
         controls=ENCRYPTION_CONTROLS,
-        status="pass" if encrypted else "open",
-        severity="info" if encrypted else "high",
-        attributes={**attributes, "finding_reason": None if encrypted else "not_encrypted"},
+        status=status,
+        severity="high" if encrypted is False else "info",
+        attributes={
+            **attributes,
+            "finding_reason": None
+            if encrypted is True
+            else "not_encrypted"
+            if encrypted is False
+            else "encryption_not_reported",
+        },
         collected_at=collected_at,
         tenant_id=tenant_id,
     )
@@ -198,6 +206,7 @@ def _event(
         "severity": severity,
         "status": status,
         "controls": controls,
+        "safeguard_ids": ["SG-ENDPOINTENCRYPTION-001"] if signal == "encryption" else [],
         "evidence": {
             "evidence_id": f"ev-{stable}",
             "evidence_ref": f"https://{GRAPH_HOST}/v1.0/deviceManagement/managedDevices/{device_id}",

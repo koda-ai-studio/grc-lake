@@ -96,7 +96,7 @@ def qualify(out: Path) -> dict:
             ("okta.identity.mfa_enrollment", "okta:user:00u1mfaenrolled01"): "pass",
             ("okta.identity.mfa_enrollment", "okta:user:00u2nomfa00000002"): "open",
             ("okta.identity.mfa_enrollment", "okta:user:00u3deprovision03"): "observed",
-            ("jira.workflow.ticket", "jira:issue:SEC-101"): "pass",
+            ("jira.workflow.ticket", "jira:issue:SEC-101"): "observed",
             ("jira.workflow.ticket", "jira:issue:SEC-102"): "open",
             ("repository.governance.change_approval", "github:repo:acme/model-service#default-branch"): "pass",
         }

@@ -1489,3 +1489,44 @@ recorded as failed syncs before the prior raw inventory is replaced. These
 contracts are exercised offline by
 [`test_azure_collection_integrity.py`](../tests/test_azure_collection_integrity.py);
 they do not establish live subscription coverage or credential qualification.
+
+## Device evidence and CCF scope
+
+Intune and Jamf encryption signals bind to `SG-ENDPOINTENCRYPTION-001` on
+`managed_device` assets. CrowdStrike sensor and prevention-policy signals bind to
+`SG-ENDPOINTPREVENTION-001` on `endpoint_host` assets. Raw control tags stay inside
+those safeguards' crosswalks; other device signals remain separate.
+
+An explicit negative report produces an open finding. Missing encryption,
+conflicting FileVault states, missing sensor state, or unavailable policy details
+produce `not_evaluated`. A device population with an unknown encryption result
+cannot pass the encryption safeguard. CrowdStrike requires both sensor and policy
+evidence; an enabled policy alone is insufficient.
+
+These safeguards report bounded operating evidence. Their NIST SC-28.1 and SI-3
+mappings are **proposed**: they do not attest cryptographic integrity, organization
+defined scope, full malicious-code protection, or framework compliance. Only a
+human requirement-text review can approve a mapping. Existing receipt-bound
+safeguard definitions are unchanged. Synthetic fixture tests establish the local
+collection-to-assessment contract; they do not add live provider qualification.
+
+Provider field references: [Microsoft Graph managed devices](https://learn.microsoft.com/en-us/graph/api/resources/intune-devices-manageddevice?view=graph-rest-1.0),
+[Jamf computer inventory](https://developer.jamf.com/jamf-pro/reference/get_v4-computers-inventory),
+and [CrowdStrike prevention policies](https://falconpy.io/Service-Collections/Prevention-Policy.html).
+
+## Jira workflow evidence
+
+Jira ticket rows bind to `SG-REMEDIATIONTRACKING-001`, scoped to
+`workflow_ticket` assets with a proposed NIST CA-5 mapping. Explicitly unassigned
+or overdue open tickets produce findings. Successful recorded resolutions remain
+`observed`; missing status and ambiguous resolutions remain `not_evaluated`.
+Neither ticket closure nor a custom resolution label verifies that a vulnerability
+was remediated. Jira administrators can define [resolution values](https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issue-resolutions/).
+
+Project and transition observations stay outside this safeguard. Assessing the
+complete plan of action and milestones requires separate evidence of system
+scope, planned actions, verification and the organization's review frequency.
+The mapping stays proposed until human review; these fixture tests add no live
+qualification receipt. HR personnel records continue through the existing
+[training population correlation](#training-completion-lms-exports-preview) when completion evidence
+is available; personnel inventory alone cannot establish completed training.

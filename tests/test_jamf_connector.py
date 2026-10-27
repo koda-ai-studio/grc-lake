@@ -55,7 +55,7 @@ def test_collect_emits_valid_events_mapped_to_existing_controls() -> None:
     rows = _rows(screen_lock_attribute=SCREEN_LOCK_EA)
 
     assert validate_raw_events(rows) == []
-    assert len(rows) == 23
+    assert len(rows) == 24
     catalog = load_control_catalog()
     for row in rows:
         assert row["source"] == "jamf"
@@ -75,7 +75,7 @@ def test_every_declared_control_exists_in_the_control_catalog() -> None:
 
 def test_screen_lock_for_macs_is_only_emitted_when_an_extension_attribute_is_configured() -> None:
     rows = _rows()
-    assert len(rows) == 21
+    assert len(rows) == 22
     assert _event(rows, "jamf:computer:1", "screen_lock") is None
     # iOS passcode state comes from inventory and needs no configuration.
     assert _event(rows, "jamf:mobile_device:101", "screen_lock") is not None
@@ -120,7 +120,9 @@ def test_signals_without_evidence_are_not_emitted() -> None:
     # Computer 3 has no screen-lock extension attribute value.
     assert _event(rows, "jamf:computer:3", "screen_lock") is None
     # Apple TV: no data-protection/passcode inventory and no tvOS update feed.
-    for signal in ("encryption", "screen_lock", "os_patch", "firewall"):
+    encryption = _event(rows, "jamf:mobile_device:201", "encryption")
+    assert encryption is not None and encryption["status"] == "not_evaluated"
+    for signal in ("screen_lock", "os_patch", "firewall"):
         assert _event(rows, "jamf:mobile_device:201", signal) is None
     # Firewall state only exists for computers.
     assert _event(rows, "jamf:mobile_device:101", "firewall") is None
@@ -392,7 +394,7 @@ def test_fixture_sync_materializes_device_controls(tmp_path: Path) -> None:
     result = connector_runner.run_connector_sync(tmp_path, connector_id="jamf-devices", fixture_dir=FIXTURE)
 
     assert result.result == "ok"
-    assert result.evidence_count == 23
+    assert result.evidence_count == 24
     raw_rows = read_jsonl(tmp_path / connector_runner.CONNECTOR_RAW_FILE)
     assert validate_raw_events(raw_rows) == []
     assert {"jamf.device.encryption", "jamf.device.screen_lock"} <= {r["event_type"] for r in raw_rows}

@@ -40,10 +40,8 @@ from security_lakehouse.ingestion.paginate import object_rows
 from security_lakehouse.io import read_json
 from security_lakehouse.models import utc_iso
 
-# Workflow controls that exist in controls/catalog.json. Verified before wiring
-# (SOC2-CC7.2 incident response/operations, ISO27001-A.8.16 monitoring
-# activities, HIPAA-164.308(a)(1)(ii)(B) risk management/remediation).
-TICKET_CONTROLS = ["SOC2-CC7.2", "ISO27001-A.8.16", "HIPAA-164.308(a)(1)(ii)(B)"]
+# Ticket tags stay inside the proposed tracking safeguard crosswalk.
+TICKET_CONTROLS = ["NIST-800-53-CA-5"]
 PROJECT_CONTROLS = ["SOC2-CC7.2", "ISO27001-A.8.16"]
 TRANSITION_CONTROLS = ["SOC2-CC7.2", "HIPAA-164.308(a)(1)(ii)(B)"]
 
@@ -262,8 +260,11 @@ def _ticket_event(
     # An open remediation ticket that is unassigned or past its SLA due date is
     # the finding worth raising; a resolved ticket is observed evidence.
     overdue = (not is_done) and _is_overdue(due_date, collected_at)
-    unassigned = (not is_done) and not assignee
+    unassigned = (not is_done) and "assignee" in fields and fields["assignee"] is None
     needs_attention = overdue or unassigned
+    verdict = "observed" if resolved else "not_evaluated"
+    if not is_done and category != "unknown":
+        verdict = "open" if needs_attention else "observed"
     evidence_ref = f"{base_url}/rest/api/3/issue/{key}"
     return _event(
         site=site,
@@ -276,7 +277,7 @@ def _ticket_event(
         asset_id=f"jira:issue:{key}",
         asset_type="workflow_ticket",
         controls=TICKET_CONTROLS,
-        status=("pass" if resolved else "not_evaluated") if is_done else ("open" if needs_attention else "observed"),
+        status=verdict,
         severity=_ticket_severity(is_done, needs_attention),
         evidence_ref=evidence_ref,
         attributes={
@@ -313,7 +314,7 @@ def _transition_event(
     # The transition signal records where the ticket currently sits in its
     # lifecycle so the lake can age in-progress remediation work over time.
     in_progress = (not is_done) and category in {"indeterminate", "in progress", "in-progress"}
-    evidence_ref = f"{base_url}/rest/api/3/issue/{key}/transitions"
+    evidence_ref = f"{base_url}/rest/api/3/issue/{key}"
     return _event(
         site=site,
         base_url=base_url,
@@ -323,7 +324,7 @@ def _transition_event(
         dedupe_key=key,
         event_type="jira.workflow.transition",
         asset_id=f"jira:issue:{key}",
-        asset_type="workflow_transition",
+        asset_type="workflow_ticket",
         controls=TRANSITION_CONTROLS,
         status="observed",
         severity="info",
@@ -410,6 +411,7 @@ def _event(
         "severity": severity,
         "status": status,
         "controls": controls,
+        "safeguard_ids": ["SG-REMEDIATIONTRACKING-001"] if event_type == "jira.workflow.ticket" else [],
         "evidence": {
             "evidence_id": f"ev-{stable}",
             "evidence_ref": evidence_ref,

@@ -731,6 +731,12 @@ def _parser() -> argparse.ArgumentParser:
         "--control", action="append", default=None, help="select a pending requirement; repeat for a focused packet"
     )
     review_packet.add_argument("--out", default=None, help="write JSON to this path (default stdout)")
+    review_packet.add_argument(
+        "--safeguard",
+        action="append",
+        default=None,
+        help="select pending mappings on this safeguard, including alternatives to reviewed requirements; repeat to select more",
+    )
     review_packet.set_defaults(func=_frameworks_review_packet)
     review_export = review_sub.add_parser("export", help="export the decision log with its chain verification")
     review_export.add_argument("--lake", required=True, help="lake whose decision log to export")
@@ -2547,7 +2553,11 @@ def _frameworks_review_packet(args: argparse.Namespace) -> int:
     from security_lakehouse.mapping_review_packet import build_review_packet
 
     packet = build_review_packet(
-        args.lake, framework_id=args.framework, control_ids=args.control, batch_size=args.batch_size
+        args.lake,
+        framework_id=args.framework,
+        control_ids=args.control,
+        safeguard_ids=args.safeguard,
+        batch_size=args.batch_size,
     )
     text = json.dumps(packet, indent=2, sort_keys=True) + "\n"
     if args.out:
