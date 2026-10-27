@@ -365,3 +365,94 @@ test("an overflowing node inspector shows that more details are below", async ({
   expect(overflowing).toBe(true);
   await expect(inspector.getByTestId("inspector-more-below")).toBeVisible();
 });
+
+test("a mapping without review provenance stays visibly unreviewed", async ({
+  page,
+}) => {
+  const payload = investigation("control:SOC2-CC6.1");
+  payload.data.edges = EDGES.map((edge) => {
+    const copy = { ...edge };
+    delete copy.review_state;
+    return copy;
+  });
+  await page.route("**/api/v1/graph/investigation?*", (route) =>
+    route.fulfill({ json: payload }),
+  );
+  await page.goto("/console/graph/?root=control%3ASOC2-CC6.1");
+  const mapping = page.locator('.react-flow__edge[data-id="e3"]');
+  await expect(mapping).toHaveAttribute("aria-label", /review not recorded/i);
+  await expect(mapping.locator(".react-flow__edge-path")).toHaveCSS(
+    "stroke-dasharray",
+    "2px, 4px",
+  );
+  const legend = page.getByLabel("Relationship styles", { exact: true });
+  await expect(legend).toContainText("Review not recorded");
+  await expect(legend).not.toContainText("Reviewed mapping");
+  await page
+    .getByText("Selected relationships and mapping review state", {
+      exact: true,
+    })
+    .click();
+  await expect(page.getByText(/maps to · Review not recorded/)).toBeVisible();
+});
+
+test("fit view restores readable labels instead of shrinking the whole framework", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await openMaps(page);
+  await page.getByRole("button", { name: "Show whole framework" }).click();
+  await page.getByRole("button", { name: /^fit view$/i }).click();
+  expect(await zoom(page)).toBeGreaterThanOrEqual(0.6);
+  await expect(page.getByTestId("graph-overflow-hint")).toBeVisible();
+});
+
+test("a dense investigation refuses layout promptly without silently dropping relationships", async ({
+  page,
+}) => {
+  const nodes = [
+    NODES[1],
+    ...Array.from({ length: 49 }, (_, i) => ({
+      id: `asset:dense-${i}`,
+      kind: "asset",
+      label: `Synthetic asset ${i}`,
+    })),
+  ];
+  const edges = nodes.flatMap((node, i) =>
+    nodes.slice(i + 1).map((target, j) => ({
+      id: `dense-${i}-${j}`,
+      source: node.id,
+      target: target.id,
+      kind: "contains",
+    })),
+  );
+  await page.route("**/api/v1/graph/investigation?*", (route) =>
+    route.fulfill({
+      json: {
+        data: {
+          ...investigation(nodes[0].id).data,
+          nodes,
+          edges,
+          counts: { control: 1, asset: 49 },
+          matching_nodes: 50,
+        },
+      },
+    }),
+  );
+  const started = Date.now();
+  await page.goto("/console/graph/?root=control%3ASOC2-CC6.1");
+  const notice = page.getByTestId("graph-too-large");
+  await expect(notice).toContainText("50 nodes and 1,225 relationships");
+  expect(Date.now() - started).toBeLessThan(5_000);
+  await expect(page.locator(".react-flow__node")).toHaveCount(0);
+  await expect(page.getByText(/50 nodes · 1225 relationships/)).toBeVisible();
+  // The user can still inspect the supplied relationships without laying them out.
+  await page
+    .getByText("Selected relationships and mapping review state", {
+      exact: true,
+    })
+    .click();
+  await expect(
+    page.getByText(/SOC2-CC6.1 → Synthetic asset 0 · contains/),
+  ).toBeVisible();
+});

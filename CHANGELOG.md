@@ -5,6 +5,8 @@ Python package, Helm chart, and bundled web console.
 
 ## 0.3.17 - 2026-10-26
 
+- Keep graph filter hops independent of edge order, distinguish missing mapping review from reviewed links, and show a visible relationship-style key. Bound layout by both nodes and relationships; Fit View restores readable zoom instead of shrinking a wide map's labels.
+
 - Publish versioned Helm charts to GHCR after image qualification, verify downloaded chart bytes, and attach package and OCI provenance. PyPI and GitHub publication wait for chart qualification. Artifact Hub registration remains separate.
 
 - Shorten the disposable distributed-qualification writer lease to 20 seconds while retaining natural expiry, fencing, rollback and recovery checks; production lease timing remains unchanged. Record bounded graph capacity measurements, including the incomplete 180-second 100k attempt and its completed retry, without claiming production capacity.

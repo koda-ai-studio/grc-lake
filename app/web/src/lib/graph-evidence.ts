@@ -177,3 +177,27 @@ export function graphNodeAriaLabel(
 export function graphEdgeInvalid(edge: Pick<GraphEdge, "binding">) {
   return edge.binding === "invalid_asset_type";
 }
+
+/** Missing or unfamiliar review provenance never inherits reviewed styling. */
+export function graphMappingReview(
+  edge: Pick<GraphEdge, "kind" | "review_state">,
+) {
+  if (edge.kind !== "maps_to" && !edge.review_state) return null;
+  const state = edge.review_state;
+  const reviewed = state === "maintainer_reviewed" || state === "org_reviewed";
+  const pending: Record<string, string> = {
+    proposed: "Proposed mapping",
+    needs_changes: "Needs changes",
+    rejected: "Rejected mapping",
+  };
+  return {
+    reviewed,
+    label: reviewed
+      ? state.replaceAll("_", " ")
+      : state
+        ? Object.hasOwn(pending, state)
+          ? pending[state]
+          : "Review unrecognized"
+        : "Review not recorded",
+  };
+}

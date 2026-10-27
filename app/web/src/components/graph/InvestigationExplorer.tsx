@@ -6,7 +6,11 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api/client";
 import type { GraphNode, GraphNodeKind } from "@/lib/api/types";
 import { GRAPH_KIND_COLOR } from "@/lib/graph-palette";
-import { graphEdgeInvalid, labelWithKind } from "@/lib/graph-evidence";
+import {
+  graphEdgeInvalid,
+  graphMappingReview,
+  labelWithKind,
+} from "@/lib/graph-evidence";
 import { GraphCanvas } from "./GraphCanvas";
 import { GraphNodeDrawer } from "./GraphNodeDrawer";
 import { PageHeader } from "@/components/PageHeader";
@@ -666,17 +670,6 @@ export function InvestigationExplorer() {
                         Repository
                       </span>
                     )}
-                    <details className="min-w-0">
-                      <summary className="cursor-pointer">Line styles</summary>
-                      <ul className="mt-1 grid gap-0.5">
-                        <li>Solid: recorded evidence link</li>
-                        <li>Dashed: reviewed catalog mapping</li>
-                        <li>Dotted: proposed mapping</li>
-                        <li className="text-danger-fg">
-                          Red dashed: invalid asset type (not supporting)
-                        </li>
-                      </ul>
-                    </details>
                   </div>
                 )}
                 <div
@@ -746,8 +739,8 @@ export function InvestigationExplorer() {
                           {data.nodes.find((n) => n.id === e.source)?.label} →{" "}
                           {data.nodes.find((n) => n.id === e.target)?.label} ·{" "}
                           {e.kind.replaceAll("_", " ")}
-                          {e.review_state
-                            ? ` · ${e.review_state.replaceAll("_", " ")} (catalog mapping)`
+                          {graphMappingReview(e)
+                            ? ` · ${graphMappingReview(e)!.label} (catalog mapping)`
                             : ""}
                           {graphEdgeInvalid(e) && (
                             <b className="text-danger-fg">
