@@ -74,11 +74,10 @@ Use these maintained contracts rather than a second hand-maintained feature coun
 | Which user journeys exist?                       | [Console UX](CONSOLE_UX.md), `app/web/e2e/`                                                                  | Synthetic browser tests plus authorized deployment checks; an accessible page alone is not a completed journey                                          |
 | How much Python code do tests exercise?          | [CI runs](https://github.com/koda-ai-studio/grc-lake/actions/workflows/ci.yml), `coverage-combined` artifact | The `coverage` job combines all six test shards into line-and-branch coverage for that exact revision; this is separate from framework mapping coverage |
 
-The [0.3.3 main CI run](https://github.com/koda-ai-studio/grc-lake/actions/runs/38210181098)
-at source `fee5a7b8` passed 5,355 Python tests, with 86 skipped. Its combined
-four-shard report measured 88.29% line coverage, 77.91% branch coverage and
-85.89% combined coverage. Separate PostgreSQL and built-image jobs add integration
-checks; their execution is not included in that coverage percentage.
+Use the latest successful run for the exact revision being evaluated. Its
+`pytest-*` artifacts record test results and timings; `coverage-combined` records
+Python line and branch coverage. PostgreSQL, browser, and built-image checks are
+separate qualification. Historical test totals are not a current coverage claim.
 
 ## Coverage depth
 

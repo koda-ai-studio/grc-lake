@@ -76,11 +76,18 @@ def test_python_matrix_runs_complete_suite_once_and_preserves_artifact_dependenc
     assert len(durations) > 100 and all(name.startswith("tests/") for name in durations)
     assert "-p tools.pytest_strict_imports --allow-import-skip=moto " in test_step["run"]
     assert any("--all-extras" in step.get("run", "") for step in tests["steps"])
-    for name in ("pipeline-smoke", "python-tests", "e2e"):
+    assert "needs" not in tests
+    assert not any(step.get("with", {}).get("name") == "web-dist" for step in tests["steps"])
+    for name in ("pipeline-smoke", "wheel-smoke", "e2e"):
         assert jobs[name]["needs"] == "web"
         assert any(step.get("with", {}).get("name") == "web-dist" for step in jobs[name]["steps"])
     for name in ("security", "docker-build"):
         assert "needs" not in jobs[name]
+    wheel = jobs["wheel-smoke"]
+    assert wheel["strategy"]["matrix"]["python"] == ["3.11", "3.13", "3.14"]
+    commands = "\n".join(step.get("run", "") for step in wheel["steps"])
+    assert "python tools/verify_wheel.py dist/*.whl" in commands
+    assert '"$install_root/core/bin/python" "$core_smoke" "$install_root/core"' in commands
     assert not any("pytest" in step.get("run", "") for step in jobs["pipeline-smoke"]["steps"])
 
 
@@ -104,6 +111,9 @@ def test_console_e2e_runs_as_independent_playwright_shards() -> None:
     shards = job["strategy"]["matrix"]["shard"]
     assert shards == list(range(1, len(shards) + 1)) and len(shards) > 1
     assert job["strategy"]["fail-fast"] is False
+    install = next(step for step in job["steps"] if step.get("name") == "Install Playwright Chromium")
+    assert "--with-deps --only-shell" in install["run"]
+    assert "channel: undefined" in (ROOT / "app/web/playwright.config.ts").read_text()
     step = next(step for step in job["steps"] if "run_e2e_console.sh" in step.get("run", ""))
     assert step["env"]["E2E_SHARD"] == "${{ matrix.shard }}/${{ strategy.job-total }}"
     # Each shard starts its own server and lake, so no state is shared between runners.

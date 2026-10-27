@@ -165,6 +165,11 @@ def test_signature_verification_follows_stripe_rules() -> None:
     assert not verify_stripe_signature(body, "garbage", [WHSEC], now=now)
 
 
+def test_signature_verification_rejects_oversized_timestamp() -> None:
+    header = "t=" + "9" * 5000 + ",v1=00"
+    assert not verify_stripe_signature(b"{}", header, [WHSEC], now=1800000000)
+
+
 # --- checkout + portal -------------------------------------------------------
 
 

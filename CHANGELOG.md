@@ -5,6 +5,16 @@ Python package, Helm chart, and bundled web console.
 
 ## Unreleased
 
+- Reject oversized timestamps in Stripe webhook signatures without raising a conversion error.
+
+- Missing mapping review status defaults to proposed. Focused review packets can select pending safeguard alternatives even when another mapping already reviews the requirement; reviewer-provenance counts expose recorded attribution without claiming independence.
+
+- Bind Intune/Jamf encryption, CrowdStrike sensor/prevention, and Jira remediation-ticket signals to scoped safeguards. Missing or contradictory device fields stay not evaluated; ticket closure remains observation rather than verified remediation. New framework mappings remain proposed.
+
+- Reconcile linked live receipts (14 of 18 Implemented connectors have no linked live receipt), clarify connector-only read permissions versus local MCP writes, and improve README and graph-path readability on phones. A missing receipt does not establish that an account was never tried.
+
+- Start Python test shards independently of the console build, refresh their measured weights, and cache locked image dependencies before copying application source. Run each PR fuzz target independently with the same minimum 75-second budget and require all four to pass; scheduled batch fuzzing remains unchanged.
+
 - Demote 354 historical mappings without a recorded reviewer or decision receipt to proposed. Mapped coverage stays 2,196/2,282; reviewed requirements fall from 1,225 (53.7%) to 886 (38.8%). Passing safeguard evidence cannot attest those proposed mappings or export them as reviewed OSCAL implementations. The historical inventory and origin commits remain available.
 
 - `grc-lake mcp` runs the MCP server (same as `grc-lake-mcp`), and the release workflow lists GRC Lake in the official MCP Registry as `io.github.koda-ai-studio/grc-lake` from `server.json`, verified by GitHub OIDC and a hidden `mcp-name` marker in the PyPI README. The registry entry launches `uvx --from "grc-lake[mcp]==<version>" grc-lake mcp`. A registry failure never blocks the PyPI package or the GitHub release.

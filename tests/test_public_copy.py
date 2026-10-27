@@ -40,6 +40,17 @@ def test_package_description_is_factual() -> None:
     )
 
 
+def test_release_readiness_leads_with_latest_verified_publication():
+    doc = (ROOT / "docs/RELEASE_READINESS.md").read_text()
+    verified = re.findall(r"^## Verified (\d+\.\d+\.\d+) publication$", doc, re.MULTILINE)
+    latest = max(verified, key=lambda version: tuple(map(int, version.split("."))))
+    opening = doc.split("\n## ", 1)[0]
+    assert f"**{latest} is published**" in opening
+    assert f"https://pypi.org/project/grc-lake/{latest}/" in opening
+    assert f"https://github.com/koda-ai-studio/grc-lake/releases/tag/v{latest}" in opening
+    assert "unreleased" in opening
+
+
 def test_internal_planning_docs_are_not_published() -> None:
     for relative in INTERNAL_DOCS:
         assert not (ROOT / relative).exists(), relative

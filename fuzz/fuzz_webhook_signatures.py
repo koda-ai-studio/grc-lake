@@ -19,7 +19,7 @@ import hmac
 
 from _input import Input, run
 
-from security_lakehouse.commercial.billing import SIGNATURE_TOLERANCE_SECONDS, verify_stripe_signature
+from security_lakehouse.commercial.stripe_signature import SIGNATURE_TOLERANCE_SECONDS, verify_stripe_signature
 from security_lakehouse.webhook_delivery import (
     sign_payload,
     sign_timestamped_payload,

@@ -19,10 +19,14 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  fuzz:
-    name: Fuzz pull request (address)
+  targets:
+    name: Fuzz target (${{ matrix.target }})
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [fuzz_aibom_import, fuzz_raw_evidence, fuzz_strict_json, fuzz_webhook_signatures]
     permissions:
       actions: read # read ClusterFuzzLite workflow artifacts
       contents: read
@@ -30,12 +34,13 @@ jobs:
       - name: Build fuzzers
         id: build
         uses: google/clusterfuzzlite/actions/build_fuzzers@884713a6c30a92e5e8544c39945cd7cb630abcd1 # v1
+        env:
+          CFL_EXTRA_FUZZ_TARGET: ${{ matrix.target }}
         with:
           language: python
           github-token: ${{ secrets.GITHUB_TOKEN }}
           sanitizer: address
-          # Exercise every target; do not require a remote coverage artifact
-          # merely to decide which already-built targets to discard.
+          # Every target has its own runner; none is discarded by change filtering.
           keep-unaffected-fuzz-targets: true
       - name: Run fuzzers
         id: run
@@ -43,6 +48,19 @@ jobs:
         with:
           language: python
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          fuzz-seconds: 300
+          # Preserve the original 300-second budget: at least 75 seconds per target.
+          fuzz-seconds: 75
           mode: code-change
           sanitizer: address
+
+  fuzz:
+    name: Fuzz pull request (address)
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    needs: targets
+    if: always()
+    steps:
+      - name: Require every fuzz target to pass
+        env:
+          FUZZ_RESULT: ${{ needs.targets.result }}
+        run: test "$FUZZ_RESULT" = success

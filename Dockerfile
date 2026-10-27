@@ -43,7 +43,23 @@ RUN npm run build
 FROM python-base AS py-build
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1 PIP_NO_CACHE_DIR=1
 WORKDIR /src
-COPY pyproject.toml uv.lock README.md ./
+COPY pyproject.toml uv.lock ./
+COPY --from=uv /uv /usr/local/bin/uv
+ENV UV_PYTHON_DOWNLOADS=never UV_LINK_MODE=copy
+# Dependencies come from uv.lock with their sha256 hashes, and the install
+# refuses any distribution whose hash does not match. The project itself is
+# installed separately after its source and web bundle are copied.
+# The image binds 0.0.0.0, so it must be able to run the authenticated
+# server. Without the `server` extra the CMD below silently falls back to
+# local mode, which has no authentication at all.
+RUN python -m venv --without-pip /opt/grc-lake-venv \
+  && uv export --frozen --no-dev --no-emit-project \
+       --extra server --extra analytics --extra cloud --extra mcp --extra iceberg \
+       --output-file /tmp/grc-lake-requirements.txt \
+  && uv pip install --python /opt/grc-lake-venv/bin/python \
+       --require-hashes --requirement /tmp/grc-lake-requirements.txt
+
+COPY README.md ./
 COPY src/ ./src/
 COPY connectors/ ./connectors/
 COPY controls/ ./controls/
@@ -57,22 +73,7 @@ COPY agent-skills/ ./agent-skills/
 # Bring the static export into the package tree before install so wheel
 # package-data picks it up.
 COPY --from=web-build /src/security_lakehouse/web/dist/ ./src/security_lakehouse/web/dist/
-COPY --from=uv /uv /usr/local/bin/uv
-ENV UV_PYTHON_DOWNLOADS=never UV_LINK_MODE=copy
-# Dependencies come from uv.lock with their sha256 hashes, and the install
-# refuses any distribution whose hash does not match. The project itself is
-# then built from this source tree with --no-deps, so nothing unpinned is
-# resolved at build time.
-# The image binds 0.0.0.0, so it must be able to run the authenticated
-# server. Without the `server` extra the CMD below silently falls back to
-# local mode, which has no authentication at all.
-RUN python -m venv --without-pip /opt/grc-lake-venv \
-  && uv export --frozen --no-dev --no-emit-project \
-       --extra server --extra analytics --extra cloud --extra mcp --extra iceberg \
-       --output-file /tmp/grc-lake-requirements.txt \
-  && uv pip install --python /opt/grc-lake-venv/bin/python \
-       --require-hashes --requirement /tmp/grc-lake-requirements.txt \
-  && uv pip install --python /opt/grc-lake-venv/bin/python --no-deps \
+RUN uv pip install --python /opt/grc-lake-venv/bin/python --no-deps \
        ".[server,analytics,cloud,mcp,iceberg]"
 
 # Runtime identity and Python entrypoints -----------------------------------
