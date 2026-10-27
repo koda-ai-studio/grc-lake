@@ -39,7 +39,7 @@ attestations; they are not Helm's GPG `.prov` format.
 ## Artifact Hub registration
 
 `oci://ghcr.io/koda-ai-studio/charts/grc-lake` is registered in Artifact Hub as
-`grc-lake`, owned by the `koda-ai-studio` organization (KODA AI Studio),
+`grc-lake`, owned by the `koda-ai-studio` organization,
 administered through the maintainer account. Its assigned repository ID is
 `eceb1fae-e871-4fd5-8c75-0054a2ec2b34`. Registration and OCI publication do not
 by themselves prove that a package is indexed or that publisher verification
