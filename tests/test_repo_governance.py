@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import io
 import json
 import urllib.error
 from datetime import UTC, datetime
@@ -131,7 +132,7 @@ def test_governance_sync_requires_fixture_or_token(monkeypatch: pytest.MonkeyPat
 def _mock_response(payload: object, *, status: int = 200) -> object:
     response = MagicMock()
     response.status = status
-    response.read.return_value = json.dumps(payload).encode("utf-8")
+    response.read.side_effect = io.BytesIO(json.dumps(payload).encode("utf-8")).read
     response.__enter__.return_value = response
     return response
 

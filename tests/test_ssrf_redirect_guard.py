@@ -36,7 +36,11 @@ class _FakeResp:
         return None
 
     def read(self, _amt: int | None = None) -> bytes:
-        return self._body
+        if _amt is None or _amt < 0:
+            result, self._body = self._body, b""
+        else:
+            result, self._body = self._body[:_amt], self._body[_amt:]
+        return result
 
 
 def _private_dns(monkeypatch: pytest.MonkeyPatch, mapping: dict[str, str]) -> None:

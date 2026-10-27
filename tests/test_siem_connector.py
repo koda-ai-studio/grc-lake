@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import io
 import json
 from datetime import UTC, datetime
 from pathlib import Path
@@ -105,7 +106,7 @@ def test_siem_live_query_parses_json_list() -> None:
         ]
     )
     response = MagicMock()
-    response.read.return_value = body.encode("utf-8")
+    response.read.side_effect = io.BytesIO(body.encode("utf-8")).read
     response.__enter__.return_value = response
 
     with patch("security_lakehouse.netguard.open_public", return_value=response):
@@ -130,7 +131,7 @@ def test_siem_follows_next_cursor_across_pages() -> None:
         cursor = url.split("cursor=", 1)[1].split("&", 1)[0] if "cursor=" in url else ""
         seen.append(cursor)
         response = MagicMock()
-        response.read.return_value = json.dumps(pages[cursor]).encode("utf-8")
+        response.read.side_effect = io.BytesIO(json.dumps(pages[cursor]).encode("utf-8")).read
         response.__enter__.return_value = response
         return response
 
@@ -145,7 +146,7 @@ def test_siem_bare_list_response_is_a_single_page() -> None:
     """A server with no cursor support (bare list) still works — one page, as before."""
     body = json.dumps([{"alert_id": "only", "event_time": "2026-06-01T10:00:00Z"}]).encode("utf-8")
     response = MagicMock()
-    response.read.return_value = body
+    response.read.side_effect = io.BytesIO(body).read
     response.__enter__.return_value = response
     calls = {"n": 0}
 
@@ -166,7 +167,9 @@ def test_siem_retries_on_rate_limit_then_succeeds(monkeypatch: pytest.MonkeyPatc
 
     monkeypatch.setattr("security_lakehouse.ingestion.backoff.time.sleep", lambda *_: None)
     response = MagicMock()
-    response.read.return_value = json.dumps([{"alert_id": "a1", "event_time": "2026-06-01T10:00:00Z"}]).encode("utf-8")
+    response.read.side_effect = io.BytesIO(
+        json.dumps([{"alert_id": "a1", "event_time": "2026-06-01T10:00:00Z"}]).encode("utf-8")
+    ).read
     response.__enter__.return_value = response
     sequence: list[object] = [
         urllib.error.HTTPError("https://siem.example", 429, "slow down", {"Retry-After": "0"}, None),

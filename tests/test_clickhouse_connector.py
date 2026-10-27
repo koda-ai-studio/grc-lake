@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import io
 import json
 from datetime import UTC, datetime
 from pathlib import Path
@@ -106,7 +107,7 @@ def test_clickhouse_live_query_parses_json_each_row() -> None:
         ]
     )
     response = MagicMock()
-    response.read.return_value = body.encode("utf-8")
+    response.read.side_effect = io.BytesIO(body.encode("utf-8")).read
     response.__enter__.return_value = response
 
     with patch("security_lakehouse.netguard.open_public", return_value=response):
@@ -137,7 +138,7 @@ def _keyset_clickhouse_server(dataset: list[dict[str, Any]], captured: list[str]
             start = next(i for i, row in enumerate(dataset) if row["event_id"] == cursor) + 1
         page = dataset[start : start + limit]
         response = MagicMock()
-        response.read.return_value = "\n".join(json.dumps(row) for row in page).encode("utf-8")
+        response.read.side_effect = io.BytesIO("\n".join(json.dumps(row) for row in page).encode("utf-8")).read
         response.__enter__.return_value = response
         return response
 
@@ -178,7 +179,7 @@ def _capturing_clickhouse(pages: list[list[dict[str, Any]]], requests: list[Any]
         requests.append(request)
         page = pages.pop(0) if pages else []
         response = MagicMock()
-        response.read.return_value = "\n".join(json.dumps(row) for row in page).encode("utf-8")
+        response.read.side_effect = io.BytesIO("\n".join(json.dumps(row) for row in page).encode("utf-8")).read
         response.__enter__.return_value = response
         return response
 
@@ -259,7 +260,9 @@ def test_clickhouse_retries_on_transient_gateway_error(monkeypatch: pytest.Monke
 
     monkeypatch.setattr("security_lakehouse.ingestion.backoff.time.sleep", lambda *_: None)
     response = MagicMock()
-    response.read.return_value = json.dumps({"event_id": "e1", "event_time": "2026-06-01T10:00:00Z"}).encode("utf-8")
+    response.read.side_effect = io.BytesIO(
+        json.dumps({"event_id": "e1", "event_time": "2026-06-01T10:00:00Z"}).encode("utf-8")
+    ).read
     response.__enter__.return_value = response
     sequence: list[object] = [
         urllib.error.HTTPError("https://ch.example:8443", 502, "bad gateway", {}, None),

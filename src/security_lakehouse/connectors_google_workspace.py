@@ -22,7 +22,6 @@ GET requests against the directory ``users``, ``groups``, and group
 
 from __future__ import annotations
 
-import json
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -33,6 +32,7 @@ from typing import Any
 
 from security_lakehouse import netguard
 from security_lakehouse.connector_ids import stable_id_slug
+from security_lakehouse.http_response import read_json_response
 from security_lakehouse.ingestion import backoff
 from security_lakehouse.ingestion.paginate import object_rows, paginate
 from security_lakehouse.io import read_json
@@ -146,7 +146,7 @@ class GoogleOAuthTokenSource:
         # transient 429/5xx are retried.
         def _post() -> Any:
             with netguard.open_public(request, timeout=self._timeout, label="google oauth token") as resp:
-                return json.loads(resp.read().decode("utf-8"))
+                return read_json_response(resp)
 
         payload = backoff.http_retry(_post)
         token = payload.get("access_token") if isinstance(payload, dict) else None
@@ -262,7 +262,7 @@ class GoogleWorkspaceClient:
             },
         )
         with netguard.open_public(request, timeout=self.timeout, label="google workspace api") as resp:
-            return json.loads(resp.read().decode("utf-8"))
+            return read_json_response(resp)
 
 
 class GoogleWorkspaceFixtureClient:

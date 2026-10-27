@@ -617,3 +617,29 @@ def test_enablement_requires_a_credential_reference() -> None:
 
 def test_module_constants_are_exported() -> None:
     assert set(connectors_snyk.__all__) >= {"SnykClient", "SnykFixtureClient", "collect_snyk_evidence", "api_host"}
+
+
+def test_oversized_issues_are_explicit_gaps_through_ccf(tmp_path, monkeypatch):
+    from security_lakehouse import http_response
+
+    routes = _default_routes()
+    routes[(f"/rest/orgs/{ORG}/issues", None)] = [{"data": [], "oversized": "x" * (256 * 1024)}]
+    monkeypatch.setattr(http_response, "MAX_RESPONSE_BYTES", 128 * 1024)
+    monkeypatch.setattr(netguard, "open_public", _FakeSnyk(routes))
+    monkeypatch.setenv("ACME_SNYK_TOKEN", TOKEN)
+    append_config_event(
+        tmp_path,
+        connector_id="snyk-vulnerabilities",
+        state="enabled",
+        actor="t",
+        credentials={"region": "SNYK-US-01", "credential_ref": "ACME_SNYK_TOKEN"},
+    )
+    result = run_connector_sync(tmp_path, connector_id="snyk-vulnerabilities")
+    assert result.run["metadata"]["partial"] is True
+    assert [gap["reason"] for gap in result.coverage_gaps] == ["response_byte_limit"]
+    rows = read_jsonl(tmp_path / CONNECTOR_RAW_FILE)
+    assert {r["status"] for r in _by_type(rows, "snyk.project.test_coverage")} == {"not_evaluated"}
+    assessment = read_json(tmp_path / "gold/ccf_assessment.json")
+    [safeguard] = [r for r in assessment["safeguards"] if r["safeguard_id"] == VULNERABILITY_SAFEGUARD]
+    assert safeguard["status"] == "not_evaluated"
+    assert TOKEN not in (tmp_path / CONNECTOR_RAW_FILE).read_text()

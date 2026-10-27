@@ -60,6 +60,7 @@ from security_lakehouse.connector_errors import (
 from security_lakehouse.connector_ids import stable_id_slug
 from security_lakehouse.delegation import azure_credential
 from security_lakehouse.execution_mode import in_server_mode
+from security_lakehouse.http_response import read_json_response
 from security_lakehouse.identity import classify_identity_type
 from security_lakehouse.ingestion import backoff
 from security_lakehouse.ingestion.paginate import IncompleteCollectionError, paginate
@@ -273,7 +274,7 @@ class ArmSecurityAssessmentReader:
 
     def _open(self, request: urllib.request.Request) -> Any:
         with netguard.open_guarded(request, timeout=self.timeout, validate=_require_arm_url, label="azure") as resp:
-            return json.loads(resp.read().decode("utf-8"))
+            return read_json_response(resp)
 
 
 def _assessment_page_rows(page: dict[str, Any]) -> list[dict[str, Any]]:
