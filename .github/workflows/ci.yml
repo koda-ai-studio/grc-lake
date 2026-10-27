@@ -611,7 +611,7 @@ jobs:
         run: npm ci --no-audit --no-fund
       - name: Install Playwright Chromium
         working-directory: app/web
-        run: npx playwright install chromium --with-deps
+        run: npx playwright install chromium --with-deps --only-shell
       - name: Console Playwright smoke
         env:
           GRC_LAKE_COOKIE_SIGNING_KEY: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx

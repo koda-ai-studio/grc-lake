@@ -20,6 +20,38 @@ FUZZ = ROOT / "fuzz"
 TARGETS = sorted(path.stem for path in FUZZ.glob("fuzz_*.py"))
 
 
+@pytest.mark.parametrize("target_name", TARGETS)
+def test_fuzzer_replays_production_code_without_optional_dependencies(target_name):
+    import os
+    import subprocess
+
+    env = {**os.environ, "PYTHONPATH": os.pathsep.join(map(str, (ROOT / "src", FUZZ)))}
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-S",
+            "-c",
+            "import sys, importlib; from pathlib import Path; target = importlib.import_module(sys.argv[2]); "
+            "[target.TestOneInput(p.read_bytes()) for p in Path(sys.argv[1]).iterdir()]; "
+            "assert 'sqlalchemy' not in sys.modules",
+            str(FUZZ / "corpus" / target_name),
+            target_name,
+        ],
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+    assert result.returncode == 0, result.stderr
+
+
+def test_billing_and_fuzzer_share_the_same_signature_verifier():
+    from security_lakehouse.commercial import billing, stripe_signature
+
+    assert billing.verify_stripe_signature is stripe_signature.verify_stripe_signature
+    assert billing.SIGNATURE_TOLERANCE_SECONDS == stripe_signature.SIGNATURE_TOLERANCE_SECONDS
+
+
 @pytest.fixture
 def target(request: pytest.FixtureRequest) -> Iterator[Callable[[bytes], None]]:
     sys.path.insert(0, str(FUZZ))
