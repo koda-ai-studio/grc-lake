@@ -3,12 +3,15 @@ import {
   graphEdgeInvalid,
   graphEvidenceState,
   graphKindLabel,
+  graphMappingReview,
   graphNodeAriaLabel,
   labelWithKind,
 } from "../src/lib/graph-evidence";
 import {
   GRAPH_LAYOUT_NODE_CAP,
+  GRAPH_LAYOUT_EDGE_CAP,
   graphLayoutBudget,
+  graphScope,
 } from "../src/lib/graph-layout";
 
 test("passing evidence that is stale or expired never reads as passing", () => {
@@ -115,4 +118,85 @@ test("layout is refused above the node cap and virtualised for large maps", () =
     draw: true,
     virtualize: false,
   });
+});
+
+test("relationship density is bounded even when the node count is small", () => {
+  expect(graphLayoutBudget(50, 1225)).toMatchObject({ draw: false });
+  expect(graphLayoutBudget(50, 500)).toMatchObject({
+    draw: true,
+    virtualize: true,
+  });
+  expect(graphLayoutBudget(500, GRAPH_LAYOUT_EDGE_CAP).draw).toBe(true);
+  expect(graphLayoutBudget(500, GRAPH_LAYOUT_EDGE_CAP + 1).draw).toBe(false);
+});
+
+test("only explicit maintainer or organization review styles a mapping as reviewed", () => {
+  for (const review_state of [
+    undefined,
+    "",
+    "proposed",
+    "approved",
+    "future_state",
+  ]) {
+    expect(
+      graphMappingReview({ kind: "maps_to", review_state })?.reviewed,
+    ).toBe(false);
+  }
+  for (const review_state of ["maintainer_reviewed", "org_reviewed"]) {
+    expect(
+      graphMappingReview({ kind: "maps_to", review_state })?.reviewed,
+    ).toBe(true);
+  }
+  expect(graphMappingReview({ kind: "evidence_covers_asset" })).toBeNull();
+  for (const review_state of ["future_state", "__proto__", "constructor"]) {
+    expect(graphMappingReview({ kind: "maps_to", review_state })?.label).toBe(
+      "Review unrecognized",
+    );
+  }
+  expect(
+    graphMappingReview({ kind: "maps_to", review_state: "rejected" }),
+  ).toEqual({ reviewed: false, label: "Rejected mapping" });
+  expect(
+    graphMappingReview({ kind: "maps_to", review_state: "needs_changes" }),
+  ).toEqual({ reviewed: false, label: "Needs changes" });
+});
+
+test("scope hops are exact and independent of edge order", () => {
+  const edges = [
+    { source: "framework", target: "control" },
+    { source: "control", target: "evidence" },
+    { source: "evidence", target: "asset" },
+    { source: "other-control", target: "evidence" },
+  ];
+  for (const ordered of [edges, [...edges].reverse()]) {
+    expect(
+      [...graphScope(ordered, new Set(["framework"]), 2, true)].sort(),
+    ).toEqual(["control", "evidence", "framework"]);
+    expect([...graphScope(ordered, new Set(["control"]), 1)].sort()).toEqual([
+      "control",
+      "evidence",
+      "framework",
+    ]);
+  }
+});
+
+test("a bounded scope stays small in a 10,000-node cycle", () => {
+  const edges = Array.from({ length: 10_000 }, (_, i) => ({
+    source: String(i),
+    target: String((i + 1) % 10_000),
+  }));
+  const seed = new Set(["0"]);
+  const started = performance.now();
+  expect([...graphScope(edges, seed, 3)].sort()).toEqual([
+    "0",
+    "1",
+    "2",
+    "3",
+    "9997",
+    "9998",
+    "9999",
+  ]);
+  expect(performance.now() - started).toBeLessThan(1000);
+  expect([...seed]).toEqual(["0"]);
+  expect([...graphScope(edges, seed, 0)]).toEqual(["0"]);
 });

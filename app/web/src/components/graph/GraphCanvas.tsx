@@ -10,6 +10,7 @@ import {
   Position,
   MarkerType,
   Controls,
+  ControlButton,
   MiniMap,
   ReactFlow,
   ReactFlowProvider,
@@ -40,6 +41,7 @@ import {
   Network,
   Package,
   Server,
+  Scan,
   ShieldCheck,
   ShieldQuestion,
   UserRound,
@@ -53,13 +55,16 @@ import {
   graphEvidenceState,
   graphHasOutcome,
   graphKindLabel,
+  graphMappingReview,
   graphNodeAriaLabel,
   graphRecordLabel,
 } from "@/lib/graph-evidence";
 import {
   GRAPH_LAYOUT_NODE_CAP,
+  GRAPH_LAYOUT_EDGE_CAP,
   GRAPH_READABLE_ZOOM,
   graphLayoutBudget,
+  graphScope,
 } from "@/lib/graph-layout";
 import { formatCount } from "@/lib/format";
 import { displayLabel as statusLabel } from "@/lib/display";
@@ -824,25 +829,13 @@ function InnerGraphCanvas({
         ids.add(node.id);
       }
     }
-    for (let depth = 0; depth < 2; depth += 1) {
-      for (const edge of graph.edges) {
-        if (ids.has(edge.source)) ids.add(edge.target);
-      }
-    }
-    return ids;
+    return graphScope(graph.edges, ids, 2, true);
   }, [graph, filterFramework]);
 
   const expandScope = useCallback(
     (seed: Set<string>, hops: number) => {
       if (!graph) return seed;
-      const ids = new Set(seed);
-      for (let depth = 0; depth < hops; depth += 1) {
-        for (const edge of graph.edges) {
-          if (ids.has(edge.source)) ids.add(edge.target);
-          if (ids.has(edge.target)) ids.add(edge.source);
-        }
-      }
-      return ids;
+      return graphScope(graph.edges, seed, hops);
     },
     [graph],
   );
@@ -919,6 +912,28 @@ function InnerGraphCanvas({
     [filteredNodes],
   );
 
+  const filteredEdges = useMemo(
+    () =>
+      graph?.edges.filter(
+        (edge) => allowedIds.has(edge.source) && allowedIds.has(edge.target),
+      ) ?? [],
+    [graph, allowedIds],
+  );
+  const relationshipStyles = useMemo(() => {
+    const styles = new Map<string, { dash?: string; invalid?: boolean }>();
+    for (const edge of filteredEdges) {
+      const review = graphMappingReview(edge);
+      if (graphEdgeInvalid(edge))
+        styles.set("Invalid binding", { dash: "3 4", invalid: true });
+      else if (review)
+        styles.set(review.reviewed ? "Reviewed mapping" : review.label, {
+          dash: review.reviewed ? "8 4" : "2 4",
+        });
+      else styles.set("Recorded link", {});
+    }
+    return [...styles];
+  }, [filteredEdges]);
+
   // Compute neighbor sets for the currently selected node so the canvas can
   // bright-highlight it + its 1-hop neighbors and dim the rest.
   const adjacency = useMemo(() => {
@@ -986,8 +1001,8 @@ function InnerGraphCanvas({
     return out;
   }, [searchQuery, filteredNodes]);
 
-  const budget = graphLayoutBudget(filteredNodes.length);
-  const tooLarge = !neighborhoodRoot && !budget.draw;
+  const budget = graphLayoutBudget(filteredNodes.length, filteredEdges.length);
+  const tooLarge = !budget.draw;
 
   // Layout depends only on the node set and direction; hover, selection and
   // search restyle the laid-out graph without re-running dagre.
@@ -1018,37 +1033,36 @@ function InnerGraphCanvas({
         emphasis: "active",
       },
     }));
-    const edges: Edge[] = graph.edges
-      .filter((e) => allowedIds.has(e.source) && allowedIds.has(e.target))
-      .map((e) => {
-        const invalid = graphEdgeInvalid(e);
-        const kind = e.kind.replaceAll("_", " ");
-        const review = e.review_state?.replaceAll("_", " ");
-        return {
-          id: e.id,
-          data: {
-            relationshipKind: e.kind,
-            reviewState: e.review_state,
-            invalid,
-          },
-          className: invalid ? "graph-edge-invalid" : undefined,
-          source: e.source,
-          target: e.target,
-          label: invalid
-            ? "invalid asset type"
-            : showEdgeLabels
-              ? review
-              : undefined,
-          ariaLabel: invalid
-            ? `${kind}: invalid asset type, does not support this asset`
-            : `${kind}${review ? `: ${review}` : ""}`,
-          labelStyle: {
-            fill: invalid ? "var(--color-danger-fg)" : "var(--color-ink)",
-            fontSize: 11,
-          },
-          labelBgStyle: { fill: "var(--color-surface)" },
-        };
-      });
+    const edges: Edge[] = filteredEdges.map((e) => {
+      const invalid = graphEdgeInvalid(e);
+      const kind = e.kind.replaceAll("_", " ");
+      const review = graphMappingReview(e)?.label;
+      return {
+        id: e.id,
+        data: {
+          relationshipKind: e.kind,
+          reviewState: e.review_state,
+          mapping: Boolean(graphMappingReview(e)),
+          invalid,
+        },
+        className: invalid ? "graph-edge-invalid" : undefined,
+        source: e.source,
+        target: e.target,
+        label: invalid
+          ? "invalid asset type"
+          : showEdgeLabels
+            ? review
+            : undefined,
+        ariaLabel: invalid
+          ? `${kind}: invalid asset type, does not support this asset`
+          : `${kind}${review ? `: ${review}` : ""}`,
+        labelStyle: {
+          fill: invalid ? "var(--color-danger-fg)" : "var(--color-ink)",
+          fontSize: 11,
+        },
+        labelBgStyle: { fill: "var(--color-surface)" },
+      };
+    });
     return layoutGraph(list, edges, layout, rankLimit, neighborhoodRoot);
   }, [
     compactCards,
@@ -1058,7 +1072,7 @@ function InnerGraphCanvas({
     graph,
     tooLarge,
     filteredNodes,
-    allowedIds,
+    filteredEdges,
     layout,
   ]);
 
@@ -1079,9 +1093,9 @@ function InnerGraphCanvas({
     const edges: Edge[] = laidOut.edges.map((e) => {
       const invalid = Boolean(e.data?.invalid);
       const reviewState = e.data?.reviewState as string | undefined;
-      const reviewed =
-        !reviewState ||
-        ["maintainer_reviewed", "org_reviewed"].includes(reviewState);
+      const reviewed = ["maintainer_reviewed", "org_reviewed"].includes(
+        reviewState ?? "",
+      );
       const onPath = pathSet?.edges.has(e.id) ?? false;
       const onHighlight = highlightSet
         ? e.source === activeId || e.target === activeId
@@ -1117,13 +1131,11 @@ function InnerGraphCanvas({
           // reviewed, dotted while proposed. Evidence links stay solid.
           strokeDasharray: invalid
             ? "3 4"
-            : e.data?.relationshipKind === "maps_to"
+            : e.data?.mapping
               ? reviewed
                 ? "8 4"
                 : "2 4"
-              : reviewed
-                ? undefined
-                : "5 4",
+              : undefined,
           opacity: dimmed && !onPath && !onHighlight && !invalid ? 0.4 : 1,
         },
       };
@@ -1355,12 +1367,14 @@ function InnerGraphCanvas({
           <Network aria-hidden="true" className="h-8 w-8" />
           <p>
             <b className="text-ink">
-              {formatCount(filteredNodes.length)} nodes is too many to draw
-              readably.
+              {formatCount(filteredNodes.length)} nodes and{" "}
+              {formatCount(filteredEdges.length)} relationships exceed the
+              readable layout budget.
             </b>{" "}
-            Maps draw up to {formatCount(GRAPH_LAYOUT_NODE_CAP)} nodes. Choose
-            one framework or focus a control path, or use Evidence investigation
-            to follow a specific record.
+            Maps draw up to {formatCount(GRAPH_LAYOUT_NODE_CAP)} nodes and{" "}
+            {formatCount(GRAPH_LAYOUT_EDGE_CAP)} relationships. Choose one
+            framework or focus a control path, or use Evidence investigation to
+            follow a specific record.
           </p>
           {oversizeAction}
         </div>
@@ -1480,8 +1494,44 @@ function InnerGraphCanvas({
             style={{ width: 112, height: 80 }}
             maskColor="rgb(var(--rgb-ink) / 0.06)"
           />
-          <Controls position="bottom-left" />
+          <Controls position="bottom-left" showFitView={false}>
+            <ControlButton
+              title="Fit View"
+              aria-label="Fit View"
+              onClick={() => fitReadableView(180)}
+            >
+              <Scan />
+            </ControlButton>
+          </Controls>
         </ReactFlow>
+      </div>
+      <div
+        aria-label="Relationship styles"
+        className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-lg bg-surfaceMuted px-3 py-2 text-xs text-muted"
+      >
+        {relationshipStyles.map(([label, style]) => (
+          <span
+            key={label}
+            className={`inline-flex items-center gap-2 ${style.invalid ? "text-danger-fg" : ""}`}
+          >
+            <svg aria-hidden="true" width="28" height="10" viewBox="0 0 28 10">
+              <path
+                d="M0 5H24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeDasharray={style.dash}
+              />
+              <path
+                d="m22 2 4 3-4 3"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+              />
+            </svg>
+            {label}
+          </span>
+        ))}
       </div>
       {overflow && (
         <p
@@ -1489,7 +1539,8 @@ function InnerGraphCanvas({
           className="text-xs leading-5 text-muted"
         >
           Part of this map is outside the view. Drag the canvas to follow
-          connections, or use Fit view (bottom left) to see all of it.
+          connections or use the minimap. Fit view (bottom left) restores a
+          readable zoom; zoom out for an overview.
         </p>
       )}
     </div>

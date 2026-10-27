@@ -84,7 +84,8 @@ separate qualification. Historical test totals are not a current coverage claim.
 The product-tour screenshots were recaptured from the 0.3.17 candidate: frozen
 runtime source `bdfa9135` with the release version alignment. The capture uses a
 fresh synthetic golden lake and the same browser clock for light/dark pairs.
-Graph, mapping-review, framework and mobile images reflect that candidate;
+The graph light/dark pair was then refreshed for the bounded-layout and review-provenance improvements described in [Evidence investigation](INVESTIGATION_GRAPH.md).
+Mapping-review, framework and mobile images retain the full-tour capture;
 README and coverage counts come from the same catalog. Publication and live
 provider qualification remain separate checks in [release readiness](RELEASE_READINESS.md).
 
