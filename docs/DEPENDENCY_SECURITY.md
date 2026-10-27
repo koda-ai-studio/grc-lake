@@ -237,6 +237,21 @@ npm audit --omit=dev --audit-level=high
 npm audit
 ```
 
+## Patched OIDC and audit-cache dependencies
+
+The server and development extras require Authlib 1.9.1 or newer, and the
+lockfile pins 1.9.1. Its [upstream security fixes](https://docs.authlib.org/en/stable/upgrades/changelog.html)
+include enforcing the saved OIDC nonce even when a signed token declares
+`nonce_supported=false`. The existing OIDC cryptographic-policy tests cover
+mismatched and null nonces through GRC Lake's configured client, alongside
+signature, issuer, audience, and key-rotation checks. These tests use synthetic
+tokens; they do not qualify a live identity provider.
+
+The lockfile also pins msgpack 1.2.3, fixing the upstream
+[strict-map-key decoding advisory](https://github.com/msgpack/msgpack-python/security/advisories/GHSA-j586-36cw-2gc2).
+It is a transitive dependency of pip-audit's cache, not a core runtime dependency.
+Both updates retain the existing strict dependency-audit gates.
+
 ## Patched template lookup
 
 The Python lockfile uses Mako 1.4.3, above the 1.4.2 fix for Windows drive-letter
