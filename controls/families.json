@@ -229,6 +229,102 @@
       "description": "AI system inventory, context, categorization, monitoring, and post-deployment response.",
       "nist_800_53_families": [],
       "cis_controls": []
+    },
+    {
+      "family_id": "authentication",
+      "label": "Authentication and MFA",
+      "category": "identity-access",
+      "description": "Authenticating users and services, protecting authenticators, and limiting unsuccessful attempts.",
+      "nist_800_53_families": ["IA", "AC"],
+      "cis_controls": ["5", "6"]
+    },
+    {
+      "family_id": "privileged-access",
+      "label": "Privileged access",
+      "category": "identity-access",
+      "description": "Restricting, authorizing, and monitoring privileged accounts and functions.",
+      "nist_800_53_families": ["AC"],
+      "cis_controls": ["5", "6"]
+    },
+    {
+      "family_id": "access-review",
+      "label": "Access review",
+      "category": "identity-access",
+      "description": "Periodic review and recertification of access and privileges.",
+      "nist_800_53_families": ["AC"],
+      "cis_controls": ["5", "6"]
+    },
+    {
+      "family_id": "identity-lifecycle",
+      "label": "Identity lifecycle",
+      "category": "identity-access",
+      "description": "Issuing and maintaining identities, validating identity evidence, and retiring identifiers.",
+      "nist_800_53_families": ["IA", "AC"],
+      "cis_controls": ["5", "6"]
+    },
+    {
+      "family_id": "supplier-inventory",
+      "label": "Supplier inventory",
+      "category": "third-party",
+      "description": "Identifying suppliers and maintaining their criticality and scope.",
+      "nist_800_53_families": ["SR", "SA"],
+      "cis_controls": ["15"]
+    },
+    {
+      "family_id": "supplier-assurance",
+      "label": "Supplier assurance",
+      "category": "third-party",
+      "description": "Assessing suppliers and reviewing their security evidence.",
+      "nist_800_53_families": ["SR", "SA"],
+      "cis_controls": ["15"]
+    },
+    {
+      "family_id": "supply-chain-integrity",
+      "label": "Supply chain integrity",
+      "category": "third-party",
+      "description": "Provenance, authenticity, and tamper resistance of acquired components, models, and datasets.",
+      "nist_800_53_families": ["SR", "SA"],
+      "cis_controls": ["15", "16"]
+    },
+    {
+      "family_id": "ai-inventory-context",
+      "label": "AI inventory and context",
+      "category": "ai-governance",
+      "description": "Identifying AI systems, their intended use, affected users, and implementation context.",
+      "nist_800_53_families": [],
+      "cis_controls": []
+    },
+    {
+      "family_id": "ai-evaluation",
+      "label": "AI evaluation and impact",
+      "category": "ai-governance",
+      "description": "Evaluating AI behavior, trustworthiness, and effects on people before and during use.",
+      "nist_800_53_families": [],
+      "cis_controls": []
+    },
+    {
+      "family_id": "ai-monitoring",
+      "label": "AI monitoring",
+      "category": "ai-governance",
+      "description": "Ownership and operation of ongoing AI monitoring and post-deployment response.",
+      "nist_800_53_families": [],
+      "cis_controls": []
+    },
+    {
+      "family_id": "ai-oversight-transparency",
+      "label": "AI oversight and transparency",
+      "category": "ai-governance",
+      "description": "Human oversight, disclosures, feedback, and appeals for AI use.",
+      "nist_800_53_families": [],
+      "cis_controls": []
+    },
+    {
+      "family_id": "ai-data-governance",
+      "label": "AI data governance",
+      "category": "ai-governance",
+      "description": "Governing training and evaluation data throughout the AI lifecycle.",
+      "nist_800_53_families": [],
+      "cis_controls": []
     }
   ]
 }
