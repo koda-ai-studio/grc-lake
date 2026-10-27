@@ -149,7 +149,7 @@ def test_refresh_rejects_interrupted_execution(tmp_path: Path):
     from tools.update_test_durations import playwright_durations
 
     report = _report()
-    report["stats"] = {"unexpected": 0, "interrupted": 1}
+    report["stats"] = {"unexpected": 0}
     for spec in report["suites"][0]["suites"][0]["specs"]:
         spec["tests"][0]["results"] = [{"duration": 100, "status": "interrupted"}]
     path = tmp_path / "results.json"

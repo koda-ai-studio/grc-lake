@@ -38,11 +38,7 @@ def playwright_durations(reports: list[Path]) -> dict[str, float]:
     seen: set[tuple[str, str, int]] = set()
     for report in reports:
         payload = json.loads(report.read_text())
-        if (
-            payload.get("errors")
-            or payload.get("stats", {}).get("unexpected", 1)
-            or payload.get("stats", {}).get("interrupted", 0)
-        ):
+        if payload.get("errors") or payload.get("stats", {}).get("unexpected", 1):
             raise ValueError("unsuccessful or incomplete Playwright report")
         suites = [payload]
         while suites:
@@ -58,6 +54,8 @@ def playwright_durations(reports: list[Path]) -> dict[str, float]:
                     if not results:
                         raise ValueError("incomplete Playwright execution")
                     for result in results:
+                        if result.get("status") == "interrupted":
+                            raise ValueError("unsuccessful or incomplete Playwright report")
                         duration = result.get("duration")
                         if (
                             isinstance(duration, bool)
