@@ -2213,11 +2213,29 @@ def _load_fixture(
         from security_lakehouse.demo_seed import seed_golden_demo
 
         seeded = seed_golden_demo(out)
+    import shlex
+
+    next_steps = [
+        {
+            "action": "review_posture",
+            "label": "Inspect technical control tests and reviewed CCF/framework results.",
+            "command": shlex.join(["grc-lake", "assessment", "status", "--lake", str(out), "--format", "summary"]),
+        }
+    ]
+    if fixture.company == "golden":
+        next_steps.append(
+            {
+                "action": "read_walkthrough",
+                "label": "Learn how technical tests, framework results, and human review differ.",
+                "path": "docs/AUDITOR_WALKTHROUGH.md",
+            }
+        )
     return {
         "company": fixture.company,
         "loaded_from": str(fixture.raw_path),
         **result.__dict__,
         **({"demo_records": seeded} if seeded is not None else {}),
+        "next_steps": next_steps,
     }
 
 
