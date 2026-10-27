@@ -1,57 +1,64 @@
 import { expect, test } from "@playwright/test";
 
-test("bounded investigation expands exact relationships with visible icons", async ({
-  page,
-}) => {
-  const initialResponse = page.waitForResponse(
-    (response) =>
-      response.url().includes("/graph/investigation") && response.ok(),
-  );
-  await page.goto("/console/graph/?root=control%3ASOC2-CC6.1");
-  const initial = (await (await initialResponse).json()).data;
-  expect(initial.nodes.length).toBeGreaterThan(0);
-  expect(initial.nodes.length).toBeLessThanOrEqual(150);
-  await expect(page.getByTestId("graph-node-icon").first()).toBeVisible();
-  await page
-    .getByText("Search and change starting point", { exact: true })
-    .click();
-  const shallowResponse = page.waitForResponse(
-    (response) =>
-      response.url().includes("/graph/investigation") &&
-      new URL(response.url()).searchParams.get("depth") === "1" &&
-      response.ok(),
-  );
-  await page.getByLabel("Graph depth").selectOption("1");
-  const shallow = (await (await shallowResponse).json()).data;
-  const evidence = shallow.nodes.find(
-    (node: { label: string }) =>
-      node.label === "repository.governance.branch_protection",
-  );
-  expect(evidence).toBeDefined();
-  await page.locator(`.react-flow__node[data-id="${evidence.id}"]`).click();
-  const inspector = page.getByRole("complementary", {
-    name: "Selected graph node",
+for (const width of [390, 1280]) {
+  test(`bounded investigation expands exact relationships with visible icons at ${width}px`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 844 });
+    const initialResponse = page.waitForResponse(
+      (response) =>
+        response.url().includes("/graph/investigation") && response.ok(),
+    );
+    await page.goto("/console/graph/?root=control%3ASOC2-CC6.1");
+    const initial = (await (await initialResponse).json()).data;
+    expect(initial.nodes.length).toBeGreaterThan(0);
+    expect(initial.nodes.length).toBeLessThanOrEqual(150);
+    await expect(page.getByTestId("graph-node-icon").first()).toBeVisible();
+    await page
+      .getByText("Search and change starting point", { exact: true })
+      .click();
+    const shallowResponse = page.waitForResponse(
+      (response) =>
+        response.url().includes("/graph/investigation") &&
+        new URL(response.url()).searchParams.get("depth") === "1" &&
+        response.ok(),
+    );
+    await page.getByLabel("Graph depth").selectOption("1");
+    const shallow = (await (await shallowResponse).json()).data;
+    const evidence = shallow.nodes.find(
+      (node: { label: string }) =>
+        node.label === "repository.governance.branch_protection",
+    );
+    expect(evidence).toBeDefined();
+    const evidenceNode = page.locator(
+      `.react-flow__node[data-id="${evidence.id}"]`,
+    );
+    // Readable zoom can leave this record off-screen; keyboard selection is supported.
+    await evidenceNode.press("Enter");
+    const inspector = page.getByRole("complementary", {
+      name: "Selected graph node",
+    });
+    await expect(inspector).toBeVisible();
+    const focusedResponse = page.waitForResponse(
+      (response) =>
+        response.url().includes("/graph/investigation") &&
+        new URL(response.url()).searchParams.get("root") === evidence.id &&
+        response.ok(),
+    );
+    await inspector
+      .getByRole("button", { name: "Focus this evidence path" })
+      .click();
+    const focused = (await (await focusedResponse).json()).data;
+    expect(focused.root).toBe(evidence.id);
+    expect(focused.edges.length).toBeGreaterThan(0);
+    await expect(
+      page.getByText(/Recorded relationships; not network reachability/),
+    ).toBeVisible();
+    await expect
+      .poll(() => page.locator(".react-flow__edge-path").count())
+      .toBeGreaterThan(0);
   });
-  await expect(inspector).toBeVisible();
-  const focusedResponse = page.waitForResponse(
-    (response) =>
-      response.url().includes("/graph/investigation") &&
-      new URL(response.url()).searchParams.get("root") === evidence.id &&
-      response.ok(),
-  );
-  await inspector
-    .getByRole("button", { name: "Focus this evidence path" })
-    .click();
-  const focused = (await (await focusedResponse).json()).data;
-  expect(focused.root).toBe(evidence.id);
-  expect(focused.edges.length).toBeGreaterThan(0);
-  await expect(
-    page.getByText(/Recorded relationships; not network reachability/),
-  ).toBeVisible();
-  await expect
-    .poll(() => page.locator(".react-flow__edge-path").count())
-    .toBeGreaterThan(0);
-});
+}
 
 test("every catalog provider opens the shared setup or cloud preparation", async ({
   page,
