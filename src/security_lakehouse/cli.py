@@ -2041,6 +2041,19 @@ def _assessment_status(args: argparse.Namespace) -> int:
             f"Evidence   {assessment['evidence_freshness']['count']} records, "
             f"{posture['stale_evidence_count']} stale/expired/missing"
         )
+        print(
+            "\nReading these results:\n"
+            "  Technical tests apply rules to control-tagged evidence; the posture score covers observed controls.\n"
+            "  A passing test is not an attested framework pass: CCF also needs fresh evidence explicitly bound\n"
+            "  to every required reviewed safeguard, with passing outcomes and applicable assets accounted for;\n"
+            "  proposed mappings cannot attest. Not assessed includes unevaluated, stale and unmapped requirements.\n"
+            "  Missing = required evidence absent; stale = outside its freshness window; partial = collection incomplete;\n"
+            "  not evaluated = no supported verdict; observed = no verdict asserted. None establishes a pass.\n"
+            "  Maintainer mapping review is not independent workpaper review. Drafts remain pending human review.\n"
+            "  Hash verification checks content consistency, not reviewer identity.\n"
+            "Next: follow SOC2-CC6.1 evidence through a draft workpaper and separately retained digest verification:\n"
+            "  https://github.com/koda-ai-studio/grc-lake/blob/main/docs/AUDITOR_WALKTHROUGH.md#first-run-access-control-path"
+        )
     else:
         print(json.dumps(assessment, indent=2, sort_keys=True))
     return 0

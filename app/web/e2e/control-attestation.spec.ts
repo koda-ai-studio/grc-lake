@@ -72,6 +72,12 @@ test("controls page shows a passing control test as not attested", async ({
   ).toBeVisible();
   await expect(drawer).toContainText("Control test passing · Not attested");
   await expect(drawer).toContainText(
+    "fresh evidence explicitly bound to every required reviewed safeguard",
+  );
+  await expect(drawer).toContainText(
+    "Mapping review alone cannot fill evidence gaps",
+  );
+  await expect(drawer).toContainText(
     `${counts.reviewed_safeguard_count} reviewed · ${counts.proposed_safeguard_count} proposed mapping`,
   );
   await expect(
@@ -183,4 +189,40 @@ test("overview leads with the same attested count as the controls page", async (
   await page.goto("/console/dashboard/");
   const tile = page.getByRole("link", { name: /Assessed coverage/ });
   await expect(tile).toContainText(`${attested} attested`);
+});
+
+test("first-run guidance separates results and leads to access evidence and a draft workpaper", async ({
+  page,
+}) => {
+  await page.goto("/console/dashboard/");
+  const guide = page.getByRole("group", { name: "Understand these results" });
+  await guide.locator("summary").click();
+  for (const text of [
+    "Technical control tests",
+    "CCF / framework attestation",
+    "Evidence completeness",
+    "Mapping review",
+    "Human workpaper review",
+    "proposed mappings cannot attest",
+    "Missing means required evidence is absent",
+    "stale means outside its freshness window",
+    "partial means collection was incomplete",
+    "not evaluated means no supported verdict",
+    "observed records assert no verdict",
+    "Maintainer review does not establish independent auditor acceptance",
+    "Hash verification checks content consistency, not reviewer identity",
+  ])
+    await expect(guide).toContainText(text);
+  await expect(
+    guide.getByRole("link", { name: "Inspect SOC 2 CC6.1" }),
+  ).toHaveAttribute("href", "/console/controls/?id=SOC2-CC6.1");
+  await expect(
+    guide.getByRole("link", { name: "Follow the draft workpaper walkthrough" }),
+  ).toHaveAttribute(
+    "href",
+    "https://github.com/koda-ai-studio/grc-lake/blob/main/docs/AUDITOR_WALKTHROUGH.md#first-run-access-control-path",
+  );
+  await guide.getByRole("link", { name: "Inspect SOC 2 CC6.1" }).click();
+  await expect(page.getByRole("dialog")).toContainText("SOC2-CC6.1");
+  await expect(page.getByRole("dialog")).toContainText("Framework result");
 });

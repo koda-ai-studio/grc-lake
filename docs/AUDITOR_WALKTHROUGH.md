@@ -4,7 +4,38 @@ This walkthrough uses synthetic records to demonstrate a reviewable control test
 including an observed failure and evidence gaps. It does not claim certification,
 live-provider qualification, or effectiveness of a real organization's controls.
 
-From a source checkout with dependencies installed:
+## First-run access-control path
+
+Start in **Overview → Understand these results → Inspect SOC 2 CC6.1** after
+loading the golden fixture. The control drawer shows the technical test, its
+evidence, and the separate framework result. In the terminal, use
+`grc-lake assessment status --lake ./lake --format summary` for the same distinction.
+
+| Layer                  | What the result establishes                                                                                                                                                                                                                                      |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Technical control test | Rules over control-tagged evidence. A pass supports that test's scope; a fail records its rule-defined failure. The headline score covers observed controls, not the whole framework.                                                                            |
+| CCF / framework result | A pass requires fresh evidence explicitly bound to every required reviewed safeguard, with passing outcomes and applicable assets accounted for. Control tags alone do not bind evidence. Proposed mappings cannot attest; unmapped means no qualifying mapping. |
+| Evidence completeness  | Missing means required evidence is absent; stale means outside its freshness window; partial means collection was incomplete. Not evaluated means no supported verdict; observed records assert no verdict. Passing samples do not prove a complete population.  |
+| Mapping review         | A human checks the safeguard-to-requirement relationship. Maintainer review does not establish independent auditor acceptance or operating effectiveness.                                                                                                        |
+| Workpaper review       | A draft preserves tests, gaps, period and generation for a different authenticated human to review. Hash verification checks content consistency, not reviewer identity.                                                                                         |
+
+For example, the golden fixture's **SOC2-CC6.1 technical test fails**, while its
+CCF result is **not evaluated**: its identity mapping is proposed. These are
+different questions, not contradictory verdicts. The fixture's **SOC2-CC6.8
+technical test passes**, but its reviewed vulnerability safeguard has no bound
+evidence, so that framework result also remains **not evaluated**. Reviewing a
+mapping alone cannot fill the evidence gap. These examples describe the shipped
+synthetic fixture; inspect your own generation's states rather than expecting
+the same results from live evidence.
+
+Continue below with the existing control-assurance fixture, which has an explicit
+historical period and population baseline. It is a separate synthetic assessment,
+not a workpaper for the golden lake. Follow **SG-IDENTITY-001 → SOC2-CC6.1** in
+the exported workpaper: passing access observations and documented design still
+leave **insufficient evidence** across the declared population. The proposed
+mapping and **pending human review** conclusion remain visible.
+
+From a source checkout with dependencies installed, export that draft:
 
 ```sh
 uv run grc-lake pipeline run \
