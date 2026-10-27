@@ -22,6 +22,7 @@ from typing import Any, Protocol
 
 from security_lakehouse import netguard
 from security_lakehouse.connector_errors import ConnectorAccessError, ConnectorConfigError
+from security_lakehouse.http_response import read_json_response
 from security_lakehouse.ingestion import backoff
 from security_lakehouse.ingestion.paginate import next_link_url, object_rows, paginate
 from security_lakehouse.io import read_json, write_jsonl
@@ -49,7 +50,7 @@ def _guarded_page(request: urllib.request.Request, *, timeout: int, label: str) 
         with netguard.open_public(request, timeout=timeout, label=label) as resp:
             if getattr(resp, "status", None) == 204:
                 return {"enabled": True}, ""
-            return json.loads(resp.read().decode("utf-8")), getattr(resp, "headers", {}).get("Link", "")
+            return read_json_response(resp), getattr(resp, "headers", {}).get("Link", "")
 
     return backoff.http_retry(_fetch)
 
@@ -600,7 +601,8 @@ def _probe_signal(signal: str, read: Any) -> dict[str, Any]:
 
 def _http_error_message(exc: urllib.error.HTTPError) -> str:
     try:
-        payload = json.loads(exc.read().decode("utf-8"))
+        with exc:
+            payload = read_json_response(exc)
     except (OSError, ValueError, AttributeError):
         # No readable JSON body; classify on the status code alone.
         return ""

@@ -42,6 +42,7 @@ from typing import Any
 from security_lakehouse import netguard
 from security_lakehouse.connector_ids import stable_id_slug
 from security_lakehouse.connectors_intune import COMPLIANCE_CONTROLS, ENCRYPTION_CONTROLS
+from security_lakehouse.http_response import read_json_response
 from security_lakehouse.ingestion import backoff
 from security_lakehouse.ingestion.oauth import ClientCredentialsToken
 from security_lakehouse.ingestion.paginate import object_rows, paginate
@@ -190,7 +191,7 @@ class JamfProClient:
 
     def _open(self, request: urllib.request.Request) -> Any:
         with netguard.open_public(request, timeout=self.timeout, label="jamf pro") as resp:
-            return json.loads(resp.read().decode("utf-8"))
+            return read_json_response(resp)
 
 
 class JamfFixtureClient:

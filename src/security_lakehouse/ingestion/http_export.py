@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-import json
 import urllib.error
 import urllib.parse
 import urllib.request
 from typing import Any, ClassVar
 
 from security_lakehouse import netguard
+from security_lakehouse.http_response import read_json_response
 from security_lakehouse.ingestion import backoff
 from security_lakehouse.ingestion.paginate import object_rows, paginate
 
@@ -37,7 +37,7 @@ class CursorExportClient:
 
         def _fetch() -> Any:
             with netguard.open_public(request, timeout=self.timeout, label=self.url_label) as resp:
-                return json.loads(resp.read().decode("utf-8"))
+                return read_json_response(resp)
 
         try:
             # Retry transient 429/5xx (honoring Retry-After); a terminal 4xx or an

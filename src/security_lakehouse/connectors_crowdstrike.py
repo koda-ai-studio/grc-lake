@@ -38,6 +38,7 @@ from typing import Any
 
 from security_lakehouse import netguard
 from security_lakehouse.connector_ids import stable_id_slug
+from security_lakehouse.http_response import read_json_response
 from security_lakehouse.ingestion import backoff
 from security_lakehouse.ingestion.oauth import ClientCredentialsToken
 from security_lakehouse.ingestion.paginate import object_rows, paginate
@@ -243,7 +244,7 @@ class CrowdStrikeClient:
 
     def _open(self, request: urllib.request.Request) -> Any:
         with netguard.open_public(request, timeout=self.timeout, label="crowdstrike falcon") as resp:
-            return json.loads(resp.read().decode("utf-8"))
+            return read_json_response(resp)
 
 
 class CrowdStrikeFixtureClient:

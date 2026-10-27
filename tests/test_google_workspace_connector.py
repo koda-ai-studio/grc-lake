@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import io
 import json
 from datetime import UTC, datetime
 from pathlib import Path
@@ -49,7 +50,7 @@ def test_google_workspace_follows_next_page_token(monkeypatch: pytest.MonkeyPatc
             token = url.split("pageToken=", 1)[1].split("&", 1)[0]
         seen_tokens.append(token)
         response = MagicMock()
-        response.read.return_value = json.dumps(pages[token]).encode("utf-8")
+        response.read.side_effect = io.BytesIO(json.dumps(pages[token]).encode("utf-8")).read
         response.__enter__.return_value = response
         return response
 
@@ -65,7 +66,7 @@ def test_google_workspace_retries_on_rate_limit(monkeypatch: pytest.MonkeyPatch)
 
     monkeypatch.setattr("security_lakehouse.ingestion.backoff.time.sleep", lambda *_: None)
     response = MagicMock()
-    response.read.return_value = json.dumps({"groups": [{"id": "g1"}]}).encode("utf-8")
+    response.read.side_effect = io.BytesIO(json.dumps({"groups": [{"id": "g1"}]}).encode("utf-8")).read
     response.__enter__.return_value = response
     sequence: list[object] = [
         urllib.error.HTTPError("https://admin.googleapis.com", 429, "slow", {"Retry-After": "0"}, None),
