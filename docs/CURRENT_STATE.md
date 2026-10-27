@@ -1,12 +1,16 @@
 # Current state and coverage
 
-Release verification: **2026-10-26**. Latest published release checked: **v0.3.16**.
-See the [publication receipt](RELEASE_READINESS.md#verified-0316-publication) for artifact and runtime evidence.
+Release verification: **2026-10-27**. Latest published release checked: **v0.3.17**.
+See the [publication receipt](RELEASE_READINESS.md#verified-0317-publication) for artifact and runtime evidence.
 Changes on `main` or in a pull request can be newer than the published package. Check the [releases](https://github.com/koda-ai-studio/grc-lake/releases)
 and [changelog](../CHANGELOG.md) for the version you install.
 
-0.3.16 assesses provider benchmarks only from their own provider's evidence (CIS
-AWS from AWS sources), so GCP or identity-provider evidence can no longer pass
+0.3.17 makes missing review status and unattributed legacy mappings proposed,
+preserves explicit graph review provenance, and bounds graph layouts by both
+nodes and relationships. See the [0.3.17 notes](RELEASE_READINESS.md#0317-release).
+
+The provider-scoping fix from 0.3.16 is retained: benchmarks use only their own
+provider's evidence (CIS AWS from AWS sources), so GCP or identity-provider evidence can no longer pass
 or fail a CIS AWS requirement, and keeps a denied read from hiding a failing AWS
 or GCP verdict. It builds on 0.3.15 (distrusted emSign roots removed, GCP
 effective policy, Azure Defender verdicts) and 0.3.14, which reports a framework
@@ -81,7 +85,7 @@ separate qualification. Historical test totals are not a current coverage claim.
 
 ## Coverage depth
 
-The product-tour screenshots were recaptured from the 0.3.17 candidate: frozen
+The product-tour screenshots were recaptured from the 0.3.17 release: frozen
 runtime source `bdfa9135` with the release version alignment. The capture uses a
 fresh synthetic golden lake and the same browser clock for light/dark pairs.
 The graph light/dark pair was then refreshed for the bounded-layout and review-provenance improvements described in [Evidence investigation](INVESTIGATION_GRAPH.md).

@@ -54,7 +54,7 @@ fails, then review and export.
 ## Five-minute tour
 
 These steps use the synthetic source demo, including deliberately failing checks.
-The screenshots are captured from the 0.3.17 candidate; use the release notes
+The screenshots are captured from the 0.3.17 release; use the release notes
 for the version you install.
 Framework marks and control-family icons retain the same identity across
 overviews, review workspaces and the graph. Provider marks identify recorded

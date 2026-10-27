@@ -1,11 +1,11 @@
 # Release readiness
 
-GRC Lake **0.3.16 is published** on
-[PyPI](https://pypi.org/project/grc-lake/0.3.16/),
-[GitHub](https://github.com/koda-ai-studio/grc-lake/releases/tag/v0.3.16), and as
-`ghcr.io/koda-ai-studio/grc-lake:0.3.16`.
-Use the [v0.3.16 release templates](https://github.com/koda-ai-studio/grc-lake/tree/v0.3.16)
-for a published deployment. The [publication receipt](#verified-0316-publication)
+GRC Lake **0.3.17 is published** on
+[PyPI](https://pypi.org/project/grc-lake/0.3.17/),
+[GitHub](https://github.com/koda-ai-studio/grc-lake/releases/tag/v0.3.17), and as
+`ghcr.io/koda-ai-studio/grc-lake:0.3.17`.
+Use the [v0.3.17 release templates](https://github.com/koda-ai-studio/grc-lake/tree/v0.3.17)
+for a published deployment. The [publication receipt](#verified-0317-publication)
 records the verified source, artifact hashes and runtime checks. Later changes
 on `main` are unreleased until a new tag passes the release gates.
 
@@ -15,7 +15,7 @@ changes reduce attestable coverage; they do not mean a provider's operating
 posture deteriorated. New endpoint and remediation-tracking mappings also remain
 proposed. Follow the [mapping-review procedure](MAPPING_REVIEW.md) for human
 decisions, and check the [0.3.17 changelog](../CHANGELOG.md#0317---2026-10-27) before
-comparing source results with the published package.
+comparing results with an earlier release.
 
 The shell-free runtime uses pinned Wolfi Python and matching system libraries.
 CI and release gates block all HIGH/CRITICAL and fixable MEDIUM image findings.
@@ -31,11 +31,10 @@ retain their exact source revisions and synthetic workload limits. They do not
 establish production capacity or qualify a deployment memory budget; 100k records
 remain outside the accepted local interactive profile.
 
-## 0.3.17 candidate
+## 0.3.17 release
 
-0.3.17 is prepared for publication; the published release above remains the
-verified installation target until the new tag completes its gates. This
-candidate introduces no database migration or dependency upgrade.
+0.3.17 is published; see the [publication receipt](#verified-0317-publication).
+This release introduces no database migration or dependency upgrade.
 
 The graph follow-up in [#1113](https://github.com/koda-ai-studio/grc-lake/pull/1113)
 preserves explicit review states, exact filter hops and readable zoom, with a
@@ -44,7 +43,9 @@ validation passed 46 graph checks (including mobile, light/dark and accessibilit
 and 129 documentation, screenshot and release checks. The release build also
 pins the PyPI description's Docker quick start to the version being packaged.
 Its merged main commit `5988d77a` [passed CI in 7m27s](https://github.com/koda-ai-studio/grc-lake/actions/runs/40447456279).
-The final packaging follow-up still requires its own merged-main qualification.
+The final packaging commit `96c79d6c`
+[passed CI in 11m47s](https://github.com/koda-ai-studio/grc-lake/actions/runs/40449361384),
+including 5m08s installing browser dependencies.
 
 - Unattributed legacy mappings and missing review status are proposed. Reviewed
   requirements are 886/2,282 (38.8%); the mapped count remains 2,196. This is a
@@ -52,7 +53,7 @@ The final packaging follow-up still requires its own merged-main qualification.
 - Scoped endpoint and Jira evidence bindings preserve unknowns and proposed
   mappings. Candidate-focused review packets and reviewer provenance support
   human review without treating attribution as reviewer independence.
-- The full synthetic console tour is recaptured with the candidate build,
+- The full synthetic console tour is recaptured with the release build,
   including graph, review, light/dark and mobile views. The README summary and
   framework coverage are regenerated from the same catalog.
 - CI retains its tests and security gates while reducing redundant waits. The
@@ -60,7 +61,7 @@ The final packaging follow-up still requires its own merged-main qualification.
   took 8m14s (Docker critical path) and 13m11s (including 6m26s installing browser
   dependencies). The under-eight-minute target remains inconsistent and is
   tracked in [#1111](https://github.com/koda-ai-studio/grc-lake/issues/1111);
-  the exact release candidate must pass independently.
+  browser-package cache measurements are recorded there.
 - Helm OCI publication, round-trip chart-byte verification and package/OCI
   provenance join the existing Python and image gates. Artifact Hub registration
   is separate. The MCP Registry workflow publishes only after the package exists.
@@ -197,6 +198,44 @@ for security, correctness, supported-workload performance and setup/documentatio
 repairs. Independent human review, required PR checks, exact-main CI and published
 artifact/runtime verification remain release gates; this candidate section is not
 a completion receipt.
+
+## Verified 0.3.17 publication
+
+The [release workflow](https://github.com/koda-ai-studio/grc-lake/actions/runs/40450498738)
+passed on source `96c79d6c2b86a9915e276a3d712cb9e2620b123b`, after independent
+human approval and successful [exact-main CI](https://github.com/koda-ai-studio/grc-lake/actions/runs/40449361384).
+The annotated `v0.3.17` tag resolves to that commit. The wheel and source archive
+match byte-for-byte between the release build, PyPI and GitHub:
+
+| Artifact                           | SHA-256                                                            |
+| ---------------------------------- | ------------------------------------------------------------------ |
+| `grc_lake-0.3.17-py3-none-any.whl` | `b48724f91e750b53dbf69623b2fee0cf1ab13f4adb388e37f21ee56b4355812a` |
+| `grc_lake-0.3.17.tar.gz`           | `1db437a7224ca87aa7b0bca7648deda3273f5439b3e45527553faccb17e71ce6` |
+| `grc-lake-0.3.17.tgz`              | `ab2ff15d98ce45fe349057df4e6760aaf4d149d7f6fed32e1f7bdf29344db66e` |
+
+The public image `ghcr.io/koda-ai-studio/grc-lake:0.3.17` has index digest
+`sha256:7d5567f39031965f3311005a847c67e5068e2fd29ddbaeb591a18a2d27814e57`
+and contains `linux/amd64` and `linux/arm64`. Both architectures passed the
+release vulnerability and authenticated runtime gates before publication.
+The public chart `oci://ghcr.io/koda-ai-studio/charts/grc-lake`, version `0.3.17`,
+has OCI digest `sha256:aaaa6acf4eb50c2510ae0b26cf0cb281d62beb05f272a103bcdb33bb94c7be76`.
+An anonymous Helm pull matched the GitHub chart asset byte-for-byte. Wheel,
+image, chart-package and chart-OCI attestations verified against the release
+workflow, exact source commit and tag using `gh attestation verify`.
+GitHub also carries the CycloneDX SBOM and Python/chart provenance bundles.
+Artifact Hub registration remains separate from this public OCI publication.
+
+The installed release wheel includes 263 console files and its catalogs. A fresh
+installation outside the source checkout loaded the synthetic golden fixture,
+verified a new assessment snapshot and exported both OSCAL documents. Assessment
+results contained exactly three `satisfied` requirements, matching the three
+attested framework results. The console graph page and health route responded
+successfully. The graph kept `SOC2-CC6.1` at `ccf_status=not_evaluated`, with zero
+reviewed and one proposed safeguard, while preserving its failing control test.
+These are synthetic runtime checks, not new live connector qualification.
+
+The PyPI description pins its Docker quick start to `v0.3.17`. The public MCP
+Registry lists `io.github.koda-ai-studio/grc-lake` at version `0.3.17`.
 
 ## Verified 0.3.16 publication
 
