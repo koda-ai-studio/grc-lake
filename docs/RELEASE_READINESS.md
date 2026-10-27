@@ -31,6 +31,27 @@ retain their exact source revisions and synthetic workload limits. They do not
 establish production capacity or qualify a deployment memory budget; 100k records
 remain outside the accepted local interactive profile.
 
+## 0.3.18 candidate
+
+0.3.18 is an unpublished candidate. The current published version and historical
+publication receipts remain below. Candidate validation does not establish
+publication, live-provider qualification, mapping approval or auditor acceptance.
+
+The candidate includes first-run assessment/workpaper guidance, stronger synthetic
+workpaper regression proof, four source-pinned OCSF observation presets, CI
+duration balancing and browser navigation regression coverage, and Authlib/msgpack
+security updates. Both issue-backed changes are merged on main; the release
+candidate still requires its own independent human review before merge. It introduces no
+database migration or change to control evaluation, framework mappings or review
+states. The package, chart, console, Compose and MCP versions are aligned; install
+guides keep the last verified published version until publication is verified.
+
+Required gates remain independent human approval, exact merged-main CI, version
+and changelog consistency, both image architectures with vulnerability/runtime
+qualification, Python artifact hashes/provenance, public Helm pull/provenance and
+registry visibility. Authorized live-provider checks and independent mapping or
+workpaper review are separate dependencies; no new live receipt is claimed.
+
 ## 0.3.17 release
 
 0.3.17 is published; see the [publication receipt](#verified-0317-publication).
