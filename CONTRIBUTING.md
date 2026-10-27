@@ -109,8 +109,8 @@ retains a JUnit report and prints its slowest tests for diagnosing imbalance.
 Ruff runs in `quality` and the history secret scan runs in `security`; CI skips
 those duplicate pre-commit hooks and caches the remaining hook environments.
 Local pre-commit still runs every hook. The security and Docker jobs start
-without waiting for the web job; Python, pipeline, and browser tests consume
-its bundle. Docker separately verifies the standalone image build and Compose
+without waiting for the web job; pipeline and browser tests consume its bundle. Python source tests start
+independently; installed-wheel tests verify the real bundled console. Docker separately verifies the standalone image build and Compose
 quickstart. CodeQL cancels superseded runs for the same branch or pull request.
 
 Write the test first when you fix a bug or add behavior, and check that it
@@ -130,8 +130,8 @@ log for 14 days, including when the check fails.
 ## Fuzzing
 
 ClusterFuzzLite exercises strict JSON, raw evidence records, CycloneDX/SPDX
-imports, and webhook signatures with Atheris. The pull-request workflow spends
-five minutes fuzzing changed code; a weekly or manually dispatched batch spends
+imports, and webhook signatures with Atheris. The pull-request workflow runs four targets independently for at least
+75 seconds each; a weekly or manually dispatched batch spends
 one hour across the targets. Failures retain crash reproducers, and batch runs
 upload available SARIF results to code scanning. This is bounded testing, not a
 claim that every input or native dependency is safe.

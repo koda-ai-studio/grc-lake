@@ -207,7 +207,7 @@ jobs:
   pypi:
     # PyPI versions are immutable: wait for both container architectures and
     # their authenticated runtime probes before publishing the Python package.
-    needs: [build, image]
+    needs: [build, image, chart]
     # Publish only from a version tag. A workflow_dispatch with dry_run:false on
     # a branch would otherwise reach PyPI with no tag↔version gate having run.
     if: github.ref_type == 'tag' && (github.event_name == 'push' || !inputs.dry_run)
@@ -362,8 +362,87 @@ jobs:
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
 
+  chart:
+    needs: [verify-version, image]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+    env:
+      PUBLISH: ${{ github.ref_type == 'tag' && (github.event_name == 'push' || !inputs.dry_run) }}
+      OWNER: ${{ github.repository_owner }}
+      VERSION: ${{ needs.verify-version.outputs.version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
+        with:
+          version: v3.16.0
+      - name: Validate and package the versioned chart
+        run: |
+          helm lint deploy/helm/grc-lake -f deploy/examples/self-hosted-values.yaml
+          helm template grc-lake deploy/helm/grc-lake -f deploy/examples/self-hosted-values.yaml > "$RUNNER_TEMP/chart.yaml"
+          helm package deploy/helm/grc-lake --destination charts
+          test -s "charts/grc-lake-${VERSION}.tgz"
+      - name: Authenticate to the chart registry
+        if: env.PUBLISH == 'true'
+        env:
+          REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REGISTRY_USER: ${{ github.actor }}
+        run: printf '%s' "$REGISTRY_TOKEN" | helm registry login ghcr.io --username "$REGISTRY_USER" --password-stdin
+      - uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
+        if: env.PUBLISH == 'true'
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish and verify exact chart bytes
+        id: push
+        if: env.PUBLISH == 'true'
+        shell: bash
+        run: |
+          helm push "charts/grc-lake-${VERSION}.tgz" "oci://ghcr.io/${OWNER}/charts" 2>&1 | tee "$RUNNER_TEMP/chart-push.log"
+          digest="$(sed -n 's/^Digest: //p' "$RUNNER_TEMP/chart-push.log")"
+          if ! [[ "$digest" =~ ^sha256:[0-9a-f]{64}$ ]]; then
+            echo "::error::chart push did not return a valid digest"
+            exit 1
+          fi
+          echo "digest=${digest}" >> "$GITHUB_OUTPUT"
+          mkdir -p "$RUNNER_TEMP/pulled-chart"
+          helm pull "oci://ghcr.io/${OWNER}/charts/grc-lake" --version "$VERSION" --destination "$RUNNER_TEMP/pulled-chart"
+          cmp "charts/grc-lake-${VERSION}.tgz" "$RUNNER_TEMP/pulled-chart/grc-lake-${VERSION}.tgz"
+      - uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        id: chart-attestation
+        if: env.PUBLISH == 'true'
+        with:
+          subject-path: charts/*.tgz
+      - name: Retain signed chart provenance
+        if: env.PUBLISH == 'true'
+        env:
+          BUNDLE_PATH: ${{ steps.chart-attestation.outputs.bundle-path }}
+        run: |
+          test -s "$BUNDLE_PATH"
+          cp "$BUNDLE_PATH" charts/chart-provenance.sigstore.json
+      - uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        if: env.PUBLISH == 'true'
+        with:
+          subject-name: ghcr.io/${{ github.repository_owner }}/charts/grc-lake
+          subject-digest: ${{ steps.push.outputs.digest }}
+          push-to-registry: true
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: helm-chart
+          path: charts/
+          if-no-files-found: error
+      - name: Clear chart registry credentials
+        if: always() && env.PUBLISH == 'true'
+        run: helm registry logout ghcr.io
+
   github-release:
-    needs: [verify-version, pypi, image]
+    needs: [verify-version, pypi, image, chart]
     if: github.ref_type == 'tag'
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -398,6 +477,10 @@ jobs:
         with:
           name: python-provenance
           path: provenance
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: helm-chart
+          path: charts
       - uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
           body_path: release-notes.md
@@ -408,6 +491,8 @@ jobs:
             dist/*
             sbom/*.cdx.json
             provenance/python-provenance.sigstore.json
+            charts/*.tgz
+            charts/chart-provenance.sigstore.json
 
   mcp-registry:
     # List the published package in the MCP Registry. The registry verifies the

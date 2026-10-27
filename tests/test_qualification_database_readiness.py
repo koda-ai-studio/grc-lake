@@ -32,3 +32,18 @@ def test_restore_readiness_has_a_deadline(monkeypatch):
     with pytest.raises(RuntimeError, match="readiness deadline exceeded"):
         qualification.wait_for_restore_database(["docker", "compose"], {})
     assert now[0] == 90
+
+
+@pytest.mark.parametrize("project", ["grc-qualification-0123456789ab", "unrelated-project"])
+def test_cleanup_uses_short_grace_only_for_its_own_disposable_project(monkeypatch, tmp_path, project):
+    (tmp_path / "project-name.txt").write_text(project)
+    commands = []
+    monkeypatch.setattr(qualification.subprocess, "run", lambda command, **kwargs: commands.append(command))
+    if project == "unrelated-project":
+        with pytest.raises(ValueError, match="invalid qualification project"):
+            qualification.cleanup(tmp_path)
+        assert not commands
+    else:
+        qualification.cleanup(tmp_path)
+        assert commands[0][-5:] == ["down", "--timeout", "1", "--volumes", "--remove-orphans"]
+        assert commands[0][commands[0].index("--project-name") + 1] == project
