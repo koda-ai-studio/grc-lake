@@ -18,6 +18,7 @@ from typing import Any
 
 from security_lakehouse import netguard
 from security_lakehouse.connector_controls import mapped_controls
+from security_lakehouse.http_response import read_bytes
 from security_lakehouse.ingestion import backoff
 from security_lakehouse.io import read_json
 from security_lakehouse.lake_mapping import (
@@ -183,7 +184,7 @@ class ClickHouseClient:
 
         def _fetch() -> str:
             with netguard.open_public(request, timeout=self.timeout, label="clickhouse host") as resp:
-                return resp.read().decode("utf-8")
+                return read_bytes(resp).decode("utf-8")
 
         try:
             # A read-only SELECT/SHOW is safe to retry; recover from a transient

@@ -35,6 +35,7 @@ from typing import Any
 
 from security_lakehouse import netguard
 from security_lakehouse.connector_ids import stable_id_slug
+from security_lakehouse.http_response import read_json_response
 from security_lakehouse.ingestion import backoff
 from security_lakehouse.ingestion.paginate import object_rows
 from security_lakehouse.io import read_json
@@ -162,7 +163,7 @@ class JiraClient:
         # retry transient 429/5xx rather than failing the whole collection.
         def _fetch() -> Any:
             with netguard.open_public(request, timeout=self.timeout, label="jira base url") as resp:
-                return json.loads(resp.read().decode("utf-8"))
+                return read_json_response(resp)
 
         payload = backoff.http_retry(_fetch)
         if isinstance(payload, dict):

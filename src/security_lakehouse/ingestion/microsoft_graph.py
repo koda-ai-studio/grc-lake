@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 import urllib.parse
 import urllib.request
 from collections.abc import Callable
@@ -11,6 +10,7 @@ from typing import Any
 from security_lakehouse import netguard
 from security_lakehouse.connector_errors import ConnectorConfigError
 from security_lakehouse.execution_mode import in_server_mode
+from security_lakehouse.http_response import read_json_response
 from security_lakehouse.ingestion import backoff
 from security_lakehouse.ingestion.paginate import object_rows, paginate
 
@@ -72,7 +72,7 @@ class MicrosoftGraphClient:
             },
         )
         with netguard.open_public(request, timeout=self.timeout, label="microsoft graph") as resp:
-            return json.loads(resp.read().decode("utf-8"))
+            return read_json_response(resp)
 
 
 def _credential_token(credential: Any) -> Callable[[], str]:

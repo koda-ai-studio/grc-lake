@@ -42,6 +42,7 @@ from security_lakehouse import netguard
 from security_lakehouse.commercial.email import commercial_hosted_enabled
 from security_lakehouse.commercial.stripe_signature import SIGNATURE_TOLERANCE_SECONDS, verify_stripe_signature
 from security_lakehouse.db.models import StripeEvent, Tenant, TenantBilling
+from security_lakehouse.http_response import read_json_response
 from security_lakehouse.runtime_environment import runtime_env
 
 __all__ = ["SIGNATURE_TOLERANCE_SECONDS", "verify_stripe_signature"]
@@ -143,7 +144,7 @@ def _stripe_request(method: str, path: str, *, form: list[tuple[str, str]] | Non
         headers["idempotency-key"] = str(uuid.uuid4())
     request = urllib.request.Request(f"{STRIPE_API}{path}", data=data, method=method, headers=headers)
     with netguard.open_public(request, timeout=30, label="stripe api") as resp:
-        payload = json.loads(resp.read().decode("utf-8"))
+        payload = read_json_response(resp)
     if not isinstance(payload, dict):
         raise RuntimeError("Stripe returned non-object JSON")
     return payload

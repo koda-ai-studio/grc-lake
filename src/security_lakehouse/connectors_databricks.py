@@ -40,6 +40,7 @@ from typing import Any
 from security_lakehouse import netguard
 from security_lakehouse.connector_errors import CollectionGapError
 from security_lakehouse.connectors_snowflake import DEFAULT_VIEWS, collect_snowflake_evidence
+from security_lakehouse.http_response import read_json_response
 from security_lakehouse.ingestion import backoff
 from security_lakehouse.ingestion.paginate import IncompleteCollectionError, paginate
 from security_lakehouse.io import read_json
@@ -301,7 +302,7 @@ class DatabricksClient:
 
     def _open(self, request: urllib.request.Request) -> Any:
         with netguard.open_public(request, timeout=self.timeout, label="databricks workspace") as resp:
-            return json.loads(resp.read().decode("utf-8"))
+            return read_json_response(resp)
 
 
 class DatabricksFixtureClient:

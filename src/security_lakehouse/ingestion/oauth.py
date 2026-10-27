@@ -11,7 +11,6 @@ through the same egress layers as every other connector request:
 
 from __future__ import annotations
 
-import json
 import time
 import urllib.error
 import urllib.parse
@@ -20,6 +19,7 @@ from collections.abc import Callable, Mapping
 from typing import Any, TypeVar
 
 from security_lakehouse import netguard
+from security_lakehouse.http_response import read_json_response
 from security_lakehouse.ingestion import backoff
 
 T = TypeVar("T")
@@ -112,4 +112,4 @@ class ClientCredentialsToken:
 
     def _open(self, request: urllib.request.Request) -> Any:
         with netguard.open_public(request, timeout=self.timeout, label=self.label) as resp:
-            return json.loads(resp.read().decode("utf-8"))
+            return read_json_response(resp)
