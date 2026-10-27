@@ -3,6 +3,10 @@
 All notable GRC Lake changes are summarized here. Versions follow semver for the
 Python package, Helm chart, and bundled web console.
 
+## Unreleased
+
+- Add source-pinned OCSF Device Inventory, deprecated Config State, Data Security Finding and Incident Finding presets for existing lake readers. Preserve source-account identity, product/schema provenance, workflow states and complete resource/finding lists as unbound observations; inventory or incident closure never establishes a control pass.
+
 ## 0.3.17 - 2026-10-27
 
 - Pin the built PyPI description's Docker quick start to the release being packaged; the repository's installation guide remains on the last verified publication until the new release completes.

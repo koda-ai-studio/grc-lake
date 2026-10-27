@@ -1,0 +1,132 @@
+{
+  "spec_version": 1,
+  "name": "ocsf_incident_finding",
+  "description": "OCSF Incident Finding (class_uid 2005), OCSF 1.5.0 release tag, source 78bf68a24b38c0d6441ddd13b9028c1b1eb53f07. Source observations only; no safeguard binding or inferred control verdict.",
+  "source": {
+    "table": "ocsf_table",
+    "incremental": true,
+    "lookback_minutes": 60
+  },
+  "filters": [
+    {
+      "column": "class_uid",
+      "op": "eq",
+      "value": 2005
+    }
+  ],
+  "fields": {
+    "id": {
+      "column": "metadata.uid"
+    },
+    "observed_at": {
+      "column": "time",
+      "format": "epoch_ms"
+    },
+    "source": {
+      "coalesce": [
+        {
+          "column": "metadata.product.name"
+        },
+        {
+          "const": "ocsf"
+        }
+      ]
+    },
+    "severity": {
+      "column": "severity_id",
+      "map": {
+        "0": "info",
+        "1": "info",
+        "2": "low",
+        "3": "medium",
+        "4": "high",
+        "5": "critical",
+        "6": "critical",
+        "99": "info"
+      },
+      "default": "info"
+    },
+    "event_type": {
+      "const": "ocsf.incident_finding"
+    },
+    "asset_id": {
+      "column": "metadata.uid"
+    },
+    "asset_type": {
+      "const": "lake_record"
+    },
+    "status": {
+      "const": "observed"
+    },
+    "controls": {
+      "const": [
+        "SOC2-CC7.3",
+        "SOC2-CC7.4",
+        "ISO27001-A.5.26",
+        "NIST-800-53-IR-4"
+      ]
+    },
+    "source_account_id": {
+      "column": "cloud.account.uid"
+    },
+    "evidence_ref": {
+      "column": "src_url"
+    }
+  },
+  "attributes": {
+    "ocsf_class_uid": {
+      "column": "class_uid"
+    },
+    "ocsf_activity_id": {
+      "column": "activity_id"
+    },
+    "ocsf_version": {
+      "column": "metadata.version"
+    },
+    "ocsf_schema_release": {
+      "const": "1.5.0"
+    },
+    "ocsf_schema_revision": {
+      "const": "78bf68a24b38c0d6441ddd13b9028c1b1eb53f07"
+    },
+    "product": {
+      "column": "metadata.product.name"
+    },
+    "product_version": {
+      "column": "metadata.product.version"
+    },
+    "vendor": {
+      "column": "metadata.product.vendor_name"
+    },
+    "cloud_account": {
+      "column": "cloud.account.uid"
+    },
+    "cloud_region": {
+      "column": "cloud.region"
+    },
+    "source_status_id": {
+      "column": "status_id"
+    },
+    "source_status": {
+      "column": "status"
+    },
+    "finding_info_list": {
+      "column": "finding_info_list"
+    },
+    "assignee": {
+      "column": "assignee"
+    },
+    "assignee_group": {
+      "column": "assignee_group"
+    },
+    "tickets": {
+      "column": "tickets"
+    },
+    "verdict_id": {
+      "column": "verdict_id"
+    },
+    "is_suspected_breach": {
+      "column": "is_suspected_breach"
+    }
+  }
+}

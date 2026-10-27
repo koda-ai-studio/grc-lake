@@ -1,0 +1,115 @@
+{
+  "spec_version": 1,
+  "name": "ocsf_config_state",
+  "description": "OCSF Config State (class_uid 5002), OCSF 1.5.0 release tag, source 78bf68a24b38c0d6441ddd13b9028c1b1eb53f07. Source observations only; no safeguard binding or inferred control verdict. Deprecated upstream since 1.5.0; prefer Compliance Finding for new sources.",
+  "source": {
+    "table": "ocsf_table",
+    "incremental": true,
+    "lookback_minutes": 60
+  },
+  "filters": [
+    {
+      "column": "class_uid",
+      "op": "eq",
+      "value": 5002
+    }
+  ],
+  "fields": {
+    "id": {
+      "column": "metadata.uid"
+    },
+    "observed_at": {
+      "column": "time",
+      "format": "epoch_ms"
+    },
+    "source": {
+      "coalesce": [
+        {
+          "column": "metadata.product.name"
+        },
+        {
+          "const": "ocsf"
+        }
+      ]
+    },
+    "severity": {
+      "column": "severity_id",
+      "map": {
+        "0": "info",
+        "1": "info",
+        "2": "low",
+        "3": "medium",
+        "4": "high",
+        "5": "critical",
+        "6": "critical",
+        "99": "info"
+      },
+      "default": "info"
+    },
+    "event_type": {
+      "const": "ocsf.config_state"
+    },
+    "asset_id": {
+      "column": "device.uid"
+    },
+    "asset_type": {
+      "const": "host"
+    },
+    "status": {
+      "const": "observed"
+    },
+    "controls": {
+      "const": ["ISO27001-A.8.9", "NIST-800-53-CM-6"]
+    },
+    "source_account_id": {
+      "column": "cloud.account.uid"
+    }
+  },
+  "attributes": {
+    "ocsf_class_uid": {
+      "column": "class_uid"
+    },
+    "ocsf_activity_id": {
+      "column": "activity_id"
+    },
+    "ocsf_version": {
+      "column": "metadata.version"
+    },
+    "ocsf_schema_release": {
+      "const": "1.5.0"
+    },
+    "ocsf_schema_revision": {
+      "const": "78bf68a24b38c0d6441ddd13b9028c1b1eb53f07"
+    },
+    "product": {
+      "column": "metadata.product.name"
+    },
+    "product_version": {
+      "column": "metadata.product.version"
+    },
+    "vendor": {
+      "column": "metadata.product.vendor_name"
+    },
+    "cloud_account": {
+      "column": "cloud.account.uid"
+    },
+    "cloud_region": {
+      "column": "cloud.region"
+    },
+    "source_status_id": {
+      "column": "status_id"
+    },
+    "source_status": {
+      "column": "status"
+    },
+    "device": {
+      "column": "device"
+    },
+    "assessments": {
+      "column": "assessments"
+    },
+    "cis_benchmark_result": {
+      "column": "cis_benchmark_result"
+    }
+  }
+}
