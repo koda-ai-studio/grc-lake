@@ -57,6 +57,29 @@ def test_main_rewrites_in_place(tmp_path: Path) -> None:
     assert readme.read_text() == f"[Docs]({BLOB}/docs/README.md)\n"
 
 
+def test_release_description_installs_its_own_tag(tmp_path: Path) -> None:
+    readme = tmp_path / "README.md"
+    readme.write_text(README.read_text())
+    assert main([str(readme), "--ref", "v1.2.3"]) == 0
+    assert "git clone --branch v1.2.3 --depth 1 https://github.com/koda-ai-studio/grc-lake.git" in readme.read_text()
+
+
+def test_dry_run_description_keeps_the_published_install_tag(tmp_path: Path) -> None:
+    readme = tmp_path / "README.md"
+    command = "git clone --branch v0.3.16 --depth 1 https://github.com/koda-ai-studio/grc-lake.git\n"
+    readme.write_text(command)
+    assert main([str(readme), "--ref", "main"]) == 0
+    assert readme.read_text() == command
+
+
+def test_release_tag_does_not_change_other_repository_examples(tmp_path: Path) -> None:
+    readme = tmp_path / "README.md"
+    command = "git clone --branch v0.3.16 --depth 1 https://github.com/example/project.git\n"
+    readme.write_text(command)
+    assert main([str(readme), "--ref", "v1.2.3"]) == 0
+    assert readme.read_text() == command
+
+
 def _wheel_with_description(tmp_path: Path, description: str) -> Path:
     wheel = tmp_path / "grc_lake-1.2.3-py3-none-any.whl"
     metadata = f"Metadata-Version: 2.4\nName: grc-lake\nVersion: 1.2.3\n\n{description}"

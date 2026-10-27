@@ -3,7 +3,9 @@
 All notable GRC Lake changes are summarized here. Versions follow semver for the
 Python package, Helm chart, and bundled web console.
 
-## 0.3.17 - 2026-10-26
+## 0.3.17 - 2026-10-27
+
+- Pin the built PyPI description's Docker quick start to the release being packaged; the repository's installation guide remains on the last verified publication until the new release completes.
 
 - Keep graph filter hops independent of edge order, distinguish missing mapping review from reviewed links, and show a visible relationship-style key. Bound layout by both nodes and relationships; Fit View restores readable zoom instead of shrinking a wide map's labels.
 
