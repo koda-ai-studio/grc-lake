@@ -118,6 +118,7 @@ check retained run evidence and link bounded connector qualification.
 | [Dependency security](DEPENDENCY_SECURITY.md)                      | Dependency security scope                                             |
 | [Scorecard remediation](SCORECARD_REMEDIATION.md)                  | Review, fuzzing, and badge evidence gates                             |
 | [Third-party assets](THIRD_PARTY_ASSETS.md)                        | Policy for third-party logos and assets                               |
+| [CI duration balancing](benchmarks/CI_RUNTIME.md)                  | Test allocation, retained timings and measured CI baseline            |
 | [Benchmarks](BENCHMARKS.md)                                        | Validation and benchmark plan                                         |
 | [Artifact hashing benchmark](benchmarks/ARTIFACT_HASHING.md)       | Artifact hashing memory benchmark                                     |
 | [CCF pipeline benchmark](benchmarks/CCF_PIPELINE.md)               | Bounded CCF pipeline measurements                                     |

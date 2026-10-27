@@ -11,6 +11,19 @@ then collects its selected file filters again. The selected inventory must exact
 match the plan; collection errors and empty shards fail. The actual Playwright
 exit status remains the job result. This guards against a passing partial selection.
 
+## First hosted measurement
+
+[Run 40556129241](https://github.com/koda-ai-studio/grc-lake/actions/runs/40556129241)
+at source `730dc1dc452340c41c1d1c19eb09a3f9cf024795` completed the two
+browser steps in 240 and 258 seconds (18 seconds apart). Retained plans select
+174 and 223 tests: their disjoint union is all 397 tests across 75 files. Results
+contain 396 passes, one skip, no unexpected failures and no flaky retries.
+
+The overall run failed the documentation-index check because this new page lacked
+an index link; it was not a passing full-CI result. This single browser measurement
+supports improved balance, not a guaranteed workflow runtime. The subsequent
+index-link fix leaves the scheduler and recorded weights unchanged.
+
 ## Measurement baseline
 
 The following successful runs used native browser sharding. Times are the
