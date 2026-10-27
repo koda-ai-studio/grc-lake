@@ -1,11 +1,11 @@
 # Release readiness
 
-GRC Lake **0.3.17 is published** on
-[PyPI](https://pypi.org/project/grc-lake/0.3.17/),
-[GitHub](https://github.com/koda-ai-studio/grc-lake/releases/tag/v0.3.17), and as
-`ghcr.io/koda-ai-studio/grc-lake:0.3.17`.
-Use the [v0.3.17 release templates](https://github.com/koda-ai-studio/grc-lake/tree/v0.3.17)
-for a published deployment. The [publication receipt](#verified-0317-publication)
+GRC Lake **0.3.18 is published** on
+[PyPI](https://pypi.org/project/grc-lake/0.3.18/),
+[GitHub](https://github.com/koda-ai-studio/grc-lake/releases/tag/v0.3.18), and as
+`ghcr.io/koda-ai-studio/grc-lake:0.3.18`.
+Use the [v0.3.18 release templates](https://github.com/koda-ai-studio/grc-lake/tree/v0.3.18)
+for a published deployment. The [publication receipt](#verified-0318-publication)
 records the verified source, artifact hashes and runtime checks. Later changes
 on `main` are unreleased until a new tag passes the release gates.
 
@@ -31,26 +31,21 @@ retain their exact source revisions and synthetic workload limits. They do not
 establish production capacity or qualify a deployment memory budget; 100k records
 remain outside the accepted local interactive profile.
 
-## 0.3.18 candidate
+## 0.3.18 release
 
-0.3.18 is an unpublished candidate. The current published version and historical
-publication receipts remain below. Candidate validation does not establish
-publication, live-provider qualification, mapping approval or auditor acceptance.
+0.3.18 is published; see the [publication receipt](#verified-0318-publication).
+It includes first-run assessment/workpaper guidance, stronger synthetic workpaper
+regression proof, four source-pinned OCSF observation presets, CI duration balancing
+and browser navigation regression coverage, and Authlib/msgpack security updates.
+It introduces no database migration or change to control evaluation, framework
+mappings or review states. Package, chart, console, Compose and MCP versions are
+aligned, and the install guides now name the verified publication.
 
-The candidate includes first-run assessment/workpaper guidance, stronger synthetic
-workpaper regression proof, four source-pinned OCSF observation presets, CI
-duration balancing and browser navigation regression coverage, and Authlib/msgpack
-security updates. Both issue-backed changes are merged on main; the release
-candidate still requires its own independent human review before merge. It introduces no
-database migration or change to control evaluation, framework mappings or review
-states. The package, chart, console, Compose and MCP versions are aligned; install
-guides keep the last verified published version until publication is verified.
-
-Required gates remain independent human approval, exact merged-main CI, version
-and changelog consistency, both image architectures with vulnerability/runtime
-qualification, Python artifact hashes/provenance, public Helm pull/provenance and
-registry visibility. Authorized live-provider checks and independent mapping or
-workpaper review are separate dependencies; no new live receipt is claimed.
+Independent human approval and exact merged-main CI preceded publication. Both
+image architectures passed vulnerability and authenticated runtime gates; Python
+artifact hashes/provenance, anonymous Helm pull/provenance and registry visibility
+were verified. Authorized live-provider checks and independent mapping or
+workpaper review remain separate dependencies; no new live receipt is claimed.
 
 ## 0.3.17 release
 
@@ -219,6 +214,51 @@ for security, correctness, supported-workload performance and setup/documentatio
 repairs. Independent human review, required PR checks, exact-main CI and published
 artifact/runtime verification remain release gates; this candidate section is not
 a completion receipt.
+
+## Verified 0.3.18 publication
+
+The [release workflow](https://github.com/koda-ai-studio/grc-lake/actions/runs/40577845071)
+passed on source `1c1a702f72b18d1be71087725230a4a3f762cc45`, after independent
+human approval of [#1122](https://github.com/koda-ai-studio/grc-lake/pull/1122)
+and successful [exact-main CI](https://github.com/koda-ai-studio/grc-lake/actions/runs/40576425894).
+The annotated `v0.3.18` tag resolves to that commit. Wheel and source archive bytes
+match between the release build, PyPI and GitHub:
+
+| Artifact                           | SHA-256                                                            |
+| ---------------------------------- | ------------------------------------------------------------------ |
+| `grc_lake-0.3.18-py3-none-any.whl` | `9d68830506f55345629ed2732f2d44c25e2e17b19d8b3046fa8ab7de3518eed6` |
+| `grc_lake-0.3.18.tar.gz`           | `a1cee600b8d2d8789adb15716fdf16441fcf25d5f1884752a9a5b26aefe8b151` |
+| `grc-lake-0.3.18.tgz`              | `08dc5d623449d54d7c519cf491e13eda33492a12305a049e1b00b1cd0c33cba5` |
+
+The anonymous image pull resolved to index
+`sha256:574df5d3b24ff97da3242338113dc7bf9e00a7b706cd207e04513fbdfa9adda9`,
+containing `linux/amd64` and `linux/arm64`. Both architectures passed dependency,
+vulnerability and authenticated runtime checks before publication. The retained
+scan reports contained zero reported vulnerabilities at release time. A fresh
+anonymous pull of the published ARM64 image also passed non-root, authorization,
+two-tenant isolation, snapshot integrity and persistence-after-recreation checks.
+These synthetic checks do not qualify TLS, an IdP, live providers or capacity.
+
+The chart `oci://ghcr.io/koda-ai-studio/charts/grc-lake`, version `0.3.18`,
+has OCI digest `sha256:d6bcdce62de8d3e245c42cd86d02701a9b0daacfd8db8deb72a037bf0f6bee1d`.
+An anonymous Helm pull matched the GitHub chart asset byte-for-byte. Wheel,
+source archive, image, chart-package and chart-OCI attestations verified against
+the release workflow, exact source commit and tag using `gh attestation verify`.
+GitHub retains the CycloneDX SBOM and Python/chart provenance bundles.
+
+The wheel contains 263 console files and its catalogs. A fresh PyPI installation
+outside the checkout, with no optional dependencies, passed fixture loading,
+replay/idempotency, evidence integrity, assessment snapshots and console/API smoke
+checks. A draft exported from the unchanged historical control-assurance fixture
+verified against the content digest retained at export. Its verifier explicitly
+reported `hash_consistency_only; review identity requires server record`; no
+workpaper approval or live-provider qualification was recorded.
+
+The PyPI description pins its Docker quick start to `v0.3.18`. The public MCP
+Registry lists `io.github.koda-ai-studio/grc-lake` at version `0.3.18` as active
+and latest. Artifact Hub registration remains separate from Helm OCI publication.
+Main CI passed in 9m02s, with browser jobs finishing 22 seconds apart; the
+under-eight-minute target remains tracked in [#1111](https://github.com/koda-ai-studio/grc-lake/issues/1111).
 
 ## Verified 0.3.17 publication
 
