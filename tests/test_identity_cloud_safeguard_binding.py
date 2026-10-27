@@ -434,7 +434,7 @@ def test_bindings_accept_the_asset_type_and_stay_inside_the_crosswalk(
     [
         ("azure-posture", "azure", {}),
         ("entra-identity", "entra", {}),
-        ("jira-ticketing", "jira", {}),
+        ("jira-ticketing", "jira", {"jira.workflow.ticket": "SG-REMEDIATIONTRACKING-001"}),
         ("intune-devices", "intune", {"intune.device.encryption": "SG-ENDPOINTENCRYPTION-001"}),
         ("jamf-devices", "jamf", {"jamf.device.encryption": "SG-ENDPOINTENCRYPTION-001"}),
         (
