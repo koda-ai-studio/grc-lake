@@ -3,6 +3,61 @@
 The [local release profile](RELEASE_PROFILE.md) defines proposed repeatable
 latency, memory and progress gates for the bounded 1k/10k workload.
 
+## October 26, 2026: release-candidate refresh
+
+The [refresh receipt](investigation-capacity-2026-10-26.json) records runtime
+source `9d0c0a3309eb6ddd6909dee87b56a3abb6e26043`, harness hashes, working-tree
+fingerprints, inputs and configuration. CI/Helm/test/documentation changes were
+in progress; graph runtime and benchmark sources were unchanged. Runs were
+sequential and lower priority on the same 10-core ARM64/16 GiB shared host.
+OS caches, interactive applications and host load were uncontrolled.
+
+Two tenants with colliding source accounts, seed 910, frozen catalogs, one client
+and one repeat passed authentication, exact binding, duplicate, tenant-isolation,
+stale-version and admission-release checks at each completed size:
+
+| Records per tenant | Complete workload seconds | Process peak MiB | Result                                                 |
+| ------------------ | ------------------------- | ---------------- | ------------------------------------------------------ |
+| 1,000              | 4.9                       | 207.9            | Passed                                                 |
+| 10,000             | 11.3                      | 407.9            | Passed                                                 |
+| 100,000            | 180.2                     | 1,118.7 sampled  | Stopped by the 180-second harness watchdog; incomplete |
+| 100,000            | 283.9                     | 1,113.6          | Passed with a 420-second harness watchdog              |
+
+The timed-out attempt is retained, not counted as passing. Its individual
+requests had not exhausted the server deadline; completing the whole workload
+required a longer harness window. The 100k models exceeded the shipped 128 MiB
+retention budget and were rebuilt for subsequent reads. This does not establish
+interactive 100k capacity or justify increasing the production cache budget.
+
+A separate 1k, two-client run with a 1 MiB cache override verified refusal to
+retain oversized models. Injected lifecycle probes returned the expected
+`503 graph_build_timeout` after 60.052 seconds, released the slot 0.026 seconds
+after a loopback disconnect, and then recovered with HTTP 200. These injected
+fault timings are separate from natural request latency. Two simultaneous
+10k workers with two clients each passed and peaked at 781.5 MiB aggregate RSS
+during a bounded 10-second sustained phase (22.8 seconds overall).
+
+Reproduce with new output paths; preserve failures:
+
+```bash
+uv run --frozen python tools/benchmark_investigation.py --transport http \
+  --sizes 1000 10000 100000 --tenants 2 --concurrency 1 --repeats 1 \
+  --seed 910 --frozen-catalogs --timeout 180 --max-rss-mib 1536 \
+  --min-free-gib 10 --out /tmp/graph-refresh.json
+# Complete the 100k workload with --sizes 100000 --timeout 420 and a new output.
+uv run --frozen python tools/benchmark_investigation.py --transport http \
+  --sizes 1000 --tenants 2 --concurrency 2 --repeats 1 --seed 910 \
+  --frozen-catalogs --model-cache-mib 1 --lifecycle-probes --timeout 180 \
+  --max-rss-mib 768 --min-free-gib 10 --out /tmp/graph-lifecycle.json
+uv run --frozen python tools/benchmark_graph_replicas.py --rows 10000 \
+  --replicas 2 --clients 2 --seconds 10 --timeout 120 --out /tmp/graph-replicas.json
+```
+
+Retain the bounded 1k/10k release profile as the proposed qualification scope.
+Reviewer-approved operating budgets, representative sustained tenant mixes and
+multi-host deployment capacity remain decisions under #910; these finite
+synthetic runs do not establish a production SLO.
+
 ## October 25, 2026: sustained traffic, expiry and process memory
 
 The [bounded capacity receipt](investigation-capacity-2026-10-25.json) records

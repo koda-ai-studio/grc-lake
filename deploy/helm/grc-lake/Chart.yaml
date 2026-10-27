@@ -10,13 +10,13 @@ type: application
 version: 0.3.16
 appVersion: "0.3.16"
 kubeVersion: ">=1.27.0"
-home: https://github.com/msaad00/grc-lake
-icon: https://raw.githubusercontent.com/msaad00/grc-lake/main/docs/images/grc-lake-mark.svg
+home: https://github.com/koda-ai-studio/grc-lake
+icon: https://raw.githubusercontent.com/koda-ai-studio/grc-lake/main/docs/images/grc-lake-mark.svg
 sources:
-  - https://github.com/msaad00/grc-lake
+  - https://github.com/koda-ai-studio/grc-lake
 maintainers:
   - name: GRC Lake maintainers
-    url: https://github.com/msaad00/grc-lake
+    url: https://github.com/koda-ai-studio/grc-lake
 keywords:
   - compliance
   - soc2

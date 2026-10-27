@@ -1,0 +1,4 @@
+# Set repositoryID to the ID assigned after registering the published OCI chart.
+# Add only owners whose email matches their actual Artifact Hub account.
+# This unconfigured file does not establish ownership or publisher verification.
+owners: []

@@ -336,7 +336,10 @@ a separate reader, cross-tenant job isolation and verified partition downloads.
 It deletes one API replica's scratch volume, restarts dependencies, and kills a
 writer before publication. It checks that SQL rolls back, unpublished files stay
 invisible, an unexpired lease rejects a competing writer, and a new owner can
-publish after the normal 90-second lease expires. It then restarts a worker and
+publish after the lease expires naturally. The disposable crash-writer process
+uses a 20-second lease with a 5-second heartbeat, recorded in the qualification
+receipt, to bound CI waiting time. The production 90-second lease and all other
+qualification processes retain their defaults. It then restarts a worker and
 runs another batch. Successful reads must agree on evidence hashes.
 
 The required Docker CI job runs this qualification against its built image and

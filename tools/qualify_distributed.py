@@ -229,7 +229,7 @@ def qualify(image: str, output: Path) -> None:
         print(f"Qualification passed: {output / 'report.json'}", flush=True)
     finally:
         try:
-            compose("down", "--volumes", "--remove-orphans", timeout=90)
+            compose("down", "--timeout", "1", "--volumes", "--remove-orphans", timeout=90)
         finally:
             config.unlink(missing_ok=True)
             (output / "credentials.json").unlink(missing_ok=True)
@@ -253,7 +253,19 @@ def cleanup(output: Path) -> None:
         "GRC_QUAL_S3_SECRET": "cleanup-unused",
     }
     subprocess.run(
-        ["docker", "compose", "--project-name", project, "-f", str(COMPOSE), "down", "--volumes", "--remove-orphans"],
+        [
+            "docker",
+            "compose",
+            "--project-name",
+            project,
+            "-f",
+            str(COMPOSE),
+            "down",
+            "--timeout",
+            "1",
+            "--volumes",
+            "--remove-orphans",
+        ],
         env=env,
         check=True,
         timeout=90,

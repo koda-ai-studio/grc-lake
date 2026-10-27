@@ -8,6 +8,7 @@ import json
 import time
 import uuid
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import contextmanager
 from pathlib import Path
 
 import httpx
@@ -15,6 +16,7 @@ from sqlalchemy import select
 
 from security_lakehouse.db.base import create_engine_for, session_factory
 from security_lakehouse.db.models import Tenant
+from security_lakehouse.distributed import workspace
 from security_lakehouse.distributed.catalog import Catalog, Conflict
 from security_lakehouse.distributed.config import ClusterConfig
 from security_lakehouse.distributed.objects import ObjectStore
@@ -287,14 +289,33 @@ def outage(kind):
     save(kind + "-outage", {"readiness_status": readiness.status_code, "operation_status": response.status_code})
 
 
+@contextmanager
+def qualification_writer_lease():
+    # Only this disposable crash-writer process uses a shorter real lease.
+    # Keep natural expiry and heartbeat behavior; production defaults stay intact.
+    original = workspace.LEASE_SECONDS, workspace.HEARTBEAT_SECONDS
+    workspace.LEASE_SECONDS, workspace.HEARTBEAT_SECONDS = 20, 5
+    try:
+        yield
+    finally:
+        workspace.LEASE_SECONDS, workspace.HEARTBEAT_SECONDS = original
+
+
 def hold_writer():
     rt, factory = runtime()
     credential = load("credentials")[0]
-    with rt.write(credential["tenant"]) as lake:
+    with qualification_writer_lease(), rt.write(credential["tenant"]) as lake:
         (lake / "uncommitted-crash-marker").write_text("must never publish")
         with factory.begin() as session:
             session.get(Tenant, credential["tenant"]).name = "uncommitted crash mutation"
-        save("writer-held", {"tenant": credential["tenant"], "version": rt.catalog.head(credential["tenant"]).version})
+        save(
+            "writer-held",
+            {
+                "tenant": credential["tenant"],
+                "version": rt.catalog.head(credential["tenant"]).version,
+                "lease_seconds": workspace.LEASE_SECONDS,
+            },
+        )
         while True:
             time.sleep(1)
 
@@ -312,7 +333,7 @@ def crash_recovery():
     except Conflict:
         pass
     started = time.monotonic()
-    with rt.write(credential["tenant"], wait_seconds=95) as lake:
+    with rt.write(credential["tenant"], wait_seconds=old["lease_seconds"] + 5) as lake:
         assert not (lake / "uncommitted-crash-marker").exists()
         (lake / "recovered-writer").write_text("new fenced owner")
     assert rt.catalog.head(credential["tenant"]).version == old["version"] + 1
@@ -322,6 +343,7 @@ def crash_recovery():
             "sql_rolled_back": True,
             "partial_evidence_not_published": True,
             "lease_fenced_before_expiry": True,
+            "lease_seconds": old["lease_seconds"],
             "recovered_seconds": time.monotonic() - started,
         },
     )
