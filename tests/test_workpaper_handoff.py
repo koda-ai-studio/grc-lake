@@ -2,6 +2,7 @@
 
 import copy
 import json
+import shlex
 from pathlib import Path
 
 import pytest
@@ -87,6 +88,47 @@ def test_malformed_pin_fails_explicitly(content, tmp_path, digest):
 def test_uppercase_digest_accepted(content, tmp_path):
     export_workpaper(content, tmp_path / "bundle")
     assert verify_workpaper_export(tmp_path / "bundle", expected_content_sha256=canonical_sha256(content).upper())["ok"]
+
+
+def test_cli_export_prints_shell_safe_retained_digest_handoff(tmp_path, capsys):
+    root = Path(__file__).resolve().parents[1] / "examples/control-assurance"
+    lake = tmp_path / "lake"
+    bundle = tmp_path / "bundle with spaces"
+    run_pipeline(root / "events.jsonl", lake)
+    plan = json.loads((root / "plan.json").read_text())
+    baseline = json.loads((root / "baseline.json").read_text())
+    digest = canonical_sha256(build_workpaper(lake, plan=plan, baseline=baseline))
+
+    args = [
+        "assessment",
+        "workpaper",
+        "--lake",
+        str(lake),
+        "--plan",
+        str(root / "plan.json"),
+        "--baseline",
+        str(root / "baseline.json"),
+        "--out",
+        str(bundle),
+    ]
+    assert main(args) == 0
+
+    lines = capsys.readouterr().out.splitlines()
+    assert any("content SHA-256 (retain independently)" in line for line in lines)
+    handoff = next(line for line in lines if line.startswith("verify handoff: "))
+    command = shlex.split(handoff.removeprefix("verify handoff: "))
+    assert command == [
+        "grc-lake",
+        "assessment",
+        "verify-workpaper",
+        "--dir",
+        str(bundle),
+        "--expected-content-sha256",
+        digest,
+    ]
+
+    assert main(command[1:]) == 0
+    assert json.loads(capsys.readouterr().out)["expected_content_matches"] is True
 
 
 def test_cli_emits_machine_readable_pin_verdict(content, tmp_path, capsys):
