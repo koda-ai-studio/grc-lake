@@ -135,7 +135,7 @@ def test_rate_limit_wait_is_honored_and_request_remains_read_only(monkeypatch):
     monkeypatch.setattr("security_lakehouse.ingestion.backoff.time.sleep", waits.append)
     response = MagicMock()
     response.status = 200
-    response.read.return_value = b"[]"
+    response.read.side_effect = io.BytesIO(b"[]").read
     response.__enter__.return_value = response
 
     def open_public(request, **kwargs):
