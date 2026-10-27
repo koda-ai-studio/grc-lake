@@ -2,7 +2,7 @@
 
 Download the ``pytest-*`` artifacts of a passing CI run, then:
 
-    python tools/update_test_durations.py build/junit/*/pytest-results.xml
+    python tools/update_test_durations.py --expected-reports 6 build/junit/*/pytest-results.xml
 
 Only module totals are kept; the shard plugin estimates modules missing from
 the file, so a stale file degrades balance, never correctness.
@@ -23,13 +23,39 @@ DEFAULT_OUTPUT = ROOT / "tools/ci_test_durations.json"
 
 def module_durations(reports: list[Path]) -> dict[str, float]:
     totals: Counter[str] = Counter()
+    seen: set[tuple[str, str]] = set()
     for report in reports:
-        for case in ET.parse(report).iter("testcase"):
-            parts = (case.get("classname") or "").split(".")
+        root = ET.parse(report).getroot()
+        suites = list(root.iter("testsuite"))
+        if not suites or not list(root.iter("testcase")):
+            raise ValueError("unsuccessful or incomplete JUnit report")
+        for suite in suites:
+            if (
+                int(suite.get("failures", "0"))
+                or int(suite.get("errors", "0"))
+                or int(suite.get("tests", "-1")) != len(list(suite.iter("testcase")))
+            ):
+                raise ValueError("unsuccessful or incomplete JUnit report")
+        for case in root.iter("testcase"):
+            if case.find("failure") is not None or case.find("error") is not None:
+                raise ValueError("unsuccessful or incomplete JUnit report")
+            key = (case.get("classname", ""), case.get("name", ""))
+            if not all(key):
+                raise ValueError("unsuccessful or incomplete JUnit report")
+            if key in seen:
+                raise ValueError("duplicate test across JUnit reports")
+            seen.add(key)
+            try:
+                seconds = float(case.get("time", ""))
+            except ValueError as exc:
+                raise ValueError("invalid JUnit duration") from exc
+            if not math.isfinite(seconds) or seconds < 0:
+                raise ValueError("invalid JUnit duration")
+            parts = key[0].split(".")
             module = next((index for index, part in enumerate(parts) if part.startswith("test_")), None)
             if module is None:
-                continue
-            totals["/".join(parts[: module + 1]) + ".py"] += float(case.get("time") or 0)
+                raise ValueError("JUnit test has no module identity")
+            totals["/".join(parts[: module + 1]) + ".py"] += seconds
     return {name: round(seconds, 2) for name, seconds in sorted(totals.items())}
 
 
@@ -75,7 +101,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("reports", nargs="+", type=Path)
     parser.add_argument("--out", type=Path)
     parser.add_argument("--format", choices=("junit", "playwright"), default="junit")
+    parser.add_argument("--expected-reports", type=int, help="Require every shard report before replacing weights")
     args = parser.parse_args(argv)
+    if args.expected_reports is not None and (args.expected_reports < 1 or len(args.reports) != args.expected_reports):
+        parser.error("report count does not match the expected shard count")
     durations = playwright_durations(args.reports) if args.format == "playwright" else module_durations(args.reports)
     output = args.out or (ROOT / "tools/ci_e2e_durations.json" if args.format == "playwright" else DEFAULT_OUTPUT)
     if not durations:
