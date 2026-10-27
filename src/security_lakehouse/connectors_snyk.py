@@ -29,7 +29,6 @@ Descriptions, code flows, and dependency coordinates are never stored.
 
 from __future__ import annotations
 
-import json
 import re
 import urllib.error
 import urllib.parse
@@ -42,6 +41,7 @@ from typing import Any
 from security_lakehouse import netguard
 from security_lakehouse.connector_errors import CollectionGapError, ConnectorAccessError, ConnectorConfigError
 from security_lakehouse.connector_ids import stable_id_slug
+from security_lakehouse.http_response import read_json_response
 from security_lakehouse.ingestion import backoff
 from security_lakehouse.ingestion.paginate import IncompleteCollectionError, object_rows, paginate
 from security_lakehouse.io import read_json
@@ -180,7 +180,7 @@ class SnykClient:
 
     def _open(self, request: urllib.request.Request) -> Any:
         with netguard.open_public(request, timeout=self.timeout, label="snyk") as resp:
-            return json.loads(resp.read().decode("utf-8"))
+            return read_json_response(resp)
 
 
 class SnykFixtureClient:

@@ -170,6 +170,7 @@ from security_lakehouse.connectors_workday import (
 from security_lakehouse.delegation import azure_credential, gcp_credentials, server_env_override
 from security_lakehouse.event_identity import source_event_key
 from security_lakehouse.execution_mode import in_server_mode, server_execution, server_tenant_id
+from security_lakehouse.http_response import response_budget
 from security_lakehouse.ingestion.watermark import read_watermark, write_watermark
 from security_lakehouse.io import read_jsonl, write_jsonl
 from security_lakehouse.lake_mapping import (
@@ -402,15 +403,16 @@ def run_connector_sync(
         # a sync only needs to fetch what is new; snapshot connectors always pull
         # the full current state, so they carry no watermark.
         since = read_watermark(lake, connector_id) if write_mode == "append" else None
-        rows = _collect(
-            connector_id,
-            repo=effective_repo,
-            fixture_dir=effective_fixture,
-            token_env=effective_token_env,
-            since=since,
-            credentials=credentials,
-            options=options,
-        )
+        with response_budget():
+            rows = _collect(
+                connector_id,
+                repo=effective_repo,
+                fixture_dir=effective_fixture,
+                token_env=effective_token_env,
+                since=since,
+                credentials=credentials,
+                options=options,
+            )
         if effective_fixture:
             # Persist origin before hashing/materialization so snapshots and
             # portable exports retain it, including fixtures from saved config.

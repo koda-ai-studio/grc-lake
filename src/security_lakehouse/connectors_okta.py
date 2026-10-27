@@ -22,7 +22,6 @@ metadata, using the application's existing identity and explicitly enabled scope
 from __future__ import annotations
 
 import hashlib
-import json
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -33,6 +32,7 @@ from typing import Any
 from security_lakehouse import netguard
 from security_lakehouse.connector_errors import CollectionGapError
 from security_lakehouse.connector_ids import stable_id_slug
+from security_lakehouse.http_response import read_json_response
 from security_lakehouse.ingestion import backoff
 from security_lakehouse.ingestion.paginate import next_link_url, object_rows
 from security_lakehouse.io import read_json
@@ -128,7 +128,7 @@ class OktaClient:
                 # so a malicious org cannot pivot this SSWS-authenticated request
                 # at an internal host after the boundary check passed.
                 with netguard.open_public(req, timeout=self.timeout, label="okta org url") as resp:
-                    return json.loads(resp.read().decode("utf-8")), resp.headers.get("Link", "")
+                    return read_json_response(resp), resp.headers.get("Link", "")
 
             # Okta rate-limits with HTTP 429 + a Retry-After header; back off and
             # retry transient 429/5xx rather than failing the whole collection.

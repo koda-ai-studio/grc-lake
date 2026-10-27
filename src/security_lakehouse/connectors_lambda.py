@@ -44,7 +44,6 @@ from __future__ import annotations
 import base64
 import binascii
 import ipaddress
-import json
 import struct
 import time
 import urllib.error
@@ -58,6 +57,7 @@ from typing import Any
 from security_lakehouse import netguard
 from security_lakehouse.connector_errors import CollectionGapError, ConnectorAccessError
 from security_lakehouse.connector_ids import stable_id_slug
+from security_lakehouse.http_response import read_json_response
 from security_lakehouse.ingestion import backoff
 from security_lakehouse.ingestion.paginate import object_rows, paginate
 from security_lakehouse.io import read_json
@@ -311,7 +311,7 @@ class LambdaCloudClient:
     def _open(self, request: urllib.request.Request) -> Any:
         self._pace()
         with netguard.open_public(request, timeout=self.timeout, label="lambda cloud") as resp:
-            return json.loads(resp.read().decode("utf-8"))
+            return read_json_response(resp)
 
     def _pace(self) -> None:
         if self._last is not None and self._min_interval > 0:

@@ -46,10 +46,14 @@ from security_lakehouse.repo_governance import GitLabGovernanceClient, Governanc
 
 class Response:
     def __init__(self, body, headers=None):
-        self.body, self.headers = body, headers or {}
+        self.body, self.headers = json.dumps(body).encode(), headers or {}
 
-    def read(self):
-        return json.dumps(self.body).encode()
+    def read(self, size=-1):
+        if size < 0:
+            result, self.body = self.body, b""
+        else:
+            result, self.body = self.body[:size], self.body[size:]
+        return result
 
     def __enter__(self):
         return self

@@ -28,6 +28,16 @@ uv run pytest tests/test_my_vendor_evidence_connector.py
    `netguard.open_public`, `ingestion.backoff.http_retry`, and
    `ingestion.paginate.paginate`; OAuth client-credentials APIs use
    `ingestion.oauth.ClientCredentialsToken` (in-memory token, one re-mint on 401).
+   Decode responses with `http_response.read_json_response` (or `read_bytes`
+   for text exports), including provider error bodies. The shared ceiling is
+   8 MiB per response; `run_connector_sync` also bounds these reads to 128 MiB
+   across the collection, including OAuth and redirect bodies. Limits count
+   received bytes, not trusted `Content-Length` values. A `ResponseLimitError`
+   is a `CollectionGapError`: retain an explicit gap when the collector supports
+   partial reads, or fail the run with gap metadata and preserve the previous
+   generation and watermark. Never substitute empty data or retry this error.
+   These ceilings cover reads using the helper, not provider SDK internals or
+   a process memory quota. Narrow the requested collection if it exceeds them.
    Every control ID an event carries must exist in `controls/catalog.json`.
 2. **Registry** — `_build_<slug>` builder + one line in `REGISTRY`.
 3. **Catalog** — row in `connectors/catalog.json` with `is_implemented: true`, and

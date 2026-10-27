@@ -27,8 +27,12 @@ class _Resp:
     def __init__(self, body: str) -> None:
         self._body = body.encode("utf-8")
 
-    def read(self) -> bytes:
-        return self._body
+    def read(self, size: int = -1) -> bytes:
+        if size < 0:
+            result, self._body = self._body, b""
+        else:
+            result, self._body = self._body[:size], self._body[size:]
+        return result
 
     def __enter__(self) -> _Resp:
         return self
