@@ -81,12 +81,12 @@ separate qualification. Historical test totals are not a current coverage claim.
 
 ## Coverage depth
 
-The refreshed tour uses source `9e741ffb`, including shared assessment services,
-durable operation outcomes and bounded retry behavior alongside the existing
-console workflows. Coverage documents and the README summary were regenerated
-from this catalog; their counts are unchanged. This identifies the application
-source used for the screenshots; published-package and container qualification
-remain separate checks in [release readiness](RELEASE_READINESS.md).
+The product-tour screenshots were recaptured from the 0.3.17 candidate: frozen
+runtime source `bdfa9135` with the release version alignment. The capture uses a
+fresh synthetic golden lake and the same browser clock for light/dark pairs.
+Graph, mapping-review, framework and mobile images reflect that candidate;
+README and coverage counts come from the same catalog. Publication and live
+provider qualification remain separate checks in [release readiness](RELEASE_READINESS.md).
 
 | Area                | Implemented breadth                                                                                                                                          | Evidence and remaining depth                                                                                                                                                                                  |
 | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

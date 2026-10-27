@@ -14,7 +14,7 @@ Current source includes a review-policy correction: missing review status and
 changes reduce attestable coverage; they do not mean a provider's operating
 posture deteriorated. New endpoint and remediation-tracking mappings also remain
 proposed. Follow the [mapping-review procedure](MAPPING_REVIEW.md) for human
-decisions, and check the [unreleased changelog](../CHANGELOG.md#unreleased) before
+decisions, and check the [0.3.17 changelog](../CHANGELOG.md#0317---2026-10-26) before
 comparing source results with the published package.
 
 The shell-free runtime uses pinned Wolfi Python and matching system libraries.
@@ -30,6 +30,33 @@ The [graph cache and navigation measurements](benchmarks/INVESTIGATION_CACHE.md)
 retain their exact source revisions and synthetic workload limits. They do not
 establish production capacity or qualify a deployment memory budget; 100k records
 remain outside the accepted local interactive profile.
+
+## 0.3.17 candidate
+
+0.3.17 is prepared for publication; the published release above remains the
+verified installation target until the new tag completes its gates. This
+candidate introduces no database migration or dependency upgrade.
+
+- Unattributed legacy mappings and missing review status are proposed. Reviewed
+  requirements are 886/2,282 (38.8%); the mapped count remains 2,196. This is a
+  correction to review credit, not a change in observed provider posture.
+- Scoped endpoint and Jira evidence bindings preserve unknowns and proposed
+  mappings. Candidate-focused review packets and reviewer provenance support
+  human review without treating attribution as reviewer independence.
+- The full synthetic console tour is recaptured with the candidate build,
+  including graph, review, light/dark and mobile views. The README summary and
+  framework coverage are regenerated from the same catalog.
+- CI retains its tests and security gates while reducing redundant waits. The
+  previous frozen-source PR and main runs passed in 7m53s and 7m52s; the exact
+  release candidate must pass independently.
+- Helm OCI publication, round-trip chart-byte verification and package/OCI
+  provenance join the existing Python and image gates. Artifact Hub registration
+  is separate. The MCP Registry workflow publishes only after the package exists.
+
+Required publication checks: independent approval, exact merged-main CI, version
+and changelog consistency, both image architectures with vulnerability/runtime
+qualification, Python artifact hashes and provenance, public Helm pull and
+provenance verification, and registry visibility. A dry run does not publish.
 
 ## 0.3.16 candidate
 

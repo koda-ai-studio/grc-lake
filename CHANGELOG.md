@@ -3,7 +3,13 @@
 All notable GRC Lake changes are summarized here. Versions follow semver for the
 Python package, Helm chart, and bundled web console.
 
-## Unreleased
+## 0.3.17 - 2026-10-26
+
+- Publish versioned Helm charts to GHCR after image qualification, verify downloaded chart bytes, and attach package and OCI provenance. PyPI and GitHub publication wait for chart qualification. Artifact Hub registration remains separate.
+
+- Shorten the disposable distributed-qualification writer lease to 20 seconds while retaining natural expiry, fencing, rollback and recovery checks; production lease timing remains unchanged. Record bounded graph capacity measurements, including the incomplete 180-second 100k attempt and its completed retry, without claiming production capacity.
+
+- Refresh the full synthetic product tour, including mapping-review counts, desktop light/dark graph views and mobile pages, against the 0.3.17 candidate.
 
 - Reject oversized timestamps in Stripe webhook signatures without raising a conversion error.
 
