@@ -50,7 +50,9 @@ export function CcfAttestationNote({
       </span>
       {status !== "pass" && (
         <span>
-          A framework result needs reviewed safeguard mappings.{" "}
+          An attested pass needs fresh evidence explicitly bound to every
+          required reviewed safeguard, with passing outcomes. Mapping review
+          alone cannot fill evidence gaps.{" "}
           <Link
             href={mappingReviewHref(frameworkId)}
             className="font-semibold text-brand hover:underline"

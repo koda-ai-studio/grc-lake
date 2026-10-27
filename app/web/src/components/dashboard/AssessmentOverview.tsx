@@ -313,6 +313,80 @@ export function AssessmentOverview({
           }
         />
       </div>
+      <details
+        aria-label="Understand these results"
+        className="rounded-lg border border-line bg-surface px-4 py-3 text-sm"
+      >
+        <summary className="cursor-pointer font-medium text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand">
+          Understand these results
+        </summary>
+        <dl className="mt-3 grid gap-3 text-muted sm:grid-cols-2">
+          <div>
+            <dt className="font-medium text-ink">Technical control tests</dt>
+            <dd>
+              Rules test control-tagged evidence. The headline score covers
+              observed controls; a passing test alone is not an attested
+              framework pass.
+            </dd>
+          </div>
+          <div>
+            <dt className="font-medium text-ink">
+              CCF / framework attestation
+            </dt>
+            <dd>
+              A pass needs fresh evidence explicitly bound to every required
+              reviewed safeguard, with passing outcomes and applicable assets
+              accounted for; proposed mappings cannot attest. Unmapped means no
+              qualifying safeguard mapping. Attested does not mean
+              auditor-approved.
+            </dd>
+          </div>
+          <div>
+            <dt className="font-medium text-ink">Evidence completeness</dt>
+            <dd>
+              Missing means required evidence is absent; stale means outside its
+              freshness window; partial means collection was incomplete; not
+              evaluated means no supported verdict; observed records assert no
+              verdict. Passing samples do not prove population completeness.
+            </dd>
+          </div>
+          <div>
+            <dt className="font-medium text-ink">Mapping review</dt>
+            <dd>
+              A human checks whether a safeguard addresses the requirement.
+              Maintainer review does not establish independent auditor
+              acceptance or fill missing evidence.
+            </dd>
+          </div>
+          <div className="sm:col-span-2">
+            <dt className="font-medium text-ink">Human workpaper review</dt>
+            <dd>
+              Exports start as drafts pending human review. Hash verification
+              checks content consistency, not reviewer identity. A separately
+              retained digest detects replacement; independent review requires a
+              different authenticated reviewer to decide on that exact
+              workpaper.
+            </dd>
+          </div>
+        </dl>
+        <p className="mt-3 border-t border-line pt-3 text-sm text-muted">
+          Start with access control:{" "}
+          <Link
+            href="/controls/?id=SOC2-CC6.1"
+            className="font-medium text-brand hover:underline"
+          >
+            Inspect SOC 2 CC6.1
+          </Link>{" "}
+          and its evidence, then use the synthetic plan and declared population
+          to export and verify a draft.{" "}
+          <a
+            href="https://github.com/koda-ai-studio/grc-lake/blob/main/docs/AUDITOR_WALKTHROUGH.md#first-run-access-control-path"
+            className="font-medium text-brand hover:underline"
+          >
+            Follow the draft workpaper walkthrough
+          </a>
+        </p>
+      </details>
     </section>
   );
 }

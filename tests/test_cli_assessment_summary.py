@@ -49,7 +49,7 @@ def test_summary_reports_the_golden_assessment_counts(tmp_path, capsys) -> None:
         f"Evidence   {payload['evidence_freshness']['count']} records, {posture['stale_evidence_count']} stale/expired/missing"
         in output
     )
-    assert len(output.splitlines()) == 6
+    assert len(output.split("\n\n", 1)[0].splitlines()) == 6
 
 
 @pytest.mark.parametrize("format_args", [[], ["--format", "json"]])
@@ -125,3 +125,37 @@ def test_summary_states_attested_framework_results_next_to_control_tests(tmp_pat
         f"Framework  {counts['pass']} attested, {counts['fail']} failing, {not_assessed} not assessed "
         "(CCF requirements through reviewed mappings)"
     ) in output
+
+
+def test_summary_explains_passing_access_test_without_framework_attestation(tmp_path, capsys) -> None:
+    from security_lakehouse.io import read_json, read_jsonl, write_jsonl
+    from security_lakehouse.pipeline import run_pipeline
+    from test_assurance_truth import complete_events
+
+    raw, lake = tmp_path / "raw.jsonl", tmp_path / "lake"
+    write_jsonl(raw, complete_events())
+    run_pipeline(raw, lake, tenant_id="audit")
+    before = {path.name: path.read_bytes() for path in (lake / "gold").iterdir() if path.is_file()}
+    assert read_jsonl(lake / "gold/control_tests.jsonl")[0]["result"] == "pass"
+    ccf = read_json(lake / "gold/ccf_assessment.json")
+    access = next(row for row in ccf["requirements"] if row["control_id"] == "SOC2-CC6.1")
+    assert access["status"] == "not_evaluated"
+
+    assert main(["assessment", "status", "--lake", str(lake), "--format", "summary"]) == 0
+    output = capsys.readouterr().out
+    for explanation in (
+        "Technical tests",
+        "explicitly bound",
+        "proposed mappings cannot attest",
+        "Missing = required evidence absent",
+        "stale = outside its freshness window",
+        "partial = collection incomplete",
+        "not evaluated = no supported verdict",
+        "observed = no verdict asserted",
+        "Maintainer mapping review is not independent workpaper review",
+        "Hash verification checks content consistency, not reviewer identity",
+        "SOC2-CC6.1",
+        "AUDITOR_WALKTHROUGH.md#first-run-access-control-path",
+    ):
+        assert explanation in output
+    assert before == {path.name: path.read_bytes() for path in (lake / "gold").iterdir() if path.is_file()}
