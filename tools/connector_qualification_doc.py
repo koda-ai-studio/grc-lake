@@ -50,6 +50,10 @@ def build_rows(catalog: list[dict], records: list[dict], *, root: Path = ROOT) -
                 or not source.is_file()
             ):
                 raise ValueError(f"{connector_id}: invalid live record source")
+            _, _, anchor = live["reference"].partition("#")
+            text = source.read_text()
+            if not anchor or f'<a id="{anchor}"></a>' not in text or live["source_basis"] not in text:
+                raise ValueError(f"{connector_id}: receipt anchor or source revision is missing")
         rows.append({**definition, "fixture_tests": fixtures, "owner": record["owner"], "live_record": live})
     return rows
 
@@ -62,6 +66,14 @@ def render(*, root: Path = ROOT) -> str:
     catalog = json.loads((root / "connectors/catalog.json").read_text())["connectors"]
     records = json.loads((root / "docs/qualification/connector-evidence.json").read_text())["connectors"]
     rows = build_rows(catalog, records, root=root)
+    stages = {
+        "Implemented": [row for row in rows if row.get("is_implemented") and row.get("release_stage") != "preview"],
+        "Preview": [row for row in rows if row.get("is_implemented") and row.get("release_stage") == "preview"],
+    }
+    summary = []
+    for stage, adapters in stages.items():
+        linked = sum(row["live_record"] is not None for row in adapters)
+        summary.append(f"| {stage} | {len(adapters)} | {linked} | {len(adapters) - linked} |")
     lines = [
         "# Connector qualification matrix",
         "",
@@ -80,6 +92,19 @@ def render(*, root: Path = ROOT) -> str:
         "It is not qualification of a published release artifact, other tenants or provider-wide coverage;",
         "each receipt lists what it did not establish. Unassigned means no qualification owner is recorded here. Credentials,",
         "provider identities and raw live evidence stay private.",
+        "",
+        "## Receipt reconciliation",
+        "",
+        "| Catalog stage | Executable adapters | Linked live receipt | No linked live receipt |",
+        "| --- | --- | --- | --- |",
+        *summary,
+        "",
+        "No linked live receipt does not mean never tested or no demo account exists.",
+        "An existing trial may have a private run record that has not been reconciled into this index.",
+        "Reconcile the exact adapter, revision, scope and provider counts before changing its stage.",
+        "Configuration boundaries are excluded from these adapter counts.",
+        "Use the [reconciliation guide and receipt template](qualification/RECONCILING_LIVE_RECEIPTS.md)",
+        "to publish only verified, bounded results; a template or an account is not a run receipt.",
         "",
         "The [GitHub collection contract](GITHUB_QUALIFICATION.md) details the selected adapter's",
         "pagination, errors, replay and remaining limitations. Follow-ups remain in",

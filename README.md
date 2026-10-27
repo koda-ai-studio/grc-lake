@@ -1,5 +1,8 @@
 <p align="center">
+  <picture>
+  <source media="(max-width: 640px)" srcset="docs/images/grc-lake-capability-header-mobile.svg">
   <img src="docs/images/grc-lake-capability-header.svg" alt="GRC Lake — collect, evaluate, resolve, and export: read-only evidence from cloud, identity, code, and data sources, evaluated through a common control framework and framework packs." width="100%">
+  </picture>
 
 </p>
 

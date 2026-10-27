@@ -27,6 +27,9 @@ For a real evaluation and contribution feedback, use the [bounded pilot guide](P
 
 ## Operate
 
+[Reconcile live receipts](qualification/RECONCILING_LIVE_RECEIPTS.md) explains how to
+check retained run evidence and link bounded connector qualification.
+
 [Upgrade from TrustOps to GRC Lake](REBRANDING.md) covers preserved data and integration identities.
 
 | Guide                                                                    | Covers                                                  |

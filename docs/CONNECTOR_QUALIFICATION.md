@@ -16,6 +16,20 @@ It is not qualification of a published release artifact, other tenants or provid
 each receipt lists what it did not establish. Unassigned means no qualification owner is recorded here. Credentials,
 provider identities and raw live evidence stay private.
 
+## Receipt reconciliation
+
+| Catalog stage | Executable adapters | Linked live receipt | No linked live receipt |
+| --- | --- | --- | --- |
+| Implemented | 18 | 4 | 14 |
+| Preview | 10 | 1 | 9 |
+
+No linked live receipt does not mean never tested or no demo account exists.
+An existing trial may have a private run record that has not been reconciled into this index.
+Reconcile the exact adapter, revision, scope and provider counts before changing its stage.
+Configuration boundaries are excluded from these adapter counts.
+Use the [reconciliation guide and receipt template](qualification/RECONCILING_LIVE_RECEIPTS.md)
+to publish only verified, bounded results; a template or an account is not a run receipt.
+
 The [GitHub collection contract](GITHUB_QUALIFICATION.md) details the selected adapter's
 pagination, errors, replay and remaining limitations. Follow-ups remain in
 [#908](https://github.com/koda-ai-studio/grc-lake/issues/908),
