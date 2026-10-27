@@ -91,8 +91,9 @@ Release notes: [changelog](CHANGELOG.md) · [verified release records](docs/RELE
 
 ## Product tour
 
-**Collect → Evaluate → Resolve → Export.** Screens captured from the 0.3.14 console
-on October 26, 2026 use the bundled synthetic company.
+**Collect → Evaluate → Resolve → Export.** These console captures use the
+bundled synthetic company. They illustrate source behavior; see the
+[release records](docs/RELEASE_READINESS.md) for published-package verification.
 
 ### Start with the assessment overview
 

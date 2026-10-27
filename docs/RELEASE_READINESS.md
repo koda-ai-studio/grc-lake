@@ -1,32 +1,26 @@
 # Release readiness
 
-GRC Lake **0.3.13 is published** on
-[PyPI](https://pypi.org/project/grc-lake/0.3.13/),
-[GitHub](https://github.com/koda-ai-studio/grc-lake/releases/tag/v0.3.13), and as
-`ghcr.io/koda-ai-studio/grc-lake:0.3.13`.
-Use the [v0.3.13 release templates](https://github.com/koda-ai-studio/grc-lake/tree/v0.3.13)
-for a published deployment. The package, provenance and container verification
-below are scoped to that release; later commits on `main` may contain unreleased fixes.
+GRC Lake **0.3.16 is published** on
+[PyPI](https://pypi.org/project/grc-lake/0.3.16/),
+[GitHub](https://github.com/koda-ai-studio/grc-lake/releases/tag/v0.3.16), and as
+`ghcr.io/koda-ai-studio/grc-lake:0.3.16`.
+Use the [v0.3.16 release templates](https://github.com/koda-ai-studio/grc-lake/tree/v0.3.16)
+for a published deployment. The [publication receipt](#verified-0316-publication)
+records the verified source, artifact hashes and runtime checks. Later changes
+on `main` are unreleased until a new tag passes the release gates.
 
-0.3.13 aligns graph CCF results, scopes OCSF identities to source accounts, exposes
-incomplete mappings and repairs Databricks audit bootstrap handling. Existing OCSF
-evidence retains its original identities: preserve it and re-ingest source history
-into a fresh lake to adopt the new preset IDs. See the qualification boundaries below.
-
-There are no new database migrations between v0.3.10 and v0.3.13. 0.3.11 restores
-the bare installation (fixture loading, pipeline replay, snapshots and local-mode
-serving without SQLAlchemy) and adds `grc-lake demo`. The 0.3.11 OCSF rule presets
-introduced pass, open and pending results; add `"rules": []` to a preset reference to
-keep presence-only mapping (see the [changelog](../CHANGELOG.md)). Upgrading from
-0.3.9 or earlier: the KnowBe4 preview connector is retired (remove external sync
-jobs and revoke unused credentials separately), and AWS role-policy collection is
-off by default and requires six additional read-only IAM grants when enabled.
+Current source includes a review-policy correction: missing review status and
+354 historical mappings without an attributed decision are proposed. These
+changes reduce attestable coverage; they do not mean a provider's operating
+posture deteriorated. New endpoint and remediation-tracking mappings also remain
+proposed. Follow the [mapping-review procedure](MAPPING_REVIEW.md) for human
+decisions, and check the [unreleased changelog](../CHANGELOG.md#unreleased) before
+comparing source results with the published package.
 
 The shell-free runtime uses pinned Wolfi Python and matching system libraries.
-Release qualification covers both architectures and reports zero vulnerabilities.
-CI and release gates block all HIGH/CRITICAL and fixable MEDIUM findings.
-See [runtime construction and scan scope](DEPENDENCY_SECURITY.md#0313-release-qualification-scans).
-Earlier published images and their historical scan results remain unchanged.
+CI and release gates block all HIGH/CRITICAL and fixable MEDIUM image findings.
+Historical publication receipts and scan results below apply to their recorded
+artifacts, not to future builds or current vulnerability databases.
 
 Use the generated [coverage matrix](FRAMEWORK_COVERAGE.md) for current mapped and
 reviewed counts, and the [SOC 2 and ISO review queue](reviews/SOC2_ISO_REVIEW.md)

@@ -78,6 +78,63 @@ def test_clusterfuzzlite_builds_every_target_with_its_seed_corpus() -> None:
     assert "compile_python_fuzzer" in build and "fuzz/fuzz_*.py" in build and "_seed_corpus.zip" in build
 
 
+@pytest.mark.parametrize("selected", [None, *TARGETS, "unknown", "../fuzz_raw_evidence"])
+def test_fuzzer_build_selection_keeps_target_corpora_and_rejects_unknowns(tmp_path, selected):
+    import os
+    import subprocess
+
+    source = tmp_path / "src"
+    fuzz = source / "grc-lake/fuzz"
+    out = tmp_path / "out"
+    out.mkdir()
+    for name in TARGETS:
+        corpus = fuzz / "corpus" / name
+        corpus.mkdir(parents=True)
+        (corpus / "seed").write_text("{}")
+        (fuzz / f"{name}.py").write_text("")
+    compiler = tmp_path / "compile_python_fuzzer"
+    compiler.write_text('#!/bin/sh\nbasename "$1" .py >> "$OUT/compiled"\n')
+    compiler.chmod(0o755)
+    env = {**os.environ, "SRC": str(source), "OUT": str(out), "PATH": str(tmp_path) + os.pathsep + os.environ["PATH"]}
+    env.pop("CFL_EXTRA_FUZZ_TARGET", None)
+    if selected is not None:
+        env["CFL_EXTRA_FUZZ_TARGET"] = selected
+    result = subprocess.run(["bash", str(ROOT / ".clusterfuzzlite/build.sh")], env=env, capture_output=True)
+    if selected is not None and selected not in TARGETS:
+        assert result.returncode != 0
+        assert not (out / "compiled").exists()
+    else:
+        assert result.returncode == 0, result.stderr
+        expected = TARGETS if selected is None else [selected]
+        assert (out / "compiled").read_text().splitlines() == expected
+        assert sorted(p.name for p in out.glob("*_seed_corpus.zip")) == [f"{name}_seed_corpus.zip" for name in expected]
+
+
+def test_pr_fuzz_matrix_preserves_every_target_budget_and_required_gate():
+    import os
+    import subprocess
+
+    jobs = yaml.safe_load((ROOT / ".github/workflows/cflite_pr.yml").read_text())["jobs"]
+    targets = jobs["targets"]
+    assert targets["strategy"]["matrix"]["target"] == TARGETS
+    assert targets["strategy"]["fail-fast"] is False
+    steps = targets["steps"]
+    build = next(s for s in steps if s.get("id") == "build")
+    assert build["env"]["CFL_EXTRA_FUZZ_TARGET"] == "${{ matrix.target }}"
+    assert build["with"]["keep-unaffected-fuzz-targets"] is True
+    run = next(s for s in steps if s.get("id") == "run")
+    assert run["with"]["fuzz-seconds"] >= 75
+    assert run["with"]["fuzz-seconds"] * len(TARGETS) >= 300
+    gate = jobs["fuzz"]
+    assert gate["name"] == "Fuzz pull request (address)"
+    assert gate["if"] == "always()" and gate["needs"] == "targets"
+    step = gate["steps"][0]
+    assert step["env"] == {"FUZZ_RESULT": "${{ needs.targets.result }}"}
+    for result in ("success", "failure", "cancelled", "skipped"):
+        completed = subprocess.run(["bash", "-c", step["run"]], env={**os.environ, "FUZZ_RESULT": result})
+        assert (completed.returncode == 0) == (result == "success")
+
+
 @pytest.mark.parametrize(("workflow", "mode"), [("cflite_pr.yml", "code-change"), ("cflite_batch.yml", "batch")])
 def test_clusterfuzzlite_workflows_are_pinned_and_least_privilege(workflow: str, mode: str) -> None:
     text = (ROOT / ".github/workflows" / workflow).read_text()

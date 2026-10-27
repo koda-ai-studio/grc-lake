@@ -76,7 +76,9 @@ def test_python_matrix_runs_complete_suite_once_and_preserves_artifact_dependenc
     assert len(durations) > 100 and all(name.startswith("tests/") for name in durations)
     assert "-p tools.pytest_strict_imports --allow-import-skip=moto " in test_step["run"]
     assert any("--all-extras" in step.get("run", "") for step in tests["steps"])
-    for name in ("pipeline-smoke", "python-tests", "e2e"):
+    assert "needs" not in tests
+    assert not any(step.get("with", {}).get("name") == "web-dist" for step in tests["steps"])
+    for name in ("pipeline-smoke", "wheel-smoke", "e2e"):
         assert jobs[name]["needs"] == "web"
         assert any(step.get("with", {}).get("name") == "web-dist" for step in jobs[name]["steps"])
     for name in ("security", "docker-build"):

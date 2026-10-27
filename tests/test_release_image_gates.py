@@ -71,6 +71,16 @@ def test_docker_console_builder_uses_the_ci_node_major():
         assert str(setup["with"]["node-version"]) == major, "Docker builds a different Node major than CI qualifies"
 
 
+def test_locked_image_dependencies_are_cached_independently_of_application_source():
+    dockerfile = (ROOT / "Dockerfile").read_text()
+    builder = dockerfile.split("FROM python-base AS py-build", 1)[1].split("FROM python-base AS runtime-deps", 1)[0]
+    dependencies = builder.index("--require-hashes --requirement")
+    assert builder.index("COPY pyproject.toml uv.lock ./") < dependencies
+    for source in ("COPY README.md", "COPY src/", "COPY controls/", "COPY --from=web-build"):
+        assert dependencies < builder.index(source)
+    assert builder.index("COPY --from=web-build") < builder.index("--no-deps")
+
+
 @pytest.mark.parametrize(
     ("workflow", "job", "image", "platform"),
     [
