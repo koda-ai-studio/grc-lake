@@ -118,4 +118,7 @@ def test_console_e2e_runs_as_independent_playwright_shards() -> None:
     assert step["env"]["E2E_SHARD"] == "${{ matrix.shard }}/${{ strategy.job-total }}"
     # Each shard starts its own server and lake, so no state is shared between runners.
     script = (ROOT / "tools/run_e2e_console.sh").read_text()
-    assert '${E2E_SHARD:+--shard="$E2E_SHARD"}' in script
+    assert 'tools.run_e2e_shard --shard "$E2E_SHARD"' in script
+    receipt = next(s for s in job["steps"] if s.get("name") == "Retain browser plan and timings")
+    assert receipt["if"] == "always()"
+    assert receipt["with"]["path"] == "build/e2e-shard-${{ matrix.shard }}/"

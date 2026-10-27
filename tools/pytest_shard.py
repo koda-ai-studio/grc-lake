@@ -11,10 +11,13 @@ shards retain pytest's nonzero exit status.
 from __future__ import annotations
 
 import json
+import math
 from collections import defaultdict
 from pathlib import Path
 
 import pytest
+
+__all__ = ["assign_shards", "duration_weights"]
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:
@@ -49,12 +52,7 @@ def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item
     for item in items:
         modules[item.nodeid.split("::", 1)[0]].append(item)
     weights = _module_weights(config, modules)
-    loads = [0.0] * count
-    owners: dict[str, int] = {}
-    for module in sorted(modules, key=lambda name: (-weights[name], name)):
-        owner = min(range(count), key=lambda candidate: (loads[candidate], candidate))
-        owners[module] = owner
-        loads[owner] += weights[module]
+    owners = assign_shards(weights, count)
     selected, deselected = [], []
     for item in items:
         target = selected if owners[item.nodeid.split("::", 1)[0]] == index else deselected
@@ -69,12 +67,31 @@ def _module_weights(config: pytest.Config, modules: dict[str, list[pytest.Item]]
     if not path:
         return counts
     recorded = json.loads(Path(path).read_text(encoding="utf-8"))
+    try:
+        return duration_weights(counts, recorded)
+    except ValueError as exc:
+        raise pytest.UsageError(str(exc)) from exc
+
+
+def duration_weights(counts: dict[str, float], recorded: dict[str, float]) -> dict[str, float]:
     if not isinstance(recorded, dict) or not all(
-        isinstance(seconds, int | float) and not isinstance(seconds, bool) and seconds >= 0
+        isinstance(seconds, int | float) and not isinstance(seconds, bool) and math.isfinite(seconds) and seconds >= 0
         for seconds in recorded.values()
     ):
-        raise pytest.UsageError("--ci-shard-durations must map module paths to non-negative seconds")
-    known = [name for name in modules if name in recorded]
+        raise ValueError("durations must map file paths to finite non-negative seconds")
+    known = [name for name in counts if name in recorded]
     tests = sum(counts[name] for name in known)
     per_test = sum(recorded[name] for name in known) / tests if tests else 1.0
-    return {name: float(recorded[name]) if name in recorded else counts[name] * per_test for name in modules}
+    return {name: float(recorded[name]) if name in recorded else counts[name] * per_test for name in counts}
+
+
+def assign_shards(weights: dict[str, float], count: int) -> dict[str, int]:
+    if count < 1:
+        raise ValueError("shard count must be positive")
+    loads = [0.0] * count
+    owners: dict[str, int] = {}
+    for name in sorted(weights, key=lambda name: (-weights[name], name)):
+        owner = min(range(count), key=lambda candidate: (loads[candidate], candidate))
+        owners[name] = owner
+        loads[owner] += weights[name]
+    return owners
