@@ -23,8 +23,12 @@ def verify_stripe_signature(payload: bytes, header: str | None, secrets: list[st
             signatures.append(value)
     if timestamp is None or not (timestamp.isascii() and timestamp.isdigit()) or not signatures:
         return False
+    try:
+        timestamp_seconds = int(timestamp)
+    except ValueError:
+        return False
     current = int(time.time()) if now is None else now
-    if abs(current - int(timestamp)) > SIGNATURE_TOLERANCE_SECONDS:
+    if abs(current - timestamp_seconds) > SIGNATURE_TOLERANCE_SECONDS:
         return False
     signed = timestamp.encode() + b"." + payload
     for secret in secrets:

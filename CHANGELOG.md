@@ -5,6 +5,8 @@ Python package, Helm chart, and bundled web console.
 
 ## Unreleased
 
+- Reject oversized timestamps in Stripe webhook signatures without raising a conversion error.
+
 - Missing mapping review status defaults to proposed. Focused review packets can select pending safeguard alternatives even when another mapping already reviews the requirement; reviewer-provenance counts expose recorded attribution without claiming independence.
 
 - Bind Intune/Jamf encryption, CrowdStrike sensor/prevention, and Jira remediation-ticket signals to scoped safeguards. Missing or contradictory device fields stay not evaluated; ticket closure remains observation rather than verified remediation. New framework mappings remain proposed.
