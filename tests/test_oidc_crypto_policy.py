@@ -76,6 +76,8 @@ def test_oidc_accepts_2048_bit_key_alongside_weak_retired_key():
         {"aud": "wrong"},
         {"aud": "wrong", "azp": "client"},
         {"nonce": "wrong"},
+        {"nonce": "wrong", "nonce_supported": False},
+        {"nonce": None, "nonce_supported": False},
         {"exp": 1},
     ],
 )
