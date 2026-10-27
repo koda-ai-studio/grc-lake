@@ -14,7 +14,7 @@ Current source includes a review-policy correction: missing review status and
 changes reduce attestable coverage; they do not mean a provider's operating
 posture deteriorated. New endpoint and remediation-tracking mappings also remain
 proposed. Follow the [mapping-review procedure](MAPPING_REVIEW.md) for human
-decisions, and check the [0.3.17 changelog](../CHANGELOG.md#0317---2026-10-26) before
+decisions, and check the [0.3.17 changelog](../CHANGELOG.md#0317---2026-10-27) before
 comparing source results with the published package.
 
 The shell-free runtime uses pinned Wolfi Python and matching system libraries.
@@ -37,6 +37,15 @@ remain outside the accepted local interactive profile.
 verified installation target until the new tag completes its gates. This
 candidate introduces no database migration or dependency upgrade.
 
+The graph follow-up in [#1113](https://github.com/koda-ai-studio/grc-lake/pull/1113)
+preserves explicit review states, exact filter hops and readable zoom, with a
+visible relationship key and limits on both nodes and relationships. Its local
+validation passed 46 graph checks (including mobile, light/dark and accessibility)
+and 129 documentation, screenshot and release checks. The release build also
+pins the PyPI description's Docker quick start to the version being packaged.
+Its merged main commit `5988d77a` [passed CI in 7m27s](https://github.com/koda-ai-studio/grc-lake/actions/runs/40447456279).
+The final packaging follow-up still requires its own merged-main qualification.
+
 - Unattributed legacy mappings and missing review status are proposed. Reviewed
   requirements are 886/2,282 (38.8%); the mapped count remains 2,196. This is a
   correction to review credit, not a change in observed provider posture.
@@ -47,8 +56,11 @@ candidate introduces no database migration or dependency upgrade.
   including graph, review, light/dark and mobile views. The README summary and
   framework coverage are regenerated from the same catalog.
 - CI retains its tests and security gates while reducing redundant waits. The
-  previous frozen-source PR and main runs passed in 7m53s and 7m52s; the exact
-  release candidate must pass independently.
+  earlier frozen-source PR and main runs passed in 7m53s and 7m52s. Later runs
+  took 8m14s (Docker critical path) and 13m11s (including 6m26s installing browser
+  dependencies). The under-eight-minute target remains inconsistent and is
+  tracked in [#1111](https://github.com/koda-ai-studio/grc-lake/issues/1111);
+  the exact release candidate must pass independently.
 - Helm OCI publication, round-trip chart-byte verification and package/OCI
   provenance join the existing Python and image gates. Artifact Hub registration
   is separate. The MCP Registry workflow publishes only after the package exists.
