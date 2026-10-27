@@ -88,3 +88,58 @@ def test_recorded_durations_balance_shards_by_time_not_count(tmp_path: Path) -> 
     assert len(seen) == 24
     # Two slow tests outweigh twenty-two fast ones, so they get a shard to themselves.
     assert [module for module, owner in owners.items() if owner == owners["test_slow.py"]] == ["test_slow.py"]
+
+
+def _junit_report(path: Path, *, duration="1.5", result="", tests="1", failures="0", errors="0") -> Path:
+    path.write_text(
+        f'<testsuites><testsuite tests="{tests}" failures="{failures}" errors="{errors}">'
+        f'<testcase classname="tests.test_example" name="test_case" time="{duration}">'
+        f"{result}</testcase></testsuite></testsuites>"
+    )
+    return path
+
+
+def test_junit_refresh_keeps_successful_and_explicitly_skipped_cases(tmp_path: Path) -> None:
+    from tools.update_test_durations import module_durations
+
+    path = _junit_report(tmp_path / "results.xml", result='<skipped message="optional environment"/>')
+    assert module_durations([path]) == {"tests/test_example.py": 1.5}
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [{"result": "<failure/>"}, {"result": "<error/>"}, {"failures": "1"}, {"errors": "1"}, {"tests": "2"}],
+)
+def test_junit_refresh_rejects_failed_or_incomplete_reports(tmp_path: Path, kwargs) -> None:
+    from tools.update_test_durations import module_durations
+
+    with pytest.raises(ValueError, match="unsuccessful or incomplete"):
+        module_durations([_junit_report(tmp_path / "results.xml", **kwargs)])
+
+
+@pytest.mark.parametrize("duration", ["-1", "nan", "inf", "not-a-number", ""])
+def test_junit_refresh_rejects_invalid_timings(tmp_path: Path, duration: str) -> None:
+    from tools.update_test_durations import module_durations
+
+    with pytest.raises(ValueError, match="invalid JUnit duration"):
+        module_durations([_junit_report(tmp_path / "results.xml", duration=duration)])
+
+
+def test_junit_refresh_rejects_duplicate_cases_across_shards(tmp_path: Path) -> None:
+    from tools.update_test_durations import module_durations
+
+    with pytest.raises(ValueError, match="duplicate"):
+        module_durations([_junit_report(tmp_path / "first.xml"), _junit_report(tmp_path / "second.xml")])
+
+
+def test_refresh_missing_shard_does_not_replace_recorded_weights(tmp_path: Path) -> None:
+    from tools.update_test_durations import main
+
+    output = tmp_path / "weights.json"
+    output.write_text('{"tests/test_example.py": 9.0}\n')
+    report = _junit_report(tmp_path / "results.xml")
+    with pytest.raises(SystemExit) as failure:
+        main([str(report), "--expected-reports", "6", "--out", str(output)])
+    assert failure.value.code == 2
+    assert output.read_text() == '{"tests/test_example.py": 9.0}\n'
+    assert main([str(report), "--expected-reports", "1", "--out", str(output)]) == 0
