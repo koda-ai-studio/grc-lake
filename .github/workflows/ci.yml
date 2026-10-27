@@ -609,6 +609,23 @@ jobs:
       - name: Install web deps
         working-directory: app/web
         run: npm ci --no-audit --no-fund
+      - name: Prepare browser package cache
+        id: browser-apt
+        env:
+          ARCHIVE_CACHE: ${{ runner.temp }}/playwright-apt
+        run: |
+          mkdir -p "$ARCHIVE_CACHE"
+          chmod 755 "$ARCHIVE_CACHE"
+          printf 'suite=%s\n' "$(lsb_release -cs)" >> "$GITHUB_OUTPUT"
+          printf 'Dir::Cache::archives "%s";\nAPT::Keep-Downloaded-Packages "true";\nBinary::apt::APT::Keep-Downloaded-Packages "true";\n' "$ARCHIVE_CACHE" \
+            | sudo tee /etc/apt/apt.conf.d/99-grc-playwright-cache >/dev/null
+      - name: Cache browser OS packages
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          # Cache package archives only. Playwright still runs apt-get update
+          # and installs against current signed indexes on every run.
+          path: ${{ runner.temp }}/playwright-apt/*.deb
+          key: playwright-apt-${{ steps.browser-apt.outputs.suite }}-${{ runner.arch }}-${{ hashFiles('app/web/package-lock.json') }}
       - name: Install Playwright Chromium
         working-directory: app/web
         run: npx playwright install chromium --with-deps --only-shell
