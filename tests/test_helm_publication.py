@@ -10,6 +10,16 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def test_artifacthub_metadata_has_assigned_repository_identity():
+    from uuid import UUID
+
+    metadata = yaml.safe_load((ROOT / "deploy/helm/artifacthub-repo.yml").read_text())
+    assert UUID(metadata["repositoryID"]).version == 4
+    readme = (ROOT / "deploy/helm/grc-lake/README.md").read_text()
+    assert metadata["repositoryID"] in readme
+    assert "application/vnd.cncf.artifacthub.repository-metadata.layer.v1.yaml" in readme
+
+
 def test_chart_is_qualified_before_python_publication_and_included_in_release():
     jobs = yaml.safe_load((ROOT / ".github/workflows/release.yml").read_text())["jobs"]
     chart = jobs["chart"]

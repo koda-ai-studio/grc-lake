@@ -38,10 +38,26 @@ attestations; they are not Helm's GPG `.prov` format.
 
 ## Artifact Hub registration
 
-After the first successful chart publication, register
-`oci://ghcr.io/koda-ai-studio/charts/grc-lake` in Artifact Hub. Publication to GHCR
-does not automatically create an Artifact Hub listing. Set the assigned
-repository ID and actual Artifact Hub owner in `deploy/helm/artifacthub-repo.yml`,
-then publish the metadata as documented by
-[Artifact Hub](https://artifacthub.io/docs/topics/repositories/helm-charts/#oci-support).
-Do not claim a listing or verified publisher status until Artifact Hub reports it.
+`oci://ghcr.io/koda-ai-studio/charts/grc-lake` is registered in Artifact Hub as
+`grc-lake`, owned by the `koda-ai-studio` organization (KODA AI Studio),
+administered through the maintainer account. Its assigned repository ID is
+`eceb1fae-e871-4fd5-8c75-0054a2ec2b34`. Registration and OCI publication do not
+by themselves prove that a package is indexed or that publisher verification
+has completed; check the public listing before making either claim.
+
+The metadata in `deploy/helm/artifacthub-repo.yml` binds that registration to the
+registry. After authenticating ORAS to GHCR, publish it using the
+[documented OCI media types](https://artifacthub.io/docs/topics/repositories/helm-charts/#oci-support):
+
+```bash
+cd deploy/helm
+oras push ghcr.io/koda-ai-studio/charts/grc-lake:artifacthub.io \
+  --config /dev/null:application/vnd.cncf.artifacthub.config.v1+yaml \
+  artifacthub-repo.yml:application/vnd.cncf.artifacthub.repository-metadata.layer.v1.yaml
+```
+
+The metadata tag is separate from versioned chart tags. Pull it back and compare
+the YAML before waiting for Artifact Hub to reprocess the repository. The empty
+`owners` list deliberately configures no email-based ownership transfer; account
+ownership is managed in the Artifact Hub control panel. If ownership changes,
+update the actual registration details instead of inventing an owner identity.
