@@ -409,3 +409,25 @@ for (const [status, label] of [
     ).toBeVisible();
   });
 }
+
+test("mobile graph keeps the complete current path visible", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/console/graph/?root=control%3ASOC2-CC6.1");
+  const path = page.getByLabel("Current graph path", { exact: true });
+  await expect(path).toContainText("CC6.1");
+  expect((await path.boundingBox())?.width).toBeGreaterThan(300);
+  const dimensions = await path.evaluate((element) => ({
+    clipped: element.scrollWidth > element.clientWidth,
+    ellipsis: getComputedStyle(element).textOverflow === "ellipsis",
+  }));
+  expect(dimensions).toEqual({ clipped: false, ellipsis: false });
+  expect(
+    await page.evaluate(
+      () =>
+        document.documentElement.scrollWidth -
+        document.documentElement.clientWidth,
+    ),
+  ).toBeLessThanOrEqual(1);
+});

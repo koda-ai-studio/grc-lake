@@ -331,3 +331,18 @@ def test_readme_counts_baseline_restatements_once() -> None:
     assert restated == len(fedramp)
     distinct = f"{len(catalog) - restated:,} distinct"
     assert distinct in render_readme_glance()
+
+
+def test_mobile_readme_hero_is_legible_at_github_content_width():
+    readme = README.read_text()
+    assert 'media="(max-width: 640px)"' in readme
+    mobile = ROOT / "docs/images/grc-lake-capability-header-mobile.svg"
+    root = ElementTree.parse(mobile).getroot()
+    width = float(root.attrib["viewBox"].split()[2])
+    for node in root.iter(f"{SVG}text"):
+        assert float(node.attrib["font-size"]) * 324 / width >= 12
+    for left, right, copy in _placed_text(root):
+        assert 0 <= left <= right <= width, copy
+    from tools.render_readme_header import render_mobile_preview
+
+    assert mobile.read_text() == render_mobile_preview()

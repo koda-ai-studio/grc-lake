@@ -450,7 +450,7 @@ export function InvestigationExplorer() {
                   </Button>
                   <p
                     aria-label="Current graph path"
-                    className="min-w-0 flex-1 truncate text-sm font-medium"
+                    className="order-first min-w-0 basis-full break-words text-sm font-medium sm:order-none sm:flex-1 sm:basis-auto"
                     title={[
                       ...trail.map((n) => n.label),
                       data.nodes.find((n) => n.id === currentRoot)?.label ??
