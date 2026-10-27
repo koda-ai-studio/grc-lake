@@ -90,30 +90,58 @@ endpoints or AI incident handling, sit in that control's family (Identity and
 access, Incident response) rather than in AI governance, so they roll up with the
 rest of that control.
 
-| Category                     | Family                    | ID                         | Safeguards | NIST SP 800-53 families | CIS Controls |
-| ---------------------------- | ------------------------- | -------------------------- | ---------: | ----------------------- | ------------ |
-| Governance and risk          | Risk management           | `risk-management`          |         71 | RA, CA, PM              | 18           |
-| Governance and risk          | Remediation tracking      | `remediation-tracking`     |          1 | CA                      |              |
-| Governance and risk          | Governance                | `governance`               |         91 | PL, PM                  | —            |
-| Identity and access          | Identity and access       | `identity`                 |        198 | AC, IA                  | 5, 6         |
-| Data protection and privacy  | Data protection           | `data-protection`          |        166 | SC, MP                  | 1, 3         |
-| Data protection and privacy  | Privacy                   | `privacy`                  |         29 | PT                      | —            |
-| Secure engineering           | Change management         | `change-management`        |          5 | CM                      | —            |
-| Secure engineering           | Secure development        | `secure-development`       |        112 | SA                      | 16           |
-| Secure engineering           | Secure architecture       | `secure-architecture`      |          4 | SA, SC                  | —            |
-| Infrastructure security      | Configuration management  | `configuration-management` |         62 | CM                      | 2, 4         |
-| Infrastructure security      | Vulnerability management  | `vulnerability-management` |          3 | RA, SI                  | 7            |
-| Infrastructure security      | Network security          | `network-security`         |          1 | SC                      | 12           |
-| Detection and response       | Detection                 | `detection`                |          3 | SI                      | 10, 13       |
-| Detection and response       | Audit logging             | `logging`                  |         59 | AU                      | 8            |
-| Detection and response       | Incident response         | `incident-response`        |         50 | IR                      | 17           |
-| Resilience and integrity     | Availability and recovery | `availability`             |         54 | CP                      | 11           |
-| Resilience and integrity     | System maintenance        | `system-maintenance`       |         32 | MA                      | —            |
-| Resilience and integrity     | Processing integrity      | `processing-integrity`     |        106 | SI                      | —            |
-| Third-party and supply chain | Third-party risk          | `third-party-risk`         |         33 | SR, SA                  | 15           |
-| People and physical          | People security           | `people-security`          |         42 | AT, PS                  | 14           |
-| People and physical          | Physical security         | `physical-security`        |         55 | PE                      | —            |
-| AI governance                | AI governance             | `ai-governance`            |         21 | —                       | —            |
+Focused identity families separate authentication/MFA, privileged access,
+access review, and identity lifecycle. Supplier groups separate inventory,
+assurance, and component provenance/integrity. AI groups separate inventory and
+context, evaluation and impact, monitoring, oversight and transparency, and data
+governance. Broad identity, third-party, and AI governance families remain for
+contracts that span several of these obligations. This grouping adds no
+assessment depth, review credit, or framework coverage.
+
+The NIST source plan pins explicit per-control family assignments in
+`controls/nist53_assessment_expansion.json`; its source generator validates each
+assignment against the family's NIST identifiers. Regrouping changes only
+`risk_domain`, which is outside the safeguard's semantic definition digest.
+Evidence requirements, evaluation rules, mappings, and review receipts remain
+unchanged. Maintainer review of the taxonomy is distinct from an independent
+review of the underlying control effectiveness.
+
+| Category                     | Family                        | ID                          | Safeguards | NIST SP 800-53 families | CIS Controls |
+| ---------------------------- | ----------------------------- | --------------------------- | ---------: | ----------------------- | ------------ |
+| AI governance                | AI data governance            | `ai-data-governance`        |          1 | —                       | —            |
+| AI governance                | AI evaluation and impact      | `ai-evaluation`             |          3 | —                       | —            |
+| AI governance                | AI governance                 | `ai-governance`             |          9 | —                       | —            |
+| AI governance                | AI inventory and context      | `ai-inventory-context`      |          3 | —                       | —            |
+| AI governance                | AI monitoring                 | `ai-monitoring`             |          2 | —                       | —            |
+| AI governance                | AI oversight and transparency | `ai-oversight-transparency` |          3 | —                       | —            |
+| Data protection and privacy  | Data protection               | `data-protection`           |        166 | SC, MP                  | 1, 3         |
+| Data protection and privacy  | Privacy                       | `privacy`                   |         29 | PT                      | —            |
+| Detection and response       | Audit logging                 | `logging`                   |         59 | AU                      | 8            |
+| Detection and response       | Detection                     | `detection`                 |          3 | SI                      | 10, 13       |
+| Detection and response       | Incident response             | `incident-response`         |         50 | IR                      | 17           |
+| Governance and risk          | Governance                    | `governance`                |         91 | PL, PM                  | —            |
+| Governance and risk          | Remediation tracking          | `remediation-tracking`      |          1 | CA                      | —            |
+| Governance and risk          | Risk management               | `risk-management`           |         71 | RA, CA, PM              | 18           |
+| Identity and access          | Access review                 | `access-review`             |          2 | AC                      | 5, 6         |
+| Identity and access          | Authentication and MFA        | `authentication`            |         31 | IA, AC                  | 5, 6         |
+| Identity and access          | Identity and access           | `identity`                  |        141 | AC, IA                  | 5, 6         |
+| Identity and access          | Identity lifecycle            | `identity-lifecycle`        |         14 | IA, AC                  | 5, 6         |
+| Identity and access          | Privileged access             | `privileged-access`         |         10 | AC                      | 5, 6         |
+| Infrastructure security      | Configuration management      | `configuration-management`  |         62 | CM                      | 2, 4         |
+| Infrastructure security      | Network security              | `network-security`          |          1 | SC                      | 12           |
+| Infrastructure security      | Vulnerability management      | `vulnerability-management`  |          3 | RA, SI                  | 7            |
+| People and physical          | People security               | `people-security`           |         42 | AT, PS                  | 14           |
+| People and physical          | Physical security             | `physical-security`         |         55 | PE                      | —            |
+| Resilience and integrity     | Availability and recovery     | `availability`              |         54 | CP                      | 11           |
+| Resilience and integrity     | Processing integrity          | `processing-integrity`      |        106 | SI                      | —            |
+| Resilience and integrity     | System maintenance            | `system-maintenance`        |         32 | MA                      | —            |
+| Secure engineering           | Change management             | `change-management`         |          5 | CM                      | —            |
+| Secure engineering           | Secure architecture           | `secure-architecture`       |          4 | SA, SC                  | —            |
+| Secure engineering           | Secure development            | `secure-development`        |        112 | SA                      | 16           |
+| Third-party and supply chain | Supplier assurance            | `supplier-assurance`        |          2 | SR, SA                  | 15           |
+| Third-party and supply chain | Supplier inventory            | `supplier-inventory`        |          1 | SR, SA                  | 15           |
+| Third-party and supply chain | Supply chain integrity        | `supply-chain-integrity`    |         13 | SR, SA                  | 15, 16       |
+| Third-party and supply chain | Third-party risk              | `third-party-risk`          |         17 | SR, SA                  | 15           |
 
 ## Where it stands
 

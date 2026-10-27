@@ -52,7 +52,7 @@ def test_categories_are_the_pinned_small_set() -> None:
 def test_every_family_belongs_to_exactly_one_known_category() -> None:
     categories = {row["category_id"] for row in load_ccf_categories()}
     families = load_ccf_families()
-    assert len(families) == 22
+    assert len(families) == 34
     for family_id, family in families.items():
         assert family["category"] in categories, family_id
     used = {family["category"] for family in families.values()}

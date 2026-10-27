@@ -1,4 +1,4 @@
-# Set repositoryID to the ID assigned after registering the published OCI chart.
-# Add only owners whose email matches their actual Artifact Hub account.
-# This unconfigured file does not establish ownership or publisher verification.
+# Assigned by Artifact Hub to the grc-lake repository registered by msaad00.
+repositoryID: eceb1fae-e871-4fd5-8c75-0054a2ec2b34
+# No email-based ownership transfer is configured. Manage the owner in Artifact Hub.
 owners: []
