@@ -290,6 +290,7 @@ jobs:
             build/control-workflow-qualification/**/plan.json
             build/control-workflow-qualification/**/baseline.json
             build/control-workflow-qualification/**/workpaper/*
+            build/control-workflow-qualification/**/replayed-workpaper/*
             build/control-workflow-qualification/**/handoff-verification.json
             build/control-workflow-qualification/**/replacement-workpaper/*
           if-no-files-found: warn

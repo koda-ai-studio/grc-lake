@@ -139,6 +139,52 @@ def test_local_bundle_is_reproducible_and_never_overwrites(workpaper_env, tmp_pa
     assert verify_workpaper_export(out)["ok"] is False
 
 
+def test_workpaper_remains_bound_when_current_generation_changes(workpaper_env, tmp_path):
+    from security_lakehouse.audit_workpapers import build_workpaper, export_workpaper, verify_workpaper_export
+    from security_lakehouse.generations import active_generation
+    from security_lakehouse.io import canonical_sha256, read_jsonl, write_jsonl
+
+    _, client, headers, lake, body = workpaper_env
+    response = client.post("/api/v1/audit-workpapers", json=body, headers=headers["author"])
+    assert response.status_code == 201
+    original = response.json()["data"]
+    url = f"/api/v1/audit-workpapers/{original['id']}"
+    original = client.get(url, headers=headers["author"]).json()["data"]
+    generation = active_generation(lake)
+    assert generation is not None
+    local_content = build_workpaper(lake, **body)
+    bundle = tmp_path / "original-export"
+    export_workpaper(local_content, bundle)
+    original_bytes = {path.name: path.read_bytes() for path in bundle.iterdir()}
+
+    events = [row["raw"] for row in read_jsonl(generation / "bronze/raw_events.jsonl")]
+    failing = next(row for row in events if row["event_id"] == "day2-1")
+    failing["status"] = "pass"
+    raw = tmp_path / "corrected-events.jsonl"
+    write_jsonl(raw, events)
+    run_pipeline(raw, lake, tenant_id=body["plan"]["tenant_id"])
+    assert active_generation(lake) != generation
+
+    updated = client.post("/api/v1/audit-workpapers", json=body, headers=headers["author"])
+    assert updated.status_code == 201
+    current = updated.json()["data"]
+    assert current["content"]["generation"] != original["content"]["generation"]
+    assert current["content_sha256"] != original["content_sha256"]
+    assert current["status"] == original["status"] == "draft"
+    assert current["content"]["assurance"]["controls"][1]["operating"]["status"] == "insufficient_evidence"
+    retained = client.get(url, headers=headers["author"])
+    assert retained.status_code == 200
+    assert retained.json()["data"] == original
+    assert original["content"]["assurance"]["controls"][1]["operating"]["status"] == "sample_fail"
+    assert build_workpaper(generation, **body) == local_content
+    assert {path.name: path.read_bytes() for path in bundle.iterdir()} == original_bytes
+    (generation / "generation.json").unlink()
+    with pytest.raises(ValueError, match="sealed generation"):
+        build_workpaper(generation, **body)
+    assert build_workpaper(lake, **body)["generation"] == current["content"]["generation"]
+    assert verify_workpaper_export(bundle, expected_content_sha256=canonical_sha256(local_content))["ok"] is True
+
+
 def test_workpaper_api_cannot_hide_failure_by_selecting_it_as_design(workpaper_env):
     _, client, headers, _, body = workpaper_env
     body["plan"]["controls"][1]["design_event_ids"].append("day2-1")

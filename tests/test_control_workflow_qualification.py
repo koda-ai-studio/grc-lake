@@ -19,6 +19,9 @@ def test_complete_matrix_exports_reviewable_evidence_without_claiming_live_quali
         assert case["checks"]["pinned_export_verified"] is True
         assert case["checks"]["replacement_export_self_consistent"] is True
         assert case["checks"]["replacement_export_rejected_by_pin"] is True
+        assert case["checks"]["export_bytes_reproducible"] is True
+        assert case["checks"]["mapping_states_preserved"] is True
+        assert case["checks"]["proposed_requirements_not_attested"] is True
         assert case["observed"] == case["expected"]
         bundle = output / case["directory"] / "workpaper"
         content = json.loads((bundle / "workpaper.json").read_text())
@@ -30,6 +33,55 @@ def test_complete_matrix_exports_reviewable_evidence_without_claiming_live_quali
         assert case["input_sha256"] and case["content_sha256"]
     with pytest.raises(FileExistsError):
         qualification.qualify(output)
+
+
+def test_stale_design_cannot_document_design_despite_passing_samples(tmp_path):
+    result = qualification.run_case(tmp_path / "case", qualification.SAFEGUARDS[0], "stale_design")
+    assert result["status"] == "passed", result
+    assert result["observed"] == {
+        "design": "insufficient_evidence",
+        "operating": "sample_pass",
+        "population": "declared_scope_reconciled",
+    }
+    content = json.loads((tmp_path / "case/workpaper/workpaper.json").read_text())
+    assert content["assurance"]["controls"][0]["conclusion"] == "pending_human_review"
+
+
+@pytest.mark.parametrize("fault", ["export_bytes", "promoted_mapping"])
+def test_self_consistent_export_regressions_fail_qualification(tmp_path, monkeypatch, fault):
+    if fault == "export_bytes":
+        original_export = qualification.export_workpaper
+        count = 0
+
+        def nondeterministic_export(content, out):
+            nonlocal count
+            original_export(content, out)
+            count += 1
+            manifest = out / "manifest.json"
+            manifest.write_text(manifest.read_text() + "\n" * count)
+
+        monkeypatch.setattr(qualification, "export_workpaper", nondeterministic_export)
+        expected_check = "export_bytes_reproducible"
+    else:
+        original_build = qualification.build_workpaper
+
+        def promote_mapping(*args, **kwargs):
+            content = original_build(*args, **kwargs)
+            mapping = next(
+                row
+                for row in content["assurance"]["controls"][0]["requirement_mappings"]
+                if row["effective_review_state"] == "proposed"
+            )
+            mapping.update(review_status="reviewed", effective_review_state="maintainer_reviewed")
+            return content
+
+        monkeypatch.setattr(qualification, "build_workpaper", promote_mapping)
+        expected_check = "mapping_states_preserved"
+    result = qualification.run_case(tmp_path / "case", qualification.SAFEGUARDS[0], "complete_samples")
+    assert result["status"] == "failed", result
+    assert result["checks"][expected_check] is False
+    assert result["checks"]["export_verified"] is True
+    assert result["checks"]["human_review_pending"] is True
 
 
 def test_false_pass_is_retained_as_a_failed_case(tmp_path, monkeypatch):

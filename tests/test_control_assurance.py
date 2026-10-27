@@ -122,6 +122,7 @@ def test_invalid_test_plan_rejected(tmp_path, field, value):
 
 
 def test_five_control_demo_cli_and_evidence_integrity(tmp_path, capsys):
+    from security_lakehouse.audit_workpapers import build_workpaper
     from security_lakehouse.cli import main
     from security_lakehouse.control_assurance import assess_control_plan
 
@@ -146,3 +147,28 @@ def test_five_control_demo_cli_and_evidence_integrity(tmp_path, capsys):
     (lake / "silver/normalized_events.jsonl").write_text("{}\n")
     with pytest.raises(ValueError, match="integrity"):
         assess_control_plan(lake, plan)
+    baseline = json.loads((root / "examples/control-assurance/baseline.json").read_text())
+    with pytest.raises(ValueError, match="integrity"):
+        build_workpaper(lake, plan=plan, baseline=baseline)
+    out = tmp_path / "invalid-lineage-export"
+    assert (
+        main(
+            [
+                "assessment",
+                "workpaper",
+                "--lake",
+                str(lake),
+                "--plan",
+                str(root / "examples/control-assurance/plan.json"),
+                "--baseline",
+                str(root / "examples/control-assurance/baseline.json"),
+                "--out",
+                str(out),
+            ]
+        )
+        == 1
+    )
+    assert not out.exists()
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert "integrity" in captured.err
