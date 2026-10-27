@@ -107,9 +107,9 @@ def test_inventory_rows_bind_nothing(assessment: dict[str, Any]) -> None:
 def test_framework_requirements_follow_the_reviewed_crosswalk(assessment: dict[str, Any]) -> None:
     requirements = {row["control_id"]: row for row in assessment["requirements"]}
     for control_id in ("FEDRAMP-SC-7", "NIST-800-53-SC-7", "CMMC-3.13.6"):
-        assert NETWORK in requirements[control_id]["reviewed_safeguard_ids"]
-        assert requirements[control_id]["status"] == "fail"
-    assert requirements["NIST-800-53-IA-5"]["status"] == "fail"
+        assert NETWORK not in requirements[control_id]["reviewed_safeguard_ids"]
+        assert requirements[control_id]["status"] == "not_evaluated"
+    assert requirements["NIST-800-53-IA-5"]["status"] == "not_evaluated"
     # A proposed mapping is never attested, even when the safeguard has evidence.
     iso = requirements["ISO27001-A.8.22"]
     assert NETWORK not in iso["reviewed_safeguard_ids"]

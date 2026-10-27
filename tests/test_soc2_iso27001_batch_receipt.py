@@ -101,24 +101,32 @@ def test_every_listed_mapping_is_reviewed_and_bound_to_its_inspected_fingerprint
     for framework in FRAMEWORKS:
         inspected |= _queue(before, framework, tmp_path)
     presented = [*receipt["mappings"], *receipt["excluded"]]
-    assert inspected == {(x["safeguard_id"], x["control_id"]): x["inspected_basis_sha256"] for x in presented}
+    expected = {(x["safeguard_id"], x["control_id"]): x["inspected_basis_sha256"] for x in presented}
+    assert {key: inspected[key] for key in expected} == expected
+    # Demoted historical mappings add candidates; they were not in this decision.
+    assert len(inspected.keys() - expected.keys()) == 26
 
 
-def test_pending_queues_hold_only_excluded_items_and_iso42001_is_untouched(tmp_path):
+def test_pending_queues_preserve_excluded_items_and_include_demoted_mappings(tmp_path):
     payload = load_safeguards()
     receipt = _receipt()
     excluded = {(x["safeguard_id"], x["control_id"]): x["inspected_basis_sha256"] for x in receipt["excluded"]}
     reviewed_ids = {x["control_id"] for x in receipt["mappings"]}
     open_recommendations = {("SG-AVAILABILITY-001", "SOC2-A1.3"), ("SG-DATAINVENTORY-001", "SOC2-C1.1")}
-    assert _queue(payload, "soc2", tmp_path) == {k: v for k, v in excluded.items() if k in open_recommendations}
+    soc2_queue = _queue(payload, "soc2", tmp_path)
+    assert {k: soc2_queue[k] for k in open_recommendations} == {
+        k: v for k, v in excluded.items() if k in open_recommendations
+    }
+    assert len(soc2_queue) == 15
     iso = _queue(payload, "iso-27001-2022", tmp_path)
-    assert iso == {
+    expected = {
         key: value for key, value in excluded.items() if key[1] not in reviewed_ids and key not in open_recommendations
     }
-    assert len({key[1] for key in iso}) == 40
+    assert {key: iso[key] for key in expected} == expected
+    assert len({key[1] for key in iso}) == 50
     before = without_repair_approvals(payload, receipts=(BATCH_RECEIPT,))
     assert _queue(payload, "iso-42001-2023", tmp_path) == _queue(before, "iso-42001-2023", tmp_path)
-    assert len(_queue(payload, "iso-42001-2023", tmp_path)) == 38
+    assert len(_queue(payload, "iso-42001-2023", tmp_path)) == 51
     assert not any(
         member.get("maintainer_review_ref") == BATCH_RECEIPT
         for entry in payload["safeguards"]
@@ -127,7 +135,7 @@ def test_pending_queues_hold_only_excluded_items_and_iso42001_is_untouched(tmp_p
     )
     soc2 = json.loads((ROOT / "docs/reviews/soc2-batches.json").read_text())
     pending = {r["control_id"] for f in soc2["frameworks"] for b in f["batches"] for r in b["requirements"]}
-    assert pending == {"SOC2-A1.3", "SOC2-C1.1"}
+    assert pending == {cid for _, cid in soc2_queue}
     published = json.loads((ROOT / "docs/reviews/iso-27001-2022-batches.json").read_text())
     rows = [r for f in published["frameworks"] for b in f["batches"] for r in b["requirements"]]
     assert {(c["safeguard_id"], r["control_id"]) for r in rows for c in r["candidates"]} == set(iso)
@@ -138,11 +146,11 @@ def test_review_credit_changes_reviewed_counts_only_not_mapping_or_evidence():
     old = coverage_by_framework(without_repair_approvals(payload, receipts=(BATCH_RECEIPT,)))
     new = coverage_by_framework(payload)
     assert old["covered"] == new["covered"] == 2196
-    assert old["reviewed"] == 1163
-    assert new["reviewed"] == 1163 + 26 + 36
+    assert old["reviewed"] == 824
+    assert new["reviewed"] == 824 + 26 + 36
     frameworks = new["frameworks"]
-    assert (frameworks["soc2"]["reviewed"], frameworks["soc2"]["controls"]) == (59, 61)
-    assert frameworks["iso-27001-2022"]["reviewed"] == 17 + 36
-    assert frameworks["iso-42001-2023"]["reviewed"] == 14
+    assert (frameworks["soc2"]["reviewed"], frameworks["soc2"]["controls"]) == (49, 61)
+    assert frameworks["iso-27001-2022"]["reviewed"] == 7 + 36
+    assert frameworks["iso-42001-2023"]["reviewed"] == 5
     result = evaluate_safeguards([], {**payload, "review_log_verified": True}, load_control_catalog())
     assert not any(row["status"] == "pass" for row in result["requirements"])

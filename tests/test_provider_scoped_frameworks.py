@@ -31,6 +31,22 @@ def _no_ambient_aws_account(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("AWS_ACCOUNT_ID", raising=False)
 
 
+@pytest.fixture(autouse=True)
+def _explicit_reviewed_provider_mappings(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test provider isolation with an explicit test-only reviewed catalog."""
+    from security_lakehouse import safeguards
+
+    payload = json.loads(safeguards.DEFAULT_SAFEGUARDS.read_text())
+    for entry in payload["safeguards"]:
+        if entry["safeguard_id"] == "SG-IDENTITY-001":
+            for member in entry["satisfies"]:
+                if member["control_id"] in {CIS_AWS, SOC2}:
+                    member["review_status"] = "reviewed"
+    path = tmp_path / "reviewed-test-catalog.json"
+    path.write_text(json.dumps(payload))
+    monkeypatch.setattr(safeguards, "DEFAULT_SAFEGUARDS", path)
+
+
 def _sync(lake: Path, connector_id: str, fixture: Path) -> None:
     append_config_event(lake, connector_id=connector_id, state="enabled", actor="alice")
     assert run_connector_sync(lake, connector_id=connector_id, fixture_dir=fixture).result == "ok"

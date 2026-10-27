@@ -1,7 +1,7 @@
 {
   "batches": [
     {
-      "basis_sha256": "3926e55d154721b55cc62ba5e306c4729cacd8c9c91ea550bae5f4db3f54a099",
+      "basis_sha256": "86b774ca56b7373004b27e2fbcad854c75647f727e7ca5b7692a5b2648d2316a",
       "batch_id": "review-001",
       "mapping_count": 2,
       "requirement_count": 2,
@@ -45,21 +45,8 @@
               "review_provenance": null,
               "review_state": "proposed",
               "reviewed_anchors": [
-                "SOC2-A1.2",
-                "ISO27001-A.8.13",
-                "CMMC-3.8.9",
                 "ISO27001-A.5.30",
                 "SOC2-CC7.5",
-                "FEDRAMP-CP-10",
-                "FEDRAMP-CP-10.2",
-                "FEDRAMP-CP-6",
-                "FEDRAMP-CP-7",
-                "FEDRAMP-CP-9",
-                "NIST-800-53-CP-10",
-                "NIST-800-53-CP-10.2",
-                "NIST-800-53-CP-6",
-                "NIST-800-53-CP-7",
-                "NIST-800-53-CP-9",
                 "NIST-CSF-PR.DS-11",
                 "NIST-800-171R3-03.08.09",
                 "NIS2-Art21.2(c)",
@@ -221,7 +208,7 @@
   ],
   "control_filter": ["SOC2-A1.3", "SOC2-C1.1"],
   "framework_filter": "soc2",
-  "packet_sha256": "b0d60e3c07d9a9b64792cd404285155b71e5c297e00bf1f065030253b0867ab0",
+  "packet_sha256": "95b1fbb57e7be30e507836edb9ac65e3605fbb82a589d517449c957e403406be",
   "review_checklist": [
     "Compare the complete requirement and source with the safeguard operating contract; a related topic is not equivalence.",
     "Check evidence specificity, applicability, parameters, prerequisites and limitations.",
@@ -232,7 +219,7 @@
   "scope": "catalog",
   "summary": {
     "additional_mapped_needed": 0,
-    "additional_reviewed_needed": 0,
+    "additional_reviewed_needed": 255,
     "batch_count": 1,
     "catalog_requirements": 2282,
     "distinct_requirements_in_packet": 2,
@@ -241,8 +228,8 @@
     "mapped_target": 1826,
     "requirements_needing_catalog_repair": 0,
     "requirements_with_source_references": 0,
-    "reviewed_pct": 53.7,
-    "reviewed_requirements": 1225,
+    "reviewed_pct": 38.8,
+    "reviewed_requirements": 886,
     "reviewed_target": 1141
   }
 }

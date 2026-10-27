@@ -24,8 +24,91 @@
       "batches": [
         {
           "batch_id": "iso-42001-2023-review-001",
-          "basis_sha256": "d044c5b019ff80a78eadd7be124f1b97cc0f68ab609265320bacef9943d100fc",
+          "basis_sha256": "7b094d20371855e29b16b86848262820edaae1d49a9b8419619466099602b835",
           "requirements": [
+            {
+              "control_id": "ISO42001-10.3",
+              "framework_ref": "ISO 42001:2023 A.10.3",
+              "question": "Reopened mapping review for ISO42001-10.3: Suppliers. Check each candidate's operating contract against the requirement text, including scope and missing obligations. Historical review status is not a decision receipt; record a named human decision against the current fingerprint.",
+              "cisco_candidates": [],
+              "source_scope": "vendor implementation context, not verified normative equivalence",
+              "oracle_context": ["oracle-practice", "oracle-risk"],
+              "candidates": [
+                {
+                  "safeguard_id": "SG-AIPROVENANCE-001",
+                  "role": "equivalent",
+                  "review_state": "proposed",
+                  "review_basis_sha256": "ad3383d0f6c260f8bbd0a04e75417091152f621015211d3b02d6319eb56043d5",
+                  "operating_contract": {
+                    "objective": "Record the origin, version, license and supplier of every third-party model, dataset and AI component in an AI bill of materials, monitor the pre-trained models in use, and keep contingency plans for failures in high-risk third-party AI.",
+                    "evidence_requirement": "Attested evidence: a current AI bill of materials (CycloneDX or SPDX, importable through the AIBOM store) lists each pre-trained model, dataset and AI service with source, version, license, supplier and responsible party. `kubernetes-cluster` image provenance covers the serving container images, not model weights. A production model missing from the AI-BOM, or a high-risk third-party AI dependency without a contingency plan, is an open violation.",
+                    "evaluation_rule": {
+                      "fail_if": {
+                        "any": [
+                          {
+                            "evidence_present": false
+                          },
+                          {
+                            "evidence_status": {
+                              "in": ["stale", "expired", "missing"]
+                            }
+                          },
+                          {
+                            "open_violations": {
+                              "min": 1
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    "asset_types": [
+                      "ai_agent",
+                      "ai_model",
+                      "audit_log",
+                      "data_store",
+                      "service"
+                    ],
+                    "required_evidence_types": null,
+                    "frequency": "continuous",
+                    "owner": "ai-governance"
+                  },
+                  "mapping_source": null,
+                  "decision": null,
+                  "reviewer": null,
+                  "rationale": null
+                },
+                {
+                  "safeguard_id": "SG-THIRDPARTYRISK-001",
+                  "role": "equivalent",
+                  "review_state": "proposed",
+                  "review_basis_sha256": "ba01680404c599580ff6ce2732febb9654f55c3f3d656ea09560ded89eec9c05",
+                  "operating_contract": {
+                    "objective": "Third-party oversight maps to SOC 2 CC9.2, ISO 27001 A.5.19, GDPR Art.28, and NIST CSF GV.SC-05.",
+                    "evidence_requirement": "Current evidence demonstrates vendor and partner relationships are monitored over time with no open high-risk failure or stale proof.",
+                    "evaluation_rule": "fail_when_high_severity_open",
+                    "asset_types": [
+                      "ai_agent",
+                      "ai_model",
+                      "audit_log",
+                      "cloud_policy",
+                      "cloud_resource",
+                      "data_store",
+                      "host",
+                      "identity_user",
+                      "repo",
+                      "service"
+                    ],
+                    "required_evidence_types": null,
+                    "frequency": "continuous",
+                    "owner": "grc"
+                  },
+                  "mapping_source": null,
+                  "decision": null,
+                  "reviewer": null,
+                  "rationale": null
+                }
+              ]
+            },
             {
               "control_id": "ISO42001-10.4",
               "framework_ref": "ISO 42001:2023 A.10.4",
@@ -67,6 +150,42 @@
               ]
             },
             {
+              "control_id": "ISO42001-2.2",
+              "framework_ref": "ISO 42001:2023 A.2.2",
+              "question": "Reopened mapping review for ISO42001-2.2: AI policy. Check each candidate's operating contract against the requirement text, including scope and missing obligations. Historical review status is not a decision receipt; record a named human decision against the current fingerprint.",
+              "cisco_candidates": [],
+              "source_scope": "vendor implementation context, not verified normative equivalence",
+              "oracle_context": ["oracle-practice", "oracle-risk"],
+              "candidates": [
+                {
+                  "safeguard_id": "SG-AIGOVERNANCE-001",
+                  "role": "equivalent",
+                  "review_state": "proposed",
+                  "review_basis_sha256": "bc4ee5cfbeba49f9950154fe00a3569da8d792c7e2a8cfbc4c91362ed2798530",
+                  "operating_contract": {
+                    "objective": "AI system governance spans NIST AI RMF GOVERN-1.1, ISO 42001 operational planning, and EU AI Act technical documentation.",
+                    "evidence_requirement": "AI governance evidence identifies applicable legal and regulatory requirements for production AI systems.",
+                    "evaluation_rule": "fail_when_stale_evidence",
+                    "asset_types": [
+                      "ai_agent",
+                      "ai_model",
+                      "audit_log",
+                      "cloud_resource",
+                      "data_store",
+                      "service"
+                    ],
+                    "required_evidence_types": null,
+                    "frequency": "continuous",
+                    "owner": "ai-security"
+                  },
+                  "mapping_source": null,
+                  "decision": null,
+                  "reviewer": null,
+                  "rationale": null
+                }
+              ]
+            },
+            {
               "control_id": "ISO42001-2.3",
               "framework_ref": "ISO 42001:2023 A.2.3",
               "question": "Requirement-specific proposal: verify the AI policy cross-reference to security, privacy, risk, quality and other applicable organizational policies, identified conflicts, accountable resolution and approval, communicated changes, and scheduled or event-triggered checks of continuing alignment. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Oracle describes corporate governance integration, not normative requirements for policy alignment.",
@@ -100,6 +219,78 @@
                     "sha256": "2ae1aaa8f783a1a5536bff151d5b40410002b9591a4de64d2743ba921f0f658a",
                     "locator": "Oracle’s AI management system: Responsible AI embedded in the product lifecycle; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Oracle describes corporate governance integration, not normative requirements for policy alignment."
                   },
+                  "decision": null,
+                  "reviewer": null,
+                  "rationale": null
+                }
+              ]
+            },
+            {
+              "control_id": "ISO42001-2.4",
+              "framework_ref": "ISO 42001:2023 A.2.4",
+              "question": "Reopened mapping review for ISO42001-2.4: Review of the AI policy. Check each candidate's operating contract against the requirement text, including scope and missing obligations. Historical review status is not a decision receipt; record a named human decision against the current fingerprint.",
+              "cisco_candidates": [],
+              "source_scope": "vendor implementation context, not verified normative equivalence",
+              "oracle_context": ["oracle-practice", "oracle-risk"],
+              "candidates": [
+                {
+                  "safeguard_id": "SG-AIGOVERNANCE-001",
+                  "role": "equivalent",
+                  "review_state": "proposed",
+                  "review_basis_sha256": "00c8a83ae0cdac980955cbf10daf9711e1398ecb43b555dec0220ca3a09bcd64",
+                  "operating_contract": {
+                    "objective": "AI system governance spans NIST AI RMF GOVERN-1.1, ISO 42001 operational planning, and EU AI Act technical documentation.",
+                    "evidence_requirement": "AI governance evidence identifies applicable legal and regulatory requirements for production AI systems.",
+                    "evaluation_rule": "fail_when_stale_evidence",
+                    "asset_types": [
+                      "ai_agent",
+                      "ai_model",
+                      "audit_log",
+                      "cloud_resource",
+                      "data_store",
+                      "service"
+                    ],
+                    "required_evidence_types": null,
+                    "frequency": "continuous",
+                    "owner": "ai-security"
+                  },
+                  "mapping_source": null,
+                  "decision": null,
+                  "reviewer": null,
+                  "rationale": null
+                }
+              ]
+            },
+            {
+              "control_id": "ISO42001-3.2",
+              "framework_ref": "ISO 42001:2023 A.3.2",
+              "question": "Reopened mapping review for ISO42001-3.2: AI roles and responsibilities. Check each candidate's operating contract against the requirement text, including scope and missing obligations. Historical review status is not a decision receipt; record a named human decision against the current fingerprint.",
+              "cisco_candidates": [],
+              "source_scope": "vendor implementation context, not verified normative equivalence",
+              "oracle_context": ["oracle-practice", "oracle-risk"],
+              "candidates": [
+                {
+                  "safeguard_id": "SG-AIGOVERNANCE-001",
+                  "role": "equivalent",
+                  "review_state": "proposed",
+                  "review_basis_sha256": "14355f67f01e9fddfc027ebf18e96c104658133aa563c34d404be85e6b6c8c6a",
+                  "operating_contract": {
+                    "objective": "AI system governance spans NIST AI RMF GOVERN-1.1, ISO 42001 operational planning, and EU AI Act technical documentation.",
+                    "evidence_requirement": "AI governance evidence identifies applicable legal and regulatory requirements for production AI systems.",
+                    "evaluation_rule": "fail_when_stale_evidence",
+                    "asset_types": [
+                      "ai_agent",
+                      "ai_model",
+                      "audit_log",
+                      "cloud_resource",
+                      "data_store",
+                      "service"
+                    ],
+                    "required_evidence_types": null,
+                    "frequency": "continuous",
+                    "owner": "ai-security"
+                  },
+                  "mapping_source": null,
                   "decision": null,
                   "reviewer": null,
                   "rationale": null
@@ -317,7 +508,13 @@
                   "rationale": null
                 }
               ]
-            },
+            }
+          ]
+        },
+        {
+          "batch_id": "iso-42001-2023-review-002",
+          "basis_sha256": "b729b7552249b295887970f38b6eaea8b6e3627cae284e1ee6abdb6f8eb025a9",
+          "requirements": [
             {
               "control_id": "ISO42001-4.5",
               "framework_ref": "ISO 42001:2023 A.4.5",
@@ -365,6 +562,168 @@
                     "required_evidence_types": null,
                     "frequency": "continuous",
                     "owner": "platform-engineering"
+                  },
+                  "mapping_source": null,
+                  "decision": null,
+                  "reviewer": null,
+                  "rationale": null
+                }
+              ]
+            },
+            {
+              "control_id": "ISO42001-5.2",
+              "framework_ref": "ISO 42001:2023 A.5.2",
+              "question": "Reopened mapping review for ISO42001-5.2: AI system impact assessment process. Check each candidate's operating contract against the requirement text, including scope and missing obligations. Historical review status is not a decision receipt; record a named human decision against the current fingerprint.",
+              "cisco_candidates": [],
+              "source_scope": "vendor implementation context, not verified normative equivalence",
+              "oracle_context": ["oracle-practice", "oracle-risk"],
+              "candidates": [
+                {
+                  "safeguard_id": "SG-AIIMPACT-001",
+                  "role": "equivalent",
+                  "review_state": "proposed",
+                  "review_basis_sha256": "632b1eac41ec7be3b0d5b190599a14f8c8243adb21702400dbf3e6f14b237e1f",
+                  "operating_contract": {
+                    "objective": "Assess the benefits and costs of each AI system and the likelihood and magnitude of its impacts on individuals, groups and society, including viable non-AI alternatives, before and during use.",
+                    "evidence_requirement": "Attested evidence of a current impact assessment per AI system recording expected benefits, potential costs of errors, the likelihood and magnitude of each identified impact drawn from past incidents and external feedback, the non-AI alternatives considered, and the resources required to manage the risks. An AI system in production without a current assessment is an open violation.",
+                    "evaluation_rule": {
+                      "fail_if": {
+                        "any": [
+                          {
+                            "evidence_present": false
+                          },
+                          {
+                            "evidence_status": {
+                              "in": ["stale", "expired", "missing"]
+                            }
+                          },
+                          {
+                            "open_violations": {
+                              "min": 1
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    "asset_types": [
+                      "ai_agent",
+                      "ai_model",
+                      "audit_log",
+                      "data_store",
+                      "service"
+                    ],
+                    "required_evidence_types": null,
+                    "frequency": "continuous",
+                    "owner": "ai-governance"
+                  },
+                  "mapping_source": null,
+                  "decision": null,
+                  "reviewer": null,
+                  "rationale": null
+                },
+                {
+                  "safeguard_id": "SG-RISKMANAGEMENT-001",
+                  "role": "equivalent",
+                  "review_state": "proposed",
+                  "review_basis_sha256": "dcf8a6ad96d5c5cd7f263fba2505c8fcee2e7083b3747b6083e63c5010ce4d54",
+                  "operating_contract": {
+                    "objective": "Formal risk assessment aligns SOC 2 CC3.2, ISO 27001 A.5.8, NIST CSF ID.RA-01, and HIPAA 164.308 risk analysis.",
+                    "evidence_requirement": "Current evidence demonstrates risk to objectives is identified and analyzed with no open high-risk failure or stale proof.",
+                    "evaluation_rule": "fail_when_missing_evidence",
+                    "asset_types": [
+                      "ai_agent",
+                      "ai_model",
+                      "audit_log",
+                      "container_image",
+                      "data_store",
+                      "repo",
+                      "s3_bucket",
+                      "service"
+                    ],
+                    "required_evidence_types": null,
+                    "frequency": "continuous",
+                    "owner": "grc"
+                  },
+                  "mapping_source": null,
+                  "decision": null,
+                  "reviewer": null,
+                  "rationale": null
+                }
+              ]
+            },
+            {
+              "control_id": "ISO42001-5.3",
+              "framework_ref": "ISO 42001:2023 A.5.3",
+              "question": "Reopened mapping review for ISO42001-5.3: Documentation of AI system impact assessments. Check each candidate's operating contract against the requirement text, including scope and missing obligations. Historical review status is not a decision receipt; record a named human decision against the current fingerprint.",
+              "cisco_candidates": [],
+              "source_scope": "vendor implementation context, not verified normative equivalence",
+              "oracle_context": ["oracle-practice", "oracle-risk"],
+              "candidates": [
+                {
+                  "safeguard_id": "SG-AIIMPACT-001",
+                  "role": "equivalent",
+                  "review_state": "proposed",
+                  "review_basis_sha256": "b423e60ede2ee644e7dce1f283b58ecb15797129e90a6072dcd3167ae1807229",
+                  "operating_contract": {
+                    "objective": "Assess the benefits and costs of each AI system and the likelihood and magnitude of its impacts on individuals, groups and society, including viable non-AI alternatives, before and during use.",
+                    "evidence_requirement": "Attested evidence of a current impact assessment per AI system recording expected benefits, potential costs of errors, the likelihood and magnitude of each identified impact drawn from past incidents and external feedback, the non-AI alternatives considered, and the resources required to manage the risks. An AI system in production without a current assessment is an open violation.",
+                    "evaluation_rule": {
+                      "fail_if": {
+                        "any": [
+                          {
+                            "evidence_present": false
+                          },
+                          {
+                            "evidence_status": {
+                              "in": ["stale", "expired", "missing"]
+                            }
+                          },
+                          {
+                            "open_violations": {
+                              "min": 1
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    "asset_types": [
+                      "ai_agent",
+                      "ai_model",
+                      "audit_log",
+                      "data_store",
+                      "service"
+                    ],
+                    "required_evidence_types": null,
+                    "frequency": "continuous",
+                    "owner": "ai-governance"
+                  },
+                  "mapping_source": null,
+                  "decision": null,
+                  "reviewer": null,
+                  "rationale": null
+                },
+                {
+                  "safeguard_id": "SG-RISKMANAGEMENT-001",
+                  "role": "equivalent",
+                  "review_state": "proposed",
+                  "review_basis_sha256": "ff5c8df002f576972c0883d427eaeff24d3e4511aea6b9933fd23f900d75722b",
+                  "operating_contract": {
+                    "objective": "Formal risk assessment aligns SOC 2 CC3.2, ISO 27001 A.5.8, NIST CSF ID.RA-01, and HIPAA 164.308 risk analysis.",
+                    "evidence_requirement": "Current evidence demonstrates risk to objectives is identified and analyzed with no open high-risk failure or stale proof.",
+                    "evaluation_rule": "fail_when_missing_evidence",
+                    "asset_types": [
+                      "ai_agent",
+                      "ai_model",
+                      "audit_log",
+                      "container_image",
+                      "data_store",
+                      "repo",
+                      "s3_bucket",
+                      "service"
+                    ],
+                    "required_evidence_types": null,
+                    "frequency": "continuous",
+                    "owner": "grc"
                   },
                   "mapping_source": null,
                   "decision": null,
@@ -566,13 +925,7 @@
                   "rationale": null
                 }
               ]
-            }
-          ]
-        },
-        {
-          "batch_id": "iso-42001-2023-review-002",
-          "basis_sha256": "555223aa5cf3ac6d3161b099b564f5655e0fb3bc926cd81c6d894a33bab65780",
-          "requirements": [
+            },
             {
               "control_id": "ISO42001-6.2.2",
               "framework_ref": "ISO 42001:2023 A.6.2.2",
@@ -888,7 +1241,13 @@
                   "rationale": null
                 }
               ]
-            },
+            }
+          ]
+        },
+        {
+          "batch_id": "iso-42001-2023-review-003",
+          "basis_sha256": "0f0c550f70dbf810893cb98658f3707dde4fb20f1962ffae1bb98aca4d061bc5",
+          "requirements": [
             {
               "control_id": "ISO42001-6.2.6",
               "framework_ref": "ISO 42001:2023 A.6.2.6",
@@ -971,6 +1330,85 @@
                     "required_evidence_types": null,
                     "frequency": "continuous",
                     "owner": "detection-engineering"
+                  },
+                  "mapping_source": null,
+                  "decision": null,
+                  "reviewer": null,
+                  "rationale": null
+                }
+              ]
+            },
+            {
+              "control_id": "ISO42001-6.2.7",
+              "framework_ref": "ISO 42001:2023 A.6.2.7",
+              "question": "Reopened mapping review for ISO42001-6.2.7: AI system technical documentation. Check each candidate's operating contract against the requirement text, including scope and missing obligations. Historical review status is not a decision receipt; record a named human decision against the current fingerprint.",
+              "cisco_candidates": [],
+              "source_scope": "vendor implementation context, not verified normative equivalence",
+              "oracle_context": ["oracle-practice", "oracle-risk"],
+              "candidates": [
+                {
+                  "safeguard_id": "SG-AIGOVERNANCE-001",
+                  "role": "equivalent",
+                  "review_state": "proposed",
+                  "review_basis_sha256": "8d46bf616f207814b55ec7d04e1ec7e620e54a3e11e8a5eca19309a3d72c35fa",
+                  "operating_contract": {
+                    "objective": "AI system governance spans NIST AI RMF GOVERN-1.1, ISO 42001 operational planning, and EU AI Act technical documentation.",
+                    "evidence_requirement": "AI governance evidence identifies applicable legal and regulatory requirements for production AI systems.",
+                    "evaluation_rule": "fail_when_stale_evidence",
+                    "asset_types": [
+                      "ai_agent",
+                      "ai_model",
+                      "audit_log",
+                      "cloud_resource",
+                      "data_store",
+                      "service"
+                    ],
+                    "required_evidence_types": null,
+                    "frequency": "continuous",
+                    "owner": "ai-security"
+                  },
+                  "mapping_source": null,
+                  "decision": null,
+                  "reviewer": null,
+                  "rationale": null
+                },
+                {
+                  "safeguard_id": "SG-AITRANSPARENCY-001",
+                  "role": "equivalent",
+                  "review_state": "proposed",
+                  "review_basis_sha256": "97a72546fa53c50168add94b006bb2eb68ff258610590216eaaddc083d16d08d",
+                  "operating_contract": {
+                    "objective": "Tell users and deployers that they are dealing with an AI system, what it is for, its capabilities and limits, and where to get more information, and examine the accountability risks of what is disclosed.",
+                    "evidence_requirement": "Attested evidence of the user-facing AI disclosures and instructions for use per AI system (purpose, capabilities, limitations, human-oversight measures, contact point), the technical documentation provided to each audience, and a review of transparency and accountability risks. An AI system that interacts with people without a current disclosure is an open violation.",
+                    "evaluation_rule": {
+                      "fail_if": {
+                        "any": [
+                          {
+                            "evidence_present": false
+                          },
+                          {
+                            "evidence_status": {
+                              "in": ["stale", "expired", "missing"]
+                            }
+                          },
+                          {
+                            "open_violations": {
+                              "min": 1
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    "asset_types": [
+                      "ai_agent",
+                      "ai_model",
+                      "audit_log",
+                      "data_store",
+                      "service"
+                    ],
+                    "required_evidence_types": null,
+                    "frequency": "continuous",
+                    "owner": "ai-governance"
                   },
                   "mapping_source": null,
                   "decision": null,
@@ -1325,13 +1763,43 @@
                   "rationale": null
                 }
               ]
-            }
-          ]
-        },
-        {
-          "batch_id": "iso-42001-2023-review-003",
-          "basis_sha256": "e48d9479b9d27976c13ef416a91426664c88c940751166b901b263e5471fa821",
-          "requirements": [
+            },
+            {
+              "control_id": "ISO42001-8.1",
+              "framework_ref": "ISO 42001:2023 8.1",
+              "question": "Reopened mapping review for ISO42001-8.1: Operational AI controls produce continuous evidence. Check each candidate's operating contract against the requirement text, including scope and missing obligations. Historical review status is not a decision receipt; record a named human decision against the current fingerprint.",
+              "cisco_candidates": [],
+              "source_scope": "vendor implementation context, not verified normative equivalence",
+              "oracle_context": ["oracle-practice", "oracle-risk"],
+              "candidates": [
+                {
+                  "safeguard_id": "SG-AIGOVERNANCE-001",
+                  "role": "equivalent",
+                  "review_state": "proposed",
+                  "review_basis_sha256": "87a9de40473eaaa19cf7d999d96f1c1456630d88c2c13dc1b0d56ebea460b81a",
+                  "operating_contract": {
+                    "objective": "AI system governance spans NIST AI RMF GOVERN-1.1, ISO 42001 operational planning, and EU AI Act technical documentation.",
+                    "evidence_requirement": "AI governance evidence identifies applicable legal and regulatory requirements for production AI systems.",
+                    "evaluation_rule": "fail_when_stale_evidence",
+                    "asset_types": [
+                      "ai_agent",
+                      "ai_model",
+                      "audit_log",
+                      "cloud_resource",
+                      "data_store",
+                      "service"
+                    ],
+                    "required_evidence_types": null,
+                    "frequency": "continuous",
+                    "owner": "ai-security"
+                  },
+                  "mapping_source": null,
+                  "decision": null,
+                  "reviewer": null,
+                  "rationale": null
+                }
+              ]
+            },
             {
               "control_id": "ISO42001-8.3",
               "framework_ref": "ISO 42001:2023 A.8.3",
@@ -1517,7 +1985,13 @@
                   "rationale": null
                 }
               ]
-            },
+            }
+          ]
+        },
+        {
+          "batch_id": "iso-42001-2023-review-004",
+          "basis_sha256": "5c32eaa8410cef49a537ed15cfe142c34d5b1663a51c9e71110e6ba361c0d7fd",
+          "requirements": [
             {
               "control_id": "ISO42001-8.5",
               "framework_ref": "ISO 42001:2023 A.8.5",
@@ -1644,6 +2118,42 @@
               ]
             },
             {
+              "control_id": "ISO42001-9.4",
+              "framework_ref": "ISO 42001:2023 A.9.4",
+              "question": "Reopened mapping review for ISO42001-9.4: Intended use of the AI system. Check each candidate's operating contract against the requirement text, including scope and missing obligations. Historical review status is not a decision receipt; record a named human decision against the current fingerprint.",
+              "cisco_candidates": [],
+              "source_scope": "vendor implementation context, not verified normative equivalence",
+              "oracle_context": ["oracle-practice", "oracle-risk"],
+              "candidates": [
+                {
+                  "safeguard_id": "SG-AIGOVERNANCE-001",
+                  "role": "equivalent",
+                  "review_state": "proposed",
+                  "review_basis_sha256": "6f3d42d53d1d7e0c2c230ad54272359a78e50d4cbc7a775ca5ba567a42b41af3",
+                  "operating_contract": {
+                    "objective": "AI system governance spans NIST AI RMF GOVERN-1.1, ISO 42001 operational planning, and EU AI Act technical documentation.",
+                    "evidence_requirement": "AI governance evidence identifies applicable legal and regulatory requirements for production AI systems.",
+                    "evaluation_rule": "fail_when_stale_evidence",
+                    "asset_types": [
+                      "ai_agent",
+                      "ai_model",
+                      "audit_log",
+                      "cloud_resource",
+                      "data_store",
+                      "service"
+                    ],
+                    "required_evidence_types": null,
+                    "frequency": "continuous",
+                    "owner": "ai-security"
+                  },
+                  "mapping_source": null,
+                  "decision": null,
+                  "reviewer": null,
+                  "rationale": null
+                }
+              ]
+            },
+            {
               "control_id": "ISO42001-A.6.1.3",
               "framework_ref": "ISO 42001:2023 A.6.1.3",
               "question": "Requirement-specific proposal: verify the documented AI design and development process, assigned lifecycle roles, risk and impact review gates, requirements traceability, verification and validation records, release approvals, and treatment of deviations and subsequent design changes. Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text. Oracle describes lifecycle governance examples, not a published clause crosswalk or complete responsible-development process.",
@@ -1688,5 +2198,5 @@
       ]
     }
   ],
-  "sha256": "999eed7cf93310e88cf3cd3a6d0ae31538abf0f884f78d8017949fcd4c13a2b4"
+  "sha256": "127e89d04eac3d0bd64f85707628e9829541151672d803076bb67d76bf5c8965"
 }

@@ -55,7 +55,7 @@ def test_focused_packet_preserves_basis_and_global_coverage_without_decisions():
 
 
 @pytest.mark.parametrize(
-    "ids,framework", [([], None), (["missing"], None), (TARGETS, "iso-27001-2022"), (["SOC2-CC6.1"], "soc2")]
+    "ids,framework", [([], None), (["missing"], None), (TARGETS, "iso-27001-2022"), (["SOC2-CC1.1"], "soc2")]
 )
 def test_unavailable_requirements_are_not_silently_omitted(ids, framework):
     with pytest.raises(ValueError):

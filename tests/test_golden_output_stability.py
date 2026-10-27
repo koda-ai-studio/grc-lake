@@ -19,7 +19,7 @@ from security_lakehouse.pipeline import run_pipeline
 
 EXPECTED_SHA256 = {
     "gold/asset_risk.jsonl": "870e5b668cfcce43a372adfa175ce1a1cfd00ae1ad525870ea95de67a31cc820",
-    "gold/ccf_assessment.json": "78a987157eb3c3a28e3089bbbb065ec9be9e3179fabc623a9adf4f284654d6a4",
+    "gold/ccf_assessment.json": "c46376c7d5047e88aefc8a2f1808dc0276e29ad90d7fe805aa9bc63afddda7ec",
     "gold/control_posture.jsonl": "8745dc874c270497f95271ca2f45e7b9326d551539480b56c83c67f07c47dd72",
     "gold/metrics.json": "11582aceb81b7737b0108c4864e61b1ee5177663bab7db6fc9ce5cb0946c1a96",
     "silver/normalized_events.jsonl": "b11ed7005eb4ad6baf2e6f331499ab50cfd119429d6dc8d6d2549d0d4cdea95a",
@@ -62,7 +62,7 @@ def test_golden_pipeline_artifacts_are_byte_identical(tmp_path: Path) -> None:
     assert gdpr["pending_mapping_count"] == 1
     assert gdpr["contextual_mappings"] == [
         {
-            "review_state": "maintainer_reviewed",
+            "review_state": "proposed",
             "role": "supporting",
             "safeguard_id": "SG-INCIDENTRESPONSE-001",
         }
