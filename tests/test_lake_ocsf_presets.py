@@ -601,10 +601,13 @@ def test_ocsf_cannot_substitute_an_account_for_a_missing_assessed_subject(preset
 
 
 @pytest.mark.parametrize("missing", ["user", "cloud"])
-def test_partial_ocsf_mapping_blocks_pass_and_records_a_safe_gap(tmp_path: Path, missing: str) -> None:
+@pytest.mark.parametrize("prior_cursor", [None, "2026-01-01T00:00:00Z"])
+def test_partial_ocsf_mapping_blocks_pass_and_records_a_safe_gap(
+    tmp_path: Path, missing: str, prior_cursor: str | None
+) -> None:
     from copy import deepcopy
 
-    from security_lakehouse.ingestion.watermark import read_watermark
+    from security_lakehouse.ingestion.watermark import read_watermark, write_watermark
     from security_lakehouse.io import read_jsonl
 
     row = deepcopy(read_fixture_table(FIXTURES, IDENTITY_TABLE)[0])
@@ -624,6 +627,8 @@ def test_partial_ocsf_mapping_blocks_pass_and_records_a_safe_gap(tmp_path: Path,
         credentials={"host": "dbc-a1b2345c-d6e7.cloud.databricks.com"},
         options={"mapping": {"preset": "ocsf/authentication", "source": {"table": IDENTITY_TABLE}}},
     )
+    if prior_cursor is not None:
+        write_watermark(lake, "databricks-evidence-lake", prior_cursor)
     for _ in range(2):
         sync = run_connector_sync(
             lake, connector_id="databricks-evidence-lake", fixture_dir=fixture_dir, materialize=False
@@ -641,7 +646,7 @@ def test_partial_ocsf_mapping_blocks_pass_and_records_a_safe_gap(tmp_path: Path,
         assert valid["status"] == "not_evaluated"
         assert valid["attributes"]["mapping_original_status"] == "pass"
         assert "private-unmappable-row" not in json.dumps(raw)
-        assert read_watermark(lake, "databricks-evidence-lake") == valid["event_time"]
+        assert read_watermark(lake, "databricks-evidence-lake") == prior_cursor
     out = tmp_path / "out"
     run_pipeline(lake / CONNECTOR_RAW_FILE, out, tenant_id="platform-tenant")
     assessment = read_json(out / "gold/ccf_assessment.json")
