@@ -8,6 +8,11 @@ honest, cited subset.
 The [FedRAMP KSI assessment subset](FEDRAMP_KSI_ASSESSMENTS.md) separately seeds
 2 of 46 source indicators with proposed mappings and dedicated assessor evidence.
 
+Network-enabled `frameworks sync` and `frameworks enrich` cap each source
+download at 32 MiB. An oversized source is rejected before hashing or import;
+sync reports an error for that source and preserves its prior digest and timestamp.
+The byte limit does not approve source changes or framework mappings.
+
 ## Full packs (100% ID coverage)
 
 | Pack                         | Framework ID          | Controls                                                                              | Official source                                                                                                                                    |

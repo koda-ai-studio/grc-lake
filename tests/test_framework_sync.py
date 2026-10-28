@@ -21,20 +21,6 @@ from security_lakehouse.framework_sync import (
 )
 
 
-class _Response:
-    def __init__(self, body: bytes) -> None:
-        self._body = body
-
-    def __enter__(self) -> _Response:
-        return self
-
-    def __exit__(self, *_exc: object) -> None:
-        return None
-
-    def read(self) -> bytes:
-        return self._body
-
-
 def _http_error(code: int, headers: dict[str, str] | None = None) -> urllib.error.HTTPError:
     msg = Message()
     for key, value in (headers or {}).items():
@@ -49,12 +35,12 @@ class _Opener:
         self.script = list(script)
         self.requests: list[urllib.request.Request] = []
 
-    def __call__(self, request: urllib.request.Request, timeout: float) -> _Response:
+    def __call__(self, request: urllib.request.Request, timeout: float) -> io.BytesIO:
         self.requests.append(request)
         step = self.script.pop(0)
         if isinstance(step, BaseException):
             raise step
-        return _Response(step)
+        return io.BytesIO(step)
 
 
 def _registry(tmp_path: Path, *ids: str) -> Path:

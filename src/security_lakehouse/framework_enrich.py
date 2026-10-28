@@ -36,10 +36,12 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
+from security_lakehouse.http_response import ResponseLimitError, read_bytes
 from security_lakehouse.jsontypes import JsonObject
 
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_CATALOG = ROOT / "controls" / "catalog.json"
+MAX_SOURCE_BYTES = 32 * 1024 * 1024
 
 # Frameworks whose source is public-domain U.S. government work, mapped to the
 # OSCAL catalog that defines them and the prefix stripped from our control ids.
@@ -65,8 +67,11 @@ def is_placeholder(title: str) -> bool:
 
 def fetch(url: str, *, timeout: float = 180.0) -> tuple[bytes, str]:
     """Return the document and its SHA-256, so the import can be re-verified."""
-    with urllib.request.urlopen(url, timeout=timeout) as response:  # noqa: S310 - fixed https NIST URL
-        raw = response.read()
+    try:
+        with urllib.request.urlopen(url, timeout=timeout) as response:  # noqa: S310 - fixed https NIST URL
+            raw = read_bytes(response, limit=MAX_SOURCE_BYTES)
+    except ResponseLimitError as exc:
+        raise ValueError("framework source byte limit exceeded") from exc
     return raw, hashlib.sha256(raw).hexdigest()
 
 

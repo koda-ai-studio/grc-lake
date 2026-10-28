@@ -17,6 +17,7 @@ from pathlib import Path, PurePosixPath
 
 from security_lakehouse.distributed.config import ClusterConfig
 from security_lakehouse.distributed.context import check_write_lease
+from security_lakehouse.http_response import ResponseLimitError, read_bytes
 from security_lakehouse.io import file_sha256
 
 
@@ -297,8 +298,10 @@ class ObjectStore:
                         raise IntegrityError("object service did not enforce conditional writes")
                 response = self.client.get_object(Bucket=self.config.bucket, Key=key)
                 try:
-                    if response["Body"].read() != b"first":
+                    if read_bytes(response["Body"], limit=5) != b"first":
                         raise IntegrityError("object service overwrote a conditional object")
+                except ResponseLimitError as exc:
+                    raise IntegrityError("object service returned an oversized probe") from exc
                 finally:
                     response["Body"].close()
         finally:

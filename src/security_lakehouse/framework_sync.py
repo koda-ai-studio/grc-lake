@@ -38,6 +38,7 @@ from pathlib import Path
 from typing import Any
 
 from security_lakehouse.catalog import DEFAULT_FRAMEWORK_REGISTRY
+from security_lakehouse.http_response import ResponseLimitError, read_bytes
 from security_lakehouse.io import append_jsonl
 from security_lakehouse.timeutil import utc_now_iso_z
 
@@ -56,6 +57,7 @@ def _package_version() -> str:
 # "compatible; name/version; +url" form crawlers use.
 USER_AGENT = f"Mozilla/5.0 (compatible; trustops-framework-sync/{_package_version()}; +{PROJECT_URL})"
 DEFAULT_TIMEOUT_SECONDS = 30
+MAX_SOURCE_BYTES = 32 * 1024 * 1024
 MAX_ATTEMPTS = 4
 BASE_RETRY_DELAY_SECONDS = 2.0
 MAX_RETRY_DELAY_SECONDS = 60.0
@@ -125,7 +127,9 @@ def _fetch(
     for attempt in range(1, MAX_ATTEMPTS + 1):
         try:
             with opener(request, timeout=timeout) as response:
-                return bytes(response.read())
+                return read_bytes(response, limit=MAX_SOURCE_BYTES)
+        except ResponseLimitError as exc:
+            raise ValueError("framework source byte limit exceeded") from exc
         except (urllib.error.URLError, TimeoutError, ConnectionError) as exc:
             if attempt == MAX_ATTEMPTS or not _is_retryable(exc):
                 raise
