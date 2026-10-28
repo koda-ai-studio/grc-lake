@@ -46,3 +46,14 @@ test("ISO management clauses retain a separate identity from Annex A", () => {
     "management clauses",
   );
 });
+
+test("KSI identity proposals stay distinct from the Moderate foundation", () => {
+  for (const id of ["KSI-IAM-AAM", "KSI-IAM-APM"]) {
+    expect(frameworkIdFromControlId(id)).toBe("fedramp-ksi-2026");
+  }
+  expect(frameworkIdFromControlId("FEDRAMP-AC-2")).toBe("fedramp-moderate");
+  const visual = frameworkVisual("FedRAMP KSI identity assessment subset");
+  expect(visual.frameworkId).toBe("fedramp-ksi-2026");
+  expect(visual.label).toBe("FedRAMP KSI (identity subset)");
+  expect(visual.artwork).toBeUndefined();
+});

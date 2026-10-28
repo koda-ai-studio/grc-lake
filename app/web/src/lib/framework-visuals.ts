@@ -87,6 +87,15 @@ export const FRAMEWORK_VISUALS: Record<string, FrameworkVisual> = {
     gradient: "linear-gradient(135deg, #14b8a6 0%, #0f766e 100%)",
     icon: "sparkles",
   },
+  "fedramp-ksi-2026": {
+    label: "FedRAMP KSI (identity subset)",
+    mark: "KSI",
+    accent: "#1e40af",
+    bg: "#dbeafe",
+    ring: "#93c5fd",
+    gradient: "linear-gradient(135deg, #1d4ed8 0%, #1e3a8a 100%)",
+    icon: "landmark",
+  },
   "fedramp-moderate": {
     label: "FedRAMP",
     mark: "FR",
@@ -273,6 +282,7 @@ const NAME_TO_ID: Record<string, string> = {
   "ISO 42001": "iso-42001-2023",
   "ISO 42001:2023": "iso-42001-2023",
   FedRAMP: "fedramp-moderate",
+  "FedRAMP KSI identity assessment subset": "fedramp-ksi-2026",
   "NIST SP 800-53 Rev 5": "nist-800-53-rev5",
   "NIST SP 800-53": "nist-800-53-rev5",
   "NIST RMF": "nist-rmf-800-37r2",
@@ -317,6 +327,7 @@ export function frameworkIdFromControlId(controlId: string): string {
   if (id.startsWith("ISO27001-")) return "iso-27001-2022";
   if (id.startsWith("ISO42001-")) return "iso-42001-2023";
   if (id.startsWith("FEDRAMP-")) return "fedramp-moderate";
+  if (id.startsWith("KSI-")) return "fedramp-ksi-2026";
   if (id.startsWith("CIS-AWS-")) return "cis_aws";
   if (id.startsWith("HIPAA-")) return "hipaa-security-rule";
   if (id.startsWith("PCI-")) return "pci-dss-v4";
