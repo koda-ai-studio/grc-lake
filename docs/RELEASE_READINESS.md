@@ -1,11 +1,11 @@
 # Release readiness
 
-GRC Lake **0.3.19 is published** on
-[PyPI](https://pypi.org/project/grc-lake/0.3.19/),
-[GitHub](https://github.com/koda-ai-studio/grc-lake/releases/tag/v0.3.19), and as
-`ghcr.io/koda-ai-studio/grc-lake:0.3.19`.
-Use the [v0.3.19 release templates](https://github.com/koda-ai-studio/grc-lake/tree/v0.3.19)
-for a published deployment. The [publication receipt](#verified-0319-publication)
+GRC Lake **0.3.20 is published** on
+[PyPI](https://pypi.org/project/grc-lake/0.3.20/),
+[GitHub](https://github.com/koda-ai-studio/grc-lake/releases/tag/v0.3.20), and as
+`ghcr.io/koda-ai-studio/grc-lake:0.3.20`.
+Use the [v0.3.20 release templates](https://github.com/koda-ai-studio/grc-lake/tree/v0.3.20)
+for a published deployment. The [publication receipt](#verified-0320-publication)
 records the verified source, artifact hashes and runtime checks. Later changes
 on `main` are unreleased until a new tag passes the release gates.
 
@@ -31,29 +31,26 @@ retain their exact source revisions and synthetic workload limits. They do not
 establish production capacity or qualify a deployment memory budget; 100k records
 remain outside the accepted local interactive profile.
 
-## 0.3.20 candidate
+## 0.3.20 release
 
-0.3.20 packages audit fixes for review-state validation, provider redirects,
-append watermarks, Jamf passcode verdicts and investigation-graph accuracy. See
-the [changelog](../CHANGELOG.md#0320---2026-10-28) for the release scope.
+0.3.20 is published; see the [publication receipt](#verified-0320-publication).
+It packages audit fixes for review-state validation, provider redirects, append
+watermarks, Jamf passcode verdicts and investigation-graph accuracy. See the
+[changelog](../CHANGELOG.md#0320---2026-10-28) for the release scope.
 
-Package, chart, console, Compose and MCP versions are aligned. This candidate
-adds no dependency upgrade or database migration. Connector redirects now stay
-on the request's host and never downgrade from https to http, so a provider
-configured on a host that redirects elsewhere (for example the wrong CrowdStrike
-region) fails collection instead of following the redirect; configure the
-provider's canonical host. A bounded live GitHub collection on the candidate
-source succeeded with no collection gaps; other providers are covered by
-fixture tests only.
+Package, chart, console, Compose and MCP versions are aligned. This release adds
+no dependency upgrade or database migration. Connector redirects stay on the
+request's host and never downgrade from https to http, so a provider configured
+on a host that redirects elsewhere (for example the wrong CrowdStrike region)
+fails collection instead of following the redirect; configure the provider's
+canonical host. Graph control nodes show the control-test verdict, and identity
+aliases link only through evidence with current freshness. The install guides
+now name the verified publication.
 
-Graph control nodes now show the control-test verdict, so controls that need
-evidence read "Needs evidence" instead of "Stale assessment". Identity aliases
-link only through evidence with current freshness.
-
-Publication remains gated on independent human review, exact merged-main CI,
-both image architectures' vulnerability and authenticated runtime checks, and
-chart qualification. The published install guides remain on 0.3.19 until the
-new artifacts are published and verified.
+Exact merged-main CI, both image architectures' release checks and chart
+qualification preceded publication. A bounded live GitHub collection on the
+candidate source succeeded with no collection gaps; other providers are covered
+by fixture tests only, and no new live-provider receipt is claimed.
 
 ## 0.3.19 release
 
@@ -258,6 +255,43 @@ for security, correctness, supported-workload performance and setup/documentatio
 repairs. Independent human review, required PR checks, exact-main CI and published
 artifact/runtime verification remain release gates; this candidate section is not
 a completion receipt.
+
+## Verified 0.3.20 publication
+
+The [release workflow](https://github.com/koda-ai-studio/grc-lake/actions/runs/40635022131)
+passed every job (tested-commit and version checks, build, image, chart, PyPI,
+GitHub release, MCP Registry) on source `4c067dcb152a23912e0621806bba089a092ee897`,
+after [#1137](https://github.com/koda-ai-studio/grc-lake/pull/1137) merged and
+[exact-main CI](https://github.com/koda-ai-studio/grc-lake/actions/runs/40634152712)
+passed. The annotated `v0.3.20` tag resolves to that commit. Wheel and source
+archive bytes match between PyPI and the GitHub release, and an anonymous Helm
+pull matched the GitHub chart asset byte-for-byte:
+
+| Artifact                           | SHA-256                                                            |
+| ---------------------------------- | ------------------------------------------------------------------ |
+| `grc_lake-0.3.20-py3-none-any.whl` | `bdd56d13f6ac7926f72b861d7d92349564351f77123ea30a066ffdfeacfe05b1` |
+| `grc_lake-0.3.20.tar.gz`           | `5f77534003afdc597c9fa7855d65faad6fabfab5ee0a39032e3c847ed9692799` |
+| `grc-lake-0.3.20.tgz`              | `8fe97444a39e19e883aeb82c72096628a150962731d5535bcc0e57c6a8eb9e13` |
+
+The image `ghcr.io/koda-ai-studio/grc-lake:0.3.20` resolved to index
+`sha256:32b9144cd373193232eff1d209852b216340b33b3f2b3548c26ab4d1cfa6ecc4`,
+containing `linux/amd64` and `linux/arm64`. The chart
+`oci://ghcr.io/koda-ai-studio/charts/grc-lake`, version `0.3.20`, has OCI digest
+`sha256:347378cf98071109fe2393657c7325af0d8ec836063654d0570bc0c0a89005e6`.
+Wheel, source archive, chart-package, chart-OCI and image attestations verified
+with `gh attestation verify` for the `koda-ai-studio` owner. GitHub retains the
+CycloneDX SBOM and Python/chart provenance bundles.
+
+A fresh PyPI installation of `grc-lake[server]==0.3.20` outside the checkout
+reported version 0.3.20, loaded the golden fixture, served the bundled console
+and answered an investigation-graph request. This is a smoke check, not a
+qualification of TLS, an IdP, live providers or production capacity.
+
+The public MCP Registry lists `io.github.koda-ai-studio/grc-lake` at version
+`0.3.20`. Artifact Hub still reported chart version `0.3.19` when this receipt
+was recorded; its indexing runs on its own schedule. Exact-main CI completed in
+9m10s, so the under-eight-minute target remains open in
+[#1111](https://github.com/koda-ai-studio/grc-lake/issues/1111).
 
 ## Verified 0.3.19 publication
 
