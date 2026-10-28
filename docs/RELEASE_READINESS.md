@@ -277,9 +277,10 @@ workpaper approval or live-provider qualification was recorded.
 
 The PyPI description pins its Docker quick start to `v0.3.19`. The public MCP
 Registry lists `io.github.koda-ai-studio/grc-lake` at version `0.3.19` as active
-and latest. Artifact Hub's registered Helm listing still showed `0.3.18` at
-verification time; indexing the new chart is separate from its verified OCI
-publication. Exact-main CI completed in 8m12s, so the consistently-under-eight-minute
+and latest. The public [Artifact Hub listing](https://artifacthub.io/packages/helm/grc-lake/grc-lake)
+now reports chart and application version `0.3.19` for the registered repository.
+Registry indexing and verified publisher ownership do not qualify the deployment.
+Exact-main CI completed in 8m12s, so the consistently-under-eight-minute
 target remains open in [#1111](https://github.com/koda-ai-studio/grc-lake/issues/1111).
 
 ## Verified 0.3.18 publication
