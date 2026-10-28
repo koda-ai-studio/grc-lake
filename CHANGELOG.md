@@ -14,6 +14,7 @@ Python package, Helm chart, and bundled web console.
 - Report a Jamf mobile device whose passcode compliance is not reported as not evaluated instead of noncompliant.
 - Format the README safeguard count with thousands separators.
 - Show the control-test verdict on graph control nodes. A control whose test needs evidence reads "Needs evidence" with its missing and stale evidence types, instead of "Stale assessment" or "Not evaluated"; the posture status moves to `posture_status`. A failing control carries `finding_count` and its five most severe findings (owner, severity, status, next action), listed in the node inspector. A passing, attested control reads "Passing · Attested", as on the Controls page. Evidence freshness is matched on the exact tenant, event and asset; evidence without a freshness record, or with `missing` freshness, reads "Evidence freshness unknown" instead of passing.
+- Link a recorded identity alias only through evidence with current freshness; expired, missing or unrecorded freshness leaves it as "Stale evidence" with no identity edges.
 
 ## 0.3.19 - 2026-10-28
 

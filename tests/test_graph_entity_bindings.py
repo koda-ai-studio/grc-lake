@@ -28,7 +28,7 @@ def bound_lake(tmp_path):
         )
         for source in ("intune", "crowdstrike")
     ]
-    publish(tmp_path, rows)
+    publish(tmp_path, rows, [{"tenant_id": "org", "event_id": r["event_id"], "status": "fresh"} for r in rows])
     manifest = {
         "schema_version": "1.0",
         "platform_tenant_id": "customer",
@@ -147,6 +147,25 @@ def test_stale_anchor_has_no_identity_edges(bound_lake):
     assert result["counts"].get("canonical_entity", 0) == 0
     aliases = [n for n in result["roots"] if n["kind"] == "entity_alias"]
     assert len(aliases) == 2
+    focused = graph(lake, root=aliases[0]["id"])
+    assert focused["nodes"][0]["status"] == "evidence_stale"
+    assert focused["edges"] == []
+
+
+@pytest.mark.parametrize("freshness", ["expired", "missing", None])
+def test_out_of_sla_or_unknown_anchor_has_no_identity_edges(bound_lake, freshness):
+    lake, rows, _ = bound_lake
+    records = (
+        []
+        if freshness is None
+        else [{"tenant_id": "org", "event_id": r["event_id"], "status": freshness} for r in rows]
+    )
+    publish(lake, rows, records)
+    result = graph(lake)
+    assert result["counts"].get("canonical_entity", 0) == 0
+    aliases = [n for n in result["roots"] if n["kind"] == "entity_alias"]
+    assert len(aliases) == 2
+    assert all(n["label"].startswith("Stale evidence for") for n in aliases)
     focused = graph(lake, root=aliases[0]["id"])
     assert focused["nodes"][0]["status"] == "evidence_stale"
     assert focused["edges"] == []

@@ -6,6 +6,7 @@ from typing import Any
 
 from security_lakehouse.entity_history import graph_binding_snapshot
 from security_lakehouse.entity_registry import build_entity_registry
+from security_lakehouse.evidence_freshness import STALE_STATUSES
 
 
 def add_entity_bindings(
@@ -27,7 +28,8 @@ def add_entity_bindings(
         entity = entities[alias["canonical_entity_id"]]
         evidence_id = "evidence:" + assertion["evidence_sha256"]
         present = evidence_id in nodes
-        stale = present and nodes[evidence_id].get("freshness_status") == "stale"
+        # Unknown freshness is not current evidence, so it cannot anchor an identity link.
+        stale = present and nodes[evidence_id].get("freshness_status") in STALE_STATUSES
         linked = present and not stale
         aid = node(
             "entity_alias",
