@@ -187,6 +187,8 @@ class _GuardedRedirectHandler(urllib.request.HTTPRedirectHandler):
 
     def redirect_request(self, req, fp, code, msg, headers, newurl):
         self._validate(newurl)  # raises ValueError on a disallowed target
+        if urlsplit(req.full_url).scheme == "https" and urlsplit(newurl).scheme != "https":
+            raise ValueError(f"refusing https downgrade redirect to {newurl!r}")
         new = super().redirect_request(req, fp, code, msg, headers, newurl)
         if new is not None and _origin(newurl) != _origin(req.full_url):
             for name, _value in new.header_items():

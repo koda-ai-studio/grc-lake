@@ -79,6 +79,13 @@ def test_guarded_redirect_raises_when_validator_rejects() -> None:
         _redirect(handler, req, "http://169.254.169.254/latest/meta-data/")
 
 
+def test_guarded_redirect_refuses_https_to_http_downgrade() -> None:
+    handler = netguard._GuardedRedirectHandler(lambda _url: None)
+    req = urllib.request.Request("https://ok.example/a")
+    with pytest.raises(ValueError, match="downgrade"):
+        _redirect(handler, req, "http://ok.example/b")
+
+
 def test_guarded_redirect_strips_credentials_across_origin() -> None:
     handler = netguard._GuardedRedirectHandler(lambda _u: None)
     req = urllib.request.Request(

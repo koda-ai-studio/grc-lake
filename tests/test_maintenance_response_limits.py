@@ -154,3 +154,37 @@ def test_framework_redirects_reject_private_targets_and_oversized_bodies(module,
     with pytest.raises(ValueError):
         fetch("http://source.example/catalog")
     assert connected == [(PUBLIC_IP, 80)]
+
+
+@pytest.mark.parametrize(
+    ("tool_name", "call"),
+    [
+        ("sync_nist_800_53", lambda tool: tool._load("low", commit="0" * 40, source_dir=None)),
+        ("sync_nist_800_171r3", lambda tool: tool._fetch("analysis", None)),
+    ],
+)
+def test_nist_sync_tools_bound_downloads(tool_name, call, monkeypatch):
+    import importlib
+
+    tool = importlib.import_module(f"tools.{tool_name}")
+    monkeypatch.setattr(framework_enrich, "MAX_SOURCE_BYTES", 16)
+    monkeypatch.setattr(framework_enrich.netguard, "open_public", lambda *a, **k: io.BytesIO(b"x" * 17))
+
+    with pytest.raises(ValueError, match="byte limit"):
+        call(tool)
+
+
+def test_nist_800_171_xlsx_reader_refuses_oversized_members(monkeypatch):
+    import zipfile
+
+    from tools import sync_nist_800_171r3 as tool
+
+    monkeypatch.setattr(tool, "MAX_XLSX_MEMBER_BYTES", 16)
+    archive = io.BytesIO()
+    with zipfile.ZipFile(archive, "w", zipfile.ZIP_DEFLATED) as handle:
+        handle.writestr("xl/workbook.xml", b"<" + b"x" * 64 + b"/>")
+        handle.writestr("xl/_rels/workbook.xml.rels", b"<r/>")
+    archive.seek(0)
+
+    with pytest.raises(ValueError, match="xlsx member"):
+        tool.read_xlsx_rows(archive)

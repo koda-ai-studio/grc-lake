@@ -18,9 +18,10 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import urllib.request
 from pathlib import Path
 from typing import Any
+
+from security_lakehouse import framework_enrich
 
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "frameworks" / "packs" / "data" / "nist_800_53_rev5_catalog.json"
@@ -38,8 +39,7 @@ BASELINES = ("low", "moderate", "high", "privacy")
 def _load(name: str, *, commit: str, source_dir: Path | None) -> bytes:
     if source_dir is not None:
         return (source_dir / FILES[name]).read_bytes()
-    with urllib.request.urlopen(RAW_BASE.format(commit=commit) + FILES[name], timeout=60) as resp:  # noqa: S310
-        return bytes(resp.read())
+    return framework_enrich.fetch(RAW_BASE.format(commit=commit) + FILES[name], timeout=60)[0]
 
 
 def _profile_ids(payload: bytes) -> set[str]:

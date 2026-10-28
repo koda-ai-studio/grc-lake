@@ -354,7 +354,7 @@ def render_readme_glance() -> str:
         f"{headline_framework_phrase(coverage['frameworks'])}. "
         "Every pack is in the [coverage matrix](docs/FRAMEWORK_COVERAGE.md).\n"
         f"- **{framework_count} framework packs, {_requirement_phrase(requirement_count)},** linked through "
-        f"{safeguard_count} safeguards, including source-native assessment contracts. "
+        f"{safeguard_count:,} safeguards, including source-native assessment contracts. "
         f"{coverage['covered']:,} requirements have safeguard mappings; "
         f"{coverage['reviewed']:,} have reviewed mappings and the other {coverage['proposed']:,} are proposed. "
         f"Of the reviewed, {coverage['source_native_reviewed']:,} are source-native self-maps (written from that "

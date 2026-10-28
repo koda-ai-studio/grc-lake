@@ -348,6 +348,8 @@ def _mobile_events(ctx: _Context, mobile: dict[str, Any], updates: dict[str, lis
         verdict: tuple[str, str, str | None]
         if not present:
             verdict = ("open", "high", "no_passcode")
+        elif not isinstance(security.get("passcodeCompliant"), bool):
+            verdict = ("not_evaluated", "info", "passcode_compliance_not_reported")
         elif not compliant:
             verdict = ("open", "medium", "passcode_noncompliant")
         else:
