@@ -26,9 +26,50 @@ index-link fix leaves the scheduler and recorded weights unchanged.
 
 ## Measurement baseline
 
+### Python weights averaged across complete runs (2026-10-27)
+
+The current Python weights average two successful runs with identical inventories:
+[release main 40612042954](https://github.com/koda-ai-studio/grc-lake/actions/runs/40612042954)
+at `567620f8` and [documentation PR 40614562529](https://github.com/koda-ai-studio/grc-lake/actions/runs/40614562529)
+at `b4131f30`. Each contains 7,399 Python cases across 510 modules, including
+86 explicit skips. Averaging changes scheduling weights only; it does not change
+skip policy, test selection, security gates, retries or timeouts. Browser weights
+remain from the earlier hosted refresh below.
+
+| Run                                                     | Full workflow elapsed | Python recorded-load spread before → after |
+| ------------------------------------------------------- | --------------------: | -----------------------------------------: |
+| Documentation PR 40614562529                            |                 8m04s |                            86.87s → 16.13s |
+| Release main 40612042954                                |                 8m12s |                            95.62s → 16.02s |
+| Separate candidate PR 40610959661, not used for weights |                 9m09s |                            35.20s → 31.89s |
+
+These are replays of recorded case durations through the unchanged allocator,
+not measured workflow improvements. On the separate candidate run, the largest
+replayed load changes from 348.15s to 348.83s: better spread does not necessarily
+mean a faster critical path. The documentation run's Python shard 2 spent 431s
+in tests versus 331–357s for the other shards; its browser steps took 215s and 218s.
+The release-main Docker job took 488s, including a 243s image build and 159s real
+S3 qualification. Python scheduling alone cannot resolve that Docker bottleneck
+or runner queue variability. Consistent sub-eight-minute CI remains unproven.
+
+Use separate directories containing every `pytest-*/pytest-results.xml` artifact
+from independently verified successful runs:
+
+```bash
+uv run --frozen python tools/update_test_durations.py --expected-reports 6 \
+  --run-dir build/timings/first-run --run-dir build/timings/second-run
+```
+
+Each directory must have the declared shard count and the same complete test
+identities. Failed/error cases, duplicate cases within a run, changed inventories,
+repeated directory paths and missing shards reject the refresh before the existing
+weights are replaced. Explicit skips remain visible. The importer cannot prove
+that local files came from the named GitHub runs: verify source revisions and
+successful workflow results before downloading. Single-run JUnit and Playwright
+imports keep their existing command syntax.
+
 ### Hosted weight refresh (2026-10-27)
 
-The current weights come from all six Python and both browser artifacts of
+The earlier weights came from all six Python and both browser artifacts of
 successful main [run 40597238111](https://github.com/koda-ai-studio/grc-lake/actions/runs/40597238111),
 source `b834521604e9186b29f81c38394dbcf51291b1b8`. They contain 7,324 Python cases
 across 507 modules and 398 browser cases across 75 files. The browser results
