@@ -31,6 +31,30 @@ retain their exact source revisions and synthetic workload limits. They do not
 establish production capacity or qualify a deployment memory budget; 100k records
 remain outside the accepted local interactive profile.
 
+## 0.3.20 candidate
+
+0.3.20 packages audit fixes for review-state validation, provider redirects,
+append watermarks, Jamf passcode verdicts and investigation-graph accuracy. See
+the [changelog](../CHANGELOG.md#0320---2026-10-28) for the release scope.
+
+Package, chart, console, Compose and MCP versions are aligned. This candidate
+adds no dependency upgrade or database migration. Connector redirects now stay
+on the request's host and never downgrade from https to http, so a provider
+configured on a host that redirects elsewhere (for example the wrong CrowdStrike
+region) fails collection instead of following the redirect; configure the
+provider's canonical host. A bounded live GitHub collection on the candidate
+source succeeded with no collection gaps; other providers are covered by
+fixture tests only.
+
+Graph control nodes now show the control-test verdict, so controls that need
+evidence read "Needs evidence" instead of "Stale assessment". Identity aliases
+link only through evidence with current freshness.
+
+Publication remains gated on independent human review, exact merged-main CI,
+both image architectures' vulnerability and authenticated runtime checks, and
+chart qualification. The published install guides remain on 0.3.19 until the
+new artifacts are published and verified.
+
 ## 0.3.19 release
 
 0.3.19 is published; see the [publication receipt](#verified-0319-publication).

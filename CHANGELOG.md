@@ -3,7 +3,7 @@
 All notable GRC Lake changes are summarized here. Versions follow semver for the
 Python package, Helm chart, and bundled web console.
 
-## Unreleased
+## 0.3.20 - 2026-10-28
 
 - Reject safeguard catalogs that ship an `effective_review_state` annotation or a reviewed mapping without `reviewed_by` and `maintainer_review_ref`, so a catalog change cannot mark a proposed mapping attestable.
 - Refuse provider redirects from https to plain http, and keep connector redirects on the request's own host; framework downloads and generic HTTP exports opt out explicitly. Treat IPv4-translated IPv6 addresses by their embedded IPv4.
