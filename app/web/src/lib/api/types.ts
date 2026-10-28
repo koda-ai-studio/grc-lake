@@ -1432,6 +1432,13 @@ export interface GraphNode {
   freshness_age_minutes?: number;
   /** Control nodes: the CCF framework result, independent of the posture test. */
   ccf_status?: string;
+  /** Control nodes: posture status; `status` carries the control-test result. */
+  posture_status?: string;
+  missing_evidence_types?: string[];
+  stale_evidence_types?: string[];
+  /** Control nodes: all findings raised on the control, and the most severe few. */
+  finding_count?: number;
+  findings?: GraphNode[];
   reviewed_safeguard_count?: number;
   proposed_safeguard_count?: number;
   rule_reasons?: string[];

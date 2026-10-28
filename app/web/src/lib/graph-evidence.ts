@@ -1,19 +1,36 @@
 import type { GraphEdge, GraphNode, GraphNodeKind } from "@/lib/api/types";
+import { controlResultPresentation } from "@/lib/control-attestation";
 import { displayLabel } from "@/lib/display";
-
-const PASSING = [
-  "pass",
-  "passed",
-  "resolved",
-  "closed",
-  "compliant",
-  "ok",
-  "ready",
-];
-const STALE_FRESHNESS = ["stale", "expired"];
+import {
+  FAILING_STATUSES,
+  PASSING_STATUSES,
+  STALE_FRESHNESS,
+} from "@/lib/evidence-status";
 
 type StateInput = Pick<GraphNode, "kind" | "status"> &
-  Partial<Pick<GraphNode, "freshness_status" | "ccf_status">>;
+  Partial<
+    Pick<
+      GraphNode,
+      | "freshness_status"
+      | "ccf_status"
+      | "missing_evidence_types"
+      | "stale_evidence_types"
+    >
+  >;
+
+function needsEvidenceAction(node: StateInput) {
+  const missing = node.missing_evidence_types ?? [];
+  const stale = node.stale_evidence_types ?? [];
+  const steps = [
+    missing.length && `Collect the missing ${missing.join(", ")} evidence.`,
+    stale.length && `Refresh the ${stale.join(", ")} evidence.`,
+  ].filter(Boolean);
+  return [
+    "The control test has no current evidence to pass or fail on.",
+    ...(steps.length ? steps : ["Collect evidence for this control."]),
+    "Then re-evaluate the control.",
+  ].join(" ");
+}
 
 /** Describe the source outcome without turning an observation into a verdict. */
 export function graphEvidenceState(node: StateInput) {
@@ -39,6 +56,14 @@ export function graphEvidenceState(node: StateInput) {
       action:
         "Refresh the supporting evidence and re-evaluate the applicable control.",
     };
+  if (node.kind === "control" && status === "needs_evidence") {
+    const shown = controlResultPresentation(status, node);
+    return {
+      label: shown.label,
+      tone: shown.tone,
+      action: needsEvidenceAction(node),
+    };
+  }
   if (
     node.kind === "signal_gap" ||
     ["requires_authenticated_connector", "not_available_public_mode"].includes(
@@ -51,40 +76,41 @@ export function graphEvidenceState(node: StateInput) {
       action:
         "Use authorized governance access to inspect settings that public collection cannot read.",
     };
-  if (
-    [
-      "open",
-      "failed",
-      "fail",
-      "failing",
-      "blocked",
-      "noncompliant",
-      "non-compliant",
-    ].includes(status)
-  )
+  if (FAILING_STATUSES.has(status))
     return {
       label: `Failing ${subject}`,
       tone: "critical" as const,
       action:
         "Review the failing record, confirm the affected configuration, assign remediation, and collect fresh evidence after the change.",
     };
-  if (PASSING.includes(status) && !assessment) {
-    const freshness = (node.freshness_status ?? "").toLowerCase();
-    if (STALE_FRESHNESS.includes(freshness))
+  if (PASSING_STATUSES.has(status) && !assessment) {
+    const freshness = (node.freshness_status || "missing").toLowerCase();
+    if (freshness === "missing")
+      return {
+        label: "Evidence freshness unknown",
+        tone: "attention" as const,
+        action:
+          "The record passed, but its source evidence or collection time is not recorded. Collect fresh evidence before relying on it.",
+      };
+    if (STALE_FRESHNESS.has(freshness))
       return {
         label: "Stale evidence",
         tone: "attention" as const,
         action: `The record passed when collected, but it is ${freshness}. Collect fresh evidence before relying on it.`,
       };
   }
-  const ccf = (node.ccf_status || "not_evaluated").toLowerCase();
-  if (node.kind === "control" && PASSING.includes(status) && ccf !== "pass")
+  if (node.kind === "control" && PASSING_STATUSES.has(status)) {
+    const shown = controlResultPresentation("pass", node);
+    const ccf = (node.ccf_status || "not_evaluated").toLowerCase();
     return {
-      label: "Control test passing · Not attested",
-      tone: "attention" as const,
-      action: `The control test passes, but the framework result is ${displayLabel(ccf).toLowerCase()}. Review the mapped safeguards and their evidence before attesting this requirement.`,
+      label: shown.label,
+      tone: shown.tone,
+      action: shown.attested
+        ? "Keep the bound evidence current and re-evaluate after the underlying configuration changes."
+        : `The control test passes, but the framework result is ${displayLabel(ccf).toLowerCase()}. Review the mapped safeguards and their evidence before attesting this requirement.`,
     };
-  if (PASSING.includes(status))
+  }
+  if (PASSING_STATUSES.has(status))
     return {
       label: `Passing ${subject}`,
       tone: "ready" as const,

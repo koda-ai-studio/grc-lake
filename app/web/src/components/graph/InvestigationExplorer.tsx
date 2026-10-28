@@ -713,7 +713,11 @@ export function InvestigationExplorer() {
                     graphMode="investigation"
                     graph={data}
                     onInspectNode={(node) => {
-                      if (node && !scopeIds.has(node.id))
+                      // A record listed on a node but outside this slice
+                      // becomes the starting point, then stays selected.
+                      if (node && !data?.nodes.some((n) => n.id === node.id))
+                        exploreNode(node);
+                      else if (node && !scopeIds.has(node.id))
                         setRepositoryView("all");
                       setSelected(node);
                     }}

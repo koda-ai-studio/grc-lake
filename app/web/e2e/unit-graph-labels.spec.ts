@@ -30,6 +30,18 @@ test("passing evidence that is stale or expired never reads as passing", () => {
       freshness_status: "fresh",
     }),
   ).toMatchObject({ label: "Passing evidence", tone: "ready" });
+  // No recorded freshness, or a record without source evidence, is never clean.
+  for (const freshness of ["missing", undefined, ""]) {
+    const state = graphEvidenceState({
+      kind: "evidence_type",
+      status: "passed",
+      freshness_status: freshness,
+    });
+    expect(state).toMatchObject({
+      label: "Evidence freshness unknown",
+      tone: "attention",
+    });
+  }
   // A failure stays a failure however old the record is.
   expect(
     graphEvidenceState({
@@ -60,7 +72,7 @@ test("a passing control test without a passing framework result is not attested"
   }
   expect(
     graphEvidenceState({ kind: "control", status: "pass", ccf_status: "pass" }),
-  ).toMatchObject({ label: "Passing control", tone: "ready" });
+  ).toMatchObject({ label: "Passing · Attested", tone: "ready" });
   expect(
     graphEvidenceState({ kind: "control", status: "fail", ccf_status: "pass" })
       .label,

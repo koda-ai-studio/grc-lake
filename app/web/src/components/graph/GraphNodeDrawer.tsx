@@ -293,6 +293,34 @@ export function GraphNodeDrawer({
             </p>
           </section>
         )}
+        {node.kind === "control" && (node.finding_count ?? 0) > 0 && (
+          <section aria-label="Findings on this control" className="grid gap-2">
+            <h3 className="text-sm font-semibold">
+              {plural(node.finding_count!, "finding")}
+            </h3>
+            {node.findings?.map((item) => (
+              <button
+                key={item.id}
+                className="grid gap-1 rounded-lg border border-line p-2 text-left hover:border-brand"
+                onClick={() => onInspectNode?.(item)}
+              >
+                <span className="text-xs font-semibold">{item.label}</span>
+                <span className="text-xs text-muted">
+                  {[displayLabel(item.severity), displayLabel(item.status)]
+                    .filter(Boolean)
+                    .join(" · ")}
+                  {item.owner ? ` · Owner ${item.owner}` : ""}
+                </span>
+              </button>
+            ))}
+            {node.finding_count! > (node.findings?.length ?? 0) && (
+              <p className="text-xs text-muted">
+                Showing the {node.findings?.length ?? 0} most severe of{" "}
+                {node.finding_count}. Review the rest in Findings.
+              </p>
+            )}
+          </section>
+        )}
         {node.kind === "repository" && graph && (
           <section
             aria-label="Visible repository evidence"
