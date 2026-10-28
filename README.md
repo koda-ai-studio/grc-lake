@@ -142,6 +142,10 @@ does not establish framework attestation.
   <img src="docs/images/grc-lake-demo-graph.png" alt="Evidence investigation graph with a SOC 2 control selected, showing recorded evidence relationships and an inspector that separates the control-test result, framework assessment, and mapping review state" width="100%">
 </picture>
 
+For node labels and inspector details, open the full-size graph:
+[light theme](docs/images/grc-lake-demo-graph.png) ·
+[dark theme](docs/images/grc-lake-demo-graph-dark.png).
+
 ### Review AI assets and their next actions
 
 Models and agents with owners, environments, governance signals, and next actions.

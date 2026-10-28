@@ -261,7 +261,7 @@ def test_product_preview_shows_distinct_views_without_repeating_the_overview() -
     for view in views:
         for theme in ("", "-dark"):
             image = f"docs/images/grc-lake-demo-{view}{theme}.png"
-            assert tour.count(image) == 1
+            assert tour.count(f'src="{image}"') + tour.count(f'srcset="{image}"') == 1
             assert (ROOT / image).is_file()
         positions.append(tour.index(f"grc-lake-demo-{view}.png"))
     assert positions == sorted(positions)
