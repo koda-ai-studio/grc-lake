@@ -132,12 +132,19 @@ framework requirements. Proposed mappings are not attestable.
 ### Trace a finding through the evidence graph
 
 Follow exact records between controls, safeguards, evidence, repositories, and assets;
-drill in or roll up.
+drill in or roll up through a bounded neighborhood. Inspect control-test results,
+evidence freshness, and linked findings with their owners and next actions.
+Recorded links and mapping review states stay distinct; a passing control test
+does not establish framework attestation.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/images/grc-lake-demo-graph-dark.png">
-  <img src="docs/images/grc-lake-demo-graph.png" alt="Evidence investigation graph connecting a SOC 2 control to evidence, a repository, an asset, and a safeguard, with a selected-node inspector" width="100%">
+  <img src="docs/images/grc-lake-demo-graph.png" alt="Evidence investigation graph with a SOC 2 control selected, showing recorded evidence relationships and an inspector that separates the control-test result, framework assessment, and mapping review state" width="100%">
 </picture>
+
+For node labels and inspector details, open the full-size graph:
+[light theme](docs/images/grc-lake-demo-graph.png) ·
+[dark theme](docs/images/grc-lake-demo-graph-dark.png).
 
 ### Review AI assets and their next actions
 
