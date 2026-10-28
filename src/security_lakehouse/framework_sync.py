@@ -37,6 +37,7 @@ from importlib import metadata
 from pathlib import Path
 from typing import Any
 
+from security_lakehouse import netguard
 from security_lakehouse.catalog import DEFAULT_FRAMEWORK_REGISTRY
 from security_lakehouse.http_response import ResponseLimitError, read_bytes
 from security_lakehouse.io import append_jsonl
@@ -114,7 +115,7 @@ def _fetch(
     url: str,
     *,
     timeout: int = DEFAULT_TIMEOUT_SECONDS,
-    opener: Callable[..., Any] = urllib.request.urlopen,
+    opener: Callable[..., Any] | None = None,
     sleep: Callable[[float], None] = time.sleep,
 ) -> bytes:
     request = urllib.request.Request(
@@ -126,7 +127,7 @@ def _fetch(
     )
     for attempt in range(1, MAX_ATTEMPTS + 1):
         try:
-            with opener(request, timeout=timeout) as response:
+            with (opener or netguard.open_public)(request, timeout=timeout) as response:
                 return read_bytes(response, limit=MAX_SOURCE_BYTES)
         except ResponseLimitError as exc:
             raise ValueError("framework source byte limit exceeded") from exc

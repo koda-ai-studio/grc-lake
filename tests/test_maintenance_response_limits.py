@@ -24,7 +24,7 @@ def test_framework_download_bounds_bytes_and_closes(module, length, monkeypatch)
         return response
 
     if module is framework_enrich:
-        monkeypatch.setattr(module.urllib.request, "urlopen", opener)
+        monkeypatch.setattr(module.netguard, "open_public", opener)
 
         def fetch():
             return module.fetch("https://example.gov/catalog")
@@ -106,3 +106,51 @@ def test_object_probe_uses_bounded_read_and_cleans_up(body):
             store.verify_conditional_writes()
     assert stream.closed
     assert len(deleted) == 1
+
+
+@pytest.mark.parametrize("module", [framework_sync, framework_enrich])
+def test_framework_default_transport_uses_public_redirect_guard(module, monkeypatch):
+    from security_lakehouse import netguard
+
+    calls = []
+    response = io.BytesIO(b"source")
+
+    def guarded(request, **kwargs):
+        calls.append(request.full_url)
+        return response
+
+    def unguarded(*args, **kwargs):
+        pytest.fail("framework download bypassed the redirect guard")
+
+    monkeypatch.setattr(netguard, "open_public", guarded)
+    monkeypatch.setattr(module.urllib.request, "urlopen", unguarded)
+    monkeypatch.setattr(module.urllib.request.OpenerDirector, "open", unguarded)
+    fetch = module.fetch if module is framework_enrich else module._fetch
+    fetch("https://example.gov/catalog")
+    assert calls == ["https://example.gov/catalog"]
+    assert response.closed
+
+
+@pytest.mark.parametrize("module", [framework_sync, framework_enrich])
+@pytest.mark.parametrize("case", ["private_target", "oversized_redirect"])
+def test_framework_redirects_reject_private_targets_and_oversized_bodies(module, case, monkeypatch):
+    from security_lakehouse import http_response
+    from test_netguard import PRIVATE_IP, PUBLIC_IP, _patch_connect, _sequenced_dns
+
+    monkeypatch.setattr(http_response, "MAX_RESPONSE_BYTES", 16)
+    _sequenced_dns(
+        monkeypatch,
+        {"source.example": [PUBLIC_IP], "target.example": [PRIVATE_IP if case == "private_target" else PUBLIC_IP]},
+    )
+    body = b"x" * 17 if case == "oversized_redirect" else b""
+    response = (
+        b"HTTP/1.1 302 Found\r\nLocation: http://target.example/catalog\r\nContent-Length: "
+        + str(len(body)).encode()
+        + b"\r\n\r\n"
+        + body
+    )
+    connected = _patch_connect(monkeypatch, [response])
+    fetch = module.fetch if module is framework_enrich else module._fetch
+    with pytest.raises(ValueError):
+        fetch("http://source.example/catalog")
+    assert connected == [(PUBLIC_IP, 80)]

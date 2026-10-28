@@ -36,6 +36,7 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
+from security_lakehouse import netguard
 from security_lakehouse.http_response import ResponseLimitError, read_bytes
 from security_lakehouse.jsontypes import JsonObject
 
@@ -68,7 +69,8 @@ def is_placeholder(title: str) -> bool:
 def fetch(url: str, *, timeout: float = 180.0) -> tuple[bytes, str]:
     """Return the document and its SHA-256, so the import can be re-verified."""
     try:
-        with urllib.request.urlopen(url, timeout=timeout) as response:  # noqa: S310 - fixed https NIST URL
+        request = urllib.request.Request(url)
+        with netguard.open_public(request, timeout=timeout, label="framework source") as response:
             raw = read_bytes(response, limit=MAX_SOURCE_BYTES)
     except ResponseLimitError as exc:
         raise ValueError("framework source byte limit exceeded") from exc

@@ -8,8 +8,11 @@ honest, cited subset.
 The [FedRAMP KSI assessment subset](FEDRAMP_KSI_ASSESSMENTS.md) separately seeds
 2 of 46 source indicators with proposed mappings and dedicated assessor evidence.
 
-Network-enabled `frameworks sync` and `frameworks enrich` cap each source
-download at 32 MiB. An oversized source is rejected before hashing or import;
+Network-enabled `frameworks sync` and `frameworks enrich` use the public-address
+HTTP guard, including redirect validation and pinned DNS resolution; private-address
+sources are rejected. Each final source download is capped at 32 MiB, and redirect
+bodies use the shared HTTP response limit. An oversized source is rejected before
+hashing or import;
 sync reports an error for that source and preserves its prior digest and timestamp.
 The byte limit does not approve source changes or framework mappings.
 
