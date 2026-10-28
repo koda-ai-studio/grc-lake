@@ -111,6 +111,11 @@ def _is_retryable(exc: BaseException) -> bool:
     return isinstance(exc, (urllib.error.URLError, TimeoutError, ConnectionError))
 
 
+def _open_framework_source(request: urllib.request.Request, *, timeout: float) -> Any:
+    # Official framework publishers serve documents through mirrors and CDNs.
+    return netguard.open_public(request, timeout=timeout, allow_cross_host_redirects=True)
+
+
 def _fetch(
     url: str,
     *,
@@ -127,7 +132,7 @@ def _fetch(
     )
     for attempt in range(1, MAX_ATTEMPTS + 1):
         try:
-            with (opener or netguard.open_public)(request, timeout=timeout) as response:
+            with (opener or _open_framework_source)(request, timeout=timeout) as response:
                 return read_bytes(response, limit=MAX_SOURCE_BYTES)
         except ResponseLimitError as exc:
             raise ValueError("framework source byte limit exceeded") from exc

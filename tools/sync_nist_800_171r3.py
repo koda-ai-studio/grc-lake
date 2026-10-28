@@ -24,12 +24,13 @@ import hashlib
 import io
 import json
 import re
-import urllib.request
 import zipfile
 from datetime import date
 from pathlib import Path
 from typing import IO, Any
 from xml.etree import ElementTree
+
+from security_lakehouse import framework_enrich
 
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "frameworks" / "packs" / "data" / "nist_800_171_rev3.json"
@@ -70,6 +71,8 @@ FAMILY_PROFILE: dict[str, tuple[str, tuple[str, ...]]] = {
     "03.17": ("vendor-risk", ("compliance.evidence_bundle",)),
 }
 
+MAX_XLSX_MEMBER_BYTES = 64 * 1024 * 1024
+
 _NS = {"m": "http://schemas.openxmlformats.org/spreadsheetml/2006/main"}
 _REL_NS = "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id"
 _R3_ID = re.compile(r"03\.\d{2}[ .]?\d{2}")
@@ -78,8 +81,7 @@ _R3_ID = re.compile(r"03\.\d{2}[ .]?\d{2}")
 def _fetch(name: str, source_dir: Path | None) -> bytes:
     if source_dir is not None:
         return (source_dir / LOCAL_NAMES[name]).read_bytes()
-    with urllib.request.urlopen(FILES[name], timeout=60) as resp:  # noqa: S310 - pinned https sources
-        return bytes(resp.read())
+    return framework_enrich.fetch(FILES[name], timeout=60)[0]
 
 
 def _column(ref: str) -> int:
@@ -92,6 +94,9 @@ def _column(ref: str) -> int:
 def read_xlsx_rows(source: Path | IO[bytes], sheet_name: str = ANALYSIS_SHEET) -> list[list[str]]:
     """Read one worksheet of an .xlsx as rows of stripped strings (stdlib only)."""
     with zipfile.ZipFile(source) as archive:
+        for info in archive.infolist():
+            if info.file_size > MAX_XLSX_MEMBER_BYTES:
+                raise ValueError(f"xlsx member {info.filename!r} exceeds {MAX_XLSX_MEMBER_BYTES} bytes uncompressed")
         names = set(archive.namelist())
         shared: list[str] = []
         if "xl/sharedStrings.xml" in names:

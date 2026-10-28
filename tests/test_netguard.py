@@ -251,14 +251,18 @@ def test_redirect_hop_rebinding_is_blocked(monkeypatch: pytest.MonkeyPatch) -> N
     _sequenced_dns(monkeypatch, {"start.example": [PUBLIC_IP], "hop.example": [HOP_IP, PRIVATE_IP]})
     addresses = _patch_connect(monkeypatch, [_REDIRECT, _OK])
     with pytest.raises(ValueError, match="non-public"):
-        netguard.open_public(urllib.request.Request("http://start.example/"), timeout=2)
+        netguard.open_public(
+            urllib.request.Request("http://start.example/"), timeout=2, allow_cross_host_redirects=True
+        )
     assert addresses == [(PUBLIC_IP, 80)]
 
 
 def test_redirect_hop_connects_to_its_own_validated_ip(monkeypatch: pytest.MonkeyPatch) -> None:
     _sequenced_dns(monkeypatch, {"start.example": [PUBLIC_IP], "hop.example": [HOP_IP]})
     addresses = _patch_connect(monkeypatch, [_REDIRECT, _OK])
-    with netguard.open_public(urllib.request.Request("http://start.example/"), timeout=2) as resp:
+    with netguard.open_public(
+        urllib.request.Request("http://start.example/"), timeout=2, allow_cross_host_redirects=True
+    ) as resp:
         assert resp.read() == b"ok"
     assert addresses == [(PUBLIC_IP, 80), (HOP_IP, 80)]
 
@@ -312,6 +316,8 @@ def _resolve_to(monkeypatch: pytest.MonkeyPatch, address: str) -> None:
         "64:ff9b:1::1",  # local-use NAT64 prefix (RFC 8215)
         "64:ff9b:1::808:808",  # local-use NAT64 even with a public-looking suffix
         "::ffff:127.0.0.1",  # IPv4-mapped loopback
+        "::ffff:0:7f00:1",  # IPv4-translated loopback (RFC 2765 SIIT)
+        "::ffff:0:a00:1",  # IPv4-translated 10.0.0.1
     ],
 )
 def test_ipv6_embedded_private_ipv4_is_blocked(monkeypatch, address: str) -> None:

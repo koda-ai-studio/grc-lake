@@ -79,6 +79,13 @@ def test_guarded_redirect_raises_when_validator_rejects() -> None:
         _redirect(handler, req, "http://169.254.169.254/latest/meta-data/")
 
 
+def test_guarded_redirect_refuses_https_to_http_downgrade() -> None:
+    handler = netguard._GuardedRedirectHandler(lambda _url: None)
+    req = urllib.request.Request("https://ok.example/a")
+    with pytest.raises(ValueError, match="downgrade"):
+        _redirect(handler, req, "http://ok.example/b")
+
+
 def test_guarded_redirect_strips_credentials_across_origin() -> None:
     handler = netguard._GuardedRedirectHandler(lambda _u: None)
     req = urllib.request.Request(
@@ -220,3 +227,28 @@ def test_workflow_action_webhook_redirect_to_internal_blocked(monkeypatch: pytes
             params={"url": f"http://127.0.0.1:{allow_port}/hook", "max_retries": 0},
         )
     assert reached["internal"] is False
+
+
+def _redirect_validator(monkeypatch: pytest.MonkeyPatch, **kwargs) -> list:
+    captured: list = []
+
+    def fake_open_guarded(request, *, timeout=None, validate, label="target"):
+        captured.append(validate)
+        return None
+
+    monkeypatch.setattr(netguard, "open_guarded", fake_open_guarded)
+    monkeypatch.setattr(netguard, "assert_url_is_public", lambda url, label="target": url)
+    netguard.open_public(urllib.request.Request("https://tenant.example/api"), label="provider", **kwargs)
+    return captured
+
+
+def test_open_public_keeps_redirects_on_the_provider_host(monkeypatch: pytest.MonkeyPatch) -> None:
+    (validate,) = _redirect_validator(monkeypatch)
+    validate("https://tenant.example/api?page=2")
+    with pytest.raises(ValueError, match="redirect left"):
+        validate("https://other.example/evidence.json")
+
+
+def test_open_public_cross_host_opt_out_still_checks_public(monkeypatch: pytest.MonkeyPatch) -> None:
+    (validate,) = _redirect_validator(monkeypatch, allow_cross_host_redirects=True)
+    assert validate("https://mirror.example/catalog.json") == "https://mirror.example/catalog.json"

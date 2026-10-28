@@ -384,3 +384,34 @@ def test_validation_rejects_a_safeguard_that_applies_to_nothing() -> None:
     payload = _json.loads(_json.dumps(load_safeguards()))
     payload["safeguards"][0]["asset_types"] = []
     assert any("asset_types" in p for p in validate_safeguards(payload))
+
+
+def _first_proposed_member(payload: dict) -> dict:
+    return next(
+        member
+        for safeguard in payload["safeguards"]
+        for member in safeguard["satisfies"]
+        if member.get("review_status") == "proposed"
+    )
+
+
+def test_validation_rejects_a_shipped_effective_review_state_annotation() -> None:
+    payload = json.loads(json.dumps(load_safeguards()))
+    _first_proposed_member(payload)["effective_review_state"] = "maintainer_reviewed"
+
+    problems = validate_safeguards(payload)
+
+    assert any("effective_review_state" in problem for problem in problems)
+
+
+def test_validation_rejects_an_unattributed_reviewed_mapping() -> None:
+    payload = json.loads(json.dumps(load_safeguards()))
+    member = _first_proposed_member(payload)
+    member["review_status"] = "reviewed"
+    member.pop("reviewed_by", None)
+    member.pop("maintainer_review_ref", None)
+
+    problems = validate_safeguards(payload)
+
+    assert any("reviewed_by" in problem for problem in problems)
+    assert any("maintainer_review_ref" in problem for problem in problems)

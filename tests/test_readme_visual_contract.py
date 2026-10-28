@@ -269,7 +269,7 @@ def test_readme_glance_matches_the_generator_and_the_catalogs() -> None:
     preview = [entry for entry in runnable if entry.get("release_stage") == "preview"]
     assert f"{len(coverage['frameworks'])} framework packs" in block
     assert f"{coverage['controls']:,} catalogued requirements" in block
-    assert f"{coverage['safeguards']} safeguards, including source-native assessment contracts" in block
+    assert f"{coverage['safeguards']:,} safeguards, including source-native assessment contracts" in block
     assert f"{coverage['covered']:,} requirements have safeguard mappings" in block
     assert (
         f"{coverage['reviewed']:,} have reviewed mappings and the other {coverage['proposed']:,} are proposed" in block

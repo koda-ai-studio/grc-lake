@@ -3,6 +3,17 @@
 All notable GRC Lake changes are summarized here. Versions follow semver for the
 Python package, Helm chart, and bundled web console.
 
+## Unreleased
+
+- Reject safeguard catalogs that ship an `effective_review_state` annotation or a reviewed mapping without `reviewed_by` and `maintainer_review_ref`, so a catalog change cannot mark a proposed mapping attestable.
+- Refuse provider redirects from https to plain http, and keep connector redirects on the request's own host; framework downloads and generic HTTP exports opt out explicitly. Treat IPv4-translated IPv6 addresses by their embedded IPv4.
+- Hold an append connector's watermark when a pull records collection gaps, so missing events are retried on the next sync.
+- Credit a legacy framework citation without `review_status` as reviewed only when it records a reviewer and review date.
+- Refresh the product-tour screenshots, including the overview's result explanations.
+- Bound the NIST SP 800-53 and 800-171 sync downloads through the guarded framework fetch, and refuse oversized XLSX members.
+- Report a Jamf mobile device whose passcode compliance is not reported as not evaluated instead of noncompliant.
+- Format the README safeguard count with thousands separators.
+
 ## 0.3.19 - 2026-10-28
 
 - Route model-provider requests through the guarded HTTP transport: validate redirects, pin DNS resolution, strip credentials on cross-origin redirects, and cap response bytes.

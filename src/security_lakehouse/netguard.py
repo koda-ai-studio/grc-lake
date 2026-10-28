@@ -48,6 +48,7 @@ _NAT64_WELL_KNOWN = ipaddress.IPv6Network("64:ff9b::/96")
 _NAT64_LOCAL_USE = ipaddress.IPv6Network("64:ff9b:1::/48")
 _IPV4_COMPATIBLE = ipaddress.IPv6Network("::/96")
 _IPV4_MAPPED = ipaddress.IPv6Network("::ffff:0:0/96")
+_IPV4_TRANSLATED = ipaddress.IPv6Network("::ffff:0:0:0/96")
 # 6to4 (RFC 3056) and Teredo (RFC 4380) tunnel to IPv4 hosts named inside the
 # address. Some Python releases report these prefixes as global, so every
 # embedded IPv4 must itself be public.
@@ -85,7 +86,7 @@ def _is_public_address(ip: ipaddress.IPv4Address | ipaddress.IPv6Address) -> boo
         if ip in _NAT64_LOCAL_USE:
             # RFC 8215 local-use translation prefix: always an operator-internal path.
             return False
-        if ip in _NAT64_WELL_KNOWN or ip in _IPV4_COMPATIBLE or ip in _IPV4_MAPPED:
+        if ip in _NAT64_WELL_KNOWN or ip in _IPV4_COMPATIBLE or ip in _IPV4_MAPPED or ip in _IPV4_TRANSLATED:
             return _is_public_address(ipaddress.IPv4Address(int(ip) & 0xFFFFFFFF))
         if not all(_is_public_address(embedded) for embedded in _embedded_ipv4s(ip)):
             return False
@@ -187,6 +188,8 @@ class _GuardedRedirectHandler(urllib.request.HTTPRedirectHandler):
 
     def redirect_request(self, req, fp, code, msg, headers, newurl):
         self._validate(newurl)  # raises ValueError on a disallowed target
+        if urlsplit(req.full_url).scheme == "https" and urlsplit(newurl).scheme != "https":
+            raise ValueError(f"refusing https downgrade redirect to {newurl!r}")
         new = super().redirect_request(req, fp, code, msg, headers, newurl)
         if new is not None and _origin(newurl) != _origin(req.full_url):
             for name, _value in new.header_items():
@@ -309,19 +312,26 @@ def open_public(
     *,
     timeout: float | None = None,
     label: str = "target",
+    allow_cross_host_redirects: bool = False,
 ):
     """``open_guarded`` with the public-IP validator — the connector default.
 
     Every request URL and every redirect hop must be http(s) and resolve to a
     public address, so a paginating client cannot be pivoted at an internal host
     via a ``Link`` header or a 3xx redirect after the boundary check passed.
+    Redirects must also stay on the request's host, since evidence parsed from
+    another host was never vouched for by the provider the connector trusts;
+    ``allow_cross_host_redirects`` is for public documents served via mirrors.
     """
-    return open_guarded(
-        request,
-        timeout=timeout,
-        validate=lambda url: assert_url_is_public(url, label=label),
-        label=label,
-    )
+    host = (urlsplit(request.full_url).hostname or "").lower()
+
+    def validate(url: str) -> str:
+        target = (urlsplit(url).hostname or "").lower()
+        if not allow_cross_host_redirects and target != host:
+            raise ValueError(f"{label} redirect left {host!r} for {target!r}")
+        return assert_url_is_public(url, label=label)
+
+    return open_guarded(request, timeout=timeout, validate=validate, label=label)
 
 
 def pinned_requests_adapter(*, label: str = "target") -> Any:

@@ -36,7 +36,9 @@ class CursorExportClient:
         )
 
         def _fetch() -> Any:
-            with netguard.open_public(request, timeout=self.timeout, label=self.url_label) as resp:
+            with netguard.open_public(
+                request, timeout=self.timeout, label=self.url_label, allow_cross_host_redirects=True
+            ) as resp:
                 return read_json_response(resp)
 
         try:

@@ -13,9 +13,12 @@ def test_unrecognized_source_review_states_do_not_count_as_reviewed(state):
     assert not article_mapping_reviewed({"articles": [{"article_id": "X", "review_status": state}]})
 
 
-def test_legacy_source_review_state_remains_supported():
-    assert article_mapping_reviewed({"articles": [{"article_id": "X"}]})
+def test_legacy_source_review_state_requires_recorded_reviewer():
+    attributed = {"article_id": "X", "reviewed_by": "maintainer", "reviewed_at": "2026-10-01"}
+    assert article_mapping_reviewed({"articles": [attributed]})
     assert article_mapping_reviewed({"articles": [{"article_id": "X", "review_status": "reviewed"}]})
+    assert not article_mapping_reviewed({"articles": [{"article_id": "X"}]})
+    assert not article_mapping_reviewed({"articles": [{"article_id": "X", "reviewed_by": " "}]})
 
 
 @pytest.mark.parametrize("mutation", ["wrong_framework", "no_articles"])

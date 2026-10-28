@@ -53,6 +53,17 @@ def test_empty_pull_keeps_prior_cursor(tmp_path: Path) -> None:
     assert cr._advance_watermark(tmp_path, "siem-alerts", [], write_mode="append") == "2026-06-10T00:00:00Z"
 
 
+def test_partial_pull_keeps_prior_cursor(tmp_path: Path) -> None:
+    # A gap means some events before the newest one may be missing; advancing
+    # past them would skip them on every later incremental sync.
+    write_watermark(tmp_path, "siem-alerts", "2026-06-10T00:00:00Z")
+    rows = _rows("2026-06-12T00:00:00Z") + [
+        {"event_id": "gap", "event_time": "2026-06-12T00:00:00Z", "attributes": {"collection_gap": True}}
+    ]
+    assert cr._advance_watermark(tmp_path, "siem-alerts", rows, write_mode="append") == "2026-06-10T00:00:00Z"
+    assert read_watermark(tmp_path, "siem-alerts") == "2026-06-10T00:00:00Z"
+
+
 # --- integration: through run_connector_sync ---------------------------------
 
 

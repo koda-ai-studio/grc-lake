@@ -315,6 +315,13 @@ def validate_safeguards(payload: JsonObject, *, catalog: dict[str, Any] | None =
             review = member.get("review_status", "proposed")
             if not isinstance(review, str) or review not in VALID_REVIEW_STATES:
                 problems.append(f"{sid}: invalid review_status {review!r} on {control_id!r}")
+            if "effective_review_state" in member:
+                # Only the org overlay may annotate this at runtime; a shipped value would bypass review.
+                problems.append(f"{sid}: {control_id!r} must not ship an effective_review_state annotation")
+            if review == "reviewed":
+                for field in ("reviewed_by", "maintainer_review_ref"):
+                    if not isinstance(member.get(field), str) or not member[field].strip():
+                        problems.append(f"{sid}: reviewed mapping {control_id!r} requires {field}")
             if "mapping_source" in member:
                 problems.extend(_validate_mapping_source(member["mapping_source"], context=f"{sid}/{control_id}"))
 

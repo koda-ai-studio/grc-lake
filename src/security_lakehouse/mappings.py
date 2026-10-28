@@ -60,7 +60,14 @@ def article_mapping_reviewed(mapping: dict[str, Any] | None) -> bool:
     if not mapping:
         return False
     articles = mapping.get("articles") or []
-    return bool(articles) and all(a.get("review_status", "reviewed") == "reviewed" for a in articles)
+    return bool(articles) and all(_article_reviewed(a) for a in articles)
+
+
+def _article_reviewed(article: dict[str, Any]) -> bool:
+    if "review_status" in article:
+        return article["review_status"] == "reviewed"
+    # Legacy citations predate review_status; credit them only with a recorded reviewer.
+    return all(str(article.get(field) or "").strip() for field in ("reviewed_by", "reviewed_at"))
 
 
 def validate_control_article_mappings(

@@ -24,3 +24,8 @@ def test_current_databricks_summary_links_the_populated_multichunk_scope():
     assert "77,036" in current and "75,000 synthetic" in current
     assert "Databricks remains Preview" in current
     assert "eight synthetic rows and an empty audit window" not in current
+
+
+def test_readme_safeguard_count_uses_thousands_separators():
+    count = len(json.loads((ROOT / "controls/safeguards.json").read_text())["safeguards"])
+    assert f"linked through {count:,} safeguards" in render_readme_glance()

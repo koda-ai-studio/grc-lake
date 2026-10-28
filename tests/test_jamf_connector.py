@@ -398,3 +398,21 @@ def test_fixture_sync_materializes_device_controls(tmp_path: Path) -> None:
     raw_rows = read_jsonl(tmp_path / connector_runner.CONNECTOR_RAW_FILE)
     assert validate_raw_events(raw_rows) == []
     assert {"jamf.device.encryption", "jamf.device.screen_lock"} <= {r["event_type"] for r in raw_rows}
+
+
+def test_unreported_passcode_compliance_is_not_evaluated(tmp_path: Path) -> None:
+    fixture = tmp_path / "jamf"
+    fixture.mkdir()
+    for path in FIXTURE.iterdir():
+        (fixture / path.name).write_bytes(path.read_bytes())
+    devices = json.loads((fixture / "mobile_devices.json").read_text(encoding="utf-8"))
+    device = next(row for row in devices if row["mobileDeviceId"] == "101")
+    device["security"].pop("passcodeCompliant")
+    (fixture / "mobile_devices.json").write_text(json.dumps(devices), encoding="utf-8")
+
+    rows = collect_jamf_evidence(JamfFixtureClient(fixture, base_url=BASE), collected_at=COLLECTED)
+    event = _event(rows, "jamf:mobile_device:101", "screen_lock")
+
+    assert event is not None
+    assert event["status"] == "not_evaluated"
+    assert event["attributes"]["finding_reason"] == "passcode_compliance_not_reported"
