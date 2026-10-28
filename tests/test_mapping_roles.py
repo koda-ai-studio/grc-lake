@@ -20,7 +20,14 @@ from security_lakehouse.safeguards import (
 def contextual(request):
     payload = deepcopy(load_safeguards())
     entry = payload["safeguards"][0]
-    entry["satisfies"] = [{**entry["satisfies"][0], "review_status": "reviewed"}]
+    entry["satisfies"] = [
+        {
+            **entry["satisfies"][0],
+            "review_status": "reviewed",
+            "reviewed_by": "synthetic-test-reviewer",
+            "maintainer_review_ref": "synthetic-contextual-role-fixture",
+        }
+    ]
     member = {**entry["satisfies"][0], "role": request.param, "control_id": "SOC2-CC7.2", "framework_id": "soc2"}
     # Keep exactly one primary and a distinct contextual requirement.
     entry["satisfies"].append(member)
