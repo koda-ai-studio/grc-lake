@@ -196,6 +196,27 @@ def test_readme_hero_does_not_repeat_itself() -> None:
     assert headline == ["Collect. Evaluate. Resolve. Export."]
 
 
+def test_readme_heroes_identify_preview_lake_adapters_separately() -> None:
+    from tools.render_readme_header import render_mobile_preview
+
+    catalog = json.loads((ROOT / "connectors/catalog.json").read_text())["connectors"]
+    connectors = {entry["connector_id"]: entry for entry in catalog}
+    for render in (render_social_preview, render_mobile_preview):
+        root = ElementTree.fromstring(render())
+        preview = root.find(f".//{SVG}g[@id='preview-lakes']")
+        assert preview is not None, "Preview lakes need an explicitly labelled group"
+        copy = " ".join(preview.itertext())
+        assert "Preview" in copy
+        for name, connector_id in (
+            ("Databricks", "databricks-evidence-lake"),
+            ("BigQuery", "bigquery-evidence-lake"),
+            ("Iceberg", "iceberg-parquet-lake"),
+        ):
+            assert name in copy
+            assert connectors[connector_id]["release_stage"] == "preview"
+            assert connectors[connector_id]["is_implemented"] is True
+
+
 def test_readme_visuals_are_accessible_scalable_svg_assets() -> None:
     for path in ASSETS:
         assert path.is_file(), f"README visual is missing: {path.relative_to(ROOT)}"

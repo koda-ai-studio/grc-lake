@@ -89,7 +89,15 @@
       <use x="11" y="11" width="46" height="46" href="#clickhouse"/>
       <text x="34" y="94" text-anchor="middle" font-size="13" font-weight="650" fill="#cbd5e1">ClickHouse</text>
     </g>
-    <line x1="674" y1="334" x2="674" y2="544" stroke="#2b3c57"/>
+    <g id="preview-lakes" transform="translate(60 518)">
+      <rect width="198" height="36" rx="12" fill="#0f192b" stroke="#2ab7aa"/>
+      <text x="99" y="24" text-anchor="middle" font-size="14" font-weight="650" fill="#79e4d6">Databricks · Preview</text>
+      <rect x="210" width="180" height="36" rx="12" fill="#0f192b" stroke="#2ab7aa"/>
+      <text x="300" y="24" text-anchor="middle" font-size="14" font-weight="650" fill="#79e4d6">BigQuery · Preview</text>
+      <rect x="402" width="180" height="36" rx="12" fill="#0f192b" stroke="#2ab7aa"/>
+      <text x="492" y="24" text-anchor="middle" font-size="14" font-weight="650" fill="#79e4d6">Iceberg · Preview</text>
+    </g>
+    <line x1="674" y1="334" x2="674" y2="554" stroke="#2b3c57"/>
     <g transform="translate(704 334)">
       <text x="0" y="14" font-size="14" font-weight="780" letter-spacing="1.5" fill="#6bd5df">COMMON CONTROL FRAMEWORK</text>
       <text x="0" y="66" font-size="40" font-weight="840" fill="#f8fafc">22<tspan dx="10" font-size="20" font-weight="650" fill="#94a3b8">framework packs</tspan></text>
