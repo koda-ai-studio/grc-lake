@@ -38,6 +38,9 @@ uv run pytest tests/test_my_vendor_evidence_connector.py
    generation and watermark. Never substitute empty data or retry this error.
    These ceilings cover reads using the helper, not provider SDK internals or
    a process memory quota. Narrow the requested collection if it exceeds them.
+   `open_public` follows redirects only on the request's own host and never
+   from https to http; configure the provider's canonical host (for example
+   the tenant's CrowdStrike region) rather than relying on a redirect.
    Every control ID an event carries must exist in `controls/catalog.json`.
 2. **Registry** — `_build_<slug>` builder + one line in `REGISTRY`.
 3. **Catalog** — row in `connectors/catalog.json` with `is_implemented: true`, and

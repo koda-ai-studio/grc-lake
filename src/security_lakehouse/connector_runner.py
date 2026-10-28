@@ -1808,11 +1808,15 @@ def _advance_watermark(lake: Path, connector_id: str, rows: list[dict[str, Any]]
 
     Returns the cursor written (the max ``event_time`` across ``rows``), or
     ``None`` for a snapshot connector or a pull with no timestamped rows. The
-    cursor is monotonic: an out-of-order or partial re-pull never moves it back,
+    cursor is monotonic and holds on a pull with collection gaps: an out-of-order
+    or partial re-pull never moves it forward past missing events or back,
     so the next sync resumes from the true high-water mark.
     """
     if write_mode != "append":
         return None
+    if collection_gaps(rows):
+        # Events before the newest one may be missing; resume from the prior cursor.
+        return read_watermark(lake, connector_id)
     cursors = [str(row.get("event_time")) for row in rows if row.get("event_time")]
     if not cursors:
         return read_watermark(lake, connector_id)
