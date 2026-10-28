@@ -31,6 +31,26 @@ retain their exact source revisions and synthetic workload limits. They do not
 establish production capacity or qualify a deployment memory budget; 100k records
 remain outside the accepted local interactive profile.
 
+## 0.3.19 candidate
+
+0.3.19 packages the merged transport, request-body and response-budget fixes,
+focused CCF family organization, and the bounded FedRAMP KSI identity subset.
+The KSI subset covers 2 of 46 pinned source indicators; both mappings remain
+proposed and require human review. See the [changelog](../CHANGELOG.md#0319---2026-10-28)
+for the release scope and [KSI limitations](FEDRAMP_KSI_ASSESSMENTS.md).
+
+Package, chart, console, Compose and MCP versions are aligned. This candidate
+adds no dependency upgrade or database migration. Private-address framework
+sources and oversized responses are now rejected; operators must reconcile
+those errors rather than treat them as successful collection.
+
+Publication remains gated on independent human review, exact merged-main CI,
+both image architectures' vulnerability and authenticated runtime checks, and
+chart qualification. The published install guides remain on 0.3.18 until the
+new artifacts are published and verified. A dry run does not publish a release.
+Live-provider qualification and independent mapping/workpaper decisions remain
+separate dependencies; this candidate adds no live-provider receipt.
+
 ## 0.3.18 release
 
 0.3.18 is published; see the [publication receipt](#verified-0318-publication).

@@ -3,6 +3,15 @@
 All notable GRC Lake changes are summarized here. Versions follow semver for the
 Python package, Helm chart, and bundled web console.
 
+## 0.3.19 - 2026-10-28
+
+- Route model-provider requests through the guarded HTTP transport: validate redirects, pin DNS resolution, strip credentials on cross-origin redirects, and cap response bytes.
+- Apply the 5 MiB request-body ceiling to every mutation content type, including chunked form and webhook bodies, with a smaller 256 KiB limit for SAML ACS request bodies.
+- Bound provider responses at 8 MiB and collection runs at 128 MiB. Oversized responses produce explicit collection gaps instead of clean or silently partial evidence. Bound framework downloads at 32 MiB through the public-address redirect guard, and bound conditional-write storage probes to their expected five-byte value.
+- Separate focused CCF families for identity, supplier risk and AI governance without changing safeguard evaluation or mapping review decisions.
+- Add a source-pinned FedRAMP KSI identity assessment subset covering 2 of 46 source indicators, with dedicated evidence requirements and a draft review packet. Both mappings remain proposed; the subset does not establish certification, authorization or complete assessment coverage.
+- Record the Artifact Hub Helm repository registration and refresh CI shard weights from complete hosted timing runs without reducing test coverage.
+
 ## 0.3.18 - 2026-10-27
 
 - Explain first-run control tests, framework attestation, evidence completeness and human review separately; fixture loads and draft workpaper exports print the next verification commands. Verification checks content consistency, not reviewer identity.
