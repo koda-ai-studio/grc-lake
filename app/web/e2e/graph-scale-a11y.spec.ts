@@ -185,7 +185,7 @@ test("investigation labels stale evidence, unattested controls, safeguards and i
     '.react-flow__node[data-id="control:SOC2-CC6.1"]',
   );
   await expect(control).toContainText("Control test passing · Not attested");
-  await expect(control).not.toContainText("Passing control");
+  await expect(control).not.toContainText("Passing · Attested");
   await expect(
     page.locator('.react-flow__node[data-id="evidence:mfa"]'),
   ).toContainText("Stale evidence");

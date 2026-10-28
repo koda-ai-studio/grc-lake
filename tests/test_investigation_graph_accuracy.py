@@ -125,3 +125,137 @@ def test_safeguard_evidence_with_an_inapplicable_asset_type_is_marked_invalid(tm
     for event_id in ("wrong-type", "mixed-a", "mixed-b"):
         assert edges[event_id]["binding"] == "invalid_asset_type"
         assert edges[event_id]["binding_reason"] == "The asset type does not establish safeguard applicability."
+
+
+def _jsonl(path: Path) -> list[dict]:
+    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line]
+
+
+def test_control_nodes_carry_the_control_test_result_and_missing_evidence(golden: Path) -> None:
+    tests = {row["control_id"]: row for row in _jsonl(golden / "gold/control_tests.jsonl")}
+    posture = {row["control_id"]: row for row in _jsonl(golden / "gold/control_posture.jsonl")}
+    needs = [cid for cid, row in tests.items() if row["result"] == "needs_evidence"]
+    assert "SOC2-CC7.2" in needs and "ISO27001-A.5.15" in needs
+    assert posture["SOC2-CC7.2"]["status"] == "stale"
+    for cid, row in tests.items():
+        graph = investigation_graph(golden, root="control:" + cid, depth=1)
+        node = next(n for n in graph["nodes"] if n["id"] == "control:" + cid)
+        assert node["status"] == row["result"], cid
+        assert node["posture_status"] == posture[cid]["status"], cid
+        assert node["missing_evidence_types"] == row["missing_evidence_types"], cid
+        assert node["stale_evidence_types"] == sorted({*row["stale_evidence_types"], *row["expired_evidence_types"]})
+    cc72 = investigation_graph(golden, root="control:SOC2-CC7.2", depth=1)["nodes"]
+    assert len(next(n for n in cc72 if n["id"] == "control:SOC2-CC7.2")["missing_evidence_types"]) == 6
+
+
+@pytest.mark.parametrize("depth", [1, 2])
+def test_failing_control_reaches_its_finding_within_the_default_depth(golden: Path, depth: int) -> None:
+    root = "control:NIST-AI-RMF-GOVERN-1.2"
+    deep = investigation_graph(golden, root=root, depth=3)
+    expected = {n["id"]: n for n in deep["nodes"] if n["kind"] == "finding" and n["control_ids"] == [root[8:]]}
+    assert expected
+
+    graph = investigation_graph(golden, root=root, depth=depth)
+    control = next(n for n in graph["nodes"] if n["id"] == root)
+    assert control["finding_count"] == len(expected)
+    for summary in control["findings"]:
+        finding = expected[summary["id"]]
+        assert summary["kind"] == "finding"
+        assert summary["owner"] == finding["owner"] and summary["owner"]
+        assert summary["next_action"] == finding["next_action"] and summary["next_action"]
+        assert summary["severity"] == finding["severity"]
+        assert summary["status"] == finding["status"]
+
+
+def _failing_events(count: int, control_ids: list[str]) -> list[dict]:
+    return [
+        {
+            "tenant_id": "a",
+            "source": "okta",
+            "event_id": f"fail-{index}",
+            "event_type": "identity.mfa",
+            "status": "failed",
+            "severity": "critical" if index == count - 1 else "low",
+            "asset_id": f"user-{index}",
+            "asset_type": "identity_user",
+            "control_ids": control_ids,
+            "event_time": "2026-10-01T00:00:00Z",
+        }
+        for index in range(count)
+    ]
+
+
+def test_control_findings_are_bounded_most_severe_first_and_scoped_to_the_control(tmp_path: Path) -> None:
+    _write_jsonl(tmp_path / "silver/normalized_events.jsonl", _failing_events(7, ["SOC2-CC6.1", "SOC2-CC6.2"]))
+    graph = investigation_graph(tmp_path, root="control:SOC2-CC6.1", depth=2, limit=300)
+    control = next(n for n in graph["nodes"] if n["id"] == "control:SOC2-CC6.1")
+    assert control["finding_count"] == 7
+    assert len(control["findings"]) == 5
+    assert control["findings"][0]["severity"] == "critical"
+    assert all(item["label"] == "SOC2-CC6.1 finding" for item in control["findings"])
+    # The canvas keeps its shape: findings are not added to the default walk.
+    assert not [n for n in graph["nodes"] if n["kind"] == "finding"]
+
+
+def test_passing_control_carries_no_findings(tmp_path: Path) -> None:
+    graph = investigation_graph(tmp_path, root="control:SOC2-CC6.1", depth=1)
+    control = next(n for n in graph["nodes"] if n["id"] == "control:SOC2-CC6.1")
+    assert "findings" not in control and "finding_count" not in control
+
+
+def test_passed_evidence_without_a_freshness_record_is_never_fresh(tmp_path: Path) -> None:
+    _write_jsonl(
+        tmp_path / "silver/normalized_events.jsonl",
+        [
+            {
+                "tenant_id": "account-a",
+                "source": "okta",
+                "event_id": "no-freshness",
+                "event_type": "identity.mfa",
+                "status": "pass",
+                "asset_id": "user-1",
+                "asset_type": "identity_user",
+                "control_ids": ["SOC2-CC6.1"],
+                "event_time": "2026-10-01T00:00:00Z",
+            }
+        ],
+    )
+    graph = investigation_graph(tmp_path, root="control:SOC2-CC6.1", depth=1)
+    evidence = next(n for n in graph["nodes"] if n["kind"] == "evidence_type")
+    assert evidence["freshness_status"] == "missing"
+
+
+def test_freshness_is_matched_to_the_exact_recorded_event(tmp_path: Path) -> None:
+    from datetime import UTC, datetime
+
+    from security_lakehouse.evidence_freshness import build_evidence_freshness
+
+    base = {
+        "source": "okta",
+        "event_type": "identity.mfa",
+        "status": "pass",
+        "asset_type": "identity_user",
+        "control_ids": ["SOC2-CC6.1"],
+        "evidence_ref": "s3://evidence.example.com/mfa.json",
+    }
+    events = [
+        # One event id recorded on two assets: each keeps its own freshness.
+        {**base, "tenant_id": "a", "event_id": "shared", "asset_id": "old", "event_time": "2026-01-01T00:00:00Z"},
+        {**base, "tenant_id": "a", "event_id": "shared", "asset_id": "new", "event_time": "2026-10-01T00:00:00Z"},
+        # Account recorded only under its canonical field name.
+        {**base, "source_account_id": "b", "event_id": "canon", "asset_id": "u", "event_time": "2026-01-01T00:00:00Z"},
+    ]
+    _write_jsonl(tmp_path / "silver/normalized_events.jsonl", events)
+    freshness = build_evidence_freshness(events, now=datetime(2026, 10, 1, 0, 10, tzinfo=UTC))
+    _write_jsonl(tmp_path / "gold/evidence_freshness.jsonl", freshness)
+    expected = {(r["asset_id"], r["event_id"]): r["status"] for r in freshness}
+    assert expected[("new", "shared")] == "fresh"
+    assert expected[("old", "shared")] != "fresh"
+
+    graph = investigation_graph(tmp_path, root="control:SOC2-CC6.1", depth=2, limit=300)
+    nodes = {n["id"]: n for n in graph["nodes"]}
+    covers = {
+        e["source"]: nodes[e["target"]]["asset_id"] for e in graph["edges"] if e["kind"] == "evidence_covers_asset"
+    }
+    actual = {(covers[key], n["evidence_id"]): n["freshness_status"] for key, n in nodes.items() if key in covers}
+    assert actual == expected

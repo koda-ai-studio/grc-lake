@@ -97,3 +97,42 @@ test("canvas nodes open details by mouse and keyboard", async ({ page }) => {
   await node.press("Enter");
   await expect(inspector).toBeVisible();
 });
+
+test("a failing control lists its findings with owner and next action", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/console/graph/?root=control%3ASOC2-CC6.1");
+  await page.locator('.react-flow__node[data-id="control:SOC2-CC6.1"]').click();
+  const inspector = page.getByRole("complementary", {
+    name: "Selected graph node",
+  });
+  const findings = inspector.getByRole("region", {
+    name: "Findings on this control",
+  });
+  await expect(findings).toContainText("4 findings");
+  const first = findings.getByRole("button").first();
+  await expect(first).toContainText("SOC2-CC6.1");
+  await expect(first).toContainText("Owner");
+  await first.click();
+  await expect(inspector).toContainText("Finding details");
+  await expect(inspector).toContainText(
+    "Review evidence and assign remediation in Findings",
+  );
+});
+
+test("a control that needs evidence names the missing types, never stale", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/console/graph/?root=control%3ASOC2-CC7.2");
+  const control = page.locator(
+    '.react-flow__node[data-id="control:SOC2-CC7.2"]',
+  );
+  await expect(control).toContainText("Needs evidence");
+  await expect(control).not.toContainText("Stale assessment");
+  await control.click();
+  await expect(
+    page.getByRole("complementary", { name: "Selected graph node" }),
+  ).toContainText("Collect the missing audit.chain");
+});

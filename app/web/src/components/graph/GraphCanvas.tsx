@@ -78,6 +78,7 @@ import type {
   GraphNode,
   GraphNodeKind,
 } from "@/lib/api/types";
+import { STALE_FRESHNESS } from "@/lib/evidence-status";
 
 interface GraphNodeData extends Record<string, unknown> {
   label: string;
@@ -867,12 +868,11 @@ function InnerGraphCanvas({
 
   const staleScopeIds = useMemo(() => {
     if (!graph || !filterStaleOnly) return null;
-    const staleStatuses = new Set(["stale", "expired", "missing"]);
     const seed = new Set<string>();
     for (const node of graph.nodes) {
       if (
         node.kind === "signal_gap" ||
-        (node.freshness_status && staleStatuses.has(node.freshness_status))
+        (node.freshness_status && STALE_FRESHNESS.has(node.freshness_status))
       ) {
         seed.add(node.id);
       }

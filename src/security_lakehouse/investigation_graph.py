@@ -1,7 +1,8 @@
 """Bounded neighborhoods of recorded evidence and explicitly scoped relationships.
 
 Catalog edges describe mappings, not evaluated compliance or attack paths.
-The browser receives a bounded slice; hidden neighbors stay explicitly counted.
+The browser receives a bounded slice; each response states how many nodes matched
+the walk and whether the slice was truncated.
 """
 
 import hashlib
@@ -32,6 +33,9 @@ from security_lakehouse.safeguards import effective_review_state, load_ccf_categ
 from security_lakehouse.tracking import list_events
 
 _MODEL_CACHE = ModelCache()
+_SEVERITY_RANK = {"critical": 0, "high": 1, "medium": 2, "low": 3}
+_FINDING_SUMMARY = ("id", "kind", "label", "owner", "severity", "status", "next_action", "evidence_id", "event_type")
+_FINDING_SUMMARY_LIMIT = 5
 # Every generated input read by _build_model/add_repository_context. Missing
 # optional files also participate, so later additions cannot reuse an old model.
 _MODEL_FILES = (
@@ -39,6 +43,7 @@ _MODEL_FILES = (
     "catalog/safeguards.json",
     "gold/ccf_assessment.json",
     "gold/control_posture.jsonl",
+    "gold/control_tests.jsonl",
     "gold/evidence_freshness.jsonl",
     "silver/normalized_events.jsonl",
     "gold/asset_risk.jsonl",
@@ -157,12 +162,16 @@ def _build_model(
     posture = {
         r["control_id"]: r for r in read_jsonl(lake / "gold/control_posture.jsonl", missing_ok=True, base_dir=lake)
     }
+    tests = {r["control_id"]: r for r in read_jsonl(lake / "gold/control_tests.jsonl", missing_ok=True, base_dir=lake)}
     frameworks = framework_registry_view()
     for cid, row in controls.items():
         check()
         fid = str(row.get("framework_id") or "")
         node("framework", "framework:" + fid, frameworks.get(fid, {}).get("name", fid), framework_id=fid)
         evaluated = posture.get(cid, {})
+        # The control test is the verdict the Controls page shows; posture alone
+        # reports missing evidence as stale.
+        tested = tests.get(cid, {})
         node(
             "control",
             "control:" + cid,
@@ -170,7 +179,12 @@ def _build_model(
             subtitle=row.get("title"),
             framework_id=fid,
             owner=row.get("owner"),
-            status=evaluated.get("status", "not_evaluated"),
+            status=tested.get("result") or evaluated.get("status", "not_evaluated"),
+            posture_status=evaluated.get("status", "not_evaluated"),
+            missing_evidence_types=sorted(tested.get("missing_evidence_types") or []),
+            stale_evidence_types=sorted(
+                {*(tested.get("stale_evidence_types") or []), *(tested.get("expired_evidence_types") or [])}
+            ),
             risk_score=evaluated.get("risk_score"),
             rule_reasons=list(evaluated.get("rule_reasons") or []),
             evaluation_rule=evaluated.get("evaluation_rule"),
@@ -202,8 +216,9 @@ def _build_model(
             edge("control:" + member["control_id"], sid, "maps_to", review_state=effective_review_state(member))
 
     check()
+    # Keyed exactly as the freshness projection records each source row.
     freshness = {
-        (r.get("tenant_id", ""), r.get("event_id")): r
+        (str(r.get("tenant_id") or ""), str(r.get("event_id") or ""), str(r.get("asset_id") or "")): r
         for r in read_jsonl(lake / "gold/evidence_freshness.jsonl", missing_ok=True, base_dir=lake)
     }
     triage = {}
@@ -212,6 +227,7 @@ def _build_model(
     events = read_jsonl(lake / "silver/normalized_events.jsonl", missing_ok=True, base_dir=lake)
     asset_names = names_from_assets(read_jsonl(lake / "gold/asset_risk.jsonl", missing_ok=True, base_dir=lake))
     evidence_by_event = defaultdict(list)
+    findings_by_control: dict[str, set[str]] = defaultdict(set)
     check()
     ordered_events = sorted(((canonical_sha256(event), event) for event in events), key=lambda item: item[0])
     # Safeguard bindings are judged on every type recorded for the asset, as in
@@ -235,7 +251,9 @@ def _build_model(
         aid = _id("asset", account, asset)
         eid = "evidence:" + event_hash
         evidence_by_event[(account, event.get("event_id"), asset)].append(eid)
-        fresh = freshness.get((account, event.get("event_id")), {})
+        recorded = str(event.get("tenant_id") or ""), str(event.get("event_id") or "")
+        # Rows written without an asset id apply to the event as a whole.
+        fresh = freshness.get((*recorded, str(event.get("asset_id") or "")), freshness.get((*recorded, ""), {}))
         node(
             "evidence_type",
             eid,
@@ -246,7 +264,7 @@ def _build_model(
             evidence_id=event.get("event_id"),
             evidence_ref=event.get("evidence_ref"),
             raw_sha256=event.get("raw_sha256"),
-            freshness_status=fresh.get("status"),
+            freshness_status=fresh.get("status", "missing"),
             status=event.get("status"),
             basis="Observed record; not a compliance verdict",
         )
@@ -299,6 +317,7 @@ def _build_model(
                 )
                 edge(aid, finding, "has_finding")
                 edge(finding, eid, "has_evidence")
+                findings_by_control[cid].add(finding)
         for sid in sorted(set(event.get("safeguard_ids") or [])):
             if binding_applies(asset_types[(account, asset)], eligible_types.get(sid, set())):
                 edge("safeguard:" + sid, eid, "has_evidence")
@@ -310,6 +329,17 @@ def _build_model(
                     binding="invalid_asset_type",
                     binding_reason=INVALID_ASSET_TYPE_REASON,
                 )
+
+    # A failing control lists its findings (owner, next action) on the control
+    # itself, so the default walk reaches them without widening the canvas.
+    for cid, keys in sorted(findings_by_control.items()):
+        check()
+        if (control := nodes.get("control:" + cid)) is not None:
+            ranked = sorted(keys, key=lambda key: (_SEVERITY_RANK.get(str(nodes[key].get("severity")), 4), key))
+            control["finding_count"] = len(ranked)
+            control["findings"] = [
+                {field: nodes[key].get(field) for field in _FINDING_SUMMARY} for key in ranked[:_FINDING_SUMMARY_LIMIT]
+            ]
 
     check()
     if platform_tenant_id is not None:
