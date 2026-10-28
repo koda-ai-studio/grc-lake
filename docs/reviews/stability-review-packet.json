@@ -208,7 +208,7 @@
   ],
   "control_filter": ["SOC2-A1.3", "SOC2-C1.1"],
   "framework_filter": "soc2",
-  "packet_sha256": "95b1fbb57e7be30e507836edb9ac65e3605fbb82a589d517449c957e403406be",
+  "packet_sha256": "9e52b781778602704cf4004d30bf59cbe172be22306d69e767436009ac515cfc",
   "review_checklist": [
     "Compare the complete requirement and source with the safeguard operating contract; a related topic is not equivalence.",
     "Check evidence specificity, applicability, parameters, prerequisites and limitations.",
@@ -219,17 +219,17 @@
   "scope": "catalog",
   "summary": {
     "additional_mapped_needed": 0,
-    "additional_reviewed_needed": 255,
+    "additional_reviewed_needed": 256,
     "batch_count": 1,
-    "catalog_requirements": 2282,
+    "catalog_requirements": 2284,
     "distinct_requirements_in_packet": 2,
     "mapped_pct": 96.2,
-    "mapped_requirements": 2196,
-    "mapped_target": 1826,
+    "mapped_requirements": 2198,
+    "mapped_target": 1828,
     "requirements_needing_catalog_repair": 0,
     "requirements_with_source_references": 0,
     "reviewed_pct": 38.8,
     "reviewed_requirements": 886,
-    "reviewed_target": 1141
+    "reviewed_target": 1142
   }
 }

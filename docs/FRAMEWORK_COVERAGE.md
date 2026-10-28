@@ -5,9 +5,9 @@ Regenerate with `make coverage-doc`. Mapping coverage measures catalog curation,
 not operating effectiveness, assessment completion, or certification. API fields
 retain `evaluatable` and `attestable` names for compatibility.
 
-Framework packs: 21 with catalogued requirements (2 more registry entries planned or superseded)
-Requirements catalogued: 2282 (all source-cited)
-Mapped (touched by a safeguard): 2196 (96.2%)
+Framework packs: 22 with catalogued requirements (2 more registry entries planned or superseded)
+Requirements catalogued: 2284 (all source-cited)
+Mapped (touched by a safeguard): 2198 (96.2%)
 Reviewed safeguard mappings: 886 (38.8%), of which 381 are source-native self-maps and 505 are crosswalk-reviewed (22.1%); 0 rest only on legacy reviews with no recorded reviewer
 Asset types modeled: 20
 
@@ -20,6 +20,7 @@ Asset types modeled: 20
 | CMMC 2.0 Level 2 (NIST SP 800-171 alignment) | [DoD CMMC Program](https://dodcio.defense.gov/CMMC/Documentation/) | implemented_full_pack | 110 | 110 | 110 | 19 | 17.3% | 0 | 19 | 17.3% | 0 | never pulled |
 | DORA - Digital Operational Resilience Act (EU) 2022/2554 | [EUR-Lex, Regulation (EU) 2022/2554 (CELEX 32022R2554)](https://eur-lex.europa.eu/eli/reg/2022/2554/oj) | implemented_limited_mapping | 99 | 99 | 79 | 79 | 79.8% | 0 | 79 | 79.8% | 0 | fresh |
 | EU AI Act - Regulation (EU) 2024/1689 | [EUR-Lex - Regulation (EU) 2024/1689](https://eur-lex.europa.eu/eli/reg/2024/1689/oj) | implemented_limited_mapping | 16 | 16 | 16 | 1 | 6.2% | 0 | 1 | 6.2% | 0 | never pulled |
+| FedRAMP KSI identity assessment subset | [FedRAMP Consolidated Rules for 2026](https://raw.githubusercontent.com/FedRAMP/rules/a89d78477ddea98dc57eca24f5007794c2b4eeb6/fedramp-consolidated-rules.json) | implemented_limited_mapping | 2 | 2 | 2 | 0 | 0.0% | 0 | 0 | 0.0% | 0 | fresh |
 | NIST SP 800-53B Moderate baseline (FedRAMP foundation only) | [NIST SP 800-53 Rev 5 Moderate baseline (FedRAMP Moderate foundation)](https://csrc.nist.gov/publications/detail/sp/800-53b/final) | implemented_full_pack | 287 | 287 | 262 | 18 | 6.3% | 0 | 18 | 6.3% | 0 | never pulled |
 | GDPR - EU General Data Protection Regulation (2016/679) | [EUR-Lex - Regulation (EU) 2016/679](https://eur-lex.europa.eu/eli/reg/2016/679/oj) | implemented_limited_mapping | 20 | 20 | 20 | 0 | 0.0% | 0 | 0 | 0.0% | 0 | never pulled |
 | HIPAA Security Rule (45 CFR Parts 160, 162, 164) | [U.S. HHS HIPAA Security Rule](https://www.hhs.gov/hipaa/for-professionals/security/index.html) | implemented_limited_mapping | 24 | 24 | 19 | 0 | 0.0% | 0 | 0 | 0.0% | 0 | never pulled |
@@ -45,7 +46,7 @@ Every seeded control declares the asset types it applies to. The pipeline joins 
 
 | Asset type | Applicable controls |
 | --- | ---: |
-| `service` | 1819 |
+| `service` | 1821 |
 | `audit_log` | 793 |
 | `cloud_resource` | 650 |
 | `cloud_policy` | 636 |

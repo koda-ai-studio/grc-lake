@@ -1,0 +1,29 @@
+{
+  "source": {
+    "name": "FedRAMP Consolidated Rules for 2026",
+    "url": "https://raw.githubusercontent.com/FedRAMP/rules/a89d78477ddea98dc57eca24f5007794c2b4eeb6/fedramp-consolidated-rules.json",
+    "commit": "a89d78477ddea98dc57eca24f5007794c2b4eeb6",
+    "version": "2026.10.13.01",
+    "sha256": "fb48d677a85d77fb72735a325de2c1945a1e0ceab1d2e655292fe9ebe3e4e0b4",
+    "schema_url": "https://raw.githubusercontent.com/FedRAMP/rules/a89d78477ddea98dc57eca24f5007794c2b4eeb6/schemas/fedramp-consolidated-rules.schema.json",
+    "schema_sha256": "eb4710bee0b06d0f8f803302ac2e88b934ef2bc942d0b548738c7304f0cb418f",
+    "pulled_at": "2026-10-27"
+  },
+  "scope": "Two identity indicators only; all other indicators and process rules remain outside this assessment slice. No FedRAMP readiness, certification or authorization claim.",
+  "rows": [
+    {
+      "id": "KSI-IAM-AAM",
+      "risk_domain": "identity-lifecycle",
+      "evidence_checks": "Reconciled inventories of all scoped accounts, roles and groups; joiner, mover and leaver automation; privilege change records; execution results and exceptions; stale or orphaned identity detection; coverage of non-user identities and external identity providers.",
+      "mapping_rationale": "A dedicated assessor record examines lifecycle and privilege automation for all three source populations; generic account inventory alone does not demonstrate the indicator.",
+      "failure_modes": "Unmanaged groups or service identities, incomplete joiner/mover/leaver coverage, failed disablement jobs, unreviewed privilege changes, or missing population reconciliation."
+    },
+    {
+      "id": "KSI-IAM-APM",
+      "risk_domain": "authentication",
+      "evidence_checks": "Scoped user population and authentication methods; passwordless enforcement and validation; documented feasibility exceptions; strong-password and phishing-resistant MFA enforcement for each exception; enrollment, recovery and bypass paths; execution results and exceptions.",
+      "mapping_rationale": "A dedicated assessor record distinguishes secure passwordless methods from the source fallback requiring both strong passwords and phishing-resistant MFA. A generic MFA-enabled flag is insufficient.",
+      "failure_modes": "Password-only fallback, phishable MFA, undocumented feasibility exceptions, unenrolled users, bypass or recovery paths, and policy configuration without enforcement evidence."
+    }
+  ]
+}

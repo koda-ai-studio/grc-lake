@@ -18,8 +18,8 @@ from security_lakehouse.golden_fixture import GOLDEN_COMPANY
 from security_lakehouse.pipeline import run_pipeline
 
 EXPECTED_SHA256 = {
-    "gold/asset_risk.jsonl": "870e5b668cfcce43a372adfa175ce1a1cfd00ae1ad525870ea95de67a31cc820",
-    "gold/ccf_assessment.json": "6d73cba544741bfc505df9b941128b5683e158317179115e0753cde20807b936",
+    "gold/asset_risk.jsonl": "9d7d659ed494ddebecd60609261d98d9bc28fad477e09bedd0d6ca80d5df03c9",
+    "gold/ccf_assessment.json": "b26963ffa6f4d5fafea7791d709f3c31df86e607dbf6f9625114db22d4666177",
     "gold/control_posture.jsonl": "8745dc874c270497f95271ca2f45e7b9326d551539480b56c83c67f07c47dd72",
     "gold/metrics.json": "11582aceb81b7737b0108c4864e61b1ee5177663bab7db6fc9ce5cb0946c1a96",
     "silver/normalized_events.jsonl": "b11ed7005eb4ad6baf2e6f331499ab50cfd119429d6dc8d6d2549d0d4cdea95a",
@@ -38,6 +38,10 @@ def test_golden_pipeline_artifacts_are_byte_identical(tmp_path: Path) -> None:
     # Reviewed mappings still require operational evidence before they can pass.
     assessment = json.loads((lake / "gold/ccf_assessment.json").read_text())
     requirements = {row["control_id"]: row for row in assessment["requirements"]}
+    for control_id in ("KSI-IAM-AAM", "KSI-IAM-APM"):
+        assert requirements[control_id]["status"] == "not_evaluated"
+        assert requirements[control_id]["pending_mapping_count"] == 1
+        assert requirements[control_id]["reviewed_safeguard_ids"] == []
     for control_id in (
         "NIST-800-171R3-03.09.01",
         "NIST-800-171R3-03.12.05",

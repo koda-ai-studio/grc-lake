@@ -203,6 +203,7 @@ where = ["src"]
     "frameworks/packs/data/dora_2022_2554.json",
     "frameworks/packs/data/eu_ai_act_2024_1689.json",
     "frameworks/packs/data/evidence_connector_hints.json",
+    "frameworks/packs/data/fedramp_ksi_2026.json",
     "frameworks/packs/data/gdpr_2016_679.json",
     "frameworks/packs/data/hipaa_security_rule.json",
     "frameworks/packs/data/iso_27001_2022.json",

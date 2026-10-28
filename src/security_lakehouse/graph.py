@@ -740,6 +740,7 @@ def _framework_from_control(control_id: str) -> str | None:
     if re.fullmatch(r"ISO27001-(?:[4-9]|10)\.\d+(?:\.\d+)?", control_id):
         return "iso-27001-isms-2022"
     prefixes = (
+        ("KSI-", "fedramp-ksi-2026"),
         ("SOC2-", "soc2"),
         ("ISO27001-", "iso-27001-2022"),
         ("ISO27017-", "iso-27017-2015"),

@@ -5,6 +5,9 @@ safeguard mappings, evidence requirements, and evaluation rules. Full packs
 cover every identifier in the official source; limited-mapping packs seed an
 honest, cited subset.
 
+The [FedRAMP KSI assessment subset](FEDRAMP_KSI_ASSESSMENTS.md) separately seeds
+2 of 46 source indicators with proposed mappings and dedicated assessor evidence.
+
 ## Full packs (100% ID coverage)
 
 | Pack                         | Framework ID          | Controls                                                                              | Official source                                                                                                                                    |

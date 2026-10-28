@@ -26,7 +26,8 @@ repos:
         exclude: \.svg$
       - id: check-added-large-files
         args: [--maxkb=512]
-        exclude: ^app/web/package-lock\.json$|^uv\.lock$
+        # Digest-pinned official FedRAMP source is 573 KiB; keep upstream bytes intact.
+        exclude: ^app/web/package-lock\.json$|^uv\.lock$|^frameworks/packs/sources/fedramp-2026/rules\.json$
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.13.3

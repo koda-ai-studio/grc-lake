@@ -156,3 +156,5 @@ Several pages describe the architecture at different depths; start with
 | [Evaluation lifecycle](diagrams/evaluation-lifecycle.md) | Evaluation stages                                                          |
 | [Hosting](diagrams/hosting.md)                           | Hosting model                                                              |
 | [Unified data model](diagrams/unified-data-model.md)     | Single-page data model                                                     |
+
+[FedRAMP KSI assessment subset](FEDRAMP_KSI_ASSESSMENTS.md) documents the two source-pinned proposed indicators, evidence limits and draft workpaper path.

@@ -40,7 +40,7 @@ def test_iso_gaps_have_distinct_unapproved_assessment_contracts(cid):
 
 def test_iso_additions_change_only_proposed_coverage():
     coverage = coverage_by_framework(without_repair_approvals(load_safeguards(), receipts=(BATCH_RECEIPT,)))
-    assert (coverage["covered"], coverage["reviewed"]) == (2196, 824)
+    assert (coverage["covered"], coverage["reviewed"]) == (2198, 824)
 
 
 def test_new_contract_refuses_unexpected_existing_mapping():

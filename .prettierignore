@@ -1,2 +1,6 @@
 docs/FRAMEWORK_COVERAGE.md
 docs/CONNECTOR_QUALIFICATION.md
+
+# Retained official source bytes are SHA-256 pinned; formatting changes their identity.
+frameworks/packs/sources/fedramp-2026/rules.json
+frameworks/packs/sources/fedramp-2026/schema.json

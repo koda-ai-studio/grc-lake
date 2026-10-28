@@ -145,7 +145,7 @@ def test_review_credit_changes_reviewed_counts_only_not_mapping_or_evidence():
     payload = load_safeguards()
     old = coverage_by_framework(without_repair_approvals(payload, receipts=(BATCH_RECEIPT,)))
     new = coverage_by_framework(payload)
-    assert old["covered"] == new["covered"] == 2196
+    assert old["covered"] == new["covered"] == 2198
     assert old["reviewed"] == 824
     assert new["reviewed"] == 824 + 26 + 36
     frameworks = new["frameworks"]

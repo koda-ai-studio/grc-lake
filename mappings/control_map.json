@@ -5993,6 +5993,20 @@
       "owner": "ai-security"
     },
     {
+      "control_id": "KSI-IAM-AAM",
+      "framework": "FedRAMP KSI identity assessment subset",
+      "title": "Automating Account Management",
+      "risk_domain": "identity-lifecycle",
+      "owner": "security-assurance"
+    },
+    {
+      "control_id": "KSI-IAM-APM",
+      "framework": "FedRAMP KSI identity assessment subset",
+      "title": "Adopting Passwordless Methods",
+      "risk_domain": "authentication",
+      "owner": "security-assurance"
+    },
+    {
       "control_id": "NIS2-Art21.2(a)",
       "framework": "NIS2 Directive",
       "title": "Risk analysis and information system security policies",

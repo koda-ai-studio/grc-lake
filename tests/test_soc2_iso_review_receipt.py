@@ -64,7 +64,7 @@ def test_review_credit_changes_only_the_approved_requirements_not_mapping_or_evi
     payload = load_safeguards()
     old = coverage_by_framework(without_repair_approvals(payload))
     new = coverage_by_framework(without_repair_approvals(payload, receipts=(BATCH_RECEIPT,)))
-    assert old["covered"] == new["covered"] == 2196
+    assert old["covered"] == new["covered"] == 2198
     assert old["reviewed"] == 789
     assert new["reviewed"] == 824
     assert new["reviewed_pct"] == 36.1

@@ -1,0 +1,925 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fedramp.gov/schema/documentation.json",
+  "title": "FedRAMP Consolidated Rules Schema",
+  "type": "object",
+  "required": ["info", "FRD", "FRR", "KSI"],
+  "properties": {
+    "info": {
+      "type": "object",
+      "required": ["title", "description", "version", "last_updated"],
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "version": { "type": "string" },
+        "last_updated": { "type": "string", "format": "date" },
+        "default_artifacts": { "$ref": "#/$defs/default_artifacts" }
+      },
+      "additionalProperties": false
+    },
+    "FRD": {
+      "type": "object",
+      "required": ["info", "data"],
+      "properties": {
+        "info": { "$ref": "#/$defs/frd_document_info" },
+        "data": { "$ref": "#/$defs/data_container_frd" }
+      },
+      "additionalProperties": false
+    },
+    "FRR": {
+      "type": "object",
+      "propertyNames": { "$ref": "#/$defs/frr_document_key" },
+      "additionalProperties": {
+        "type": "object",
+        "required": ["info", "data"],
+        "properties": {
+          "info": { "$ref": "#/$defs/frr_document_info" },
+          "data": { "$ref": "#/$defs/data_container_frr" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "KSI": {
+      "type": "object",
+      "propertyNames": { "$ref": "#/$defs/ksi_theme_key" },
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "web_name",
+          "short_name",
+          "status",
+          "indicators"
+        ],
+        "properties": {
+          "id": { "$ref": "#/$defs/ksi_theme_id" },
+          "name": { "type": "string" },
+          "web_name": { "type": "string" },
+          "short_name": { "$ref": "#/$defs/ksi_theme_key" },
+          "status": { "$ref": "#/$defs/document_status" },
+          "indicators": {
+            "type": "object",
+            "propertyNames": { "$ref": "#/$defs/ksi_indicator_id" },
+            "additionalProperties": { "$ref": "#/$defs/ksi_indicator" }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "CTL": {
+      "type": "object",
+      "description": "Control families, keyed by 2 letter family code (e.g. AC, AU, CA)",
+      "propertyNames": {
+        "pattern": "^[A-Z]{2}$"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "description": "Controls within a family, keyed by control ID (e.g. AC-02, AC-02-01)",
+        "propertyNames": {
+          "pattern": "^[A-Z]{2}-\\d{2}(-\\d{2})?$"
+        },
+        "additionalProperties": {
+          "type": "object",
+          "description": "Guidance and parameters for a single control",
+          "additionalProperties": false,
+          "minProperties": 1,
+          "properties": {
+            "guidance": {
+              "type": "array",
+              "description": "Guidance strings that apply uniformly across all classes",
+              "items": { "type": "string", "minLength": 1 },
+              "minItems": 1
+            },
+            "parameters": {
+              "type": "array",
+              "description": "Parameters that apply uniformly across all classes",
+              "items": {
+                "type": "object",
+                "required": ["parameterId", "value"],
+                "additionalProperties": false,
+                "properties": {
+                  "parameterId": { "type": "string", "minLength": 1 },
+                  "value": { "type": "string", "minLength": 1 }
+                }
+              },
+              "minItems": 1
+            },
+            "varies_by_class": {
+              "type": "object",
+              "description": "Per-class parameters and guidance",
+              "additionalProperties": false,
+              "properties": {
+                "b": { "$ref": "#/$defs/classData" },
+                "c": { "$ref": "#/$defs/classData" },
+                "d": { "$ref": "#/$defs/classData" }
+              }
+            },
+            "updated": { "$ref": "#/$defs/updated_list" }
+          }
+        }
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "classData": {
+      "type": "object",
+      "description": "Class-specific parameters and guidance",
+      "additionalProperties": false,
+      "properties": {
+        "guidance": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "minItems": 1
+        },
+        "parameters": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["parameterId", "value"],
+            "additionalProperties": false,
+            "properties": {
+              "parameterId": { "type": "string", "minLength": 1 },
+              "value": { "type": "string", "minLength": 1 }
+            }
+          },
+          "minItems": 1
+        }
+      }
+    },
+    "frd_document_info": {
+      "type": "object",
+      "required": ["name", "short_name", "web_name", "purpose", "status"],
+      "properties": {
+        "name": { "type": "string" },
+        "short_name": { "type": "string", "pattern": "^[A-Z]{3}$" },
+        "web_name": { "type": "string" },
+        "purpose": { "type": "string" },
+        "status": { "$ref": "#/$defs/document_status" },
+        "effective": { "$ref": "#/$defs/effective_entry" },
+        "20x": { "$ref": "#/$defs/frd_document_info_certification" },
+        "rev5": { "$ref": "#/$defs/frd_document_info_certification" }
+      },
+      "allOf": [{ "$ref": "#/$defs/document_info_effective_rules" }],
+      "additionalProperties": false
+    },
+    "frd_document_info_certification": {
+      "type": "object",
+      "properties": {
+        "effective": { "$ref": "#/$defs/effective_entry" }
+      },
+      "additionalProperties": false
+    },
+    "frr_document_info": {
+      "type": "object",
+      "required": ["name", "short_name", "web_name", "purpose", "status"],
+      "properties": {
+        "name": { "type": "string" },
+        "short_name": { "type": "string", "pattern": "^[A-Z]{3}$" },
+        "web_name": { "type": "string" },
+        "purpose": { "type": "string" },
+        "status": { "$ref": "#/$defs/document_status" },
+        "tag": { "type": "string" },
+        "effective": { "$ref": "#/$defs/effective_entry" },
+        "subsets": { "$ref": "#/$defs/frr_info_subsets" },
+        "flows": { "$ref": "#/$defs/info_flows" },
+        "20x": { "$ref": "#/$defs/frr_document_info_certification" },
+        "rev5": { "$ref": "#/$defs/frr_document_info_certification" }
+      },
+      "allOf": [{ "$ref": "#/$defs/document_info_effective_rules" }],
+      "additionalProperties": false
+    },
+    "frr_document_info_certification": {
+      "type": "object",
+      "properties": {
+        "effective": { "$ref": "#/$defs/effective_entry" },
+        "subsets": { "$ref": "#/$defs/frr_info_subsets" },
+        "flows": { "$ref": "#/$defs/info_flows" }
+      },
+      "additionalProperties": false
+    },
+    "document_status": {
+      "type": "string",
+      "enum": ["stable", "placeholder", "empty"]
+    },
+    "frr_data_subset_name": {
+      "enum": [
+        "FRP",
+        "AGC",
+        "CSO",
+        "CSF",
+        "CSX",
+        "CSL",
+        "AFR",
+        "IAF",
+        "IAS",
+        "IAX",
+        "IAL",
+        "AGM",
+        "ADP",
+        "BST",
+        "CAS",
+        "ENH",
+        "EVA",
+        "OCR",
+        "IIP",
+        "QTR",
+        "RPT",
+        "RTR",
+        "TFR",
+        "TRC",
+        "TRF",
+        "UTC",
+        "CLA",
+        "APP",
+        "APS",
+        "USE",
+        "SPN",
+        "CCL"
+      ]
+    },
+    "frr_info_subset_name": {
+      "anyOf": [{ "$ref": "#/$defs/frr_data_subset_name" }]
+    },
+    "frr_subset_definition": {
+      "type": "object",
+      "required": ["name", "description", "applicability"],
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "applicability": { "$ref": "#/$defs/frr_subset_applicability" }
+      },
+      "additionalProperties": false
+    },
+    "frr_subset_applicability": {
+      "type": "object",
+      "required": ["types", "paths", "classes", "affects"],
+      "properties": {
+        "types": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/certification_type" },
+          "uniqueItems": true
+        },
+        "paths": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/certification_path" },
+          "uniqueItems": true
+        },
+        "classes": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/class_name" },
+          "uniqueItems": true
+        },
+        "affects": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/affected_party" },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "frr_info_subsets": {
+      "type": "object",
+      "propertyNames": { "$ref": "#/$defs/frr_info_subset_name" },
+      "patternProperties": {
+        "X$": {
+          "allOf": [
+            { "$ref": "#/$defs/frr_subset_definition" },
+            {
+              "type": "object",
+              "properties": {
+                "applicability": {
+                  "type": "object",
+                  "properties": {
+                    "types": { "const": ["20x"] },
+                    "paths": { "const": ["Program"] }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "additionalProperties": { "$ref": "#/$defs/frr_subset_definition" }
+    },
+    "info_flows": {
+      "type": "array"
+    },
+    "document_info_effective_rules": {
+      "type": "object",
+      "anyOf": [
+        {
+          "properties": {
+            "effective": true
+          },
+          "required": ["effective"]
+        },
+        {
+          "properties": {
+            "20x": {
+              "type": "object",
+              "properties": {
+                "effective": true
+              },
+              "required": ["effective"]
+            },
+            "rev5": {
+              "type": "object",
+              "properties": {
+                "effective": true
+              },
+              "required": ["effective"]
+            }
+          },
+          "required": ["20x", "rev5"]
+        }
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "effective": true
+            },
+            "required": ["effective"]
+          },
+          "then": {
+            "properties": {
+              "20x": {
+                "not": {
+                  "type": "object",
+                  "properties": {
+                    "effective": true
+                  },
+                  "required": ["effective"]
+                }
+              },
+              "rev5": {
+                "not": {
+                  "type": "object",
+                  "properties": {
+                    "effective": true
+                  },
+                  "required": ["effective"]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "20x": {
+                "type": "object",
+                "properties": {
+                  "effective": true
+                },
+                "required": ["effective"]
+              }
+            },
+            "required": ["20x"]
+          },
+          "then": {
+            "properties": {
+              "rev5": {
+                "type": "object",
+                "properties": {
+                  "effective": true
+                },
+                "required": ["effective"]
+              }
+            },
+            "required": ["rev5"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "rev5": {
+                "type": "object",
+                "properties": {
+                  "effective": true
+                },
+                "required": ["effective"]
+              }
+            },
+            "required": ["rev5"]
+          },
+          "then": {
+            "properties": {
+              "20x": {
+                "type": "object",
+                "properties": {
+                  "effective": true
+                },
+                "required": ["effective"]
+              }
+            },
+            "required": ["20x"]
+          }
+        }
+      ]
+    },
+    "effective_entry": {
+      "type": "object",
+      "required": ["is"],
+      "properties": {
+        "is": { "type": "string", "enum": ["required", "optional", "no"] },
+        "current_status": { "type": "string" },
+        "date": { "$ref": "#/$defs/effective_dates" },
+        "comments": { "type": "array", "items": { "type": "string" } },
+        "warnings": { "type": "array", "items": { "type": "string" } },
+        "signup_url": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "effective_dates": {
+      "type": "object",
+      "required": ["obtain", "maintain", "grace"],
+      "properties": {
+        "obtain": { "type": "string", "format": "date" },
+        "maintain": { "type": "string", "format": "date" },
+        "optional_adoption": { "type": "string", "format": "date" },
+        "grace": {
+          "type": "object",
+          "required": ["default", "until_next_assessment"],
+          "properties": {
+            "default": { "type": "string", "format": "date" },
+            "until_next_assessment": { "type": "boolean" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "data_container_frd": {
+      "type": "object",
+      "required": ["all"],
+      "properties": {
+        "all": { "$ref": "#/$defs/frd_definitions_map" },
+        "20x": { "$ref": "#/$defs/frd_definitions_map" },
+        "rev5": { "$ref": "#/$defs/frd_definitions_map" }
+      },
+      "additionalProperties": false
+    },
+    "frd_definitions_map": {
+      "type": "object",
+      "propertyNames": { "$ref": "#/$defs/frd_definition_id" },
+      "additionalProperties": { "$ref": "#/$defs/frd_definition" }
+    },
+    "frd_definition": {
+      "type": "object",
+      "required": ["term", "definition", "alts", "updated"],
+      "properties": {
+        "term": { "type": "string" },
+        "definition": { "type": "string" },
+        "note": { "type": "string" },
+        "notes": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 2
+        },
+        "tag": { "type": "string" },
+        "alts": { "type": "array", "items": { "type": "string" } },
+        "do_not_link": { "type": "boolean" },
+        "ignore_in_terms": { "type": "boolean" },
+        "reference": { "type": "string" },
+        "reference_url": { "type": "string", "format": "uri" },
+        "referenceurl": { "type": "string", "format": "uri" },
+        "updated": { "$ref": "#/$defs/updated_list" }
+      },
+      "additionalProperties": false
+    },
+    "data_container_frr": {
+      "type": "object",
+      "properties": {
+        "all": { "$ref": "#/$defs/frr_requirements_map" },
+        "20x": { "$ref": "#/$defs/frr_requirements_map" },
+        "rev5": { "$ref": "#/$defs/frr_requirements_map" }
+      },
+      "additionalProperties": false
+    },
+    "frr_requirements_map": {
+      "type": "object",
+      "propertyNames": { "$ref": "#/$defs/frr_data_subset_name" },
+      "additionalProperties": {
+        "$ref": "#/$defs/frr_requirements_subset_group"
+      }
+    },
+    "frr_requirements_subset_group": {
+      "type": "object",
+      "propertyNames": { "$ref": "#/$defs/frr_requirement_id" },
+      "additionalProperties": { "$ref": "#/$defs/frr_requirement" }
+    },
+    "frr_requirement": {
+      "type": "object",
+      "required": ["name", "affects", "updated"],
+      "oneOf": [
+        {
+          "properties": { "statement": {}, "force": {} },
+          "required": ["statement", "force"],
+          "not": {
+            "properties": { "varies_by_class": {} },
+            "required": ["varies_by_class"]
+          }
+        },
+        {
+          "properties": { "varies_by_class": {} },
+          "required": ["varies_by_class"],
+          "not": {
+            "anyOf": [
+              {
+                "properties": { "statement": {} },
+                "required": ["statement"]
+              },
+              {
+                "properties": { "force": {} },
+                "required": ["force"]
+              }
+            ]
+          }
+        }
+      ],
+      "properties": {
+        "name": { "type": "string" },
+        "statement": { "type": "string" },
+        "varies_by_class": {
+          "type": "object",
+          "required": ["b", "c"],
+          "properties": {
+            "a": { "$ref": "#/$defs/frr_requirement_level" },
+            "b": { "$ref": "#/$defs/frr_requirement_level" },
+            "c": { "$ref": "#/$defs/frr_requirement_level" },
+            "d": { "$ref": "#/$defs/frr_requirement_level" }
+          },
+          "additionalProperties": false
+        },
+        "following_information": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "following_information_bullets": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "danger": { "type": "string" },
+        "note": { "type": "string" },
+        "notes": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 2
+        },
+        "related": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "reference": { "type": "string" },
+        "reference_url": { "type": "string", "format": "uri" },
+        "reference_url_web_name": { "type": "string" },
+        "effective_date": { "$ref": "#/$defs/effective_dates" },
+        "corrective_actions": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "force": {
+          "$ref": "#/$defs/force_enum"
+        },
+        "affects": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/affected_party" },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "artifacts": { "$ref": "#/$defs/artifacts" },
+        "schema": { "$ref": "#/$defs/rule_schema" },
+        "examples": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "key_tests", "examples"],
+            "properties": {
+              "id": { "type": "string" },
+              "key_tests": { "type": "array", "items": { "type": "string" } },
+              "examples": { "type": "array", "items": { "type": "string" } }
+            },
+            "additionalProperties": false
+          }
+        },
+        "timeframe_type": { "$ref": "#/$defs/timeframe_type" },
+        "timeframe_num": { "$ref": "#/$defs/positive_number" },
+        "timeframe_num_min": { "$ref": "#/$defs/positive_number" },
+        "timeframe_num_max": { "$ref": "#/$defs/positive_number" },
+        "notification": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["party", "method", "target", "name"],
+            "properties": {
+              "party": { "$ref": "#/$defs/notification_party" },
+              "method": { "$ref": "#/$defs/notification_method" },
+              "target": { "type": "string" },
+              "name": { "type": "string" },
+              "url": { "type": "string", "format": "uri" }
+            },
+            "additionalProperties": false
+          }
+        },
+        "controls": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/control_id" },
+          "uniqueItems": true
+        },
+        "terms": { "type": "array", "items": { "type": "string" } },
+        "updated": { "$ref": "#/$defs/updated_list" }
+      },
+      "dependentRequired": {
+        "timeframe_num": ["timeframe_type"],
+        "timeframe_num_min": ["timeframe_type", "timeframe_num_max"],
+        "timeframe_num_max": ["timeframe_type", "timeframe_num_min"]
+      },
+      "dependentSchemas": {
+        "timeframe_type": {
+          "oneOf": [
+            {
+              "properties": { "timeframe_num": {} },
+              "required": ["timeframe_num"]
+            },
+            {
+              "properties": {
+                "timeframe_num_min": {},
+                "timeframe_num_max": {}
+              },
+              "required": ["timeframe_num_min", "timeframe_num_max"]
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "frr_requirement_level": {
+      "type": "object",
+      "required": ["force", "statement"],
+      "properties": {
+        "statement": { "type": "string" },
+        "following_information": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "rev5_controls_list": { "$ref": "#/$defs/rev5_controls_list" },
+        "note": { "type": "string" },
+        "notes": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 2
+        },
+        "force": { "$ref": "#/$defs/force_enum" },
+        "effective_date": { "$ref": "#/$defs/effective_dates" },
+        "timeframe_type": { "$ref": "#/$defs/timeframe_type" },
+        "timeframe_num": { "$ref": "#/$defs/positive_number" },
+        "pain_timeframes": { "$ref": "#/$defs/pain_timeframes" },
+        "artifacts": { "$ref": "#/$defs/artifacts" }
+      },
+      "dependentRequired": {
+        "timeframe_type": ["timeframe_num"],
+        "timeframe_num": ["timeframe_type"]
+      },
+      "additionalProperties": false
+    },
+    "rev5_controls_list": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": { "pattern": "^[A-Z]{2}$" },
+      "additionalProperties": {
+        "type": "array",
+        "items": { "$ref": "#/$defs/rev5_control_id" },
+        "minItems": 1,
+        "uniqueItems": true
+      }
+    },
+    "pain_timeframes": {
+      "type": "object",
+      "required": ["1", "2", "3", "4", "5"],
+      "properties": {
+        "1": { "$ref": "#/$defs/pain_timeframe_group" },
+        "2": { "$ref": "#/$defs/pain_timeframe_group" },
+        "3": { "$ref": "#/$defs/pain_timeframe_group" },
+        "4": { "$ref": "#/$defs/pain_timeframe_group" },
+        "5": { "$ref": "#/$defs/pain_timeframe_group" }
+      },
+      "propertyNames": { "pattern": "^[1-5]$" },
+      "additionalProperties": { "$ref": "#/$defs/pain_timeframe_group" }
+    },
+    "pain_timeframe_group": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/pain_timeframe_entry" }
+    },
+    "pain_timeframe_entry": {
+      "type": "object",
+      "required": ["timeframe_type", "timeframe_num", "description"],
+      "properties": {
+        "timeframe_type": { "$ref": "#/$defs/timeframe_type" },
+        "timeframe_num": { "$ref": "#/$defs/positive_number" },
+        "description": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "ksi_indicator": {
+      "type": "object",
+      "required": ["name", "controls", "updated"],
+      "oneOf": [
+        {
+          "properties": { "statement": {} },
+          "required": ["statement"],
+          "not": {
+            "properties": { "varies_by_class": {} },
+            "required": ["varies_by_class"]
+          }
+        },
+        {
+          "properties": { "varies_by_class": {} },
+          "required": ["varies_by_class"],
+          "not": {
+            "anyOf": [
+              {
+                "properties": { "statement": {} },
+                "required": ["statement"]
+              }
+            ]
+          }
+        }
+      ],
+      "properties": {
+        "name": { "type": "string" },
+        "statement": { "type": "string" },
+        "controls": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/control_id" },
+          "uniqueItems": true
+        },
+        "reference": { "type": "string" },
+        "reference_url": { "type": "string", "format": "uri" },
+        "updated": { "$ref": "#/$defs/updated_list" },
+        "artifacts": { "$ref": "#/$defs/artifacts" },
+        "varies_by_class": {
+          "type": "object",
+          "required": ["b", "c"],
+          "properties": {
+            "a": { "$ref": "#/$defs/ksi_indicator_level" },
+            "b": { "$ref": "#/$defs/ksi_indicator_level" },
+            "c": { "$ref": "#/$defs/ksi_indicator_level" },
+            "d": { "$ref": "#/$defs/ksi_indicator_level" }
+          },
+          "additionalProperties": false
+        },
+        "terms": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "ksi_indicator_level": {
+      "type": "object",
+      "required": ["statement"],
+      "properties": {
+        "statement": { "type": "string" },
+        "artifacts": { "$ref": "#/$defs/artifacts" }
+      },
+      "additionalProperties": false
+    },
+    "default_artifacts": {
+      "type": "object",
+      "required": ["FRR", "KSI"],
+      "properties": {
+        "FRR": { "$ref": "#/$defs/artifact_list" },
+        "KSI": { "$ref": "#/$defs/artifact_list" }
+      },
+      "additionalProperties": false
+    },
+    "artifacts": {
+      "type": "object",
+      "properties": {
+        "all": { "$ref": "#/$defs/artifact_list" },
+        "20x": { "$ref": "#/$defs/artifact_list" },
+        "rev5": { "$ref": "#/$defs/artifact_list" }
+      },
+      "minProperties": 1,
+      "additionalProperties": false
+    },
+    "artifact_list": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "rule_schema": {
+      "type": "object",
+      "required": ["name", "url"],
+      "properties": {
+        "name": { "type": "string" },
+        "url": { "type": "string", "format": "uri" }
+      },
+      "additionalProperties": false
+    },
+    "force_enum": {
+      "type": "string",
+      "description": "Defines the force of a requirement or indicator.",
+      "enum": ["MUST", "MUST NOT", "SHOULD", "SHOULD NOT", "MAY"]
+    },
+    "applicability_key": {
+      "type": "string",
+      "enum": ["all", "20x", "rev5"]
+    },
+    "class_key": {
+      "type": "string",
+      "enum": ["a", "b", "c", "d"]
+    },
+    "class_name": {
+      "type": "string",
+      "enum": ["A", "B", "C", "D"]
+    },
+    "certification_type": {
+      "type": "string",
+      "enum": ["20x", "Rev5"]
+    },
+    "certification_path": {
+      "type": "string",
+      "enum": ["Program", "Agency"]
+    },
+    "affected_party": {
+      "type": "string",
+      "enum": [
+        "Advisors",
+        "Agencies",
+        "Assessors",
+        "FedRAMP",
+        "Providers",
+        "Everyone"
+      ]
+    },
+    "notification_method": {
+      "type": "string",
+      "enum": ["email", "form", "update", "varies", "web"]
+    },
+    "notification_party": {
+      "type": "string",
+      "enum": [
+        "FedRAMP",
+        "Provider",
+        "Agency Customers",
+        "Everyone",
+        "All Necessary Parties",
+        "All Affected Parties"
+      ]
+    },
+    "timeframe_type": {
+      "type": "string",
+      "enum": ["bizdays", "days", "hours", "weeks", "months", "years"]
+    },
+    "positive_number": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "control_id": {
+      "type": "string",
+      "pattern": "^[a-z]{2}-\\d+(?:\\.\\d+)?$"
+    },
+    "rev5_control_id": {
+      "type": "string",
+      "pattern": "^[A-Z]{2}-\\d{2}(?: \\(\\d{2}\\))?$"
+    },
+    "frd_definition_id": {
+      "type": "string",
+      "pattern": "^FRD-[A-Z]{3}$"
+    },
+    "frr_document_key": {
+      "type": "string",
+      "pattern": "^[A-Z]{3}$"
+    },
+    "frr_requirement_id": {
+      "type": "string",
+      "pattern": "^(?!KSI-)[A-Z]{3}-[A-Z]{3}-[A-Z0-9]{3}$"
+    },
+    "ksi_theme_key": {
+      "type": "string",
+      "pattern": "^[A-Z]{3}$"
+    },
+    "ksi_theme_id": {
+      "type": "string",
+      "pattern": "^KSI-[A-Z]{3}$"
+    },
+    "ksi_indicator_id": {
+      "type": "string",
+      "pattern": "^KSI-[A-Z]{3}-[A-Z0-9]{3}$"
+    },
+    "updated_list": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["date", "comment"],
+        "properties": {
+          "date": { "type": "string", "format": "date" },
+          "comment": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    }
+  }
+}

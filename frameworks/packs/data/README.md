@@ -51,3 +51,8 @@ granular identifiers are retained. Newly reconciled entries cite their eCFR
 section and start on their source reconciliation date, without changing earlier
 catalog versions. Adding a source identity does not approve a cross-framework
 mapping or establish operating effectiveness.
+
+`fedramp_ksi_2026.json` contains 2 of 46 indicators from FedRAMP rules version
+2026.10.13.01. Reproduce it with `uv run python tools/sync_fedramp_ksi.py`; use
+`--check` for offline digest, schema, version and proposal verification. See the
+[KSI assessment guide](../../../docs/FEDRAMP_KSI_ASSESSMENTS.md).
