@@ -143,3 +143,61 @@ def test_refresh_missing_shard_does_not_replace_recorded_weights(tmp_path: Path)
     assert failure.value.code == 2
     assert output.read_text() == '{"tests/test_example.py": 9.0}\n'
     assert main([str(report), "--expected-reports", "1", "--out", str(output)]) == 0
+
+
+def test_refresh_averages_complete_runs_without_treating_replays_as_duplicates(tmp_path: Path) -> None:
+    from tools.update_test_durations import main
+
+    first, second = tmp_path / "first", tmp_path / "second"
+    first.mkdir()
+    second.mkdir()
+    _junit_report(first / "pytest-results.xml", duration="1.0")
+    _junit_report(second / "pytest-results.xml", duration="5.0")
+    output = tmp_path / "weights.json"
+    assert (
+        main(["--run-dir", str(first), "--run-dir", str(second), "--expected-reports", "1", "--out", str(output)]) == 0
+    )
+    import json
+
+    assert json.loads(output.read_text()) == {"tests/test_example.py": 3.0}
+
+
+@pytest.mark.parametrize("mismatch", ["missing_shard", "changed_case", "changed_module"])
+def test_multi_run_refresh_preserves_weights_when_runs_are_not_comparable(tmp_path: Path, mismatch: str) -> None:
+    from tools.update_test_durations import main
+
+    first, second = tmp_path / "first", tmp_path / "second"
+    first.mkdir()
+    second.mkdir()
+    _junit_report(first / "pytest-results.xml")
+    if mismatch != "missing_shard":
+        report = _junit_report(second / "pytest-results.xml")
+        old, new = ("test_case", "test_other") if mismatch == "changed_case" else ("test_example", "test_different")
+        report.write_text(report.read_text().replace(old, new))
+    output = tmp_path / "weights.json"
+    output.write_text('{"existing": 7.0}\n')
+    with pytest.raises((SystemExit, ValueError)):
+        main(["--run-dir", str(first), "--run-dir", str(second), "--expected-reports", "1", "--out", str(output)])
+    assert output.read_text() == '{"existing": 7.0}\n'
+
+
+@pytest.mark.parametrize("invalid", ["no_count", "playwright", "duplicate_run", "mixed_inputs"])
+def test_multi_run_refresh_rejects_ambiguous_inputs(tmp_path: Path, invalid: str) -> None:
+    from tools.update_test_durations import main
+
+    report = _junit_report(tmp_path / "pytest-results.xml")
+    output = tmp_path / "weights.json"
+    output.write_text('{"existing": 7.0}\n')
+    args = ["--run-dir", str(tmp_path), "--out", str(output)]
+    if invalid != "no_count":
+        args += ["--expected-reports", "1"]
+    if invalid == "playwright":
+        args += ["--format", "playwright"]
+    elif invalid == "duplicate_run":
+        args += ["--run-dir", str(tmp_path)]
+    elif invalid == "mixed_inputs":
+        args += [str(report)]
+    with pytest.raises(SystemExit) as failure:
+        main(args)
+    assert failure.value.code == 2
+    assert output.read_text() == '{"existing": 7.0}\n'

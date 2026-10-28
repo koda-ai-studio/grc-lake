@@ -4,6 +4,9 @@ Download the ``pytest-*`` artifacts of a passing CI run, then:
 
     python tools/update_test_durations.py --expected-reports 6 build/junit/*/pytest-results.xml
 
+For comparable complete runs, use repeated ``--run-dir`` directories with
+``--expected-reports`` to average their module times without dropping cases.
+
 Only module totals are kept; the shard plugin estimates modules missing from
 the file, so a stale file degrades balance, never correctness.
 """
@@ -16,6 +19,7 @@ import math
 import xml.etree.ElementTree as ET
 from collections import Counter
 from pathlib import Path
+from statistics import fmean
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT = ROOT / "tools/ci_test_durations.json"
@@ -96,16 +100,54 @@ def playwright_durations(reports: list[Path]) -> dict[str, float]:
     return {name: round(seconds, 3) for name, seconds in sorted(totals.items())}
 
 
+def average_module_durations(runs: list[list[Path]]) -> dict[str, float]:
+    measurements = []
+    inventory = None
+    for reports in runs:
+        measurements.append(module_durations(reports))
+        cases = {
+            (case.get("classname"), case.get("name"))
+            for report in reports
+            for case in ET.parse(report).getroot().iter("testcase")
+        }
+        if inventory is not None and cases != inventory:
+            raise ValueError("JUnit runs must contain the same test inventory")
+        inventory = cases
+    if not measurements:
+        raise ValueError("at least one complete JUnit run is required")
+    return {name: round(fmean(run[name] for run in measurements), 2) for name in sorted(measurements[0])}
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("reports", nargs="+", type=Path)
+    parser.add_argument("reports", nargs="*", type=Path)
+    parser.add_argument(
+        "--run-dir", action="append", type=Path, help="Average complete JUnit runs, one directory per run"
+    )
     parser.add_argument("--out", type=Path)
     parser.add_argument("--format", choices=("junit", "playwright"), default="junit")
     parser.add_argument("--expected-reports", type=int, help="Require every shard report before replacing weights")
     args = parser.parse_args(argv)
-    if args.expected_reports is not None and (args.expected_reports < 1 or len(args.reports) != args.expected_reports):
+    if bool(args.reports) == bool(args.run_dir):
+        parser.error("supply report paths or --run-dir directories, not both")
+    if args.run_dir:
+        if args.format != "junit" or args.expected_reports is None:
+            parser.error("--run-dir requires JUnit format and --expected-reports per run")
+        if len({path.resolve() for path in args.run_dir}) != len(args.run_dir):
+            parser.error("each --run-dir must name a distinct run directory")
+        runs = [sorted(path.rglob("pytest-results.xml")) for path in args.run_dir]
+    else:
+        runs = [args.reports]
+    if args.expected_reports is not None and (
+        args.expected_reports < 1 or any(len(reports) != args.expected_reports for reports in runs)
+    ):
         parser.error("report count does not match the expected shard count")
-    durations = playwright_durations(args.reports) if args.format == "playwright" else module_durations(args.reports)
+    if args.run_dir:
+        durations = average_module_durations(runs)
+    elif args.format == "playwright":
+        durations = playwright_durations(args.reports)
+    else:
+        durations = module_durations(args.reports)
     output = args.out or (ROOT / "tools/ci_e2e_durations.json" if args.format == "playwright" else DEFAULT_OUTPUT)
     if not durations:
         parser.error("no test cases found in the given reports")
