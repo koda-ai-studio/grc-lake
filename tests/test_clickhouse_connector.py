@@ -19,7 +19,7 @@ from security_lakehouse.connectors_clickhouse import (
     discover_clickhouse_scope,
     probe_clickhouse_access,
 )
-from security_lakehouse.ingestion.watermark import read_watermark, write_watermark
+from security_lakehouse.ingestion.watermark import collection_scope, read_watermark, write_watermark
 from security_lakehouse.io import read_jsonl
 from security_lakehouse.validation import validate_raw_events
 
@@ -77,14 +77,20 @@ def test_clickhouse_sync_writes_raw_evidence_and_materializes(tmp_path: Path) ->
     assert run["evidence_count"] == 3
 
 
-def test_clickhouse_sync_resumes_from_watermark(tmp_path: Path) -> None:
-    connector_state.append_config_event(
+@pytest.mark.parametrize("legacy", [False, True])
+def test_clickhouse_sync_resumes_from_watermark(tmp_path: Path, legacy: bool) -> None:
+    config = connector_state.append_config_event(
         tmp_path,
         connector_id="clickhouse-telemetry-lake",
         state="enabled",
         actor="alice",
     )
-    write_watermark(tmp_path, "clickhouse-telemetry-lake", "2026-06-01T11:00:00.000Z")
+    scope_id = collection_scope(
+        config, repo=None, fixture_dir=FIXTURE_DIR, token_env=connector_runner.DEFAULT_TOKEN_ENV
+    )
+    write_watermark(
+        tmp_path, "clickhouse-telemetry-lake", "2026-06-01T11:00:00.000Z", scope_id=None if legacy else scope_id
+    )
 
     result = connector_runner.run_connector_sync(
         tmp_path,
@@ -92,11 +98,12 @@ def test_clickhouse_sync_resumes_from_watermark(tmp_path: Path) -> None:
         fixture_dir=FIXTURE_DIR,
     )
 
-    assert result.evidence_count == 2
+    expected_rows = 3 if legacy else 2
+    assert result.evidence_count == expected_rows
     assert result.watermark_cursor == "2026-06-01T12:15:00Z"
     raw_rows = read_jsonl(tmp_path / connector_runner.CONNECTOR_RAW_FILE)
-    assert len(raw_rows) == 2
-    assert read_watermark(tmp_path, "clickhouse-telemetry-lake") == "2026-06-01T12:15:00Z"
+    assert len(raw_rows) == expected_rows
+    assert read_watermark(tmp_path, "clickhouse-telemetry-lake", scope_id=scope_id) == "2026-06-01T12:15:00Z"
 
 
 def test_clickhouse_live_query_parses_json_each_row() -> None:

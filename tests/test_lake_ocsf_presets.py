@@ -9,7 +9,7 @@ from typing import Any
 
 import pytest
 
-from security_lakehouse.connector_runner import CONNECTOR_RAW_FILE, run_connector_sync
+from security_lakehouse.connector_runner import CONNECTOR_RAW_FILE, DEFAULT_TOKEN_ENV, run_connector_sync
 from security_lakehouse.connector_state import append_config_event
 from security_lakehouse.io import read_json
 from security_lakehouse.lake_mapping import (
@@ -607,7 +607,7 @@ def test_partial_ocsf_mapping_blocks_pass_and_records_a_safe_gap(
 ) -> None:
     from copy import deepcopy
 
-    from security_lakehouse.ingestion.watermark import read_watermark, write_watermark
+    from security_lakehouse.ingestion.watermark import collection_scope, read_watermark, write_watermark
     from security_lakehouse.io import read_jsonl
 
     row = deepcopy(read_fixture_table(FIXTURES, IDENTITY_TABLE)[0])
@@ -619,7 +619,7 @@ def test_partial_ocsf_mapping_blocks_pass_and_records_a_safe_gap(
     fixture_dir.mkdir()
     (fixture_dir / f"{IDENTITY_TABLE}.json").write_text(json.dumps([row, bad]))
     lake = tmp_path / "lake"
-    append_config_event(
+    config = append_config_event(
         lake,
         connector_id="databricks-evidence-lake",
         state="enabled",
@@ -627,13 +627,15 @@ def test_partial_ocsf_mapping_blocks_pass_and_records_a_safe_gap(
         credentials={"host": "dbc-a1b2345c-d6e7.cloud.databricks.com"},
         options={"mapping": {"preset": "ocsf/authentication", "source": {"table": IDENTITY_TABLE}}},
     )
+    scope_id = collection_scope(config, repo=None, fixture_dir=fixture_dir, token_env=DEFAULT_TOKEN_ENV)
     if prior_cursor is not None:
-        write_watermark(lake, "databricks-evidence-lake", prior_cursor)
+        write_watermark(lake, "databricks-evidence-lake", prior_cursor, scope_id=scope_id)
     for _ in range(2):
         sync = run_connector_sync(
             lake, connector_id="databricks-evidence-lake", fixture_dir=fixture_dir, materialize=False
         )
         assert sync.run["metadata"]["partial"] is True
+        assert sync.watermark_cursor == prior_cursor
         raw = read_jsonl(lake / CONNECTOR_RAW_FILE)
         assert len(raw) == 2
         assert validate_raw_events(raw) == []
@@ -646,7 +648,7 @@ def test_partial_ocsf_mapping_blocks_pass_and_records_a_safe_gap(
         assert valid["status"] == "not_evaluated"
         assert valid["attributes"]["mapping_original_status"] == "pass"
         assert "private-unmappable-row" not in json.dumps(raw)
-        assert read_watermark(lake, "databricks-evidence-lake") == prior_cursor
+        assert read_watermark(lake, "databricks-evidence-lake", scope_id=scope_id) == prior_cursor
     out = tmp_path / "out"
     run_pipeline(lake / CONNECTOR_RAW_FILE, out, tenant_id="platform-tenant")
     assessment = read_json(out / "gold/ccf_assessment.json")

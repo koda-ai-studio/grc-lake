@@ -18,7 +18,7 @@ from security_lakehouse.connectors_siem import (
     discover_siem_scope,
     probe_siem_access,
 )
-from security_lakehouse.ingestion.watermark import read_watermark, write_watermark
+from security_lakehouse.ingestion.watermark import collection_scope, read_watermark, write_watermark
 from security_lakehouse.io import read_jsonl
 from security_lakehouse.validation import validate_raw_events
 
@@ -73,13 +73,16 @@ def test_siem_sync_writes_raw_evidence_and_materializes(tmp_path: Path) -> None:
 
 
 def test_siem_sync_resumes_from_watermark(tmp_path: Path) -> None:
-    connector_state.append_config_event(
+    config = connector_state.append_config_event(
         tmp_path,
         connector_id="siem-alerts",
         state="enabled",
         actor="alice",
     )
-    write_watermark(tmp_path, "siem-alerts", "2026-05-20T17:00:00Z")
+    scope_id = collection_scope(
+        config, repo=None, fixture_dir=FIXTURE_DIR, token_env=connector_runner.DEFAULT_TOKEN_ENV
+    )
+    write_watermark(tmp_path, "siem-alerts", "2026-05-20T17:00:00Z", scope_id=scope_id)
 
     result = connector_runner.run_connector_sync(
         tmp_path,
@@ -91,7 +94,7 @@ def test_siem_sync_resumes_from_watermark(tmp_path: Path) -> None:
     assert result.watermark_cursor == "2026-05-20T17:30:00Z"
     raw_rows = read_jsonl(tmp_path / connector_runner.CONNECTOR_RAW_FILE)
     assert len(raw_rows) == 1
-    assert read_watermark(tmp_path, "siem-alerts") == "2026-05-20T17:30:00Z"
+    assert read_watermark(tmp_path, "siem-alerts", scope_id=scope_id) == "2026-05-20T17:30:00Z"
 
 
 def test_siem_live_query_parses_json_list() -> None:

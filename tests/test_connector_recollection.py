@@ -79,11 +79,13 @@ def test_siem_recollection_updates_posture_and_preserves_generation(tmp_path, mo
     def sync():
         return connector_runner.run_connector_sync(tmp_path, connector_id="siem-alerts", fixture_dir=FIXTURE_DIR)
 
-    assert sync().result == "ok"
+    first = sync()
+    assert first.result == "ok"
+    scope_id = first.run["metadata"]["watermark_scope_id"]
     previous = active_generation(tmp_path)
     previous_bytes = (previous / "silver/normalized_events.jsonl").read_bytes()
     assert all(row["status"] == "fail" for row in read_jsonl(tmp_path / "gold/control_posture.jsonl"))
-    cursor = read_watermark(tmp_path, "siem-alerts")
+    cursor = read_watermark(tmp_path, "siem-alerts", scope_id=scope_id)
     assert sync().result == "ok"
     assert sync().result == "ok"
     current = read_jsonl(tmp_path / "silver/normalized_events.jsonl")
@@ -96,6 +98,6 @@ def test_siem_recollection_updates_posture_and_preserves_generation(tmp_path, mo
         "ISO27001-A.8.16": "pass",
     }
     assert verify_event(tmp_path, current[0]["event_id"])["verified"]
-    assert read_watermark(tmp_path, "siem-alerts") == cursor
+    assert read_watermark(tmp_path, "siem-alerts", scope_id=scope_id) == cursor
     assert (previous / "silver/normalized_events.jsonl").read_bytes() == previous_bytes
     assert read_jsonl(previous / "silver/normalized_events.jsonl")[0]["status"] == "open"

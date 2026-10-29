@@ -19,7 +19,7 @@ from security_lakehouse.connectors_runtime import (
     discover_runtime_gateway_scope,
     probe_runtime_gateway_access,
 )
-from security_lakehouse.ingestion.watermark import read_watermark, write_watermark
+from security_lakehouse.ingestion.watermark import collection_scope, read_watermark, write_watermark
 from security_lakehouse.io import read_jsonl
 from security_lakehouse.validation import validate_raw_events
 
@@ -43,11 +43,12 @@ def test_runtime_incomplete_batch_records_gap_and_preserves_assessment(
 
     lake = tmp_path / "lake"
     connector_state.append_config_event(lake, connector_id="runtime-gateway", state="enabled", actor="operator")
-    connector_runner.run_connector_sync(lake, connector_id="runtime-gateway", fixture_dir=FIXTURE_DIR)
+    first = connector_runner.run_connector_sync(lake, connector_id="runtime-gateway", fixture_dir=FIXTURE_DIR)
+    scope_id = first.run["metadata"]["watermark_scope_id"]
     previous_generation = active_generation(lake)
     previous_assessment = (lake / "gold/ccf_assessment.json").read_bytes()
     previous_raw = (lake / connector_runner.CONNECTOR_RAW_FILE).read_bytes()
-    previous_cursor = read_watermark(lake, "runtime-gateway")
+    previous_cursor = read_watermark(lake, "runtime-gateway", scope_id=scope_id)
     valid = {"event_id": "later", "event_time": "2026-06-01T13:00:00Z", "status": "pass"}
     monkeypatch.setattr(RuntimeGatewayFixtureClient, "events", lambda self, **kwargs: [valid, bad])
 
@@ -60,7 +61,7 @@ def test_runtime_incomplete_batch_records_gap_and_preserves_assessment(
         assert metadata["coverage_gaps"][0]["collection"] == "runtime-events"
         assert metadata["coverage_gaps"][0]["reason"] == "invalid_event"
         assert "private-invalid-time" not in json.dumps(error.value.run)
-        assert read_watermark(lake, "runtime-gateway") == previous_cursor
+        assert read_watermark(lake, "runtime-gateway", scope_id=scope_id) == previous_cursor
         assert active_generation(lake) == previous_generation
         assert (lake / "gold/ccf_assessment.json").read_bytes() == previous_assessment
         assert (lake / connector_runner.CONNECTOR_RAW_FILE).read_bytes() == previous_raw
@@ -146,13 +147,16 @@ def test_runtime_sync_writes_raw_evidence_and_materializes(tmp_path: Path) -> No
 
 
 def test_runtime_sync_resumes_from_watermark(tmp_path: Path) -> None:
-    connector_state.append_config_event(
+    config = connector_state.append_config_event(
         tmp_path,
         connector_id="runtime-gateway",
         state="enabled",
         actor="alice",
     )
-    write_watermark(tmp_path, "runtime-gateway", "2026-05-20T18:00:00Z")
+    scope_id = collection_scope(
+        config, repo=None, fixture_dir=FIXTURE_DIR, token_env=connector_runner.DEFAULT_TOKEN_ENV
+    )
+    write_watermark(tmp_path, "runtime-gateway", "2026-05-20T18:00:00Z", scope_id=scope_id)
 
     result = connector_runner.run_connector_sync(
         tmp_path,
@@ -164,7 +168,7 @@ def test_runtime_sync_resumes_from_watermark(tmp_path: Path) -> None:
     assert result.watermark_cursor == "2026-05-20T18:05:00Z"
     raw_rows = read_jsonl(tmp_path / connector_runner.CONNECTOR_RAW_FILE)
     assert len(raw_rows) == 1
-    assert read_watermark(tmp_path, "runtime-gateway") == "2026-05-20T18:05:00Z"
+    assert read_watermark(tmp_path, "runtime-gateway", scope_id=scope_id) == "2026-05-20T18:05:00Z"
 
 
 def test_runtime_live_query_parses_json_list() -> None:
