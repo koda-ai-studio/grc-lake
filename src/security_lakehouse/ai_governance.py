@@ -241,7 +241,7 @@ def _aibom_inventory_items(*, lake: Path) -> list[dict[str, Any]]:
         rows.append(
             {
                 "asset_id": str(item.get("id") or item.get("name")),
-                "source_account_id": "",
+                "source_account_id": str(item.get("source_account_id", "")),
                 "asset_type": "model" if item.get("type") == "machine-learning-model" else str(item.get("type")),
                 "owner": "",
                 "environment": "",

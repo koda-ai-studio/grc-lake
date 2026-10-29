@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import uuid
 from datetime import UTC, datetime
 from pathlib import Path
@@ -194,8 +195,19 @@ def _spdx_items(document: dict[str, Any]) -> list[dict[str, Any]]:
     return rows
 
 
-def import_aibom(*, input_path: Path, lake: Path) -> dict[str, Any]:
+def _source_account(value: str) -> str:
+    if not isinstance(value, str) or (value and not re.fullmatch(r"[A-Za-z0-9_.:@/+~-]{1,512}", value)):
+        raise ValueError("source_account_id must be an empty or bounded source-account identifier")
+    return value
+
+
+def _inventory_key(item: dict[str, Any]) -> tuple[str, str]:
+    return str(item.get("source_account_id", "")), str(item["id"])
+
+
+def import_aibom(*, input_path: Path, lake: Path, source_account_id: str = "") -> dict[str, Any]:
     """Normalize a supported JSON document into the lake's canonical AIBOM store."""
+    account = _source_account(source_account_id)
     size = input_path.stat().st_size
     if size > MAX_DOCUMENT_BYTES:
         raise ValueError(f"AIBOM document exceeds {MAX_DOCUMENT_BYTES} bytes")
@@ -213,15 +225,22 @@ def import_aibom(*, input_path: Path, lake: Path) -> dict[str, Any]:
 
     store_path = lake / STORE_RELATIVE_PATH
     existing = read_json(store_path) if store_path.exists() else {"items": []}
-    by_id = {str(item["id"]): item for item in existing.get("items", []) if isinstance(item, dict) and item.get("id")}
+    by_id = {
+        _inventory_key(item): item for item in existing.get("items", []) if isinstance(item, dict) and item.get("id")
+    }
     imported_at = datetime.now(UTC).isoformat()
     source_sha256 = hashlib.sha256(input_path.read_bytes()).hexdigest()
     for item in items:
-        by_id[item["id"]] = {**item, "source_format": source_format, "source_sha256": source_sha256}
+        by_id[(account, item["id"])] = {
+            **item,
+            "source_account_id": account,
+            "source_format": source_format,
+            "source_sha256": source_sha256,
+        }
     payload: dict[str, Any] = {
         "schema_version": 1,
         "updated_at": imported_at,
-        "items": sorted(by_id.values(), key=lambda item: str(item["id"])),
+        "items": sorted(by_id.values(), key=_inventory_key),
     }
     write_json(store_path, payload)
     return {
@@ -230,6 +249,7 @@ def import_aibom(*, input_path: Path, lake: Path) -> dict[str, Any]:
         "total": len(payload["items"]),
         "store_path": str(store_path),
         "source_sha256": source_sha256,
+        "source_account_id": account,
     }
 
 
@@ -359,8 +379,11 @@ def _spdx_export(items: list[dict[str, Any]]) -> dict[str, Any]:
     return {"@context": SPDX_CONTEXT, "@graph": graph}
 
 
-def export_aibom(*, lake: Path, output_path: Path, output_format: str) -> dict[str, Any]:
+def export_aibom(
+    *, lake: Path, output_path: Path, output_format: str, source_account_id: str | None = None
+) -> dict[str, Any]:
     """Export the canonical inventory to a machine-readable format."""
+    account = _source_account(source_account_id) if source_account_id is not None else None
     if output_format not in SUPPORTED_EXPORTS:
         raise ValueError(f"format must be one of: {', '.join(SUPPORTED_EXPORTS)}")
     store_path = lake / STORE_RELATIVE_PATH
@@ -368,9 +391,20 @@ def export_aibom(*, lake: Path, output_path: Path, output_format: str) -> dict[s
         raise ValueError("no AIBOM inventory found; run `grc-lake aibom import` first")
     store = read_json(store_path)
     items = store.get("items", []) if isinstance(store, dict) else []
+    if account is None and any(item.get("source_account_id") for item in items):
+        raise ValueError("scoped inventory requires --source-account-id; use an empty value for unscoped items")
+    if account is not None:
+        items = [item for item in items if item.get("source_account_id", "") == account]
+        if not items:
+            raise ValueError("no AIBOM items for the selected source account")
     document = _cyclonedx_export(items) if output_format == "cyclonedx-1.7" else _spdx_export(items)
     write_json(output_path, document)
-    return {"format": output_format, "exported": len(items), "output_path": str(output_path)}
+    return {
+        "format": output_format,
+        "exported": len(items),
+        "output_path": str(output_path),
+        "source_account_id": account or "",
+    }
 
 
 def aibom_status(*, lake: Path) -> dict[str, Any]:

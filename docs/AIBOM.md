@@ -67,14 +67,33 @@ flag; existing stored inventory is not automatically migrated.
 
 Inventory identity is `(source_account_id, asset_id)` within one platform lake.
 Identical asset IDs in different source accounts remain separate, including their
-owners, controls, card signals, and evidence links. AIBOM imports currently have
-no source-account binding. They can merge with an exact unscoped event identity,
-but cannot supply documentation to a scoped source account. Events without a
+owners, controls, card signals, and evidence links. Bind an import explicitly with
+`--source-account-id source-a` to merge documentation only with that account's
+exact asset identity. The binding is supplied by the operator, never inferred
+from document fields or names; it is provenance scope, not platform authorization
+or authentication of the document's origin. Imports without the option remain
+unscoped, including existing stored records, and cannot supply documentation to
+a scoped source account. Re-import updates only the same account/asset pair.
+Events without a
 card signal do not erase a matching imported signal. Names never establish a
 match; ambiguous unscoped display names are omitted. These are accumulated
 presence signals, not a current-state revocation or document-review ledger.
 Repository AI-artifact counts are broader discovery signals and do not attach a
 card to a model without an explicit asset binding.
+
+When the store contains scoped items, export requires an explicit account
+selection. This keeps original component identifiers unique within an export:
+
+```bash
+grc-lake aibom import --input model-bom.json --lake ./lake --source-account-id source-a
+grc-lake aibom export --lake ./lake --format cyclonedx-1.7 --out source-a.json --source-account-id source-a
+```
+
+Use `--source-account-id ''` to export only unscoped items. A missing selection or
+an account with no items fails before replacing the output file. Account binding
+is local metadata, reported in the command's JSON receipt; it is not embedded in
+the CycloneDX/SPDX document. Re-importing an export requires an explicit binding
+again. A store containing only unscoped items retains the original export behavior.
 
 The golden demo includes `model.lineage` and `ai.model_inventory` observations
 without model-card signals. Its documentation gaps are deliberate synthetic inputs. Model-card
