@@ -434,3 +434,49 @@ def test_unscoped_import_cannot_document_a_source_account_model(tmp_path: Path) 
     rows = list_ai_inventory(lake=tmp_path)
     assert len(rows) == 2
     assert {row["source_account_id"]: row["model_card"] for row in rows} == {"": True, "source-a": False}
+
+
+def test_scoped_import_documents_only_exact_account_asset_pair(tmp_path: Path) -> None:
+    import json
+
+    from security_lakehouse.aibom import import_aibom
+
+    source = tmp_path / "bom.json"
+    source.write_text(
+        json.dumps(
+            {
+                "bomFormat": "CycloneDX",
+                "specVersion": "1.7",
+                "components": [
+                    {
+                        "type": "machine-learning-model",
+                        "bom-ref": "model:same",
+                        "name": "Model",
+                        "modelCard": {"bom-ref": "card:same"},
+                        "source_account_id": "source-b",
+                    }
+                ],
+            }
+        )
+    )
+    import_aibom(input_path=source, lake=tmp_path, source_account_id="source-a")
+    _write_jsonl(
+        tmp_path / "silver/normalized_events.jsonl",
+        [
+            {
+                "asset_id": "model:same",
+                "asset_type": "model",
+                "event_type": "model.inventory",
+                "source_account_id": account,
+                "asset_owner": account,
+                "attributes": {"model_card": False},
+            }
+            for account in ("source-a", "source-b")
+        ],
+    )
+    items = {row["source_account_id"]: row for row in list_ai_inventory(lake=tmp_path)}
+    assert set(items) == {"source-a", "source-b"}
+    assert items["source-a"]["model_card"] is True
+    assert items["source-a"]["owner"] == "source-a"
+    assert items["source-a"]["control_ids"] == []
+    assert items["source-b"]["model_card"] is False

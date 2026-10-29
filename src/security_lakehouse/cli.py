@@ -453,11 +453,13 @@ def _parser() -> argparse.ArgumentParser:
     aibom_import = aibom_sub.add_parser("import", help="import a JSON AIBOM into the local lake")
     aibom_import.add_argument("--input", required=True, help="CycloneDX or SPDX 3 JSON input")
     aibom_import.add_argument("--lake", required=True, help="security data lake output directory")
+    aibom_import.add_argument("--source-account-id", default="", help="bind imported assets to a source account")
     aibom_import.set_defaults(func=_aibom_import)
     aibom_export = aibom_sub.add_parser("export", help="export the lake's canonical AIBOM inventory")
     aibom_export.add_argument("--lake", required=True, help="security data lake output directory")
     aibom_export.add_argument("--out", required=True, help="output JSON path")
     aibom_export.add_argument("--format", required=True, choices=["cyclonedx-1.7", "spdx-3.0.1"])
+    aibom_export.add_argument("--source-account-id", help="select a source account; empty selects unscoped inventory")
     aibom_export.set_defaults(func=_aibom_export)
 
     assessment = sub.add_parser("assessment", help="continuous compliance assessment commands")
@@ -2146,7 +2148,7 @@ def _assessment_violations(args: argparse.Namespace) -> int:
 def _aibom_import(args: argparse.Namespace) -> int:
     from security_lakehouse.aibom import import_aibom
 
-    result = import_aibom(input_path=Path(args.input), lake=Path(args.lake))
+    result = import_aibom(input_path=Path(args.input), lake=Path(args.lake), source_account_id=args.source_account_id)
     print(json.dumps(result, indent=2, sort_keys=True))
     return 0
 
@@ -2154,7 +2156,12 @@ def _aibom_import(args: argparse.Namespace) -> int:
 def _aibom_export(args: argparse.Namespace) -> int:
     from security_lakehouse.aibom import export_aibom
 
-    result = export_aibom(lake=Path(args.lake), output_path=Path(args.out), output_format=args.format)
+    result = export_aibom(
+        lake=Path(args.lake),
+        output_path=Path(args.out),
+        output_format=args.format,
+        source_account_id=args.source_account_id,
+    )
     print(json.dumps(result, indent=2, sort_keys=True))
     return 0
 

@@ -17,6 +17,122 @@ def _write(path: Path, payload: dict) -> None:
     path.write_text(json.dumps(payload), encoding="utf-8")
 
 
+def test_scoped_import_preserves_colliding_ids_and_replay(tmp_path: Path) -> None:
+    source = tmp_path / "model.json"
+    lake = tmp_path / "lake"
+    document = {
+        "bomFormat": "CycloneDX",
+        "specVersion": "1.7",
+        "components": [{"type": "machine-learning-model", "bom-ref": "model:shared", "name": "Model A"}],
+    }
+    _write(source, document)
+    import_aibom(input_path=source, lake=lake)
+    first = import_aibom(input_path=source, lake=lake, source_account_id="source-a")
+    document["components"][0]["name"] = "Model B"
+    _write(source, document)
+    import_aibom(input_path=source, lake=lake, source_account_id="source-b")
+    replay = import_aibom(input_path=source, lake=lake, source_account_id="source-b")
+    assert replay["total"] == 3
+    assert replay["source_account_id"] == "source-b"
+    items = json.loads((lake / "aibom/inventory.json").read_text())["items"]
+    by_account = {item.get("source_account_id", ""): item for item in items}
+    assert set(by_account) == {"", "source-a", "source-b"}
+    assert by_account["source-a"]["name"] == "Model A"
+    assert by_account["source-a"]["source_sha256"] == first["source_sha256"]
+    assert by_account["source-b"]["name"] == "Model B"
+
+
+@pytest.mark.parametrize("account", [" source-a", "source-a\n", "x" * 513, 42])
+def test_import_rejects_invalid_account_without_mutating_store(tmp_path: Path, account: object) -> None:
+    source = tmp_path / "model.json"
+    _write(
+        source,
+        {
+            "bomFormat": "CycloneDX",
+            "specVersion": "1.7",
+            "components": [
+                {"type": "application", "name": "Agent"},
+            ],
+        },
+    )
+    with pytest.raises(ValueError, match="source_account_id"):
+        import_aibom(input_path=source, lake=tmp_path / "lake", source_account_id=account)
+    assert not (tmp_path / "lake/aibom/inventory.json").exists()
+
+
+@pytest.mark.parametrize("output_format", ["cyclonedx-1.7", "spdx-3.0.1"])
+def test_scoped_export_requires_selection_and_preserves_original_ids(tmp_path: Path, output_format: str) -> None:
+    lake = tmp_path / "lake"
+    (lake / "aibom").mkdir(parents=True)
+    _write(
+        lake / "aibom/inventory.json",
+        {
+            "schema_version": 1,
+            "items": [
+                {"id": "urn:model:shared", "name": "Legacy", "type": "application"},
+                {"id": "urn:model:shared", "name": "Model A", "type": "application", "source_account_id": "source-a"},
+                {"id": "urn:model:shared", "name": "Model B", "type": "application", "source_account_id": "source-b"},
+            ],
+        },
+    )
+    output = tmp_path / "export.json"
+    output.write_text("keep existing export")
+    with pytest.raises(ValueError, match="source-account-id"):
+        export_aibom(lake=lake, output_path=output, output_format=output_format)
+    assert output.read_text() == "keep existing export"
+    with pytest.raises(ValueError, match="no AIBOM items"):
+        export_aibom(lake=lake, output_path=output, output_format=output_format, source_account_id="missing")
+    assert output.read_text() == "keep existing export"
+    result = export_aibom(lake=lake, output_path=output, output_format=output_format, source_account_id="source-a")
+    assert result["exported"] == 1
+    assert result["source_account_id"] == "source-a"
+    document = json.loads(output.read_text())
+    nodes = document.get("components", document.get("@graph", []))
+    model = next(node for node in nodes if node.get("name") == "Model A")
+    assert model.get("bom-ref", model.get("spdxId")) == "urn:model:shared"
+    assert not any(node.get("name") in {"Model B", "Legacy"} for node in nodes)
+    result = export_aibom(lake=lake, output_path=output, output_format=output_format, source_account_id="")
+    assert result["exported"] == 1
+    assert "Legacy" in output.read_text()
+
+
+def test_cli_scoped_import_export(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    source = tmp_path / "model.json"
+    _write(
+        source,
+        {
+            "bomFormat": "CycloneDX",
+            "specVersion": "1.7",
+            "components": [
+                {"type": "application", "name": "Agent"},
+            ],
+        },
+    )
+    lake, output = tmp_path / "lake", tmp_path / "export.json"
+    assert (
+        main(["aibom", "import", "--input", str(source), "--lake", str(lake), "--source-account-id", "source-a"]) == 0
+    )
+    assert json.loads(capsys.readouterr().out)["source_account_id"] == "source-a"
+    assert (
+        main(
+            [
+                "aibom",
+                "export",
+                "--lake",
+                str(lake),
+                "--out",
+                str(output),
+                "--format",
+                "cyclonedx-1.7",
+                "--source-account-id",
+                "source-a",
+            ]
+        )
+        == 0
+    )
+    assert json.loads(capsys.readouterr().out)["exported"] == 1
+
+
 def test_cyclonedx_import_and_round_trip(tmp_path: Path) -> None:
     source = tmp_path / "model.cdx.json"
     _write(
