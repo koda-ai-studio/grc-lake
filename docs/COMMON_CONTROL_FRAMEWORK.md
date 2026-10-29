@@ -341,6 +341,21 @@ uses that member-level source first and falls back to the safeguard-level source
 
 For query behavior, compatibility, and memory boundaries, see [CCF assessment reads](CCF_READS.md).
 
+### Collection gaps across source accounts
+
+Asset-level results retain their source-account identity. Combined safeguard and
+framework results cover the observed accounts together: a collection gap from a
+source that supplies a safeguard's evidence blocks an aggregate pass even when
+the missing account has no bound asset evidence of its own. For example, an AWS
+collection gap in account B prevents passing account A evidence from establishing
+a combined pass. Account A's asset result remains unchanged, and a known failure
+still takes precedence over the gap.
+
+Provider-specific frameworks remain restricted to their own evidence sources:
+a GCP gap does not block an otherwise passing AWS benchmark. Gaps are not findings
+of control failure, and absence of gaps does not establish complete organization
+or account inventory coverage.
+
 ## Auditor workpapers
 
 [Control test plans](CONTROL_TEST_WORKPAPERS.md) distinguish design documentation
