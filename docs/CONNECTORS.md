@@ -31,6 +31,15 @@ Headless setup (curl, CLI, MCP): [playbooks/HEADLESS_CONNECTOR_SETUP.md](playboo
 
 ## Connection hub: the next evidence step
 
+The hub's latest sync and freshness fields are scoped to the current saved
+connection configuration. Changing its account, organization, credentials, or
+collection scope requires a matching sync before those fields report fresh
+evidence. Runs keep the configuration fingerprint captured when collection
+started, including failures and runs that finish after a configuration change.
+Earlier runs remain in run history. Legacy runs without a fingerprint cannot
+establish freshness for a fingerprinted configuration; run a new sync after
+upgrading. Scheduler cadence and existing evidence are unchanged.
+
 The console's **Connections** page separates enabled sources from sources with
 recent evidence. Each source names its next step: configure access, enable,
 collect, review a failed or empty collection, refresh stale evidence, or inspect

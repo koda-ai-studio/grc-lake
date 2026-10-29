@@ -387,8 +387,10 @@ def run_connector_sync(
                 )
     lake = Path(lake_dir)
     start = time.perf_counter()
+    access_fingerprint: str | None = None
     try:
         config = _require_enabled(lake, connector_id)
+        access_fingerprint = config.get("credential_fingerprint")
         credentials = dict(config.get("credentials") or {})
         options = dict(config.get("options") or {})
         write_mode = _write_mode(connector_id, options)
@@ -444,6 +446,7 @@ def run_connector_sync(
             result="ok",
             actor=actor,
             duration_ms=_duration_ms(start),
+            access_fingerprint=access_fingerprint,
             evidence_count=evidence_count,
             metadata=run_metadata or None,
         )
@@ -465,6 +468,7 @@ def run_connector_sync(
             result="error",
             actor=actor,
             duration_ms=_duration_ms(start),
+            access_fingerprint=access_fingerprint,
             error=_safe_run_error(exc),
             metadata={"partial": True, "coverage_gaps": [exc.attributes()]}
             if isinstance(exc, CollectionGapError)
