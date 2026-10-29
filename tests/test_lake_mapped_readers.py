@@ -239,7 +239,10 @@ def test_sync_with_a_mapping_ingests_mapped_rows_incrementally(
     assert {row["severity"] for row in raw} == {"info", "medium"}
     # mapped sources are event logs: the watermark advances even for snapshot-shaped connectors
     assert first.watermark_cursor == "2026-09-21T10:00:00Z"
-    assert read_watermark(lake, connector_id) == "2026-09-21T10:00:00Z"
+    assert (
+        read_watermark(lake, connector_id, scope_id=first.run["metadata"]["watermark_scope_id"])
+        == "2026-09-21T10:00:00Z"
+    )
 
     rows = [*ROWS, {**ROWS[1], "uuid": "e4", "published": "2026-09-22T09:00:00Z", "actor": {"id": "00u4"}}]
     (fixture_dir / "okta_events.json").write_text(json.dumps(rows), encoding="utf-8")

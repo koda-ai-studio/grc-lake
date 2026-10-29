@@ -64,6 +64,27 @@ These counters describe recorded collection activity, including demo sources.
 They do not prove provider qualification or framework coverage. Run control
 evaluation and inspect its evidence before making an assessment claim.
 
+## Incremental collection scope
+
+Incremental syncs keep separate cursors for each connector and effective collection
+scope. The namespace binds the saved access fingerprint and effective repository,
+fixture path, and credential-reference override. A different account, mapping,
+credential reference, or collection override starts without borrowing another
+scope's cursor. Returning to an unchanged scope resumes its own cursor. Schedule
+changes retain the cursor for modern configurations; legacy configurations without
+an access fingerprint use a conservative hash of their stored credentials and options.
+
+Unscoped legacy cursors remain in history but are not reused by scoped runs. The
+first run after upgrading therefore recollects the provider's available history;
+normal event deduplication applies. Retention limits at the provider still apply.
+Successful append runs expose the opaque `watermark_scope_id` in run metadata.
+Partial reads hold the prior cursor within the same scope.
+
+The namespace identifies saved configuration and explicit overrides, not a verified
+provider identity: replacing a secret behind the same reference or changing an
+implicit runtime identity requires an explicit scope change before collection.
+This does not add multiple active connections or organization discovery.
+
 ## Access modes (pick one)
 
 | Mode                             | When to use                                                            | Boundary                          |

@@ -13,7 +13,7 @@ from pathlib import Path
 
 from security_lakehouse import connector_runner as cr
 from security_lakehouse.connector_state import append_config_event
-from security_lakehouse.ingestion.watermark import read_watermark, write_watermark
+from security_lakehouse.ingestion.watermark import collection_scope, read_watermark, write_watermark
 
 GITHUB_FIXTURE = Path(__file__).parent / "fixtures" / "github-governance"
 AWS_FIXTURE = Path(__file__).parent / "fixtures" / "aws"
@@ -78,7 +78,10 @@ def test_append_connector_sync_advances_watermark(tmp_path: Path) -> None:
     # github-security is an event_log (append) connector, so the sync records how
     # far it has synced through.
     assert result.watermark_cursor is not None
-    assert read_watermark(tmp_path, "github-security") == result.watermark_cursor
+    assert (
+        read_watermark(tmp_path, "github-security", scope_id=result.run["metadata"]["watermark_scope_id"])
+        == result.watermark_cursor
+    )
 
     # A second sync never regresses the cursor.
     again = cr.run_connector_sync(
@@ -88,8 +91,11 @@ def test_append_connector_sync_advances_watermark(tmp_path: Path) -> None:
 
 
 def test_since_is_read_and_threaded_for_append(tmp_path: Path, monkeypatch) -> None:
-    append_config_event(tmp_path, connector_id="github-security", state="enabled", actor="alice")
-    write_watermark(tmp_path, "github-security", "2020-01-01T00:00:00Z")
+    config = append_config_event(tmp_path, connector_id="github-security", state="enabled", actor="alice")
+    scope_id = collection_scope(
+        config, repo="acme/model-service", fixture_dir=GITHUB_FIXTURE, token_env=cr.DEFAULT_TOKEN_ENV
+    )
+    write_watermark(tmp_path, "github-security", "2020-01-01T00:00:00Z", scope_id=scope_id)
 
     seen: dict[str, object] = {}
     real_build = cr.REGISTRY["github-security"]

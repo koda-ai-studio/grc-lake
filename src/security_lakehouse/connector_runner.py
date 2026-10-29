@@ -171,7 +171,7 @@ from security_lakehouse.delegation import azure_credential, gcp_credentials, ser
 from security_lakehouse.event_identity import source_event_key
 from security_lakehouse.execution_mode import in_server_mode, server_execution, server_tenant_id
 from security_lakehouse.http_response import response_budget
-from security_lakehouse.ingestion.watermark import read_watermark, write_watermark
+from security_lakehouse.ingestion.watermark import collection_scope, read_watermark, write_watermark
 from security_lakehouse.io import read_jsonl, write_jsonl
 from security_lakehouse.lake_mapping import (
     DEFAULT_MAX_ROWS,
@@ -405,7 +405,10 @@ def run_connector_sync(
         # Append/event-log connectors resume from their last high-water cursor so
         # a sync only needs to fetch what is new; snapshot connectors always pull
         # the full current state, so they carry no watermark.
-        since = read_watermark(lake, connector_id) if write_mode == "append" else None
+        scope_id = collection_scope(
+            config, repo=effective_repo, fixture_dir=effective_fixture, token_env=effective_token_env
+        )
+        since = read_watermark(lake, connector_id, scope_id=scope_id) if write_mode == "append" else None
         with response_budget():
             rows = _collect(
                 connector_id,
@@ -431,7 +434,7 @@ def run_connector_sync(
                 _refresh_offboarding(raw_path, env=dict(runtime_env()))
             if any(is_training_coverage_input(row) for row in rows):
                 _refresh_training_coverage(raw_path)
-            cursor = _advance_watermark(lake, connector_id, rows, write_mode=write_mode)
+            cursor = _advance_watermark(lake, connector_id, rows, write_mode=write_mode, scope_id=scope_id)
             if materialize:
                 _materialize_after_sync(lake, raw_path, connector_id=connector_id)
             # Rows sharing an event_id upsert onto one evidence row, so the landed
@@ -441,6 +444,8 @@ def run_connector_sync(
             run_metadata: dict[str, Any] = {}
             if gaps:
                 run_metadata = {"partial": True, "coverage_gaps": gaps}
+            if write_mode == "append":
+                run_metadata["watermark_scope_id"] = scope_id
             if evidence_count != len(rows):
                 run_metadata["collected_rows"] = len(rows)
             run = append_run_event(
@@ -1813,7 +1818,9 @@ def _write_mode(connector_id: str, options: dict[str, Any] | None = None) -> str
     return "snapshot" if entry.get("data_shape") == SNAPSHOT_DATA_SHAPE else "append"
 
 
-def _advance_watermark(lake: Path, connector_id: str, rows: list[dict[str, Any]], *, write_mode: str) -> str | None:
+def _advance_watermark(
+    lake: Path, connector_id: str, rows: list[dict[str, Any]], *, write_mode: str, scope_id: str | None = None
+) -> str | None:
     """Advance an append connector's high-water cursor to the newest event time.
 
     Returns the cursor written (the max ``event_time`` across ``rows``), or
@@ -1826,17 +1833,17 @@ def _advance_watermark(lake: Path, connector_id: str, rows: list[dict[str, Any]]
         return None
     if collection_gaps(rows):
         # Events before the newest one may be missing; resume from the prior cursor.
-        return read_watermark(lake, connector_id)
+        return read_watermark(lake, connector_id, scope_id=scope_id)
     cursors = [str(row.get("event_time")) for row in rows if row.get("event_time")]
     if not cursors:
-        return read_watermark(lake, connector_id)
+        return read_watermark(lake, connector_id, scope_id=scope_id)
     from security_lakehouse.models import parse_event_time, utc_iso
 
     cursor = utc_iso(max(parse_event_time(value) for value in cursors))
-    prior = read_watermark(lake, connector_id)
+    prior = read_watermark(lake, connector_id, scope_id=scope_id)
     if prior is not None and parse_event_time(cursor) <= parse_event_time(prior):
         return prior
-    write_watermark(lake, connector_id, cursor)
+    write_watermark(lake, connector_id, cursor, scope_id=scope_id)
     return cursor
 
 
