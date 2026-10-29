@@ -401,6 +401,20 @@ the next page with `?cursor=<token>` and repeats until `next_cursor` is absent. 
 export that returns a bare JSON array (or an object without `next_cursor`) is read
 as a single page, so a non-paginating endpoint still works unchanged.
 
+The runtime reader requires a nonempty string `event_id` (or `id`) and an explicit
+timezone-qualified `event_time` (or `timestamp`) on every event. A missing or
+invalid identity or timestamp rejects the entire batch before raw intake or
+assessment publication. The failed sync records `partial: true` and sanitized
+collection-gap metadata; the prior assessment and watermark remain unchanged.
+Repair the upstream export and retry the same window. No malformed event contents
+are copied into the gap message. The retained assessment is historical evidence,
+not proof that the failed collection was complete.
+
+Runtime fixtures follow the same identity and timestamp rules, including before
+incremental filtering. A missing fixture or malformed collection is a gap; an
+explicit empty JSON array is a valid empty collection. Fixture timestamp aliases
+and timezone offsets are compared as instants when resuming from a watermark.
+
 For live Snowflake collection, install the cloud connector extra and use the
 fixed POC objects from [`docs/LIVE_CLOUD_POC.md`](LIVE_CLOUD_POC.md):
 `GRC_LAKE_SECURITY_LAKE.EVIDENCE`, `GRC_LAKE_READ_WH`, and `GRC_LAKE_READER`.

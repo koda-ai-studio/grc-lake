@@ -12,11 +12,13 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from security_lakehouse.connector_errors import CollectionGapError
 from security_lakehouse.ingestion.http_export import CursorExportClient
 from security_lakehouse.io import read_json
-from security_lakehouse.models import parse_event_time, utc_iso
+from security_lakehouse.models import utc_iso
 from security_lakehouse.runtime_environment import runtime_env
 from security_lakehouse.secret_refs import resolve_ref_or_default
+from security_lakehouse.validation import evidence_timestamp
 
 CONNECTOR_ID = "runtime-gateway"
 SOURCE = "runtime-gateway"
@@ -120,7 +122,8 @@ class RuntimeGatewayFixtureClient:
         rows = self._read_events()
         if not since:
             return rows
-        return [row for row in rows if str(row.get("event_time") or "") > since]
+        cursor = evidence_timestamp(since)
+        return [row for row in rows if evidence_timestamp(_event_identity(row)[1]) > cursor]
 
     def list_streams(self) -> list[str]:
         return ["runtime-events", "policy-decisions"]
@@ -155,11 +158,11 @@ class RuntimeGatewayFixtureClient:
     def _read_events(self) -> list[dict[str, Any]]:
         path = self.fixture / "events.json"
         if not path.is_file():
-            return []
+            raise CollectionGapError(
+                "Runtime event fixture is unavailable", collection=self.stream, reason="missing_fixture"
+            )
         payload = read_json(path)
-        if isinstance(payload, list):
-            return [row for row in payload if isinstance(row, dict)]
-        return []
+        return _validated_events(payload, stream=self.stream)
 
 
 def collect_runtime_gateway_evidence(
@@ -172,10 +175,8 @@ def collect_runtime_gateway_evidence(
     """Collect raw evidence rows from a runtime gateway export."""
     moment = collected_at or datetime.now(UTC)
     rows: list[dict[str, Any]] = []
-    for event in client.events(since=since):
-        raw = _raw_from_event(event, collected_at=moment, tenant_id=tenant_id)
-        if raw is not None:
-            rows.append(raw)
+    for event in _validated_events(client.events(since=since), stream=client.stream):
+        rows.append(_raw_from_event(event, collected_at=moment, tenant_id=tenant_id))
     return rows
 
 
@@ -237,11 +238,8 @@ def _raw_from_event(
     *,
     collected_at: datetime,
     tenant_id: str,
-) -> dict[str, Any] | None:
-    event_id = str(event.get("event_id") or event.get("id") or "").strip()
-    event_time = _event_time_iso(event.get("event_time") or event.get("timestamp"))
-    if not event_id or not event_time:
-        return None
+) -> dict[str, Any]:
+    event_id, event_time = _event_identity(event)
     entity = event.get("entity")
     if not isinstance(entity, dict):
         entity = {}
@@ -282,16 +280,29 @@ def _raw_from_event(
     }
 
 
-def _event_time_iso(value: Any) -> str:
-    if value is None:
-        return ""
-    text = str(value).strip()
-    if not text:
-        return ""
-    try:
-        return utc_iso(parse_event_time(text))
-    except ValueError:
-        return text.replace(" ", "T") + ("Z" if not text.endswith("Z") and "+" not in text else "")
+def _event_identity(event: dict[str, Any]) -> tuple[str, str]:
+    event_id = event.get("event_id") or event.get("id")
+    if not isinstance(event_id, str) or not event_id.strip():
+        raise ValueError("runtime event requires a nonempty string identity")
+    moment = evidence_timestamp(event.get("event_time") or event.get("timestamp"))
+    return event_id.strip(), utc_iso(moment)
+
+
+def _validated_events(payload: Any, *, stream: str) -> list[dict[str, Any]]:
+    if not isinstance(payload, list) or any(not isinstance(row, dict) for row in payload):
+        raise CollectionGapError(
+            "Runtime event export must be an array of objects", collection=stream, reason="invalid_export"
+        )
+    for event in payload:
+        try:
+            _event_identity(event)
+        except ValueError:
+            raise CollectionGapError(
+                "Runtime event export contains an invalid identity or timezone-qualified timestamp",
+                collection=stream,
+                reason="invalid_event",
+            ) from None
+    return payload
 
 
 def _safe_scope(value: str) -> str:
