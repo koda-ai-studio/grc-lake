@@ -81,14 +81,14 @@ def evaluate_safeguards(
     assets: dict[tuple[str, str], set[str]] = defaultdict(set)
     bound: dict[str, dict[tuple[str, str], list[JsonObject]]] = defaultdict(lambda: defaultdict(list))
     freshness = {(row["tenant_id"], row["event_id"]): row for row in build_evidence_freshness(events, now=now)}
-    # A source's collection gap keeps the safeguards it binds from passing; it
-    # never masks a failing verdict because it sits on its own asset.
-    gap_sources: set[tuple[str, str]] = set()
-    bound_sources: dict[str, set[tuple[str, str]]] = defaultdict(set)
+    # Combined results cover all observed source accounts. An account with only
+    # a collection gap cannot borrow another account's passing provider evidence.
+    gap_sources: set[str] = set()
+    bound_sources: dict[str, set[str]] = defaultdict(set)
     for event in events:
         asset_key: tuple[str, str] = source_asset_key(event)
         assets[asset_key].add(str(event["asset_type"]))
-        source_key = (asset_key[0], str(event.get("source", "")))
+        source_key = str(event.get("source", ""))
         if event["asset_type"] == COLLECTION_SCOPE:
             gap_sources.add(source_key)
         for safeguard_id in event.get("safeguard_ids", []):
@@ -170,7 +170,7 @@ def evaluate_safeguards(
         states = [status for asset_sources, status in asset_states[safeguard_id] if asset_sources & sources]
         if not states:
             return ControlVerdict.NOT_EVALUATED.value
-        gaps = {source for _, source in bound_sources[safeguard_id] & gap_sources}
+        gaps = bound_sources[safeguard_id] & gap_sources
         if safeguard_id in incomplete or gaps & sources:
             states.append(ControlVerdict.NOT_EVALUATED.value)
         return _combine(states)
