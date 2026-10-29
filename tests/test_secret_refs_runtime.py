@@ -12,6 +12,7 @@ import pytest
 
 from security_lakehouse import connector_runner, netguard
 from security_lakehouse.connector_runner import DEFAULT_TOKEN_ENV, SyncInputs, effective_registry
+from security_lakehouse.connector_state import append_config_event
 from security_lakehouse.execution_mode import COMMERCIAL_HOSTED_ENV, server_execution
 from security_lakehouse.secret_refs import SecretRefPolicyError
 
@@ -99,9 +100,9 @@ def test_hosted_sync_derives_tenant_from_lake_path_without_request_context(
         return []
 
     monkeypatch.setenv(COMMERCIAL_HOSTED_ENV, "1")
-    monkeypatch.setattr(connector_runner, "_require_enabled", lambda *_: {"credentials": {}, "options": {}})
     monkeypatch.setattr(connector_runner, "_collect", fake_collect)
     lake = tmp_path / "root" / "tenants" / "tenant-b"
     lake.mkdir(parents=True)
+    append_config_event(lake, connector_id="siem-alerts", state="enabled", actor="test")
     connector_runner.run_connector_sync(lake, connector_id="siem-alerts", materialize=False)
     assert seen["tenant"] == "tenant-b"
