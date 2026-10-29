@@ -90,6 +90,18 @@ export function connectionReadiness(
       "attention",
     );
   }
+  if (
+    sync.metadata?.partial === true ||
+    (Array.isArray(sync.metadata?.coverage_gaps) &&
+      sync.metadata.coverage_gaps.length > 0)
+  ) {
+    return state(
+      "Partial evidence collected",
+      "Some source data could not be collected. Review the recorded gaps and retry before relying on coverage.",
+      "Review collection gaps",
+      "attention",
+    );
+  }
   if (sync.evidence_count === 0) {
     return state(
       "No evidence returned",
