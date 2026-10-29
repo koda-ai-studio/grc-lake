@@ -67,19 +67,19 @@ def test_aws_linking_explains_authorization_and_role_boundary() -> None:
     assert "Scale or custom role" not in panel
     assert "One AWS account" in panel
     assert "Many accounts: deploy" not in panel
-    assert "CloudFormation StackSets or" in panel
+    assert "does not discover or sync organization members" in " ".join(panel.split())
     assert "Use the account ID when the script keeps the default role name." not in panel
     assert "Default role: account ID. Custom role: full ARN." not in panel
     assert "Use a custom Role ARN" not in panel
-    assert "3. Add account targets" in panel
+    assert "3. Confirm account target" in panel
     assert "View permissions" in panel
     assert "Organization rollout" not in panel
     assert "Scale with StackSets or Terraform" not in panel
-    assert "CloudFormation StackSets" in panel
-    assert "Terraform workspaces" in panel
+    assert "One active AWS account per workspace" in panel
+    assert "Changing the target replaces the current connection" in " ".join(panel.split())
     assert "Bulk account import" not in panel
-    assert "Selected accounts" in panel
-    assert "Add another account" in panel
+    assert "Selected accounts" not in panel
+    assert "Add another account" not in panel
     assert "View trust details" not in panel
     assert "AWS role ARN" not in panel
     assert "Deploy links unavailable" not in panel
@@ -87,26 +87,24 @@ def test_aws_linking_explains_authorization_and_role_boundary() -> None:
     assert 'aria-label="AWS deployment method"' not in panel
 
 
-def test_aws_onboarding_is_a_guided_multi_account_wizard() -> None:
+def test_aws_onboarding_only_accepts_the_single_target_it_submits() -> None:
     panel = PANEL.read_text(encoding="utf-8")
     drawer = DRAWER.read_text(encoding="utf-8")
-
-    assert 'type AwsAccountScope = "single" | "organization" | "selected"' in panel
-    assert "Choose what you want to connect" not in panel
-    assert "One AWS account" in panel
-    assert "AWS Organization" in panel
-    assert "Selected accounts" in panel
-    assert "Best for getting started" in panel
-    assert "CloudFormation StackSets" in panel
-    assert "Add another account" in panel
-    assert "3. Add account targets" in panel
+    assert "AwsAccountScope" not in panel
+    assert "awsAccountTargets" not in panel
+    assert "AWS Organization" not in panel
+    assert "Selected accounts" not in panel
+    assert "Add another account" not in panel
+    assert "One active AWS account per workspace" in panel
+    assert "does not discover or sync organization members" in " ".join(panel.split())
+    assert "Changing the target replaces the current connection" in " ".join(panel.split())
+    assert "3. Confirm account target" in panel
     assert "Copy script" in panel
     assert "Customize role" in panel
-    assert "1. Choose scope" in panel
     assert "2. Deploy read-only access" in panel
-    assert "3. Add account targets" in panel
     assert "4. Verify and finish" in panel
-    assert "Snowflake runs a live probe" not in drawer
+    assert "<Badge>Single account</Badge>" in drawer
+    assert "Organization rollout" not in drawer
     assert "Every probe, sync, and scheduled run creates a fresh AWS STS" in " ".join(drawer.split())
 
 
@@ -353,7 +351,7 @@ def test_connected_cloud_drawer_is_compact_and_non_redundant() -> None:
     assert "Authorization" in drawer
     assert "Read-only role" in drawer
     assert "STS per run" in drawer
-    assert "Organization rollout" in drawer
+    assert "<Badge>Single account</Badge>" in drawer
     assert "Every probe, sync, and scheduled run creates a fresh AWS" in drawer
     assert "Connector run log" in drawer
     assert "Sync lands raw connector evidence." in drawer

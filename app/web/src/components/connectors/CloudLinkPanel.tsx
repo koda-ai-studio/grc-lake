@@ -1,17 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import {
-  Building2,
-  Check,
-  Copy,
-  ExternalLink,
-  Link2,
-  Loader2,
-  Network,
-  Plus,
-  UserRound,
-} from "lucide-react";
+import { Copy, ExternalLink, Link2, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -45,7 +35,6 @@ const CLOUD_LINK_IDS = new Set(["aws-posture", "azure-posture", "gcp-posture"]);
 const AWS_ROLE_NAME = "GrcLakePostureReadOnlyRole";
 const AWS_ROLE_NAME_ALLOWED = /[^A-Za-z0-9+=,.@_-]/g;
 type AwsDeployMode = "console" | "cloudformation" | "terraform";
-type AwsAccountScope = "single" | "organization" | "selected";
 type AwsDeployOption = {
   value: AwsDeployMode;
   label: string;
@@ -232,9 +221,6 @@ export function CloudLinkPanel({
   const [awsRoleName, setAwsRoleName] = useState(AWS_ROLE_NAME);
   const [awsDeployMode, setAwsDeployMode] =
     useState<AwsDeployMode>("cloudformation");
-  const [awsAccountScope, setAwsAccountScope] =
-    useState<AwsAccountScope>("single");
-  const [awsAccountTargets, setAwsAccountTargets] = useState<string[]>([""]);
   const [azureTenantId, setAzureTenantId] = useState("");
   const [azureClientId, setAzureClientId] = useState("");
   const [azureSecretKind, setAzureSecretKind] =
@@ -409,8 +395,6 @@ export function CloudLinkPanel({
     setTouched(false);
     setAwsRoleName(AWS_ROLE_NAME);
     setAwsDeployMode("cloudformation");
-    setAwsAccountScope("single");
-    setAwsAccountTargets([""]);
     setRoleArn("");
     try {
       const row = await start.mutateAsync({
@@ -435,8 +419,6 @@ export function CloudLinkPanel({
     setTouched(false);
     setAwsRoleName(AWS_ROLE_NAME);
     setAwsDeployMode("cloudformation");
-    setAwsAccountScope("single");
-    setAwsAccountTargets([""]);
     setAzureTenantId("");
     setAzureClientId("");
     setAzureSecretKind("client_secret_ref");
@@ -581,52 +563,17 @@ export function CloudLinkPanel({
                   <div className="grid gap-3">
                     <div>
                       <div className="text-xs font-semibold uppercase tracking-wide text-muted">
-                        1. Choose scope
+                        1. One AWS account
                       </div>
-                      <div className="mt-2 grid gap-1.5 md:grid-cols-3">
-                        {[
-                          {
-                            value: "single" as const,
-                            label: "One AWS account",
-                            detail: "Best for getting started",
-                            icon: UserRound,
-                          },
-                          {
-                            value: "organization" as const,
-                            label: "AWS Organization",
-                            detail: "Deploy across OUs",
-                            icon: Building2,
-                          },
-                          {
-                            value: "selected" as const,
-                            label: "Selected accounts",
-                            detail: "Choose specific accounts",
-                            icon: Network,
-                          },
-                        ].map((option) => {
-                          const Icon = option.icon;
-                          const selected = awsAccountScope === option.value;
-                          return (
-                            <button
-                              key={option.value}
-                              type="button"
-                              aria-pressed={selected}
-                              onClick={() => setAwsAccountScope(option.value)}
-                              className={`relative min-h-24 rounded-lg border p-2.5 text-left transition ${selected ? "border-brand bg-brand/10 ring-1 ring-brand" : "border-line bg-surface hover:border-brand/50"}`}
-                            >
-                              {selected && (
-                                <Check className="absolute right-3 top-3 h-4 w-4 text-brand" />
-                              )}
-                              <Icon className="h-4 w-4 text-brand" />
-                              <div className="mt-1.5 pr-5 text-sm font-semibold leading-5 text-ink">
-                                {option.label}
-                              </div>
-                              <div className="mt-0.5 text-xs leading-4 text-muted">
-                                {option.detail}
-                              </div>
-                            </button>
-                          );
-                        })}
+                      <div className="mt-2 rounded-lg border border-line bg-panel p-3">
+                        <p className="text-sm font-semibold text-ink">
+                          One active AWS account per workspace
+                        </p>
+                        <p className="mt-1 text-xs leading-5 text-muted">
+                          This connection does not discover or sync organization
+                          members. Enter the specific account whose evidence you
+                          want to collect.
+                        </p>
                       </div>
                     </div>
                     <div className="border-t border-line pt-2.5">
@@ -634,11 +581,8 @@ export function CloudLinkPanel({
                         2. Deploy read-only access
                       </div>
                       <p className="mt-0.5 text-xs leading-4 text-muted">
-                        {awsAccountScope === "organization"
-                          ? "Deploy the role with CloudFormation StackSets or Terraform workspaces to the organizational units you choose."
-                          : awsAccountScope === "selected"
-                            ? "Run the deployment in each selected account, or customize the script for your existing IaC workflow."
-                            : "Run this once in the AWS account you want GRC Lake to assess."}
+                        Run this once in the AWS account you want GRC Lake to
+                        assess.
                       </p>
                     </div>
                     <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
@@ -871,59 +815,33 @@ export function CloudLinkPanel({
               {connector.connector_id === "aws-posture" && (
                 <div className="border-t border-line pt-2.5">
                   <div className="text-xs font-semibold uppercase tracking-wide text-muted">
-                    3. Add account targets
+                    3. Confirm account target
                   </div>
                   <div className="mt-1.5 grid gap-2">
-                    {awsAccountTargets.map((target, index) => (
-                      <label
-                        key={index}
-                        className="grid gap-1 text-xs font-semibold text-muted"
-                      >
-                        {awsAccountScope === "organization"
-                          ? "Management account ID or Role ARN"
-                          : awsAccountScope === "single"
-                            ? "Account ID or Role ARN"
-                            : `Account ${index + 1}`}
-                        <input
-                          value={index === 0 ? roleArn : target}
-                          onChange={(event) => {
-                            const value = event.target.value;
-                            setAwsAccountTargets((current) =>
-                              current.map((item, itemIndex) =>
-                                itemIndex === index ? value : item,
-                              ),
-                            );
-                            if (index === 0) setRoleArn(value);
-                            setFieldError(null);
-                          }}
-                          onBlur={() => {
-                            if (index === 0) {
-                              setTouched(true);
-                              setFieldError(
-                                awsRoleIdentifierError(awsRoleIdentifier),
-                              );
-                            }
-                          }}
-                          autoComplete="off"
-                          aria-invalid={index === 0 && Boolean(showFieldError)}
-                          placeholder="AWS account ID or role ARN"
-                          className="rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink focus:outline-none focus:ring-1 focus:ring-brand"
-                        />
-                      </label>
-                    ))}
-                    {awsAccountScope !== "organization" && (
-                      <Button
-                        type="button"
-                        variant="default"
-                        size="sm"
-                        className="justify-self-start"
-                        onClick={() =>
-                          setAwsAccountTargets((current) => [...current, ""])
-                        }
-                      >
-                        <Plus className="h-4 w-4" /> Add another account
-                      </Button>
-                    )}
+                    <label className="grid gap-1 text-xs font-semibold text-muted">
+                      Account ID or Role ARN
+                      <input
+                        value={roleArn}
+                        onChange={(event) => {
+                          setRoleArn(event.target.value);
+                          setFieldError(null);
+                        }}
+                        onBlur={() => {
+                          setTouched(true);
+                          setFieldError(
+                            awsRoleIdentifierError(awsRoleIdentifier),
+                          );
+                        }}
+                        autoComplete="off"
+                        aria-invalid={Boolean(showFieldError)}
+                        placeholder="AWS account ID or role ARN"
+                        className="rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink focus:outline-none focus:ring-1 focus:ring-brand"
+                      />
+                    </label>
+                    <p className="text-xs leading-5 text-muted">
+                      Changing the target replaces the current connection after
+                      you test and save it. It does not add another account.
+                    </p>
                   </div>
                 </div>
               )}

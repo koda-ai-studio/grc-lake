@@ -211,17 +211,23 @@ AWS qualification.
 
 ### AWS multi-account scale
 
-AWS posture uses the same third-party role pattern for one account or hundreds:
+The connection hub currently stores **one active AWS account role per workspace**.
+The wizard submits one account target; changing it replaces that connection after
+testing and saving. Supplying a management-account role does not discover or sync
+organization members. Bulk account registration and independently scheduled
+connection instances are not implemented.
 
-| Item          | Scaling rule                                                                                                                            |
-| ------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| Rollout       | Use **CloudFormation StackSets** or **Terraform workspaces** to deploy the same read-only role across target AWS accounts.              |
-| Authorization | The deployed role trusts the GRC Lake runtime principal and constrains access with External ID.                                         |
-| External ID   | Use **one External ID per deployed role**; GRC Lake includes that exact value in STS AssumeRole.                                        |
-| Confirmation  | Default role names can be confirmed by AWS account ID; custom role names use the Role ARN output.                                       |
-| Scale surface | **Bulk account import** is the follow-up console/API surface for registering many deployed roles after rollout.                         |
-| Sync          | The scheduled sync assumes each registered role, receives short-lived session credentials, and reads only the granted IAM posture APIs. |
-| Evaluation    | Raw evidence keeps the AWS account ID attached; deterministic controls evaluate across the combined evidence set.                       |
+Role deployment and evidence collection are separate steps:
+
+| Item          | Scaling rule                                                                                                                             |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Rollout       | Operators can deploy roles with CloudFormation StackSets or Terraform workspaces; deployment does not register accounts in GRC Lake.     |
+| Authorization | The deployed role trusts the GRC Lake runtime principal and constrains access with External ID.                                          |
+| External ID   | Use **one External ID per deployed role**; GRC Lake includes that exact value in STS AssumeRole.                                         |
+| Confirmation  | Default role names can be confirmed by AWS account ID; custom role names use the Role ARN output.                                        |
+| Scale surface | Bulk account registration and per-connection scheduling remain planned.                                                                  |
+| Sync          | The scheduled sync assumes the one configured role, receives short-lived credentials, and reads only the granted APIs.                   |
+| Evaluation    | Evidence retains source-account identity. Combined imported evidence can be assessed, but this does not establish organization coverage. |
 
 <p align="center">
   <img src="images/grc-lake-readonly-connections.svg" alt="Read-only connector model: AWS IAM role, GitHub App, Okta token, Snowflake SELECT into GRC Lake ingestion" width="100%">

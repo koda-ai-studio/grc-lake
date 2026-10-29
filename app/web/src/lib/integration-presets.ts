@@ -21,10 +21,10 @@ const PRESETS: Record<string, IntegrationPreset> = {
     providerSetup:
       "CloudFormation, Terraform, or StackSets creates a read-only IAM role in the target account.",
     trustOpsInput: "Account ID for the default role, or a full Role ARN.",
-    advancedTitle: "Organization rollout",
+    advancedTitle: "AWS account scope",
     advancedDetails: [
-      "Use CloudFormation StackSets or Terraform workspaces for many AWS accounts.",
-      "Each account sync creates a fresh STS assume-role session with the stored External ID.",
+      "One active AWS account role is configured per workspace; changing the target replaces that connection.",
+      "Role deployment across an organization does not register member accounts or schedule collection for them.",
     ],
   },
   "gcp-posture": {

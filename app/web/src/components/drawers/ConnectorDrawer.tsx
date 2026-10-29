@@ -1304,7 +1304,7 @@ export function ConnectorDrawer({
                             : "Scoped provider identity"}
                         </Badge>
                         {connector.connector_id === "aws-posture" && (
-                          <Badge>Organization rollout</Badge>
+                          <Badge>Single account</Badge>
                         )}
                       </div>
                     </div>
@@ -1339,9 +1339,10 @@ export function ConnectorDrawer({
                   {connector.connector_id === "aws-posture" && (
                     <div className="mt-2 text-xs leading-5 text-muted">
                       <b className="text-ink">Current:</b> one active AWS
-                      account role. <b className="text-ink">Scale:</b> deploy
-                      the same read-only role with StackSets or Terraform, then
-                      import each account ID or Role ARN.
+                      account role per workspace. Changing the target replaces
+                      this connection after testing and saving. Organization
+                      member discovery and multi-account scheduling are not
+                      available.
                     </div>
                   )}
                   {showInlineCloudSetup && !auditor && (
