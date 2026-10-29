@@ -11,6 +11,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from security_lakehouse import connector_runner, connector_state
+from security_lakehouse.connector_errors import CollectionGapError
 from security_lakehouse.connectors_runtime import (
     RuntimeGatewayClient,
     RuntimeGatewayFixtureClient,
@@ -23,6 +24,76 @@ from security_lakehouse.io import read_jsonl
 from security_lakehouse.validation import validate_raw_events
 
 FIXTURE_DIR = Path(__file__).parent / "fixtures" / "runtime-gateway"
+
+
+@pytest.mark.parametrize(
+    "bad",
+    [
+        {"event_time": "2026-06-01T12:00:00Z"},
+        {"event_id": "missing-time"},
+        {"event_id": 123, "event_time": "2026-06-01T12:00:00Z"},
+        {"event_id": "invalid-time", "event_time": "private-invalid-time"},
+        {"event_id": "naive-time", "event_time": "2026-06-01T12:00:00"},
+    ],
+)
+def test_runtime_incomplete_batch_records_gap_and_preserves_assessment(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, bad: dict
+) -> None:
+    from security_lakehouse.generations import active_generation
+
+    lake = tmp_path / "lake"
+    connector_state.append_config_event(lake, connector_id="runtime-gateway", state="enabled", actor="operator")
+    connector_runner.run_connector_sync(lake, connector_id="runtime-gateway", fixture_dir=FIXTURE_DIR)
+    previous_generation = active_generation(lake)
+    previous_assessment = (lake / "gold/ccf_assessment.json").read_bytes()
+    previous_raw = (lake / connector_runner.CONNECTOR_RAW_FILE).read_bytes()
+    previous_cursor = read_watermark(lake, "runtime-gateway")
+    valid = {"event_id": "later", "event_time": "2026-06-01T13:00:00Z", "status": "pass"}
+    monkeypatch.setattr(RuntimeGatewayFixtureClient, "events", lambda self, **kwargs: [valid, bad])
+
+    for _ in range(2):
+        with pytest.raises(connector_runner.ConnectorSyncError) as error:
+            connector_runner.run_connector_sync(lake, connector_id="runtime-gateway", fixture_dir=FIXTURE_DIR)
+        assert error.value.run["result"] == "error"
+        metadata = error.value.run["metadata"]
+        assert metadata["partial"] is True
+        assert metadata["coverage_gaps"][0]["collection"] == "runtime-events"
+        assert metadata["coverage_gaps"][0]["reason"] == "invalid_event"
+        assert "private-invalid-time" not in json.dumps(error.value.run)
+        assert read_watermark(lake, "runtime-gateway") == previous_cursor
+        assert active_generation(lake) == previous_generation
+        assert (lake / "gold/ccf_assessment.json").read_bytes() == previous_assessment
+        assert (lake / connector_runner.CONNECTOR_RAW_FILE).read_bytes() == previous_raw
+
+
+@pytest.mark.parametrize("payload", [None, {"events": []}, ["private-invalid-row"], [{}]])
+def test_runtime_fixture_rejects_incomplete_data_even_with_cursor(tmp_path: Path, payload: object) -> None:
+    (tmp_path / "events.json").write_text(json.dumps(payload))
+    with pytest.raises(CollectionGapError):
+        collect_runtime_gateway_evidence(RuntimeGatewayFixtureClient(tmp_path), since="2026-06-01T00:00:00Z")
+
+
+def test_runtime_missing_fixture_is_a_gap(tmp_path: Path) -> None:
+    with pytest.raises(CollectionGapError):
+        collect_runtime_gateway_evidence(RuntimeGatewayFixtureClient(tmp_path))
+
+
+def test_runtime_empty_fixture_is_valid_and_alias_timestamp_resumes(tmp_path: Path) -> None:
+    path = tmp_path / "events.json"
+    path.write_text("[]")
+    client = RuntimeGatewayFixtureClient(tmp_path)
+    assert collect_runtime_gateway_evidence(client) == []
+    path.write_text(
+        json.dumps(
+            [
+                {"id": "old", "timestamp": "2026-06-01T01:00:00+01:00"},
+                {"id": "new", "timestamp": "2026-06-01T02:00:00+01:00"},
+            ]
+        )
+    )
+    rows = collect_runtime_gateway_evidence(client, since="2026-06-01T00:00:00Z")
+    assert [row["event_id"] for row in rows] == ["runtime-new"]
+    assert rows[0]["event_time"] == "2026-06-01T01:00:00Z"
 
 
 def test_collect_runtime_fixture_evidence_validates() -> None:
