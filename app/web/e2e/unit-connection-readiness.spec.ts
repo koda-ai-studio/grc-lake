@@ -108,3 +108,36 @@ test("enabled and contract-only sources are not automatically ready", () => {
     "Recent evidence collected",
   );
 });
+
+test("partial collections and coverage gaps never count as ready evidence", () => {
+  for (const metadata of [
+    { partial: true },
+    { coverage_gaps: [{ source: "aws", operation: "list_accounts" }] },
+    { partial: false, coverage_gaps: [{ source: "gcp" }] },
+  ]) {
+    const result = connectionReadiness(
+      source({ last_sync: run({ metadata }) }),
+      now,
+    );
+    expect(result.label).toBe("Partial evidence collected");
+    expect(result.attention).toBe(true);
+    expect(result.evidenceReady).toBe(false);
+    expect(result.action).toBe("Review collection gaps");
+  }
+  expect(
+    connectionReadiness(
+      source({
+        last_sync: run({ metadata: { partial: false, coverage_gaps: [] } }),
+      }),
+      now,
+    ).evidenceReady,
+  ).toBe(true);
+  expect(
+    connectionReadiness(
+      source({
+        last_sync: run({ result: "error", metadata: { partial: true } }),
+      }),
+      now,
+    ).label,
+  ).toBe("Latest sync failed");
+});

@@ -41,6 +41,10 @@ A successful probe is not evidence collection. Configuration-only and skipped
 probes are labelled separately from live read-access checks. A failed latest
 sync stays visible even when older evidence is still fresh. Zero-row syncs,
 unknown counts, and invalid timestamps do not count as recent evidence.
+A successful sync with a partial flag or recorded coverage gaps shows **Partial
+evidence collected**, remains under **Needs attention**, and is excluded from
+the ready evidence count. **Review collection gaps** opens the source's run
+history so operators can inspect the missing reads and retry.
 
 These counters describe recorded collection activity, including demo sources.
 They do not prove provider qualification or framework coverage. Run control
