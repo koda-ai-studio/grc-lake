@@ -20,7 +20,7 @@ from typing import Any
 
 from security_lakehouse import netguard
 from security_lakehouse.connector_errors import CollectionGapError, ConnectorConfigError, collection_gaps
-from security_lakehouse.connector_state import _safe_run_error, append_run_event, latest_config
+from security_lakehouse.connector_state import CONFIG_FILE, _safe_run_error, append_run_event, latest_config
 from security_lakehouse.connectors import (
     CONNECTOR_BUILDER_ENTRY_POINT_GROUP,
     LEGACY_CONNECTOR_BUILDER_ENTRY_POINT_GROUP,
@@ -180,6 +180,7 @@ from security_lakehouse.lake_mapping import (
     write_mode_for_options,
 )
 from security_lakehouse.lake_scale import resolve_materialize_strategy, write_lake_scale_state
+from security_lakehouse.ledger import chain_lock
 from security_lakehouse.local_paths import confine_local_path
 from security_lakehouse.offboarding import (
     OFFBOARDING_CONNECTOR_ID,
@@ -420,36 +421,41 @@ def run_connector_sync(
             # portable exports retain it, including fixtures from saved config.
             rows = [{**row, "attributes": {**(row.get("attributes") or {}), "synthetic": True}} for row in rows]
         rows = bind_safeguard_evidence(rows, options.get("safeguard_bindings") or {})
-        raw_path = lake / CONNECTOR_RAW_FILE
-        _upsert_raw_events(raw_path, rows, connector_id=connector_id, write_mode=write_mode)
-        if any(is_offboarding_input(row) for row in rows):
-            _refresh_offboarding(raw_path, env=dict(runtime_env()))
-        if any(is_training_coverage_input(row) for row in rows):
-            _refresh_training_coverage(raw_path)
-        cursor = _advance_watermark(lake, connector_id, rows, write_mode=write_mode)
+        # Serialize the revision check and publication with configuration writers.
+        with chain_lock(lake / "gold" / CONFIG_FILE):
+            if latest_config(lake, connector_id, fresh=True) != config:
+                raise ConnectorConfigError("Connector configuration changed during collection; retry the current scope")
+            raw_path = lake / CONNECTOR_RAW_FILE
+            _upsert_raw_events(raw_path, rows, connector_id=connector_id, write_mode=write_mode)
+            if any(is_offboarding_input(row) for row in rows):
+                _refresh_offboarding(raw_path, env=dict(runtime_env()))
+            if any(is_training_coverage_input(row) for row in rows):
+                _refresh_training_coverage(raw_path)
+            cursor = _advance_watermark(lake, connector_id, rows, write_mode=write_mode)
+            if materialize:
+                _materialize_after_sync(lake, raw_path, connector_id=connector_id)
+            # Rows sharing an event_id upsert onto one evidence row, so the landed
+            # count is the distinct ids, not the collected list length.
+            evidence_count = len({str(row.get("event_id")) for row in rows})
+            gaps = collection_gaps(rows)
+            run_metadata: dict[str, Any] = {}
+            if gaps:
+                run_metadata = {"partial": True, "coverage_gaps": gaps}
+            if evidence_count != len(rows):
+                run_metadata["collected_rows"] = len(rows)
+            run = append_run_event(
+                lake,
+                connector_id=connector_id,
+                kind="sync",
+                result="ok",
+                actor=actor,
+                duration_ms=_duration_ms(start),
+                access_fingerprint=access_fingerprint,
+                evidence_count=evidence_count,
+                metadata=run_metadata or None,
+            )
         if materialize:
-            _materialize_after_sync(lake, raw_path, connector_id=connector_id)
             _fire_evidence_changed(lake, connector_id)
-        # Rows sharing an event_id upsert onto one evidence row, so the landed
-        # count is the distinct ids, not the collected list length.
-        evidence_count = len({str(row.get("event_id")) for row in rows})
-        gaps = collection_gaps(rows)
-        run_metadata: dict[str, Any] = {}
-        if gaps:
-            run_metadata = {"partial": True, "coverage_gaps": gaps}
-        if evidence_count != len(rows):
-            run_metadata["collected_rows"] = len(rows)
-        run = append_run_event(
-            lake,
-            connector_id=connector_id,
-            kind="sync",
-            result="ok",
-            actor=actor,
-            duration_ms=_duration_ms(start),
-            access_fingerprint=access_fingerprint,
-            evidence_count=evidence_count,
-            metadata=run_metadata or None,
-        )
         return ConnectorSyncResult(
             connector_id=connector_id,
             result="ok",

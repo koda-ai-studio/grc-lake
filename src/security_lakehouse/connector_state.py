@@ -1098,8 +1098,8 @@ def _run_order(row: dict[str, Any]) -> str:
     return str(row.get("occurred_at") or "")
 
 
-def latest_config(lake_dir: str | Path, connector_id: str) -> dict[str, Any] | None:
-    if _HISTORY_READS.get() is None:
+def latest_config(lake_dir: str | Path, connector_id: str, *, fresh: bool = False) -> dict[str, Any] | None:
+    if fresh or _HISTORY_READS.get() is None:
         # Configuration-only mutation/collection paths must not load run history.
         rows = (row for row in _read_jsonl(_gold(lake_dir) / CONFIG_FILE) if row.get("connector_id") == connector_id)
         return max(rows, key=_run_order, default=None)
