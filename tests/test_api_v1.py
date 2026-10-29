@@ -309,10 +309,11 @@ def test_v1_connector_sync_failure_is_generic_and_does_not_leak(tmp_path: Path) 
         server.shutdown()
 
 
-def test_v1_ingestion_status_summarizes_live_runs_and_proof_pack(tmp_path: Path) -> None:
+@pytest.mark.parametrize("scope", ["current", "other", "unbound"])
+def test_v1_ingestion_status_summarizes_live_runs_and_proof_pack(tmp_path: Path, scope: str) -> None:
     server = _spin(tmp_path)
     try:
-        append_config_event(
+        config = append_config_event(
             tmp_path,
             connector_id="snowflake-evidence-lake",
             state="enabled",
@@ -336,6 +337,11 @@ def test_v1_ingestion_status_summarizes_live_runs_and_proof_pack(tmp_path: Path)
             actor="scheduler",
             evidence_count=2,
             duration_ms=42,
+            access_fingerprint=config["credential_fingerprint"]
+            if scope == "current"
+            else "another-scope"
+            if scope == "other"
+            else None,
         )
         (tmp_path / "gold" / "evidence_integrity.json").write_text(
             json.dumps({"ok": True, "evidence_count": 2, "unique_event_ids": 2, "duplicate_event_ids": 0}),
@@ -383,7 +389,11 @@ def test_v1_ingestion_status_summarizes_live_runs_and_proof_pack(tmp_path: Path)
             {"source": "okta", "evidence_count": 1},
         ]
         snowflake = next(row for row in data["connectors"] if row["connector_id"] == "snowflake-evidence-lake")
-        assert snowflake["latest_sync"]["result"] == "ok"
+        expected_result = "ok" if scope == "current" else None
+        assert snowflake["latest_sync"]["result"] == expected_result
+        assert snowflake["last_successful_sync"]["result"] == expected_result
+        assert snowflake["freshness_state"] == ("fresh" if scope == "current" else "never_synced")
+        assert data["latest_runs"][0]["result"] == "ok"
         assert data["integrity"]["ok"] is True
         assert data["proof"]["proof_pack_exists"] is True
         assert data["proof"]["proof_state"] == "needs_review"

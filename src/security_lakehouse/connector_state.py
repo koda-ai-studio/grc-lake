@@ -975,6 +975,8 @@ class _History:
     latest: dict[tuple[str, str | None], dict[str, Any]]
     successful: dict[tuple[str, str], dict[str, Any]]
     runs: sqlite3.Connection
+    current_sync: dict[str, dict[str, Any]]
+    current_successful_sync: dict[str, dict[str, Any]]
 
 
 _HISTORY_CACHE: OrderedDict[Path, tuple[tuple, _History]] = OrderedDict()
@@ -1042,6 +1044,8 @@ def _history(lake_dir: str | Path) -> _History:
         previous = configs.get(connector)
         if previous is None or _run_order(row) > _run_order(previous):
             configs[connector] = row
+    current_sync: dict[str, dict[str, Any]] = {}
+    current_successful_sync: dict[str, dict[str, Any]] = {}
     runs = _read_jsonl(_gold(lake) / RUNS_FILE)
     for row in runs:
         connector = str(row.get("connector_id") or "")
@@ -1055,6 +1059,15 @@ def _history(lake_dir: str | Path) -> _History:
             previous = successful.get(success_key)
             if previous is None or _run_order(row) > _run_order(previous):
                 successful[success_key] = row
+        scope_fingerprint = configs.get(connector, {}).get("credential_fingerprint")
+        if kind == "sync" and (not scope_fingerprint or row.get("access_fingerprint") == scope_fingerprint):
+            previous = current_sync.get(connector)
+            if previous is None or _run_order(row) > _run_order(previous):
+                current_sync[connector] = row
+            if row.get("result") == "ok":
+                previous = current_successful_sync.get(connector)
+                if previous is None or _run_order(row) > _run_order(previous):
+                    current_successful_sync[connector] = row
     # A temporary SQLite index keeps paginated history off the Python heap.
     # JSONL remains authoritative; any source metadata change rebuilds the index.
     index = sqlite3.connect("", check_same_thread=False)
@@ -1069,7 +1082,7 @@ def _history(lake_dir: str | Path) -> _History:
     if _history_fingerprint(lake) != fingerprint:
         index.close()
         raise ValueError("connector history changed during read; retry")
-    history = _History(configs, latest, successful, index)
+    history = _History(configs, latest, successful, index, current_sync, current_successful_sync)
     with _HISTORY_LOCK:
         _HISTORY_CACHE[lake] = (fingerprint, history)
         _HISTORY_CACHE.move_to_end(lake)
@@ -1182,8 +1195,9 @@ def build_catalog_view(lake_dir: str | Path) -> list[dict[str, Any]]:
     for connector_id, base in catalog.items():
         config = latest_config(lake_dir, connector_id)
         probe = latest_run(lake_dir, connector_id, kind="probe")
-        sync_attempt = latest_run(lake_dir, connector_id, kind="sync")
-        sync_success = latest_successful_run(lake_dir, connector_id, kind="sync")
+        history = _history(lake_dir)
+        sync_attempt = copy.deepcopy(history.current_sync.get(connector_id))
+        sync_success = copy.deepcopy(history.current_successful_sync.get(connector_id))
         out.append(
             {
                 **base,
