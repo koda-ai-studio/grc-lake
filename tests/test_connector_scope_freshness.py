@@ -79,12 +79,9 @@ def test_runner_records_starting_scope_even_when_config_changes(tmp_path, monkey
         return original(*args, **kwargs)
 
     monkeypatch.setattr(connector_runner, "_collect", collect)
-    if fail:
-        with pytest.raises(connector_runner.ConnectorSyncError) as error:
-            connector_runner.run_connector_sync(tmp_path, connector_id=CONNECTOR, fixture_dir=FIXTURE)
-        run = error.value.run
-    else:
-        run = connector_runner.run_connector_sync(tmp_path, connector_id=CONNECTOR, fixture_dir=FIXTURE).run
-        assert (tmp_path / "gold" / "ccf_assessment.json").is_file()
+    with pytest.raises(connector_runner.ConnectorSyncError) as error:
+        connector_runner.run_connector_sync(tmp_path, connector_id=CONNECTOR, fixture_dir=FIXTURE)
+    run = error.value.run
+    assert not (tmp_path / "gold" / "ccf_assessment.json").exists()
     assert run["access_fingerprint"] == first["credential_fingerprint"]
     assert view(tmp_path)["last_sync"] is None

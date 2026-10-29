@@ -36,6 +36,11 @@ connection configuration. Changing its account, organization, credentials, or
 collection scope requires a matching sync before those fields report fresh
 evidence. Runs keep the configuration fingerprint captured when collection
 started, including failures and runs that finish after a configuration change.
+Before publication, a sync rechecks the saved configuration revision under the
+configuration write lock. A changed or disabled configuration rejects the old
+run before raw evidence, cursors, or assessment artifacts are written. The lock
+is held through publication; configuration writes wait for that phase, while
+provider reads happen outside it. Workflow notifications run after lock release.
 Earlier runs remain in run history. Legacy runs without a fingerprint cannot
 establish freshness for a fingerprinted configuration; run a new sync after
 upgrading. Scheduler cadence and existing evidence are unchanged.
