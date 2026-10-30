@@ -5,7 +5,8 @@ signal the continuous loop needs — **silent failure**: a connector that synced
 fine before but has had no *successful* sync within its freshness SLO. A failing
 or never-running connector that still looks "configured" is exactly how a
 compliance pipeline silently rots, so health is keyed on the latest sync whose
-``result`` is ``ok`` (a failed sync does not reset the clock).
+``result`` is ``ok`` within the saved access scope (a failed sync does not reset
+the clock).
 
 Health per enabled connector:
 
@@ -28,7 +29,6 @@ from security_lakehouse.connector_state import (
     DEFAULT_FRESHNESS_SLO_MINUTES,
     build_catalog_view,
     connector_state_reader,
-    latest_successful_run,
 )
 from security_lakehouse.models import parse_event_time, utc_iso
 
@@ -79,7 +79,7 @@ def build_connector_health(lake_dir: str | Path, *, now: datetime | None = None)
             slo = int(row.get("freshness_slo_minutes") or DEFAULT_FRESHNESS_SLO_MINUTES)
         except (TypeError, ValueError):
             slo = DEFAULT_FRESHNESS_SLO_MINUTES
-        success = latest_successful_run(lake_dir, connector_id, kind="sync") if enabled else None
+        success = row.get("last_successful_sync") if enabled else None
         last_success_at = parse_event_time(str(success["occurred_at"])) if success else None
         connectors.append(
             evaluate_connector_health(

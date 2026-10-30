@@ -40,8 +40,16 @@ def test_failed_sync_does_not_count_as_success(tmp_path: Path) -> None:
 
 
 def test_stale_success_is_flagged_silent(tmp_path: Path) -> None:
-    append_config_event(tmp_path, connector_id="aws-posture", state="enabled", actor="a")
-    append_run_event(tmp_path, connector_id="aws-posture", kind="sync", result="ok", actor="a", evidence_count=5)
+    config = append_config_event(tmp_path, connector_id="aws-posture", state="enabled", actor="a")
+    append_run_event(
+        tmp_path,
+        connector_id="aws-posture",
+        kind="sync",
+        result="ok",
+        actor="a",
+        evidence_count=5,
+        access_fingerprint=config["credential_fingerprint"],
+    )
 
     # Evaluated now: the success is fresh.
     fresh = build_connector_health(tmp_path)

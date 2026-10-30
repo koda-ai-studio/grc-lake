@@ -215,9 +215,12 @@ Catalog, health, and ingestion status share a per-request index of connector
 configuration and run history. Each file is read once within the request;
 separate lakes have separate indexes, writes invalidate the current index, and
 later requests reread current state. This cache does not persist across requests.
-The latest successful sync is selected from all retained runs, even when more
+Health uses the catalog's latest successful sync for the saved access scope.
+Changing account or credentials cannot borrow a previous account's healthy
+status; a fingerprinted configuration requires a matching recorded sync.
+The latest matching success is selected from all retained runs, even when more
 than 50 newer failures exist. Recent-run response limits do not limit health
-history. Reads reject malformed JSON records without rewriting or skipping them.
+history. This measures collection activity, not complete evidence or compliance. Reads reject malformed JSON records without rewriting or skipping them.
 
 ### Scheduling a hosted deployment
 
