@@ -957,7 +957,7 @@ function GraphPageContent() {
                 setPathMode("from");
               }
             }}
-            title="Click two nodes to highlight the shortest path between them"
+            title="Click two nodes to trace a recorded connection in either direction"
           >
             <Route className="h-3.5 w-3.5" />
             {pathFrom && pathTo
@@ -1303,21 +1303,6 @@ function GraphPageContent() {
               >
                 <code className="break-all text-ink">{focusParam}</code> is not
                 in the current graph.
-              </div>
-            )}
-            {pathFrom && pathTo && (
-              <div className="min-w-0 rounded-xl border border-warning/40 bg-warning-bg p-3 text-xs text-warning-fg">
-                <b>Path trace:</b>{" "}
-                <code className="break-all text-ink">{pathFrom}</code> →{" "}
-                <code className="break-all text-ink">{pathTo}</code>. Dimmed
-                nodes/edges are outside the shortest path.{" "}
-                <button
-                  type="button"
-                  className="ml-1 underline"
-                  onClick={clearPath}
-                >
-                  clear
-                </button>
               </div>
             )}
             {graphMode === "compliance" &&
