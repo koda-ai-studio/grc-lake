@@ -5,6 +5,8 @@ Python package, Helm chart, and bundled web console.
 
 ## Unreleased
 
+- Update the pinned Wolfi pip wheel to 26.2.2-r1, which includes the vendor's MessagePack security fix.
+
 - Add versioned organization account selections, independent ingestion outcomes and isolated CCF evaluations with input receipts. Provide bounded AWS organization inventory discovery and console, CLI, API and MCP workflows.
 
 - Add named source-account connections with independent access, sync history, cursors and snapshots across the console, API, CLI and MCP. Combined evaluation preserves other accounts and records unavailable accounts as evidence gaps.

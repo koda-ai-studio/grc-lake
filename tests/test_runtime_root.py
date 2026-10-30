@@ -1,5 +1,7 @@
 """The runtime overlay retains vendor inventory and excludes build tools."""
 
+from pathlib import Path
+
 import pytest
 from tools import build_runtime_root
 
@@ -18,6 +20,14 @@ PACKAGES = (
     "openssl-4.0-libcrypto",
     "ca-certificates-bundle",
 )
+
+
+def test_runtime_pip_wheel_includes_vendor_msgpack_security_fix():
+    lock = Path(build_runtime_root.__file__).with_name("runtime-packages.txt")
+    packages = dict(line.split("=", 1) for line in lock.read_text().splitlines())
+    version, revision = packages["py3-pip-wheel"].rsplit("-r", 1)
+    # Wolfi's py3-pip secfixes lists CVE-2026-114613 fixed in 26.2.2-r1.
+    assert (tuple(map(int, version.split("."))), int(revision)) >= ((26, 2, 2), 1)
 
 
 def test_overlay_preserves_vendor_inventory_and_python(tmp_path, monkeypatch):
