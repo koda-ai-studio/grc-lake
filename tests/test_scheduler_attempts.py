@@ -19,6 +19,7 @@ def test_failed_attempt_is_durable_and_bounded(tmp_path, monkeypatch, kind, fail
     connectors = [
         SimpleNamespace(
             connector_id="target",
+            scope_id="test-scope",
             period=period,
             schedule="every 23h",
             repo=None,
