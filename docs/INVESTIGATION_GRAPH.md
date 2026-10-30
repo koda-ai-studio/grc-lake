@@ -23,6 +23,36 @@ The canvas lays out at most 500 visible nodes and 1,000 visible relationships. A
 
 The graph represents evidence relationships, not network reachability, attack paths, complete inventory, or live provider qualification. No compliance pass is inferred from a graph path.
 
+### Reading hierarchy and directed links
+
+The guide separates assurance mappings (framework → control → safeguard), CCF
+taxonomy (category → family → safeguard), and evidence lineage (source →
+observation → asset). It explains node roles; it does not add relationships to
+the recorded graph. Turn on **Show relationship labels** to read edge meanings
+on the canvas. Proposed and invalid bindings retain their separate labels.
+
+**Selected relationships and mapping review state** separates incoming from
+outgoing links, identifies source-account scope where recorded, and lets you
+inspect either endpoint. Each direction pages five links at a time. Counts cover
+the loaded neighborhood only; response truncation does not imply that omitted
+relationships do not exist. Arrow direction is a relationship, not a lifecycle
+completion signal or evidence of a compliance pass.
+
+### Evidence lifecycle
+
+The investigation inspector separates the source observation time from the
+recorded collection time and the freshness evaluation time. A freshness deadline,
+when recorded, comes from that evidence's saved freshness projection. These are
+assessment-time facts, not a continuously updated clock or proof of a successful
+connector run. Missing timestamps display **Not recorded**; an observation time
+is never substituted for missing collection metadata in this view.
+
+The freshness projection is matched to the exact account, event and asset, with
+the existing event-wide fallback only when a projection has no asset identifier.
+The graph preserves the evidence's outcome and provenance. Review, remediation,
+re-verification and framework attestation require their own receipts; these
+three timestamps do not claim that those later steps occurred.
+
 ### Requirement node fields
 
 A requirement (`control`) node keeps two separate results:

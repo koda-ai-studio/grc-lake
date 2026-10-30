@@ -1410,6 +1410,9 @@ export interface GraphNode {
   binding_record_hash?: string;
   source_account_id?: string;
   observed_at?: string;
+  collected_at?: string | null;
+  freshness_evaluated_at?: string | null;
+  freshness_expires_at?: string | null;
   raw_sha256?: string;
   status?: string;
   basis?: string;
@@ -1431,7 +1434,7 @@ export interface GraphNode {
   provider?: string;
   severity?: string;
   freshness_status?: string;
-  freshness_age_minutes?: number;
+  freshness_age_minutes?: number | null;
   /** Control nodes: the CCF framework result, independent of the posture test. */
   ccf_status?: string;
   /** Control nodes: posture status; `status` carries the control-test result. */

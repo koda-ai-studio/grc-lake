@@ -6,11 +6,8 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api/client";
 import type { GraphNode, GraphNodeKind } from "@/lib/api/types";
 import { GRAPH_KIND_COLOR } from "@/lib/graph-palette";
-import {
-  graphEdgeInvalid,
-  graphMappingReview,
-  labelWithKind,
-} from "@/lib/graph-evidence";
+import { labelWithKind } from "@/lib/graph-evidence";
+import { GraphRelationships } from "./GraphRelationships";
 import { GraphCanvas } from "./GraphCanvas";
 import { GraphNodeDrawer } from "./GraphNodeDrawer";
 import { PageHeader } from "@/components/PageHeader";
@@ -110,6 +107,7 @@ export function InvestigationExplorer() {
   );
   const [root, setRoot] = useState(searchParams.get("root") ?? "");
   const [depth, setDepth] = useState(2);
+  const [relationshipLabels, setRelationshipLabels] = useState(false);
   const [search, setSearch] = useState("");
   const [version, setVersion] = useState("");
   const [visible, setVisible] = useState(new Set(layers));
@@ -687,19 +685,48 @@ export function InvestigationExplorer() {
                     )}
                   </div>
                 )}
-                {!(repositoryRoot && repositoryView === "evidence") && (
-                  <div
-                    data-testid="graph-column-legend"
-                    className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted"
-                  >
-                    {view === "controls" && (
-                      <span className="font-semibold text-ink">
-                        Framework → Control → Evidence / Safeguard → Asset /
-                        Repository
-                      </span>
-                    )}
-                  </div>
-                )}
+                <div
+                  aria-label="Graph relationship guide"
+                  data-testid="graph-column-legend"
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-line p-3 text-xs"
+                >
+                  <dl className="grid gap-1">
+                    <div>
+                      <dt className="inline font-semibold">
+                        Assurance hierarchy:{" "}
+                      </dt>
+                      <dd className="inline text-muted">
+                        Framework → Control → Safeguard · mappings require
+                        review
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="inline font-semibold">CCF structure: </dt>
+                      <dd className="inline text-muted">
+                        Category → Family → Safeguard
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="inline font-semibold">
+                        Evidence lineage:{" "}
+                      </dt>
+                      <dd className="inline text-muted">
+                        Source → Observation → Asset · recorded bindings connect
+                        the two
+                      </dd>
+                    </div>
+                  </dl>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={relationshipLabels}
+                      onChange={(event) =>
+                        setRelationshipLabels(event.target.checked)
+                      }
+                    />
+                    Show relationship labels
+                  </label>
+                </div>
                 <div
                   className={`grid items-start gap-3 ${selectedNode ? "xl:grid-cols-[minmax(0,1fr)_300px]" : ""}`}
                 >
@@ -707,7 +734,8 @@ export function InvestigationExplorer() {
                     <GraphCanvas
                       graph={canvasGraph}
                       scopeIds={scopeIds}
-                      showEdgeLabels={false}
+                      showEdgeLabels={relationshipLabels}
+                      showRelationshipLabels={relationshipLabels}
                       compactCards
                       neighborhoodRoot={
                         repositoryRoot && repositoryView === "evidence"
@@ -759,30 +787,14 @@ export function InvestigationExplorer() {
                   <summary className="cursor-pointer text-sm font-semibold">
                     Selected relationships and mapping review state
                   </summary>
-                  <ul className="mt-3 grid gap-2 text-xs">
-                    {data.edges
-                      .filter(
-                        (e) =>
-                          e.source === (selectedNode?.id ?? currentRoot) ||
-                          e.target === (selectedNode?.id ?? currentRoot),
-                      )
-                      .map((e) => (
-                        <li key={e.id}>
-                          {data.nodes.find((n) => n.id === e.source)?.label} →{" "}
-                          {data.nodes.find((n) => n.id === e.target)?.label} ·{" "}
-                          {e.kind.replaceAll("_", " ")}
-                          {graphMappingReview(e)
-                            ? ` · ${graphMappingReview(e)!.label} (catalog mapping)`
-                            : ""}
-                          {graphEdgeInvalid(e) && (
-                            <b className="text-danger-fg">
-                              {" "}
-                              · invalid asset type, does not support this asset
-                            </b>
-                          )}
-                        </li>
-                      ))}
-                  </ul>
+                  <GraphRelationships
+                    graph={data}
+                    nodeId={selectedNode?.id ?? currentRoot}
+                    onInspect={(node) => {
+                      if (!scopeIds.has(node.id)) setRepositoryView("all");
+                      setSelected(node);
+                    }}
+                  />
                 </details>
                 <p role="status" className="text-xs text-muted">
                   {scopeIds.size === data.nodes.length

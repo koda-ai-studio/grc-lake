@@ -33,6 +33,7 @@ import {
 } from "@/lib/graph-evidence";
 import { plural } from "@/lib/format";
 import { displayLabel } from "@/lib/display";
+import { EvidenceLifecycle } from "./EvidenceLifecycle";
 
 const KIND_TONE: Record<
   GraphNodeKind,
@@ -237,6 +238,9 @@ export function GraphNodeDrawer({
               {outcome.action}
             </p>
           </div>
+        )}
+        {node.kind === "evidence_type" && graphMode === "investigation" && (
+          <EvidenceLifecycle node={node} />
         )}
         {hasFrameworkResult && (
           <section
