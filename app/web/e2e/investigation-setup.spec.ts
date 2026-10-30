@@ -252,9 +252,11 @@ test("recorded graph edges reach card boundaries without broken segments", async
             const source = document
               .querySelector(`.react-flow__node[data-id="${edge.source}"]`)!
               .getBoundingClientRect();
-            const target = document
-              .querySelector(`.react-flow__node[data-id="${edge.target}"]`)!
-              .getBoundingClientRect();
+            const targetHandles = [
+              ...document.querySelectorAll(
+                `.react-flow__node[data-id="${edge.target}"] .react-flow__handle.target`,
+              ),
+            ].map((handle) => handle.getBoundingClientRect());
             const start = path
               .getPointAtLength(0)
               .matrixTransform(path.getScreenCTM()!);
@@ -267,9 +269,13 @@ test("recorded graph edges reach card boundaries without broken segments", async
                 start.x - source.right,
                 start.y - (source.top + source.height / 2),
               ),
-              Math.hypot(
-                end.x - target.left,
-                end.y - (target.top + target.height / 2),
+              Math.min(
+                ...targetHandles.map((handle) =>
+                  Math.hypot(
+                    end.x - (handle.left + handle.width / 2),
+                    end.y - (handle.top + handle.height / 2),
+                  ),
+                ),
               ),
             );
           }

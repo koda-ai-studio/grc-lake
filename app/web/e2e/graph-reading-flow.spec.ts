@@ -99,32 +99,49 @@ for (const theme of ["light", "dark"])
           },
         }),
       );
+      await page.route("**/api/v1/audit-log**", (route) =>
+        route.fulfill({
+          json: {
+            data: [
+              {
+                occurred_at: "2026-10-01T12:00:00Z",
+                subject: "Synthetic review",
+                summary: "Review recorded",
+                category: "mapping_review",
+                actor: "Test reviewer",
+                result: "observed",
+              },
+            ],
+          },
+        }),
+      );
       await page.goto("/console/graph/");
       await page.locator('.react-flow__node[data-id="evidence:e"]').click();
       await expect(page.locator(".react-flow__edge-path")).toHaveCount(5);
-      const entry = await page.evaluate(() => {
-        const node = document
-          .querySelector('.react-flow__node[data-id="evidence:e"]')!
-          .getBoundingClientRect();
-        return ["requires", "produces"].map((id) => {
-          const path = document.querySelector<SVGPathElement>(
-            `.react-flow__edge[data-id="${id}"] .react-flow__edge-path`,
-          )!;
-          const end = path
-            .getPointAtLength(path.getTotalLength())
-            .matrixTransform(path.getScreenCTM()!);
-          return {
-            x: end.x - node.x,
-            y: end.y - node.y,
-            width: node.width,
-            height: node.height,
-          };
-        });
-      });
-      expect(entry[0].x).toBeCloseTo(entry[0].width / 2, 0);
-      expect(entry[0].y).toBeCloseTo(0, 0);
-      expect(entry[1].x).toBeCloseTo(0, 0);
-      expect(entry[1].y).toBeCloseTo(entry[1].height / 2, 0);
+      await expect
+        .poll(() =>
+          page.evaluate(() => {
+            const element = document.querySelector(
+              '.react-flow__node[data-id="evidence:e"]',
+            );
+            if (!element) return false;
+            const node = element.getBoundingClientRect();
+            return ["requires", "produces"].every((id, index) => {
+              const path = document.querySelector<SVGPathElement>(
+                `.react-flow__edge[data-id="${id}"] .react-flow__edge-path`,
+              );
+              const matrix = path?.getScreenCTM();
+              if (!path || !matrix) return false;
+              const end = path
+                .getPointAtLength(path.getTotalLength())
+                .matrixTransform(matrix);
+              const x = index === 0 ? node.x + node.width / 2 : node.x;
+              const y = index === 0 ? node.y : node.y + node.height / 2;
+              return Math.abs(end.x - x) < 0.5 && Math.abs(end.y - y) < 0.5;
+            });
+          }),
+        )
+        .toBe(true);
 
       const inspector = page.getByRole("complementary", {
         name: "Selected graph node",
