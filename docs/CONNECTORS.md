@@ -67,6 +67,20 @@ These counters describe recorded collection activity, including demo sources.
 They do not prove provider qualification or framework coverage. Run control
 evaluation and inspect its evidence before making an assessment claim.
 
+## Scheduled collection scope
+
+Scheduled connector attempts are partitioned by saved access scope and effective
+repository, fixture path, and token reference. A new account or collection target
+gets its own attempt interval; it does not wait for the previous account's slot.
+Returning to an unchanged scope resumes its own cadence. Schedule-only edits
+retain the last attempt time and apply the new interval to it.
+
+Failed and interrupted attempts still wait their interval within that scope.
+Legacy attempts without scope retain their interval as a conservative fallback
+until the scope records its own attempt. The same opaque target key is used in
+local history and distributed attempt storage. No credential values are added to
+scheduler history. This does not create multiple concurrently enabled connections.
+
 ## Incremental collection scope
 
 Incremental syncs keep separate cursors for each connector and effective collection

@@ -50,6 +50,7 @@ from security_lakehouse.assessment import SnapshotWrittenHook
 from security_lakehouse.connector_runner import run_connector_sync
 from security_lakehouse.connector_state import build_catalog_view
 from security_lakehouse.execution_mode import in_server_mode, server_execution, server_tenant_id
+from security_lakehouse.ingestion.watermark import collection_scope
 from security_lakehouse.io import append_jsonl, read_jsonl
 from security_lakehouse.lake_eval import run_lake_eval
 from security_lakehouse.lake_scale import connector_materialize_on_sync, lake_eval_schedule
@@ -90,6 +91,7 @@ class ScheduledConnector:
     fixture_dir: str | None
     token_env: str
     materialize: bool
+    scope_id: str | None = None
 
 
 def _scheduled_from_workflows(workflows: list[dict[str, Any]]) -> list[ScheduledWorkflow]:
@@ -174,9 +176,19 @@ def _scheduled_from_connectors(lake_dir: str | Path) -> list[ScheduledConnector]
                 fixture_dir=options.get("fixture_dir"),
                 token_env=str(options.get("token_env") or "__provider_default__"),
                 materialize=connector_materialize_on_sync(options),
+                scope_id=collection_scope(
+                    {"credential_fingerprint": connector.get("credential_fingerprint"), "options": options},
+                    repo=options.get("repo"),
+                    fixture_dir=options.get("fixture_dir"),
+                    token_env=str(options.get("token_env") or "__provider_default__"),
+                ),
             )
         )
     return out
+
+
+def _connector_state_id(connector_id: str, scope_id: str | None) -> str:
+    return f"{connector_id}:{scope_id}" if scope_id else connector_id
 
 
 def _state_key(target_kind: str, target_id: str) -> str:
@@ -218,12 +230,21 @@ def _read_state(lake_dir: str | Path) -> dict[str, datetime]:
     return latest
 
 
-def _write_state(lake_dir: str | Path, *, target_kind: str, target_id: str, fired_at: datetime, result: str) -> None:
+def _write_state(
+    lake_dir: str | Path,
+    *,
+    target_kind: str,
+    target_id: str,
+    fired_at: datetime,
+    result: str,
+    scope_id: str | None = None,
+) -> None:
     gold = _gold(lake_dir)
     gold.mkdir(parents=True, exist_ok=True)
+    state_target = _connector_state_id(target_id, scope_id) if target_kind == "connector" else target_id
     record = {
         "target_kind": target_kind,
-        "target_id": target_id,
+        "target_id": state_target,
         "last_fired_at": utc_iso_z(fired_at),
         "result": result,
     }
@@ -231,9 +252,11 @@ def _write_state(lake_dir: str | Path, *, target_kind: str, target_id: str, fire
         record["workflow_id"] = target_id
     if target_kind == "connector":
         record["connector_id"] = target_id
+        if scope_id is not None:
+            record["scope_id"] = scope_id
     from security_lakehouse.distributed.schedules import record_attempt
 
-    record_attempt(target_kind, target_id, fired_at)
+    record_attempt(target_kind, state_target, fired_at)
     append_jsonl(gold / STATE_FILE, record)
 
 
@@ -509,12 +532,22 @@ def _tick_locked(
         )
     sync_runner = connector_runner or run_connector_sync
     for connector_entry in _scheduled_from_connectors(lake_dir):
-        last_fired = state.get(_state_key("connector", connector_entry.connector_id))
+        scope_id = connector_entry.scope_id
+        state_id = _connector_state_id(connector_entry.connector_id, scope_id)
+        # Legacy attempts keep their interval until this scope records its own attempt.
+        last_fired = state.get(_state_key("connector", state_id)) or state.get(
+            _state_key("connector", connector_entry.connector_id)
+        )
         due_at = (last_fired + connector_entry.period) if last_fired else moment
         if last_fired is not None and moment < due_at:
             continue
         _write_state(
-            lake_dir, target_kind="connector", target_id=connector_entry.connector_id, fired_at=moment, result="started"
+            lake_dir,
+            target_kind="connector",
+            target_id=connector_entry.connector_id,
+            fired_at=moment,
+            result="started",
+            scope_id=scope_id,
         )
         try:
             sync_run = sync_runner(
@@ -559,6 +592,7 @@ def _tick_locked(
             lake_dir,
             target_kind="connector",
             target_id=connector_entry.connector_id,
+            scope_id=scope_id,
             fired_at=moment,
             result=str(results[-1]["result"]),
         )
