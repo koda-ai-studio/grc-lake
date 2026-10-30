@@ -326,6 +326,18 @@ export function InvestigationExplorer() {
     }
     setVersion(data?.version ?? "");
   };
+  const inspectNode = (node: GraphNode) => {
+    if (!data?.nodes.some((item) => item.id === node.id)) {
+      exploreNode(node);
+    } else if (!scopeIds.has(node.id)) {
+      setDirectFocus(null);
+      setRepositoryView("all");
+    }
+    setVisible((current) =>
+      current.has(node.kind) ? current : new Set([...current, node.kind]),
+    );
+    setSelected(node);
+  };
   const reset = () => {
     setDirectFocus(null);
     setTrail([]);
@@ -902,17 +914,7 @@ export function InvestigationExplorer() {
                     node={selectedNode}
                     graphMode="investigation"
                     graph={data}
-                    onInspectNode={(node) => {
-                      // A record listed on a node but outside this slice
-                      // becomes the starting point, then stays selected.
-                      if (node && !data?.nodes.some((n) => n.id === node.id))
-                        exploreNode(node);
-                      else if (node && !scopeIds.has(node.id)) {
-                        setDirectFocus(null);
-                        setRepositoryView("all");
-                      }
-                      setSelected(node);
-                    }}
+                    onInspectNode={inspectNode}
                     onClose={() => setSelected(null)}
                     onFocusPath={
                       selectedNode ? () => exploreNode(selectedNode) : undefined
@@ -926,13 +928,7 @@ export function InvestigationExplorer() {
                   <GraphRelationships
                     graph={data}
                     nodeId={selectedNode?.id ?? currentRoot}
-                    onInspect={(node) => {
-                      if (!scopeIds.has(node.id)) {
-                        setDirectFocus(null);
-                        setRepositoryView("all");
-                      }
-                      setSelected(node);
-                    }}
+                    onInspect={inspectNode}
                   />
                 </details>
                 <p role="status" className="text-xs text-muted">
