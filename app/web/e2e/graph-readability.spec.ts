@@ -87,9 +87,7 @@ for (const theme of ["light", "dark"]) {
     await page
       .getByRole("heading", { name: "Evidence investigation", exact: true })
       .hover();
-    await page
-      .getByRole("button", { name: "Readable view", exact: true })
-      .click();
+    await page.getByRole("button", { name: "Zoom In", exact: true }).click();
     const zoom = await fittedZoom(page);
     const labels = await page
       .getByTestId("graph-node-label")
