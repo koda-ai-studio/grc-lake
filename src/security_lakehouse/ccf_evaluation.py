@@ -85,10 +85,12 @@ def evaluate_safeguards(
     # a collection gap cannot borrow another account's passing provider evidence.
     gap_sources: set[str] = set()
     bound_sources: dict[str, set[str]] = defaultdict(set)
+    observed_sources: dict[tuple[str, str], set[str]] = defaultdict(set)
     for event in events:
         asset_key: tuple[str, str] = source_asset_key(event)
         assets[asset_key].add(str(event["asset_type"]))
         source_key = str(event.get("source", ""))
+        observed_sources[asset_key].add(source_key)
         if event["asset_type"] == COLLECTION_SCOPE:
             gap_sources.add(source_key)
         for safeguard_id in event.get("safeguard_ids", []):
@@ -105,10 +107,14 @@ def evaluate_safeguards(
     # assessed only from its own provider's evidence.
     asset_states: dict[str, list[tuple[frozenset[str], str]]] = defaultdict(list)
     incomplete: set[str] = set()
+    incomplete_sources: dict[str, set[str]] = defaultdict(set)
     for safeguard_id, definition in definitions.items():
         eligible_types = set(definition.get("asset_types") or [])
         eligible_count = sum(type_counts[t] for t in eligible_types)
         ambiguous_count = sum(len(types) != 1 and bool(types & eligible_types) for types in assets.values())
+        for asset_key, types in assets.items():
+            if types & eligible_types and (len(types) != 1 or asset_key not in bound[safeguard_id]):
+                incomplete_sources[safeguard_id].update(observed_sources[asset_key])
         states = []
         assessed = 0
         invalid = 0
@@ -171,7 +177,7 @@ def evaluate_safeguards(
         if not states:
             return ControlVerdict.NOT_EVALUATED.value
         gaps = bound_sources[safeguard_id] & gap_sources
-        if safeguard_id in incomplete or gaps & sources:
+        if incomplete_sources[safeguard_id] & sources or gaps & sources:
             states.append(ControlVerdict.NOT_EVALUATED.value)
         return _combine(states)
 
