@@ -5,6 +5,8 @@ Python package, Helm chart, and bundled web console.
 
 ## Unreleased
 
+- Require joserfc 1.7.6 or newer for server authentication and update the lockfile to reject oversized compact tokens before copying their segments.
+
 - Update the pinned Wolfi pip wheel to 26.2.2-r1, which includes the vendor's MessagePack security fix.
 
 - Add versioned organization account selections, independent ingestion outcomes and isolated CCF evaluations with input receipts. Provide bounded AWS organization inventory discovery and console, CLI, API and MCP workflows.
