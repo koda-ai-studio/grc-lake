@@ -37,10 +37,15 @@ def _silver_record(lake_dir: str | Path, event_id: str) -> dict[str, Any] | None
 
 
 def _bronze_record(lake_dir: str | Path, event_id: str) -> dict[str, Any] | None:
+    version = 1 if event_id.startswith("trustops:connector-event:v1:") else 2
     for path in _bronze_paths(lake_dir):
         for row in read_jsonl(path):
             raw = row.get("raw") or {}
-            if row.get("event_id") == event_id or event_identity(raw) == event_id or raw.get("event_id") == event_id:
+            if (
+                row.get("event_id") == event_id
+                or event_identity(raw, version=version) == event_id
+                or raw.get("event_id") == event_id
+            ):
                 return row
     return None
 

@@ -76,8 +76,12 @@ exception records. Back up the database before upgrading. Export new records and
 reviews before downgrading: downgrade removes these new tables. Restoring a
 backup is the recovery path for their history; a downgrade cannot reconstruct it.
 
-Normal evaluation rebuilds derived artifacts with normalization v6, evaluation v9
-and CCF projection v2. Existing sealed generations remain unchanged. Projection
+Normal evaluation rebuilds derived artifacts with normalization v7, evaluation v9
+and CCF projection v2. Connector event identities now include the source account
+(raw `tenant_id`) as well as the connector and provider event ID. Provider IDs
+remain available as `source_event_id`; incremental evaluation rebuilds derived
+evidence on upgrade. Existing sealed generations remain unchanged and their
+previous event identities remain verifiable. Projection
 v1 remains readable through the existing full-results API; compact/link reads
 require reevaluation. Admission failures leave the current generation in place.
 

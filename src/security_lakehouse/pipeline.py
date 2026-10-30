@@ -46,7 +46,7 @@ DASHBOARD_DETAIL_CAP = 100
 
 RAW_EVENT_SCHEMA_VERSION = "trustops.raw_event.v1"
 NORMALIZED_EVENT_SCHEMA_VERSION = "trustops.normalized_event.v1"
-NORMALIZATION_TRANSFORM_VERSION = "trustops.normalization.v6"
+NORMALIZATION_TRANSFORM_VERSION = "trustops.normalization.v7"
 CONTROL_EVALUATION_VERSION = "trustops.control_evaluation.v9"
 MART_SCHEMA_VERSION = "trustops.mart.v3"
 
