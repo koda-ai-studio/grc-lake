@@ -68,6 +68,7 @@ import {
   GRAPH_LAYOUT_EDGE_CAP,
   GRAPH_READABLE_ZOOM,
   graphLayoutBudget,
+  graphConnection,
   graphScope,
   investigationPositions,
   investigationRoute,
@@ -445,6 +446,38 @@ function GraphNodeCard({ id, data, selected }: NodeProps<FlowGraphNode>) {
             }
             className="!opacity-0"
           />
+          {!data.neighborhoodRoot && (
+            <>
+              <Handle
+                id="reverse"
+                type="source"
+                position={
+                  data.layout === "LR"
+                    ? Position.Left
+                    : data.layout === "BT"
+                      ? Position.Bottom
+                      : Position.Top
+                }
+                style={data.layout === "LR" ? { left: 51, top: 48 } : undefined}
+                className="!opacity-0"
+              />
+              <Handle
+                id="reverse"
+                type="target"
+                position={
+                  data.layout === "LR"
+                    ? Position.Right
+                    : data.layout === "BT"
+                      ? Position.Top
+                      : Position.Bottom
+                }
+                style={
+                  data.layout === "LR" ? { right: 51, top: 48 } : undefined
+                }
+                className="!opacity-0"
+              />
+            </>
+          )}
           {data.neighborhoodRoot && (
             <>
               <Handle
@@ -705,7 +738,21 @@ function layoutGraph(
     height,
     position: positions.get(node.id) ?? { x: 0, y: 0 },
   }));
-  return { nodes: laidOut, edges: rfEdges };
+  const edges = rfEdges.map((edge) => {
+    const source = positions.get(edge.source)!;
+    const target = positions.get(edge.target)!;
+    const reverse =
+      !compact &&
+      (rankdir === "LR"
+        ? source.x > target.x
+        : rankdir === "BT"
+          ? source.y < target.y
+          : source.y > target.y);
+    return reverse
+      ? { ...edge, sourceHandle: "reverse", targetHandle: "reverse" }
+      : edge;
+  });
+  return { nodes: laidOut, edges };
 }
 
 function InvestigationEdge(props: EdgeProps) {
@@ -1021,37 +1068,14 @@ function InnerGraphCanvas({
     return out;
   }, [activeId, adjacency, allowedIds]);
 
-  // Two-click path trace via BFS over the filtered subgraph.
-  const pathSet = useMemo<{
-    nodes: Set<string>;
-    edges: Set<string>;
-  } | null>(() => {
-    if (!graph || !pathFrom || !pathTo || pathFrom === pathTo) return null;
-    if (!allowedIds.has(pathFrom) || !allowedIds.has(pathTo)) return null;
-    const visited = new Map<string, string | null>([[pathFrom, null]]);
-    const queue: string[] = [pathFrom];
-    while (queue.length > 0) {
-      const cur = queue.shift()!;
-      if (cur === pathTo) break;
-      for (const next of adjacency.get(cur) ?? []) {
-        if (visited.has(next)) continue;
-        visited.set(next, cur);
-        queue.push(next);
-      }
-    }
-    if (!visited.has(pathTo)) return null;
-    const nodes = new Set<string>();
-    let step: string | null = pathTo;
-    while (step) {
-      nodes.add(step);
-      step = visited.get(step) ?? null;
-    }
-    const edges = new Set<string>();
-    for (const e of graph.edges) {
-      if (nodes.has(e.source) && nodes.has(e.target)) edges.add(e.id);
-    }
-    return { nodes, edges };
-  }, [graph, pathFrom, pathTo, allowedIds, adjacency]);
+  const connection = useMemo(
+    () => graphConnection(filteredEdges, allowedIds, pathFrom, pathTo),
+    [filteredEdges, allowedIds, pathFrom, pathTo],
+  );
+  const pathSet =
+    connection.status === "found" || connection.status === "same"
+      ? connection
+      : null;
 
   // Search highlight: case-insensitive match against label / subtitle / id.
   const matchSet = useMemo<Set<string> | null>(() => {
@@ -1166,10 +1190,10 @@ function InnerGraphCanvas({
       const onHighlight = highlightSet
         ? e.source === activeId || e.target === activeId
         : !compactCards && Boolean(scopeIds);
-      const dimmed =
-        (matchSet && !matchSet.has(e.source) && !matchSet.has(e.target)) ||
-        (pathSet && !onPath) ||
-        (highlightSet && !onHighlight);
+      const dimmed = pathSet
+        ? !onPath
+        : (matchSet && !matchSet.has(e.source) && !matchSet.has(e.target)) ||
+          (highlightSet && !onHighlight);
       const accent = invalid
         ? "var(--color-danger)"
         : onPath
@@ -1556,6 +1580,24 @@ function InnerGraphCanvas({
 
   return (
     <div className="grid gap-1">
+      {connection.status !== "idle" && (
+        <div
+          role="status"
+          data-testid="graph-connection-trace"
+          className="min-w-0 rounded-xl border border-line bg-surfaceMuted p-3 text-xs text-muted"
+        >
+          <b>Recorded connection:</b>{" "}
+          <code className="break-all">{pathFrom}</code> ↔{" "}
+          <code className="break-all">{pathTo}</code>.{" "}
+          {connection.status === "hidden"
+            ? "An endpoint is hidden by the current filters. Reveal it or choose visible endpoints."
+            : connection.status === "disconnected"
+              ? "No recorded connection in the visible graph. Hidden or unloaded relationships are not searched."
+              : connection.status === "same"
+                ? "Both endpoints are the same node; no relationship is traversed."
+                : `${connection.nodes.size} nodes · ${connection.edges.size} relationships. The shortest connection follows links in either direction; arrows retain their recorded direction. This is not network reachability.`}
+        </div>
+      )}
       <div
         ref={wrapperRef}
         className={`${heightClassName} overflow-hidden rounded-xl border border-line bg-surface`}
