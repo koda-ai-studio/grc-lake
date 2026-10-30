@@ -404,6 +404,8 @@ def investigation_graph(
         raise ValueError("graph version changed; refresh before expanding")
     # Unfiltered reads use membership views and preordered roots directly. Layer
     # filters alter degree ordering, so only that query rebuilds the root order.
+    if layers and set(indexes.counts).issubset(layers):
+        layers = None
     eligible = {key for key, n in nodes.items() if n["kind"] in layers} if layers else nodes.keys()
     outgoing, incoming = indexes.outgoing, indexes.incoming
 
@@ -437,13 +439,15 @@ def investigation_graph(
         )
     selected = {root} if root is not None and root in eligible else set()
     ordered = list(selected)
+    distances = {key: 0 for key in selected}
+    upstream = set()
     # A control path walks upstream and downstream independently: reaching a
     # shared framework or safeguard must not turn back into sibling controls.
     walks = (outgoing, incoming) if view == "controls" else (None,)
     for links in walks:
         frontier = {root} if root is not None and root in eligible else set()
         visited = set(frontier)
-        for _ in range(depth):
+        for hop in range(1, depth + 1):
             following = set()
             check()
             for key in frontier:
@@ -451,6 +455,10 @@ def investigation_graph(
                     continue
                 following.update((linked(links, key) if links is not None else neighbors(key)) - visited)
             visited.update(following)
+            for key in following:
+                distances[key] = min(distances.get(key, hop), hop)
+            if links is incoming:
+                upstream.update(following)
             ordered.extend(sorted(following - selected))
             selected.update(following)
             frontier = following
@@ -465,8 +473,11 @@ def investigation_graph(
                     if nodes[key]["kind"] == "source"
                 } - selected
                 visited.update(producers)
+                for key in producers:
+                    distances[key] = hop + 1
                 ordered.extend(sorted(producers))
                 selected.update(producers)
+    ordered.sort(key=lambda key: (distances[key], key not in upstream, key))
     framework_groups = []
     grouped_controls: dict[str, list[str]] = defaultdict(list)
     selected_framework = ""
