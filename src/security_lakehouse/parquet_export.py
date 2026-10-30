@@ -187,6 +187,7 @@ def export_parquet(lake_dir: str | Path, output_dir: str | Path, *, tenant_id: s
             "trustops.normalization.v4",
             "trustops.normalization.v5",
             "trustops.normalization.v6",
+            "trustops.normalization.v7",
         }:
             raise ValueError("unsupported normalization transform version")
         safeguard_bindings = transform in {
@@ -195,17 +196,20 @@ def export_parquet(lake_dir: str | Path, output_dir: str | Path, *, tenant_id: s
             "trustops.normalization.v4",
             "trustops.normalization.v5",
             "trustops.normalization.v6",
+            "trustops.normalization.v7",
         }
         connector_identity = transform in {
             "trustops.normalization.v3",
             "trustops.normalization.v4",
             "trustops.normalization.v5",
             "trustops.normalization.v6",
+            "trustops.normalization.v7",
         }
         evidence_availability = transform in {
             "trustops.normalization.v4",
             "trustops.normalization.v5",
             "trustops.normalization.v6",
+            "trustops.normalization.v7",
         }
         schema = _arrow_schema(
             pa,
@@ -214,7 +218,8 @@ def export_parquet(lake_dir: str | Path, output_dir: str | Path, *, tenant_id: s
             safeguard_bindings=safeguard_bindings,
             connector_identity=connector_identity,
             evidence_availability=evidence_availability,
-            source_account_identity=transform in {"trustops.normalization.v5", "trustops.normalization.v6"},
+            source_account_identity=transform
+            in {"trustops.normalization.v5", "trustops.normalization.v6", "trustops.normalization.v7"},
         )
         source = generation / "silver/normalized_events.jsonl"
         source_digest = _sha256(source)
@@ -232,7 +237,8 @@ def export_parquet(lake_dir: str | Path, output_dir: str | Path, *, tenant_id: s
                         safeguard_bindings=safeguard_bindings,
                         connector_identity=connector_identity,
                         evidence_availability=evidence_availability,
-                        source_account_identity=transform in {"trustops.normalization.v5", "trustops.normalization.v6"},
+                        source_account_identity=transform
+                        in {"trustops.normalization.v5", "trustops.normalization.v6", "trustops.normalization.v7"},
                     )
                     batch.append(row)
                     count += 1
