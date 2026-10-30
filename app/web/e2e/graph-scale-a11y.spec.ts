@@ -263,6 +263,9 @@ test("tablet canvases say when content is outside the view; phones hide the mini
     .click();
   await page.getByRole("combobox", { name: "Graph depth" }).selectOption("3");
   await page.getByRole("button", { name: "Environment" }).click();
+  await page
+    .getByRole("button", { name: "Readable view", exact: true })
+    .click();
   await expect(page.getByTestId("graph-overflow-hint")).toBeVisible();
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.locator(".react-flow__minimap")).toBeHidden();
@@ -403,15 +406,34 @@ test("a mapping without review provenance stays visibly unreviewed", async ({
   );
 });
 
-test("fit view restores readable labels instead of shrinking the whole framework", async ({
+test("readable view enlarges labels and fit view includes the whole framework", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await openMaps(page);
   await page.getByRole("button", { name: "Show whole framework" }).click();
-  await page.getByRole("button", { name: /^fit view$/i }).click();
+  await page
+    .getByRole("button", { name: "Readable view", exact: true })
+    .click();
   expect(await zoom(page)).toBeGreaterThanOrEqual(0.6);
   await expect(page.getByTestId("graph-overflow-hint")).toBeVisible();
+  await page.getByRole("button", { name: /^fit view$/i }).click();
+  await expect
+    .poll(() =>
+      page.locator(".react-flow").evaluate((canvas) => {
+        const box = canvas.getBoundingClientRect();
+        return [...canvas.querySelectorAll(".react-flow__node")].every((el) => {
+          const node = el.getBoundingClientRect();
+          return (
+            node.left >= box.left &&
+            node.right <= box.right &&
+            node.top >= box.top &&
+            node.bottom <= box.bottom
+          );
+        });
+      }),
+    )
+    .toBe(true);
 });
 
 test("a dense investigation refuses layout promptly without silently dropping relationships", async ({
