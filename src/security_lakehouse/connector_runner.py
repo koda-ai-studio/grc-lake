@@ -439,7 +439,7 @@ def run_connector_sync(
                 _materialize_after_sync(lake, raw_path, connector_id=connector_id)
             # Rows sharing an event_id upsert onto one evidence row, so the landed
             # count is the distinct ids, not the collected list length.
-            evidence_count = len({str(row.get("event_id")) for row in rows})
+            evidence_count = len({source_event_key(row) for row in rows})
             gaps = collection_gaps(rows)
             run_metadata: dict[str, Any] = {}
             if gaps:
@@ -1852,7 +1852,7 @@ def _dedupe_latest(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     from security_lakehouse.io import canonical_sha256
     from security_lakehouse.models import parse_event_time
 
-    latest: dict[tuple[str, str], dict[str, Any]] = {}
+    latest: dict[tuple[str, str, str], dict[str, Any]] = {}
     for row in rows:
         key = source_event_key(row)
         prior = latest.get(key)
