@@ -20,6 +20,14 @@ a customer's account. Preview status is retained until the required live checks
 are completed. Mapping mode is experimental; consult [bring your own lake](BRING_YOUR_OWN_LAKE.md)
 and [connector setup](CONNECTORS.md) before selecting a source.
 
+Mapped readers check for a row beyond the configured per-mapping budget. If one
+exists, collection is partial: sampled passes are withheld, the prior cursor is
+held, and the run exposes a `row_limit_exceeded` gap. Operators must resize or
+explicitly partition the read scope and replay it. This protects assessment
+accuracy when a security lake contains more evidence than a bounded read can
+cover; it does not establish full lake coverage or qualify production scale.
+See [bounded reads and recovery](BRING_YOUR_OWN_LAKE.md#incremental-reads-and-write-mode).
+
 ## Where evidence and results live
 
 ```mermaid
