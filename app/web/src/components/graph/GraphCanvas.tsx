@@ -865,7 +865,7 @@ function InnerGraphCanvas({
   const [hydrated, setHydrated] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
   useEffect(() => setHydrated(true), []);
-  const { setCenter, setViewport } = useReactFlow();
+  const { setCenter, setViewport, getZoom } = useReactFlow();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const activeId = hoveredId ?? selectedId;
@@ -1457,7 +1457,6 @@ function InnerGraphCanvas({
     filterFramework,
     searchQuery,
     scopeIds,
-    viewMode,
   ]);
 
   // Opening the adjacent inspector changes canvas width without changing nodes.
@@ -1630,6 +1629,7 @@ function InnerGraphCanvas({
             if (onExploreNode) pendingClick.current = setTimeout(select, 250);
             else select();
           }}
+          onMoveEnd={(_, viewport) => setOverflow(overflowsAt(viewport.zoom))}
           zoomOnScroll={false}
           preventScrolling={false}
           zoomOnDoubleClick={!onExploreNode}
@@ -1677,7 +1677,7 @@ function InnerGraphCanvas({
               </div>
             ))}
           </ViewportPortal>
-          {viewMode === "readable" && (
+          {overflow && (
             <MiniMap
               pannable
               zoomable
@@ -1686,7 +1686,20 @@ function InnerGraphCanvas({
               maskColor="rgb(var(--rgb-ink) / 0.06)"
             />
           )}
-          <Controls position="bottom-left" showFitView={false}>
+          <Controls
+            position="bottom-left"
+            showFitView={false}
+            onZoomIn={() => {
+              setViewMode("readable");
+              const readableZoom = compactCards
+                ? (wrapperRef.current?.clientWidth ?? 0) < 600
+                  ? 0.85
+                  : 0.7
+                : GRAPH_READABLE_ZOOM;
+              if (!neighborhoodRoot && getZoom() < readableZoom)
+                fitReadableView(180);
+            }}
+          >
             <ControlButton
               title="Fit View"
               aria-label="Fit View"
@@ -1727,26 +1740,6 @@ function InnerGraphCanvas({
             {label}
           </span>
         ))}
-        <div
-          role="group"
-          aria-label="Graph zoom view"
-          className="ml-auto flex flex-wrap gap-2"
-        >
-          {(["overview", "readable"] as const).map((mode) => (
-            <button
-              key={mode}
-              type="button"
-              aria-pressed={viewMode === mode}
-              className="rounded-lg border border-line bg-surface px-3 py-1.5 text-xs font-medium text-ink hover:bg-surfaceMuted aria-pressed:border-brand aria-pressed:bg-brand aria-pressed:text-onBrand"
-              onClick={() => {
-                setViewMode(mode);
-                (mode === "overview" ? fitAllView : fitReadableView)(180);
-              }}
-            >
-              {mode === "overview" ? "Fit all nodes" : "Readable view"}
-            </button>
-          ))}
-        </div>
       </div>
       {overflow && (
         <p
@@ -1754,8 +1747,8 @@ function InnerGraphCanvas({
           className="text-xs leading-5 text-muted"
         >
           Part of this map is outside the view. Drag the canvas to follow
-          connections or use the minimap. Choose Fit all nodes to see the entire
-          loaded graph; Readable view enlarges labels for inspection.
+          connections. Use the fit icon to see the entire loaded graph, or + to
+          enlarge labels.
         </p>
       )}
     </div>

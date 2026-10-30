@@ -263,9 +263,7 @@ test("tablet canvases say when content is outside the view; phones hide the mini
     .click();
   await page.getByRole("combobox", { name: "Graph depth" }).selectOption("3");
   await page.getByRole("button", { name: "Environment" }).click();
-  await page
-    .getByRole("button", { name: "Readable view", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Zoom In", exact: true }).click();
   await expect(page.getByTestId("graph-overflow-hint")).toBeVisible();
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.locator(".react-flow__minimap")).toBeHidden();
@@ -412,9 +410,7 @@ test("readable view enlarges labels and fit view includes the whole framework", 
   await page.setViewportSize({ width: 1440, height: 1000 });
   await openMaps(page);
   await page.getByRole("button", { name: "Show whole framework" }).click();
-  await page
-    .getByRole("button", { name: "Readable view", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Zoom In", exact: true }).click();
   expect(await zoom(page)).toBeGreaterThanOrEqual(0.6);
   await expect(page.getByTestId("graph-overflow-hint")).toBeVisible();
   await page.getByRole("button", { name: /^fit view$/i }).click();

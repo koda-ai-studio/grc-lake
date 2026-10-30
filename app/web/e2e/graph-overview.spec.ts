@@ -42,6 +42,13 @@ for (const theme of ["light", "dark"]) {
       const nodes = page.locator(".react-flow__node");
       await expect(nodes).toHaveCount(20);
       await expectWholeGraph(page);
+      await expect(
+        page.getByRole("button", { name: "Fit all nodes", exact: true }),
+      ).toHaveCount(0);
+      await expect(
+        page.getByRole("button", { name: "Readable view", exact: true }),
+      ).toHaveCount(0);
+      await expect(page.locator(".react-flow__controls button")).toHaveCount(4);
       await expect(page.locator(".react-flow__minimap")).toBeHidden();
       await page
         .locator('.react-flow__node[data-id="control:SOC2-CC6.1"]')
@@ -59,9 +66,7 @@ for (const theme of ["light", "dark"]) {
         path: testInfo.outputPath("overview.png"),
         fullPage: true,
       });
-      await page
-        .getByRole("button", { name: "Readable view", exact: true })
-        .click();
+      await page.getByRole("button", { name: "Zoom In", exact: true }).click();
       await expect
         .poll(() =>
           page
@@ -72,6 +77,19 @@ for (const theme of ["light", "dark"]) {
         )
         .toBeGreaterThanOrEqual(width < 600 ? 0.85 : 0.7);
       await expect(page.getByTestId("graph-overflow-hint")).toBeVisible();
+      const zoom = () =>
+        page
+          .locator(".react-flow__viewport")
+          .evaluate(
+            (el) => new DOMMatrixReadOnly(getComputedStyle(el).transform).a,
+          );
+      const readableZoom = await zoom();
+      await page.getByRole("button", { name: "Zoom In", exact: true }).click();
+      await expect.poll(zoom).toBeGreaterThan(readableZoom);
+      const enlargedZoom = await zoom();
+      await page.getByRole("button", { name: "Zoom Out", exact: true }).focus();
+      await page.keyboard.press("Enter");
+      await expect.poll(zoom).toBeLessThan(enlargedZoom);
       await page.getByRole("button", { name: /^fit view$/i }).click();
       await expectWholeGraph(page);
       await expect(page.getByTestId("graph-overflow-hint")).toBeHidden();
@@ -138,4 +156,34 @@ test("fit all retains every node and link in a tall loaded neighborhood", async 
         ),
     )
     .toBeLessThan(0.16);
+});
+
+test("repository evidence keeps incremental zoom after zooming out", async ({
+  page,
+}) => {
+  await page.goto("/console/graph/");
+  await page
+    .locator(".react-flow__node")
+    .filter({ hasText: "acme/model-service" })
+    .dblclick();
+  await expect(page.getByLabel("Current graph path")).toContainText(
+    "1 level deeper",
+  );
+  await page.getByRole("button", { name: /^fit view$/i }).click();
+  await expectWholeGraph(page);
+  const zoom = () =>
+    page
+      .locator(".react-flow__viewport")
+      .evaluate(
+        (el) => new DOMMatrixReadOnly(getComputedStyle(el).transform).a,
+      );
+  for (let i = 0; i < 8; i++) {
+    const before = await zoom();
+    await page.getByRole("button", { name: "Zoom Out", exact: true }).click();
+    await expect.poll(zoom).toBeLessThan(before);
+  }
+  const before = await zoom();
+  await page.getByRole("button", { name: "Zoom In", exact: true }).click();
+  await page.waitForTimeout(300);
+  expect(await zoom()).toBeCloseTo(before * 1.2, 3);
 });
