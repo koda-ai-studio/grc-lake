@@ -148,6 +148,171 @@ test("graph selects a node and drills into it", async ({ page }) => {
   expect(problems).toEqual([]);
 });
 
+test("graph depth, starting point and refresh replay the requested recorded graph", async ({
+  page,
+}) => {
+  const problems = watch(page);
+  await open(page, "/graph/");
+  await page.evaluate(() => {
+    const replay = window.fetch;
+    window.fetch = async (...args) => {
+      const response = await replay(...args);
+      if (String(args[0]).includes("/graph/investigation?")) {
+        document.documentElement.dataset.graphResponse = JSON.stringify({
+          status: response.status,
+          request: String(args[0]),
+          ...(await response.clone().json()),
+        });
+      }
+      return response;
+    };
+  });
+  await page
+    .getByText("Search and change starting point", { exact: true })
+    .click();
+  const rendered = () =>
+    page
+      .locator(".react-flow__node")
+      .evaluateAll((nodes) =>
+        nodes.map((node) => node.getAttribute("data-id")).sort(),
+      );
+  for (const depth of [1, 3, 2]) {
+    await page
+      .getByLabel("Graph depth", { exact: true })
+      .selectOption(String(depth));
+    await expect
+      .poll(async () =>
+        page.evaluate(() => {
+          const response = JSON.parse(
+            document.documentElement.dataset.graphResponse || "{}",
+          );
+          return response.status === 200
+            ? response.data?.depth
+            : response.status;
+        }),
+      )
+      .toBe(depth);
+    const expected = await page.evaluate(() =>
+      JSON.parse(document.documentElement.dataset.graphResponse!)
+        .data.nodes.map((node: { id: string }) => node.id)
+        .sort(),
+    );
+    await expect.poll(rendered).toEqual(expected);
+    await expectHealthy(page);
+    if (depth === 1) {
+      const neighbour = expected.find(
+        (id: string) => id !== "control:SOC2-CC6.1",
+      );
+      await page.locator(`.react-flow__node[data-id="${neighbour}"]`).click();
+      await page
+        .getByRole("button", { name: "Focus this evidence path" })
+        .click();
+      await expect
+        .poll(async () =>
+          page.evaluate(
+            () =>
+              JSON.parse(document.documentElement.dataset.graphResponse || "{}")
+                .data?.root,
+          ),
+        )
+        .toBe(neighbour);
+      await expectHealthy(page);
+      await page.getByRole("button", { name: "Roll up", exact: true }).click();
+      await expect(page.getByLabel("Graph depth", { exact: true })).toHaveValue(
+        "1",
+      );
+      await expect.poll(rendered).toEqual(expected);
+    }
+  }
+  // A different starting point pins the recorded generation; refresh removes it.
+  const startingPoint = page.getByLabel("Graph starting point", {
+    exact: true,
+  });
+  const next = await startingPoint
+    .locator("option")
+    .evaluateAll((options) =>
+      options
+        .map((option) => (option as HTMLOptionElement).value)
+        .find((id) => id && id !== "control:SOC2-CC6.1"),
+    );
+  expect(next).toBeTruthy();
+  await startingPoint.selectOption(next!);
+  await expect
+    .poll(async () =>
+      page.evaluate(
+        () =>
+          JSON.parse(document.documentElement.dataset.graphResponse || "{}")
+            .data?.root,
+      ),
+    )
+    .toBe(next);
+  await page.evaluate(
+    () => delete document.documentElement.dataset.graphResponse,
+  );
+  await page
+    .getByRole("button", { name: "Refresh evidence", exact: true })
+    .click();
+  await expect
+    .poll(async () =>
+      page.evaluate(() => {
+        const response = JSON.parse(
+          document.documentElement.dataset.graphResponse || "{}",
+        );
+        return response.status === 200 &&
+          !new URL(response.request, location.origin).searchParams.has(
+            "version",
+          )
+          ? response.data?.root
+          : null;
+      }),
+    )
+    .toBe(next);
+  await expect(
+    page.getByRole("region", { name: "Graph workspace", exact: true }),
+  ).toHaveAttribute("aria-busy", "false");
+  await expectHealthy(page);
+  expect(problems).toEqual([]);
+});
+
+test("an unavailable graph resets its query to recorded defaults", async ({
+  page,
+}) => {
+  await page.route("**/demo-api/manifest.json", async (route) => {
+    const manifest = await (await route.fetch()).json();
+    for (const key of Object.keys(manifest.entries)) {
+      if (
+        key.startsWith("/api/v1/graph/investigation?") &&
+        new URL(key, "http://demo").searchParams.get("depth") === "3"
+      )
+        delete manifest.entries[key];
+    }
+    await route.fulfill({ json: manifest });
+  });
+  await open(page, "/graph/");
+  await page
+    .getByText("Search and change starting point", { exact: true })
+    .click();
+  await page.getByLabel("Graph depth", { exact: true }).selectOption("3");
+  await expect(page.getByText(UNAVAILABLE)).toBeVisible();
+  await page
+    .getByLabel("Find a starting point", { exact: true })
+    .fill("unrecorded search");
+  await page.getByText("Visible relationship layers", { exact: true }).click();
+  await page.getByRole("checkbox", { name: "source", exact: true }).uncheck();
+  await page.getByRole("button", { name: "Reset to current evidence" }).click();
+  await expect(page.getByLabel("Graph depth", { exact: true })).toHaveValue(
+    "2",
+  );
+  await expect(
+    page.getByLabel("Find a starting point", { exact: true }),
+  ).toHaveValue("");
+  await expect(
+    page.getByRole("checkbox", { name: "source", exact: true }),
+  ).toBeChecked();
+  await expect(page.locator(".react-flow__node").nth(1)).toBeVisible();
+  await expectHealthy(page);
+});
+
 test("evidence table opens an evidence drawer with lineage", async ({
   page,
 }) => {

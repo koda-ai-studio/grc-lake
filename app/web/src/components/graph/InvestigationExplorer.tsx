@@ -445,7 +445,18 @@ export function InvestigationExplorer() {
         </div>
       </details>
       {query.isError && (
-        <Button onClick={reset}>Reset to current evidence</Button>
+        <Button
+          onClick={() => {
+            reset();
+            setView("controls");
+            setDepth(2);
+            setSearch("");
+            setVisible(new Set(layers));
+            setSafeguardPage({ root: "", framework: "", offset: 0 });
+          }}
+        >
+          Reset to current evidence
+        </Button>
       )}
       <QueryState queries={[query]} label="investigation graph">
         {data && (
