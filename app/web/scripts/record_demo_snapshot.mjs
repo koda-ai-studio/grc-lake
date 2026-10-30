@@ -355,6 +355,27 @@ if (drilled.size > maxDrills)
   warnings.push(`graph drill-downs capped at ${maxDrills}`);
 console.log(`recorded ${drilled.size} graph drill-downs`);
 
+// Depth and refresh change the query without changing the selected root. Record
+// each supported hop count from the API, both pinned and current; never project
+// a shallower graph from an already bounded response.
+const graphQueries = [...recorded.keys()].filter((key) =>
+  key.startsWith(`${template.pathname}?`),
+);
+await pool(graphQueries, 2, async (key) => {
+  const params = new URL(key, origin).searchParams;
+  const version = json(key)?.data?.version;
+  for (const depth of [1, 2, 3]) {
+    params.set("depth", String(depth));
+    params.delete("version");
+    await graph(params);
+    if (version) {
+      params.set("version", version);
+      await graph(params);
+    }
+  }
+});
+console.log(`recorded hop and refresh variants for ${graphQueries.length} graph queries`);
+
 // ---- write ------------------------------------------------------------------
 
 await rm(outDir, { recursive: true, force: true });
