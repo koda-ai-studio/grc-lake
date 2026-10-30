@@ -95,6 +95,14 @@ read-only notice, the live stream is off, and a view the recorder did not
 capture says it is not available in the demo. A banner shows when the
 snapshot was recorded. Relative times age from that date.
 
+Graph search and starting-point paging cover only recorded neighborhoods with
+one-, two-, and three-hop responses, including refresh. Searching keeps the
+current graph until a result is selected. Layer filters hide nodes and their
+links within the loaded neighborhood; shown-versus-loaded counts identify the
+remaining context, and re-enabling a layer restores it. These demo controls do
+not query the full catalog or expand through hidden layers. The local console
+continues to use the assessment API for search and layer-filtered traversal.
+
 The `pages` workflow rebuilds it on every push to `main` and weekly. To
 reproduce it locally:
 
