@@ -85,3 +85,19 @@ def test_all_framework_pack_manifests_are_declared_for_distribution() -> None:
     shipped = {path.relative_to(REPO_ROOT).as_posix() for pattern in declared for path in REPO_ROOT.glob(pattern)}
     required = {path.relative_to(REPO_ROOT).as_posix() for path in (REPO_ROOT / "frameworks/packs/data").glob("*.json")}
     assert required <= shipped, sorted(required - shipped)
+
+
+def test_authentication_extras_exclude_joserfc_before_size_guard_fix() -> None:
+    from packaging.requirements import Requirement
+    from packaging.version import Version
+
+    pyproject = tomllib.loads((REPO_ROOT / "pyproject.toml").read_text())
+    for extra in ("server", "dev"):
+        dependencies = [Requirement(value) for value in pyproject["project"]["optional-dependencies"][extra]]
+        jose = next((requirement for requirement in dependencies if requirement.name == "joserfc"), None)
+        assert jose is not None, f"{extra} must require the patched transitive authentication dependency"
+        assert "1.7.5" not in jose.specifier
+        assert "1.7.6" in jose.specifier
+    lock = tomllib.loads((REPO_ROOT / "uv.lock").read_text())
+    jose_locked = next(package for package in lock["package"] if package["name"] == "joserfc")
+    assert Version(jose_locked["version"]) >= Version("1.7.6")
