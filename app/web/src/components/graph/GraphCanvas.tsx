@@ -744,6 +744,7 @@ interface Props {
   rankLimit?: number;
   neighborhoodRoot?: string;
   showEdgeLabels?: boolean;
+  showRelationshipLabels?: boolean;
   compactCards?: boolean;
   heightClassName?: string;
   pathFrom: string | null;
@@ -787,6 +788,7 @@ function InnerGraphCanvas({
   rankLimit,
   neighborhoodRoot,
   showEdgeLabels = true,
+  showRelationshipLabels = false,
   compactCards = false,
   heightClassName = "h-[clamp(400px,calc(100dvh-300px),650px)] min-h-[400px]",
   pathFrom,
@@ -1051,7 +1053,7 @@ function InnerGraphCanvas({
         label: invalid
           ? "invalid asset type"
           : showEdgeLabels
-            ? review
+            ? (review ?? (showRelationshipLabels ? kind : undefined))
             : undefined,
         ariaLabel: invalid
           ? `${kind}: invalid asset type, does not support this asset`
@@ -1069,6 +1071,7 @@ function InnerGraphCanvas({
     neighborhoodRoot,
     rankLimit,
     showEdgeLabels,
+    showRelationshipLabels,
     graph,
     tooLarge,
     filteredNodes,
