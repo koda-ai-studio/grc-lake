@@ -28,12 +28,24 @@ const optional: GraphNodeKind[] = [
   "safeguard",
 ];
 
+type NavigationStep = {
+  id: string;
+  label: string;
+  depth: number;
+  rootOffset: number;
+  safeguardPage: { root: string; framework: string; offset: number };
+  repositoryView: string;
+  evidencePage: number;
+  visible: Set<GraphNodeKind>;
+  version: string;
+};
+
 export function InvestigationExplorer() {
   const workspace = useRef<HTMLElement>(null);
   const [expanded, setExpanded] = useState(false);
   const [inlineExpanded, setInlineExpanded] = useState(false);
   const expandButton = useRef<HTMLButtonElement>(null);
-  const [trail, setTrail] = useState<{ id: string; label: string }[]>([]);
+  const [trail, setTrail] = useState<NavigationStep[]>([]);
   useEffect(() => {
     const update = () =>
       setExpanded(document.fullscreenElement === workspace.current);
@@ -124,7 +136,7 @@ export function InvestigationExplorer() {
     placeholderData: (previous) => previous,
   });
   const data = query.data;
-  const currentRoot = root || data?.root || "";
+  const currentRoot = data?.root ?? root;
   const repositoryRoot =
     data?.nodes.find((node) => node.id === currentRoot)?.kind === "repository";
   const evidenceScope = useMemo(() => {
@@ -228,6 +240,7 @@ export function InvestigationExplorer() {
   );
   const rollupTarget = trail.at(-1)?.id ?? recordedParent?.source;
   const exploreNode = (target: GraphNode) => {
+    if (query.isFetching) return;
     if (target.id !== currentRoot) {
       setTrail((current) => [
         ...current,
@@ -236,6 +249,13 @@ export function InvestigationExplorer() {
           label:
             data?.nodes.find((node) => node.id === currentRoot)?.label ??
             currentRoot,
+          depth,
+          rootOffset,
+          safeguardPage,
+          repositoryView,
+          evidencePage,
+          visible: new Set(visible),
+          version: data?.version ?? "",
         },
       ]);
       setRoot(target.id);
@@ -302,7 +322,7 @@ export function InvestigationExplorer() {
                 aria-label="Find a starting point"
               />
             </label>
-            <label className="grid min-w-0 flex-1 gap-1 text-xs text-muted">
+            <label className="grid w-full min-w-0 gap-1 text-xs text-muted sm:w-auto sm:flex-1">
               Starting point
               <select
                 aria-label="Graph starting point"
@@ -434,20 +454,28 @@ export function InvestigationExplorer() {
               <section
                 ref={workspace}
                 aria-label="Graph workspace"
+                aria-busy={query.isFetching}
                 className={`space-y-3 ${expanded ? "h-screen overflow-auto bg-surface p-4" : ""} ${inlineExpanded ? "fixed inset-0 z-50" : ""}`}
               >
                 <div className="flex flex-wrap items-center gap-2">
                   <Button
                     size="sm"
-                    disabled={!rollupTarget}
+                    disabled={!rollupTarget || query.isFetching}
                     onClick={() => {
-                      if (!rollupTarget) return;
+                      if (!rollupTarget || query.isFetching) return;
+                      const previous = trail.at(-1);
                       setRoot(rollupTarget);
-                      setRepositoryView("evidence");
-                      setEvidencePage(0);
+                      setRepositoryView(previous?.repositoryView ?? "evidence");
+                      setEvidencePage(previous?.evidencePage ?? 0);
+                      if (previous) {
+                        setDepth(previous.depth);
+                        setRootOffset(previous.rootOffset);
+                        setSafeguardPage(previous.safeguardPage);
+                        setVisible(new Set(previous.visible));
+                      }
                       setTrail(trail.slice(0, -1));
                       setSelected(null);
-                      setVersion(data.version);
+                      setVersion(previous?.version ?? data.version);
                     }}
                   >
                     Roll up
