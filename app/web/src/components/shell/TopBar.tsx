@@ -69,7 +69,7 @@ export function TopBar({
       <button
         type="button"
         onClick={onOpenPalette}
-        aria-label="Open command palette"
+        aria-label="Search controls, findings, evidence… ⌘ K. Open command palette"
         className="flex h-8 min-w-0 flex-1 items-center gap-2 rounded-md border border-line bg-surfaceMuted px-2.5 text-left text-xs text-muted transition-colors hover:border-line-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand lg:max-w-[480px]"
       >
         <Search aria-hidden="true" className="h-3.5 w-3.5 shrink-0" />

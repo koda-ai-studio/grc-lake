@@ -48,13 +48,25 @@ export function DemoBanner() {
           Changes are disabled.
         </span>
       </span>
-      <a
-        href={`${BRAND.repoUrl}#quick-start`}
-        className="inline-flex items-center gap-1 font-semibold underline-offset-2 hover:underline focus-visible:underline"
+      <nav
+        aria-label="Evaluate GRC Lake"
+        className="flex flex-wrap items-center gap-x-4 gap-y-1"
       >
-        Run it on your own evidence
-        <ArrowUpRight aria-hidden="true" className="h-3.5 w-3.5" />
-      </a>
+        <a
+          href={`${BRAND.repoUrl}/blob/main/docs/TUTORIAL_5_MIN.md`}
+          className="inline-flex items-center gap-1 font-semibold underline-offset-2 hover:underline focus-visible:underline"
+        >
+          Follow the sample tour
+          <ArrowUpRight aria-hidden="true" className="h-3.5 w-3.5" />
+        </a>
+        <a
+          href={`${BRAND.repoUrl}/blob/main/docs/PILOT.md`}
+          className="inline-flex items-center gap-1 font-semibold underline-offset-2 hover:underline focus-visible:underline"
+        >
+          Evaluate your own evidence
+          <ArrowUpRight aria-hidden="true" className="h-3.5 w-3.5" />
+        </a>
+      </nav>
     </div>
   );
 }

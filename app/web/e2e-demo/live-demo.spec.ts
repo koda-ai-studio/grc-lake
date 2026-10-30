@@ -52,10 +52,10 @@ test("the site root opens the dashboard with the demo notice", async ({
     "read-only, synthetic sample data recorded",
   );
   await expect(
-    banner.getByRole("link", { name: /Run it on your own evidence/ }),
+    banner.getByRole("link", { name: /Evaluate your own evidence/ }),
   ).toHaveAttribute(
     "href",
-    /github\.com\/koda-ai-studio\/grc-lake#quick-start$/,
+    /github\.com\/koda-ai-studio\/grc-lake\/blob\/main\/docs\/PILOT\.md$/,
   );
   await expect(page.getByRole("heading", { level: 1 }).first()).toBeVisible();
   // No live API behind the demo; the status must not claim one.
@@ -281,4 +281,22 @@ test("the demo fits a phone without horizontal scrolling", async ({
   expect(overflow).toBeLessThanOrEqual(0);
   expect(problems).toEqual([]);
   await page.close();
+});
+
+test("demo offers a guided first task and an authenticated real-evidence pilot", async ({
+  page,
+}) => {
+  await open(page, "/graph/");
+  const banner = page.getByTestId("demo-banner");
+  await expect(
+    banner.getByRole("link", { name: "Follow the sample tour" }),
+  ).toHaveAttribute("href", /\/blob\/main\/docs\/TUTORIAL_5_MIN\.md$/);
+  await expect(
+    banner.getByRole("link", { name: "Evaluate your own evidence" }),
+  ).toHaveAttribute("href", /\/blob\/main\/docs\/PILOT\.md$/);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(
+    banner.getByRole("link", { name: "Evaluate your own evidence" }),
+  ).toBeVisible();
+  await expect(page.locator("body")).toHaveJSProperty("scrollWidth", 390);
 });

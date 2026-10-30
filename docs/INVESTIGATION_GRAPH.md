@@ -31,6 +31,19 @@ observation → asset). It explains node roles; it does not add relationships to
 the recorded graph. Turn on **Show relationship labels** to read edge meanings
 on the canvas. Proposed and invalid bindings retain their separate labels.
 
+The investigation layout keeps assurance above evidence lineage, with separate
+source, observation and asset columns. Recorded neighbors influence row alignment;
+shared sources and assets appear once, with every loaded link retained. Right-angle
+connectors use the gaps between cards. Assurance bindings enter observation cards
+from above; source links enter from the left. Selecting a node emphasizes its direct
+links while keeping the surrounding nodes readable. Use **Focus direct relationships**
+to show only the selected node and its incoming/outgoing links. Visible counts
+compare that subset with the loaded neighborhood; **Show full neighborhood** restores
+all loaded nodes. This local focus does not fetch additional evidence.
+
+Readable titles keep the original record label in the inspector. Dates display in
+UTC; **Exact recorded timestamps** retains the original precision and timezone offset.
+
 **Selected relationships and mapping review state** separates incoming from
 outgoing links, identifies source-account scope where recorded, and lets you
 inspect either endpoint. Each direction pages five links at a time. Counts cover

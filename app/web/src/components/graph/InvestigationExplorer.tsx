@@ -6,7 +6,8 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api/client";
 import type { GraphNode, GraphNodeKind } from "@/lib/api/types";
 import { GRAPH_KIND_COLOR } from "@/lib/graph-palette";
-import { labelWithKind } from "@/lib/graph-evidence";
+import { graphScope } from "@/lib/graph-layout";
+import { graphRecordLabel, labelWithKind } from "@/lib/graph-evidence";
 import { GraphRelationships } from "./GraphRelationships";
 import { GraphCanvas } from "./GraphCanvas";
 import { GraphNodeDrawer } from "./GraphNodeDrawer";
@@ -113,6 +114,10 @@ export function InvestigationExplorer() {
   const [visible, setVisible] = useState(new Set(layers));
   const [repositoryView, setRepositoryView] = useState("evidence");
   const [evidencePage, setEvidencePage] = useState(0);
+  const [directFocus, setDirectFocus] = useState<{
+    id: string;
+    key: string;
+  } | null>(null);
   const [selected, setSelected] = useState<GraphNode | null>(null);
   const params = new URLSearchParams({
     view,
@@ -201,25 +206,40 @@ export function InvestigationExplorer() {
       ]),
     };
   }, [data, currentRoot, evidenceScope, evidencePage]);
+  const focusKey = `${params.toString()}:${data?.version ?? ""}`;
+  const directId =
+    directFocus?.key === focusKey &&
+    data?.nodes.some((n) => n.id === directFocus.id)
+      ? directFocus.id
+      : null;
   const scopeIds = useMemo(
     () =>
-      repositoryRoot && repositoryView === "evidence"
-        ? evidencePages.ids
-        : new Set(data?.nodes.map((node) => node.id)),
-    [data, evidencePages, repositoryRoot, repositoryView],
+      directId && data
+        ? graphScope(data.edges, new Set([directId]), 1)
+        : repositoryRoot && repositoryView === "evidence"
+          ? evidencePages.ids
+          : new Set(data?.nodes.map((node) => node.id)),
+    [data, directId, evidencePages, repositoryRoot, repositoryView],
   );
   const canvasGraph = useMemo(
     () =>
-      repositoryRoot && repositoryView === "evidence" && data
+      directId && data
         ? {
             ...data,
             edges: data.edges.filter(
-              (edge) =>
-                edge.source === currentRoot || edge.target === currentRoot,
+              (e) => e.source === directId || e.target === directId,
             ),
           }
-        : data,
-    [data, currentRoot, repositoryRoot, repositoryView],
+        : repositoryRoot && repositoryView === "evidence" && data
+          ? {
+              ...data,
+              edges: data.edges.filter(
+                (edge) =>
+                  edge.source === currentRoot || edge.target === currentRoot,
+              ),
+            }
+          : data,
+    [data, directId, currentRoot, repositoryRoot, repositoryView],
   );
   const shownEdges =
     canvasGraph?.edges.filter(
@@ -239,6 +259,7 @@ export function InvestigationExplorer() {
   const rollupTarget = trail.at(-1)?.id ?? recordedParent?.source;
   const exploreNode = (target: GraphNode) => {
     if (query.isFetching) return;
+    setDirectFocus(null);
     if (target.id !== currentRoot) {
       setTrail((current) => [
         ...current,
@@ -264,6 +285,7 @@ export function InvestigationExplorer() {
     setVersion(data?.version ?? "");
   };
   const reset = () => {
+    setDirectFocus(null);
     setTrail([]);
     setRootOffset(0);
     setRoot("");
@@ -727,8 +749,51 @@ export function InvestigationExplorer() {
                     Show relationship labels
                   </label>
                 </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  {selectedNode && !directId && (
+                    <Button
+                      size="sm"
+                      onClick={() =>
+                        setDirectFocus({ id: selectedNode.id, key: focusKey })
+                      }
+                    >
+                      Focus direct relationships
+                    </Button>
+                  )}
+                  {directId && (
+                    <>
+                      <span className="text-sm font-semibold">
+                        Direct relationships only
+                      </span>
+                      <span
+                        aria-label="Direct relationship counts"
+                        className="text-xs text-muted"
+                      >
+                        {scopeIds.size} nodes · {shownEdges} relationships shown
+                        ({data.nodes.length} nodes · {data.edges.length}{" "}
+                        relationships loaded)
+                      </span>
+                      <span className="text-xs text-muted">
+                        Incoming and outgoing recorded links to{" "}
+                        {graphRecordLabel(
+                          data.nodes.find((n) => n.id === directId)!,
+                        )}
+                        .
+                      </span>
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          setDirectFocus(null);
+                          setRepositoryView("all");
+                        }}
+                      >
+                        Show full neighborhood
+                      </Button>
+                    </>
+                  )}
+                </div>
                 <div
-                  className={`grid items-start gap-3 ${selectedNode ? "xl:grid-cols-[minmax(0,1fr)_300px]" : ""}`}
+                  className={`grid items-start gap-3 ${selectedNode ? "xl:grid-cols-[minmax(0,1fr)_360px]" : ""}`}
                 >
                   <div className="min-w-0">
                     <GraphCanvas
@@ -738,7 +803,9 @@ export function InvestigationExplorer() {
                       showRelationshipLabels={relationshipLabels}
                       compactCards
                       neighborhoodRoot={
-                        repositoryRoot && repositoryView === "evidence"
+                        !directId &&
+                        repositoryRoot &&
+                        repositoryView === "evidence"
                           ? currentRoot
                           : undefined
                       }
@@ -773,8 +840,10 @@ export function InvestigationExplorer() {
                       // becomes the starting point, then stays selected.
                       if (node && !data?.nodes.some((n) => n.id === node.id))
                         exploreNode(node);
-                      else if (node && !scopeIds.has(node.id))
+                      else if (node && !scopeIds.has(node.id)) {
+                        setDirectFocus(null);
                         setRepositoryView("all");
+                      }
                       setSelected(node);
                     }}
                     onClose={() => setSelected(null)}
@@ -791,13 +860,17 @@ export function InvestigationExplorer() {
                     graph={data}
                     nodeId={selectedNode?.id ?? currentRoot}
                     onInspect={(node) => {
-                      if (!scopeIds.has(node.id)) setRepositoryView("all");
+                      if (!scopeIds.has(node.id)) {
+                        setDirectFocus(null);
+                        setRepositoryView("all");
+                      }
                       setSelected(node);
                     }}
                   />
                 </details>
                 <p role="status" className="text-xs text-muted">
-                  {scopeIds.size === data.nodes.length
+                  {scopeIds.size === data.nodes.length &&
+                  shownEdges === data.edges.length
                     ? `${data.nodes.length} nodes · ${data.edges.length} relationships`
                     : `${scopeIds.size} of ${data.nodes.length} loaded nodes · ${shownEdges} of ${data.edges.length} relationships`}{" "}
                   · {data.boundary}.{" "}
