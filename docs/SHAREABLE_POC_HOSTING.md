@@ -50,7 +50,7 @@ record the image digest for reproducibility:
 
 ```bash
 GRC_LAKE_VERSION=$(awk '/^appVersion:/ {gsub(/"/, "", $2); print $2}' deploy/helm/grc-lake/Chart.yaml)
-docker pull "ghcr.io/msaad00/grc-lake:$GRC_LAKE_VERSION"
+docker pull "ghcr.io/koda-ai-studio/grc-lake:$GRC_LAKE_VERSION"
 ```
 
 For a private build:
@@ -112,7 +112,7 @@ mount, and EKS IRSA annotation. The minimal shape is:
 ```yaml
 # poc-values.yaml
 image:
-  repository: ghcr.io/msaad00/grc-lake
+  repository: ghcr.io/koda-ai-studio/grc-lake
   tag: "" # inherit appVersion from the checked-out release chart
 
 ingress:

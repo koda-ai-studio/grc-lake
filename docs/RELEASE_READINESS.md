@@ -31,6 +31,36 @@ retain their exact source revisions and synthetic workload limits. They do not
 establish production capacity or qualify a deployment memory budget; 100k records
 remain outside the accepted local interactive profile.
 
+## Next release preparation
+
+Current `main` includes unreleased source-account isolation, organization account
+selection, partial-read safeguards, dependency security fixes, and investigation
+graph/demo navigation improvements. The [Unreleased changelog](../CHANGELOG.md#unreleased)
+tracks that scope. The live demo follows `main`; installing the published 0.3.20
+package or image does not include these later changes.
+
+Before selecting and tagging the next version:
+
+- Verify a fresh candidate wheel install and an upgrade from a separate 0.3.20
+  environment using a copied synthetic lake. Reconcile evidence counts, verify
+  existing snapshots, and exercise the bundled console and investigation API.
+  Keep the original lake and environment available for rollback; a local-mode
+  lake has only one writer at a time.
+- Recheck the [bounded graph profile](benchmarks/RELEASE_PROFILE.md) on the final
+  candidate, and qualify an authenticated deployment independently of the
+  public synthetic demo. TLS/IdP integration, backup/restore and live-provider
+  scope need their own receipts.
+- Align package, chart, console, MCP and example versions, move the Unreleased
+  entries into the dated version section, obtain independent review, and verify
+  exact merged-main CI. Then run the existing publication and artifact gates
+  below. Source builds and merged PRs do not establish publication.
+
+Use `ghcr.io/koda-ai-studio/grc-lake` in current deployment instructions. Older
+receipts retain the registry namespace and digest that were actually verified.
+After publication, follow the [14-day pilot stability period](PILOT.md#stability-period)
+and record useful real-evidence outcomes and repeat use separately from downloads
+or synthetic demo completion.
+
 ## 0.3.20 release
 
 0.3.20 is published; see the [publication receipt](#verified-0320-publication).
