@@ -24,6 +24,7 @@ import { homedir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { DEMO_ROUTES } from "./demo_routes.mjs";
+import { buildGraphNavigation } from "./demo_graph_navigation.mjs";
 import { loadTsModule } from "./load_ts_module.mjs";
 
 const { snapshotKey } = await loadTsModule(
@@ -399,6 +400,9 @@ await writeFile(
   path.join(outDir, "manifest.json"),
   `${JSON.stringify({ version: 1, recorded_at: new Date().toISOString(), entries }, null, 1)}\n`,
 );
+let navigation = JSON.stringify(buildGraphNavigation(recorded, origin, template.searchParams.get("layers")));
+for (const [from, to] of scrub) navigation = navigation.split(from).join(to);
+await writeFile(path.join(outDir, "graph-navigation.json"), `${navigation}\n`);
 for (const warning of warnings) console.warn(`warning: ${warning}`);
 console.log(
   `Snapshot: ${Object.keys(entries).length} responses, ${written.size} files, ${(bytes / 1e6).toFixed(1)} MB -> ${outDir}`,

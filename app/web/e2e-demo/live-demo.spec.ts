@@ -274,6 +274,194 @@ test("graph depth, starting point and refresh replay the requested recorded grap
   expect(problems).toEqual([]);
 });
 
+for (const width of [1440, 390])
+  for (const theme of ["light", "dark"]) {
+    test(`demo search and layers preserve recorded scope at ${width}px in ${theme}`, async ({
+      page,
+    }, testInfo) => {
+      await page.setViewportSize({ width, height: 1000 });
+      await page.addInitScript(
+        (theme) =>
+          localStorage.setItem("trustops:theme", JSON.stringify(theme)),
+        theme,
+      );
+      const problems = watch(page);
+      await open(page, "/graph/");
+      await page
+        .getByText("Search and change starting point", { exact: true })
+        .click();
+      const ids = () =>
+        page
+          .locator(".react-flow__node")
+          .evaluateAll((nodes) =>
+            nodes.map((node) => node.getAttribute("data-id")).sort(),
+          );
+      const original = await ids();
+      expect(original.some((id) => id?.startsWith("source:"))).toBe(true);
+      await page.evaluate(() => {
+        const replay = window.fetch;
+        document.documentElement.dataset.graphRequests = "0";
+        window.fetch = (...args) => {
+          if (String(args[0]).includes("/graph/investigation?"))
+            document.documentElement.dataset.graphRequests = String(
+              Number(document.documentElement.dataset.graphRequests) + 1,
+            );
+          return replay(...args);
+        };
+      });
+      await page
+        .getByRole("button", { name: "Next starting points", exact: true })
+        .click();
+      await expect(page.getByText(/Starting points 51–100/)).toBeVisible();
+      await expect.poll(ids).toEqual(original);
+      await page
+        .getByRole("button", { name: "Previous starting points", exact: true })
+        .click();
+      await page
+        .getByLabel("Find a starting point", { exact: true })
+        .fill("SOC2");
+      await expect(
+        page.getByRole("region", { name: "Graph workspace", exact: true }),
+      ).toHaveAttribute("aria-busy", "false");
+      await expect(
+        page.getByText(/Searches recorded starting points/),
+      ).toBeVisible();
+      const choices = page.getByLabel("Graph starting point", { exact: true });
+      await expect
+        .poll(() => choices.locator('option[value^="control:SOC2-"]').count())
+        .toBeGreaterThan(1);
+      await expect.poll(ids).toEqual(original);
+      await page
+        .getByText("Visible relationship layers", { exact: true })
+        .click();
+      await page
+        .getByRole("checkbox", { name: "source", exact: true })
+        .uncheck();
+      await expect
+        .poll(
+          async () =>
+            (await ids()).filter((id) => id?.startsWith("source:")).length,
+        )
+        .toBe(0);
+      await expect(page.getByText(/of 20 loaded nodes/)).toBeVisible();
+      await expectHealthy(page);
+      await expect
+        .poll(() =>
+          page.evaluate(() => {
+            const headings = [
+              ...document.querySelectorAll(
+                '[data-testid="graph-lane-heading"]',
+              ),
+            ].map((heading) => {
+              const range = document.createRange();
+              range.selectNodeContents(heading);
+              return range.getBoundingClientRect();
+            });
+            return [
+              ...document.querySelectorAll<SVGPathElement>(
+                ".react-flow__edge-path",
+              ),
+            ]
+              .filter((path) => {
+                const matrix = path.getScreenCTM();
+                if (!matrix) return false;
+                const length = path.getTotalLength();
+                for (let at = 0; at <= length; at += 2) {
+                  const point = path
+                    .getPointAtLength(at)
+                    .matrixTransform(matrix);
+                  if (
+                    headings.some(
+                      (box) =>
+                        point.x > box.left &&
+                        point.x < box.right &&
+                        point.y > box.top &&
+                        point.y < box.bottom,
+                    )
+                  )
+                    return true;
+                }
+                return false;
+              })
+              .map((path) => path.id);
+          }),
+        )
+        .toEqual([]);
+      await page.screenshot({
+        path: testInfo.outputPath("filtered-recorded-graph.png"),
+        fullPage: true,
+      });
+      await page.getByRole("checkbox", { name: "source", exact: true }).check();
+      await expect.poll(ids).toEqual(original);
+      expect(
+        await page.evaluate(
+          () => document.documentElement.dataset.graphRequests,
+        ),
+      ).toBe("0");
+      const next = await choices
+        .locator('option[value^="control:SOC2-"]')
+        .evaluateAll((options) =>
+          options
+            .map((option) => (option as HTMLOptionElement).value)
+            .find((id) => id !== "control:SOC2-CC6.1"),
+        );
+      await choices.selectOption(next!);
+      await expect(page.getByLabel("Current graph path")).toContainText(
+        next!.replace("control:", ""),
+      );
+      await expectHealthy(page);
+      await page
+        .getByLabel("Find a starting point", { exact: true })
+        .fill("no-such-recorded-node");
+      await expect(
+        page.getByText("No recorded starting points match this search."),
+      ).toBeVisible();
+      await expect(
+        page.getByRole("region", { name: "Graph workspace", exact: true }),
+      ).toBeVisible();
+      await expectHealthy(page);
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth - innerWidth,
+        ),
+      ).toBe(0);
+      expect(problems).toEqual([]);
+    });
+  }
+
+test("demo roll-up keeps searched starting points on a valid page", async ({
+  page,
+}) => {
+  await open(page, "/graph/");
+  await page
+    .getByText("Search and change starting point", { exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Next starting points", exact: true })
+    .click();
+  const child = page.locator('.react-flow__node[data-id^="evidence:"]').first();
+  await child.click();
+  await page
+    .getByRole("button", { name: "Focus this evidence path", exact: true })
+    .click();
+  await expect(page.getByLabel("Current graph path")).toContainText(
+    "1 level deeper",
+  );
+  await page
+    .getByLabel("Find a starting point", { exact: true })
+    .fill("SOC2-CC6.2");
+  await page.getByRole("button", { name: "Roll up", exact: true }).click();
+  await expect(page.getByLabel("Current graph path")).toContainText(
+    "SOC2-CC6.1",
+  );
+  await expect(
+    page
+      .getByLabel("Graph starting point", { exact: true })
+      .locator('option[value="control:SOC2-CC6.2"]'),
+  ).toHaveCount(1);
+  await expectHealthy(page);
+});
+
 test("an unavailable graph resets its query to recorded defaults", async ({
   page,
 }) => {

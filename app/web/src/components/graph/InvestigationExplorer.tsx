@@ -4,6 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api/client";
+import { CONSOLE_BASE_PATH } from "@/lib/base-path";
 import type { GraphNode, GraphNodeKind } from "@/lib/api/types";
 import { GRAPH_KIND_COLOR } from "@/lib/graph-palette";
 import { graphScope } from "@/lib/graph-layout";
@@ -14,6 +15,11 @@ import { GraphNodeDrawer } from "./GraphNodeDrawer";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { QueryState } from "@/components/QueryState";
+
+const demo = process.env.NEXT_PUBLIC_DEMO_SNAPSHOT === "1";
+type DemoStartingPoint = Pick<GraphNode, "id" | "label" | "kind"> & {
+  version: string;
+};
 
 const layers = Object.keys(GRAPH_KIND_COLOR) as GraphNodeKind[];
 const optional: GraphNodeKind[] = [
@@ -121,11 +127,11 @@ export function InvestigationExplorer() {
   const [selected, setSelected] = useState<GraphNode | null>(null);
   const params = new URLSearchParams({
     view,
-    root_offset: String(rootOffset),
+    root_offset: String(demo ? 0 : rootOffset),
     depth: String(depth),
     limit: "150",
-    search,
-    layers: [...visible].sort().join(","),
+    search: demo ? "" : search,
+    layers: (demo ? layers : [...visible]).slice().sort().join(","),
   });
   if (root) params.set("root", root);
   if (safeguardPage.root === root) {
@@ -138,7 +144,39 @@ export function InvestigationExplorer() {
     queryFn: () => api.investigationGraph(params),
     placeholderData: (previous) => previous,
   });
+  const navigation = useQuery({
+    queryKey: ["demo-graph-navigation"],
+    enabled: demo,
+    staleTime: Infinity,
+    queryFn: async () => {
+      const response = await fetch(
+        `${CONSOLE_BASE_PATH}/demo-api/graph-navigation.json`,
+      );
+      if (!response.ok)
+        throw new Error("Recorded starting points could not be loaded");
+      return response.json() as Promise<Record<string, DemoStartingPoint[]>>;
+    },
+  });
   const data = query.data;
+  const recordedRoots = (navigation.data?.[view] ?? []).filter(
+    (node) =>
+      node.version === data?.version &&
+      `${node.label} ${node.id}`
+        .toLocaleLowerCase()
+        .includes(search.trim().toLocaleLowerCase()),
+  );
+  const rootCount = demo ? recordedRoots.length : (data?.root_count ?? 0);
+  const rootPageOffset = demo
+    ? Math.min(rootOffset, Math.max(0, Math.ceil(rootCount / 50) - 1) * 50)
+    : (data?.root_offset ?? rootOffset);
+  const roots = demo
+    ? recordedRoots.slice(rootPageOffset, rootPageOffset + 50)
+    : (data?.roots ?? []);
+  const nextRootOffset = demo
+    ? rootPageOffset + 50 < rootCount
+      ? rootPageOffset + 50
+      : null
+    : (data?.next_root_offset ?? null);
   const currentRoot = data?.root ?? root;
   const repositoryRoot =
     data?.nodes.find((node) => node.id === currentRoot)?.kind === "repository";
@@ -212,15 +250,19 @@ export function InvestigationExplorer() {
     data?.nodes.some((n) => n.id === directFocus.id)
       ? directFocus.id
       : null;
-  const scopeIds = useMemo(
-    () =>
+  const scopeIds = useMemo(() => {
+    const scope =
       directId && data
         ? graphScope(data.edges, new Set([directId]), 1)
         : repositoryRoot && repositoryView === "evidence"
           ? evidencePages.ids
-          : new Set(data?.nodes.map((node) => node.id)),
-    [data, directId, evidencePages, repositoryRoot, repositoryView],
-  );
+          : new Set(data?.nodes.map((node) => node.id));
+    return new Set(
+      data?.nodes
+        .filter((node) => scope.has(node.id) && visible.has(node.kind))
+        .map((node) => node.id),
+    );
+  }, [data, directId, evidencePages, repositoryRoot, repositoryView, visible]);
   const canvasGraph = useMemo(
     () =>
       directId && data
@@ -269,7 +311,7 @@ export function InvestigationExplorer() {
             data?.nodes.find((node) => node.id === currentRoot)?.label ??
             currentRoot,
           depth,
-          rootOffset,
+          rootOffset: rootPageOffset,
           safeguardPage,
           repositoryView,
           evidencePage,
@@ -336,7 +378,8 @@ export function InvestigationExplorer() {
                 value={search}
                 onChange={(e) => {
                   setSearch(e.target.value);
-                  reset();
+                  if (demo) setRootOffset(0);
+                  else reset();
                 }}
                 placeholder="Type to filter starting points…"
                 aria-label="Find a starting point"
@@ -351,6 +394,7 @@ export function InvestigationExplorer() {
                 onChange={(e) => {
                   setTrail([]);
                   setRoot(e.target.value);
+                  setSafeguardPage({ root: "", framework: "", offset: 0 });
                   setRepositoryView("evidence");
                   setEvidencePage(0);
                   setVersion(data?.version ?? "");
@@ -358,35 +402,36 @@ export function InvestigationExplorer() {
                 }}
               >
                 <option value="">Choose a recorded node</option>
-                {currentRoot &&
-                  !data?.roots.some((n) => n.id === currentRoot) && (
-                    <option value={currentRoot}>
-                      {data?.nodes.find((n) => n.id === currentRoot)?.label ??
-                        currentRoot}
-                    </option>
-                  )}
-                {data?.roots.map((n) => (
+                {currentRoot && !roots.some((n) => n.id === currentRoot) && (
+                  <option value={currentRoot}>
+                    {data?.nodes.find((n) => n.id === currentRoot)?.label ??
+                      currentRoot}
+                  </option>
+                )}
+                {roots.map((n) => (
                   <option key={n.id} value={n.id}>
                     {labelWithKind(n.label, n.kind)}
                   </option>
                 ))}
               </select>
             </label>
-            {data && data.root_count > 50 && (
+            {data && rootCount > 50 && (
               <div className="flex items-center gap-1">
                 <Button
                   size="sm"
                   aria-label="Previous starting points"
-                  disabled={rootOffset === 0}
-                  onClick={() => setRootOffset(Math.max(0, rootOffset - 50))}
+                  disabled={rootPageOffset === 0}
+                  onClick={() =>
+                    setRootOffset(Math.max(0, rootPageOffset - 50))
+                  }
                 >
                   Previous
                 </Button>
                 <Button
                   size="sm"
                   aria-label="Next starting points"
-                  disabled={data.next_root_offset === null}
-                  onClick={() => setRootOffset(data.next_root_offset!)}
+                  disabled={nextRootOffset === null}
+                  onClick={() => setRootOffset(nextRootOffset!)}
                 >
                   Next
                 </Button>
@@ -417,6 +462,14 @@ export function InvestigationExplorer() {
               Refresh evidence
             </Button>
           </div>
+          {demo && (
+            <p className="text-xs text-muted">
+              Searches recorded starting points. Layer filters apply to the
+              loaded neighborhood.
+              {recordedRoots.length === 0 &&
+                " No recorded starting points match this search."}
+            </p>
+          )}
           <details>
             <summary className="cursor-pointer text-xs font-semibold">
               Visible relationship layers
@@ -434,7 +487,7 @@ export function InvestigationExplorer() {
                         else next.delete(kind);
                         return next;
                       });
-                      setVersion("");
+                      if (!demo) setVersion("");
                     }}
                   />
                   {kind.replaceAll("_", " ")}
@@ -458,7 +511,10 @@ export function InvestigationExplorer() {
           Reset to current evidence
         </Button>
       )}
-      <QueryState queries={[query]} label="investigation graph">
+      <QueryState
+        queries={demo ? [query, navigation] : [query]}
+        label="investigation graph"
+      >
         {data && (
           <>
             {data.root_missing ? (
@@ -888,8 +944,9 @@ export function InvestigationExplorer() {
                   {data.truncated
                     ? `${data.matching_nodes} nodes match; showing a bounded subset. Reduce depth or expand a selected node.`
                     : ""}{" "}
-                  {data.root_count > 50
-                    ? `Starting points ${data.root_offset + 1}–${Math.min(data.root_offset + 50, data.root_count)} of ${data.root_count}; search to narrow.`
+                  {demo ? "Recorded demo starting points. " : ""}
+                  {rootCount > 50
+                    ? `Starting points ${rootPageOffset + 1}–${Math.min(rootPageOffset + 50, rootCount)} of ${rootCount}; search to narrow.`
                     : ""}
                 </p>
                 <p className="text-xs text-muted">

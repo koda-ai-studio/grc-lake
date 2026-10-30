@@ -1308,7 +1308,8 @@ function InnerGraphCanvas({
           label: assurance
             ? "Assurance hierarchy"
             : "Evidence lineage · Source → observation → asset",
-          x: bounds.x,
+          // Filtering out sources must not move text into the binding corridor.
+          x: Math.min(0, bounds.x),
           y: bounds.y - 44,
           width: Math.max(bounds.width, 540),
           height: 28,

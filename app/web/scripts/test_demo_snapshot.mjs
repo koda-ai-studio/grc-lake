@@ -12,6 +12,7 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 import { loadTsModule } from "./load_ts_module.mjs";
 import { DEMO_ROUTES } from "./demo_routes.mjs";
+import { buildGraphNavigation } from "./demo_graph_navigation.mjs";
 
 const demo = await loadTsModule(
   new URL("../src/lib/demo/snapshot.ts", import.meta.url),
@@ -191,4 +192,40 @@ test("the recorder crawls every static console route", () => {
   const crawled = new Set(DEMO_ROUTES.map((r) => r.route.split("?")[0]));
   const missing = routes.filter((route) => !crawled.has(route));
   assert.deepEqual(missing, []);
+});
+
+
+test("recorded starting points require every exact depth and refresh variant without merging account identities", () => {
+  const recorded = new Map();
+  const layers = "account,asset,control,source";
+  function add(id, options = {}) {
+    for (const depth of [1, 2, 3]) for (const pinned of [false, true]) {
+      if (options.incomplete && depth === 3 && !pinned) continue;
+      const params = new URLSearchParams({
+        view: "environment", root: id, depth: String(depth), limit: "150",
+        layers, root_offset: "0", search: "", ...options.params,
+      });
+      if (pinned) params.set("version", options.stale ? "old" : "generation");
+      const node = { id, label: "Shared display name", kind: "account" };
+      recorded.set(`/api/v1/graph/investigation?${params}`, {
+        status: options.status ?? 200,
+        body: JSON.stringify({ data: { root: id, depth, version: "generation", nodes: [node] } }),
+      });
+    }
+  }
+  add("account:aws:one");
+  add("account:aws:two");
+  add("account:partial", { incomplete: true });
+  add("account:stale", { stale: true });
+  add("account:denied", { status: 403 });
+  add("account:filtered", { params: { layers: "account" } });
+  add("account:search", { params: { search: "needle" } });
+  add("account:paged", { params: { root_offset: "50" } });
+  add("account:unknown-parameter", { params: { unknown: "true" } });
+  add("account:unknown-view", { params: { view: "__proto__" } });
+  const navigation = buildGraphNavigation(recorded, ORIGIN, layers);
+  assert.deepEqual(navigation.environment.map(node => node.id), ["account:aws:one", "account:aws:two"]);
+  assert.deepEqual(navigation.controls, []);
+  assert.deepEqual(navigation.investigation, []);
+  assert.ok(navigation.environment.every(node => node.version === "generation"));
 });
