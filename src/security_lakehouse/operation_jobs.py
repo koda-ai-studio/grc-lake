@@ -71,7 +71,7 @@ def supported(path: str) -> bool:
         "/api/v1/ingestion/eval",
         "/api/v1/scheduler/tick",
         "/api/v1/snapshots",
-    } or bool(re.fullmatch(r"/api/v1/connectors/[A-Za-z0-9_-]+/sync", path))
+    } or bool(re.fullmatch(r"/api/v1/(?:connectors|connections)/[A-Za-z0-9_-]+/sync", path))
 
 
 def serialize(row: OperationJob, *, include_result: bool = True) -> dict[str, Any]:

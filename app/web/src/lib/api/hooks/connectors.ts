@@ -22,23 +22,23 @@ export function useConnectors(opts?: Opts<ConnectorView[]>) {
   });
 }
 
-export function useConnectorRuns(id: string | null) {
+export function useConnectorRuns(id: string | null, connectionId?: string) {
   return useQuery({
-    queryKey: ["connector-runs", id],
+    queryKey: ["connector-runs", id, connectionId],
     queryFn: async () => {
       if (!id) return [] as ConnectorRun[];
-      return (await api.connectorRuns(id)).runs ?? [];
+      return (await api.connectorRuns(id, connectionId)).runs ?? [];
     },
     enabled: Boolean(id),
     staleTime: 5_000,
   });
 }
 
-export function useConfigureMutation() {
+export function useConfigureMutation(connectionId?: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: ConfigurePayload }) =>
-      api.configureConnector(id, payload),
+      api.configureConnector(id, payload, connectionId),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["connectors"] }),
   });
 }
@@ -90,7 +90,7 @@ export function useCloudLinkCompleteMutation() {
   });
 }
 
-export function useProbeMutation() {
+export function useProbeMutation(connectionId?: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({
@@ -99,15 +99,15 @@ export function useProbeMutation() {
     }: {
       id: string;
       payload?: ProbePayload;
-    }) => api.probeConnector(id, payload),
+    }) => api.probeConnector(id, payload, connectionId),
     onSuccess: (_data, { id }) => {
       qc.invalidateQueries({ queryKey: ["connectors"] });
-      qc.invalidateQueries({ queryKey: ["connector-runs", id] });
+      qc.invalidateQueries({ queryKey: ["connector-runs", id, connectionId] });
     },
   });
 }
 
-export function useSyncMutation() {
+export function useSyncMutation(connectionId?: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({
@@ -116,12 +116,12 @@ export function useSyncMutation() {
     }: {
       id: string;
       payload?: { actor?: string; materialize?: boolean };
-    }) => api.syncConnector(id, payload),
+    }) => api.syncConnector(id, payload, connectionId),
     onSuccess: (_data, { id }) => {
       // A sync lands evidence: refresh the connector, its runs, and the posture
       // surfaces so the UI reflects the new state immediately.
       qc.invalidateQueries({ queryKey: ["connectors"] });
-      qc.invalidateQueries({ queryKey: ["connector-runs", id] });
+      qc.invalidateQueries({ queryKey: ["connector-runs", id, connectionId] });
       qc.invalidateQueries({ queryKey: ["posture", "current"] });
       qc.invalidateQueries({ queryKey: ["ingestion", "status"] });
       qc.invalidateQueries({ queryKey: ["violations"] });
@@ -156,7 +156,7 @@ export function useRunSchedulerTickMutation() {
   });
 }
 
-export function useDiscoverMutation() {
+export function useDiscoverMutation(connectionId?: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({
@@ -165,10 +165,10 @@ export function useDiscoverMutation() {
     }: {
       id: string;
       payload?: DiscoverPayload;
-    }) => api.discoverConnector(id, payload),
+    }) => api.discoverConnector(id, payload, connectionId),
     onSuccess: (_data, { id }) => {
       qc.invalidateQueries({ queryKey: ["connectors"] });
-      qc.invalidateQueries({ queryKey: ["connector-runs", id] });
+      qc.invalidateQueries({ queryKey: ["connector-runs", id, connectionId] });
     },
   });
 }

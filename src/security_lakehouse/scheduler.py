@@ -160,7 +160,7 @@ def eval_schedule_status(lake_dir: str | Path, *, now: datetime | None = None) -
 def _scheduled_from_connectors(lake_dir: str | Path) -> list[ScheduledConnector]:
     out: list[ScheduledConnector] = []
     for connector in build_catalog_view(lake_dir):
-        if connector.get("state") != "enabled":
+        if connector.get("state") != "enabled" or connector.get("connection_id"):
             continue
         options = connector.get("configured_options") or {}
         schedule = str(options.get("sync_schedule") or options.get("schedule") or "")
@@ -596,6 +596,8 @@ def _tick_locked(
             fired_at=moment,
             result=str(results[-1]["result"]),
         )
+
+    results.extend(_tick_connections(lake_dir, moment))
     lake_eval = _scheduled_lake_eval(lake_dir)
     if lake_eval is not None:
         last_fired = state.get(_state_key("lake_eval", "default"))
@@ -756,3 +758,51 @@ def repair_history(lake_dir: str | Path, *, now: datetime | None = None) -> dict
             finally:
                 os.close(directory)
             return {"repaired": [path.name for path, _, _ in repairs], "deferred_targets": len(targets)}
+
+
+def _tick_connections(lake: str | Path, moment) -> list[dict[str, Any]]:
+    from security_lakehouse.ledger import chain_lock
+
+    """Attempt each due named connection once; parent scheduling owns evaluation."""
+    from security_lakehouse.connection_registry import connection_records
+    from security_lakehouse.connections import sync_connection
+    from security_lakehouse.connector_runner import ConnectorSyncError
+    from security_lakehouse.connector_state import latest_config
+    from security_lakehouse.ingestion.watermark import collection_scope
+    from security_lakehouse.lake_scale import connector_materialize_on_sync
+    from security_lakehouse.schedule_expr import parse_schedule
+
+    results = []
+    for child, info in connection_records(lake):
+        config = latest_config(child, info["connector_id"])
+        if not config or config.get("state") != "enabled":
+            continue
+        options = config.get("options") or {}
+        period = parse_schedule(str(options.get("sync_schedule") or ""))
+        if period is None:
+            continue
+        scope = collection_scope(
+            config,
+            repo=options.get("repo"),
+            fixture_dir=options.get("fixture_dir"),
+            token_env=str(options.get("token_env") or "__provider_default__"),
+        )
+        target = f"{info['connection_id']}:{info['connector_id']}:{scope}"
+        with chain_lock(child / "gold" / ".named-scheduler"):
+            prior = _read_state(child).get(_state_key("connector", target))
+            if prior is not None and moment < prior + period:
+                continue
+            _write_state(child, target_kind="connector", target_id=target, fired_at=moment, result="started")
+            try:
+                row = sync_connection(
+                    lake, info["connection_id"], actor="scheduler", materialize=connector_materialize_on_sync(options)
+                )
+            except ConnectorSyncError:
+                row = {
+                    "connection_id": info["connection_id"],
+                    "result": "error",
+                    "error": "collection failed; inspect connection history",
+                }
+            results.append({"target_kind": "connection", **row})
+            _write_state(child, target_kind="connector", target_id=target, fired_at=moment, result=row["result"])
+    return results

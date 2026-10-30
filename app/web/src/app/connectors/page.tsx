@@ -21,6 +21,7 @@ import { OnboardingGuideBanner } from "@/components/onboarding/OnboardingGuideBa
 import { connectorNotify } from "@/lib/connector-notify";
 import { CONNECT_FLOW, PREVIEW_COPY, ROUTE_LABELS } from "@/lib/console-copy";
 import { connectionReadiness } from "@/lib/connection-readiness";
+import { NamedConnectionCreate } from "@/components/connectors/NamedConnectionCreate";
 import { ConnectionProgressPanel } from "@/components/connectors/ConnectionProgressPanel";
 import { PreviewBadge } from "@/components/ui/preview-badge";
 import { useConnectors } from "@/lib/api/hooks";
@@ -103,6 +104,14 @@ function ConnectorRow({
         <span className="block truncate font-semibold text-ink">
           {connector.name}
         </span>
+        {connector.source_account_id && (
+          <span
+            className="block truncate text-xs text-muted"
+            title={connector.source_account_id}
+          >
+            {connector.source_account_id}
+          </span>
+        )}
         <span className="mt-1 flex flex-wrap items-center gap-1.5">
           <Badge tone={progress.tone}>{progress.label}</Badge>
           {preview ? (
@@ -185,7 +194,11 @@ export default function ConnectorsPage() {
   };
 
   const selectedLive = selected
-    ? (data.find((c) => c.connector_id === selected.connector_id) ?? selected)
+    ? (data.find(
+        (c) =>
+          c.connector_id === selected.connector_id &&
+          c.connection_id === selected.connection_id,
+      ) ?? selected)
     : null;
 
   const clearDeepLinkParams = () => {
@@ -229,6 +242,7 @@ export default function ConnectorsPage() {
       {connectors.isSuccess && (
         <ConnectionProgressPanel connectors={data} onSelect={setSelected} />
       )}
+      <NamedConnectionCreate connectors={data} onToast={connectorNotify} />
       <EvidencePathPanel connectors={connectors.data ?? []} />
 
       <div className="grid min-w-0 gap-2 overflow-hidden rounded-lg border border-line bg-surface p-2 shadow-card">
@@ -324,7 +338,7 @@ export default function ConnectorsPage() {
               .slice(currentPage * pageSize, (currentPage + 1) * pageSize)
               .map((c) => (
                 <ConnectorRow
-                  key={c.connector_id}
+                  key={c.connection_id ?? c.connector_id}
                   connector={c}
                   onSelect={() => setSelected(c)}
                 />
@@ -344,6 +358,9 @@ export default function ConnectorsPage() {
 
       <div id="connector-drawer-anchor" />
       <ConnectorDrawer
+        key={
+          selectedLive?.connection_id ?? selectedLive?.connector_id ?? "closed"
+        }
         connector={selectedLive}
         linkSessionId={linkSessionId}
         onboarding={onboarding}

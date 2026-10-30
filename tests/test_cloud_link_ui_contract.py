@@ -186,7 +186,8 @@ def test_snowflake_linking_uses_secret_references_not_passwords() -> None:
 def test_enabled_cloud_connector_hides_onboarding_and_duplicate_credentials() -> None:
     drawer = DRAWER.read_text(encoding="utf-8")
 
-    assert "const usesManagedCloudLink = supportsCloudLink(connector.connector_id);" in drawer
+    assert "const usesManagedCloudLink =" in drawer
+    assert "!connector.connection_id && supportsCloudLink(connector.connector_id);" in drawer
     assert "const showCloudLinkPanel =" in drawer
     assert "!isEnabled || (isEnabled && editCloudSetup)" in drawer
     assert "(isEnabled && editCloudSetup)" in drawer

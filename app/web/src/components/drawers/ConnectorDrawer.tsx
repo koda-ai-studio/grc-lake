@@ -428,11 +428,14 @@ export function ConnectorDrawer({
   onToast,
 }: Props) {
   const auditor = useAuditorMode();
-  const configure = useConfigureMutation();
-  const discover = useDiscoverMutation();
-  const probe = useProbeMutation();
-  const sync = useSyncMutation();
-  const runs = useConnectorRuns(connector?.connector_id ?? null);
+  const configure = useConfigureMutation(connector?.connection_id);
+  const discover = useDiscoverMutation(connector?.connection_id);
+  const probe = useProbeMutation(connector?.connection_id);
+  const sync = useSyncMutation(connector?.connection_id);
+  const runs = useConnectorRuns(
+    connector?.connector_id ?? null,
+    connector?.connection_id,
+  );
   const credentialPolicy = useCredentialPolicy();
   const [creds, setCreds] = useState<Record<string, string>>({});
   const [options, setOptions] = useState<Record<string, string>>({});
@@ -517,7 +520,8 @@ export function ConnectorDrawer({
   const scopeFields = scopeFieldsFor(connector.connector_id);
   const schedulerFields = schedulerFieldsFor(isRunnableConnector(connector));
   const isSnowflake = connector.connector_id === "snowflake-evidence-lake";
-  const usesManagedCloudLink = supportsCloudLink(connector.connector_id);
+  const usesManagedCloudLink =
+    !connector.connection_id && supportsCloudLink(connector.connector_id);
   const usesDiscoveredReadScope =
     connector.connector_id === "clickhouse-telemetry-lake" || isSnowflake;
   const isEnabled = connector.state === "enabled";

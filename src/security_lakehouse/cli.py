@@ -110,6 +110,16 @@ def _parser() -> argparse.ArgumentParser:
     )
     publish_iceberg.set_defaults(func=_publish_iceberg)
 
+    connections = sub.add_parser("connections", help="persistent source-account connections")
+    connection_commands = connections.add_subparsers(dest="connection_command", required=True)
+    for action in ("create", "list"):
+        command = connection_commands.add_parser(action)
+        command.add_argument("--lake", required=True)
+        if action == "create":
+            for flag in ("connection-id", "connector-id", "source-account-id", "name"):
+                command.add_argument(f"--{flag}", required=True)
+        command.set_defaults(func=_connections_command)
+
     connectors = sub.add_parser("connectors", help="connector catalog commands")
     connectors_sub = connectors.add_subparsers(dest="connectors_command", required=True)
     connectors_validate = connectors_sub.add_parser("validate", help="validate connector access contracts")
@@ -173,6 +183,7 @@ def _parser() -> argparse.ArgumentParser:
         action="store_true",
         help="scheduled sync collects raw evidence only; do not rebuild bronze/silver/gold outputs",
     )
+    connectors_configure.add_argument("--connection-id", default=None, help="saved named connection within this lake")
     connectors_configure.set_defaults(func=_connectors_configure)
     connectors_discover = connectors_sub.add_parser("discover", help="discover selectable read scopes for a connector")
     connectors_discover.add_argument("--lake", required=True, help="security data lake output directory")
@@ -192,6 +203,7 @@ def _parser() -> argparse.ArgumentParser:
     connectors_discover.add_argument("--warehouse", default=None, help="Snowflake warehouse selector")
     connectors_discover.add_argument("--database", default=None, help="Snowflake database selector")
     connectors_discover.add_argument("--schema", default=None, help="Snowflake schema selector")
+    connectors_discover.add_argument("--connection-id", default=None, help="saved named connection within this lake")
     connectors_discover.set_defaults(func=_connectors_discover)
     connectors_probe = connectors_sub.add_parser("probe", help="test connector access before enabling it")
     connectors_probe.add_argument("--lake", required=True, help="security data lake output directory")
@@ -207,6 +219,7 @@ def _parser() -> argparse.ArgumentParser:
         default=None,
         help="JSON object with selected read scope or connector options",
     )
+    connectors_probe.add_argument("--connection-id", default=None, help="saved named connection within this lake")
     connectors_probe.set_defaults(func=_connectors_probe)
     connectors_sync = connectors_sub.add_parser("sync", help="run a configured connector into the managed raw lake")
     connectors_sync.add_argument("--lake", required=True, help="security data lake output directory")
@@ -226,6 +239,7 @@ def _parser() -> argparse.ArgumentParser:
         action="store_true",
         help="collect raw evidence only; do not rebuild bronze/silver/gold outputs",
     )
+    connectors_sync.add_argument("--connection-id", default=None, help="saved named connection within this lake")
     connectors_sync.set_defaults(func=_connectors_sync)
 
     lake = sub.add_parser("lake", help="bring-your-own-lake mapping commands (experimental)")
@@ -1139,6 +1153,7 @@ def _json_object(raw: str | None, *, flag: str) -> dict[str, object]:
 
 
 def _connectors_configure(args: argparse.Namespace) -> int:
+    _select_cli_connection(args)
     from security_lakehouse.connector_state import (
         append_config_event,
         configure_payload_error,
@@ -1190,6 +1205,7 @@ def _connectors_configure(args: argparse.Namespace) -> int:
 
 
 def _connectors_discover(args: argparse.Namespace) -> int:
+    _select_cli_connection(args)
     from security_lakehouse.connector_state import run_discovery
 
     credentials = {
@@ -1236,6 +1252,7 @@ def _connectors_discover(args: argparse.Namespace) -> int:
 
 
 def _connectors_probe(args: argparse.Namespace) -> int:
+    _select_cli_connection(args)
     from security_lakehouse.connector_state import run_probe
 
     run = run_probe(
@@ -1253,6 +1270,20 @@ def _connectors_probe(args: argparse.Namespace) -> int:
 
 
 def _connectors_sync(args: argparse.Namespace) -> int:
+    if args.connection_id:
+        from security_lakehouse.connections import sync_connection
+
+        connection_result = sync_connection(
+            args.lake,
+            args.connection_id,
+            actor=args.actor,
+            materialize=not args.no_materialize,
+            repo=args.repo,
+            fixture_dir=args.fixture_dir,
+            token_env=args.token_env,
+        )
+        print(json.dumps(connection_result, indent=2, sort_keys=True))
+        return 0 if connection_result["result"] == "ok" else 1
     from security_lakehouse.connector_runner import run_connector_sync
 
     result = run_connector_sync(
@@ -2988,6 +3019,33 @@ def _lake_retention(args: argparse.Namespace) -> int:
         archive_to=Path(args.archive_to) if args.archive_to else None,
     )
     print(json.dumps(result, indent=2))
+    return 0
+
+
+def _select_cli_connection(args: argparse.Namespace) -> None:
+    if getattr(args, "connection_id", None):
+        from security_lakehouse.connections import connection_context
+
+        child, info = connection_context(args.lake, args.connection_id)
+        if info["connector_id"] != args.connector_id:
+            raise ValueError("connection belongs to a different connector")
+        args.lake = child
+
+
+def _connections_command(args: argparse.Namespace) -> int:
+    from security_lakehouse.connections import create_connection, list_connections
+
+    if args.connection_command == "create":
+        result = create_connection(
+            args.lake,
+            connection_id=args.connection_id,
+            connector_id=args.connector_id,
+            source_account_id=args.source_account_id,
+            name=args.name,
+        )
+    else:
+        result = {"connections": list_connections(args.lake)}
+    print(json.dumps(result, indent=2, sort_keys=True))
     return 0
 
 

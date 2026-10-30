@@ -170,6 +170,53 @@
     },
     {
       "kind": "collection",
+      "methods": ["GET", "POST"],
+      "path": "/api/v1/connections",
+      "resource": "connections",
+      "scopes": ["read", "connector_manage"]
+    },
+    {
+      "kind": "action",
+      "methods": ["POST"],
+      "path": "/api/v1/connections/{connection_id}/configure",
+      "path_params": ["connection_id"],
+      "resource": "connection.configure",
+      "scopes": ["connector_manage"]
+    },
+    {
+      "kind": "action",
+      "methods": ["POST"],
+      "path": "/api/v1/connections/{connection_id}/discover",
+      "path_params": ["connection_id"],
+      "resource": "connection.discover",
+      "scopes": ["connector_manage"]
+    },
+    {
+      "kind": "action",
+      "methods": ["POST"],
+      "path": "/api/v1/connections/{connection_id}/probe",
+      "path_params": ["connection_id"],
+      "resource": "connection.probe",
+      "scopes": ["connector_manage"]
+    },
+    {
+      "kind": "collection",
+      "methods": ["GET"],
+      "path": "/api/v1/connections/{connection_id}/runs",
+      "path_params": ["connection_id"],
+      "resource": "connection.runs",
+      "scopes": ["read"]
+    },
+    {
+      "kind": "action",
+      "methods": ["POST"],
+      "path": "/api/v1/connections/{connection_id}/sync",
+      "path_params": ["connection_id"],
+      "resource": "connection.sync",
+      "scopes": ["connector_manage"]
+    },
+    {
+      "kind": "collection",
       "methods": ["GET"],
       "path": "/api/v1/connector-runs",
       "query": ["limit", "offset", "cursor", "sort", "<field>=<value>"],
