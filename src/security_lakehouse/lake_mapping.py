@@ -1068,12 +1068,15 @@ def collect_mapped_evidence(
     Unmappable rows make a collection partial and prevent positive verdicts
     for that mapping. If every fetched row fails, the sync fails closed.
     """
+    if isinstance(max_rows, bool) or not isinstance(max_rows, int) or max_rows < 1:
+        raise ValueError("max_rows must be a positive integer")
     events: list[dict[str, Any]] = []
     for spec in specs:
-        rows = fetch(spec, since if spec.incremental else None, max_rows)
+        rows = fetch(spec, since if spec.incremental else None, max_rows + 1)
+        truncated = len(rows) > max_rows
         result = map_rows(
             spec,
-            rows,
+            rows[:max_rows],
             since=since,
             collected_at=collected_at,
             tenant_id=tenant_id,
@@ -1086,6 +1089,8 @@ def collect_mapped_evidence(
                     "mapping": spec.name,
                     "table": spec.source_table,
                     "rows_read": len(rows),
+                    "row_limit": max_rows,
+                    "truncated": truncated,
                     "mapped_count": len(result.events),
                     "filtered": result.filtered,
                     "errors": result.errors,
@@ -1098,35 +1103,54 @@ def collect_mapped_evidence(
                 f"mapping {spec.name!r}: none of {len(result.errors)} fetched rows could be mapped "
                 f"(first error: {result.errors[0]['error']}); run 'grc-lake lake map --dry-run'"
             )
-        if result.errors:
-            logger.warning("mapping %r skipped %d unmappable row(s)", spec.name, len(result.errors))
+        if result.errors or truncated:
+            if result.errors:
+                logger.warning("mapping %r skipped %d unmappable row(s)", spec.name, len(result.errors))
             for event in result.events:
                 event["attributes"]["mapping_partial"] = True
                 if event["status"] == "pass":
                     event["attributes"]["mapping_original_status"] = "pass"
                     event["status"] = "not_evaluated"
-            events.append(_mapping_gap(spec, result, tenant_id=tenant_id, source=default_source, now=collected_at))
-        if len(rows) >= max_rows:
-            logger.warning(
-                "mapping %r reached the %d-row sync bound; the next sync continues from the new watermark",
-                spec.name,
-                max_rows,
-            )
+            if result.errors:
+                events.append(_mapping_gap(spec, result, tenant_id=tenant_id, source=default_source, now=collected_at))
+            if truncated:
+                events.append(
+                    _mapping_gap(
+                        spec,
+                        result,
+                        tenant_id=tenant_id,
+                        source=default_source,
+                        now=collected_at,
+                        row_limit=max_rows,
+                    )
+                )
         events.extend(result.events)
     return events
 
 
 def _mapping_gap(
-    spec: MappingSpec, result: MapResult, *, tenant_id: str, source: str, now: datetime | None
+    spec: MappingSpec,
+    result: MapResult,
+    *,
+    tenant_id: str,
+    source: str,
+    now: datetime | None,
+    row_limit: int | None = None,
 ) -> dict[str, Any]:
-    gap = CollectionGapError(
-        "Some rows could not be mapped; inspect the mapping dry-run and replay the affected window.",
-        collection=spec.name,
-        reason="unmappable_rows",
+    reason = "row_limit_exceeded" if row_limit is not None else "unmappable_rows"
+    message = (
+        "The mapped read exceeded its row limit. Increase max_rows_per_sync within the evaluation budget "
+        "or partition the mapping into explicit bounded scopes, then replay. The watermark is held."
+        if row_limit is not None
+        else "Some rows could not be mapped; inspect the mapping dry-run and replay the affected window."
     )
-    stable = "lake-mapping-gap-" + _digest(json.dumps([tenant_id, source, spec.name, spec.source_table]))[:24]
+    gap = CollectionGapError(message, collection=spec.name, reason=reason)
+    identity = [tenant_id, source, spec.name, spec.source_table]
+    if row_limit is not None:
+        identity.append(reason)
+    stable = "lake-mapping-gap-" + _digest(json.dumps(identity))[:24]
     # A diagnostic must not move the shared watermark beyond the collected evidence.
-    event_time = max(event["event_time"] for event in result.events)
+    event_time = max((event["event_time"] for event in result.events), default=utc_iso(now or datetime.now(UTC)))
     return {
         "event_id": stable,
         "tenant_id": tenant_id,
@@ -1153,6 +1177,7 @@ def _mapping_gap(
             **gap.attributes(),
             "mapping": spec.name,
             "unmapped_rows": len(result.errors),
+            **({"row_limit": row_limit} if row_limit is not None else {}),
         },
     }
 

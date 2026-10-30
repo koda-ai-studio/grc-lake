@@ -1384,10 +1384,12 @@ def _lake_map_connector(args: argparse.Namespace) -> int:
     with lm.capture_mapping_stats() as stats:
         events = builder(inputs)
     errors = [dict(error, mapping=item["mapping"]) for item in stats for error in item["errors"]]
+    partial = bool(errors) or any(item["truncated"] for item in stats)
     report = {
         "valid": True,
         "dry_run": True,
         "connector_id": args.connector_id,
+        "partial": partial,
         "mappings": [{key: value for key, value in item.items() if key != "errors"} for item in stats],
         "rows_read": sum(item["rows_read"] for item in stats),
         "mapped_count": len(events),
@@ -1396,7 +1398,7 @@ def _lake_map_connector(args: argparse.Namespace) -> int:
         "preview": events[: args.limit],
     }
     print(json.dumps(report, indent=2, sort_keys=True, default=str))
-    return 2 if errors else 0
+    return 2 if partial else 0
 
 
 def _read_sample_rows(path: str) -> list[dict[str, Any]]:
