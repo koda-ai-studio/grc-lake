@@ -8,7 +8,7 @@ The console requests at most 150 nodes per neighborhood. The API allows 1–300 
 
 The canvas lays out at most 500 visible nodes and 1,000 visible relationships. Above either limit it shows the counts and asks for a narrower view; it does not silently discard relationships to fit. Framework, control, workflow and stale-evidence map filters advance one hop at a time, independent of edge order. These browser bounds are not a production capacity qualification.
 
-**Fit View** restores readable zoom. When the full map cannot fit at that zoom, pan or use the minimap to follow it; zoom out for an overview. The visible line-style key distinguishes recorded links, reviewed mappings, pending review and invalid bindings. A mapping without a review state reads **Review not recorded** and uses an unreviewed line style. Only explicit maintainer or organization review receives reviewed styling; rejected and needs-changes states remain distinct.
+Investigation opens with the entire loaded neighborhood in view, including when the inspector is open. **Fit all nodes** and the **Fit View** icon restore that overview; **Readable view** enlarges labels for detailed inspection, with panning when needed. The chosen view refits when the canvas resizes or expands. Lane headings distinguish assurance hierarchy from evidence lineage without adding nodes or relationships. The visible line-style key distinguishes recorded links, reviewed mappings, pending review and invalid bindings. A mapping without a review state reads **Review not recorded** and uses an unreviewed line style. Only explicit maintainer or organization review receives reviewed styling; rejected and needs-changes states remain distinct.
 
 ## Relationship meaning
 

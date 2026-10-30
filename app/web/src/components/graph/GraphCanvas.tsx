@@ -17,6 +17,7 @@ import {
   MiniMap,
   ReactFlow,
   ReactFlowProvider,
+  ViewportPortal,
   getNodesBounds,
   getViewportForBounds,
   useReactFlow,
@@ -1290,7 +1291,61 @@ function InnerGraphCanvas({
     ? mobileAnchor.position.y + (mobileAnchor.height ?? NODE_H) / 2
     : null;
   const [overflow, setOverflow] = useState(false);
+  const [viewMode, setViewMode] = useState<"overview" | "readable">(
+    compactCards && !neighborhoodRoot ? "overview" : "readable",
+  );
   const laidOutNodes = laidOut.nodes;
+  const laneHeadings = useMemo(() => {
+    if (!compactCards || neighborhoodRoot || layout !== "LR") return [];
+    return [true, false].flatMap((assurance) => {
+      const section = laidOutNodes.filter(
+        (node) => graphAssuranceKind(node.data.kind) === assurance,
+      );
+      if (!section.length) return [];
+      const bounds = getNodesBounds(section);
+      return [
+        {
+          label: assurance
+            ? "Assurance hierarchy"
+            : "Evidence lineage · Source → observation → asset",
+          x: bounds.x,
+          y: bounds.y - 44,
+          width: Math.max(bounds.width, 540),
+          height: 28,
+        },
+      ];
+    });
+  }, [compactCards, neighborhoodRoot, layout, laidOutNodes]);
+  const fitAllView = useCallback(
+    (duration = 0) => {
+      const wrapper = wrapperRef.current;
+      if (!wrapper || !placedNodes.length) return;
+      const bounds = getNodesBounds(placedNodes);
+      const x = Math.min(bounds.x, ...laneHeadings.map((lane) => lane.x));
+      const y = Math.min(bounds.y, ...laneHeadings.map((lane) => lane.y));
+      const right = Math.max(
+        bounds.x + bounds.width,
+        ...laneHeadings.map((lane) => lane.x + lane.width),
+      );
+      const bottom = Math.max(
+        bounds.y + bounds.height,
+        ...laneHeadings.map((lane) => lane.y + lane.height),
+      );
+      setViewport(
+        getViewportForBounds(
+          { x, y, width: right - x, height: bottom - y },
+          wrapper.clientWidth,
+          wrapper.clientHeight,
+          0.001,
+          1,
+          0.08,
+        ),
+        { duration },
+      );
+      setOverflow(false);
+    },
+    [placedNodes, laneHeadings, setViewport],
+  );
   const overflowsAt = useCallback(
     (zoom: number) => {
       const wrapper = wrapperRef.current;
@@ -1370,15 +1425,21 @@ function InnerGraphCanvas({
     ],
   );
 
+  const fitCurrentView = viewMode === "overview" ? fitAllView : fitReadableView;
   useEffect(() => {
     if (rfNodes.length === 0) return;
     const frame = window.requestAnimationFrame(() => {
       // A scoped path is small enough to fit whole at a readable zoom.
-      if (focusX !== null && focusY !== null && !scopeIds) {
+      if (
+        viewMode === "readable" &&
+        focusX !== null &&
+        focusY !== null &&
+        !scopeIds
+      ) {
         setCenter(focusX + 73, focusY + 29, { zoom: 0.9, duration: 300 });
         setOverflow(overflowsAt(0.9));
       } else {
-        fitReadableView(180);
+        fitCurrentView(180);
       }
     });
     return () => window.cancelAnimationFrame(frame);
@@ -1396,13 +1457,14 @@ function InnerGraphCanvas({
     filterFramework,
     searchQuery,
     scopeIds,
+    viewMode,
   ]);
 
   // Opening the adjacent inspector changes canvas width without changing nodes.
-  const fitRef = useRef(fitReadableView);
+  const fitRef = useRef(fitCurrentView);
   useEffect(() => {
-    fitRef.current = fitReadableView;
-  }, [fitReadableView]);
+    fitRef.current = fitCurrentView;
+  }, [fitCurrentView]);
   useEffect(() => {
     const wrapper = wrapperRef.current;
     if (!wrapper) return;
@@ -1552,7 +1614,7 @@ function InnerGraphCanvas({
           edgesReconnectable={false}
           fitView
           fitViewOptions={{ maxZoom: 1, padding: 0.06 }}
-          minZoom={0.16}
+          minZoom={0.001}
           maxZoom={1.6}
           proOptions={{ hideAttribution: true }}
           onNodeClick={(_, node) => {
@@ -1598,18 +1660,40 @@ function InnerGraphCanvas({
           }}
         >
           <Background gap={20} color="var(--color-line)" />
-          <MiniMap
-            pannable
-            zoomable
-            className="!h-20 !w-28 !rounded-lg !border !border-line !bg-surface/90 !shadow-card max-md:!hidden"
-            style={{ width: 112, height: 80 }}
-            maskColor="rgb(var(--rgb-ink) / 0.06)"
-          />
+          <ViewportPortal>
+            {laneHeadings.map((lane) => (
+              <div
+                key={lane.label}
+                data-testid="graph-lane-heading"
+                className="pointer-events-none absolute text-lg font-semibold text-ink"
+                style={{
+                  left: lane.x,
+                  top: lane.y,
+                  width: lane.width,
+                  height: lane.height,
+                }}
+              >
+                {lane.label}
+              </div>
+            ))}
+          </ViewportPortal>
+          {viewMode === "readable" && (
+            <MiniMap
+              pannable
+              zoomable
+              className="!h-20 !w-28 !rounded-lg !border !border-line !bg-surface/90 !shadow-card max-md:!hidden"
+              style={{ width: 112, height: 80 }}
+              maskColor="rgb(var(--rgb-ink) / 0.06)"
+            />
+          )}
           <Controls position="bottom-left" showFitView={false}>
             <ControlButton
               title="Fit View"
               aria-label="Fit View"
-              onClick={() => fitReadableView(180)}
+              onClick={() => {
+                setViewMode("overview");
+                fitAllView(180);
+              }}
             >
               <Scan />
             </ControlButton>
@@ -1643,6 +1727,26 @@ function InnerGraphCanvas({
             {label}
           </span>
         ))}
+        <div
+          role="group"
+          aria-label="Graph zoom view"
+          className="ml-auto flex flex-wrap gap-2"
+        >
+          {(["overview", "readable"] as const).map((mode) => (
+            <button
+              key={mode}
+              type="button"
+              aria-pressed={viewMode === mode}
+              className="rounded-lg border border-line bg-surface px-3 py-1.5 text-xs font-medium text-ink hover:bg-surfaceMuted aria-pressed:border-brand aria-pressed:bg-brand aria-pressed:text-onBrand"
+              onClick={() => {
+                setViewMode(mode);
+                (mode === "overview" ? fitAllView : fitReadableView)(180);
+              }}
+            >
+              {mode === "overview" ? "Fit all nodes" : "Readable view"}
+            </button>
+          ))}
+        </div>
       </div>
       {overflow && (
         <p
@@ -1650,8 +1754,8 @@ function InnerGraphCanvas({
           className="text-xs leading-5 text-muted"
         >
           Part of this map is outside the view. Drag the canvas to follow
-          connections or use the minimap. Fit view (bottom left) restores a
-          readable zoom; zoom out for an overview.
+          connections or use the minimap. Choose Fit all nodes to see the entire
+          loaded graph; Readable view enlarges labels for inspection.
         </p>
       )}
     </div>
