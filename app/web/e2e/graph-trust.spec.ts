@@ -137,6 +137,8 @@ test("dragged nodes keep their position and hover emphasizes only their links", 
   const node = page.locator(
     '.react-flow__node[data-id="control:FEDRAMP-AC-11"]',
   );
+  await node.scrollIntoViewIfNeeded();
+  await expect(node).toBeInViewport();
   const original = await node.getAttribute("style");
   const icon = await node.getByTestId("graph-node-icon").boundingBox();
   await page.mouse.move(icon!.x + icon!.width / 2, icon!.y + icon!.height / 2);

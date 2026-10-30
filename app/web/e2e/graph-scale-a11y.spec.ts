@@ -203,10 +203,10 @@ test("investigation labels stale evidence, unattested controls, safeguards and i
     page.locator('.react-flow__edge[data-id="e3"] .react-flow__edge-path'),
   ).toHaveCSS("stroke-dasharray", /\d/);
   await expect(page.getByTestId("graph-column-legend")).toContainText(
-    "Framework",
+    "Assurance hierarchy: Framework → Control → Safeguard",
   );
   await expect(page.getByTestId("graph-column-legend")).toContainText(
-    "Evidence / Safeguard",
+    "Evidence lineage: Source → Observation → Asset",
   );
 
   await control.click();
@@ -393,7 +393,14 @@ test("a mapping without review provenance stays visibly unreviewed", async ({
       exact: true,
     })
     .click();
-  await expect(page.getByText(/maps to · Review not recorded/)).toBeVisible();
+  const mappingRow = page
+    .getByRole("group", { name: "Outgoing relationships" })
+    .getByRole("listitem")
+    .filter({ hasText: "Logical access and MFA" });
+  await expect(mappingRow).toContainText("maps to");
+  await expect(mappingRow).toContainText(
+    "Review not recorded · catalog mapping",
+  );
 });
 
 test("fit view restores readable labels instead of shrinking the whole framework", async ({
@@ -452,7 +459,16 @@ test("a dense investigation refuses layout promptly without silently dropping re
       exact: true,
     })
     .click();
-  await expect(
-    page.getByText(/SOC2-CC6.1 → Synthetic asset 0 · contains/),
-  ).toBeVisible();
+  const outgoing = page.getByRole("group", { name: "Outgoing relationships" });
+  await expect(outgoing).toContainText("Outgoing · 49");
+  const first = outgoing.getByRole("listitem").first();
+  await expect(first).toContainText("SOC2-CC6.1 → Synthetic asset 0");
+  await expect(first).toContainText("contains · Asset");
+  await expect(outgoing.getByRole("listitem")).toHaveCount(5);
+  await outgoing
+    .getByRole("button", { name: "Next outgoing relationships" })
+    .click();
+  await expect(outgoing.getByRole("listitem").first()).toContainText(
+    "SOC2-CC6.1 → Synthetic asset 5",
+  );
 });
