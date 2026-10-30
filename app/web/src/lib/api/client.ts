@@ -156,7 +156,7 @@ async function post<T>(path: string, body: unknown): Promise<T> {
     path === "/v1/ingestion/eval" ||
     path === "/v1/scheduler/tick" ||
     path === "/v1/snapshots" ||
-    /^\/v1\/connectors\/[A-Za-z0-9_-]+\/sync$/.test(path);
+    /^\/v1\/(?:connectors|connections)\/[A-Za-z0-9_-]+\/sync$/.test(path);
   const res = await fetch(`${BASE}${path}`, {
     method: "POST",
     credentials: "same-origin",

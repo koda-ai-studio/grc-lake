@@ -20,6 +20,7 @@ from typing import Any
 
 from security_lakehouse import netguard
 from security_lakehouse.connector_errors import CollectionGapError, ConnectorConfigError, collection_gaps
+from security_lakehouse.connector_paths import CONNECTOR_RAW_FILE
 from security_lakehouse.connector_state import CONFIG_FILE, _safe_run_error, append_run_event, latest_config
 from security_lakehouse.connectors import (
     CONNECTOR_BUILDER_ENTRY_POINT_GROUP,
@@ -202,7 +203,6 @@ from security_lakehouse.validation import validate_raw_events
 
 logger = logging.getLogger(__name__)
 
-CONNECTOR_RAW_FILE = "raw/connector_events.jsonl"
 
 # ``entry_points`` group a third-party package registers connectors under (see
 # ``effective_registry`` below and the "Ship a connector as a package" section
@@ -424,7 +424,7 @@ def run_connector_sync(
                 options=options,
             )
         if expected_source_account_id is not None:
-            from security_lakehouse.connections import bind_connection_account
+            from security_lakehouse.connection_registry import bind_connection_account
 
             rows = bind_connection_account(connector_id, rows, expected_source_account_id)
         if connection_id is not None:
@@ -510,7 +510,7 @@ class ConnectorSyncError(RuntimeError):
 
 def _materialize_after_sync(lake: Path, raw_path: Path, *, connector_id: str) -> None:
     """Run scale-aware materialize after a connector sync."""
-    from security_lakehouse.connections import connection_input
+    from security_lakehouse.connection_inputs import connection_input
 
     with connection_input(lake, raw_path) as evaluation_input:
         _materialize_input(lake, evaluation_input, connector_id=connector_id)

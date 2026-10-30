@@ -64,7 +64,7 @@ def _evaluation_input(lake: Path, raw_path: Path) -> Iterator[Path]:
 
     with publication_lock(lake):
         if raw_path.exists() or (lake / "connections").exists():
-            from security_lakehouse.connections import connection_input
+            from security_lakehouse.connection_inputs import connection_input
 
             with connection_input(lake, raw_path) as combined:
                 yield combined

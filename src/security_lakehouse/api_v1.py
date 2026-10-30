@@ -1614,7 +1614,7 @@ def _handle_get(
     if path == "/api/v1/connections" or path.startswith("/api/v1/connections/"):
         from security_lakehouse.connection_api import connection_get
 
-        return connection_get(path, params, lake)
+        return connection_get(path, params, lake, handle_get=handle_get, collection_response=collection_response)
     if path == "/api/v1/connectors":
         rows = build_catalog_view(lake)
         return HTTPStatus.OK, collection_response("connectors", rows, params)
@@ -2070,7 +2070,7 @@ def handle_post(
     if path == "/api/v1/connections" or path.startswith("/api/v1/connections/"):
         from security_lakehouse.connection_api import connection_post
 
-        return connection_post(path, payload, lake)
+        return connection_post(path, payload, lake, handle_post=handle_post)
     if path == "/api/v1/repositories/public-audit":
         from urllib.error import HTTPError, URLError
 

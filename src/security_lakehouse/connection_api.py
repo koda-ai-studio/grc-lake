@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from http import HTTPStatus
 from pathlib import Path
 from typing import Any
@@ -21,9 +21,14 @@ def connection_action(path: str) -> tuple[str, str] | None:
     return (match[1], match[2]) if match else None
 
 
-def connection_get(path: str, params: Mapping[str, list[str]], lake: Path) -> tuple[HTTPStatus, JsonObject]:
-    from security_lakehouse.api_v1 import collection_response, handle_get
-
+def connection_get(
+    path: str,
+    params: Mapping[str, list[str]],
+    lake: Path,
+    *,
+    handle_get: Callable[..., Any],
+    collection_response: Callable[..., Any],
+) -> tuple[HTTPStatus, JsonObject]:
     try:
         if path == "/api/v1/connections":
             return HTTPStatus.OK, collection_response("connections", list_connections(lake), params)
@@ -38,9 +43,9 @@ def connection_get(path: str, params: Mapping[str, list[str]], lake: Path) -> tu
     return HTTPStatus.NOT_FOUND, error_envelope("not_found", "connection route not found")
 
 
-def connection_post(path: str, payload: dict[str, Any], lake: Path) -> tuple[HTTPStatus, JsonObject]:
-    from security_lakehouse.api_v1 import handle_post
-
+def connection_post(
+    path: str, payload: dict[str, Any], lake: Path, *, handle_post: Callable[..., Any]
+) -> tuple[HTTPStatus, JsonObject]:
     try:
         if path == "/api/v1/connections":
             allowed = {"connection_id", "connector_id", "source_account_id", "name"}

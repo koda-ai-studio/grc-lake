@@ -6,6 +6,7 @@ instead of :mod:`security_lakehouse.api_v1`, which re-exports every name.
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 from security_lakehouse.jsontypes import JsonObject
@@ -65,10 +66,7 @@ def required_post_scope(path: str) -> str:
     """Return the RBAC scope required to mutate a v1 route (fail-closed default)."""
     if path == "/api/v1/connections":
         return "connector_manage"
-    from security_lakehouse.connection_api import connection_action
-
-    action = connection_action(path)
-    if action and action[1] != "runs":
+    if re.fullmatch(r"/api/v1/connections/[^/]+/(configure|probe|discover|sync)", path):
         return "connector_manage"
     if path == "/api/v1/snapshots":
         return "snapshot"

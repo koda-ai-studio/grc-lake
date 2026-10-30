@@ -205,3 +205,10 @@ def test_named_account_replaces_only_matching_legacy_account_in_evaluation(tmp_p
     assert len(rows) == 2
     assert {row["source_account_id"] for row in rows} == {"a", "b"}
     assert (child / runner.CONNECTOR_RAW_FILE).is_file()
+
+
+def test_connection_record_symlink_cannot_alias_another_account(tmp_path):
+    prepare(tmp_path, "a", "a")
+    (tmp_path / "connections" / "b").symlink_to(tmp_path / "connections" / "a", target_is_directory=True)
+    with pytest.raises(ValueError):
+        connections.connection_context(tmp_path, "b")

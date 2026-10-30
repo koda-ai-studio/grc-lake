@@ -1190,7 +1190,7 @@ def _evaluate_freshness(
 
 
 @connector_state_reader
-def build_catalog_view(lake_dir: str | Path) -> list[dict[str, Any]]:
+def build_catalog_view(lake_dir: str | Path, *, include_connections: bool = True) -> list[dict[str, Any]]:
     """Return the catalog joined with current configuration + latest probe.
 
     This is what the React /connectors page renders. The shape is stable so
@@ -1217,17 +1217,23 @@ def build_catalog_view(lake_dir: str | Path) -> list[dict[str, Any]]:
                 **_evaluate_freshness(base, sync_success),
             }
         )
-    from security_lakehouse.connections import list_connections
+    if include_connections:
+        from security_lakehouse.connection_registry import connection_records
 
-    out.extend(
-        {
-            **entry["connector"],
-            "connection_id": entry["connection_id"],
-            "source_account_id": entry["source_account_id"],
-            "name": entry["name"],
-        }
-        for entry in list_connections(lake_dir)
-    )
+        for child, info in connection_records(lake_dir):
+            row = next(
+                item
+                for item in build_catalog_view(child, include_connections=False)
+                if item["connector_id"] == info["connector_id"]
+            )
+            out.append(
+                {
+                    **row,
+                    "connection_id": info["connection_id"],
+                    "source_account_id": info["source_account_id"],
+                    "name": info["name"],
+                }
+            )
     out.sort(
         key=lambda c: (
             PRODUCTION_STATUS_ORDER.get(str(c.get("production_status") or ""), 99),
