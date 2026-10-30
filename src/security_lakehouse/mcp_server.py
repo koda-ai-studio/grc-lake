@@ -192,7 +192,7 @@ def _server_api_request(
     token = _api_key()
     deferred = method.upper() == "POST" and (
         path in {"/api/v1/ingestion/eval", "/api/v1/scheduler/tick", "/api/v1/snapshots"}
-        or re.fullmatch(r"/api/v1/connectors/[A-Za-z0-9_-]+/sync", path) is not None
+        or re.fullmatch(r"/api/v1/(?:connectors|connections)/[A-Za-z0-9_-]+/sync", path) is not None
     )
     request = urllib.request.Request(
         url,
@@ -515,6 +515,7 @@ def build_server(lake_dir: Path | None = None) -> FastMCP:
         "attach_tag": (False, True, False),
         "capture_insights_point": (False, False, False),
         "configure_connector": (True, True, False),
+        "create_connection": (False, False, False),
         "create_access_review": (False, False, False),
         "create_agent_run": (False, False, True),
         "create_audit_workpaper": (False, False, False),
@@ -919,7 +920,11 @@ def build_server(lake_dir: Path | None = None) -> FastMCP:
 
     @trustops_tool(title="Sync Connector")
     def sync_connector(
-        connector_id: str, materialize: bool | None = None, actor: str = "mcp", idempotency_key: str | None = None
+        connector_id: str,
+        materialize: bool | None = None,
+        actor: str = "mcp",
+        idempotency_key: str | None = None,
+        connection_id: str | None = None,
     ) -> JsonObject:
         """Run one connector sync into the managed raw lake.
 
@@ -933,7 +938,7 @@ def build_server(lake_dir: Path | None = None) -> FastMCP:
         payload: dict[str, Any] = {"actor": actor}
         if materialize is not None:
             payload["materialize"] = materialize
-        path = f"/api/v1/connectors/{urllib.parse.quote(connector_id, safe='')}/sync"
+        path = f"/api/v1/{'connections' if connection_id else 'connectors'}/{urllib.parse.quote(connection_id or connector_id, safe='')}/sync"
         return _post(path, lake, payload, idempotency_key=idempotency_key)
 
     @trustops_tool(title="Get Operation", remote_only=True)
@@ -950,6 +955,28 @@ def build_server(lake_dir: Path | None = None) -> FastMCP:
         """List a bounded page of remote queued, running and completed operations."""
         return _server_api_request("GET", "/api/v1/operations", limit=limit, offset=offset)["data"]
 
+    @trustops_tool(title="Create Connection")
+    def create_connection(connection_id: str, connector_id: str, source_account_id: str, name: str) -> JsonObject:
+        """Create a tenant-local named connection with an immutable source-account binding.
+
+        Configure and probe it using connection_id before enabling collection.
+        """
+        return _post(
+            "/api/v1/connections",
+            lake,
+            {
+                "connection_id": connection_id,
+                "connector_id": connector_id,
+                "source_account_id": source_account_id,
+                "name": name,
+            },
+        )
+
+    @trustops_tool(title="List Connections")
+    def list_connections(limit: int = 100, offset: int = 0) -> list[JsonObject]:
+        """List named source-account connections with independent collection state."""
+        return _get("/api/v1/connections", lake, limit=str(limit), offset=str(offset))
+
     @trustops_tool(title="List Connectors")
     def list_connectors(limit: int = 100, offset: int = 0) -> list[JsonObject]:
         """List connector catalog rows with enablement, freshness, and last sync."""
@@ -961,6 +988,7 @@ def build_server(lake_dir: Path | None = None) -> FastMCP:
         actor: str = "mcp",
         credentials_json: str = "{}",
         options_json: str = "{}",
+        connection_id: str | None = None,
     ) -> JsonObject:
         """Validate connector credentials and scope without enabling collection."""
         payload: dict[str, Any] = {
@@ -968,7 +996,7 @@ def build_server(lake_dir: Path | None = None) -> FastMCP:
             "credentials": _parse_json_object(credentials_json, "credentials_json"),
             "options": _parse_json_object(options_json, "options_json"),
         }
-        path = f"/api/v1/connectors/{urllib.parse.quote(connector_id, safe='')}/probe"
+        path = f"/api/v1/{'connections' if connection_id else 'connectors'}/{urllib.parse.quote(connection_id or connector_id, safe='')}/probe"
         return _post(path, lake, payload)
 
     @trustops_tool(title="Discover Connector")
@@ -977,6 +1005,7 @@ def build_server(lake_dir: Path | None = None) -> FastMCP:
         actor: str = "mcp",
         credentials_json: str = "{}",
         options_json: str = "{}",
+        connection_id: str | None = None,
     ) -> JsonObject:
         """Discover selectable scope candidates for a connector before enablement."""
         payload: dict[str, Any] = {
@@ -984,7 +1013,7 @@ def build_server(lake_dir: Path | None = None) -> FastMCP:
             "credentials": _parse_json_object(credentials_json, "credentials_json"),
             "options": _parse_json_object(options_json, "options_json"),
         }
-        path = f"/api/v1/connectors/{urllib.parse.quote(connector_id, safe='')}/discover"
+        path = f"/api/v1/{'connections' if connection_id else 'connectors'}/{urllib.parse.quote(connection_id or connector_id, safe='')}/discover"
         return _post(path, lake, payload)
 
     @trustops_tool(title="Configure Connector")
@@ -994,6 +1023,7 @@ def build_server(lake_dir: Path | None = None) -> FastMCP:
         actor: str = "mcp",
         credentials_json: str = "{}",
         options_json: str = "{}",
+        connection_id: str | None = None,
     ) -> JsonObject:
         """Enable or disable a connector and persist credentials/options to the lake."""
         payload: dict[str, Any] = {
@@ -1002,12 +1032,18 @@ def build_server(lake_dir: Path | None = None) -> FastMCP:
             "credentials": _parse_json_object(credentials_json, "credentials_json"),
             "options": _parse_json_object(options_json, "options_json"),
         }
-        path = f"/api/v1/connectors/{urllib.parse.quote(connector_id, safe='')}/configure"
+        path = f"/api/v1/{'connections' if connection_id else 'connectors'}/{urllib.parse.quote(connection_id or connector_id, safe='')}/configure"
         return _post(path, lake, payload)
 
     @trustops_tool(title="List Connector Runs")
-    def list_connector_runs(connector_id: str = "", limit: int = 50) -> list[JsonObject]:
+    def list_connector_runs(
+        connector_id: str = "", limit: int = 50, connection_id: str | None = None
+    ) -> list[JsonObject]:
         """List probe, discover, and sync run history from the lake."""
+        if connection_id:
+            return _get(
+                f"/api/v1/connections/{urllib.parse.quote(connection_id, safe='')}/runs", lake, limit=str(limit)
+            )
         if _remote_api_configured():
             return _get(
                 "/api/v1/connector-runs", lake, connector_id=connector_id, limit=str(limit), sort="-occurred_at"

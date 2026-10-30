@@ -1217,6 +1217,17 @@ def build_catalog_view(lake_dir: str | Path) -> list[dict[str, Any]]:
                 **_evaluate_freshness(base, sync_success),
             }
         )
+    from security_lakehouse.connections import list_connections
+
+    out.extend(
+        {
+            **entry["connector"],
+            "connection_id": entry["connection_id"],
+            "source_account_id": entry["source_account_id"],
+            "name": entry["name"],
+        }
+        for entry in list_connections(lake_dir)
+    )
     out.sort(
         key=lambda c: (
             PRODUCTION_STATUS_ORDER.get(str(c.get("production_status") or ""), 99),

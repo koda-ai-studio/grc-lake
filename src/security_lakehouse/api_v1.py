@@ -795,7 +795,26 @@ EXTENDED_RESOURCES: list[JsonObject] = [
 
 def resource_catalog() -> list[JsonObject]:
     """Self-describing list of v1 resources, for headless/agent discovery."""
-    catalog: list[JsonObject] = []
+    catalog: list[JsonObject] = [
+        _resource(
+            "connections",
+            "/api/v1/connections",
+            kind="collection",
+            methods=("GET", "POST"),
+            scopes=("read", "connector_manage"),
+        ),
+        *[
+            _resource(
+                f"connection.{action}",
+                f"/api/v1/connections/{{connection_id}}/{action}",
+                kind="collection" if action == "runs" else "action",
+                methods=("GET",) if action == "runs" else ("POST",),
+                scopes=("read",) if action == "runs" else ("connector_manage",),
+                path_params=["connection_id"],
+            )
+            for action in ("configure", "probe", "discover", "sync", "runs")
+        ],
+    ]
     catalog.extend(
         [
             {
@@ -1592,6 +1611,10 @@ def _handle_get(
         body = envelope("evidence.lineage", data)
         body["meta"].update({"count": count, "limit": limit, "offset": offset, "returned": len(data["links"])})
         return HTTPStatus.OK, body
+    if path == "/api/v1/connections" or path.startswith("/api/v1/connections/"):
+        from security_lakehouse.connection_api import connection_get
+
+        return connection_get(path, params, lake)
     if path == "/api/v1/connectors":
         rows = build_catalog_view(lake)
         return HTTPStatus.OK, collection_response("connectors", rows, params)
@@ -2044,6 +2067,10 @@ def handle_post(
             raise ValueError("body must be a JSON object")
     except (ValueError, TypeError):
         return HTTPStatus.BAD_REQUEST, error_envelope("bad_request", "invalid JSON body")
+    if path == "/api/v1/connections" or path.startswith("/api/v1/connections/"):
+        from security_lakehouse.connection_api import connection_post
+
+        return connection_post(path, payload, lake)
     if path == "/api/v1/repositories/public-audit":
         from urllib.error import HTTPError, URLError
 

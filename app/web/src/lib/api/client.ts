@@ -558,24 +558,42 @@ export const api = {
       `/v1/evidence/${encodeURIComponent(eventId)}/verify`,
       {},
     ).then((b) => b.data),
+  createConnection: (payload: {
+    connection_id: string;
+    connector_id: string;
+    source_account_id: string;
+    name: string;
+  }) =>
+    post<{ data: typeof payload }>("/v1/connections", payload).then(
+      (body) => body.data,
+    ),
   listConnectors: () =>
     getAllV1<ConnectorView>("/v1/connectors").then((r) => ({
       count: r.count,
       connectors: r.items,
     })),
-  configureConnector: (id: string, payload: ConfigurePayload) =>
+  configureConnector: (
+    id: string,
+    payload: ConfigurePayload,
+    connectionId?: string,
+  ) =>
     post<{ data: Record<string, unknown> }>(
-      `/v1/connectors/${encodeURIComponent(id)}/configure`,
+      `/v1/${connectionId ? "connections" : "connectors"}/${encodeURIComponent(connectionId ?? id)}/configure`,
       payload,
     ).then((body) => ({ event: body.data })),
-  probeConnector: (id: string, payload: ProbePayload = {}) =>
+  probeConnector: (
+    id: string,
+    payload: ProbePayload = {},
+    connectionId?: string,
+  ) =>
     post<{ data: ConnectorRun }>(
-      `/v1/connectors/${encodeURIComponent(id)}/probe`,
+      `/v1/${connectionId ? "connections" : "connectors"}/${encodeURIComponent(connectionId ?? id)}/probe`,
       payload,
     ).then((body) => ({ run: body.data })),
   syncConnector: (
     id: string,
     payload: { actor?: string; materialize?: boolean } = {},
+    connectionId?: string,
   ) =>
     post<{
       data: {
@@ -585,9 +603,10 @@ export const api = {
         materialized: boolean;
         run: ConnectorRun;
       };
-    }>(`/v1/connectors/${encodeURIComponent(id)}/sync`, payload).then(
-      (body) => body.data,
-    ),
+    }>(
+      `/v1/${connectionId ? "connections" : "connectors"}/${encodeURIComponent(connectionId ?? id)}/sync`,
+      payload,
+    ).then((body) => body.data),
   runLakeEval: (payload: { actor?: string } = {}) =>
     post<{
       data: {
@@ -609,9 +628,13 @@ export const api = {
         count: number;
       };
     }>("/v1/scheduler/tick", {}).then((body) => body.data),
-  discoverConnector: (id: string, payload: DiscoverPayload = {}) =>
+  discoverConnector: (
+    id: string,
+    payload: DiscoverPayload = {},
+    connectionId?: string,
+  ) =>
     post<{ data: ConnectorRun }>(
-      `/v1/connectors/${encodeURIComponent(id)}/discover`,
+      `/v1/${connectionId ? "connections" : "connectors"}/${encodeURIComponent(connectionId ?? id)}/discover`,
       payload,
     ).then((body) => ({ run: body.data })),
   startCloudLink: (
@@ -636,9 +659,9 @@ export const api = {
       `/v1/connectors/${encodeURIComponent(id)}/link/complete`,
       payload,
     ).then((body) => body.data),
-  connectorRuns: (id: string) =>
+  connectorRuns: (id: string, connectionId?: string) =>
     get<{ data: ConnectorRun[]; meta: { connector_id: string } }>(
-      `/v1/connectors/${encodeURIComponent(id)}/runs`,
+      `/v1/${connectionId ? "connections" : "connectors"}/${encodeURIComponent(connectionId ?? id)}/runs`,
     ).then((body) => ({
       connector_id: body.meta.connector_id,
       runs: body.data,

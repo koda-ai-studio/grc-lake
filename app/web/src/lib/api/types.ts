@@ -765,6 +765,8 @@ export interface ConnectorRun {
 }
 
 export interface ConnectorView {
+  connection_id?: string;
+  source_account_id?: string;
   connector_id: string;
   name: string;
   vendor?: string;

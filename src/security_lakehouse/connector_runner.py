@@ -368,6 +368,8 @@ def run_connector_sync(
     fixture_dir: str | Path | None = None,
     token_env: str = DEFAULT_TOKEN_ENV,
     materialize: bool = True,
+    connection_id: str | None = None,
+    expected_source_account_id: str | None = None,
 ) -> ConnectorSyncResult:
     """Run one configured connector and persist its evidence + run event."""
     if in_server_mode() and not server_tenant_id():
@@ -385,6 +387,8 @@ def run_connector_sync(
                     fixture_dir=fixture_dir,
                     token_env=token_env,
                     materialize=materialize,
+                    connection_id=connection_id,
+                    expected_source_account_id=expected_source_account_id,
                 )
     lake = Path(lake_dir)
     start = time.perf_counter()
@@ -419,6 +423,14 @@ def run_connector_sync(
                 credentials=credentials,
                 options=options,
             )
+        if expected_source_account_id is not None:
+            from security_lakehouse.connections import bind_connection_account
+
+            rows = bind_connection_account(connector_id, rows, expected_source_account_id)
+        if connection_id is not None:
+            rows = [
+                {**row, "attributes": {**(row.get("attributes") or {}), "connection_id": connection_id}} for row in rows
+            ]
         if effective_fixture:
             # Persist origin before hashing/materialization so snapshots and
             # portable exports retain it, including fixtures from saved config.
@@ -498,6 +510,13 @@ class ConnectorSyncError(RuntimeError):
 
 def _materialize_after_sync(lake: Path, raw_path: Path, *, connector_id: str) -> None:
     """Run scale-aware materialize after a connector sync."""
+    from security_lakehouse.connections import connection_input
+
+    with connection_input(lake, raw_path) as evaluation_input:
+        _materialize_input(lake, evaluation_input, connector_id=connector_id)
+
+
+def _materialize_input(lake: Path, raw_path: Path, *, connector_id: str) -> None:
     from security_lakehouse.lake_scale import LakeEvalError
 
     env = {} if in_server_mode() else runtime_env()

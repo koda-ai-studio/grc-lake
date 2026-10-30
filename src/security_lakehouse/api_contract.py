@@ -63,6 +63,13 @@ def scope_denied_detail(scope: str) -> str:
 
 def required_post_scope(path: str) -> str:
     """Return the RBAC scope required to mutate a v1 route (fail-closed default)."""
+    if path == "/api/v1/connections":
+        return "connector_manage"
+    from security_lakehouse.connection_api import connection_action
+
+    action = connection_action(path)
+    if action and action[1] != "runs":
+        return "connector_manage"
     if path == "/api/v1/snapshots":
         return "snapshot"
     # Trust shares hand a reviewer a signed view of posture, so they carry the

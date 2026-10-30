@@ -160,7 +160,7 @@ def eval_schedule_status(lake_dir: str | Path, *, now: datetime | None = None) -
 def _scheduled_from_connectors(lake_dir: str | Path) -> list[ScheduledConnector]:
     out: list[ScheduledConnector] = []
     for connector in build_catalog_view(lake_dir):
-        if connector.get("state") != "enabled":
+        if connector.get("state") != "enabled" or connector.get("connection_id"):
             continue
         options = connector.get("configured_options") or {}
         schedule = str(options.get("sync_schedule") or options.get("schedule") or "")
@@ -596,6 +596,9 @@ def _tick_locked(
             fired_at=moment,
             result=str(results[-1]["result"]),
         )
+    from security_lakehouse.connections import tick_connections
+
+    results.extend(tick_connections(lake_dir, moment))
     lake_eval = _scheduled_lake_eval(lake_dir)
     if lake_eval is not None:
         last_fired = state.get(_state_key("lake_eval", "default"))

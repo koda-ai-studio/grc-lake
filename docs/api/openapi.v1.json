@@ -4027,6 +4027,194 @@
         "tags": ["ccf"]
       }
     },
+    "/api/v1/connections": {
+      "get": {
+        "description": "Requires scope: read, connector_manage.",
+        "operationId": "get_connections",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V1Envelope"
+                }
+              }
+            },
+            "description": "v1 envelope"
+          }
+        },
+        "summary": "List connections",
+        "tags": ["connections"]
+      },
+      "post": {
+        "description": "Requires scope: read, connector_manage.",
+        "operationId": "post_connections",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V1Envelope"
+                }
+              }
+            },
+            "description": "v1 envelope"
+          }
+        },
+        "summary": "Post connections",
+        "tags": ["connections"]
+      }
+    },
+    "/api/v1/connections/{connection_id}/configure": {
+      "post": {
+        "description": "Requires scope: connector_manage.",
+        "operationId": "post_connection_configure",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "connection_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V1Envelope"
+                }
+              }
+            },
+            "description": "v1 envelope"
+          }
+        },
+        "summary": "Post connection.configure",
+        "tags": ["connection"]
+      }
+    },
+    "/api/v1/connections/{connection_id}/discover": {
+      "post": {
+        "description": "Requires scope: connector_manage.",
+        "operationId": "post_connection_discover",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "connection_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V1Envelope"
+                }
+              }
+            },
+            "description": "v1 envelope"
+          }
+        },
+        "summary": "Post connection.discover",
+        "tags": ["connection"]
+      }
+    },
+    "/api/v1/connections/{connection_id}/probe": {
+      "post": {
+        "description": "Requires scope: connector_manage.",
+        "operationId": "post_connection_probe",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "connection_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V1Envelope"
+                }
+              }
+            },
+            "description": "v1 envelope"
+          }
+        },
+        "summary": "Post connection.probe",
+        "tags": ["connection"]
+      }
+    },
+    "/api/v1/connections/{connection_id}/runs": {
+      "get": {
+        "description": "Requires scope: read.",
+        "operationId": "get_connection_runs",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "connection_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V1Envelope"
+                }
+              }
+            },
+            "description": "v1 envelope"
+          }
+        },
+        "summary": "List connection.runs",
+        "tags": ["connection"]
+      }
+    },
+    "/api/v1/connections/{connection_id}/sync": {
+      "post": {
+        "description": "Requires scope: connector_manage.",
+        "operationId": "post_connection_sync",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "connection_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V1Envelope"
+                }
+              }
+            },
+            "description": "v1 envelope"
+          }
+        },
+        "summary": "Post connection.sync",
+        "tags": ["connection"]
+      }
+    },
     "/api/v1/connector-runs": {
       "get": {
         "operationId": "get_connector_runs",

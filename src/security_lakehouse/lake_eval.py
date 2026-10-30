@@ -63,8 +63,11 @@ def _evaluation_input(lake: Path, raw_path: Path) -> Iterator[Path]:
     from security_lakehouse.verification import verify_lake_integrity
 
     with publication_lock(lake):
-        if raw_path.exists():
-            yield raw_path
+        if raw_path.exists() or (lake / "connections").exists():
+            from security_lakehouse.connections import connection_input
+
+            with connection_input(lake, raw_path) as combined:
+                yield combined
             return
         generation = active_generation(lake)
         if generation is None:
@@ -107,6 +110,11 @@ def run_lake_eval(
             raise LakeEvalError(str(strategy["recommendation"]))
         local_result = "error"
         with _evaluation_input(lake, raw_path) as evaluation_input:
+            strategy = resolve_materialize_strategy(lake, evaluation_input, env=runtime)
+            mode = str(strategy["mode"])
+            export_result = "not_run" if mode == "warehouse" else "not_configured"
+            if mode == "warehouse_required":
+                raise LakeEvalError(str(strategy["recommendation"]))
             pipeline = normalize_raw_events(
                 evaluation_input,
                 lake,

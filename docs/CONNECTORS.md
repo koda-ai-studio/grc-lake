@@ -1606,3 +1606,43 @@ The mapping stays proposed until human review; these fixture tests add no live
 qualification receipt. HR personnel records continue through the existing
 [training population correlation](#training-completion-lms-exports-preview) when completion evidence
 is available; personnel inventory alone cannot establish completed training.
+
+## Named account connections
+
+Use **Add account connection** in the connection hub to keep any number of source
+accounts connected simultaneously. Give each connection a stable ID, a display name,
+a connector type and its exact source account ID. Open the resulting card to save
+credentials through secret references, test access, enable collection and set its
+schedule. AWS account IDs, Azure subscription IDs and GCP project IDs are supported;
+other adapters must emit their actual source account in the raw `tenant_id` field.
+A connection rejects evidence for another account before publishing or advancing a
+cursor. Changing the bound account requires a new connection.
+
+Each connection has independent configuration, probe history, runs, cursors and
+raw snapshots under the tenant lake's `connections/<connection_id>/` directory.
+Refreshing one snapshot preserves every other connection. Lake evaluation combines
+the committed inputs and records unavailable connections as collection gaps. A
+successful collection is separate from a successful assessment and from framework
+attestation. Existing default connector routes and configuration remain available.
+When a named connection owns the same adapter and source account as default input,
+the named input takes precedence in combined evaluation; the default raw history is
+retained. Create the named connection and configure its access before enabling its
+schedule. Credentials and successful probes are never copied between connections.
+
+```bash
+grc-lake connections create --lake ./lake --connection-id aws-production \
+  --connector-id aws-posture --source-account-id 000000000000 --name Production
+grc-lake connections list --lake ./lake
+# Existing configure/probe/discover/sync commands accept --connection-id.
+grc-lake connectors sync --lake ./lake --connector-id aws-posture \
+  --connection-id aws-production --no-materialize
+grc-lake pipeline eval --lake ./lake
+```
+
+HTTP clients use `POST /api/v1/connections`, `GET /api/v1/connections`, and
+`/api/v1/connections/{connection_id}/{configure,probe,discover,sync,runs}`.
+Mutations require `connector_manage`. MCP exposes `create_connection` and
+`list_connections`; the existing connector tools accept `connection_id`.
+Account names and source IDs are operator data and should not be included in public
+qualification receipts. This connection registry does not discover organization
+membership or establish that every account in an organization has been collected.
