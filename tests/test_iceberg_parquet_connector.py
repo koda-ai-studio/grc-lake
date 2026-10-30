@@ -432,3 +432,31 @@ def test_fixture_sync_through_the_runner_uses_security_lake_defaults(tmp_path: P
         "ocsf.compliance_finding",
     }
     assert result.watermark_cursor == "2026-09-21T14:07:00Z"
+
+
+@pytest.mark.parametrize("row_limit,truncated", [(2, True), (3, False)])
+def test_real_iceberg_read_marks_only_overflow_as_partial(sql_catalog, row_limit, truncated):
+    events = ice.collect_iceberg_evidence(_reader(sql_catalog), [_api_spec()], max_rows=row_limit)
+    evidence = [row for row in events if not row["attributes"].get("collection_gap")]
+    gaps = [row for row in events if row["attributes"].get("collection_gap")]
+    assert len(evidence) == row_limit
+    assert bool(gaps) is truncated
+    assert all(row["status"] == "observed" for row in evidence)
+    if truncated:
+        assert gaps[0]["attributes"]["reason"] == "row_limit_exceeded"
+
+
+def test_real_parquet_read_reports_overflow(tmp_path):
+    import pyarrow.parquet as pq
+
+    path = tmp_path / "events.parquet"
+    pq.write_table(pa.Table.from_pylist(ROWS, schema=SCHEMA), path)
+    reader = ice.ParquetDatasetReader(
+        {"sec.cloud_trail_mgmt": str(path)},
+        initial_window_days=0,
+        env={LOCAL_ROOT_ENV: str(tmp_path)},
+    )
+    events = ice.collect_iceberg_evidence(reader, [_api_spec()], max_rows=2)
+    [gap] = [row for row in events if row["attributes"].get("collection_gap")]
+    assert gap["attributes"]["reason"] == "row_limit_exceeded"
+    assert len(events) == 3

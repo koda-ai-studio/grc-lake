@@ -177,3 +177,39 @@ def test_presets_command_lists_the_ocsf_presets(capsys: pytest.CaptureFixture[st
     names = {row["preset"] for row in report["presets"]}
     assert {"ocsf/authentication", "ocsf/security_finding"} <= names
     assert all("OCSF 1." in row["description"] for row in report["presets"])
+
+
+def test_connector_preview_exits_partial_when_read_budget_hides_rows(tmp_path, capsys):
+    lake = tmp_path / "lake"
+    fixtures = tmp_path / "fixtures"
+    fixtures.mkdir()
+    original = json.loads((OCSF / "cloud_trail_mgmt_2_0.json").read_text())[-1]
+    rows = [dict(original, metadata={"uid": f"event-{i}"}) for i in range(21)]
+    (fixtures / "events.json").write_text(json.dumps(rows))
+    append_config_event(
+        lake,
+        connector_id="clickhouse-telemetry-lake",
+        state="enabled",
+        actor="test",
+        options={"mapping": {"preset": "ocsf/api_activity", "source": {"table": "events"}}},
+    )
+    code, report = _run(
+        capsys,
+        "lake",
+        "map",
+        "--lake",
+        str(lake),
+        "--connector-id",
+        "clickhouse-telemetry-lake",
+        "--fixture-dir",
+        str(fixtures),
+        "--limit",
+        "1",
+        "--dry-run",
+    )
+    assert code == 2
+    assert report["partial"] is True
+    assert report["mappings"][0]["truncated"] is True
+    assert report["mapped_count"] == 20
+    assert report["errors"] == []
+    assert not (lake / CONNECTOR_RAW_FILE).exists()

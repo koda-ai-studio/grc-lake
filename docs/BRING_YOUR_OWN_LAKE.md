@@ -48,7 +48,10 @@ grc-lake lake map --dry-run \
 
 The report shows the compiled SQL and its parameters, how many rows were read,
 mapped, and filtered out, per-row errors, and the first `--limit` mapped events.
-Exit codes: `0` clean, `1` invalid spec, `2` some rows could not be mapped.
+Exit codes: `0` clean, `1` invalid spec, `2` partial (mapping errors or a connector
+preview that exceeded its read budget). Connector previews report `partial` plus
+per-mapping `truncated` and `row_limit`; `rows_read` includes the overflow probe.
+A clean sample is not proof of full historical coverage.
 `--input` accepts a `.json` list, `.jsonl`, or `.parquet` (needs the `parquet`
 extra). `lake map` only previews in this version and always needs `--dry-run`.
 
@@ -251,7 +254,7 @@ SELECT <every top-level column the mapping reads>
 FROM <table>
 WHERE <filters> AND <observed_at column> >= <watermark bound>
 ORDER BY <observed_at column>
-LIMIT <max_rows_per_sync>
+LIMIT <max_rows_per_sync + 1>
 ```
 
 - Only validated identifiers reach the SQL text. Snowflake and ClickHouse use
@@ -282,8 +285,24 @@ bound.
 - A **full re-read** mapping (`incremental: false`) syncs in snapshot mode: each
   sync replaces that connector's previous rows. All mappings on one connector
   must use the same mode.
-- Each sync reads at most `options.max_rows_per_sync` rows per mapping (default
-  50,000, oldest first). A large backfill therefore advances over several syncs.
+- Each sync maps at most `options.max_rows_per_sync` rows per mapping (default
+  50,000, oldest first). Readers request one additional row to detect overflow;
+  that probe row is not published as evidence. Exactly reaching the limit is
+  complete only when the probe finds no additional row. Iceberg and Parquet
+  still materialize their filtered Arrow table before ordering and slicing;
+  this evidence-row bound is not a memory or scanned-byte limit.
+- Overflow records a `row_limit_exceeded` collection gap, marks the run partial,
+  and holds the previous watermark across **all** mappings. Passes from the
+  incomplete mapping become `not_evaluated`; known failures remain open and
+  observations retain their meaning. This also applies to full re-read mappings.
+  Equal timestamps and the lookback overlap cannot silently turn a capped batch
+  into complete coverage or skip a slower table through a shared watermark.
+- An over-budget read does **not** automatically backfill across successive
+  syncs. Increase the limit within the [evaluation budget](AUDIT_SCALE.md), or
+  partition source tables/mappings into explicit bounded scopes and replay the
+  affected window. Do not narrow a scope and claim that it covers the original
+  population. Keep historical gap receipts; a subsequent complete run must be
+  checked separately for recovery.
 - `iceberg-parquet-lake` reads only the last `options.initial_window_days` days
   (default 30) on the first incremental sync, instead of the full history. Set it
   to `0` to read everything.
@@ -295,7 +314,7 @@ bound.
   `not_evaluated` collection-gap row and mark the run partial. Positive outcomes
   from that mapping are held at `not_evaluated`, with the original outcome in
   `attributes.mapping_original_status`; known failures remain open. The gap has
-  no safeguard binding and does not advance the watermark beyond valid rows.
+  no safeguard binding and holds the previous watermark.
   `lake map --dry-run` lists the errors. Repair the mapping and replay the affected
   window: errors older than the shared lookback are not automatically retried.
   Incremental history retains the gap receipt; it is not evidence of recovery.

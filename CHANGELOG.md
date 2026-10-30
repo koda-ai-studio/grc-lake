@@ -5,6 +5,8 @@ Python package, Helm chart, and bundled web console.
 
 ## Unreleased
 
+- Detect overflow in mapped security/data-lake reads with one lookahead row. Mark capped reads partial, withhold sampled passes, preserve the previous cursor, and expose truncation in mapping previews.
+
 - Add named source-account connections with independent access, sync history, cursors and snapshots across the console, API, CLI and MCP. Combined evaluation preserves other accounts and records unavailable accounts as evidence gaps.
 
 ## 0.3.20 - 2026-10-28
