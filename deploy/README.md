@@ -158,7 +158,7 @@ production API/scheduler contract.
 
 ## Infrastructure not supplied here
 
-- ECR repo + image push pipeline (use `ghcr.io/msaad00/grc-lake` from a public release for now).
+- ECR repo + image push pipeline (use `ghcr.io/koda-ai-studio/grc-lake` from a public release for now).
 - Cross-account bucket policies or additional role-assumption permissions.
 - GKE / AKS reference IaC — same chart works; pull-requests welcome.
 

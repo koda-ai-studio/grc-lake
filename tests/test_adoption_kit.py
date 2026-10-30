@@ -28,6 +28,14 @@ def _command(service: dict[str, Any]) -> str:
 # --- compose quickstart -------------------------------------------------------
 
 
+@pytest.mark.parametrize("doc", ["docs/SHAREABLE_POC_HOSTING.md", "deploy/README.md"])
+def test_current_hosting_guides_use_the_chart_image_repository(doc: str) -> None:
+    chart = yaml.safe_load((ROOT / "deploy/helm/grc-lake/values.yaml").read_text())
+    references = re.findall(r"ghcr\.io/[\w-]+/grc-lake\b", (ROOT / doc).read_text())
+    assert references, f"{doc} must identify the published image"
+    assert set(references) == {chart["image"]["repository"]}, (doc, references)
+
+
 def test_tutorial_installs_the_same_published_release_for_pip_and_compose():
     tutorial = (ROOT / "docs/TUTORIAL_5_MIN.md").read_text()
     readme = (ROOT / "README.md").read_text()

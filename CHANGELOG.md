@@ -5,6 +5,16 @@ Python package, Helm chart, and bundled web console.
 
 ## Unreleased
 
+- Separate the investigation graph's assurance hierarchy from recorded source → evidence → asset lineage. Route control bindings through lane gaps, preserve selected-link context, and show recorded evidence lifecycle timestamps, exact identifiers, and incoming/outgoing relationships. Direct-relationship focus reports shown-versus-loaded counts and restores the full neighborhood.
+
+- Fit the complete investigation neighborhood on entry and through the existing canvas Fit View control. Zoom In restores readable labels, with responsive inspector space and desktop/mobile light/dark regression coverage; no extra fit/readability buttons are needed.
+
+- Record all supported graph depths and refresh variants in the static demo. Search and page recorded starting points without replacing the current graph; layer filters preserve loaded scope, show visible counts, and restore hidden nodes and links. Failed navigation can reset to recorded defaults. Other unrecorded views remain explicitly unavailable.
+
+- Correct the active shareable-POC and deployment guides to use the published `ghcr.io/koda-ai-studio/grc-lake` image repository.
+
+- Isolate connector event identities, incremental cursors, freshness, health and scheduler attempts by source-account scope. Fence publication against changed configuration, reject incomplete event batches, and retain unavailable accounts as assessment gaps rather than passing evidence.
+
 - Require joserfc 1.7.6 or newer for server authentication and update the lockfile to reject oversized compact tokens before copying their segments.
 
 - Update the pinned Wolfi pip wheel to 26.2.2-r1, which includes the vendor's MessagePack security fix.
