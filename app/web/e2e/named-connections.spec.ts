@@ -59,6 +59,10 @@ for (const width of [1280, 390]) {
       .click();
     await expect.poll(() => created.connection_id).toBe("account-d");
     expect(created.source_account_id).toBe("d");
+    await expect(
+      page.getByRole("button", { name: "Add account connection", exact: true }),
+    ).toBeVisible();
+    await page.unrouteAll({ behavior: "wait" });
     expect(
       await page.evaluate(
         () => document.documentElement.scrollWidth <= window.innerWidth,

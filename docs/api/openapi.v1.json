@@ -6675,6 +6675,202 @@
         "tags": ["platform"]
       }
     },
+    "/api/v1/organizations": {
+      "get": {
+        "description": "Requires scope: read, connector_manage.",
+        "operationId": "get_organizations",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V1Envelope"
+                }
+              }
+            },
+            "description": "v1 envelope"
+          }
+        },
+        "summary": "List organizations",
+        "tags": ["organizations"]
+      },
+      "post": {
+        "description": "Requires scope: read, connector_manage.",
+        "operationId": "post_organizations",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V1Envelope"
+                }
+              }
+            },
+            "description": "v1 envelope"
+          }
+        },
+        "summary": "Post organizations",
+        "tags": ["organizations"]
+      }
+    },
+    "/api/v1/organizations/{organization_id}/discover": {
+      "post": {
+        "description": "Requires scope: connector_manage.",
+        "operationId": "post_organization_discover",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organization_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V1Envelope"
+                }
+              }
+            },
+            "description": "v1 envelope"
+          }
+        },
+        "summary": "Post organization.discover",
+        "tags": ["organization"]
+      }
+    },
+    "/api/v1/organizations/{organization_id}/evaluate": {
+      "post": {
+        "description": "Requires scope: connector_manage.",
+        "operationId": "post_organization_evaluate",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organization_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V1Envelope"
+                }
+              }
+            },
+            "description": "v1 envelope"
+          }
+        },
+        "summary": "Post organization.evaluate",
+        "tags": ["organization"]
+      }
+    },
+    "/api/v1/organizations/{organization_id}/evaluations/{evaluation_id}/assessment": {
+      "get": {
+        "description": "Requires scope: read.",
+        "operationId": "get_organization_assessment",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organization_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "evaluation_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V1Envelope"
+                }
+              }
+            },
+            "description": "v1 envelope"
+          }
+        },
+        "summary": "Get organization.assessment",
+        "tags": ["organization"]
+      }
+    },
+    "/api/v1/organizations/{organization_id}/ingest": {
+      "post": {
+        "description": "Requires scope: connector_manage.",
+        "operationId": "post_organization_ingest",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organization_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V1Envelope"
+                }
+              }
+            },
+            "description": "v1 envelope"
+          }
+        },
+        "summary": "Post organization.ingest",
+        "tags": ["organization"]
+      }
+    },
+    "/api/v1/organizations/{organization_id}/runs": {
+      "get": {
+        "description": "Requires scope: read.",
+        "operationId": "get_organization_runs",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organization_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V1Envelope"
+                }
+              }
+            },
+            "description": "v1 envelope"
+          }
+        },
+        "summary": "List organization.runs",
+        "tags": ["organization"]
+      }
+    },
     "/api/v1/oscal/assessment-results": {
       "get": {
         "operationId": "get_oscal_assessment_results",

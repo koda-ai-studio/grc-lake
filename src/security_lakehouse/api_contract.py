@@ -64,6 +64,8 @@ def scope_denied_detail(scope: str) -> str:
 
 def required_post_scope(path: str) -> str:
     """Return the RBAC scope required to mutate a v1 route (fail-closed default)."""
+    if path == "/api/v1/organizations" or re.fullmatch(r"/api/v1/organizations/[^/]+/(ingest|evaluate|discover)", path):
+        return "connector_manage"
     if path == "/api/v1/connections":
         return "connector_manage"
     if re.fullmatch(r"/api/v1/connections/[^/]+/(configure|probe|discover|sync)", path):

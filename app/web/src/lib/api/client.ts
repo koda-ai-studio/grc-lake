@@ -2,6 +2,8 @@ import { consolePath } from "@/lib/base-path";
 import { isAuditorMode } from "@/lib/state/auditor";
 import { readAllGraphPages, type GraphPage } from "./graph-pages";
 import type {
+  OrganizationScope,
+  OrganizationRun,
   InvestigationGraph,
   RequirementGapPage,
   BillingStatus,
@@ -156,6 +158,9 @@ async function post<T>(path: string, body: unknown): Promise<T> {
     path === "/v1/ingestion/eval" ||
     path === "/v1/scheduler/tick" ||
     path === "/v1/snapshots" ||
+    /^\/v1\/organizations\/[A-Za-z0-9_-]+\/(?:ingest|evaluate|discover)$/.test(
+      path,
+    ) ||
     /^\/v1\/(?:connectors|connections)\/[A-Za-z0-9_-]+\/sync$/.test(path);
   const res = await fetch(`${BASE}${path}`, {
     method: "POST",
@@ -558,6 +563,38 @@ export const api = {
       `/v1/evidence/${encodeURIComponent(eventId)}/verify`,
       {},
     ).then((b) => b.data),
+  organizations: () =>
+    getAllV1<OrganizationScope>("/v1/organizations").then((r) => r.items),
+  saveOrganization: (payload: {
+    organization_id: string;
+    name: string;
+    connection_ids: string[];
+    expected_revision: number;
+  }) =>
+    post<{ data: OrganizationScope }>("/v1/organizations", payload).then(
+      (r) => r.data,
+    ),
+  runOrganization: (
+    id: string,
+    action: "ingest" | "evaluate" | "discover",
+    revision: number,
+    connectionId?: string,
+  ) =>
+    post<{ data: OrganizationRun }>(
+      `/v1/organizations/${encodeURIComponent(id)}/${action}`,
+      {
+        expected_revision: revision,
+        ...(action === "discover" ? { connection_id: connectionId } : {}),
+      },
+    ).then((r) => r.data),
+  organizationRuns: (id: string) =>
+    getAllV1<OrganizationRun>(
+      `/v1/organizations/${encodeURIComponent(id)}/runs`,
+    ).then((r) => r.items),
+  organizationAssessment: (id: string, evaluationId: string) =>
+    get<{ data: CcfAssessment }>(
+      `/v1/organizations/${encodeURIComponent(id)}/evaluations/${encodeURIComponent(evaluationId)}/assessment`,
+    ).then((r) => r.data),
   createConnection: (payload: {
     connection_id: string;
     connector_id: string;

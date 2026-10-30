@@ -1646,3 +1646,6 @@ Mutations require `connector_manage`. MCP exposes `create_connection` and
 Account names and source IDs are operator data and should not be included in public
 qualification receipts. This connection registry does not discover organization
 membership or establish that every account in an organization has been collected.
+
+For explicit multi-account collection and separate assessments, see
+[Organization account scopes](ORGANIZATION_SCOPES.md).

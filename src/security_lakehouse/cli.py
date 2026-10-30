@@ -110,6 +110,21 @@ def _parser() -> argparse.ArgumentParser:
     )
     publish_iceberg.set_defaults(func=_publish_iceberg)
 
+    organizations = sub.add_parser("organizations", help="organization account scopes")
+    organization_commands = organizations.add_subparsers(dest="organization_command", required=True)
+    for action in ("save", "list", "ingest", "evaluate", "discover", "runs"):
+        command = organization_commands.add_parser(action)
+        command.add_argument("--lake", required=True)
+        if action != "list":
+            command.add_argument("--organization-id", required=True)
+        if action == "save":
+            command.add_argument("--name", required=True)
+            command.add_argument("--connection-id", dest="connection_ids", action="append", required=True)
+            command.add_argument("--expected-revision", type=int, default=0)
+        if action == "discover":
+            command.add_argument("--connection-id", required=True)
+        command.set_defaults(func=_organizations_command)
+
     connections = sub.add_parser("connections", help="persistent source-account connections")
     connection_commands = connections.add_subparsers(dest="connection_command", required=True)
     for action in ("create", "list"):
@@ -3049,6 +3064,39 @@ def _connections_command(args: argparse.Namespace) -> int:
         result = {"connections": list_connections(args.lake)}
     print(json.dumps(result, indent=2, sort_keys=True))
     return 0
+
+
+def _organizations_command(args: argparse.Namespace) -> int:
+    from security_lakehouse import organization_scopes as scopes
+    from security_lakehouse.organization_discovery import discover_organization
+
+    result: Any
+    action = args.organization_command
+    if action == "list":
+        result = scopes.list_organizations(args.lake)
+    elif action == "save":
+        result = scopes.save_organization(
+            args.lake,
+            organization_id=args.organization_id,
+            name=args.name,
+            connection_ids=args.connection_ids,
+            expected_revision=args.expected_revision,
+            actor="cli",
+        )
+    elif action == "discover":
+        result = discover_organization(args.lake, args.organization_id, args.connection_id, actor="cli")
+    elif action == "runs":
+        result = scopes.organization_runs(args.lake, args.organization_id)
+    else:
+        function = scopes.ingest_organization if action == "ingest" else scopes.evaluate_organization
+        result = function(args.lake, args.organization_id, actor="cli")
+    print(json.dumps(result, indent=2, sort_keys=True))
+    return (
+        1
+        if isinstance(result, dict)
+        and (result.get("result") in {"error", "partial"} or result.get("complete") is False)
+        else 0
+    )
 
 
 if __name__ == "__main__":

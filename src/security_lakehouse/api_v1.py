@@ -797,6 +797,30 @@ def resource_catalog() -> list[JsonObject]:
     """Self-describing list of v1 resources, for headless/agent discovery."""
     catalog: list[JsonObject] = [
         _resource(
+            "organizations",
+            "/api/v1/organizations",
+            kind="collection",
+            methods=("GET", "POST"),
+            scopes=("read", "connector_manage"),
+        ),
+        *[
+            _resource(
+                f"organization.{action}",
+                f"/api/v1/organizations/{{organization_id}}/{action}",
+                kind="collection" if action == "runs" else "action",
+                methods=("GET",) if action == "runs" else ("POST",),
+                scopes=("read",) if action == "runs" else ("connector_manage",),
+                path_params=["organization_id"],
+            )
+            for action in ("ingest", "evaluate", "discover", "runs")
+        ],
+        _resource(
+            "organization.assessment",
+            "/api/v1/organizations/{organization_id}/evaluations/{evaluation_id}/assessment",
+            kind="object",
+            path_params=["organization_id", "evaluation_id"],
+        ),
+        _resource(
             "connections",
             "/api/v1/connections",
             kind="collection",
@@ -1611,6 +1635,10 @@ def _handle_get(
         body = envelope("evidence.lineage", data)
         body["meta"].update({"count": count, "limit": limit, "offset": offset, "returned": len(data["links"])})
         return HTTPStatus.OK, body
+    if path == "/api/v1/organizations" or path.startswith("/api/v1/organizations/"):
+        from security_lakehouse.organization_api import organization_get
+
+        return organization_get(path, params, lake, handle_get=handle_get, collection_response=collection_response)
     if path == "/api/v1/connections" or path.startswith("/api/v1/connections/"):
         from security_lakehouse.connection_api import connection_get
 
@@ -2067,6 +2095,10 @@ def handle_post(
             raise ValueError("body must be a JSON object")
     except (ValueError, TypeError):
         return HTTPStatus.BAD_REQUEST, error_envelope("bad_request", "invalid JSON body")
+    if path == "/api/v1/organizations" or path.startswith("/api/v1/organizations/"):
+        from security_lakehouse.organization_api import organization_post
+
+        return organization_post(path, payload, lake)
     if path == "/api/v1/connections" or path.startswith("/api/v1/connections/"):
         from security_lakehouse.connection_api import connection_post
 

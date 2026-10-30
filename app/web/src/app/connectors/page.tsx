@@ -21,6 +21,7 @@ import { OnboardingGuideBanner } from "@/components/onboarding/OnboardingGuideBa
 import { connectorNotify } from "@/lib/connector-notify";
 import { CONNECT_FLOW, PREVIEW_COPY, ROUTE_LABELS } from "@/lib/console-copy";
 import { connectionReadiness } from "@/lib/connection-readiness";
+import { OrganizationScopes } from "@/components/connectors/OrganizationScopes";
 import { NamedConnectionCreate } from "@/components/connectors/NamedConnectionCreate";
 import { ConnectionProgressPanel } from "@/components/connectors/ConnectionProgressPanel";
 import { PreviewBadge } from "@/components/ui/preview-badge";
@@ -242,6 +243,7 @@ export default function ConnectorsPage() {
       {connectors.isSuccess && (
         <ConnectionProgressPanel connectors={data} onSelect={setSelected} />
       )}
+      <OrganizationScopes connectors={data} />
       <NamedConnectionCreate connectors={data} onToast={connectorNotify} />
       <EvidencePathPanel connectors={connectors.data ?? []} />
 
