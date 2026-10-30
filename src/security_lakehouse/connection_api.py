@@ -59,7 +59,9 @@ def connection_post(
             connection_id, operation = action
             child, info = connection_context(lake, connection_id)
             if operation == "sync":
-                if set(payload) - {"actor", "materialize"} or not isinstance(payload.get("materialize", True), bool):
+                if set(payload) - {"actor", "materialize", "idempotency_key"} or not isinstance(
+                    payload.get("materialize", True), bool
+                ):
                     raise ValueError("invalid sync payload")
                 result = sync_connection(
                     lake,

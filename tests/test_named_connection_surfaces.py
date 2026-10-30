@@ -111,3 +111,30 @@ def test_hosted_connections_keep_tenant_identity_and_secret_boundary(tmp_path):
             "/api/v1/connections/prod/sync", headers={"Authorization": f"Bearer {tokens[1]}"}, json={}
         )
         assert response.status_code == 404
+
+
+def test_background_named_sync_accepts_browser_idempotency_metadata(tmp_path, monkeypatch):
+    from fastapi.testclient import TestClient
+
+    from security_lakehouse.db.models import ApiKey
+    from test_named_connections import prepare
+    from test_operation_jobs import _authenticated
+
+    app, key_id, headers, _ = _authenticated(tmp_path)
+    with app.state.sessionmaker() as session:
+        tenant_id = session.get(ApiKey, key_id).tenant_id
+    prepare(tmp_path / "tenants" / tenant_id, "a", "a")
+    called = []
+    monkeypatch.setattr(
+        "security_lakehouse.connection_api.sync_connection", lambda *a, **kw: called.append(True) or {"result": "ok"}
+    )
+    client = TestClient(app)
+    response = client.post(
+        "/api/v1/connections/a/sync", headers={**headers, "Idempotency-Key": "named-sync"}, json={"materialize": False}
+    )
+    assert response.status_code == 202
+    job = response.json()["data"]
+    app.state.operation_worker.run_once()
+    result = client.get(job["status_url"], headers=headers).json()["data"]
+    assert result["status"] == "succeeded", result
+    assert called == [True]

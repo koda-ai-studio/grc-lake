@@ -66,6 +66,7 @@ def organization_post(path: str, payload: dict[str, Any], lake: Path) -> tuple[H
                 if operation == "discover"
                 else {"actor", "expected_revision"}
             )
+            allowed.add("idempotency_key")
             if set(payload) - allowed:
                 raise ValueError("invalid operation payload")
             actor = str(payload.get("actor") or "console")

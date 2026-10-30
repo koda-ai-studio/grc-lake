@@ -146,7 +146,11 @@ def test_hosted_organization_job_is_revision_bound_and_tenant_private(tmp_path):
     prepare(lake, "a", "a")
     scopes.save_organization(lake, organization_id="org", name="Org", connection_ids=["a"])
     client = TestClient(app)
-    response = client.post("/api/v1/organizations/org/evaluate", headers=headers, json={"expected_revision": 1})
+    response = client.post(
+        "/api/v1/organizations/org/evaluate",
+        headers={**headers, "Idempotency-Key": "revision-bound"},
+        json={"expected_revision": 1},
+    )
     assert response.status_code == 202, response.text
     job = response.json()["data"]
     assert client.get(job["status_url"], headers=other).status_code == 404
@@ -220,3 +224,29 @@ def test_scoped_evaluation_cannot_replace_ambient_tenant_warehouse(tmp_path, mon
     assert exported == []
     assert result["result"] == "error"
     assert result["evaluation"]["mode"] == "warehouse_required"
+
+
+def test_background_organization_evaluation_accepts_browser_idempotency_metadata(tmp_path):
+    from fastapi.testclient import TestClient
+
+    from security_lakehouse.db.models import ApiKey
+    from test_operation_jobs import _authenticated
+
+    app, key_id, headers, _ = _authenticated(tmp_path)
+    with app.state.sessionmaker() as session:
+        tenant_id = session.get(ApiKey, key_id).tenant_id
+    lake = tmp_path / "tenants" / tenant_id
+    prepare(lake, "a", "a")
+    scopes.save_organization(lake, organization_id="org", name="Org", connection_ids=["a"])
+    client = TestClient(app)
+    response = client.post(
+        "/api/v1/organizations/org/evaluate",
+        headers={**headers, "Idempotency-Key": "organization-evaluation"},
+        json={"expected_revision": 1},
+    )
+    assert response.status_code == 202
+    job = response.json()["data"]
+    app.state.operation_worker.run_once()
+    result = client.get(job["status_url"], headers=headers).json()["data"]
+    assert result["status"] == "succeeded", result
+    assert result["response"]["data"]["coverage"] == "partial"
