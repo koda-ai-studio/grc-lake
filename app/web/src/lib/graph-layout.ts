@@ -1,5 +1,54 @@
 import type { GraphEdge } from "@/lib/api/types";
 
+/** A shortest recorded connection; arrow direction stays on the original edges. */
+export function graphConnection(
+  edges: Pick<GraphEdge, "id" | "source" | "target">[],
+  visible: Set<string>,
+  from: string | null,
+  to: string | null,
+) {
+  const empty = { nodes: new Set<string>(), edges: new Set<string>() };
+  if (!from || !to) return { ...empty, status: "idle" as const };
+  if (!visible.has(from) || !visible.has(to))
+    return { ...empty, status: "hidden" as const };
+  if (from === to)
+    return { ...empty, nodes: new Set([from]), status: "same" as const };
+  const adjacent = new Map<string, { node: string; edge: string }[]>();
+  for (const edge of [...edges].sort((a, b) => a.id.localeCompare(b.id))) {
+    if (!visible.has(edge.source) || !visible.has(edge.target)) continue;
+    for (const [node, neighbor] of [
+      [edge.source, edge.target],
+      [edge.target, edge.source],
+    ]) {
+      if (!adjacent.has(node)) adjacent.set(node, []);
+      adjacent.get(node)!.push({ node: neighbor, edge: edge.id });
+    }
+  }
+  const visited = new Map<string, { node: string; edge: string } | null>([
+    [from, null],
+  ]);
+  const queue = [from];
+  for (let cursor = 0; cursor < queue.length && !visited.has(to); cursor++) {
+    const current = queue[cursor];
+    for (const next of adjacent.get(current) ?? []) {
+      if (visited.has(next.node)) continue;
+      visited.set(next.node, { node: current, edge: next.edge });
+      queue.push(next.node);
+    }
+  }
+  if (!visited.has(to)) return { ...empty, status: "disconnected" as const };
+  const nodes = new Set([to]);
+  const connections = new Set<string>();
+  let step = to;
+  while (step !== from) {
+    const previous = visited.get(step)!;
+    connections.add(previous!.edge);
+    step = previous!.node;
+    nodes.add(step);
+  }
+  return { nodes, edges: connections, status: "found" as const };
+}
+
 /**
  * Above this many nodes a laid-out graph stops being readable and dagre plus
  * the DOM cost freeze the page, so the canvas asks for a narrower slice.
