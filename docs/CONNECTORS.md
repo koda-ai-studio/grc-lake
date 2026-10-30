@@ -34,7 +34,10 @@ Headless setup (curl, CLI, MCP): [playbooks/HEADLESS_CONNECTOR_SETUP.md](playboo
 The hub's latest sync and freshness fields are scoped to the current saved
 connection configuration. Changing its account, organization, credentials, or
 collection scope requires a matching sync before those fields report fresh
-evidence. Runs keep the configuration fingerprint captured when collection
+evidence. Returning to a previous account also requires a new sync after that
+scope change; an older success from that account remains historical. Resaving
+the same access scope or changing only its schedule retains its sync freshness.
+Runs keep the configuration fingerprint captured when collection
 started, including failures and runs that finish after a configuration change.
 Before publication, a sync rechecks the saved configuration revision under the
 configuration write lock. A changed or disabled configuration rejects the old

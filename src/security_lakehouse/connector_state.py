@@ -1039,10 +1039,13 @@ def _history(lake_dir: str | Path) -> _History:
     configs: dict[str, dict[str, Any]] = {}
     latest: dict[tuple[str, str | None], dict[str, Any]] = {}
     successful: dict[tuple[str, str], dict[str, Any]] = {}
-    for row in _read_jsonl(_gold(lake) / CONFIG_FILE):
+    scope_started: dict[str, str] = {}
+    for row in sorted(_read_jsonl(_gold(lake) / CONFIG_FILE), key=_run_order):
         connector = str(row.get("connector_id") or "")
         previous = configs.get(connector)
         if previous is None or _run_order(row) > _run_order(previous):
+            if previous is None or row.get("credential_fingerprint") != previous.get("credential_fingerprint"):
+                scope_started[connector] = _run_order(row)
             configs[connector] = row
     current_sync: dict[str, dict[str, Any]] = {}
     current_successful_sync: dict[str, dict[str, Any]] = {}
@@ -1060,7 +1063,10 @@ def _history(lake_dir: str | Path) -> _History:
             if previous is None or _run_order(row) > _run_order(previous):
                 successful[success_key] = row
         scope_fingerprint = configs.get(connector, {}).get("credential_fingerprint")
-        if kind == "sync" and (not scope_fingerprint or row.get("access_fingerprint") == scope_fingerprint):
+        current_scope = not scope_fingerprint or (
+            row.get("access_fingerprint") == scope_fingerprint and _run_order(row) >= scope_started[connector]
+        )
+        if kind == "sync" and current_scope:
             previous = current_sync.get(connector)
             if previous is None or _run_order(row) > _run_order(previous):
                 current_sync[connector] = row
