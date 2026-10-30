@@ -192,6 +192,7 @@ def _server_api_request(
     token = _api_key()
     deferred = method.upper() == "POST" and (
         path in {"/api/v1/ingestion/eval", "/api/v1/scheduler/tick", "/api/v1/snapshots"}
+        or re.fullmatch(r"/api/v1/organizations/[A-Za-z0-9_-]+/(ingest|evaluate|discover)", path) is not None
         or re.fullmatch(r"/api/v1/(?:connectors|connections)/[A-Za-z0-9_-]+/sync", path) is not None
     )
     request = urllib.request.Request(
@@ -515,6 +516,8 @@ def build_server(lake_dir: Path | None = None) -> FastMCP:
         "attach_tag": (False, True, False),
         "capture_insights_point": (False, False, False),
         "configure_connector": (True, True, False),
+        "save_organization": (False, False, False),
+        "run_organization": (False, False, True),
         "create_connection": (False, False, False),
         "create_access_review": (False, False, False),
         "create_agent_run": (False, False, True),
@@ -954,6 +957,47 @@ def build_server(lake_dir: Path | None = None) -> FastMCP:
     def list_operations(limit: int = 25, offset: int = 0) -> list[JsonObject]:
         """List a bounded page of remote queued, running and completed operations."""
         return _server_api_request("GET", "/api/v1/operations", limit=limit, offset=offset)["data"]
+
+    @trustops_tool(title="List Organizations")
+    def list_organizations(limit: int = 100, offset: int = 0) -> list[JsonObject]:
+        """List versioned account selections in the authenticated tenant."""
+        return _get("/api/v1/organizations", lake, limit=str(limit), offset=str(offset))
+
+    @trustops_tool(title="Save Organization")
+    def save_organization(
+        organization_id: str, name: str, connection_ids: list[str], expected_revision: int = 0
+    ) -> JsonObject:
+        """Save an explicit account selection; updates require the current revision."""
+        return _post(
+            "/api/v1/organizations",
+            lake,
+            {
+                "organization_id": organization_id,
+                "name": name,
+                "connection_ids": connection_ids,
+                "expected_revision": expected_revision,
+            },
+        )
+
+    @trustops_tool(title="Run Organization")
+    def run_organization(
+        organization_id: str, action: str, expected_revision: int, connection_id: str | None = None
+    ) -> JsonObject:
+        """Ingest selected connections, evaluate pinned inputs, or discover AWS accounts without granting access."""
+        if action not in {"ingest", "evaluate", "discover"}:
+            raise ValueError("action must be ingest, evaluate or discover")
+        payload = {
+            "expected_revision": expected_revision,
+            **({"connection_id": connection_id} if action == "discover" else {}),
+        }
+        return _post(f"/api/v1/organizations/{urllib.parse.quote(organization_id, safe='')}/{action}", lake, payload)
+
+    @trustops_tool(title="Organization Results")
+    def organization_results(organization_id: str, evaluation_id: str | None = None) -> Any:
+        """Read organization run history or one immutable evaluation's CCF summary."""
+        path = f"/api/v1/organizations/{urllib.parse.quote(organization_id, safe='')}"
+        suffix = f"/evaluations/{urllib.parse.quote(evaluation_id, safe='')}/assessment" if evaluation_id else "/runs"
+        return _get(path + suffix, lake)
 
     @trustops_tool(title="Create Connection")
     def create_connection(connection_id: str, connector_id: str, source_account_id: str, name: str) -> JsonObject:

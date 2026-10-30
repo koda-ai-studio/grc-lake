@@ -2311,3 +2311,28 @@ export interface EvidenceLineageEnvelope {
   };
   meta: { count: number; returned: number };
 }
+
+export interface OrganizationScope {
+  organization_id: string;
+  name: string;
+  revision: number;
+  connection_ids: string[];
+}
+export interface OrganizationRun {
+  kind: "ingest" | "evaluate" | "discover";
+  result?: string;
+  coverage?: string;
+  evaluation_id?: string;
+  scope: OrganizationScope;
+  complete?: boolean;
+  error?: string;
+  occurred_at: string;
+  unavailable_connections?: string[];
+  accounts?: {
+    source_account_id: string;
+    name: string;
+    state: string;
+    access: string;
+  }[];
+  connections?: { connection_id: string; result: string; available: boolean }[];
+}

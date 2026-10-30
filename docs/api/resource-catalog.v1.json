@@ -612,6 +612,53 @@
       "resource": "mappings.equivalence"
     },
     {
+      "kind": "collection",
+      "methods": ["GET", "POST"],
+      "path": "/api/v1/organizations",
+      "resource": "organizations",
+      "scopes": ["read", "connector_manage"]
+    },
+    {
+      "kind": "action",
+      "methods": ["POST"],
+      "path": "/api/v1/organizations/{organization_id}/discover",
+      "path_params": ["organization_id"],
+      "resource": "organization.discover",
+      "scopes": ["connector_manage"]
+    },
+    {
+      "kind": "action",
+      "methods": ["POST"],
+      "path": "/api/v1/organizations/{organization_id}/evaluate",
+      "path_params": ["organization_id"],
+      "resource": "organization.evaluate",
+      "scopes": ["connector_manage"]
+    },
+    {
+      "kind": "object",
+      "methods": ["GET"],
+      "path": "/api/v1/organizations/{organization_id}/evaluations/{evaluation_id}/assessment",
+      "path_params": ["organization_id", "evaluation_id"],
+      "resource": "organization.assessment",
+      "scopes": ["read"]
+    },
+    {
+      "kind": "action",
+      "methods": ["POST"],
+      "path": "/api/v1/organizations/{organization_id}/ingest",
+      "path_params": ["organization_id"],
+      "resource": "organization.ingest",
+      "scopes": ["connector_manage"]
+    },
+    {
+      "kind": "collection",
+      "methods": ["GET"],
+      "path": "/api/v1/organizations/{organization_id}/runs",
+      "path_params": ["organization_id"],
+      "resource": "organization.runs",
+      "scopes": ["read"]
+    },
+    {
       "kind": "singleton",
       "methods": ["GET"],
       "path": "/api/v1/oscal/assessment-results",

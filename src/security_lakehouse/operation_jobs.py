@@ -66,12 +66,17 @@ def _write_with_retry(factory: sessionmaker, write: Callable[[Session], object],
 
 
 def supported(path: str) -> bool:
-    return path in {
-        "/api/v1/repositories/public-audit",
-        "/api/v1/ingestion/eval",
-        "/api/v1/scheduler/tick",
-        "/api/v1/snapshots",
-    } or bool(re.fullmatch(r"/api/v1/(?:connectors|connections)/[A-Za-z0-9_-]+/sync", path))
+    return (
+        path
+        in {
+            "/api/v1/repositories/public-audit",
+            "/api/v1/ingestion/eval",
+            "/api/v1/scheduler/tick",
+            "/api/v1/snapshots",
+        }
+        or bool(re.fullmatch(r"/api/v1/organizations/[A-Za-z0-9_-]+/(ingest|evaluate|discover)", path))
+        or bool(re.fullmatch(r"/api/v1/(?:connectors|connections)/[A-Za-z0-9_-]+/sync", path))
+    )
 
 
 def serialize(row: OperationJob, *, include_result: bool = True) -> dict[str, Any]:
@@ -154,6 +159,12 @@ class JobQueue:
             allowed.add("reason")
         elif path.endswith("/sync"):
             allowed.add("materialize")
+        if re.fullmatch(r"/api/v1/organizations/[A-Za-z0-9_-]+/(ingest|evaluate|discover)", path):
+            allowed.add("expected_revision")
+            if path.endswith("/discover"):
+                allowed.add("connection_id")
+            if type(payload.get("expected_revision")) is not int or payload["expected_revision"] < 1:
+                raise ValueError("organization jobs require the selected scope revision")
         if payload.keys() - allowed:
             raise ValueError("unsupported asynchronous operation fields")
         if "materialize" in payload and not isinstance(payload["materialize"], bool):
