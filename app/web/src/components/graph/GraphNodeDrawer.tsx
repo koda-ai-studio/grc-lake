@@ -175,8 +175,11 @@ export function GraphNodeDrawer({
             {displayLabel(node.kind)} details
           </p>
           <h2 className="break-words text-lg font-semibold leading-6">
-            {node.label}
+            {graphRecordLabel(node)}
           </h2>
+          {graphRecordLabel(node) !== node.label && (
+            <p className="mt-2 break-all text-xs text-muted">{node.label}</p>
+          )}
           {node.subtitle && (
             <p className="mt-2 break-words text-sm leading-6 text-muted">
               {node.subtitle}

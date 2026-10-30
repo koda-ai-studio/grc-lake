@@ -6,6 +6,9 @@ import dagre from "@dagrejs/dagre";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import {
   Background,
+  BaseEdge,
+  getSmoothStepPath,
+  type EdgeProps,
   Handle,
   Position,
   MarkerType,
@@ -65,6 +68,9 @@ import {
   GRAPH_READABLE_ZOOM,
   graphLayoutBudget,
   graphScope,
+  investigationPositions,
+  investigationRoute,
+  graphAssuranceKind,
 } from "@/lib/graph-layout";
 import { formatCount } from "@/lib/format";
 import { displayLabel as statusLabel } from "@/lib/display";
@@ -328,6 +334,12 @@ function GraphNodeCard({ id, data, selected }: NodeProps<FlowGraphNode>) {
             <Handle
               type="source"
               position={Position.Right}
+              className="!opacity-0"
+            />
+            <Handle
+              id="assurance"
+              type="target"
+              position={Position.Top}
               className="!opacity-0"
             />
             <div
@@ -635,6 +647,34 @@ function layoutGraph(
     return { nodes, edges };
   }
   const compact = rfNodes[0]?.data.compact;
+  if (compact && rankdir === "LR") {
+    const positions = investigationPositions(
+      rfNodes.map((n) => ({
+        id: n.id,
+        kind: n.data.kind,
+        label: n.data.label,
+      })),
+      rfEdges,
+    );
+    const kinds = new Map(rfNodes.map((n) => [n.id, n.data.kind]));
+    return {
+      nodes: rfNodes.map((n) => ({
+        ...n,
+        width: 220,
+        height: 92,
+        position: positions.get(n.id)!,
+      })),
+      edges: rfEdges.map((e) => ({
+        ...e,
+        type: "investigation",
+        targetHandle:
+          graphAssuranceKind(kinds.get(e.source)!) &&
+          !graphAssuranceKind(kinds.get(e.target)!)
+            ? "assurance"
+            : undefined,
+      })),
+    };
+  }
   const width = compact ? 220 : NODE_W;
   const height = compact ? 92 : NODE_H;
   const g = new dagre.graphlib.Graph();
@@ -666,6 +706,28 @@ function layoutGraph(
   }));
   return { nodes: laidOut, edges: rfEdges };
 }
+
+function InvestigationEdge(props: EdgeProps) {
+  const points = props.data?.points as { x: number; y: number }[] | undefined;
+  const path = points?.length
+    ? points.map((p, i) => `${i ? "L" : "M"} ${p.x} ${p.y}`).join(" ")
+    : getSmoothStepPath(props)[0];
+  const middle = points?.[Math.floor(points.length / 2)];
+  return (
+    <BaseEdge
+      id={props.id}
+      path={path}
+      markerEnd={props.markerEnd}
+      style={props.style}
+      label={props.label}
+      labelX={middle?.x}
+      labelY={middle?.y}
+      labelStyle={props.labelStyle}
+      labelBgStyle={props.labelBgStyle}
+    />
+  );
+}
+const investigationEdgeTypes = { investigation: InvestigationEdge };
 
 const NODE_W = 176;
 const NODE_H = 152;
@@ -1102,11 +1164,11 @@ function InnerGraphCanvas({
       const onPath = pathSet?.edges.has(e.id) ?? false;
       const onHighlight = highlightSet
         ? e.source === activeId || e.target === activeId
-        : Boolean(scopeIds);
+        : !compactCards && Boolean(scopeIds);
       const dimmed =
         (matchSet && !matchSet.has(e.source) && !matchSet.has(e.target)) ||
         (pathSet && !onPath) ||
-        (highlightSet && !onHighlight && (!compactCards || hoveredId !== null));
+        (highlightSet && !onHighlight);
       const accent = invalid
         ? "var(--color-danger)"
         : onPath
@@ -1115,6 +1177,7 @@ function InnerGraphCanvas({
       return {
         ...e,
         animated: onPath,
+        zIndex: onHighlight || onPath ? 2 : 0,
         markerEnd: {
           type: MarkerType.ArrowClosed,
           width: 16,
@@ -1129,7 +1192,8 @@ function InnerGraphCanvas({
               : compactCards
                 ? "var(--color-muted)"
                 : "var(--color-line-strong)"),
-          strokeWidth: onPath || invalid ? 2.5 : 1.5,
+          strokeWidth:
+            onPath || invalid || (onHighlight && activeId) ? 2.5 : 1.5,
           // Invalid bindings: short red dashes. Catalog mappings: dashed when
           // reviewed, dotted while proposed. Evidence links stay solid.
           strokeDasharray: invalid
@@ -1151,7 +1215,6 @@ function InnerGraphCanvas({
     pathSet,
     highlightSet,
     activeId,
-    hoveredId,
     selectedId,
     focusId,
     scopeIds,
@@ -1170,6 +1233,47 @@ function InnerGraphCanvas({
             : n,
         )
       : rfNodes;
+
+  const routes = useMemo(() => {
+    const nodes = laidOut.nodes.map((n) => ({
+      ...n,
+      position:
+        dragged.key === placementKey
+          ? (dragged.positions[n.id] ?? n.position)
+          : n.position,
+    }));
+    const boxes = nodes.map((n) => ({
+      ...n.position,
+      width: n.width ?? NODE_W,
+      height: n.height ?? NODE_H,
+    }));
+    const byId = new Map(nodes.map((n) => [n.id, n]));
+    return new Map(
+      laidOut.edges
+        .filter((e) => e.type === "investigation")
+        .map((edge, index) => {
+          const source = byId.get(edge.source)!;
+          const target = byId.get(edge.target)!;
+          return [
+            edge.id,
+            investigationRoute(
+              { x: source.position.x + 220, y: source.position.y + 46 },
+              edge.targetHandle === "assurance"
+                ? { x: target.position.x + 110, y: target.position.y }
+                : { x: target.position.x, y: target.position.y + 46 },
+              boxes,
+              (index % 6) * 3,
+              edge.targetHandle === "assurance" ? "top" : "left",
+            ),
+          ];
+        }),
+    );
+  }, [laidOut.nodes, laidOut.edges, dragged, placementKey]);
+  const routedEdges = rfEdges.map((edge) =>
+    edge.type === "investigation"
+      ? { ...edge, data: { ...edge.data, points: routes.get(edge.id) } }
+      : edge,
+  );
 
   const focusNode = focusId ? rfNodes.find((n) => n.id === focusId) : null;
   const focusX = focusNode ? focusNode.position.x : null;
@@ -1218,7 +1322,8 @@ function InnerGraphCanvas({
       }
       const bounds = getNodesBounds(laidOutNodes);
       const fit = getViewportForBounds(bounds, width, height, 0.16, 1, 0.06);
-      if (neighborhoodRoot || fit.zoom >= GRAPH_READABLE_ZOOM) {
+      const readableZoom = compactCards ? 0.7 : GRAPH_READABLE_ZOOM;
+      if (neighborhoodRoot || fit.zoom >= readableZoom) {
         setViewport(fit, { duration });
         setOverflow(false);
         return;
@@ -1226,7 +1331,7 @@ function InnerGraphCanvas({
       // Fitting everything would shrink labels below reading size. Hold a
       // readable zoom and start from the focus, or from where the layout
       // begins, and say that more of the map is outside the view.
-      const zoom = GRAPH_READABLE_ZOOM;
+      const zoom = readableZoom;
       const margin = 16 / zoom;
       const anchor =
         focusNode ??
@@ -1238,6 +1343,8 @@ function InnerGraphCanvas({
       if (anchor) {
         x = anchor.position.x + (anchor.width ?? NODE_W) / 2;
         y = anchor.position.y + (anchor.height ?? NODE_H) / 2;
+        if (compactCards)
+          y = Math.max(y, bounds.y + height / 2 / zoom - margin);
       } else if (layout === "LR") {
         x = bounds.x + width / 2 / zoom - margin;
       } else if (layout === "TB") {
@@ -1437,7 +1544,8 @@ function InnerGraphCanvas({
             setHoveredId(null);
             onSelectNode(null);
           }}
-          edges={rfEdges}
+          edges={routedEdges}
+          edgeTypes={investigationEdgeTypes}
           nodeTypes={nodeTypes}
           nodesDraggable
           nodesConnectable={false}

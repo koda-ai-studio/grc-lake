@@ -49,7 +49,11 @@ export function NotificationBell() {
       <DropdownMenu.Trigger asChild>
         <button
           type="button"
-          aria-label="Notifications"
+          aria-label={
+            unread > 0
+              ? `Notifications, ${unread > 9 ? "9+" : unread} unread`
+              : "Notifications"
+          }
           className="relative inline-flex h-8 w-8 items-center justify-center rounded-md text-muted hover:bg-rail-hover hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
         >
           <Bell className="h-4 w-4" />
