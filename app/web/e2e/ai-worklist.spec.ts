@@ -181,3 +181,49 @@ test("canonical AI agents show runtime actions and stay out of model-card gaps",
     worklist.getByRole("link", { name: "View agent evidence" }),
   ).toBeVisible();
 });
+
+test("inference agents show recorded runtime without claiming tool permissions", async ({
+  page,
+}) => {
+  await page.route("**/api/v1/platform/ai-governance/inventory**", (route) =>
+    route.fulfill({
+      json: {
+        data: [
+          {
+            asset_id: "agent:inference",
+            asset_name: "Inference agent",
+            asset_type: "agent",
+            source_account_id: "source-a",
+            owner: "AI team",
+            environment: "test",
+            model_card: false,
+            lineage_complete: false,
+            last_seen_at: "2026-10-30T12:00:00Z",
+            sources: ["runtime_gateway"],
+            control_ids: [],
+            event_types: ["runtime.inference"],
+          },
+        ],
+      },
+    }),
+  );
+  await page.goto("/console/ai-governance/");
+  const worklist = page.getByRole("region", { name: "Models and agents" });
+  await expect(
+    worklist.getByText("Runtime recorded", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    worklist.getByText("Review inference activity", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    worklist.getByText("Runtime not observed", { exact: true }),
+  ).toHaveCount(0);
+  await worklist
+    .getByRole("button", { name: "Inspect Inference agent" })
+    .click();
+  await expect(
+    worklist.getByRole("region", { name: "Inference agent details" }),
+  ).toContainText(
+    "Inference evidence alone does not establish tool permissions",
+  );
+});
