@@ -87,28 +87,29 @@ check retained run evidence and link bounded connector qualification.
 [Data contracts](DATA_CONTRACTS.md) covers schemas, formats, and read/write boundaries.
 [Connector test accounts](CONNECTOR_TEST_ACCOUNTS.md) lists sandbox/trial options and qualification checks.
 
-| Guide                                                                | Covers                                                   |
-| -------------------------------------------------------------------- | -------------------------------------------------------- |
-| [Connectors](CONNECTORS.md)                                          | Connector catalog, release stages, and access model      |
-| [Agent-Bom report import](AGENT_BOM_IMPORT.md)                       | Offline scan findings, explicit bindings, and provenance |
-| [Adding connectors](ADDING_CONNECTORS.md)                            | Writing a connector adapter                              |
-| [AWS connector architecture](aws-connector-architecture.md)          | How the AWS connector collects                           |
-| [Repository governance connector](REPO_GOVERNANCE_CONNECTOR.md)      | GitHub and GitLab governance and public repository audit |
-| [Ingestion and idempotency](INGESTION_CONNECTORS_IDEMPOTENCY.md)     | Ingestion, connectors, and idempotency                   |
-| [Bring your own lake](BRING_YOUR_OWN_LAKE.md)                        | Existing-lake readers, lake mappings, OCSF presets       |
-| [Security data lakes](HERO_DATA_LAKES.md)                            | Supported lakes and warehouses                           |
-| [Iceberg REST](ICEBERG_REST.md)                                      | Iceberg REST evidence publication                        |
-| [Parquet export](PARQUET_EXPORT.md)                                  | Portable evidence with Parquet                           |
-| [OSCAL export](OSCAL_EXPORT.md)                                      | Portable CCF bundles and assessment results              |
-| [Webhooks](WEBHOOKS.md)                                              | Outbound event delivery                                  |
-| [CI gate](CI_GATE.md)                                                | Failing a pipeline on posture                            |
-| [CI posture gate playbook](playbooks/CI_POSTURE_GATE.md)             | Setting up the gate in CI                                |
-| [Headless GRC](HEADLESS_GRC.md)                                      | API, MCP, and agent architecture                         |
-| [Agent harness](AGENT_HARNESS.md)                                    | Persisted agent runs and approvals                       |
-| [Agent API](api/AGENT_API.md)                                        | The v1 contract for humans and agents                    |
-| [Agent skills](api/AGENT_SKILLS.md)                                  | Agent skill catalog                                      |
-| [MCP evidence and approvals](cookbook/MCP_EVIDENCE_AND_APPROVALS.md) | MCP cookbook for evidence requests and approvals         |
-| [API v1 migration](API_V1_MIGRATION.md)                              | Console migration to `/api/v1`                           |
+| Guide                                                                | Covers                                                        |
+| -------------------------------------------------------------------- | ------------------------------------------------------------- |
+| [Connectors](CONNECTORS.md)                                          | Connector catalog, release stages, and access model           |
+| [Agent-Bom report import](AGENT_BOM_IMPORT.md)                       | Offline scan findings, explicit bindings, and provenance      |
+| [Adding connectors](ADDING_CONNECTORS.md)                            | Writing a connector adapter                                   |
+| [AWS connector architecture](aws-connector-architecture.md)          | How the AWS connector collects                                |
+| [Repository governance connector](REPO_GOVERNANCE_CONNECTOR.md)      | GitHub and GitLab governance and public repository audit      |
+| [Ingestion and idempotency](INGESTION_CONNECTORS_IDEMPOTENCY.md)     | Ingestion, connectors, and idempotency                        |
+| [Organization scopes](ORGANIZATION_SCOPES.md)                        | Select named accounts for scoped ingestion and CCF evaluation |
+| [Bring your own lake](BRING_YOUR_OWN_LAKE.md)                        | Existing-lake readers, lake mappings, OCSF presets            |
+| [Security data lakes](HERO_DATA_LAKES.md)                            | Supported lakes and warehouses                                |
+| [Iceberg REST](ICEBERG_REST.md)                                      | Iceberg REST evidence publication                             |
+| [Parquet export](PARQUET_EXPORT.md)                                  | Portable evidence with Parquet                                |
+| [OSCAL export](OSCAL_EXPORT.md)                                      | Portable CCF bundles and assessment results                   |
+| [Webhooks](WEBHOOKS.md)                                              | Outbound event delivery                                       |
+| [CI gate](CI_GATE.md)                                                | Failing a pipeline on posture                                 |
+| [CI posture gate playbook](playbooks/CI_POSTURE_GATE.md)             | Setting up the gate in CI                                     |
+| [Headless GRC](HEADLESS_GRC.md)                                      | API, MCP, and agent architecture                              |
+| [Agent harness](AGENT_HARNESS.md)                                    | Persisted agent runs and approvals                            |
+| [Agent API](api/AGENT_API.md)                                        | The v1 contract for humans and agents                         |
+| [Agent skills](api/AGENT_SKILLS.md)                                  | Agent skill catalog                                           |
+| [MCP evidence and approvals](cookbook/MCP_EVIDENCE_AND_APPROVALS.md) | MCP cookbook for evidence requests and approvals              |
+| [API v1 migration](API_V1_MIGRATION.md)                              | Console migration to `/api/v1`                                |
 
 ## Security
 
