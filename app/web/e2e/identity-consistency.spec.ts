@@ -10,6 +10,9 @@ for (const theme of ["light", "dark"] as const) {
         localStorage.setItem("trustops:theme", JSON.stringify(mode));
       }, theme);
       await page.goto("/console/frameworks/");
+      await page
+        .getByRole("searchbox", { name: "Search frameworks" })
+        .fill("NIST AI");
       const reference = page
         .locator('img[src$="/frameworks/badges/nist-ai-rmf.svg"]')
         .first();

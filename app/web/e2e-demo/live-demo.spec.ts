@@ -73,6 +73,7 @@ test("frameworks list and a framework detail render recorded data", async ({
 }) => {
   const problems = watch(page);
   await open(page, "/frameworks/");
+  await page.getByRole("tab", { name: "Coverage roster", exact: true }).click();
   const roster = page.getByLabel("Framework roster").locator("li");
   await expect(roster.nth(3)).toBeVisible();
   await open(page, "/frameworks/?framework=soc2");

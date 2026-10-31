@@ -26,11 +26,15 @@ test.describe("framework coverage workflow", () => {
         /^\d[\d,]* source-native self-maps · \d[\d,]* crosswalk-reviewed\. A blended total; read each framework below\.$/,
       ),
     ).toBeVisible();
+    await page
+      .getByRole("searchbox", { name: "Search frameworks" })
+      .fill("NIST SP 800-53");
     await expect(
       page.getByText(
         /^\d[\d,]* source-native self-maps · \d[\d,]* crosswalk-reviewed( · \d[\d,]* with no recorded reviewer)?$/,
       ),
     ).not.toHaveCount(0);
+    await page.getByRole("searchbox", { name: "Search frameworks" }).fill("");
     await expect(
       portfolio.getByText("Proposed mappings awaiting review"),
     ).toHaveCount(0);
@@ -62,7 +66,9 @@ test.describe("framework coverage workflow", () => {
     await expect(
       page.getByRole("region", { name: "Readiness details" }),
     ).toHaveCount(0);
-    await page.getByRole("button", { name: "Show readiness details" }).click();
+    await page
+      .getByRole("tab", { name: "Readiness gates", exact: true })
+      .click();
     await expect(
       page.getByRole("region", { name: "Readiness details" }),
     ).toBeVisible();
@@ -121,6 +127,9 @@ test("shows observed-asset safeguard results without implying complete coverage"
   await expect(assessment.getByRole("table")).toBeVisible();
   // Only the three golden assessor reviews carry explicit safeguard bindings.
   await expect(assessment).toContainText("3 passing · 0 failing");
+  await page
+    .getByRole("searchbox", { name: "Search safeguard results" })
+    .fill("SG-IDENTITY-001");
   await expect(
     assessment.getByRole("row").filter({ hasText: "SG-IDENTITY-001" }),
   ).toContainText("not evaluated");

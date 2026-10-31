@@ -30,6 +30,17 @@ def test_runtime_pip_wheel_includes_vendor_msgpack_security_fix():
     assert (tuple(map(int, version.split("."))), int(revision)) >= ((26, 2, 2), 1)
 
 
+def test_runtime_packages_include_october_python_and_pip_security_fixes():
+    lock = Path(build_runtime_root.__file__).with_name("runtime-packages.txt")
+    packages = dict(line.split("=", 1) for line in lock.read_text().splitlines())
+    version, revision = packages["py3-pip-wheel"].rsplit("-r", 1)
+    # CVE-2026-111943 is fixed in Wolfi's 26.2.2-r2 rebuild.
+    assert (tuple(map(int, version.split("."))), int(revision)) >= ((26, 2, 2), 2)
+    # CVE-2026-114583 and CVE-2026-115557 are fixed in 3.14.10_git20261028-r0.
+    python_version = packages["python-3.14-base"].split("_git", 1)[0]
+    assert tuple(map(int, python_version.split("."))) >= (3, 14, 10)
+
+
 def test_overlay_preserves_vendor_inventory_and_python(tmp_path, monkeypatch):
     root = tmp_path / "root"
     inventory = root / "lib/apk/db/installed"

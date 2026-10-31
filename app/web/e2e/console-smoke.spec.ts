@@ -209,6 +209,9 @@ test.describe("console smoke", () => {
 
   test("frameworks render governed identity assets", async ({ page }) => {
     await page.goto("/console/frameworks/");
+    await page
+      .getByRole("searchbox", { name: "Search frameworks" })
+      .fill("NIST AI");
 
     const nistBadge = page
       .getByRole("img", {
@@ -221,6 +224,9 @@ test.describe("console smoke", () => {
       "src",
       "/console/frameworks/badges/nist-ai-rmf.svg",
     );
+    await page
+      .getByRole("searchbox", { name: "Search frameworks" })
+      .fill("ISO/IEC 27001:2022");
     await expect(
       page
         .getByRole("img", { name: "ISO/IEC 27001:2022 framework", exact: true })
