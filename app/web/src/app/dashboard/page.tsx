@@ -36,12 +36,11 @@ export default function DashboardPage() {
   usePostureStream();
   const data = posture.data;
   const frameworks = data?.frameworks ?? [];
-  const { packs: frameworkPacks } = splitFrameworkPacks(
-    registeredFrameworks.data ?? [],
-  );
-  const packCount = registeredFrameworks.data
-    ? frameworkPacks.length
-    : frameworks.length;
+  const catalog = registeredFrameworks.isError
+    ? undefined
+    : registeredFrameworks.data;
+  const { packs: frameworkPacks } = splitFrameworkPacks(catalog ?? []);
+  const packCount = catalog ? frameworkPacks.length : undefined;
 
   return (
     <div className="page-shell grid gap-5">
@@ -64,7 +63,8 @@ export default function DashboardPage() {
               assessment={data}
               ingestion={ingestion.data}
               frameworkCount={packCount}
-              catalog={registeredFrameworks.data}
+              catalog={catalog}
+              catalogError={registeredFrameworks.isError}
               attested={tests.data ? attestedPassCount(tests.data) : undefined}
             />
             <div className="grid min-w-0 items-start gap-5 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
@@ -75,11 +75,16 @@ export default function DashboardPage() {
                   {
                     label: "Frameworks",
                     content: (
-                      <ReadinessGrid
-                        embedded
-                        frameworks={frameworks}
-                        catalog={registeredFrameworks.data ?? []}
-                      />
+                      <QueryState
+                        queries={registeredFrameworks}
+                        label="framework catalog"
+                      >
+                        <ReadinessGrid
+                          embedded
+                          frameworks={frameworks}
+                          catalog={catalog}
+                        />
+                      </QueryState>
                     ),
                   },
                   {

@@ -73,7 +73,7 @@ def test_dashboard_kpis_are_flat_theme_tiles_and_pass_the_framework_catalog() ->
     dashboard = DASHBOARD.read_text(encoding="utf-8")
     assessment = ASSESSMENT.read_text(encoding="utf-8")
 
-    assert "catalog={registeredFrameworks.data ?? []}" in dashboard
+    assert "catalog={catalog}" in dashboard
     assert "Evidence to refresh" in assessment
     assert "need evidence" in assessment
     # Flat tiles on surface/line tokens: no gradients, no hardcoded dark hexes.
