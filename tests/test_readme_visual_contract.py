@@ -367,3 +367,28 @@ def test_mobile_readme_hero_is_legible_at_github_content_width():
     from tools.render_readme_header import render_mobile_preview
 
     assert mobile.read_text() == render_mobile_preview()
+
+
+def test_share_preview_ships_a_raster_image_for_link_unfurls() -> None:
+    """Chat and social unfurlers ignore SVG Open Graph images; the console must
+    advertise a 1200x630 PNG rendered from the deterministic SVG."""
+    from PIL import Image
+
+    png = ROOT / "app" / "web" / "public" / "og" / "grc-lake-share.png"
+    assert png.exists(), "run `make readme-header` to render the PNG share preview"
+    with Image.open(png) as image:
+        assert image.size == (1200, 630)
+        assert image.format == "PNG"
+    layout = (ROOT / "app" / "web" / "src" / "app" / "layout.tsx").read_text(encoding="utf-8")
+    assert 'consolePath("/og/grc-lake-share.png")' in layout
+    assert 'type: "image/png"' in layout
+    assert "/og/grc-lake-share.svg" not in layout
+
+
+def test_demo_site_build_publishes_absolute_share_urls() -> None:
+    """The Pages build must set the public origin, or Open Graph URLs resolve
+    to the localhost fallback and link previews break."""
+    workflow = (ROOT / ".github" / "workflows" / "pages.yml").read_text(encoding="utf-8")
+    step = workflow.split("Build the static demo site", 1)[1].split("- name:", 1)[0]
+    assert "NEXT_PUBLIC_APP_URL: https://${{ github.repository_owner }}.github.io" in step
+    assert "run: npm run build:demo" in step

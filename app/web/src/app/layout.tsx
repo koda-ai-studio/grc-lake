@@ -25,7 +25,8 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: consolePath("/og/grc-lake-share.svg"),
+        url: consolePath("/og/grc-lake-share.png"),
+        type: "image/png",
         width: 1200,
         height: 630,
         alt: `${BRAND.name} — ${BRAND.category}`,

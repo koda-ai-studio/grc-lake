@@ -170,8 +170,9 @@ coverage-doc: ## Regenerate the framework coverage document.
 	uv run python -c "from security_lakehouse.framework_coverage import render_framework_coverage_doc; open('docs/FRAMEWORK_COVERAGE.md','w').write(render_framework_coverage_doc())"
 	@echo wrote docs/FRAMEWORK_COVERAGE.md
 
-readme-header: ## Regenerate the README header graphic.
+readme-header: ## Regenerate the README header graphic and the PNG share preview.
 	uv run python tools/render_readme_header.py
+	npm --prefix app/web run og:png
 
 QUALIFICATION_OUT ?= build/control-workflow-qualification
 qualify-control-workflow: ## Retain synthetic access/change qualification reports and draft workpapers.
