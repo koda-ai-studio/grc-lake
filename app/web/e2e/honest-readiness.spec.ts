@@ -279,3 +279,47 @@ test("framework drawer's mapped count matches the roster's safeguard coverage", 
     ),
   ).toBeVisible({ timeout: 20_000 });
 });
+
+test("collection gaps block readiness even with a full observed pass score", async ({
+  page,
+}) => {
+  await page.route("**/api/v1/stream**", (route) => route.abort());
+  await page.route("**/api/v1/posture/current", async (route) => {
+    const response = await route.fetch();
+    const body = await response.json();
+    body.data.posture = {
+      ...body.data.posture,
+      score: 100,
+      state: "attention_required",
+      collection_gap_count: 1,
+    };
+    body.data.collection_gaps = {
+      sources: ["aws"],
+      affected_control_ids: ["ISO27001-A.5.15"],
+    };
+    body.data.frameworks = [
+      {
+        framework: "ISO 27001",
+        score: 100,
+        state: "attention_required",
+        control_count: 93,
+        passing_control_count: 93,
+        failing_control_count: 0,
+        not_evaluated_control_count: 0,
+        violation_count: 0,
+        stale_control_count: 0,
+        critical_violation_count: 0,
+        high_violation_count: 0,
+        collection_gap_control_count: 1,
+      },
+    ];
+    await route.fulfill({ response, json: body });
+  });
+  await page.goto("/console/dashboard/");
+  const list = page.getByRole("region", { name: "Framework posture list" });
+  const iso = list.getByRole("link").filter({ hasText: "ISO 27001" });
+  await expect(iso).toBeVisible();
+  await expect(iso).toContainText("100");
+  await expect(iso).toContainText("Review");
+  await expect(iso.getByText("Ready", { exact: true })).toHaveCount(0);
+});
