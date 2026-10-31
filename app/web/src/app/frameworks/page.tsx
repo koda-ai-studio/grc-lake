@@ -6,7 +6,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowUpRight,
   Calendar,
-  ChevronDown,
   ExternalLink,
   FileCheck2,
   GitCompareArrows,
@@ -685,7 +684,6 @@ function FrameworksPageContent() {
   const [readinessFilter, setReadinessFilter] = useState("all");
   const [freshnessFilter, setFreshnessFilter] = useState("all");
   const [showFilters, setShowFilters] = useState(false);
-  const [showReadiness, setShowReadiness] = useState(false);
   const [catalogPage, setCatalogPage] = useState(0);
   const catalogPageSize = useMediaQuery(SM_UP) ? 6 : 2;
   const [readinessPage, setReadinessPage] = useState(0);
@@ -924,186 +922,186 @@ function FrameworksPageContent() {
 
       <SafeguardAssessment />
 
-      <CollapsibleCard
-        title="Framework roster"
-        defaultOpen={false}
-        storageKey="frameworks:roster"
-      >
-        <FrameworkRoster
-          frameworks={data}
-          coverage={coverageRows}
-          readiness={readinessRows}
+      <DetailTabs defaultValue="catalog" className="min-w-0">
+        <DetailTabList
+          label="Framework views"
+          items={[
+            { value: "catalog", label: "Catalog" },
+            { value: "roster", label: "Coverage roster" },
+            { value: "readiness", label: "Readiness gates" },
+          ]}
         />
-      </CollapsibleCard>
-
-      <section
-        aria-label="Framework catalog"
-        className="grid gap-3 rounded-lg border border-line bg-surface p-4 sm:p-5"
-      >
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h2 className="text-lg font-semibold text-ink">
-              Framework catalog
-            </h2>
-            <p className="mt-0.5 text-xs text-muted">
-              {filtered.length} of {data.length} match · {packs.length} packs
-              {stubNote ? `, ${stubNote}` : ""}
-            </p>
-          </div>
-          <Badge>{filtered.length} matching</Badge>
-        </div>
-
-        <div className="grid gap-2 rounded-xl border border-line bg-surfaceMuted p-2">
-          <div className="grid min-w-0 gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
-            <label className="flex h-10 min-w-0 items-center gap-2 rounded-lg border border-line bg-surface px-3 text-sm shadow-sm focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/20">
-              <Search className="h-4 w-4 shrink-0 text-muted" />
-              <input
-                type="search"
-                aria-label="Search frameworks"
-                value={query}
-                onChange={(event) => {
-                  setQuery(event.target.value);
-                  setCatalogPage(0);
-                }}
-                placeholder="Search frameworks"
-                className="min-w-0 flex-1 bg-transparent text-ink outline-none placeholder:text-muted"
-              />
-            </label>
-            <button
-              type="button"
-              aria-expanded={showFilters}
-              aria-controls="framework-filters"
-              onClick={() => setShowFilters((value) => !value)}
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-line bg-surface px-3 text-sm font-semibold text-ink shadow-sm transition-colors hover:border-brand hover:text-brand"
-            >
-              <SlidersHorizontal className="h-4 w-4" />
-              {showFilters ? "Hide filters" : "Show filters"}
-            </button>
-          </div>
-          {showFilters ? (
-            <div id="framework-filters" className="grid gap-2 sm:grid-cols-2">
-              <select
-                aria-label="Filter by readiness"
-                value={readinessFilter}
-                onChange={(event) => {
-                  setReadinessFilter(event.target.value);
-                  setCatalogPage(0);
-                }}
-                className="h-10 min-w-0 rounded-lg border border-line bg-surface px-3 text-sm font-semibold text-ink outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
-              >
-                <option value="all">All readiness</option>
-                <option value="ready">Ready</option>
-                <option value="needs_work">Needs mapping</option>
-                <option value="planned">Planned or superseded</option>
-              </select>
-              <select
-                aria-label="Filter by source health"
-                value={freshnessFilter}
-                onChange={(event) => {
-                  setFreshnessFilter(event.target.value);
-                  setCatalogPage(0);
-                }}
-                className="h-10 min-w-0 rounded-lg border border-line bg-surface px-3 text-sm font-semibold text-ink outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
-              >
-                <option value="all">All source health</option>
-                <option value="fresh">Fresh</option>
-                <option value="stale">Stale</option>
-                <option value="expired">Expired</option>
-                <option value="never_pulled">Never pulled</option>
-              </select>
+        <DetailTab value="catalog">
+          <section
+            aria-label="Framework catalog"
+            className="grid gap-3 rounded-lg border border-line bg-surface p-4 sm:p-5"
+          >
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-semibold text-ink">
+                  Framework catalog
+                </h2>
+                <p className="mt-0.5 text-xs text-muted">
+                  {filtered.length} of {data.length} match · {packs.length}{" "}
+                  packs
+                  {stubNote ? `, ${stubNote}` : ""}
+                </p>
+              </div>
             </div>
-          ) : null}
-        </div>
 
-        {data.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-line p-5 text-sm text-muted">
-            No frameworks registered. Check{" "}
-            <code>frameworks/registry.json</code>.
-          </div>
-        ) : filtered.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-line p-5 text-sm text-muted">
-            No frameworks match the current filters.
-          </div>
-        ) : (
-          <div className="grid min-w-0 gap-3 xl:grid-cols-2 2xl:grid-cols-3">
-            {filtered
-              .slice(
-                currentCatalogPage * catalogPageSize,
-                (currentCatalogPage + 1) * catalogPageSize,
-              )
-              .map((framework) => (
-                <Row
-                  key={framework.framework_id}
-                  framework={framework}
-                  coverage={coverageById.get(framework.framework_id)}
-                  readiness={readinessById.get(framework.framework_id)}
-                  frameworkNames={frameworkNames}
-                  onSelect={() => openFramework(framework)}
-                />
-              ))}
-          </div>
-        )}
-        <ListPagination
-          label="Framework catalog"
-          page={currentCatalogPage}
-          total={filtered.length}
-          pageSize={catalogPageSize}
-          onPage={setCatalogPage}
-        />
-      </section>
+            <div className="grid gap-2 rounded-xl border border-line bg-surfaceMuted p-2">
+              <div className="grid min-w-0 gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
+                <label className="flex h-10 min-w-0 items-center gap-2 rounded-lg border border-line bg-surface px-3 text-sm shadow-sm focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/20">
+                  <Search className="h-4 w-4 shrink-0 text-muted" />
+                  <input
+                    type="search"
+                    aria-label="Search frameworks"
+                    value={query}
+                    onChange={(event) => {
+                      setQuery(event.target.value);
+                      setCatalogPage(0);
+                    }}
+                    placeholder="Search frameworks"
+                    className="min-w-0 flex-1 bg-transparent text-ink outline-none placeholder:text-muted"
+                  />
+                </label>
+                <button
+                  type="button"
+                  aria-expanded={showFilters}
+                  aria-controls="framework-filters"
+                  onClick={() => setShowFilters((value) => !value)}
+                  className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-line bg-surface px-3 text-sm font-semibold text-ink shadow-sm transition-colors hover:border-brand hover:text-brand"
+                >
+                  <SlidersHorizontal className="h-4 w-4" />
+                  {showFilters ? "Hide filters" : "Show filters"}
+                </button>
+              </div>
+              {showFilters ? (
+                <div
+                  id="framework-filters"
+                  className="grid gap-2 sm:grid-cols-2"
+                >
+                  <select
+                    aria-label="Filter by readiness"
+                    value={readinessFilter}
+                    onChange={(event) => {
+                      setReadinessFilter(event.target.value);
+                      setCatalogPage(0);
+                    }}
+                    className="h-10 min-w-0 rounded-lg border border-line bg-surface px-3 text-sm font-semibold text-ink outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
+                  >
+                    <option value="all">All readiness</option>
+                    <option value="ready">Ready</option>
+                    <option value="needs_work">Needs mapping</option>
+                    <option value="planned">Planned or superseded</option>
+                  </select>
+                  <select
+                    aria-label="Filter by source health"
+                    value={freshnessFilter}
+                    onChange={(event) => {
+                      setFreshnessFilter(event.target.value);
+                      setCatalogPage(0);
+                    }}
+                    className="h-10 min-w-0 rounded-lg border border-line bg-surface px-3 text-sm font-semibold text-ink outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
+                  >
+                    <option value="all">All source health</option>
+                    <option value="fresh">Fresh</option>
+                    <option value="stale">Stale</option>
+                    <option value="expired">Expired</option>
+                    <option value="never_pulled">Never pulled</option>
+                  </select>
+                </div>
+              ) : null}
+            </div>
 
-      <Card className="overflow-hidden">
-        <CardHeader className="gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="min-w-0">
-            <CardTitle>Readiness gates</CardTitle>
-            <CardDescription>
-              {portfolio.ready} of {portfolio.total} packs pass every gate. Open
-              the audit detail only when you need it.
-            </CardDescription>
-          </div>
-          <button
-            type="button"
-            aria-expanded={showReadiness}
-            aria-controls="framework-readiness-details"
-            onClick={() => setShowReadiness((value) => !value)}
-            className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-line bg-surfaceMuted px-3 text-xs font-semibold text-ink transition-colors hover:border-brand hover:text-brand"
-          >
-            {showReadiness
-              ? "Hide readiness details"
-              : "Show readiness details"}
-            <ChevronDown
-              className={`h-3.5 w-3.5 transition-transform ${showReadiness ? "rotate-180" : ""}`}
-            />
-          </button>
-        </CardHeader>
-        {showReadiness ? (
-          <div
-            id="framework-readiness-details"
-            role="region"
-            aria-label="Readiness details"
-            className="grid gap-2 px-5 pb-5 xl:grid-cols-2"
-          >
-            {readinessRows.length === 0 ? (
-              <div className="rounded-lg border border-dashed border-line p-3 text-xs text-muted">
-                Loading readiness…
+            {data.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-line p-5 text-sm text-muted">
+                No frameworks registered. Check{" "}
+                <code>frameworks/registry.json</code>.
+              </div>
+            ) : filtered.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-line p-5 text-sm text-muted">
+                No frameworks match the current filters.
               </div>
             ) : (
-              packReadiness
-                .slice(currentReadinessPage * 6, (currentReadinessPage + 1) * 6)
-                .map((row) => <ReadinessRow key={row.framework_id} row={row} />)
+              <div className="grid min-w-0 gap-3 xl:grid-cols-2 2xl:grid-cols-3">
+                {filtered
+                  .slice(
+                    currentCatalogPage * catalogPageSize,
+                    (currentCatalogPage + 1) * catalogPageSize,
+                  )
+                  .map((framework) => (
+                    <Row
+                      key={framework.framework_id}
+                      framework={framework}
+                      coverage={coverageById.get(framework.framework_id)}
+                      readiness={readinessById.get(framework.framework_id)}
+                      frameworkNames={frameworkNames}
+                      onSelect={() => openFramework(framework)}
+                    />
+                  ))}
+              </div>
             )}
-            <div className="xl:col-span-2">
-              <ListPagination
-                label="Readiness gates"
-                page={currentReadinessPage}
-                total={packReadiness.length}
-                pageSize={6}
-                onPage={setReadinessPage}
-              />
+            <ListPagination
+              label="Framework catalog"
+              page={currentCatalogPage}
+              total={filtered.length}
+              pageSize={catalogPageSize}
+              onPage={setCatalogPage}
+            />
+          </section>
+        </DetailTab>
+        <DetailTab value="roster">
+          <FrameworkRoster
+            frameworks={data}
+            coverage={coverageRows}
+            readiness={readinessRows}
+          />
+        </DetailTab>
+        <DetailTab value="readiness">
+          <Card className="overflow-hidden">
+            <CardHeader className="gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
+                <CardTitle>Readiness gates</CardTitle>
+                <CardDescription>
+                  Source, mapping, evidence, rule, and coverage checks for each
+                  framework.
+                </CardDescription>
+              </div>
+            </CardHeader>
+            <div
+              id="framework-readiness-details"
+              role="region"
+              aria-label="Readiness details"
+              className="grid gap-2 px-5 pb-5 xl:grid-cols-2"
+            >
+              {readinessRows.length === 0 ? (
+                <div className="rounded-lg border border-dashed border-line p-3 text-xs text-muted">
+                  Loading readiness…
+                </div>
+              ) : (
+                packReadiness
+                  .slice(
+                    currentReadinessPage * 6,
+                    (currentReadinessPage + 1) * 6,
+                  )
+                  .map((row) => (
+                    <ReadinessRow key={row.framework_id} row={row} />
+                  ))
+              )}
+              <div className="xl:col-span-2">
+                <ListPagination
+                  label="Readiness gates"
+                  page={currentReadinessPage}
+                  total={packReadiness.length}
+                  pageSize={6}
+                  onPage={setReadinessPage}
+                />
+              </div>
             </div>
-          </div>
-        ) : null}
-      </Card>
+          </Card>
+        </DetailTab>
+      </DetailTabs>
 
       <Detail
         framework={selected}

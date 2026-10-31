@@ -77,15 +77,13 @@ test("safeguard results paginate and search the entire assessment", async ({
   await expect(table).toContainText("SG-IDENTITY-001");
 });
 
-test("secondary framework sections stay collapsed and page when opened", async ({
-  page,
-}) => {
+test("secondary framework views paginate when selected", async ({ page }) => {
   await page.goto("/console/frameworks/");
-  const roster = page.getByRole("button", {
-    name: "Framework roster",
+  const roster = page.getByRole("tab", {
+    name: "Coverage roster",
     exact: true,
   });
-  await expect(roster).toHaveAttribute("aria-expanded", "false");
+  await expect(roster).toHaveAttribute("aria-selected", "false");
   await roster.click();
   const pages = page.getByRole("navigation", {
     name: "Tracked frameworks pages",
@@ -95,7 +93,7 @@ test("secondary framework sections stay collapsed and page when opened", async (
     .getByRole("button", { name: "Next tracked frameworks page" })
     .click();
   await expect(pages).toContainText("7–12 of 22");
-  await page.getByRole("button", { name: "Show readiness details" }).click();
+  await page.getByRole("tab", { name: "Readiness gates", exact: true }).click();
   const readiness = page.getByRole("navigation", {
     name: "Readiness gates pages",
   });
@@ -129,4 +127,38 @@ test("mobile catalog shows two cards per page", async ({ page }) => {
       () => document.documentElement.scrollWidth <= innerWidth,
     ),
   ).toBe(true);
+});
+
+test("framework views do not repeat catalog, roster, and readiness together", async ({
+  page,
+}) => {
+  await page.goto("/console/frameworks/");
+  const views = page.getByRole("tablist", { name: "Framework views" });
+  await expect(
+    views.getByRole("tab", { name: "Catalog", exact: true }),
+  ).toHaveAttribute("aria-selected", "true");
+  await expect(
+    page.getByRole("region", { name: "Framework catalog", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Framework roster", exact: true }),
+  ).toHaveCount(0);
+  await views
+    .getByRole("tab", { name: "Coverage roster", exact: true })
+    .click();
+  await expect(
+    page.getByRole("region", { name: "Framework catalog", exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("heading", { name: "Framework roster", exact: true }),
+  ).toBeVisible();
+  await views
+    .getByRole("tab", { name: "Readiness gates", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Framework roster", exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("region", { name: "Readiness details", exact: true }),
+  ).toBeVisible();
 });

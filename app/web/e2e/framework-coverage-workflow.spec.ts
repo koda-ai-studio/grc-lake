@@ -66,7 +66,9 @@ test.describe("framework coverage workflow", () => {
     await expect(
       page.getByRole("region", { name: "Readiness details" }),
     ).toHaveCount(0);
-    await page.getByRole("button", { name: "Show readiness details" }).click();
+    await page
+      .getByRole("tab", { name: "Readiness gates", exact: true })
+      .click();
     await expect(
       page.getByRole("region", { name: "Readiness details" }),
     ).toBeVisible();
