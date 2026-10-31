@@ -121,6 +121,11 @@ test.describe("mapping review", () => {
       name: "Framework coverage summary",
     });
     await expect(portfolio).toBeVisible({ timeout: 20_000 });
+    await expect(portfolio.getByText(/maintainer-reviewed/)).toBeHidden();
+    await portfolio
+      .locator("summary")
+      .filter({ hasText: "Coverage details" })
+      .click();
     await expect(portfolio.getByText(/maintainer-reviewed/)).toBeVisible();
     await expect(portfolio.getByText(/org-reviewed/)).toBeVisible();
     await portfolio.getByRole("link", { name: "Review mappings" }).click();

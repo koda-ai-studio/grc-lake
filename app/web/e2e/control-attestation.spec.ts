@@ -173,7 +173,7 @@ test("the control drawer counts a single outcome record in the singular", async 
   await expect(drawer).not.toContainText("1 records with");
 });
 
-test("overview leads with the same attested count as the controls page", async ({
+test("overview details preserve the same attested count as the controls page", async ({
   page,
   request,
 }) => {
@@ -188,7 +188,11 @@ test("overview leads with the same attested count as the controls page", async (
   expect(attested).toBeGreaterThan(0);
   await page.goto("/console/dashboard/");
   const tile = page.getByRole("link", { name: /Assessed coverage/ });
-  await expect(tile).toContainText(`${attested} attested`);
+  await expect(tile).toBeVisible();
+  await page.getByRole("button", { name: /^About Assessed coverage:/ }).focus();
+  await expect(page.getByRole("tooltip")).toContainText(
+    `${attested} attested control tests`,
+  );
 });
 
 test("first-run guidance separates results and leads to access evidence and a draft workpaper", async ({
