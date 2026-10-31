@@ -256,10 +256,9 @@ def _query(
         ]
     present = db.execute("SELECT 1 FROM eligible WHERE id=?", (root,)).fetchone() is not None
     db.executescript("""
-        CREATE TEMP TABLE selected (id TEXT PRIMARY KEY,distance INTEGER NOT NULL,upstream INTEGER NOT NULL);
-        CREATE TEMP TABLE visited (id TEXT PRIMARY KEY);
-        CREATE TEMP TABLE frontier (id TEXT PRIMARY KEY);
-        CREATE TEMP TABLE following (id TEXT PRIMARY KEY);
+        CREATE TEMP TABLE selected (id TEXT PRIMARY KEY,distance INTEGER NOT NULL,upstream INTEGER NOT NULL) WITHOUT ROWID;
+        CREATE TEMP TABLE frontier (id TEXT PRIMARY KEY) WITHOUT ROWID;
+        CREATE TEMP TABLE following (id TEXT PRIMARY KEY) WITHOUT ROWID;
     """)
     if present:
         db.execute("INSERT INTO selected VALUES (?,0,0)", (root,))
@@ -285,10 +284,8 @@ def _query(
             fast_count = 0
     else:
         for direction in ("out", "in") if view == "controls" else ("both",):
-            db.execute("DELETE FROM visited")
             db.execute("DELETE FROM frontier")
             if present:
-                db.execute("INSERT INTO visited VALUES (?)", (root,))
                 db.execute("INSERT INTO frontier VALUES (?)", (root,))
             for hop in range(1, depth + 1):
                 check()
@@ -300,26 +297,31 @@ def _query(
                         CROSS JOIN nodes n ON n.id=f.id CROSS JOIN neighbors a ON a.source=f.id
                         CROSS JOIN eligible e ON e.id=a.target
                         WHERE (f.id=? OR n.kind NOT IN ('framework','control','safeguard'))
-                          AND NOT EXISTS(SELECT 1 FROM visited v WHERE v.id=a.target)""",
+                          AND NOT EXISTS(SELECT 1 FROM selected s WHERE s.id=a.target)""",
                         (root,),
                     )
                 elif direction == "out":
                     db.execute("""INSERT OR IGNORE INTO following SELECT a.target FROM frontier f
                         CROSS JOIN edges a ON a.source=f.id CROSS JOIN eligible e ON e.id=a.target
-                        WHERE NOT EXISTS(SELECT 1 FROM visited v WHERE v.id=a.target)""")
+                        WHERE NOT EXISTS(SELECT 1 FROM selected s WHERE s.id=a.target)""")
                 else:
-                    db.execute("""INSERT OR IGNORE INTO following SELECT a.source FROM frontier f
+                    # Incoming traversal is independent of nodes already reached downstream.
+                    db.execute(
+                        """INSERT OR IGNORE INTO following SELECT a.source FROM frontier f
                         CROSS JOIN edges a ON a.target=f.id CROSS JOIN eligible e ON e.id=a.source
-                        WHERE NOT EXISTS(SELECT 1 FROM visited v WHERE v.id=a.source)""")
-                db.execute("INSERT OR IGNORE INTO visited SELECT id FROM following")
+                        WHERE a.source<>? AND NOT EXISTS(
+                            SELECT 1 FROM selected s WHERE s.id=a.source AND s.upstream=1)""",
+                        (root,),
+                    )
                 db.execute(
                     """INSERT INTO selected SELECT id,?,? FROM following WHERE true
                     ON CONFLICT(id) DO UPDATE SET distance=min(distance,excluded.distance),
                     upstream=max(upstream,excluded.upstream)""",
                     (hop, int(direction == "in")),
                 )
-                db.execute("DELETE FROM frontier")
-                db.execute("INSERT INTO frontier SELECT id FROM following")
+                db.execute("ALTER TABLE frontier RENAME TO previous")
+                db.execute("ALTER TABLE following RENAME TO frontier")
+                db.execute("ALTER TABLE previous RENAME TO following")
                 if direction == "out":
                     db.execute("DELETE FROM following")
                     db.execute("""INSERT OR IGNORE INTO following SELECT a.source FROM frontier f
@@ -327,7 +329,6 @@ def _query(
                         CROSS JOIN eligible e ON e.id=a.source
                         WHERE n.kind='evidence_type' AND e.kind='source'
                           AND NOT EXISTS(SELECT 1 FROM selected s WHERE s.id=a.source)""")
-                    db.execute("INSERT OR IGNORE INTO visited SELECT id FROM following")
                     db.execute("INSERT INTO selected SELECT id,?,0 FROM following", (hop + 1,))
     framework_groups = []
     selected_framework = ""

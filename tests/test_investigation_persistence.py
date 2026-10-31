@@ -592,6 +592,141 @@ def test_control_neighborhood_work_does_not_grow_with_unrelated_inventory(view, 
     }
 
 
+@pytest.mark.parametrize("limit", [1, 150])
+def test_high_degree_control_walk_has_bounded_work_and_exact_totals(limit):
+    import sqlite3
+
+    from security_lakehouse.investigation_sqlite import initialize, populate, query
+
+    nodes = [
+        {"id": f"{kind}:{i:05}", "kind": kind, "label": str(i)}
+        for kind, count in (("evidence_type", 10000), ("asset", 1000), ("control", 1), ("framework", 1), ("source", 1))
+        for i in range(count)
+    ]
+    links = [("framework:00000", "control:00000")] + [
+        (source, target)
+        for i in range(10000)
+        for source, target in (
+            ("control:00000", f"evidence_type:{i:05}"),
+            ("source:00000", f"evidence_type:{i:05}"),
+            (f"evidence_type:{i:05}", f"asset:{i % 1000:05}"),
+        )
+    ]
+    edges = [{"id": str(i), "source": source, "target": target} for i, (source, target) in enumerate(links)]
+    with sqlite3.connect(":memory:") as db:
+        initialize(db)
+        populate(db, nodes, edges, version="fixture", key="fixture", frameworks={}, check=lambda: None)
+        calls = 0
+        walking = True
+
+        def trace(statement):
+            nonlocal walking
+            if "CREATE TEMP TABLE kept" in statement:
+                walking = False
+
+        db.set_trace_callback(trace)
+
+        def budget():
+            nonlocal calls
+            # Hydrating response edges is a separate cost that depends on page size.
+            calls += int(walking)
+            assert calls <= 2100, "high-degree traversal exceeded its SQLite work budget"
+
+        result = query(
+            db,
+            key="fixture",
+            check=budget,
+            root="control:00000",
+            view="controls",
+            depth=2,
+            limit=limit,
+            layers=None,
+            search="",
+            root_offset=0,
+            framework="",
+            control_offset=0,
+            expected_version=None,
+        )
+    expected = (["control:00000", "framework:00000"] + [f"evidence_type:{i:05}" for i in range(148)])[:limit]
+    assert [node["id"] for node in result["nodes"]] == expected
+    assert result["matching_nodes"] == 11003
+    assert result["truncated"]
+    assert result["edges"] == [edge for edge in edges if edge["source"] in expected and edge["target"] in expected]
+
+
+def test_directional_walk_cycles_and_producer_context_match_memory_builder(tmp_path, monkeypatch):
+    import sqlite3
+    from itertools import product
+
+    from security_lakehouse.investigation_index import build_indexes
+    from security_lakehouse.investigation_sqlite import connect, initialize, populate, query
+
+    keys = (
+        "control:root",
+        "control:sibling",
+        "framework:test",
+        "evidence_type:a",
+        "evidence_type:b",
+        "source:a",
+        "source:b",
+        "asset:a",
+        "asset:b",
+        "finding:a",
+    )
+    nodes = {key: {"id": key, "kind": key.split(":")[0], "label": key} for key in keys}
+    links = [
+        ("framework:test", "control:root"),
+        ("framework:test", "control:sibling"),
+        ("control:root", "evidence_type:a"),
+        ("evidence_type:a", "asset:a"),
+        ("asset:a", "evidence_type:b"),
+        ("evidence_type:b", "evidence_type:a"),
+        ("source:a", "evidence_type:a"),
+        ("source:a", "source:b"),
+        ("evidence_type:b", "control:root"),
+        ("source:b", "evidence_type:b"),
+        ("finding:a", "asset:a"),
+        ("asset:a", "control:root"),
+        ("source:a", "framework:test"),
+        ("control:root", "control:root"),
+        ("control:root", "evidence_type:a"),
+    ]
+    edges = {str(i): {"id": str(i), "source": source, "target": target} for i, (source, target) in enumerate(links)}
+    indexes = build_indexes(nodes, edges, lambda: None)
+    monkeypatch.setattr(graph, "_model", lambda *args: (nodes, edges, {}, "fixture", indexes))
+    path = tmp_path / "index.sqlite"
+    with sqlite3.connect(path) as db:
+        initialize(db)
+        populate(
+            db, nodes.values(), edges.values(), version="fixture", key="fixture", frameworks={}, check=lambda: None
+        )
+    for root, view, depth, limit, layers in product(
+        ("control:root", "evidence_type:a", "source:a"),
+        ("controls", "environment", "investigation"),
+        (1, 2, 3),
+        (1, 150),
+        (None, {"control", "evidence_type", "source", "asset"}),
+    ):
+        arguments = dict(root=root, view=view, depth=depth, limit=limit, layers=layers)
+        expected = graph.investigation_graph(tmp_path, **arguments)
+        db = connect(path)
+        try:
+            actual = query(
+                db,
+                key="fixture",
+                check=lambda: None,
+                search="",
+                root_offset=0,
+                framework="",
+                control_offset=0,
+                expected_version=None,
+                **arguments,
+            )
+        finally:
+            db.close()
+        assert actual == expected, arguments
+
+
 def test_temporary_staging_respects_disk_ceiling(tmp_path, monkeypatch):
     import sqlite3
 
