@@ -117,7 +117,7 @@ models in active use do not fit the budget together, requests that alternate bet
 them rebuild each time and can be slower than running without the cache; see
 [retention sizing](benchmarks/INVESTIGATION_CACHE.md#retention-sizing). This is
 not a total RSS bound: active builds, active readers, temporary allocations and
-Python allocator overhead are additional. No graph cache is written to disk. See the
+Python allocator overhead are additional. This in-memory cache is separate from the optional prepared disk index described below. See the
 [reuse measurements](benchmarks/INVESTIGATION_CACHE.md) for observed cold/warm
 latency and memory tradeoffs.
 
@@ -128,12 +128,25 @@ prevent retention. Returned nodes and edges are independent copies, so a caller
 cannot mutate another response. Authentication and graph admission still run for
 every HTTP request, including cache hits.
 
-A cold read still builds the full server-side model. Depth, layers and search
+Without a matching prepared index, a cold read still builds the full server-side model. Depth, layers and search
 operate on that model and its derived indexes.
 Completed models also retain directed adjacency, original edge positions, node-kind counts, ordered starting points and default roots. These derived indexes count against the same 128 MiB retention budget and expire or invalidate with their model. Unfiltered warm reads, including requests that explicitly select every available layer, avoid full node/edge scans to rebuild those indexes; response edges retain their original order. Layer filters recompute eligible membership and degree ordering, search scans the indexed starting points, and broad neighborhoods still traverse their matching nodes. Cold builds do extra index construction, and larger retained models can cause earlier eviction. See the [paired measurements](benchmarks/INVESTIGATION_CACHE.md#navigation-index-follow-up) for warm latency, cold cost and process memory.
 
 Neither this bounded reuse nor the response bound establishes constant-memory
 indexing, tenant fairness or production-scale qualification.
+
+### Prepared indexes for large inventories
+
+Operators can run `grc-lake graph prepare-index --lake /path/to/lake` after publishing
+an assessment generation. Large investigation reads reuse a matching disk-backed
+index across processes. Preparation preserves the graph version, exact relationships,
+counts, navigation order and evidence semantics. It does not increase the browser's
+node limit or infer a compliance verdict.
+
+See [prepared investigation indexes](benchmarks/PERSISTENT_GRAPH.md) for tenant scope,
+invalidation, disk limits, recovery and a benchmark that varies records, findings
+and assets independently. Large unprepared or invalidated inventories retain the
+existing in-memory fallback; preparation is an explicit operator step.
 
 ### Build admission and cancellation
 
