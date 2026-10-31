@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import copy
+import csv
 import json
 import sys
 import sysconfig
 from collections import Counter
 from collections.abc import Mapping
 from functools import lru_cache
+from importlib.metadata import distributions
 from pathlib import Path
 from types import MappingProxyType
 from typing import Any
@@ -25,7 +27,8 @@ def _data_root() -> Path:
          image and Helm chart so the wheel can find the JSON catalogs.
       2. The user-install data scheme, only when this module was installed there.
       3. The prefix whose Python library contains this imported module.
-      4. The source checkout root for editable installs.
+      4. The imported distribution's recorded data location (cached environments).
+      5. The source checkout root for editable installs.
 
     Missing catalogs fail at their owning location; another installation must
     never silently supply a different catalog version.
@@ -47,6 +50,16 @@ def _data_root() -> Path:
             # --system-site-packages. Data belongs to the imported package,
             # regardless of whether another prefix happens to contain catalogs.
             return Path(paths["data"])
+    # Isolated launchers can load a cached wheel outside both interpreter
+    # prefixes. Only metadata beside this exact module may supply its catalogs.
+    for distribution in distributions(name="grc-lake", path=[str(module_path.parent.parent)]):
+        if Path(str(distribution.locate_file("security_lakehouse/catalog.py"))).resolve() != module_path:
+            continue
+        # Read RECORD directly: Distribution.files can omit missing files,
+        # which must still resolve to this damaged installation's data root.
+        for entry in csv.reader((distribution.read_text("RECORD") or "").splitlines()):
+            if entry and Path(entry[0]).parts[-2:] == ("frameworks", "registry.json"):
+                return Path(str(distribution.locate_file(entry[0]))).resolve().parent.parent
     # Editable imports resolve to <checkout>/src/security_lakehouse/catalog.py.
     # Keep missing checkout data visible as an error instead of borrowing it.
     return module_path.parents[2]
