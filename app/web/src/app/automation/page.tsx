@@ -36,6 +36,7 @@ import {
 import {
   useActionCatalog,
   useApproveWorkflowRun,
+  useAuthWhoami,
   useRejectWorkflowRun,
   useRetryWorkflowRun,
   useRunWorkflow,
@@ -320,6 +321,10 @@ function RunnerContract({
 
 export default function AutomationPage() {
   const auditor = useAuditorMode();
+  const whoami = useAuthWhoami();
+  // The server grants workflow_run to contributors only; approvers do not
+  // also trigger runs. Offer Run only where the API will accept it.
+  const canRun = Boolean(whoami.data?.scopes.includes("workflow_run"));
   const workflows = useWorkflows();
   const catalog = useActionCatalog();
   const save = useSaveWorkflow();
@@ -659,7 +664,15 @@ export default function AutomationPage() {
                   variant="default"
                   onClick={() => execute(true)}
                   disabled={
-                    run.isPending || save.isPending || editor.nodes.length === 0
+                    !canRun ||
+                    run.isPending ||
+                    save.isPending ||
+                    editor.nodes.length === 0
+                  }
+                  title={
+                    canRun
+                      ? undefined
+                      : "Running a workflow needs the workflow_run scope (contributor)"
                   }
                 >
                   Preview
@@ -668,7 +681,15 @@ export default function AutomationPage() {
                   variant="primary"
                   onClick={() => execute(false)}
                   disabled={
-                    run.isPending || save.isPending || editor.nodes.length === 0
+                    !canRun ||
+                    run.isPending ||
+                    save.isPending ||
+                    editor.nodes.length === 0
+                  }
+                  title={
+                    canRun
+                      ? undefined
+                      : "Running a workflow needs the workflow_run scope (contributor)"
                   }
                 >
                   {run.isPending || save.isPending ? (

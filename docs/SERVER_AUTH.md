@@ -216,14 +216,14 @@ applies at startup.
 
 ## Roles
 
-| Role                  | Access                                                                   |
-| --------------------- | ------------------------------------------------------------------------ |
-| `admin`               | Full access, including user and API key administration                   |
-| `security_admin`      | Evidence requests, connectors, workflows, snapshots, and controls        |
-| `compliance_reviewer` | Read, plus approve or reject safeguard mappings (`mapping_review` scope) |
-| `contributor`         | Evidence request, workflow action, and triage operations                 |
-| `auditor`             | Read-only, with owner, credential, and note fields redacted              |
-| `read_only`           | Internal read-only view without mutation                                 |
+| Role                  | Access                                                                                                                                           |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `admin`               | Full access, including user and API key administration, except `workflow_run`: approving a paused run and triggering one stay in different roles |
+| `security_admin`      | Evidence requests, connectors, workflows, snapshots, and controls                                                                                |
+| `compliance_reviewer` | Read, plus approve or reject safeguard mappings (`mapping_review` scope)                                                                         |
+| `contributor`         | Evidence request, workflow action, and triage operations                                                                                         |
+| `auditor`             | Read-only, with owner, credential, and note fields redacted                                                                                      |
+| `read_only`           | Internal read-only view without mutation                                                                                                         |
 
 Mapping review decisions also require a signed-in console session: an API key
 used as a bearer token can read the review queue but is refused on

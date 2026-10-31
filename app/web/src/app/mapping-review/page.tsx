@@ -661,7 +661,12 @@ function MappingReviewContent() {
   const deferredQuery = useDeferredValue(query.trim());
 
   const whoami = useAuthWhoami();
-  const canDecide = Boolean(whoami.data?.scopes.includes("mapping_review"));
+  // Mirrors the server: decisions need the scope and a signed-in OIDC/SAML
+  // session; API-key sessions and the no-auth demo can read but not decide.
+  const canDecide = Boolean(
+    whoami.data?.scopes.includes("mapping_review") &&
+    ["session:oidc", "session:saml"].includes(whoami.data?.auth_method ?? ""),
+  );
   const summary = useMappingReviewSummary();
   const queue = useMappingReviewQueue({
     framework_id: framework || undefined,

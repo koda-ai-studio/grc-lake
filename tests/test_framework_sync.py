@@ -304,3 +304,21 @@ def test_sync_cli_reports_transient_flag(
     assert cli.main(["frameworks", "sync"]) == 0
     (row,) = json.loads(capsys.readouterr().out)["results"]
     assert row["transient"] is True
+
+
+def test_registry_rewrite_is_atomic(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A concurrent reader must never see a truncated registry; the rewrite
+    goes through the shared atomic writer, not Path.write_text."""
+    path = _registry(tmp_path, "soc2")
+    original = Path.write_text
+
+    def guarded(self: Path, *args: Any, **kwargs: Any) -> int:
+        assert self.resolve() != path.resolve(), "registry written in place with write_text"
+        return original(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "write_text", guarded)
+    (result,) = sync_frameworks(path, fetcher=lambda _url: b"fresh-source", refresh_bundle_lock=False)
+    assert result.state == "updated"
+    registry = json.loads(path.read_text(encoding="utf-8"))
+    assert registry["frameworks"][0]["source_sha256"]
+    assert not list(tmp_path.glob("registry.json.*.tmp"))
