@@ -39,6 +39,7 @@ def test_account_gap_does_not_block_an_unrelated_provider_benchmark():
                 "title": "Access",
                 "asset_types": ["iam_role"],
                 "evaluation_rule": "fail_when_open_violation",
+                "required_evidence_types": ["fixture.assessment"],
                 "satisfies": [
                     {"control_id": key, "framework_id": framework, "review_status": "reviewed"}
                     for key, framework in [("AWS", "aws-fixture"), ("GCP", "gcp-fixture"), ("ALL", "all-fixture")]
@@ -75,7 +76,13 @@ def test_account_gap_does_not_block_an_unrelated_provider_benchmark():
 
 def test_pipeline_preserves_account_asset_results_but_blocks_combined_safeguard(tmp_path):
     raw, lake = tmp_path / "raw.jsonl", tmp_path / "lake"
-    good = {**event(), "tenant_id": "source-a", "source": "aws", "safeguard_ids": ["SG-IDENTITY-001"]}
+    good = {
+        **event(),
+        "tenant_id": "source-a",
+        "source": "aws",
+        "event_type": "nist53_ac_10_assessment",
+        "safeguard_ids": ["SG-NIST53-AC-10"],
+    }
     gap = {
         **event("not_evaluated"),
         "tenant_id": "source-b",
@@ -88,9 +95,9 @@ def test_pipeline_preserves_account_asset_results_but_blocks_combined_safeguard(
     write_jsonl(raw, [good, gap])
     run_pipeline(raw, lake, tenant_id="platform-org")
     result = read_json(lake / "gold/ccf_assessment.json")
-    safeguard = next(row for row in result["safeguards"] if row["safeguard_id"] == "SG-IDENTITY-001")
+    safeguard = next(row for row in result["safeguards"] if row["safeguard_id"] == "SG-NIST53-AC-10")
     assert safeguard["status"] == "not_evaluated"
-    [asset] = [row for row in result["asset_results"] if row["safeguard_id"] == "SG-IDENTITY-001"]
+    [asset] = [row for row in result["asset_results"] if row["safeguard_id"] == "SG-NIST53-AC-10"]
     assert asset["source_tenant_id"] == "source-a"
     assert asset["status"] == "pass"
     assert result["population_completeness"] == "not_established"

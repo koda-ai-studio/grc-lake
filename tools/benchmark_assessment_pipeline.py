@@ -47,7 +47,9 @@ def worker(count: int, *, workload: str, root: Path, base_time: datetime) -> dic
                 timestamp = (base_time - timedelta(days=3650) if case == 3 else base_time).isoformat()
                 row["event_time"] = timestamp
                 row["evidence"]["collected_at"] = timestamp
-                row["safeguard_ids"] = [] if case == 4 else ["SG-IDENTITY-001"]
+                row["event_type"] = "nist53_ac_10_assessment"
+                row["controls"] = ["NIST-800-53-AC-10"]
+                row["safeguard_ids"] = [] if case == 4 else ["SG-NIST53-AC-10"]
                 if case != 4:
                     expected[(row["tenant_id"], row["entity"]["asset_id"])] = (
                         ("pass", "fail", "not_evaluated", "stale")[case],
@@ -202,7 +204,12 @@ def main() -> int:
             "disk_free_floor_bytes": MIN_FREE_BYTES,
             "sampling_interval_seconds": 0.25,
         },
-        "fixture": {"seed": 42, "controls_per_event": 3, "base_time": args.base_time, "workload": args.workload},
+        "fixture": {
+            "seed": 42,
+            "controls_per_event": 1 if args.workload == "ccf" else 3,
+            "base_time": args.base_time,
+            "workload": args.workload,
+        },
         "attempts": attempts,
     }
     print(json.dumps(result, indent=2))

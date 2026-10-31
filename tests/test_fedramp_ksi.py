@@ -58,7 +58,7 @@ def test_ksi_assessment_never_attests_a_proposed_mapping(case):
             {"review_log_verified": True, "safeguards": [safeguard]},
             {cid: catalog[cid]},
         )
-        expected = {"pass": "pass", "failed": "fail", "wrong_type": "stale", "stale": "stale"}.get(
+        expected = {"pass": "pass", "failed": "fail", "wrong_type": "not_evaluated", "stale": "stale"}.get(
             case, "not_evaluated"
         )
         assert result["safeguards"][0]["status"] == expected

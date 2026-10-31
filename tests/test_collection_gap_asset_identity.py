@@ -10,6 +10,7 @@ from typing import Any
 
 import pytest
 
+from security_lakehouse import mapping_review
 from security_lakehouse.connector_errors import CollectionGapError
 from security_lakehouse.connector_runner import run_connector_sync
 from security_lakehouse.connector_state import append_config_event
@@ -77,7 +78,31 @@ def _strong_policy_fixture(tmp_path: Path) -> Path:
     return target
 
 
-def test_aws_gap_and_absence_do_not_hide_a_failing_password_policy(tmp_path: Path) -> None:
+def _scoped_policy_contract(monkeypatch: pytest.MonkeyPatch, evidence_type: str) -> None:
+    """Exercise gap precedence with a synthetic contract, never approve the catalog."""
+    monkeypatch.setattr(
+        mapping_review,
+        "effective_safeguards",
+        lambda _: {
+            "review_log_verified": True,
+            "safeguards": [
+                {
+                    "safeguard_id": IDENTITY,
+                    "title": "Synthetic scoped policy contract",
+                    "asset_types": ["account_config"],
+                    "required_evidence_types": [evidence_type],
+                    "evaluation_rule": "fail_when_open_violation",
+                    "satisfies": [],
+                }
+            ],
+        },
+    )
+
+
+def test_aws_gap_and_absence_do_not_hide_a_failing_password_policy(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _scoped_policy_contract(monkeypatch, "aws.iam.password_policy")
     lake = _aws_lake(tmp_path, FIXTURES / "aws", services=["cloudtrail", "rds"])
 
     safeguard, results = _identity(lake)
@@ -85,7 +110,10 @@ def test_aws_gap_and_absence_do_not_hide_a_failing_password_policy(tmp_path: Pat
     assert safeguard["status"] == "fail"
 
 
-def test_aws_collection_gap_keeps_a_passing_policy_from_passing_the_safeguard(tmp_path: Path) -> None:
+def test_aws_collection_gap_keeps_a_passing_policy_from_passing_the_safeguard(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _scoped_policy_contract(monkeypatch, "aws.iam.password_policy")
     fixture = _strong_policy_fixture(tmp_path)
     assert _identity(_aws_lake(tmp_path / "clean", fixture, services=["s3"]))[0]["status"] == "pass"
 
@@ -95,6 +123,8 @@ def test_aws_collection_gap_keeps_a_passing_policy_from_passing_the_safeguard(tm
 
 
 def test_gcp_asset_gap_does_not_hide_a_failing_org_policy(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    _scoped_policy_contract(monkeypatch, "gcp.cloud.org_policy")
+
     def denied(self: GCPFixtureClient) -> list[dict[str, Any]]:
         raise CollectionGapError("read denied", collection="assets", reason="permission_denied")
 

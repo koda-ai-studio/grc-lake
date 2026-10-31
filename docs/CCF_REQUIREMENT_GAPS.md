@@ -43,6 +43,26 @@ assessment. Use mapping-review and safeguard asset-result endpoints for their
 respective details; a pending mapping and missing operating evidence require
 different actions.
 
+## Evidence applicability
+
+An explicit safeguard binding must match both the safeguard's asset scope and
+its declared `required_evidence_types`. A safeguard with no evidence-type
+contract returns `not_evaluated`. Unrelated bound rows retain their provenance
+but cannot supply a passing or failing verdict. Missing required evaluated
+types also block a pass; a matching failure still follows the safeguard's rule.
+Expired matching evidence retains its freshness outcome. Provider-specific
+requirements evaluate only evidence from their declared providers.
+
+Inspect the safeguard asset-result reasons to distinguish an absent contract,
+unrelated evidence, missing types, and stale evidence. An absent contract needs
+requirement-specific definition review, not a new label on unrelated evidence.
+Definition changes require independent human review and updated review receipts.
+Mapping approval alone does not establish operating evidence.
+
+After upgrading the evaluator, re-run ingestion or incremental evaluation to
+publish a new assessment generation. Existing generations and snapshots retain
+their recorded results; reading them does not apply a new evaluation rule.
+
 ## Console journey
 
 Open **Frameworks**, select a framework and expand a requirement. Choose

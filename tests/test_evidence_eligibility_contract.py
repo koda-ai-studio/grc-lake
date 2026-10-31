@@ -4,6 +4,7 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 
+from security_lakehouse import mapping_review
 from security_lakehouse.io import read_json, read_jsonl, write_jsonl
 from security_lakehouse.pipeline import run_pipeline
 from test_assurance_truth import complete_events
@@ -11,16 +12,33 @@ from test_control_assurance import case, evaluate
 
 
 @pytest.mark.parametrize("new_status,expected", [("observed", "stale"), ("pass", "pass"), ("unknown", "not_evaluated")])
-def test_current_verdict_cannot_borrow_freshness_from_observations(tmp_path, new_status, expected):
+def test_current_verdict_cannot_borrow_freshness_from_observations(tmp_path, monkeypatch, new_status, expected):
     old = complete_events()
+    monkeypatch.setattr(
+        mapping_review,
+        "effective_safeguards",
+        lambda _: {
+            "review_log_verified": True,
+            "safeguards": [
+                {
+                    "safeguard_id": "SG-FRESHNESS",
+                    "title": "Synthetic freshness contract",
+                    "asset_types": sorted({row["entity"]["asset_type"] for row in old}),
+                    "required_evidence_types": sorted({row["event_type"] for row in old}),
+                    "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+                    "satisfies": [],
+                }
+            ],
+        },
+    )
     for row in old:
-        row["safeguard_ids"] = ["SG-IDENTITY-001"]
+        row["safeguard_ids"] = ["SG-FRESHNESS"]
         row["event_time"] = (datetime.now(UTC) - timedelta(days=90)).isoformat()
         row["evidence"]["collected_at"] = row["event_time"]
     new = complete_events(new_status)
     for row in new:
         row["event_id"] += "-new"
-        row["safeguard_ids"] = ["SG-IDENTITY-001"]
+        row["safeguard_ids"] = ["SG-FRESHNESS"]
     raw, lake = tmp_path / "raw.jsonl", tmp_path / "lake"
     write_jsonl(raw, old + new)
     run_pipeline(raw, lake, tenant_id="audit")
@@ -32,7 +50,7 @@ def test_current_verdict_cannot_borrow_freshness_from_observations(tmp_path, new
         next(
             r["status"]
             for r in read_json(lake / "gold/ccf_assessment.json")["safeguards"]
-            if r["safeguard_id"] == "SG-IDENTITY-001"
+            if r["safeguard_id"] == "SG-FRESHNESS"
         )
         == expected
     )

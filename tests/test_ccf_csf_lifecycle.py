@@ -79,7 +79,9 @@ def test_each_outcome_requires_fresh_typed_bound_evidence_and_separate_review(si
     if case == "stale":
         row.update(event_time="2000-01-01T00:00:00Z", evidence_collected_at="2000-01-01T00:00:00Z")
     result = evaluate_safeguards([row], payload, controls)
-    expected = {"pass": "pass", "failed": "fail", "wrong_type": "stale", "stale": "stale"}.get(case, "not_evaluated")
+    expected = {"pass": "pass", "failed": "fail", "wrong_type": "not_evaluated", "stale": "stale"}.get(
+        case, "not_evaluated"
+    )
     assert result["safeguards"][0]["status"] == expected
     assert result["requirements"][0]["status"] != "pass"
     # Synthetic review overlay tests behavior; it never edits shipped review state.

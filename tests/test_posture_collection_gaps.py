@@ -12,8 +12,11 @@ from test_assurance_truth import complete_events, event
 
 def evidence(status="pass"):
     return [
-        dict(row, source="aws", tenant_id="source-a", safeguard_ids=["SG-IDENTITY-001"])
-        for row in complete_events(status)
+        dict(row, source="aws", tenant_id="source-a", safeguard_ids=["SG-NIST53-AC-10"])
+        for row in [
+            *complete_events(status),
+            dict(event(status), event_id="typed-assessment", event_type="nist53_ac_10_assessment"),
+        ]
     ]
 
 
@@ -49,7 +52,7 @@ def test_gap_blocks_aggregate_readiness_but_only_its_provider_framework(tmp_path
     assert framework["collection_gap_control_count"] == (1 if source == "aws" else 0)
     assert read_jsonl(lake / "gold/control_posture.jsonl")[0]["status"] == "pass"
     ccf = read_json(lake / "gold/ccf_assessment.json")
-    [safeguard] = [row for row in ccf["safeguards"] if row["safeguard_id"] == "SG-IDENTITY-001"]
+    [safeguard] = [row for row in ccf["safeguards"] if row["safeguard_id"] == "SG-NIST53-AC-10"]
     assert safeguard["status"] == ("not_evaluated" if source == "aws" else "pass")
 
 
@@ -64,7 +67,7 @@ def test_gap_preserves_failures_and_critical_state(tmp_path):
     assert current["frameworks"][0]["failing_control_count"] == 1
     assert current["frameworks"][0]["collection_gap_control_count"] == 1
     ccf = read_json(lake / "gold/ccf_assessment.json")
-    assert next(row for row in ccf["safeguards"] if row["safeguard_id"] == "SG-IDENTITY-001")["status"] == "fail"
+    assert next(row for row in ccf["safeguards"] if row["safeguard_id"] == "SG-NIST53-AC-10")["status"] == "fail"
 
 
 def test_gap_clearing_refreshes_live_surfaces_but_preserves_snapshot(tmp_path, capsys):

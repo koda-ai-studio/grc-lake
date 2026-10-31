@@ -17,6 +17,7 @@ def _evaluate(rows):
                     "safeguard_id": "SG-0",
                     "title": "Access",
                     "asset_types": ["iam_role"],
+                    "required_evidence_types": ["fixture.assessment"],
                     "evaluation_rule": "fail_when_open_violation",
                     "satisfies": [
                         {"control_id": key, "framework_id": framework, "review_status": "reviewed"}

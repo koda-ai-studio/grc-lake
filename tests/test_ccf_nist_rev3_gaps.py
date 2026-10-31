@@ -80,7 +80,7 @@ def test_gap_refresh_tracks_implementation_mappings_and_restores_removed_gaps():
     assert refresh_coverage_gaps(manifest, {"safeguards": []})[1]["reason"] == "needs agreement evidence"
 
 
-def test_explicit_assessment_outcomes_do_not_promote_proposed_mappings():
+def test_untyped_assessment_outcomes_do_not_assert_safeguard_or_requirement_verdicts():
     from datetime import UTC, datetime
 
     from security_lakehouse.catalog import load_control_catalog
@@ -89,19 +89,15 @@ def test_explicit_assessment_outcomes_do_not_promote_proposed_mappings():
 
     payload = load_safeguards()
     payload["safeguards"] = [row for row in payload["safeguards"] if row["safeguard_id"] in NEW]
-    for status, expected in [
-        ("pass", "pass"),
-        ("failed", "fail"),
-        ("unknown", "not_evaluated"),
-        ("observed", "not_evaluated"),
-    ]:
+    assert all(not row.get("required_evidence_types") for row in payload["safeguards"])
+    for status in ["pass", "failed", "unknown", "observed"]:
         events = [normalized(sid, status=status, bindings=[sid], asset_type="service") for sid in NEW]
         # Both safeguards apply to the observed services, so bind both to each
         # service to establish the complete observed (not declared) population.
         for event in events:
             event["safeguard_ids"] = list(NEW)
         result = evaluate_safeguards(events, payload, load_control_catalog(), now=datetime.now(UTC))
-        assert {row["status"] for row in result["safeguards"]} == {expected}
+        assert {row["status"] for row in result["safeguards"]} == {"not_evaluated"}
         assert not any(row["status"] == "pass" for row in result["requirements"])
     event = normalized(
         "stale",

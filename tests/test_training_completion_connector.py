@@ -483,9 +483,10 @@ def test_sync_joins_hr_and_training_through_the_ccf_assessment(tmp_path: Path) -
         fixture_dir=_write_training_fixture(tmp_path / "t1", alan_completed=False),
     )
     safeguard, _ = _assessment(lake)
-    assert safeguard["status"] == "fail"  # alan's training is overdue even without HR context
+    assert safeguard["status"] == "not_evaluated"  # no declared safeguard evidence contract
     derived = [r for r in read_jsonl(raw_path) if r.get("connector_id") == TRAINING_COVERAGE_CONNECTOR_ID]
     assert _summary(derived)["attributes"]["population_source"] == "none"
+    assert _by_email(derived)["alan@example.com"]["status"] == "open"
 
     # HR arrives: grace is terminated and drops out of the population
     connector_runner.run_connector_sync(
@@ -499,7 +500,7 @@ def test_sync_joins_hr_and_training_through_the_ccf_assessment(tmp_path: Path) -
     assert _summary(derived)["attributes"]["statement"].startswith("1 of 2 active personnel")
     safeguard, requirements = _assessment(lake)
     assert (safeguard["status"], safeguard["assessed_asset_count"], safeguard["unassessed_asset_count"]) == (
-        "fail",
+        "not_evaluated",
         2,
         0,
     )
@@ -511,9 +512,14 @@ def test_sync_joins_hr_and_training_through_the_ccf_assessment(tmp_path: Path) -
         fixture_dir=_write_training_fixture(tmp_path / "t2", alan_completed=True),
     )
     safeguard, requirements = _assessment(lake)
-    assert safeguard["status"] == "pass"
-    # reviewed crosswalk members follow the safeguard; proposed ones never attest
-    assert requirements["CMMC-3.2.1"]["status"] == "pass"
+    assert safeguard["status"] == "not_evaluated"
+    derived = [r for r in read_jsonl(raw_path) if r.get("connector_id") == TRAINING_COVERAGE_CONNECTOR_ID]
+    assert {e: r["status"] for e, r in _by_email(derived).items()} == {
+        "ada@example.com": "pass",
+        "alan@example.com": "pass",
+    }
+    # A reviewed mapping still needs a safeguard evidence contract.
+    assert requirements["CMMC-3.2.1"]["status"] == "not_evaluated"
     assert requirements["ISO27001-A.6.3"]["status"] != "pass"
     assert requirements["ISO27001-A.6.3"]["pending_mapping_count"] >= 1
     assert all(r.get("attributes", {}).get("synthetic") for r in read_jsonl(raw_path))

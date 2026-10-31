@@ -88,6 +88,7 @@ def test_context_never_changes_a_reviewed_implementation_result(contextual):
     # links to one target inside a safeguard are an ambiguous mapping identity.
     context = {**deepcopy(entry), "safeguard_id": "SG-CONTEXT", "satisfies": [member]}
     entry["satisfies"] = [primary]
+    entry["required_evidence_types"] = ["fixture.assessment"]
     payload["safeguards"].append(context)
     events = [normalized(asset_type=entry["asset_types"][0], bindings=[entry["safeguard_id"]])]
     result = evaluate_safeguards(events, payload, {cid: {"framework_id": "soc2"}})

@@ -29,6 +29,7 @@ def statuses(rows, rule="fail_when_open_violation"):
                 "safeguard_id": "SG-0",
                 "title": "Fixture",
                 "asset_types": ["iam_role"],
+                "required_evidence_types": ["fixture.assessment"],
                 "evaluation_rule": rule,
                 "satisfies": [{"control_id": "REQ", "effective_review_state": "maintainer_reviewed"}],
             }

@@ -1,4 +1,4 @@
-"""Okta, Google Workspace and GCP posture verdicts reach CCF safeguards end to end."""
+"""Identity technical verdicts cannot attest safeguards without evidence contracts."""
 
 from __future__ import annotations
 
@@ -42,7 +42,24 @@ def _identity(lake: Path) -> tuple[dict[str, Any], dict[str, dict[str, Any]]]:
     assessment = json.loads((lake / "gold" / "ccf_assessment.json").read_text(encoding="utf-8"))
     safeguard = next(row for row in assessment["safeguards"] if row["safeguard_id"] == IDENTITY)
     results = {row["asset_id"]: row for row in assessment["asset_results"] if row["safeguard_id"] == IDENTITY}
+    assert safeguard["status"] == "not_evaluated"
+    for row in results.values():
+        assert row["status"] == "not_evaluated"
+        assert row["reasons"] == ["The safeguard has no declared evidence-type contract."]
     return safeguard, results
+
+
+def _assert_technical(lake: Path, asset_id: str, expected: str) -> None:
+    statuses = {
+        row["status"]
+        for row in _raw(lake)
+        if row["entity"]["asset_id"] == asset_id
+        and row["event_type"] in {OKTA_MFA, GW_MFA, GCP_POLICY}
+        and IDENTITY in row.get("safeguard_ids", [])
+    }
+    assert expected in statuses
+    if expected == "pass":
+        assert statuses == {"pass"}
 
 
 def _fixture(tmp_path: Path, name: str, **files: object) -> Path:
@@ -64,19 +81,21 @@ def _okta_user(user_id: str, status: str = "ACTIVE") -> dict[str, Any]:
 ACTIVE_FACTOR = [{"id": "opf-webauthn", "factorType": "webauthn", "status": "ACTIVE"}]
 
 
-def test_okta_unenrolled_active_user_fails_the_identity_safeguard(tmp_path: Path) -> None:
+def test_okta_unenrolled_active_user_stays_open_without_safeguard_contract(tmp_path: Path) -> None:
     lake = tmp_path / "lake"
     _sync(lake, "okta-identity", FIXTURES / "okta")
 
     safeguard, results = _identity(lake)
-    assert safeguard["status"] == "fail"
-    assert results["okta:user:00u2nomfa00000002"]["status"] == "fail"
-    assert results["okta:user:00u1mfaenrolled01"]["status"] == "pass"
+    assert safeguard["status"] == "not_evaluated"
+    _assert_technical(lake, "okta:user:00u2nomfa00000002", "open")
+    assert results["okta:user:00u2nomfa00000002"]["status"] == "not_evaluated"
+    _assert_technical(lake, "okta:user:00u1mfaenrolled01", "pass")
+    assert results["okta:user:00u1mfaenrolled01"]["status"] == "not_evaluated"
     # The deprovisioned user's MFA record is an observation and never binds.
     assert "okta:user:00u3deprovision03" not in results
 
 
-def test_okta_fully_enrolled_population_passes_the_identity_safeguard(tmp_path: Path) -> None:
+def test_okta_fully_enrolled_population_needs_a_safeguard_contract(tmp_path: Path) -> None:
     fixture = _fixture(
         tmp_path,
         "okta",
@@ -87,9 +106,11 @@ def test_okta_fully_enrolled_population_passes_the_identity_safeguard(tmp_path: 
     _sync(lake, "okta-identity", fixture)
 
     safeguard, results = _identity(lake)
-    assert safeguard["status"] == "pass"
+    assert safeguard["status"] == "not_evaluated"
     assert safeguard["assessed_asset_count"] == safeguard["applicable_asset_count"] == 2
-    assert {row["status"] for row in results.values()} == {"pass"}
+    for asset_id in results:
+        _assert_technical(lake, asset_id, "pass")
+    assert {row["status"] for row in results.values()} == {"not_evaluated"}
 
 
 def test_okta_unreadable_factors_and_inactive_users_never_produce_a_pass(
@@ -117,7 +138,8 @@ def test_okta_unreadable_factors_and_inactive_users_never_produce_a_pass(
     assert mfa["okta:user:00ugone3"]["status"] == "observed"
     assert not mfa["okta:user:00ugone3"].get("safeguard_ids")
     safeguard, results = _identity(lake)
-    assert results["okta:user:00uenrolled1"]["status"] == "pass"
+    _assert_technical(lake, "okta:user:00uenrolled1", "pass")
+    assert results["okta:user:00uenrolled1"]["status"] == "not_evaluated"
     assert results["okta:user:00uunread2"]["status"] == "not_evaluated"
     assert "okta:user:00ugone3" not in results
     assert safeguard["status"] == "not_evaluated"
@@ -143,14 +165,16 @@ def _gw_user(user_id: str, *, enrolled: bool | None = True, suspended: bool = Fa
     return user
 
 
-def test_google_workspace_unenrolled_active_user_fails_the_identity_safeguard(tmp_path: Path) -> None:
+def test_google_workspace_unenrolled_active_user_stays_open_without_safeguard_contract(tmp_path: Path) -> None:
     lake = tmp_path / "lake"
     _sync(lake, "google-workspace-identity", FIXTURES / "google_workspace")
 
     safeguard, results = _identity(lake)
-    assert safeguard["status"] == "fail"
-    assert results["google_workspace:user:100000000000000000002"]["status"] == "fail"
-    assert results["google_workspace:user:100000000000000000001"]["status"] == "pass"
+    assert safeguard["status"] == "not_evaluated"
+    _assert_technical(lake, "google_workspace:user:100000000000000000002", "open")
+    assert results["google_workspace:user:100000000000000000002"]["status"] == "not_evaluated"
+    _assert_technical(lake, "google_workspace:user:100000000000000000001", "pass")
+    assert results["google_workspace:user:100000000000000000001"]["status"] == "not_evaluated"
     assert "google_workspace:user:100000000000000000003" not in results
     # Group membership roles are a review signal, not an assessed failure.
     groups = [row for row in _raw(lake) if row["event_type"] == "google_workspace.identity.group_membership"]
@@ -158,15 +182,17 @@ def test_google_workspace_unenrolled_active_user_fails_the_identity_safeguard(tm
     assert all(not row.get("safeguard_ids") for row in groups)
 
 
-def test_google_workspace_fully_enrolled_population_passes_the_identity_safeguard(tmp_path: Path) -> None:
+def test_google_workspace_fully_enrolled_population_needs_a_safeguard_contract(tmp_path: Path) -> None:
     fixture = _fixture(tmp_path, "google_workspace", users=[_gw_user("u1"), _gw_user("u2")], groups=[], members={})
     lake = tmp_path / "lake"
     _sync(lake, "google-workspace-identity", fixture)
 
     safeguard, results = _identity(lake)
-    assert safeguard["status"] == "pass"
+    assert safeguard["status"] == "not_evaluated"
     assert safeguard["assessed_asset_count"] == safeguard["applicable_asset_count"] == 2
-    assert {row["status"] for row in results.values()} == {"pass"}
+    for asset_id in results:
+        _assert_technical(lake, asset_id, "pass")
+    assert {row["status"] for row in results.values()} == {"not_evaluated"}
 
 
 def test_google_workspace_unassessed_groups_or_unknown_enrollment_never_produce_a_pass(tmp_path: Path) -> None:
@@ -174,7 +200,8 @@ def test_google_workspace_unassessed_groups_or_unknown_enrollment_never_produce_
     lake = tmp_path / "lake"
     _sync(lake, "google-workspace-identity", with_groups)
     safeguard, results = _identity(lake)
-    assert results["google_workspace:user:u1"]["status"] == "pass"
+    _assert_technical(lake, "google_workspace:user:u1", "pass")
+    assert results["google_workspace:user:u1"]["status"] == "not_evaluated"
     assert safeguard["status"] == "not_evaluated"
     assert safeguard["unassessed_asset_count"] >= 1
 
@@ -214,13 +241,14 @@ def _gcp_policy_events(lake: Path) -> dict[str, dict[str, Any]]:
     return {row["attributes"]["constraint"]: row for row in _raw(lake) if row["event_type"] == GCP_POLICY}
 
 
-def test_gcp_unenforced_expected_constraint_fails_the_identity_safeguard(tmp_path: Path) -> None:
+def test_gcp_unenforced_expected_constraint_stays_open_without_safeguard_contract(tmp_path: Path) -> None:
     lake = tmp_path / "lake"
     _sync(lake, "gcp-posture", FIXTURES / "gcp")
 
     safeguard, results = _identity(lake)
-    assert safeguard["status"] == "fail"
-    assert results[GCP_PROJECT]["status"] == "fail"
+    assert safeguard["status"] == "not_evaluated"
+    _assert_technical(lake, GCP_PROJECT, "open")
+    assert results[GCP_PROJECT]["status"] == "not_evaluated"
 
 
 ENFORCED = _policies(
@@ -232,15 +260,16 @@ ENFORCED = _policies(
 )
 
 
-def test_gcp_enforced_expected_constraints_pass_the_identity_safeguard(tmp_path: Path) -> None:
+def test_gcp_enforced_expected_constraints_need_a_safeguard_contract(tmp_path: Path) -> None:
     lake = tmp_path / "lake"
     _sync(lake, "gcp-posture", _fixture(tmp_path, "gcp", org_policies=ENFORCED, assets={"assets": []}))
 
     events = _gcp_policy_events(lake)
     assert not events["constraints/gcp.resourceLocations"].get("safeguard_ids")
     safeguard, results = _identity(lake)
-    assert results[GCP_PROJECT]["status"] == "pass"
-    assert safeguard["status"] == "pass"
+    _assert_technical(lake, GCP_PROJECT, "pass")
+    assert results[GCP_PROJECT]["status"] == "not_evaluated"
+    assert safeguard["status"] == "not_evaluated"
     assert safeguard["assessed_asset_count"] == safeguard["applicable_asset_count"] == 1
 
 
@@ -249,7 +278,8 @@ def test_gcp_unassessed_inventory_keeps_the_identity_safeguard_from_passing(tmp_
     _sync(lake, "gcp-posture", _fixture(tmp_path, "gcp", org_policies=ENFORCED))
 
     safeguard, results = _identity(lake)
-    assert results[GCP_PROJECT]["status"] == "pass"
+    _assert_technical(lake, GCP_PROJECT, "pass")
+    assert results[GCP_PROJECT]["status"] == "not_evaluated"
     assert safeguard["status"] == "not_evaluated"
     assert safeguard["unassessed_asset_count"] >= 1
 
@@ -319,8 +349,9 @@ def test_gcp_inherited_enforced_constraints_pass_from_the_effective_policy(tmp_p
         assert row["attributes"]["set_on_project"] is False
         assert row["evidence"]["evidence_ref"].endswith(f"/policies/{constraint}:getEffectivePolicy")
     safeguard, results = _identity(lake)
-    assert results[GCP_PROJECT]["status"] == "pass"
-    assert safeguard["status"] == "pass"
+    _assert_technical(lake, GCP_PROJECT, "pass")
+    assert results[GCP_PROJECT]["status"] == "not_evaluated"
+    assert safeguard["status"] == "not_evaluated"
     assert safeguard["assessed_asset_count"] == safeguard["applicable_asset_count"] == 1
 
 
@@ -330,11 +361,12 @@ def test_gcp_inherited_enforcement_still_needs_every_accepted_asset_assessed(tmp
     _sync(lake, "gcp-posture", fixture)
 
     safeguard, results = _identity(lake)
-    assert results[GCP_PROJECT]["status"] == "pass"
+    _assert_technical(lake, GCP_PROJECT, "pass")
+    assert results[GCP_PROJECT]["status"] == "not_evaluated"
     assert safeguard["status"] == "not_evaluated"
 
 
-def test_gcp_inherited_unenforced_constraint_fails_the_identity_safeguard(tmp_path: Path) -> None:
+def test_gcp_inherited_unenforced_constraint_stays_open_without_safeguard_contract(tmp_path: Path) -> None:
     effective = _effective(**{"iam.disableServiceAccountKeyCreation": True, "compute.requireOsLogin": False})
     fixture = _fixture(tmp_path, "gcp", org_policies=[], effective_org_policies=effective, assets={"assets": []})
     lake = tmp_path / "lake"
@@ -344,8 +376,9 @@ def test_gcp_inherited_unenforced_constraint_fails_the_identity_safeguard(tmp_pa
     assert events["constraints/compute.requireOsLogin"]["status"] == "open"
     assert events["constraints/compute.requireOsLogin"]["attributes"]["needs_enforcement"] is True
     safeguard, results = _identity(lake)
-    assert results[GCP_PROJECT]["status"] == "fail"
-    assert safeguard["status"] == "fail"
+    _assert_technical(lake, GCP_PROJECT, "open")
+    assert results[GCP_PROJECT]["status"] == "not_evaluated"
+    assert safeguard["status"] == "not_evaluated"
 
 
 @pytest.mark.parametrize(
@@ -402,7 +435,7 @@ def test_gcp_constraint_set_on_project_does_not_read_the_effective_policy(
     assert listed["attributes"]["set_on_project"] is True
     assert listed["attributes"]["effective"] is False
     safeguard, _results = _identity(lake)
-    assert safeguard["status"] == "fail"
+    assert safeguard["status"] == "not_evaluated"
 
 
 @pytest.mark.parametrize(
