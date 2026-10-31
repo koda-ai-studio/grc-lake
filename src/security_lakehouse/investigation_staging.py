@@ -142,6 +142,31 @@ class Staging:
                 ],
             )
 
+    def publish(self):
+        self.check()
+        self.db.create_function("graph_casefold", 1, str.casefold, deterministic=True)
+        try:
+            self.db.execute("""
+                INSERT INTO nodes SELECT
+                    json_extract(data,'$.id'), json_extract(data,'$.kind'), json_extract(data,'$.label'),
+                    graph_casefold(json_extract(data,'$.label') || ' ' || json_extract(data,'$.id')),
+                    CASE WHEN json_type(data,'$.source_account_id') IS NULL THEN ''
+                        ELSE json_extract(data,'$.source_account_id') END,
+                    CASE WHEN json_type(data,'$.framework_id') IS NULL THEN ''
+                        ELSE json_extract(data,'$.framework_id') END,
+                    data,ordinal
+                FROM objects WHERE space='nodes' ORDER BY ordinal
+            """)
+            self.check()
+            self.db.execute("""
+                INSERT INTO edges SELECT json_extract(data,'$.id'), json_extract(data,'$.source'),
+                    json_extract(data,'$.target'),data,ordinal
+                FROM objects WHERE space='edges' ORDER BY ordinal
+            """)
+            self.check()
+        finally:
+            self.db.create_function("graph_casefold", 1, None)
+
     def drop(self):
         self.db.executescript(
             "DROP TABLE objects; DROP TABLE events; DROP TABLE asset_types; DROP TABLE evidence; DROP TABLE findings;"

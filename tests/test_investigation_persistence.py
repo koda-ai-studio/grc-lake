@@ -201,21 +201,34 @@ def test_persistent_scope_and_pinned_generation_are_independent(tmp_path, monkey
         graph.investigation_graph(a, platform_tenant_id="a", expected_version=first["version"])
 
 
-def test_cancelled_index_build_is_not_published(tmp_path, monkeypatch):
+@pytest.mark.parametrize("table", ["nodes", "edges"])
+def test_cancelled_index_build_is_not_published(tmp_path, monkeypatch, table):
+    from security_lakehouse.investigation_staging import Staging
+
     publish_generation(tmp_path, generation(tmp_path))
     monkeypatch.setattr(graph, "_PERSISTENT_MIN_BYTES", 0)
-    calls = 0
+    interrupted = False
+    original = Staging.publish
+
+    def traced_publish(stage):
+        def trace(statement):
+            nonlocal interrupted
+            if statement.strip().startswith("INSERT INTO " + table):
+                interrupted = True
+
+        stage.db.set_trace_callback(trace)
+        original(stage)
 
     def cancel():
-        nonlocal calls
-        calls += 1
-        if calls > 100:
+        if interrupted:
             raise RuntimeError("cancelled")
 
+    monkeypatch.setattr(Staging, "publish", traced_publish)
     with pytest.raises(RuntimeError, match="cancelled"):
         graph.investigation_graph(tmp_path, checkpoint=cancel)
     assert not (tmp_path / ".graph-index/index.sqlite").exists()
     assert not list((tmp_path / ".graph-index").glob(".building-*"))
+    monkeypatch.setattr(Staging, "publish", original)
     assert graph.investigation_graph(tmp_path)["nodes"]
 
 
@@ -480,3 +493,33 @@ def test_temporary_staging_respects_disk_ceiling(tmp_path, monkeypatch):
         prepare_index(tmp_path)
     assert not (tmp_path / ".graph-index/index.sqlite").exists()
     assert not list((tmp_path / ".graph-index").glob(".building-*"))
+
+
+def test_preparation_only_materializes_one_inventory_pass(tmp_path, monkeypatch):
+    import sqlite3
+    from contextlib import closing
+
+    from security_lakehouse.graph_index_cli import prepare_index
+    from security_lakehouse.investigation_staging import Rows
+
+    publish_generation(tmp_path, generation(tmp_path, "Straße 雪"))
+    expected = graph.investigation_graph(tmp_path, root="control:TEST", depth=3)
+    materialized = {"nodes": 0, "edges": 0}
+    original = Rows.values
+
+    def counted(rows):
+        for row in original(rows):
+            if rows.space in materialized:
+                materialized[rows.space] += 1
+            yield row
+
+    monkeypatch.setattr(Rows, "values", counted)
+    prepared = prepare_index(tmp_path)
+    # Fingerprinting needs one ordered pass; publishing must reuse the stored rows.
+    assert materialized["nodes"] == sum(prepared["counts"].values())
+    with closing(sqlite3.connect(tmp_path / ".graph-index/index.sqlite")) as db:
+        assert materialized["edges"] == db.execute("SELECT count(*) FROM edges").fetchone()[0]
+    monkeypatch.setattr(graph, "_PERSISTENT_MIN_BYTES", 0)
+    actual = graph.investigation_graph(tmp_path, root="control:TEST", depth=3)
+    assert actual == expected
+    assert graph.investigation_graph(tmp_path, view="environment", search="STRASSE")["root_count"] == 1
