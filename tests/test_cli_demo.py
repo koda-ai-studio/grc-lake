@@ -123,3 +123,41 @@ def test_demo_deletes_its_temporary_lake_on_sigterm(tmp_path: Path) -> None:
             process.wait()
 
     assert not lakes[0].exists()
+
+
+def test_ai_demo_opens_inventory_with_real_fixture_assets_and_cleans_up(monkeypatch, capsys):
+    pytest.importorskip("uvicorn")
+    from security_lakehouse import api_v1, server_app
+    from security_lakehouse.io import read_json
+
+    seen = {}
+
+    def build(lake, *, require_auth):
+        seen["lake"] = Path(lake)
+        assert require_auth is False
+        status, body = api_v1.handle_get("/api/v1/platform/ai-governance/inventory", {}, Path(lake))
+        assert status == 200
+        seen["inventory"] = body["data"]
+        seen["assessment"] = read_json(Path(lake) / "gold/ccf_assessment.json")
+        return SimpleNamespace()
+
+    port = _free_port()
+    monkeypatch.setattr(server_app, "create_app", build)
+    monkeypatch.setattr("uvicorn.run", lambda _app, **kwargs: seen.update(bind=kwargs))
+    monkeypatch.setattr(cli, "_open_when_listening", lambda host, port, url: seen.update(url=url))
+    args = cli._parser().parse_args(["demo", "--company", "ai_lab", "--port", str(port)])
+    assert cli._demo(args) == 0
+    assert seen["url"] == f"http://127.0.0.1:{port}/console/ai-governance/"
+    assert seen["bind"]["host"] == "127.0.0.1"
+    assert len(seen["inventory"]) == 3
+    assert {row["asset_type"] for row in seen["inventory"]} == {"model", "agent"}
+    assert seen["assessment"]["population_completeness"] == "not_established"
+    assert not seen["lake"].exists()
+    output = capsys.readouterr().out
+    assert "synthetic ai_lab company" in output
+    assert "Start with the discovered models and agents" in output
+
+
+def test_demo_company_is_an_allowlisted_fixture_not_a_file_path():
+    with pytest.raises(SystemExit):
+        _args("--company", "../../private")

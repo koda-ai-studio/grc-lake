@@ -73,12 +73,21 @@ def _attributes(row: dict[str, Any]) -> dict[str, Any]:
     return attrs if isinstance(attrs, dict) else {}
 
 
+def _is_runtime_agent(row: dict[str, Any]) -> bool:
+    return _asset_type(row) in {"agent", "ai_agent"} and str(row.get("event_type") or "") in AGENT_EVENT_TYPES | {
+        "runtime.inference"
+    }
+
+
+def _is_ai_asset(row: dict[str, Any]) -> bool:
+    return _asset_type(row) in AI_ASSET_TYPES or _is_runtime_agent(row)
+
+
 def _is_ai_event(row: dict[str, Any]) -> bool:
     event_type = str(row.get("event_type") or "")
     if event_type in INVENTORY_EVENT_TYPES | LINEAGE_EVENT_TYPES | AGENT_EVENT_TYPES | REPO_ARTIFACT_EVENT_TYPES:
         return True
-    asset_type = _asset_type(row)
-    return asset_type in AI_ASSET_TYPES
+    return _is_ai_asset(row)
 
 
 def _framework_control_ids(controls: list[dict[str, Any]], prefix: str) -> set[str]:
@@ -192,7 +201,7 @@ def _inventory_items(events: list[dict[str, Any]]) -> list[dict[str, Any]]:
         if not asset_id:
             continue
         asset_type = _asset_type(row)
-        if asset_type not in AI_ASSET_TYPES and str(row.get("event_type") or "") not in INVENTORY_EVENT_TYPES:
+        if not _is_ai_asset(row) and str(row.get("event_type") or "") not in INVENTORY_EVENT_TYPES:
             continue
         attrs = _attributes(row)
         account, _ = source_asset_key({**row, "asset_id": asset_id})
@@ -283,12 +292,14 @@ def build_ai_governance_status(*, lake: Path) -> dict[str, Any]:
 
     inventory_events = [row for row in ai_events if str(row.get("event_type") or "") in INVENTORY_EVENT_TYPES]
     lineage_events = [row for row in ai_events if str(row.get("event_type") or "") in LINEAGE_EVENT_TYPES]
-    agent_events = [row for row in ai_events if str(row.get("event_type") or "") in AGENT_EVENT_TYPES]
+    agent_events = [
+        row for row in ai_events if str(row.get("event_type") or "") in AGENT_EVENT_TYPES or _is_runtime_agent(row)
+    ]
     repo_artifacts = [row for row in ai_events if str(row.get("event_type") or "") in REPO_ARTIFACT_EVENT_TYPES]
 
     inventory = _merged_inventory(lake=lake, events=ai_events)
     models = [row for row in inventory if row["asset_type"] in {"ai_model", "model"}]
-    agents = [row for row in inventory if row["asset_type"] == "ai_agent"]
+    agents = [row for row in inventory if row["asset_type"] in {"ai_agent", "agent"}]
     with_model_card = sum(1 for row in inventory if row["model_card"])
     with_lineage = sum(1 for row in inventory if row["lineage_complete"] or "model.lineage" in row["event_types"])
 

@@ -480,3 +480,30 @@ def test_scoped_import_documents_only_exact_account_asset_pair(tmp_path: Path) -
     assert items["source-a"]["owner"] == "source-a"
     assert items["source-a"]["control_ids"] == []
     assert items["source-b"]["model_card"] is False
+
+
+def test_runtime_backed_agent_inventory_preserves_accounts_without_classifying_other_agents(tmp_path):
+    rows = [
+        {
+            "event_id": f"{account}-{event_type}",
+            "asset_id": "agent:shared-name",
+            "asset_type": "agent",
+            "source_account_id": account,
+            "event_type": event_type,
+            "source": "runtime_gateway",
+            "event_time": "2026-10-30T10:00:00Z",
+            "status": "observed",
+            "control_ids": [],
+        }
+        for account, event_type in [("a", "runtime.inference"), ("b", "runtime.tool_call"), ("c", "agent.heartbeat")]
+    ]
+    _write_jsonl(tmp_path / "silver/normalized_events.jsonl", rows)
+    inventory = list_ai_inventory(lake=tmp_path)
+    assert {(r["source_account_id"], r["asset_id"], r["asset_type"]) for r in inventory} == {
+        ("a", "agent:shared-name", "agent"),
+        ("b", "agent:shared-name", "agent"),
+    }
+    assert all(r["last_seen_at"] == "2026-10-30T10:00:00Z" for r in inventory)
+    status = build_ai_governance_status(lake=tmp_path)
+    assert status["inventory"]["agents"] == 2
+    assert status["events"]["agent_runtime"] == 2

@@ -32,10 +32,13 @@ function inventoryKey(item: AiInventoryItem): string {
 }
 
 function nextStep(item: AiInventoryItem): string {
-  if (isAgent(item))
-    return item.event_types.includes("runtime.tool_call")
-      ? "Review tool activity"
-      : "Collect runtime evidence";
+  if (isAgent(item)) {
+    if (item.event_types.includes("runtime.tool_call"))
+      return "Review tool activity";
+    if (item.event_types.includes("runtime.inference"))
+      return "Review inference activity";
+    return "Collect runtime evidence";
+  }
   if (!item.model_card) return "Collect model card";
   if (!item.lineage_complete) return "Review model lineage";
   return "Review linked controls";
@@ -48,7 +51,9 @@ function InventoryRow({ item }: { item: AiInventoryItem }) {
   const agent = isAgent(item);
   const recordedLineage =
     item.lineage_complete || item.event_types.includes("model.lineage");
-  const runtime = item.event_types.includes("runtime.tool_call");
+  const runtime = item.event_types.some((type) =>
+    ["runtime.tool_call", "runtime.inference"].includes(type),
+  );
   const Icon = agent ? Bot : BrainCircuit;
   return (
     <li className="border-t border-line first:border-t-0">
@@ -119,7 +124,7 @@ function InventoryRow({ item }: { item: AiInventoryItem }) {
             <p className="mt-1 text-xs leading-5 text-muted">
               {agent
                 ? runtime
-                  ? "Review the recorded tools, permissions and outcomes before assessing agent behavior."
+                  ? "Review the recorded runtime activity and outcomes before assessing agent behavior. Inference evidence alone does not establish tool permissions or complete agent coverage."
                   : "Runtime evidence is needed to inspect tool use and permissions. Connect the agent activity source if this agent is in scope."
                 : !item.model_card
                   ? "Purpose, limitations and intended use belong in a model card. No model-card signal was collected for this asset; the document may exist elsewhere. Ask the owner for the card and collect its evidence, then review the linked controls."

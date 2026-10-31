@@ -51,6 +51,8 @@ and opens your browser. Ctrl+C stops it and deletes the lake. With pip:
 the frozen result: follow the [sample-data tutorial](docs/TUTORIAL_5_MIN.md), then the
 [auditor workpaper example](docs/AUDITOR_WALKTHROUGH.md).
 
+**Exploring AI assets?** The source checkout includes an [AI discovery walkthrough](docs/AI_DISCOVERY_WALKTHROUGH.md): one command opens a synthetic model-and-agent inventory, then follows recorded evidence into the graph and assessment. The walkthrough marks the unreleased CLI option explicitly.
+
 For a real evaluation, follow the [bounded pilot guide](docs/PILOT.md): one source,
 one independently checked result, then a repeat collection and review.
 

@@ -471,7 +471,13 @@ def _parser() -> argparse.ArgumentParser:
     serve.set_defaults(func=_serve)
 
     demo = sub.add_parser(
-        "demo", help="load the synthetic golden company into a temporary lake and open the console on loopback"
+        "demo", help="load a synthetic company into a temporary lake and open the console on loopback"
+    )
+    demo.add_argument(
+        "--company",
+        choices=["golden", "ai_lab"],
+        default="golden",
+        help="synthetic demo company; ai_lab opens model and agent inventory",
     )
     demo.add_argument("--port", type=int, default=8787, help="loopback port")
     demo.add_argument("--no-browser", action="store_true", help="print the console URL without opening a browser")
@@ -2315,9 +2321,10 @@ def _serve_demo(args: argparse.Namespace, host: str) -> int:
     import tempfile
 
     with tempfile.TemporaryDirectory(prefix="grc-lake-demo-") as lake:
-        print("loading the synthetic golden company...", flush=True)
-        _load_fixture("golden", lake, tenant_id="default", rebase_times=True, demo_records=True)
-        url = f"http://{host}:{args.port}/console/dashboard/"
+        print(f"loading the synthetic {args.company} company...", flush=True)
+        _load_fixture(args.company, lake, tenant_id="default", rebase_times=True, demo_records=True)
+        page = "ai-governance" if args.company == "ai_lab" else "dashboard"
+        url = f"http://{host}:{args.port}/console/{page}/"
         try:
             import uvicorn
 
@@ -2329,6 +2336,9 @@ def _serve_demo(args: argparse.Namespace, host: str) -> int:
         if not args.no_browser:
             _open_when_listening(host, args.port, url)
         print(f"GRC Lake demo (synthetic data, no authentication, loopback only): {url}")
+        if args.company == "ai_lab":
+            print("Start with the discovered models and agents, then inspect their recorded evidence and gaps.")
+            print("Synthetic observations do not establish live coverage or framework compliance.")
         print("press Ctrl+C to stop; the temporary lake is deleted on exit", flush=True)
         with contextlib.suppress(KeyboardInterrupt):
             if not full_server:
