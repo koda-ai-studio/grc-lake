@@ -1,0 +1,39 @@
+{
+  "items": [
+    {
+      "apiVersion": "batch/v1",
+      "kind": "Job",
+      "metadata": {
+        "name": "tpu-train",
+        "namespace": "training"
+      },
+      "spec": {
+        "template": {
+          "spec": {
+            "containers": [
+              {
+                "name": "trainer",
+                "image": "example.com/trainer:v1",
+                "resources": {
+                  "requests": {
+                    "google.com/tpu": "4"
+                  },
+                  "limits": {
+                    "google.com/tpu": "4"
+                  }
+                },
+                "securityContext": {
+                  "runAsNonRoot": true,
+                  "allowPrivilegeEscalation": false,
+                  "capabilities": {
+                    "drop": ["ALL"]
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

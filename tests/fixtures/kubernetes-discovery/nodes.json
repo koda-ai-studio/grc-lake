@@ -1,0 +1,144 @@
+{
+  "apiVersion": "v1",
+  "kind": "NodeList",
+  "items": [
+    {
+      "metadata": {
+        "name": "gpu-worker",
+        "uid": "gpu-worker-uid",
+        "labels": {
+          "private": "do-not-collect"
+        },
+        "annotations": {
+          "private": "do-not-collect"
+        }
+      },
+      "spec": {
+        "unschedulable": false
+      },
+      "status": {
+        "capacity": {
+          "cpu": "32",
+          "memory": "128Gi",
+          "nvidia.com/gpu": "8"
+        },
+        "allocatable": {
+          "cpu": "32",
+          "memory": "128Gi",
+          "nvidia.com/gpu": "7"
+        },
+        "nodeInfo": {
+          "architecture": "amd64",
+          "operatingSystem": "linux",
+          "osImage": "Example Linux",
+          "kernelVersion": "6.12.1",
+          "kubeletVersion": "v1.35.0",
+          "containerRuntimeVersion": "containerd://2.1.0",
+          "machineID": "do-not-collect"
+        },
+        "conditions": [
+          {
+            "type": "Ready",
+            "status": "True"
+          }
+        ],
+        "addresses": [
+          {
+            "type": "InternalIP",
+            "address": "do-not-collect"
+          }
+        ]
+      }
+    },
+    {
+      "metadata": {
+        "name": "tpu-worker",
+        "uid": "tpu-worker-uid",
+        "labels": {
+          "private": "do-not-collect"
+        },
+        "annotations": {
+          "private": "do-not-collect"
+        }
+      },
+      "spec": {
+        "unschedulable": true,
+        "providerID": "gce://example-project/example-zone/tpu-worker"
+      },
+      "status": {
+        "capacity": {
+          "cpu": "32",
+          "memory": "128Gi",
+          "google.com/tpu": "4"
+        },
+        "allocatable": {
+          "cpu": "32",
+          "memory": "128Gi",
+          "google.com/tpu": "4"
+        },
+        "nodeInfo": {
+          "architecture": "amd64",
+          "operatingSystem": "linux",
+          "osImage": "Example Linux",
+          "kernelVersion": "6.12.1",
+          "kubeletVersion": "v1.35.0",
+          "containerRuntimeVersion": "containerd://2.1.0",
+          "machineID": "do-not-collect"
+        },
+        "conditions": [
+          {
+            "type": "Ready",
+            "status": "True"
+          }
+        ],
+        "addresses": [
+          {
+            "type": "InternalIP",
+            "address": "do-not-collect"
+          }
+        ]
+      }
+    },
+    {
+      "metadata": {
+        "name": "cpu-worker",
+        "uid": "cpu-worker-uid",
+        "labels": {
+          "private": "do-not-collect"
+        },
+        "annotations": {
+          "private": "do-not-collect"
+        }
+      },
+      "spec": {
+        "unschedulable": false
+      },
+      "status": {
+        "capacity": {
+          "cpu": "32",
+          "memory": "128Gi"
+        },
+        "allocatable": {
+          "cpu": "32",
+          "memory": "128Gi"
+        },
+        "nodeInfo": {
+          "architecture": "amd64",
+          "operatingSystem": "linux",
+          "osImage": "Example Linux",
+          "kernelVersion": "6.12.1",
+          "kubeletVersion": "v1.35.0",
+          "containerRuntimeVersion": "containerd://2.1.0",
+          "machineID": "do-not-collect"
+        },
+        "conditions": [],
+        "addresses": [
+          {
+            "type": "InternalIP",
+            "address": "do-not-collect"
+          }
+        ]
+      }
+    }
+  ]
+}
