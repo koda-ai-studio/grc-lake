@@ -7,19 +7,20 @@ For a real evaluation and contribution feedback, use the [bounded pilot guide](P
 
 ## Start
 
-| Guide                                                                   | Covers                                                             |
-| ----------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| [5-minute tutorial](TUTORIAL_5_MIN.md)                                  | Sample data to evaluated controls, a mapping review, and an export |
-| [Product walkthrough](PRODUCT_WALKTHROUGH.md)                           | Running the demo and what each console page does                   |
-| [Scenarios](SCENARIOS.md)                                               | End-to-end scenarios over the bundled data                         |
-| [Auditor walkthrough](AUDITOR_WALKTHROUGH.md)                           | The auditor's path through shares, snapshots, and workpapers       |
-| [Control workflow qualification](CONTROL_WORKFLOW_QUALIFICATION.md)     | Synthetic access/change failure cases and retained workpapers      |
-| [Connector workflow qualification](CONNECTOR_WORKFLOW_QUALIFICATION.md) | Offline GitHub, Okta and Jira collection-to-export evidence        |
-| [Vendor diligence use case](USE_CASE_VENDOR_DILIGENCE.md)               | Just-in-time vendor diligence snapshots                            |
-| [AWS + Snowflake demo](AWS_SNOWFLAKE_DEMO.md)                           | Demo package for AWS evidence in Snowflake                         |
-| [Live cloud POC](LIVE_CLOUD_POC.md)                                     | Connecting a real AWS, Azure, or GCP account read-only             |
-| [Shareable demo](SHAREABLE_DEMO.md)                                     | Publishing a demo link for evaluators                              |
-| [Shareable POC hosting](SHAREABLE_POC_HOSTING.md)                       | Hosting a proof of concept                                         |
+| Guide                                                                   | Covers                                                                                                 |
+| ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| [5-minute tutorial](TUTORIAL_5_MIN.md)                                  | Sample data to evaluated controls, a mapping review, and an export                                     |
+| [AI discovery walkthrough](AI_DISCOVERY_WALKTHROUGH.md)                 | A temporary AI lab: discover models and agents, inspect evidence, then start a bounded real evaluation |
+| [Product walkthrough](PRODUCT_WALKTHROUGH.md)                           | Running the demo and what each console page does                                                       |
+| [Scenarios](SCENARIOS.md)                                               | End-to-end scenarios over the bundled data                                                             |
+| [Auditor walkthrough](AUDITOR_WALKTHROUGH.md)                           | The auditor's path through shares, snapshots, and workpapers                                           |
+| [Control workflow qualification](CONTROL_WORKFLOW_QUALIFICATION.md)     | Synthetic access/change failure cases and retained workpapers                                          |
+| [Connector workflow qualification](CONNECTOR_WORKFLOW_QUALIFICATION.md) | Offline GitHub, Okta and Jira collection-to-export evidence                                            |
+| [Vendor diligence use case](USE_CASE_VENDOR_DILIGENCE.md)               | Just-in-time vendor diligence snapshots                                                                |
+| [AWS + Snowflake demo](AWS_SNOWFLAKE_DEMO.md)                           | Demo package for AWS evidence in Snowflake                                                             |
+| [Live cloud POC](LIVE_CLOUD_POC.md)                                     | Connecting a real AWS, Azure, or GCP account read-only                                                 |
+| [Shareable demo](SHAREABLE_DEMO.md)                                     | Publishing a demo link for evaluators                                                                  |
+| [Shareable POC hosting](SHAREABLE_POC_HOSTING.md)                       | Hosting a proof of concept                                                                             |
 
 [Current state and coverage](CURRENT_STATE.md) · [Contributor roadmap](../ROADMAP.md) · [Contributing](../CONTRIBUTING.md)
 

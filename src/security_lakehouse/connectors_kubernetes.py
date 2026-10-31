@@ -17,8 +17,10 @@ raw evidence shape:
   1.2.16 / 3.2.1), only when the apiserver runs as a visible static pod. Managed
   control planes (EKS, GKE, AKS) do not expose it, so no event is emitted there
   rather than guessing either way.
+* ``kubernetes.node.inventory`` — observed CPU, memory, GPU/TPU capacity and
+  allocatable resources, node OS/runtime versions and scheduling state.
 * ``kubernetes.workload.accelerator_inventory`` — workloads requesting GPUs
-  (``nvidia.com/gpu``, ``amd.com/gpu``) or InfiniBand (``rdma/ib``), with the
+  (``nvidia.com/gpu``, ``amd.com/gpu``), TPU chips (``google.com/tpu``) or InfiniBand (``rdma/ib``), with the
   serving runtime and the namespace's NetworkPolicy count. Inventory only: it
   is ``observed``, never a pass or a failure.
 * ``kubernetes.service.network_exposure`` — LoadBalancer and NodePort Services,
@@ -67,7 +69,7 @@ from typing import Any
 
 from security_lakehouse.connector_errors import CollectionGapError, ConnectorConfigError
 from security_lakehouse.ingestion import backoff
-from security_lakehouse.ingestion.paginate import object_rows, paginate
+from security_lakehouse.ingestion.paginate import IncompleteCollectionError, object_rows, paginate
 from security_lakehouse.io import read_json
 from security_lakehouse.models import utc_iso
 
@@ -107,6 +109,7 @@ NETWORK_SAFEGUARD = "SG-NETWORK-001"
 ACCELERATOR_INVENTORY_CONTROLS = ["NIST-CSF-ID.AM-02", "NIST-800-53-CM-8", "FEDRAMP-CM-8"]
 
 GPU_RESOURCES = ("nvidia.com/gpu", "amd.com/gpu")
+TPU_RESOURCE = "google.com/tpu"
 INFINIBAND_RESOURCE = "rdma/ib"
 NIM_IMAGE_PREFIX = "nvcr.io/nim/"
 KSERVE_GROUP = "serving.kserve.io"
@@ -182,6 +185,19 @@ class KubernetesClient:
 
     def role_bindings(self) -> list[dict[str, Any]]:
         return self._list("rbac", "list_role_binding_for_all_namespaces")
+
+    def nodes(self) -> list[dict[str, Any]]:
+        try:
+            return self._optional("nodes", "list nodes", lambda: self._list("core", "list_node"))
+        except IncompleteCollectionError:
+            raise CollectionGapError(
+                "Kubernetes node inventory was incomplete (pagination did not finish)",
+                collection="nodes",
+                reason="pagination_incomplete",
+                permission="list nodes",
+            ) from None
+        except ValueError:
+            raise _node_gap() from None
 
     def namespaces(self) -> list[dict[str, Any]]:
         return self._list("core", "list_namespace")
@@ -264,7 +280,7 @@ class KubernetesClient:
         return list(
             paginate(
                 fetch_page,
-                lambda page: object_rows(page.get("items", []), label="Kubernetes"),
+                lambda page: object_rows(page.get("items"), label="Kubernetes"),
                 lambda page: str((page.get("metadata") or {}).get("continue") or "") or None,
             )
         )
@@ -387,6 +403,16 @@ class KubernetesFixtureClient:
     def role_bindings(self) -> list[dict[str, Any]]:
         return self._read("role_bindings.json")
 
+    def nodes(self) -> list[dict[str, Any]]:
+        path = self.fixture / "nodes.json"
+        if not path.exists():
+            return []
+        payload = read_json(path)
+        try:
+            return object_rows(payload.get("items") if isinstance(payload, dict) else payload, label="Kubernetes nodes")
+        except ValueError:
+            raise _node_gap() from None
+
     def namespaces(self) -> list[dict[str, Any]]:
         return self._read("namespaces.json")
 
@@ -445,10 +471,15 @@ def collect_kubernetes_evidence(
         if name:
             rows.append(_network_policy_event(cluster, name, policy_counts.get(name, 0), now, tenant_id))
 
+    gaps: list[CollectionGapError] = []
     accelerated_templates: list[tuple[str, dict[str, Any]]] = []
     for workload in [*client.workloads(), *client.pods()]:
         rows.extend(_workload_events(cluster, workload, allowlist, now, tenant_id))
-        inventory = _accelerator_event(cluster, workload, policy_counts, now, tenant_id)
+        try:
+            inventory = _accelerator_event(cluster, workload, policy_counts, now, tenant_id)
+        except CollectionGapError as gap:
+            gaps.append(gap)
+            inventory = None
         if inventory:
             rows.append(inventory)
             accelerated_templates.append((str(inventory["attributes"]["namespace"]), _template_labels(workload)))
@@ -457,16 +488,24 @@ def collect_kubernetes_evidence(
     if audit:
         rows.append(audit)
 
-    gaps: list[CollectionGapError] = []
+    for node in _optional_read(client.nodes, gaps):
+        try:
+            rows.append(_node_inventory_event(cluster, node, now, tenant_id))
+        except CollectionGapError as gap:
+            gaps.append(gap)
     for service in _optional_read(client.services, gaps):
         row = _service_exposure_event(cluster, service, accelerated_templates, now, tenant_id)
         if row:
             rows.append(row)
     for item in _optional_read(client.inference_services, gaps):
-        row = _inference_exposure_event(cluster, item, now, tenant_id)
+        try:
+            row = _inference_exposure_event(cluster, item, now, tenant_id)
+        except CollectionGapError as gap:
+            gaps.append(gap)
+            row = None
         if row:
             rows.append(row)
-    rows.extend(_gap_event(cluster, gap, now, tenant_id) for gap in gaps)
+    rows.extend(_gap_event(cluster, gap, now, tenant_id) for gap in {g.collection: g for g in gaps}.values())
     return rows
 
 
@@ -835,15 +874,96 @@ def _audit_logging_event(
     )
 
 
+def _node_gap() -> CollectionGapError:
+    return CollectionGapError(
+        "Kubernetes node inventory was incomplete (malformed response)",
+        collection="nodes",
+        reason="malformed_response",
+        permission="list nodes",
+    )
+
+
+def _node_inventory_event(cluster: str, node: dict[str, Any], now: datetime, tenant_id: str) -> dict[str, Any]:
+    meta, spec, status = (node.get(key, {}) for key in ("metadata", "spec", "status"))
+    if not all(isinstance(part, dict) for part in (meta, spec, status)):
+        raise _node_gap()
+    name = meta.get("name")
+    if not isinstance(name, str) or not name.strip():
+        raise _node_gap()
+    info = status.get("nodeInfo", {})
+    conditions = status.get("conditions", [])
+    if (
+        not isinstance(info, dict)
+        or not isinstance(conditions, list)
+        or any(not isinstance(c, dict) for c in conditions)
+    ):
+        raise _node_gap()
+    resources = {"cpu", "memory", "pods", "ephemeral-storage", *GPU_RESOURCES, TPU_RESOURCE, INFINIBAND_RESOURCE}
+    quantities = {}
+    for field in ("capacity", "allocatable"):
+        value = status.get(field)
+        if value is not None and (
+            not isinstance(value, dict)
+            or any(not isinstance(v, str) or not v.strip() for k, v in value.items() if k in resources)
+        ):
+            raise _node_gap()
+        quantities[field] = {k: v for k, v in value.items() if k in resources} if value is not None else None
+    if any(not isinstance(c.get("status"), str) for c in conditions if c.get("type") == "Ready"):
+        raise _node_gap()
+    if any(value is not None and not isinstance(value, str) for value in (meta.get("uid"), spec.get("providerID"))):
+        raise _node_gap()
+    ready = {c.get("status") for c in conditions if c.get("type") == "Ready"}
+    ready_status = next(iter(ready)) if len(ready) == 1 and ready <= {"True", "False", "Unknown"} else "Unknown"
+    info_fields = (
+        "architecture",
+        "operatingSystem",
+        "osImage",
+        "kernelVersion",
+        "kubeletVersion",
+        "containerRuntimeVersion",
+    )
+    if any(key in info and not isinstance(info[key], str) for key in info_fields):
+        raise _node_gap()
+    if spec.get("unschedulable") is not None and not isinstance(spec["unschedulable"], bool):
+        raise _node_gap()
+    return _event(
+        cluster=cluster,
+        entity="node",
+        signal="inventory",
+        object_ref=f"Node:{name}",
+        asset_type="kubernetes_node",
+        controls=ACCELERATOR_INVENTORY_CONTROLS,
+        status="observed",
+        severity="info",
+        evidence_path=f"/api/v1/nodes/{name}",
+        collected_at=now,
+        tenant_id=tenant_id,
+        attributes={
+            "cluster": cluster,
+            "node_name": name,
+            "node_uid": meta.get("uid"),
+            "provider_id": spec.get("providerID"),
+            "hardware_type": "unknown",
+            "node_info": {key: info[key] for key in info_fields if key in info},
+            "ready": ready_status,
+            "unschedulable": spec.get("unschedulable"),
+            **quantities,
+        },
+    )
+
+
 # --- Accelerator inventory ------------------------------------------------------
 
 
 def _quantity(value: Any) -> int:
     """Whole-device count of an extended resource; device plugins only advertise integers."""
-    try:
-        return max(0, int(str(value).strip()))
-    except (TypeError, ValueError):
-        return 0
+    if not re.fullmatch(r"[0-9]+", str(value).strip()):
+        raise CollectionGapError(
+            "Kubernetes accelerator inventory was incomplete (invalid device quantity)",
+            collection="accelerator_inventory",
+            reason="malformed_response",
+        )
+    return int(str(value).strip())
 
 
 def accelerator_requests(containers: Iterable[dict[str, Any]]) -> dict[str, int]:
@@ -853,8 +973,8 @@ def accelerator_requests(containers: Iterable[dict[str, Any]]) -> dict[str, int]
         resources = container.get("resources") or {}
         limits = resources.get("limits") or {}
         requests = resources.get("requests") or {}
-        for name in (*GPU_RESOURCES, INFINIBAND_RESOURCE):
-            count = _quantity(limits.get(name)) or _quantity(requests.get(name))
+        for name in (*GPU_RESOURCES, TPU_RESOURCE, INFINIBAND_RESOURCE):
+            count = _quantity(limits[name]) if name in limits else _quantity(requests[name]) if name in requests else 0
             if count:
                 totals[name] = totals.get(name, 0) + count
     return totals
@@ -922,6 +1042,7 @@ def _accelerator_event(
             "namespace": namespace,
             "system_namespace": namespace in SYSTEM_NAMESPACES,
             "gpu_count": sum(requested.get(resource, 0) for resource in GPU_RESOURCES),
+            "tpu_count": requested.get(TPU_RESOURCE, 0),
             "accelerator_resources": sorted(requested),
             "infiniband": INFINIBAND_RESOURCE in requested,
             "images": images,
@@ -1073,6 +1194,7 @@ def _inference_exposure_event(
             "serving_runtime": serving_runtime(images, names),
             "images": images,
             "gpu_count": sum(requested.get(resource, 0) for resource in GPU_RESOURCES),
+            "tpu_count": requested.get(TPU_RESOURCE, 0),
             "url_scope": url_scope,
             "finding_reason": reason,
         },

@@ -5,6 +5,8 @@ Python package, Helm chart, and bundled web console.
 
 ## Unreleased
 
+- Discover Kubernetes nodes and reported CPU/GPU/TPU capacity, allocatable resources, OS/runtime configuration and scheduling state. Include TPU workload requests; preserve collection gaps and unknown hardware type without turning inventory into a compliance pass.
+
 - Separate the investigation graph's assurance hierarchy from recorded source → evidence → asset lineage. Route control bindings through lane gaps, preserve selected-link context, and show recorded evidence lifecycle timestamps, exact identifiers, and incoming/outgoing relationships. Direct-relationship focus reports shown-versus-loaded counts and restores the full neighborhood.
 
 - Fit the complete investigation neighborhood on entry and through the existing canvas Fit View control. Zoom In restores readable labels, with responsive inspector space and desktop/mobile light/dark regression coverage; no extra fit/readability buttons are needed.

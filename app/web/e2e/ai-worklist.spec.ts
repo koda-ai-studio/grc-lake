@@ -49,6 +49,12 @@ test("model worklist exposes evidence gaps and follows only the selected asset",
   await expect(
     worklist.getByText("Documented model", { exact: true }),
   ).toBeVisible();
+  await worklist.getByLabel("Filter AI inventory").selectOption("agents");
+  await expect(
+    worklist.getByText("No observed assets match this filter."),
+  ).toBeVisible();
+  await expect(worklist.locator("li")).toHaveCount(0);
+  await worklist.getByLabel("Filter AI inventory").selectOption("all");
   await worklist.getByRole("button", { name: "Inspect Review model" }).click();
   const detail = worklist.getByRole("region", { name: "Review model details" });
   await expect(detail).toContainText("Purpose, limitations and intended use");
@@ -122,9 +128,21 @@ for (const width of [390, 768, 1440]) {
       ),
     ).toBe(true);
     await worklist.getByLabel("Filter AI inventory").selectOption("agents");
+    await expect(worklist.locator("li")).toHaveCount(4);
+    for (const name of [
+      "Ops copilot agent",
+      "Release helper agent",
+      "Ticket router agent",
+      "Triage agent",
+    ]) {
+      await expect(worklist.getByRole("heading", { name })).toBeVisible();
+    }
     await expect(
-      worklist.getByText("No observed assets match this filter."),
-    ).toBeVisible();
+      worklist.getByText("Runtime recorded", { exact: true }),
+    ).toHaveCount(4);
+    await expect(
+      worklist.getByRole("heading", { name: "Doc summarizer model" }),
+    ).toHaveCount(0);
     await worklist.getByLabel("Filter AI inventory").selectOption("all");
     await expect(
       worklist.getByRole("heading", { name: "Doc summarizer model" }),
@@ -180,4 +198,50 @@ test("canonical AI agents show runtime actions and stay out of model-card gaps",
   await expect(
     worklist.getByRole("link", { name: "View agent evidence" }),
   ).toBeVisible();
+});
+
+test("inference agents show recorded runtime without claiming tool permissions", async ({
+  page,
+}) => {
+  await page.route("**/api/v1/platform/ai-governance/inventory**", (route) =>
+    route.fulfill({
+      json: {
+        data: [
+          {
+            asset_id: "agent:inference",
+            asset_name: "Inference agent",
+            asset_type: "agent",
+            source_account_id: "source-a",
+            owner: "AI team",
+            environment: "test",
+            model_card: false,
+            lineage_complete: false,
+            last_seen_at: "2026-10-30T12:00:00Z",
+            sources: ["runtime_gateway"],
+            control_ids: [],
+            event_types: ["runtime.inference"],
+          },
+        ],
+      },
+    }),
+  );
+  await page.goto("/console/ai-governance/");
+  const worklist = page.getByRole("region", { name: "Models and agents" });
+  await expect(
+    worklist.getByText("Runtime recorded", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    worklist.getByText("Review inference activity", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    worklist.getByText("Runtime not observed", { exact: true }),
+  ).toHaveCount(0);
+  await worklist
+    .getByRole("button", { name: "Inspect Inference agent" })
+    .click();
+  await expect(
+    worklist.getByRole("region", { name: "Inference agent details" }),
+  ).toContainText(
+    "Inference evidence alone does not establish tool permissions",
+  );
 });

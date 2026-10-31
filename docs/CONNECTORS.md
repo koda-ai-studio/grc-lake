@@ -1238,6 +1238,23 @@ events:
 | `kubernetes.workload.secret_env`        | Secrets are injected as environment variables (CIS 5.4.1)                                               | FEDRAMP-SC-28, CMMC-3.13.16, NIST-CSF-PR.DS-01                                                        |
 | `kubernetes.cluster.audit_logging`      | The kube-apiserver lacks `--audit-policy-file` plus a log or webhook sink (CIS 1.2.16, 3.2.1)           | FEDRAMP-AU-2, FEDRAMP-AU-12, CMMC-3.3.1, ISO27001-A.8.15, NIST-CSF-PR.PS-04, CIS-CONTROLS-8           |
 
+Discovery also records every returned Node as `kubernetes.node.inventory`, including
+CPU-only nodes. These `observed` records are not safeguard assertions. They retain
+the node name and UID, source-account and cluster scope, reported provider ID,
+CPU/memory/pod/ephemeral-storage and supported accelerator capacity versus allocatable
+resources, OS/kernel/kubelet/container-runtime versions, Ready condition and
+`unschedulable` setting. Missing fields remain unknown. Provider IDs do not establish
+whether a host is a VM or bare metal; `hardware_type` remains `unknown`. Nodes remain
+searchable as assets in the investigation graph without a safeguard binding.
+
+The collector uses [`GET /api/v1/nodes`](https://kubernetes.io/docs/reference/kubernetes-api/core/node-v1/)
+through the same configured SDK client, pagination and retry policy. Denied or
+malformed node reads and incomplete pagination produce collection-gap records and
+mark the sync metadata partial while retaining other evidence. No Node proxy,
+exec, hardware-management API, or additional host is contacted. Legacy fixture
+folders without `nodes.json` contain no node inventory; they do not establish
+inventory completeness.
+
 GPU clusters add workload inventory and exposure evidence; see
 [Neoclouds and GPU clouds](#neoclouds-and-gpu-clouds-preview).
 
@@ -1268,7 +1285,7 @@ metadata:
   name: grc-lake-config-reader
 rules:
   - apiGroups: [""]
-    resources: ["namespaces", "pods", "services"]
+    resources: ["namespaces", "pods", "services", "nodes"]
     verbs: ["get", "list"]
   - apiGroups: ["apps"]
     resources: ["deployments", "daemonsets", "statefulsets", "replicasets"]
@@ -1307,7 +1324,7 @@ SaaS APIs does not apply here. Lists page with `limit`/`continue` and retry 429/
 honoring `Retry-After`.
 
 **Data minimization.** Secret objects are never listed. Environment variable values,
-container commands and args, IP addresses, labels, and annotations are never stored;
+container commands and args, IP addresses, labels, annotations, and node machine/boot/system IDs are never stored;
 only the names of Secret-backed variables, image references, binding subjects, and
 Service types and ports are kept. Service selectors and pod template labels are read
 in memory to match Services to GPU workloads, and the KServe visibility label to
@@ -1349,7 +1366,7 @@ service-account token or a client certificate instead.
 
 | Event                                       | Asset type            | Result                                                                                                                                                                                                                                                      | Safeguard        |
 | ------------------------------------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
-| `kubernetes.workload.accelerator_inventory` | `kubernetes_workload` | `observed`: GPU count (`nvidia.com/gpu`, `amd.com/gpu`), InfiniBand (`rdma/ib`), serving runtime (vLLM, Triton, TGI, NVIDIA NIM), and the namespace's NetworkPolicy count as InfiniBand job scope                                                           | none (inventory) |
+| `kubernetes.workload.accelerator_inventory` | `kubernetes_workload` | `observed`: Requested GPU count (`nvidia.com/gpu`, `amd.com/gpu`), TPU chip count (`google.com/tpu`), InfiniBand (`rdma/ib`), serving runtime (vLLM, Triton, TGI, NVIDIA NIM), and the namespace's NetworkPolicy count as InfiniBand job scope              | none (inventory) |
 | `kubernetes.service.network_exposure`       | `network`             | LoadBalancer with a public address and no `loadBalancerSourceRanges` (or `0.0.0.0/0`): open, high when it selects a GPU workload, else medium. Public with restricted ranges, or a private address: pass. NodePort, or no assigned address: `not_evaluated` | `SG-NETWORK-001` |
 | `kubernetes.inference.network_exposure`     | `service`             | KServe InferenceService labelled `networking.kserve.io/visibility: cluster-local` or with a `*.svc.cluster.local` URL: pass. External URL or no URL: `not_evaluated`                                                                                        | `SG-NETWORK-001` |
 
@@ -1387,6 +1404,16 @@ and the affected instance results become `not_evaluated`.
 **Data minimization.** Jupyter tokens, public and private IP addresses, host names,
 tags, rule descriptions, public key material, and identity display names are dropped
 in the client. Only whether an instance has a public IP or a Jupyter URL is kept.
+
+[GKE documents `google.com/tpu`](https://docs.cloud.google.com/kubernetes-engine/docs/concepts/tpus)
+as requested TPU chips. Workload counts are configured requests (limits when
+present), not measured utilization or fleet totals; replicas and init containers
+must not be summed as concurrently allocated physical devices. Malformed or
+non-integer device quantities produce a collection gap instead of zero. This
+collector does not discover Dynamic Resource Allocation claims, standalone
+hypervisor/VM fleets, or bare-metal BMC inventory. Discovery covers only the
+configured cluster and readable API collections, not all infrastructure owned by
+an organization. These additions remain fixture-tested Preview, not live qualified.
 
 ### What GPU cloud APIs cannot show
 
