@@ -5,6 +5,8 @@ Python package, Helm chart, and bundled web console.
 
 ## 0.3.21 - 2026-10-30
 
+- Preserve the current page when logout fails and offer retry; successful logout clears the previous session state. Explain rejected, forbidden, throttled and failed sign-in attempts, retry identity-provider discovery, and restore investigation destinations after keyboard sign-in.
+
 - Add `grc-lake demo --company ai_lab` to open a temporary synthetic AI inventory. Retain runtime-backed inference agents and distinguish observed inference from missing runtime evidence.
 
 - Trace exact recorded graph connections, route reverse arrows to the matching handles, and reveal inspected relationships hidden by layer filters without inventing links.
