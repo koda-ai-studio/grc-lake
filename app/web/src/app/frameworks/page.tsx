@@ -15,6 +15,7 @@ import {
   SlidersHorizontal,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { ListPagination } from "@/components/ui/list-pagination";
 import { CollapsibleCard } from "@/components/ui/collapsible-card";
 import { buttonVariants } from "@/components/ui/button";
 import {
@@ -51,6 +52,7 @@ import type {
 } from "@/lib/api/types";
 import { MAPPING_REVIEW_GLOSSARY, ROUTE_LABELS } from "@/lib/console-copy";
 import { attestedHeadline, mappingReviewHref } from "@/lib/control-attestation";
+import { SM_UP, useMediaQuery } from "@/lib/use-media-query";
 import { displayLabel } from "@/lib/display";
 import { formatCount, formatDate } from "@/lib/format";
 import {
@@ -554,8 +556,19 @@ function ReadinessRow({ row }: { row: FrameworkReadiness }) {
 
 function SafeguardAssessment() {
   const assessment = useCcfAssessment();
+  const [query, setQuery] = useState("");
+  const [page, setPage] = useState(0);
   const data = assessment.data;
   const rows = data?.safeguards ?? [];
+  const filtered = rows.filter((row) =>
+    `${row.safeguard_id} ${row.title} ${row.status.replaceAll("_", " ")}`
+      .toLowerCase()
+      .includes(query.trim().toLowerCase()),
+  );
+  const currentPage = Math.min(
+    page,
+    Math.max(0, Math.ceil(filtered.length / 10) - 1),
+  );
   const passed = rows.filter((row) => row.status === "pass").length;
   const failed = rows.filter((row) => row.status === "fail").length;
   return (
@@ -593,6 +606,17 @@ function SafeguardAssessment() {
               are blocked.
             </p>
           )}
+          <input
+            type="search"
+            aria-label="Search safeguard results"
+            placeholder="Search safeguards or results"
+            value={query}
+            onChange={(event) => {
+              setQuery(event.target.value);
+              setPage(0);
+            }}
+            className="ui-input mt-3 w-full"
+          />
           <div className="mt-4 max-h-80 overflow-auto">
             <table className="w-full text-left text-sm">
               <caption className="sr-only">
@@ -612,23 +636,38 @@ function SafeguardAssessment() {
                 </tr>
               </thead>
               <tbody>
-                {rows.map((row) => (
-                  <tr key={row.safeguard_id} className="border-t border-line">
-                    <th scope="row" className="p-2 font-normal">
-                      <span className="block text-xs text-muted">
-                        {row.safeguard_id}
-                      </span>
-                      {row.title}
-                    </th>
-                    <td className="p-2">{row.status.replaceAll("_", " ")}</td>
-                    <td className="p-2 tabular-nums">
-                      {row.assessed_asset_count} / {row.applicable_asset_count}
-                    </td>
-                  </tr>
-                ))}
+                {filtered
+                  .slice(currentPage * 10, (currentPage + 1) * 10)
+                  .map((row) => (
+                    <tr key={row.safeguard_id} className="border-t border-line">
+                      <th scope="row" className="p-2 font-normal">
+                        <span className="block text-xs text-muted">
+                          {row.safeguard_id}
+                        </span>
+                        {row.title}
+                      </th>
+                      <td className="p-2">{row.status.replaceAll("_", " ")}</td>
+                      <td className="p-2 tabular-nums">
+                        {row.assessed_asset_count} /{" "}
+                        {row.applicable_asset_count}
+                      </td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>
+          {filtered.length === 0 && (
+            <p className="py-3 text-sm text-muted">
+              No safeguards match your search.
+            </p>
+          )}
+          <ListPagination
+            label="Safeguard results"
+            page={currentPage}
+            total={filtered.length}
+            pageSize={10}
+            onPage={setPage}
+          />
         </>
       )}
     </CollapsibleCard>
@@ -647,6 +686,9 @@ function FrameworksPageContent() {
   const [freshnessFilter, setFreshnessFilter] = useState("all");
   const [showFilters, setShowFilters] = useState(false);
   const [showReadiness, setShowReadiness] = useState(false);
+  const [catalogPage, setCatalogPage] = useState(0);
+  const catalogPageSize = useMediaQuery(SM_UP) ? 6 : 2;
+  const [readinessPage, setReadinessPage] = useState(0);
   const data = useMemo(() => frameworks.data ?? [], [frameworks.data]);
   const readinessRows = useMemo(() => readiness.data ?? [], [readiness.data]);
   const frameworkParam = searchParams.get("framework");
@@ -702,6 +744,15 @@ function FrameworksPageContent() {
       return Boolean(readinessMatch && freshnessMatch && queryMatch);
     });
   }, [data, freshnessFilter, query, readinessById, readinessFilter]);
+
+  const currentCatalogPage = Math.min(
+    catalogPage,
+    Math.max(0, Math.ceil(filtered.length / catalogPageSize) - 1),
+  );
+  const currentReadinessPage = Math.min(
+    readinessPage,
+    Math.max(0, Math.ceil(packReadiness.length / 6) - 1),
+  );
 
   useEffect(() => {
     if (!frameworkParam || data.length === 0) return;
@@ -873,11 +924,17 @@ function FrameworksPageContent() {
 
       <SafeguardAssessment />
 
-      <FrameworkRoster
-        frameworks={data}
-        coverage={coverageRows}
-        readiness={readinessRows}
-      />
+      <CollapsibleCard
+        title="Framework roster"
+        defaultOpen={false}
+        storageKey="frameworks:roster"
+      >
+        <FrameworkRoster
+          frameworks={data}
+          coverage={coverageRows}
+          readiness={readinessRows}
+        />
+      </CollapsibleCard>
 
       <section
         aria-label="Framework catalog"
@@ -889,11 +946,11 @@ function FrameworksPageContent() {
               Framework catalog
             </h2>
             <p className="mt-0.5 text-xs text-muted">
-              {filtered.length} of {data.length} shown · {packs.length} packs
+              {filtered.length} of {data.length} match · {packs.length} packs
               {stubNote ? `, ${stubNote}` : ""}
             </p>
           </div>
-          <Badge>{filtered.length} shown</Badge>
+          <Badge>{filtered.length} matching</Badge>
         </div>
 
         <div className="grid gap-2 rounded-xl border border-line bg-surfaceMuted p-2">
@@ -904,7 +961,10 @@ function FrameworksPageContent() {
                 type="search"
                 aria-label="Search frameworks"
                 value={query}
-                onChange={(event) => setQuery(event.target.value)}
+                onChange={(event) => {
+                  setQuery(event.target.value);
+                  setCatalogPage(0);
+                }}
                 placeholder="Search frameworks"
                 className="min-w-0 flex-1 bg-transparent text-ink outline-none placeholder:text-muted"
               />
@@ -925,7 +985,10 @@ function FrameworksPageContent() {
               <select
                 aria-label="Filter by readiness"
                 value={readinessFilter}
-                onChange={(event) => setReadinessFilter(event.target.value)}
+                onChange={(event) => {
+                  setReadinessFilter(event.target.value);
+                  setCatalogPage(0);
+                }}
                 className="h-10 min-w-0 rounded-lg border border-line bg-surface px-3 text-sm font-semibold text-ink outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
               >
                 <option value="all">All readiness</option>
@@ -936,7 +999,10 @@ function FrameworksPageContent() {
               <select
                 aria-label="Filter by source health"
                 value={freshnessFilter}
-                onChange={(event) => setFreshnessFilter(event.target.value)}
+                onChange={(event) => {
+                  setFreshnessFilter(event.target.value);
+                  setCatalogPage(0);
+                }}
                 className="h-10 min-w-0 rounded-lg border border-line bg-surface px-3 text-sm font-semibold text-ink outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
               >
                 <option value="all">All source health</option>
@@ -960,18 +1026,30 @@ function FrameworksPageContent() {
           </div>
         ) : (
           <div className="grid min-w-0 gap-3 xl:grid-cols-2 2xl:grid-cols-3">
-            {filtered.map((framework) => (
-              <Row
-                key={framework.framework_id}
-                framework={framework}
-                coverage={coverageById.get(framework.framework_id)}
-                readiness={readinessById.get(framework.framework_id)}
-                frameworkNames={frameworkNames}
-                onSelect={() => openFramework(framework)}
-              />
-            ))}
+            {filtered
+              .slice(
+                currentCatalogPage * catalogPageSize,
+                (currentCatalogPage + 1) * catalogPageSize,
+              )
+              .map((framework) => (
+                <Row
+                  key={framework.framework_id}
+                  framework={framework}
+                  coverage={coverageById.get(framework.framework_id)}
+                  readiness={readinessById.get(framework.framework_id)}
+                  frameworkNames={frameworkNames}
+                  onSelect={() => openFramework(framework)}
+                />
+              ))}
           </div>
         )}
+        <ListPagination
+          label="Framework catalog"
+          page={currentCatalogPage}
+          total={filtered.length}
+          pageSize={catalogPageSize}
+          onPage={setCatalogPage}
+        />
       </section>
 
       <Card className="overflow-hidden">
@@ -1010,10 +1088,19 @@ function FrameworksPageContent() {
                 Loading readiness…
               </div>
             ) : (
-              packReadiness.map((row) => (
-                <ReadinessRow key={row.framework_id} row={row} />
-              ))
+              packReadiness
+                .slice(currentReadinessPage * 6, (currentReadinessPage + 1) * 6)
+                .map((row) => <ReadinessRow key={row.framework_id} row={row} />)
             )}
+            <div className="xl:col-span-2">
+              <ListPagination
+                label="Readiness gates"
+                page={currentReadinessPage}
+                total={packReadiness.length}
+                pageSize={6}
+                onPage={setReadinessPage}
+              />
+            </div>
           </div>
         ) : null}
       </Card>

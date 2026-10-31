@@ -1,3 +1,7 @@
+"use client";
+
+import { useState } from "react";
+import { ListPagination } from "@/components/ui/list-pagination";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { FrameworkBadge } from "@/components/framework/FrameworkBadge";
@@ -81,12 +85,17 @@ function FrameworkLine({
 }
 
 export function FrameworkRoster({ frameworks, coverage, readiness }: Props) {
+  const [page, setPage] = useState(0);
   const coverageById = new Map(coverage.map((row) => [row.framework_id, row]));
   const readinessById = new Map(
     readiness.map((row) => [row.framework_id, row]),
   );
   const { packs: evaluated, stubs: notEvaluated } =
     splitFrameworkPacks(frameworks);
+  const currentPage = Math.min(
+    page,
+    Math.max(0, Math.ceil(evaluated.length / 6) - 1),
+  );
   const names = new Map(frameworks.map((row) => [row.framework_id, row.name]));
   const readyStates = new Set(
     evaluated.map((row) =>
@@ -128,16 +137,25 @@ export function FrameworkRoster({ frameworks, coverage, readiness }: Props) {
             Readiness tracked
           </h3>
           <ul role="list" className="mt-1">
-            {evaluated.map((framework) => (
-              <FrameworkLine
-                key={framework.framework_id}
-                framework={framework}
-                coverage={coverageById.get(framework.framework_id)}
-                readiness={readinessById.get(framework.framework_id)}
-                showStatus={!sharedStatus}
-              />
-            ))}
+            {evaluated
+              .slice(currentPage * 6, (currentPage + 1) * 6)
+              .map((framework) => (
+                <FrameworkLine
+                  key={framework.framework_id}
+                  framework={framework}
+                  coverage={coverageById.get(framework.framework_id)}
+                  readiness={readinessById.get(framework.framework_id)}
+                  showStatus={!sharedStatus}
+                />
+              ))}
           </ul>
+          <ListPagination
+            label="Tracked frameworks"
+            page={currentPage}
+            total={evaluated.length}
+            pageSize={6}
+            onPage={setPage}
+          />
         </section>
         <section aria-labelledby="framework-roster-unavailable">
           <h3
