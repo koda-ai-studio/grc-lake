@@ -451,25 +451,28 @@ def investigation_graph(
         and source.stat().st_size >= _PERSISTENT_MIN_BYTES
         and _model_key(lake, vendors, check, platform_tenant_id) is not None
     ):
-        from security_lakehouse.investigation_persistence import read
+        from security_lakehouse import investigation_repository
 
-        indexed = read(
-            lake,
-            deepcopy(vendors),
-            platform_tenant_id,
-            check,
-            root=root,
-            view=view,
-            depth=depth,
-            limit=limit,
-            layers=layers,
-            search=search,
-            root_offset=root_offset,
-            framework=framework,
-            control_offset=control_offset,
-            expected_version=expected_version,
-            allow_build=source.stat().st_size <= 8 * 1024 * 1024,
-        )
+        read = getattr(investigation_repository, "read", None)
+        indexed = None
+        if callable(read):
+            indexed = read(
+                lake,
+                deepcopy(vendors),
+                platform_tenant_id,
+                check,
+                root=root,
+                view=view,
+                depth=depth,
+                limit=limit,
+                layers=layers,
+                search=search,
+                root_offset=root_offset,
+                framework=framework,
+                control_offset=control_offset,
+                expected_version=expected_version,
+                allow_build=source.stat().st_size <= 8 * 1024 * 1024,
+            )
         if indexed is not None:
             return indexed
     nodes, _edges, frameworks, version, indexes = _model(lake, vendors, check, platform_tenant_id)
