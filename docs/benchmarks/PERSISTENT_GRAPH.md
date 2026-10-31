@@ -56,8 +56,8 @@ the index and its receipt. Credentials and filesystem access controls remain req
 The main database and SQLite temporary database each have a 16 GiB page ceiling;
 preparation also checks a 2 GiB free-disk floor. These are independent guards, not a
 guarantee that a workload fits or a combined disk quota. Database journals and
-SQLite sorting files can use additional space. Query connections use an 8 MiB page
-cache each; this is not a total process-memory bound. Legacy CCF generations without
+SQLite sorting files can use additional space. Preparation reserves a fixed 64 MiB scratch page cache to avoid repeatedly
+reading uncached disk pages. Query connections use an 8 MiB page cache each; this is not a total process-memory bound. Legacy CCF generations without
 a summary projection retain their original full JSON assessment read.
 
 Unfiltered one-hop account and asset views use stored neighbor counts and bounded

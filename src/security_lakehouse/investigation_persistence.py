@@ -163,6 +163,7 @@ def read(lake, vendors, tenant, check, *, allow_build=True, **query):
                         db.execute("PRAGMA page_size=4096")
                         db.execute(f"PRAGMA max_page_count={MAX_INDEX_BYTES // 4096}")
                         sql.initialize(db)
+                        db.execute("PRAGMA temp.cache_size=-65536")
                         db.execute("PRAGMA temp.page_size=4096")
                         db.execute(f"PRAGMA temp.max_page_count={MAX_INDEX_BYTES // 4096}")
                         db.set_progress_handler(progress, 1000)
