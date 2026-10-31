@@ -296,6 +296,25 @@ def _assess_posture(
         if violation_summary.get("truncated")
         else _framework_scores(controls, violations, stale_controls)
     )
+    collection_gaps = [row for row in events if row.get("asset_type") == "collection_scope"]
+    gap_sources = {str(row.get("source", "")) for row in collection_gaps}
+    gap_controls = {
+        str(control_id)
+        for row in events
+        if str(row.get("source", "")) in gap_sources
+        for control_id in row.get("control_ids", [])
+    }
+    affected_by_framework: dict[str, set[str]] = defaultdict(set)
+    for control in controls:
+        if str(control["control_id"]) in gap_controls:
+            affected_by_framework[str(control["framework"])].add(str(control["control_id"]))
+    # Collection completeness gates readiness without rewriting technical results
+    # or awarding framework attestation from observed-control scores.
+    for framework in framework_scores:
+        affected = affected_by_framework[str(framework["framework"])]
+        framework["collection_gap_control_count"] = len(affected)
+        if affected:
+            framework["state"] = "attention_required"
     open_violations = [item for item in violations if item["state"] == "open"]
     severity_counts = violation_summary.get("severity_counts") or {}
     open_violation_count = int(violation_summary.get("total_count") or len(open_violations))
@@ -325,7 +344,12 @@ def _assess_posture(
             "scoring_version": "trustops.assessment_scoring.v2",
             "score_scope": "observed_controls",
             "state": (
-                _posture_state(posture_score, critical_for_state, stale_controls | unevaluated)
+                _posture_state(
+                    posture_score,
+                    critical_for_state,
+                    stale_controls | unevaluated,
+                    collection_gaps=bool(collection_gaps),
+                )
                 if controls
                 else "not_evaluated"
             ),
@@ -340,8 +364,13 @@ def _assess_posture(
             "stale_control_count": len(stale_controls),
             "not_evaluated_control_count": len(unevaluated),
             "stale_evidence_count": len(stale_evidence),
+            "collection_gap_count": len(collection_gaps),
         },
         "frameworks": framework_scores,
+        "collection_gaps": {
+            "sources": sorted(gap_sources),
+            "affected_control_ids": sorted(set().union(*affected_by_framework.values())),
+        },
         "violations": open_violations,
         "violation_summary": violation_summary,
         "top_risk_assets": assets[:10],
@@ -1065,10 +1094,16 @@ def _weighted_posture_score(frameworks: list[dict[str, Any]]) -> float:
     return round(100 * passing / controls, 2)
 
 
-def _posture_state(score: float, critical_violations: bool | list[dict[str, Any]], stale_controls: set[str]) -> str:
+def _posture_state(
+    score: float,
+    critical_violations: bool | list[dict[str, Any]],
+    stale_controls: set[str],
+    *,
+    collection_gaps: bool = False,
+) -> str:
     if critical_violations if isinstance(critical_violations, bool) else critical_violations:
         return "critical"
-    if score < 100 or stale_controls:
+    if score < 100 or stale_controls or collection_gaps:
         return "attention_required"
     return "ready"
 
