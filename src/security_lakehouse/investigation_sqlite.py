@@ -227,8 +227,8 @@ def _query(
             db.execute(
                 """INSERT INTO choices
                 SELECT n.id,n.kind,n.label,n.account,
-                    (SELECT count(*) FROM neighbors a JOIN eligible e ON e.id=a.target WHERE a.source=n.id),
-                    EXISTS(SELECT 1 FROM edges a JOIN eligible e ON e.id=a.target
+                    (SELECT count(*) FROM neighbors a CROSS JOIN eligible e ON e.id=a.target WHERE a.source=n.id),
+                    EXISTS(SELECT 1 FROM edges a CROSS JOIN eligible e ON e.id=a.target
                         WHERE a.source=n.id AND e.kind='evidence_type')
                 FROM roots n WHERE n.view=? AND n.kind IN (SELECT kind FROM layers) AND instr(n.folded,?)>0""",
                 (view, search.casefold()),
@@ -293,22 +293,23 @@ def _query(
             for hop in range(1, depth + 1):
                 check()
                 db.execute("DELETE FROM following")
+                # Keep the frontier outermost: a kind-first plan scans unrelated evidence on every hop.
                 if direction == "both":
                     db.execute(
                         """INSERT OR IGNORE INTO following SELECT a.target FROM frontier f
-                        JOIN nodes n ON n.id=f.id JOIN neighbors a ON a.source=f.id
-                        JOIN eligible e ON e.id=a.target
+                        CROSS JOIN nodes n ON n.id=f.id CROSS JOIN neighbors a ON a.source=f.id
+                        CROSS JOIN eligible e ON e.id=a.target
                         WHERE (f.id=? OR n.kind NOT IN ('framework','control','safeguard'))
                           AND NOT EXISTS(SELECT 1 FROM visited v WHERE v.id=a.target)""",
                         (root,),
                     )
                 elif direction == "out":
                     db.execute("""INSERT OR IGNORE INTO following SELECT a.target FROM frontier f
-                        JOIN edges a ON a.source=f.id JOIN eligible e ON e.id=a.target
+                        CROSS JOIN edges a ON a.source=f.id CROSS JOIN eligible e ON e.id=a.target
                         WHERE NOT EXISTS(SELECT 1 FROM visited v WHERE v.id=a.target)""")
                 else:
                     db.execute("""INSERT OR IGNORE INTO following SELECT a.source FROM frontier f
-                        JOIN edges a ON a.target=f.id JOIN eligible e ON e.id=a.source
+                        CROSS JOIN edges a ON a.target=f.id CROSS JOIN eligible e ON e.id=a.source
                         WHERE NOT EXISTS(SELECT 1 FROM visited v WHERE v.id=a.source)""")
                 db.execute("INSERT OR IGNORE INTO visited SELECT id FROM following")
                 db.execute(
@@ -322,7 +323,8 @@ def _query(
                 if direction == "out":
                     db.execute("DELETE FROM following")
                     db.execute("""INSERT OR IGNORE INTO following SELECT a.source FROM frontier f
-                        JOIN nodes n ON n.id=f.id JOIN edges a ON a.target=f.id JOIN eligible e ON e.id=a.source
+                        CROSS JOIN nodes n ON n.id=f.id CROSS JOIN edges a ON a.target=f.id
+                        CROSS JOIN eligible e ON e.id=a.source
                         WHERE n.kind='evidence_type' AND e.kind='source'
                           AND NOT EXISTS(SELECT 1 FROM selected s WHERE s.id=a.source)""")
                     db.execute("INSERT OR IGNORE INTO visited SELECT id FROM following")
