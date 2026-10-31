@@ -158,15 +158,17 @@ export function AssessmentOverview({
   frameworkCount,
   attested,
   catalog,
+  catalogError = false,
 }: {
   assessment?: Assessment;
   ingestion?: IngestionStatus;
   /** Framework packs with catalogued requirements; registry stubs excluded. */
-  frameworkCount: number;
+  frameworkCount?: number;
   /** Control tests with a CCF pass through reviewed mappings; omitted while loading. */
   attested?: number;
   /** Framework registry with catalog sizes; undefined while it loads. */
   catalog?: FrameworkView[];
+  catalogError?: boolean;
 }) {
   // A lake with no evaluated controls has a posture block but no score.
   const posture =
@@ -241,7 +243,11 @@ export function AssessmentOverview({
             label={SCORE_COPY.assessment.label}
             value={posture ? Math.round(posture.score) : "—"}
             suffix={posture ? "/ 100" : undefined}
-            detail={`Headline score · ${assessed} of ${frameworkCount} framework packs assessed`}
+            detail={
+              frameworkCount == null
+                ? `Headline score · ${assessed} framework packs assessed · total unknown`
+                : `Headline score · ${assessed} of ${frameworkCount} framework packs assessed`
+            }
           >
             {posture ? (
               <Meter
@@ -266,11 +272,13 @@ export function AssessmentOverview({
             detail={
               coverage && coveragePercent != null
                 ? `${formatCount(coverage.assessed)} of ${formatCount(coverage.total)} requirements assessed${attested != null ? ` · ${formatCount(attested)} attested` : ""}${needsEvidence ? ` · ${needsEvidence} need evidence` : ""}`
-                : !posture
-                  ? "Not evaluated"
-                  : catalog
-                    ? "Catalog size unknown for evaluated packs"
-                    : "Loading framework catalog"
+                : catalogError
+                  ? "Framework catalog unavailable"
+                  : !posture
+                    ? "Not evaluated"
+                    : catalog
+                      ? "Catalog size unknown for evaluated packs"
+                      : "Loading framework catalog"
             }
           >
             {coverage && coveragePercent != null ? (
