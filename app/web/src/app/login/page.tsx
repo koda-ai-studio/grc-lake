@@ -275,8 +275,8 @@ export default function LoginPage() {
                 className="grid gap-3 rounded-lg border border-warning/40 bg-warning-bg p-4 text-sm font-bold text-warning-fg"
               >
                 <p>
-                  Couldn't load sign-in options. Check your connection and try
-                  again.
+                  Couldn&apos;t load sign-in options. Check your connection and
+                  try again.
                 </p>
                 <Button
                   size="sm"
