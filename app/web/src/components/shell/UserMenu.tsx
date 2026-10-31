@@ -2,7 +2,7 @@
 
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import {
   Bell,
   Building2,
@@ -21,9 +21,11 @@ import { useAuditorMode } from "@/lib/state/auditor";
 import { useTheme, type ThemeMode } from "@/components/theme/ThemeProvider";
 import { workspaceIdentity } from "@/lib/workspace";
 import { ROUTE_LABELS } from "@/lib/console-copy";
+import { consolePath } from "@/lib/base-path";
+import { notify } from "@/lib/toast";
 
 export function UserMenu({ compact = false }: { compact?: boolean }) {
-  const router = useRouter();
+  const [signingOut, setSigningOut] = useState(false);
   const auditor = useAuditorMode();
   const whoami = useAuthWhoami();
   const { theme, setTheme } = useTheme();
@@ -43,13 +45,19 @@ export function UserMenu({ compact = false }: { compact?: boolean }) {
   );
 
   const signOut = async () => {
+    if (signingOut) return;
+    setSigningOut(true);
     try {
       await api.authLogout();
     } catch {
-      // Still clear the browser session cookie client-side when possible.
+      setSigningOut(false);
+      notify.error(
+        "Couldn't sign out. Your session may still be active. Try again.",
+      );
+      return;
     }
-    router.push("/login");
-    router.refresh();
+    // Discard the previous session's in-memory state after confirmed logout.
+    window.location.replace(consolePath("/login"));
   };
 
   return (
@@ -182,6 +190,7 @@ export function UserMenu({ compact = false }: { compact?: boolean }) {
           </DropdownMenu.Item>
           <DropdownMenu.Item
             className="grid cursor-pointer grid-cols-[auto_minmax(0,1fr)] items-center gap-2 rounded-md px-2 py-1.5 text-sm text-ink outline-none data-[highlighted]:bg-surfaceMuted"
+            disabled={signingOut}
             onSelect={() => void signOut()}
           >
             <LogOut className="h-4 w-4 text-muted" />
