@@ -8,6 +8,48 @@ from security_lakehouse.investigation_cache import ModelCache
 from test_investigation_cache import generation
 
 
+def test_staged_node_insertion_does_not_read_back_every_evidence_payload(tmp_path):
+    import sqlite3
+
+    from security_lakehouse.investigation_staging import Staging
+    from security_lakehouse.io import write_json, write_jsonl_from_iterable
+
+    write_json(tmp_path / "catalog/control_map.json", {"controls": [{"control_id": "TEST", "framework_id": "soc2"}]})
+    write_json(tmp_path / "catalog/safeguards.json", {"safeguards": []})
+    events = [
+        {
+            "event_id": f"event-{i}",
+            "tenant_id": "account",
+            "asset_id": f"asset-{i % 5}",
+            "asset_name": f"Name {i} 雪",
+            "event_type": "identity.test",
+            "status": "fail",
+            "severity": "high",
+            "control_ids": ["TEST"],
+        }
+        for i in range(200)
+    ]
+    write_jsonl_from_iterable(tmp_path / "silver/normalized_events.jsonl", events + events[:10])
+
+    def check():
+        return None
+
+    expected_nodes, expected_edges, _ = graph._build_model(tmp_path, [], check)
+    payload_reads = []
+    with sqlite3.connect(":memory:") as db:
+        staged = Staging(db, tmp_path, check)
+        db.set_trace_callback(
+            lambda sql: (
+                payload_reads.append(sql) if sql.startswith("SELECT data FROM objects WHERE space='nodes'") else None
+            )
+        )
+        nodes, edges, _ = graph._build_model(tmp_path, [], check, storage=staged)
+        assert list(nodes.values()) == list(expected_nodes.values())
+        assert list(edges.values()) == list(expected_edges.values())
+        # Only bounded finding summaries need node payload reads, not every insert.
+        assert len(payload_reads) <= 100
+
+
 @pytest.mark.parametrize("tenant", [None, "tenant-a"])
 def test_public_graph_uses_prepared_index_without_in_memory_fallback(tmp_path, monkeypatch, tenant):
     from security_lakehouse.graph_index_cli import prepare_index
