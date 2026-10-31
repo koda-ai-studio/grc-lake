@@ -40,7 +40,7 @@ from typing import Any
 from security_lakehouse import netguard
 from security_lakehouse.catalog import DEFAULT_FRAMEWORK_REGISTRY
 from security_lakehouse.http_response import ResponseLimitError, read_bytes
-from security_lakehouse.io import append_jsonl
+from security_lakehouse.io import append_jsonl, write_text
 from security_lakehouse.timeutil import utc_now_iso_z
 
 PROJECT_URL = "https://github.com/msaad00/grc-lake"
@@ -247,7 +247,7 @@ def sync_frameworks(
     # Only a content change rewrites the registry. The scheduled job treats any
     # registry diff as drift, so an identical re-fetch must leave it untouched.
     if dirty:
-        path.write_text(json.dumps(payload, indent=2, sort_keys=False) + "\n", encoding="utf-8")
+        write_text(path, json.dumps(payload, indent=2, sort_keys=False) + "\n")
     # Re-lock the catalog bundle so source drift is reflected in the audit pin.
     # Only for the real default registry — the bundle spans repo-global controls
     # + crosswalk, so re-locking on a caller-supplied (e.g. tmp) registry would

@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-from pydantic import Field
+from pydantic import Field, field_validator
 
+from security_lakehouse import netguard
 from security_lakehouse.server_routes.schemas.base import (
     MAX_LIST_ITEMS,
     BoundedObject,
@@ -96,6 +97,12 @@ class CreateWebhookRequest(_StrictModel):
     description: str = Field(default="", max_length=255)
     enabled: bool = True
 
+    @field_validator("url")
+    @classmethod
+    def _public_target(cls, value: str) -> str:
+        netguard.assert_url_literal_is_public(value, label="webhook")
+        return value
+
 
 class UpdateWebhookRequest(_StrictModel):
     url: str | None = Field(default=None, min_length=1, max_length=2048)
@@ -103,6 +110,13 @@ class UpdateWebhookRequest(_StrictModel):
     secret: str | None = Field(default=None, min_length=16, max_length=255)
     description: str | None = Field(default=None, max_length=255)
     enabled: bool | None = None
+
+    @field_validator("url")
+    @classmethod
+    def _public_target(cls, value: str | None) -> str | None:
+        if value is not None:
+            netguard.assert_url_literal_is_public(value, label="webhook")
+        return value
 
 
 class AdoptPolicyTemplateRequest(_StrictModel):

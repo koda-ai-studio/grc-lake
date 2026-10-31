@@ -113,3 +113,20 @@ def test_resource_catalog_supports_agent_skills() -> None:
         "/api/v1/agent-runs",
     ):
         assert path in paths, path
+
+
+def test_openapi_documents_every_catalogued_method_not_just_path() -> None:
+    """A decorated POST must not hide the catch-all GET on the same path.
+
+    `/api/v1/mapping-reviews/decisions` is served GET (list) and POST (decide);
+    the MCP `list_mapping_review_decisions` tool depends on the GET.
+    """
+    from security_lakehouse import api_v1
+
+    spec = json.loads(COMMITTED.read_text(encoding="utf-8"))
+    documented = {
+        (path, method.upper()) for path, item in spec["paths"].items() for method in item if method != "parameters"
+    }
+    catalogued = {(row["path"], method) for row in api_v1.resource_catalog() for method in row.get("methods", ["GET"])}
+    missing = sorted(catalogued - documented)
+    assert missing == [], f"{len(missing)} catalogued operations are absent from the spec: {missing[:8]}"

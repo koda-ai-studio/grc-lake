@@ -123,6 +123,33 @@ def assert_resolved_ip_is_public(host: str, *, label: str = "target") -> list[st
     return addresses
 
 
+def assert_url_literal_is_public(url: str, *, label: str = "target") -> str:
+    """Reject, without DNS, a URL that can never pass :func:`assert_url_is_public`.
+
+    Use when a URL is stored for later egress (webhook subscriptions): the
+    scheme must be http(s) and a literal host must not be loopback, private,
+    link-local or ``localhost``. Names are resolved and re-checked at delivery.
+    """
+    parsed = urlparse(url)
+    if parsed.scheme not in ALLOWED_SCHEMES:
+        raise ValueError(f"{label} URL scheme must be http or https, got {parsed.scheme!r}")
+    host = parsed.hostname
+    if not host:
+        raise ValueError(f"{label} URL has no host: {url!r}")
+    if "%" in host or unquote(host) != host:
+        raise ValueError(f"{label} URL host must not be percent-encoded")
+    lowered = host.lower().rstrip(".")
+    if lowered == "localhost" or lowered.endswith(".localhost"):
+        raise ValueError(f"{label} host {host!r} is local (SSRF blocked)")
+    try:
+        literal = ipaddress.ip_address(lowered)
+    except ValueError:
+        return host
+    if not _is_public_address(literal):
+        raise ValueError(f"{label} resolves to non-public address {host} (SSRF blocked)")
+    return host
+
+
 def assert_url_is_public(url: str, *, label: str = "target") -> str:
     """Validate that ``url`` is http(s) and its host resolves to a public IP.
 
