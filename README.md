@@ -51,7 +51,7 @@ and opens your browser. Ctrl+C stops it and deletes the lake. With pip:
 the frozen result: follow the [sample-data tutorial](docs/TUTORIAL_5_MIN.md), then the
 [auditor workpaper example](docs/AUDITOR_WALKTHROUGH.md).
 
-**Exploring AI assets?** The source checkout includes an [AI discovery walkthrough](docs/AI_DISCOVERY_WALKTHROUGH.md): one command opens a synthetic model-and-agent inventory, then follows recorded evidence into the graph and assessment. The walkthrough marks the unreleased CLI option explicitly.
+**Exploring AI assets?** The [AI discovery walkthrough](docs/AI_DISCOVERY_WALKTHROUGH.md) in 0.3.21 opens a synthetic model-and-agent inventory with one command, then follows recorded evidence into the graph and assessment.
 
 For a real evaluation, follow the [bounded pilot guide](docs/PILOT.md): one source,
 one independently checked result, then a repeat collection and review.
@@ -94,7 +94,7 @@ Release notes: [changelog](CHANGELOG.md) · [verified release records](docs/RELE
 ## Product tour
 
 **Collect → Evaluate → Resolve → Export.** These console captures use the
-bundled synthetic company, refreshed after the 0.3.19 release. They illustrate
+bundled synthetic company, captured from the 0.3.21 source (`2aced4a3`). They illustrate
 source behavior; see the
 [release records](docs/RELEASE_READINESS.md) for published-package verification.
 

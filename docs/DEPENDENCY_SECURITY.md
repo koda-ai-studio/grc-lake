@@ -1,8 +1,32 @@
 # Dependency security scope
 
-Lockfile review: 2026-10-12. Release image scan: 2026-10-18. Dependency advisories
+Lockfile review: 2026-10-31. Release image scan: 2026-10-31. Dependency advisories
 change; rerun both production and full build-tool audits when reviewing or
 upgrading the lockfiles.
+
+## 0.3.21 dependency review
+
+The [0.3.21 release](RELEASE_READINESS.md#verified-0321-publication) passed
+unfiltered image scans and authenticated runtime checks on AMD64 and ARM64.
+Both image reports contain zero reported vulnerabilities. Audits of the frozen
+Python dependencies, a fresh PyPI server/MCP installation and production npm
+dependencies also reported no known vulnerabilities on October 31, 2026.
+
+The full npm development audit still reports the moderate minimatch advisory
+[GHSA-g3hv-75wg-m249](https://github.com/advisories/GHSA-g3hv-75wg-m249),
+propagated through 15 dependency entries. The lock contains patched 11.0.1 for
+TypeScript tooling and legacy 3.1.5 for ESLint dependencies. The
+[maintainer advisory](https://github.com/isaacs/minimatch/security/advisories/GHSA-g3hv-75wg-m249)
+identifies preprocessing in 10.2.6; the affected methods and optimization-level
+path are absent from the [3.1.5 source](https://github.com/isaacs/minimatch/blob/v3.1.5/minimatch.js).
+An isolated comparison of integrity-matched packages produced 256 pattern
+entries on affected 10.2.6, 32 on patched 11.0.1 and one on 3.1.5 for the same
+globstar-parent input and 32-entry bound. Ordinary matching passed.
+
+This advisory-specific source review supports the false-positive disposition of
+Scorecard alert #238. It does not make the full development audit clean or waive
+other advisories. Reassess if the advisory, dependencies or Scorecard vulnerability
+set changes. The existing audit and image gates remain enabled.
 
 ## Container runtime findings
 

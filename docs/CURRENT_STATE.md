@@ -5,14 +5,12 @@ See the [publication receipt](RELEASE_READINESS.md#verified-0321-publication) fo
 Changes on `main` or in a pull request can be newer than the published package. Check the [releases](https://github.com/koda-ai-studio/grc-lake/releases)
 and [changelog](../CHANGELOG.md) for the version you install.
 
-0.3.21 isolates connector state by source account, adds named account
-connections and organization account selections, withholds passes from truncated
-mapped lake reads, and separates the investigation graph's assurance lanes from
-recorded lineage. See the [0.3.21 notes](RELEASE_READINESS.md#0321-release).
-
-0.3.17 makes missing review status and unattributed legacy mappings proposed,
-preserves explicit graph review provenance, and bounds graph layouts by both
-nodes and relationships. See the [0.3.17 notes](RELEASE_READINESS.md#0317-release).
+0.3.21 includes source-account isolation, organization account selection,
+partial-read safeguards, authentication recovery, and readable investigation
+hierarchy with overview, drill-down and roll-up. Kubernetes node/accelerator
+discovery and the synthetic AI-lab walkthrough are also included. Proposed
+mappings remain unreviewed and cannot attest framework requirements. See the
+[0.3.21 notes](RELEASE_READINESS.md#0321-release).
 
 The provider-scoping fix from 0.3.16 is retained: benchmarks use only their own
 provider's evidence (CIS AWS from AWS sources), so GCP or identity-provider evidence can no longer pass
@@ -52,6 +50,12 @@ links offline test modules, bounded live records, declared permissions
 and qualification owners for every built-in contract. Its
 [GitHub slice](GITHUB_QUALIFICATION.md) documents tested collection failure modes.
 
+The [published 0.3.21 GitHub receipt](qualification/live/2026-10-31-github-published.md)
+records one public repository through a fresh named connection: seven governance
+records, stable IDs on recollection, independent provider count reconciliation,
+account binding and integrity checks. It uses a user OAuth token; GitHub App
+installation, private-repository and live throttling/expiry coverage remain open.
+
 The [2026-10-24 live receipts](qualification/live/2026-10-24.md) cover
 `aws-posture`, `azure-posture`, `gcp-posture` and `github-security` at source
 `f4532d21`. Each ran read-only against one maintainer test account, subscription,
@@ -90,22 +94,22 @@ separate qualification. Historical test totals are not a current coverage claim.
 
 ## Coverage depth
 
-The product-tour screenshots were recaptured from the 0.3.17 release: frozen
-runtime source `bdfa9135` with the release version alignment. The capture uses a
-fresh synthetic golden lake and the same browser clock for light/dark pairs.
-The graph light/dark pair was then refreshed for the bounded-layout and review-provenance improvements described in [Evidence investigation](INVESTIGATION_GRAPH.md).
-Mapping-review, framework and mobile images retain the full-tour capture;
-README and coverage counts come from the same catalog. Publication and live
-provider qualification remain separate checks in [release readiness](RELEASE_READINESS.md).
+The product-tour screenshots were recaptured from source `2aced4a3` (0.3.21)
+on October 31, 2026, using a fresh synthetic golden lake and one browser clock
+for each light/dark pair. Desktop and mobile captures retain the same catalog
+and evidence semantics. The graph separates assurance hierarchy from evidence
+lineage, and shows the selected record beside its neighborhood. README counts
+come from the catalog generator. Publication and live-provider qualification
+remain separate checks in [release readiness](RELEASE_READINESS.md).
 
-| Area                | Implemented breadth                                                                                                                                          | Evidence and remaining depth                                                                                                                                                                                  |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Collection          | 31 catalog contracts: 28 executable adapters, including 10 preview; 3 configuration/access boundaries                                                        | Shared console setup retains each provider's fields and permissions. Fixture behavior and access tests do not establish complete live collection; see the [qualification matrix](CONNECTOR_QUALIFICATION.md). |
-| Frameworks          | 21 populated packs, including a separate ISO ISMS clause scope; generated counts and effective review states in the [coverage matrix](FRAMEWORK_COVERAGE.md) | Source-cited, mapped, human-reviewed and freshly evaluated requirements are separate measures; review the pending [SOC 2 and ISO batches](reviews/SOC2_ISO_REVIEW.md).                                        |
-| Investigation       | Exact records, source accounts, controls, CCF, repositories and explicit vendor asset links                                                                  | Generation-bound reads and bounded navigation have contract tests. Server construction still scales with evidence volume; [#910](https://github.com/koda-ai-studio/grc-lake/issues/910) tracks measurement.   |
-| AI governance       | Model/agent worklist with owner, environment, signals, next actions and asset-filtered evidence                                                              | Recorded lineage is not automatically complete; observed controls are not fresh evaluations. No model safety or certification conclusion follows.                                                             |
-| Repository evidence | Public GitHub URL onboarding and audit CLI; authenticated GitHub/GitLab adapters                                                                             | Public collection is commit-pinned and bounded. Private governance remains unknown until authenticated collection; retained legacy source identities are not migrated.                                        |
-| Human decisions     | Pending access reviews, mapping review and scoped sharing                                                                                                    | Independent human authority remains enforced. A recorded access-revocation decision does not revoke provider access.                                                                                          |
+| Area                | Implemented breadth                                                                                                                                                         | Evidence and remaining depth                                                                                                                                                                                  |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Collection          | 31 catalog contracts: 28 executable adapters, including 10 preview; 3 configuration/access boundaries                                                                       | Shared console setup retains each provider's fields and permissions. Fixture behavior and access tests do not establish complete live collection; see the [qualification matrix](CONNECTOR_QUALIFICATION.md). |
+| Frameworks          | 22 populated packs, including separate ISO ISMS clauses and FedRAMP KSI scope; generated counts and effective review states in the [coverage matrix](FRAMEWORK_COVERAGE.md) | Source-cited, mapped, human-reviewed and freshly evaluated requirements are separate measures; review the pending [SOC 2 and ISO batches](reviews/SOC2_ISO_REVIEW.md).                                        |
+| Investigation       | Exact records, source accounts, controls, CCF, repositories and explicit vendor asset links                                                                                 | Generation-bound reads and bounded navigation have contract tests. Server construction still scales with evidence volume; [#910](https://github.com/koda-ai-studio/grc-lake/issues/910) tracks measurement.   |
+| AI governance       | Model/agent worklist with owner, environment, signals, next actions and asset-filtered evidence                                                                             | Recorded lineage is not automatically complete; observed controls are not fresh evaluations. No model safety or certification conclusion follows.                                                             |
+| Repository evidence | Public GitHub URL onboarding and audit CLI; authenticated GitHub/GitLab adapters                                                                                            | Public collection is commit-pinned and bounded. Private governance remains unknown until authenticated collection; retained legacy source identities are not migrated.                                        |
+| Human decisions     | Pending access reviews, mapping review and scoped sharing                                                                                                                   | Independent human authority remains enforced. A recorded access-revocation decision does not revoke provider access.                                                                                          |
 
 Earlier console qualification at source `6a9464a0` passed the build,
 catalog/schema validation and 175 focused graph, tenant/auth,

@@ -34,25 +34,30 @@ remain outside the accepted local interactive profile.
 ## 0.3.21 release
 
 0.3.21 is published; see the [publication receipt](#verified-0321-publication).
-It isolates connector cursors, freshness, health, event identity and scheduler
-attempts by source account, adds named account connections and versioned
-organization account selections, withholds passes from truncated mapped lake
-reads, and reworks investigation-graph lanes, arrows and demo navigation. See
-the [changelog](../CHANGELOG.md#0321---2026-10-30) for the release scope.
+It includes source-account isolation, organization account selection, partial-read
+safeguards, authentication recovery, dependency security fixes and investigation
+hierarchy with readable focus, overview and roll-up. Kubernetes node/accelerator
+discovery and the synthetic AI-lab walkthrough are included. See the
+[changelog](../CHANGELOG.md#0321---2026-10-30) for the release scope.
 
-Package, chart, console, Compose and MCP versions are aligned. There is no
-database migration relative to 0.3.20. The release updates the pinned ASN.1
-and compact-token dependencies and the Wolfi pip wheel; the development-tool
-audit remains distinct from the production dependency audit. Kubernetes node
-and accelerator discovery and the synthetic AI-lab walkthrough are included;
-discovered inventory records evidence presence and does not establish a pass.
+There is no database migration relative to 0.3.20. A fresh candidate install and
+an upgrade from a separate 0.3.20 environment over a copied synthetic lake retained
+59 records, verified historical snapshots and preserved replay integrity. The
+original baseline was retained. The final candidate tree is identical to the
+merged release tree; local qualification does not establish publication.
 
-Exact merged-main CI and the release gates preceded publication. No new
-live-provider receipt is claimed for this release; provider coverage beyond the
-recorded receipts remains fixture-tested. After publication, follow the
-[14-day pilot stability period](PILOT.md#stability-period) and record useful
-real-evidence outcomes and repeat use separately from downloads or synthetic
-demo completion.
+The final candidate passed the [bounded graph profile](benchmarks/RELEASE_PROFILE.md)
+at 1k and 10k records per tenant: warm p95 at 10k was at most 150 ms, cold and
+post-expiry reads stayed below 2.5 seconds, and peak process RSS was 429.3 MiB.
+This is a synthetic local SQLite profile, not a million-finding, full-ingestion
+or production-capacity qualification. TLS/IdP integration, backup/restore and
+provider scope require their own deployment receipts.
+
+Use `ghcr.io/koda-ai-studio/grc-lake` in current deployment instructions. Older
+receipts retain the registry namespace and digest that were actually verified.
+After publication, follow the [14-day pilot stability period](PILOT.md#stability-period)
+and record useful real-evidence outcomes and repeat use separately from downloads
+or synthetic demo completion.
 
 ## 0.3.20 release
 
@@ -282,13 +287,12 @@ a completion receipt.
 ## Verified 0.3.21 publication
 
 The [release workflow](https://github.com/koda-ai-studio/grc-lake/actions/runs/41167894154)
-passed every job (tested-commit and version checks, build, image, chart, PyPI,
-GitHub release, MCP Registry) on source `2aced4a393a5768d528f6ddd7d0514bcb907e488`,
-after [#1172](https://github.com/koda-ai-studio/grc-lake/pull/1172) merged and
-[exact-main CI](https://github.com/koda-ai-studio/grc-lake/actions/runs/41167239513)
-passed. The annotated `v0.3.21` tag resolves to that commit. Wheel and source
-archive bytes match between PyPI and the GitHub release, and an anonymous Helm
-pull matched the GitHub chart asset byte-for-byte:
+passed every job on source `2aced4a393a5768d528f6ddd7d0514bcb907e488`, after
+independent human approval and merge of [#1172](https://github.com/koda-ai-studio/grc-lake/pull/1172)
+and successful [exact-main CI](https://github.com/koda-ai-studio/grc-lake/actions/runs/41167239513).
+The annotated `v0.3.21` tag resolves to that commit. Publication was verified on
+October 31, 2026. Wheel and source-archive bytes match between PyPI and the GitHub
+release; an anonymous Helm pull matches the GitHub chart asset byte-for-byte.
 
 | Artifact                           | SHA-256                                                            |
 | ---------------------------------- | ------------------------------------------------------------------ |
@@ -296,24 +300,34 @@ pull matched the GitHub chart asset byte-for-byte:
 | `grc_lake-0.3.21.tar.gz`           | `67a27aeec516888d23d728d69245d8cdff437d8d73516580ada747ec6226dedb` |
 | `grc-lake-0.3.21.tgz`              | `e489e3959d4be7dce8f36c8aec23ddbd4529ba6f2a40a3c1b91c6c7b417145af` |
 
-The image `ghcr.io/koda-ai-studio/grc-lake:0.3.21` resolved to index
-`sha256:1d7f75a9fa48341dfaa743ce929c9646bb6bd16cadc3c8170804df051777a582`,
-containing `linux/amd64` and `linux/arm64`. The chart
-`oci://ghcr.io/koda-ai-studio/charts/grc-lake`, version `0.3.21`, has OCI digest
-`sha256:a439f4d4bfb224de2b594f75067840e8c30cf496638f28650bd6d8966d981542`.
-Wheel, source archive, chart-package, chart-OCI and image attestations verified
-with `gh attestation verify` for the `koda-ai-studio` owner. GitHub retains the
-CycloneDX SBOM and Python/chart provenance bundles.
+The container `ghcr.io/koda-ai-studio/grc-lake:0.3.21` and `latest` resolve to
+index `sha256:1d7f75a9fa48341dfaa743ce929c9646bb6bd16cadc3c8170804df051777a582`. It contains Linux AMD64
+and ARM64 images. Anonymous downloads verified every layer and configuration
+blob by digest. Both published filesystems and runtime settings match the
+images scanned and exercised by the release workflow. Each architecture's
+unfiltered Trivy report contains zero reported vulnerabilities, and each passed
+11 authenticated runtime checks, including tenant isolation, revoked-key denial,
+persistence after recreation, snapshot integrity, non-root execution and the
+bundled console. These are dated synthetic runtime checks, not TLS/IdP or
+production-capacity qualification.
 
-A fresh PyPI installation of `grc-lake[server]==0.3.21` outside the checkout
-reported version 0.3.21, loaded the golden fixture, served the bundled console
-and answered an investigation-graph request. This is a smoke check, not a
-qualification of TLS, an IdP, live providers or production capacity.
+The chart `oci://ghcr.io/koda-ai-studio/charts/grc-lake`, version `0.3.21`, has
+OCI digest `sha256:a439f4d4bfb224de2b594f75067840e8c30cf496638f28650bd6d8966d981542`.
+Wheel, source archive, chart package, chart OCI and image provenance verified
+against this repository's release workflow, exact source commit and version tag.
+GitHub retains the CycloneDX SBOM and Python/chart provenance bundles. The chart
+renders with the shipped self-hosted values.
 
-The public MCP Registry lists `io.github.koda-ai-studio/grc-lake` at version
-`0.3.21`, and Artifact Hub reports chart version `0.3.21`. Exact-main CI
-completed in 8m32s, so the under-eight-minute target remains open in
-[#1111](https://github.com/koda-ai-studio/grc-lake/issues/1111).
+The [published GitHub connector trial](qualification/live/2026-10-31-github-published.md)
+collected and recollected seven records through a fresh named connection, with
+provider counts, account binding and integrity reconciled. Its limited scope
+does not qualify other providers.
+
+Separate fresh PyPI installations passed the bare-core and server/MCP package
+smoke checks outside the checkout. Both the public MCP Registry and Artifact Hub
+list version `0.3.21`. These listing checks establish publication, not deployment
+or provider qualification. Exact-main CI took 8m32s; the stable under-eight-minute
+target remains open in [#1111](https://github.com/koda-ai-studio/grc-lake/issues/1111).
 
 ## Verified 0.3.20 publication
 

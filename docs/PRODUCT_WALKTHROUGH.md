@@ -54,8 +54,9 @@ fails, then review and export.
 ## Five-minute tour
 
 These steps use the synthetic source demo, including deliberately failing checks.
-The screenshots are captured from the 0.3.17 release; use the release notes
-for the version you install.
+The screenshots were captured from source `2aced4a3` (0.3.21) on October 31,
+2026, with desktop light/dark and mobile views. Use the release notes for the
+version you install.
 Framework marks and control-family icons retain the same identity across
 overviews, review workspaces and the graph. Provider marks identify recorded
 sources; none of these marks implies certification or vendor endorsement.
