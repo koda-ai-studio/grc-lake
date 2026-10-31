@@ -165,10 +165,11 @@ def read(lake, vendors, tenant, check, *, model_files, build_model, graph_versio
                         stage = Staging(db, lake, bounded)
                         nodes, edges, frameworks = build_model(lake, vendors, bounded, tenant, storage=stage)
                         version = graph_version(nodes.values(), edges.values(), bounded)
+                        stage.publish()
                         sql.populate(
                             db,
-                            nodes.values(),
-                            edges.values(),
+                            (),
+                            (),
                             version=version,
                             key=key,
                             frameworks=frameworks,
