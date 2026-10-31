@@ -161,3 +161,36 @@ def test_ai_demo_opens_inventory_with_real_fixture_assets_and_cleans_up(monkeypa
 def test_demo_company_is_an_allowlisted_fixture_not_a_file_path():
     with pytest.raises(SystemExit):
         _args("--company", "../../private")
+
+
+def test_demo_keeps_the_lake_when_a_directory_is_given(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str], tmp_path: Path
+) -> None:
+    """The README's first task continues in the CLI, so the demo lake must be keepable."""
+    pytest.importorskip("uvicorn")
+    from security_lakehouse import server_app
+
+    seen: dict[str, Any] = {}
+    monkeypatch.setattr(server_app, "create_app", lambda lake, *, require_auth: seen.update(lake=Path(lake)))
+    monkeypatch.setattr("uvicorn.run", lambda _app, **kwargs: None)
+    kept = tmp_path / "lake"
+
+    assert cli._demo(_args("--port", str(_free_port()), "--lake", str(kept))) == 0
+
+    assert seen["lake"] == kept.resolve()
+    assert (kept / "gold" / "ccf_assessment.json").exists()
+    out = capsys.readouterr().out
+    assert f"lake kept at {kept.resolve()}" in out
+    assert "deleted on exit" not in out
+
+
+def test_demo_refuses_a_populated_lake_directory(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    loaded: list[Any] = []
+    monkeypatch.setattr(cli, "_load_fixture", lambda *a, **k: loaded.append(a))
+    (tmp_path / "existing.txt").write_text("keep me")
+
+    with pytest.raises(SystemExit, match="empty or new directory"):
+        cli._demo(_args("--port", str(_free_port()), "--lake", str(tmp_path)))
+
+    assert loaded == []
+    assert (tmp_path / "existing.txt").read_text() == "keep me"

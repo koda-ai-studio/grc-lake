@@ -125,6 +125,29 @@ Runbook: [Shareable POC Hosting](SHAREABLE_POC_HOSTING.md),
 [deploy/README.md](../deploy/README.md),
 [Server Auth](SERVER_AUTH.md).
 
+### First sign-in without an identity provider
+
+A fresh server with only `GRC_LAKE_COOKIE_SIGNING_KEY` set serves the console
+and answers every data route with `401 missing credentials`; nothing creates
+the first tenant or user for you. Run these against the server's lake (inside
+the container, or with `--lake /lake` on the mounted volume):
+
+```bash
+grc-lake auth create-tenant --lake /lake --slug acme --name "Acme"
+grc-lake auth create-user --lake /lake --tenant-slug acme --email admin@example.com --role admin
+grc-lake auth issue-key --lake /lake --tenant-slug acme --email admin@example.com --name bootstrap
+```
+
+`issue-key` does not print the secret. It writes the key to
+`/lake/server/credentials/<key id>.token` (mode 0600) and prints the path, the
+key id and expiry. Read the file once, store the value in your secret manager,
+and delete the file. Use the key as `Authorization: Bearer <key>` for the API,
+or exchange it for a browser session with `POST /api/v1/auth/session-from-key`
+so the console signs in. Connect OIDC or SAML afterwards
+([Server Auth](SERVER_AUTH.md)); the bootstrap key can then be revoked with
+`grc-lake auth revoke-key`. `grc-lake platform seed-dev` is for local
+development only: it creates a `dev` tenant with a throwaway key.
+
 ### Hosted mode
 
 Hosted mode is the same GRC Lake binary and chart, run by an operator for

@@ -18,6 +18,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint src",
     "demo-screenshots": "node scripts/capture_demo_screenshots.mjs",
+    "og:png": "node scripts/render_og_png.mjs",
     "test:e2e": "playwright test",
     "test:dependencies": "node --test scripts/test_braces_security.mjs scripts/test_minimatch_security.mjs scripts/test_sidebar_state.mjs",
     "test:sidebar": "node --test scripts/test_sidebar_state.mjs"
