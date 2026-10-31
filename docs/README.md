@@ -114,19 +114,20 @@ check retained run evidence and link bounded connector qualification.
 
 ## Security
 
-| Guide                                                              | Covers                                                                |
-| ------------------------------------------------------------------ | --------------------------------------------------------------------- |
-| [Trust boundaries](THREAT_MODEL.md)                                | Threat model and trust boundaries                                     |
-| [Dependency security](DEPENDENCY_SECURITY.md)                      | Dependency security scope                                             |
-| [Scorecard remediation](SCORECARD_REMEDIATION.md)                  | Review, fuzzing, and badge evidence gates                             |
-| [Third-party assets](THIRD_PARTY_ASSETS.md)                        | Policy for third-party logos and assets                               |
-| [CI duration balancing](benchmarks/CI_RUNTIME.md)                  | Test allocation, retained timings and measured CI baseline            |
-| [Benchmarks](BENCHMARKS.md)                                        | Validation and benchmark plan                                         |
-| [Artifact hashing benchmark](benchmarks/ARTIFACT_HASHING.md)       | Artifact hashing memory benchmark                                     |
-| [CCF pipeline benchmark](benchmarks/CCF_PIPELINE.md)               | Bounded CCF pipeline measurements                                     |
-| [Investigation graph benchmark](benchmarks/INVESTIGATION.md)       | Bounded graph reads and failure receipts                              |
-| [Investigation cache benchmark](benchmarks/INVESTIGATION_CACHE.md) | Generation-model reuse, latency and memory tradeoffs                  |
-| [Local graph release profile](benchmarks/RELEASE_PROFILE.md)       | Accepted bounded workload, latency, memory and tenant-progress checks |
+| Guide                                                              | Covers                                                                  |
+| ------------------------------------------------------------------ | ----------------------------------------------------------------------- |
+| [Trust boundaries](THREAT_MODEL.md)                                | Threat model and trust boundaries                                       |
+| [Dependency security](DEPENDENCY_SECURITY.md)                      | Dependency security scope                                               |
+| [Scorecard remediation](SCORECARD_REMEDIATION.md)                  | Review, fuzzing, and badge evidence gates                               |
+| [Third-party assets](THIRD_PARTY_ASSETS.md)                        | Policy for third-party logos and assets                                 |
+| [CI duration balancing](benchmarks/CI_RUNTIME.md)                  | Test allocation, retained timings and measured CI baseline              |
+| [Benchmarks](BENCHMARKS.md)                                        | Validation and benchmark plan                                           |
+| [Artifact hashing benchmark](benchmarks/ARTIFACT_HASHING.md)       | Artifact hashing memory benchmark                                       |
+| [CCF pipeline benchmark](benchmarks/CCF_PIPELINE.md)               | Bounded CCF pipeline measurements                                       |
+| [Investigation graph benchmark](benchmarks/INVESTIGATION.md)       | Bounded graph reads and failure receipts                                |
+| [Investigation cache benchmark](benchmarks/INVESTIGATION_CACHE.md) | Generation-model reuse, latency and memory tradeoffs                    |
+| [Prepared investigation indexes](benchmarks/PERSISTENT_GRAPH.md)   | Disk-backed preparation, scope, limits and independent scale dimensions |
+| [Local graph release profile](benchmarks/RELEASE_PROFILE.md)       | Accepted bounded workload, latency, memory and tenant-progress checks   |
 
 ## Reference
 

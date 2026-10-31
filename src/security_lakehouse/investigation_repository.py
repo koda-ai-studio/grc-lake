@@ -5,11 +5,11 @@ from pathlib import Path
 from security_lakehouse.domain_identity import source_asset_key
 from security_lakehouse.event_identity import event_identity
 from security_lakehouse.graph import _add_embedded_code_graph, _add_governance_signal, _add_repository_signal_paths
-from security_lakehouse.io import canonical_sha256, read_jsonl
+from security_lakehouse.io import canonical_sha256, iter_jsonl
 
 
 def add_repository_context(lake: Path, node, edge, identity, evidence_by_event) -> None:
-    for row in read_jsonl(lake / "bronze/raw_events.jsonl", missing_ok=True, base_dir=lake):
+    for row in iter_jsonl(lake / "bronze/raw_events.jsonl", missing_ok=True, base_dir=lake):
         event = row.get("raw") or {}
         entity = event.get("entity") or {}
         event_type = str(event.get("event_type") or "")

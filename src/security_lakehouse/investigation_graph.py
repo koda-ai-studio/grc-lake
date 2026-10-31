@@ -33,6 +33,7 @@ from security_lakehouse.safeguards import effective_review_state, load_ccf_categ
 from security_lakehouse.tracking import list_events
 
 _MODEL_CACHE = ModelCache()
+_PERSISTENT_MIN_BYTES = 8 * 1024 * 1024
 _SEVERITY_RANK = {"critical": 0, "high": 1, "medium": 2, "low": 3}
 _FINDING_SUMMARY = ("id", "kind", "label", "owner", "severity", "status", "next_action", "evidence_id", "event_type")
 _FINDING_SUMMARY_LIMIT = 5
@@ -132,11 +133,15 @@ def validate_bounds(
 
 
 def _build_model(
-    lake: Path, vendors: list[dict[str, Any]] | None, check: Callable[[], None], platform_tenant_id: str | None = None
+    lake: Path,
+    vendors: list[dict[str, Any]] | None,
+    check: Callable[[], None],
+    platform_tenant_id: str | None = None,
+    storage: Any = None,
 ) -> tuple[dict[str, dict[str, Any]], dict[str, dict[str, Any]], Mapping[str, Mapping[str, Any]]]:
     """Release source rows and temporary bindings before fingerprinting and traversal."""
-    nodes: dict[str, dict[str, Any]] = {}
-    edges: dict[str, dict[str, Any]] = {}
+    nodes: dict[str, dict[str, Any]] = {} if storage is None else storage.nodes
+    edges: dict[str, dict[str, Any]] = {} if storage is None else storage.edges
 
     def node(kind, identity, label, **fields):
         nodes.setdefault(identity, {"id": identity, "kind": kind, "label": label, **fields})
@@ -156,7 +161,9 @@ def _build_model(
     frozen = lake / "catalog/safeguards.json"
     safeguards = read_json(frozen, base_dir=lake) if pinned_path(frozen).is_file() else effective_safeguards(lake)
     assessment_path = lake / "gold/ccf_assessment.json"
-    assessment = read_json(assessment_path, base_dir=lake) if pinned_path(assessment_path).is_file() else {}
+    assessment = storage.assessment if storage is not None else None
+    if assessment is None:
+        assessment = read_json(assessment_path, base_dir=lake) if pinned_path(assessment_path).is_file() else {}
     assessed = {row["safeguard_id"]: row for row in assessment.get("safeguards", [])}
     requirements = requirement_results_from(assessment)
     posture = {
@@ -217,15 +224,28 @@ def _build_model(
 
     check()
     # Keyed exactly as the freshness projection records each source row.
-    freshness = {
-        (str(r.get("tenant_id") or ""), str(r.get("event_id") or ""), str(r.get("asset_id") or "")): r
-        for r in read_jsonl(lake / "gold/evidence_freshness.jsonl", missing_ok=True, base_dir=lake)
-    }
-    triage = {}
-    for decision in sorted(list_events(lake), key=lambda r: instant_sort_key(r.get("occurred_at"))):
-        triage[decision["violation_id"]] = decision
-    events = read_jsonl(lake / "silver/normalized_events.jsonl", missing_ok=True, base_dir=lake)
-    asset_names = names_from_assets(read_jsonl(lake / "gold/asset_risk.jsonl", missing_ok=True, base_dir=lake))
+    freshness = (
+        storage.freshness
+        if storage is not None
+        else {
+            (str(r.get("tenant_id") or ""), str(r.get("event_id") or ""), str(r.get("asset_id") or "")): r
+            for r in read_jsonl(lake / "gold/evidence_freshness.jsonl", missing_ok=True, base_dir=lake)
+        }
+    )
+    triage = {} if storage is None else storage.triage
+    if storage is None:
+        for decision in sorted(list_events(lake), key=lambda r: instant_sort_key(r.get("occurred_at"))):
+            triage[decision["violation_id"]] = decision
+    events = (
+        []
+        if storage is not None
+        else read_jsonl(lake / "silver/normalized_events.jsonl", missing_ok=True, base_dir=lake)
+    )
+    asset_names = (
+        storage.names
+        if storage is not None
+        else names_from_assets(read_jsonl(lake / "gold/asset_risk.jsonl", missing_ok=True, base_dir=lake))
+    )
     evidence_by_event = defaultdict(list)
     findings_by_control: dict[str, set[str]] = defaultdict(set)
     check()
@@ -237,7 +257,7 @@ def _build_model(
         asset_types[source_asset_key({**event, "asset_id": event.get("asset_id") or ""})].add(
             str(event.get("asset_type"))
         )
-    for event_hash, event in ordered_events:
+    for event_hash, event in ordered_events if storage is None else storage.events():
         check()
         account, asset = source_asset_key({**event, "asset_id": event.get("asset_id") or ""})
         provider = str(event.get("source") or "")
@@ -250,7 +270,10 @@ def _build_model(
         )
         aid = _id("asset", account, asset)
         eid = "evidence:" + event_hash
-        evidence_by_event[(account, event.get("event_id"), asset)].append(eid)
+        if storage is None:
+            evidence_by_event[(account, event.get("event_id"), asset)].append(eid)
+        else:
+            storage.evidence(account, event.get("event_id"), asset, eid)
         recorded = str(event.get("tenant_id") or ""), str(event.get("event_id") or "")
         # Rows written without an asset id apply to the event as a whole.
         fresh = freshness.get((*recorded, str(event.get("asset_id") or "")), freshness.get((*recorded, ""), {}))
@@ -321,9 +344,15 @@ def _build_model(
                 )
                 edge(aid, finding, "has_finding")
                 edge(finding, eid, "has_evidence")
-                findings_by_control[cid].add(finding)
+                if storage is None:
+                    findings_by_control[cid].add(finding)
+                else:
+                    storage.finding(cid, finding, _SEVERITY_RANK.get(str(event.get("severity")), 4))
         for sid in sorted(set(event.get("safeguard_ids") or [])):
-            if binding_applies(asset_types[(account, asset)], eligible_types.get(sid, set())):
+            if binding_applies(
+                asset_types[(account, asset)] if storage is None else storage.types(account, asset),
+                eligible_types.get(sid, set()),
+            ):
                 edge("safeguard:" + sid, eid, "has_evidence")
             else:
                 edge(
@@ -336,21 +365,33 @@ def _build_model(
 
     # A failing control lists its findings (owner, next action) on the control
     # itself, so the default walk reaches them without widening the canvas.
-    for cid, keys in sorted(findings_by_control.items()):
+    summaries = (
+        (
+            (
+                cid,
+                len(keys),
+                sorted(keys, key=lambda key: (_SEVERITY_RANK.get(str(nodes[key].get("severity")), 4), key))[
+                    :_FINDING_SUMMARY_LIMIT
+                ],
+            )
+            for cid, keys in sorted(findings_by_control.items())
+        )
+        if storage is None
+        else storage.summaries(_FINDING_SUMMARY_LIMIT)
+    )
+    for cid, count, ranked in summaries:
         check()
         if (control := nodes.get("control:" + cid)) is not None:
-            ranked = sorted(keys, key=lambda key: (_SEVERITY_RANK.get(str(nodes[key].get("severity")), 4), key))
-            control["finding_count"] = len(ranked)
-            control["findings"] = [
-                {field: nodes[key].get(field) for field in _FINDING_SUMMARY} for key in ranked[:_FINDING_SUMMARY_LIMIT]
-            ]
+            control["finding_count"] = count
+            control["findings"] = [{field: nodes[key].get(field) for field in _FINDING_SUMMARY} for key in ranked]
+            nodes["control:" + cid] = control
 
     check()
     if platform_tenant_id is not None:
         from security_lakehouse.investigation_entities import add_entity_bindings
 
         add_entity_bindings(lake, platform_tenant_id, nodes, node, edge, check)
-    add_repository_context(lake, node, edge, _id, evidence_by_event)
+    add_repository_context(lake, node, edge, _id, evidence_by_event if storage is None else storage)
     check()
 
     for vendor in vendors or []:
@@ -370,11 +411,14 @@ def _build_model(
             if target not in nodes:
                 unresolved += 1
             edge(vid, target, "vendor_uses_asset")
-        nodes[vid]["next_action"] = (
+        vendor_node = nodes[vid]
+        vendor_node["next_action"] = (
             f"{unresolved} recorded asset references are not present in this evidence generation. Review vendor links."
             if unresolved
             else "Review the vendor assessment and its explicitly recorded asset links."
         )
+
+        nodes[vid] = vendor_node
 
     return nodes, edges, frameworks
 
@@ -401,6 +445,33 @@ def investigation_graph(
     validate_bounds(view=view, depth=depth, limit=limit, root_offset=root_offset, control_offset=control_offset)
     check = checkpoint or (lambda: None)
     check()
+    source = pinned_path(lake / "silver/normalized_events.jsonl")
+    if (
+        source.is_file()
+        and source.stat().st_size >= _PERSISTENT_MIN_BYTES
+        and _model_key(lake, vendors, check, platform_tenant_id) is not None
+    ):
+        from security_lakehouse.investigation_persistence import read
+
+        indexed = read(
+            lake,
+            deepcopy(vendors),
+            platform_tenant_id,
+            check,
+            root=root,
+            view=view,
+            depth=depth,
+            limit=limit,
+            layers=layers,
+            search=search,
+            root_offset=root_offset,
+            framework=framework,
+            control_offset=control_offset,
+            expected_version=expected_version,
+            allow_build=source.stat().st_size <= 8 * 1024 * 1024,
+        )
+        if indexed is not None:
+            return indexed
     nodes, _edges, frameworks, version, indexes = _model(lake, vendors, check, platform_tenant_id)
 
     check()
