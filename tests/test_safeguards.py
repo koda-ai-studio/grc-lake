@@ -5,8 +5,6 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-import pytest
-
 from security_lakehouse.catalog import load_control_catalog
 from security_lakehouse.safeguards import (
     SCHEMA,
