@@ -31,15 +31,20 @@ retain their exact source revisions and synthetic workload limits. They do not
 establish production capacity or qualify a deployment memory budget; 100k records
 remain outside the accepted local interactive profile.
 
-## Next release preparation
+## 0.3.21 candidate preparation
 
 Current `main` includes unreleased source-account isolation, organization account
 selection, partial-read safeguards, dependency security fixes, and investigation
-graph/demo navigation improvements. The [Unreleased changelog](../CHANGELOG.md#unreleased)
+graph/demo navigation improvements. The [0.3.21 candidate changelog](../CHANGELOG.md#0321---2026-10-30)
 tracks that scope. The live demo follows `main`; installing the published 0.3.20
 package or image does not include these later changes.
 
-Before selecting and tagging the next version:
+Version 0.3.21 is a source candidate, not a published release. It also includes
+Kubernetes node/accelerator discovery and the synthetic AI-lab walkthrough.
+There is no database migration relative to 0.3.20. Published install instructions
+remain on 0.3.20 until the new artifacts have been verified.
+
+Before tagging 0.3.21:
 
 - Verify a fresh candidate wheel install and an upgrade from a separate 0.3.20
   environment using a copied synthetic lake. Reconcile evidence counts, verify
@@ -50,9 +55,9 @@ Before selecting and tagging the next version:
   candidate, and qualify an authenticated deployment independently of the
   public synthetic demo. TLS/IdP integration, backup/restore and live-provider
   scope need their own receipts.
-- Align package, chart, console, MCP and example versions, move the Unreleased
-  entries into the dated version section, obtain independent review, and verify
-  exact merged-main CI. Then run the existing publication and artifact gates
+- Verify aligned package, chart, console, MCP and example versions and the dated
+  changelog, obtain independent review, and verify exact merged-main CI. Then
+  run the existing publication and artifact gates
   below. Source builds and merged PRs do not establish publication.
 
 Use `ghcr.io/koda-ai-studio/grc-lake` in current deployment instructions. Older

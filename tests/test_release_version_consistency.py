@@ -1,4 +1,4 @@
-"""Release 0.3.20 must present one version across every shipped surface."""
+"""Release 0.3.21 must present one version across every shipped surface."""
 
 from __future__ import annotations
 
@@ -8,8 +8,8 @@ import tomllib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-RELEASE_VERSION = "0.3.20"
-RELEASE_DATE = "2026-10-28"
+RELEASE_VERSION = "0.3.21"
+RELEASE_DATE = "2026-10-30"
 
 
 def test_release_version_is_consistent_across_package_chart_and_console() -> None:
