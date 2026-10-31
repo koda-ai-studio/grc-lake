@@ -5,6 +5,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
+
 from security_lakehouse.catalog import load_control_catalog
 from security_lakehouse.safeguards import (
     SCHEMA,
@@ -415,3 +417,18 @@ def test_validation_rejects_an_unattributed_reviewed_mapping() -> None:
 
     assert any("reviewed_by" in problem for problem in problems)
     assert any("maintainer_review_ref" in problem for problem in problems)
+
+
+@pytest.mark.parametrize("key", ["inherited_review_valid", "current_control_version"])
+def test_loading_rejects_shipped_load_time_annotations(key: str, tmp_path: Path) -> None:
+    """These keys are computed from the catalog at load time; a shipped value
+    would be mistaken for a verified one, so the loader refuses the file."""
+    from security_lakehouse.safeguards import DEFAULT_SAFEGUARDS
+
+    payload = json.loads(Path(DEFAULT_SAFEGUARDS).read_text(encoding="utf-8"))
+    _first_proposed_member(payload)[key] = True
+    shipped = tmp_path / "safeguards.json"
+    shipped.write_text(json.dumps(payload), encoding="utf-8")
+
+    with pytest.raises(ValueError, match=key):
+        load_safeguards(shipped)

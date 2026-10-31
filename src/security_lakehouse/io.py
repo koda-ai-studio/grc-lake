@@ -452,6 +452,11 @@ def append_jsonl(
         os.fsync(handle.fileno())
 
 
+def write_text(path: str | Path, text: str, *, base_dir: str | Path | None = None) -> None:
+    """Atomically replace ``path`` with ``text`` (see :func:`_atomic_write`)."""
+    _atomic_write(resolve_path(path, base_dir=base_dir), [text])
+
+
 def write_json(path: str | Path, payload: Any, *, base_dir: str | Path | None = None) -> None:
     output = resolve_path(path, base_dir=base_dir)
     _atomic_write(output, [strict_json.dumps(payload, indent=2, sort_keys=True) + "\n"])
