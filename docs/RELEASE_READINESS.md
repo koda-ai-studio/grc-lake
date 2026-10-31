@@ -1,11 +1,11 @@
 # Release readiness
 
-GRC Lake **0.3.20 is published** on
-[PyPI](https://pypi.org/project/grc-lake/0.3.20/),
-[GitHub](https://github.com/koda-ai-studio/grc-lake/releases/tag/v0.3.20), and as
-`ghcr.io/koda-ai-studio/grc-lake:0.3.20`.
-Use the [v0.3.20 release templates](https://github.com/koda-ai-studio/grc-lake/tree/v0.3.20)
-for a published deployment. The [publication receipt](#verified-0320-publication)
+GRC Lake **0.3.21 is published** on
+[PyPI](https://pypi.org/project/grc-lake/0.3.21/),
+[GitHub](https://github.com/koda-ai-studio/grc-lake/releases/tag/v0.3.21), and as
+`ghcr.io/koda-ai-studio/grc-lake:0.3.21`.
+Use the [v0.3.21 release templates](https://github.com/koda-ai-studio/grc-lake/tree/v0.3.21)
+for a published deployment. The [publication receipt](#verified-0321-publication)
 records the verified source, artifact hashes and runtime checks. Later changes
 on `main` are unreleased until a new tag passes the release gates.
 
@@ -31,40 +31,28 @@ retain their exact source revisions and synthetic workload limits. They do not
 establish production capacity or qualify a deployment memory budget; 100k records
 remain outside the accepted local interactive profile.
 
-## 0.3.21 candidate preparation
+## 0.3.21 release
 
-Current `main` includes unreleased source-account isolation, organization account
-selection, partial-read safeguards, dependency security fixes, and investigation
-graph/demo navigation improvements. The [0.3.21 candidate changelog](../CHANGELOG.md#0321---2026-10-30)
-tracks that scope. The live demo follows `main`; installing the published 0.3.20
-package or image does not include these later changes.
+0.3.21 is published; see the [publication receipt](#verified-0321-publication).
+It isolates connector cursors, freshness, health, event identity and scheduler
+attempts by source account, adds named account connections and versioned
+organization account selections, withholds passes from truncated mapped lake
+reads, and reworks investigation-graph lanes, arrows and demo navigation. See
+the [changelog](../CHANGELOG.md#0321---2026-10-30) for the release scope.
 
-Version 0.3.21 is a source candidate, not a published release. It also includes
-Kubernetes node/accelerator discovery and the synthetic AI-lab walkthrough.
-There is no database migration relative to 0.3.20. Published install instructions
-remain on 0.3.20 until the new artifacts have been verified.
+Package, chart, console, Compose and MCP versions are aligned. There is no
+database migration relative to 0.3.20. The release updates the pinned ASN.1
+and compact-token dependencies and the Wolfi pip wheel; the development-tool
+audit remains distinct from the production dependency audit. Kubernetes node
+and accelerator discovery and the synthetic AI-lab walkthrough are included;
+discovered inventory records evidence presence and does not establish a pass.
 
-Before tagging 0.3.21:
-
-- Verify a fresh candidate wheel install and an upgrade from a separate 0.3.20
-  environment using a copied synthetic lake. Reconcile evidence counts, verify
-  existing snapshots, and exercise the bundled console and investigation API.
-  Keep the original lake and environment available for rollback; a local-mode
-  lake has only one writer at a time.
-- Recheck the [bounded graph profile](benchmarks/RELEASE_PROFILE.md) on the final
-  candidate, and qualify an authenticated deployment independently of the
-  public synthetic demo. TLS/IdP integration, backup/restore and live-provider
-  scope need their own receipts.
-- Verify aligned package, chart, console, MCP and example versions and the dated
-  changelog, obtain independent review, and verify exact merged-main CI. Then
-  run the existing publication and artifact gates
-  below. Source builds and merged PRs do not establish publication.
-
-Use `ghcr.io/koda-ai-studio/grc-lake` in current deployment instructions. Older
-receipts retain the registry namespace and digest that were actually verified.
-After publication, follow the [14-day pilot stability period](PILOT.md#stability-period)
-and record useful real-evidence outcomes and repeat use separately from downloads
-or synthetic demo completion.
+Exact merged-main CI and the release gates preceded publication. No new
+live-provider receipt is claimed for this release; provider coverage beyond the
+recorded receipts remains fixture-tested. After publication, follow the
+[14-day pilot stability period](PILOT.md#stability-period) and record useful
+real-evidence outcomes and repeat use separately from downloads or synthetic
+demo completion.
 
 ## 0.3.20 release
 
@@ -290,6 +278,42 @@ for security, correctness, supported-workload performance and setup/documentatio
 repairs. Independent human review, required PR checks, exact-main CI and published
 artifact/runtime verification remain release gates; this candidate section is not
 a completion receipt.
+
+## Verified 0.3.21 publication
+
+The [release workflow](https://github.com/koda-ai-studio/grc-lake/actions/runs/41167894154)
+passed every job (tested-commit and version checks, build, image, chart, PyPI,
+GitHub release, MCP Registry) on source `2aced4a393a5768d528f6ddd7d0514bcb907e488`,
+after [#1172](https://github.com/koda-ai-studio/grc-lake/pull/1172) merged and
+[exact-main CI](https://github.com/koda-ai-studio/grc-lake/actions/runs/41167239513)
+passed. The annotated `v0.3.21` tag resolves to that commit. Wheel and source
+archive bytes match between PyPI and the GitHub release, and an anonymous Helm
+pull matched the GitHub chart asset byte-for-byte:
+
+| Artifact                           | SHA-256                                                            |
+| ---------------------------------- | ------------------------------------------------------------------ |
+| `grc_lake-0.3.21-py3-none-any.whl` | `234aa26cdc0c13fd7e9c3f7433b933299c455079df1d7ee2b6cbd965f87e5c2a` |
+| `grc_lake-0.3.21.tar.gz`           | `67a27aeec516888d23d728d69245d8cdff437d8d73516580ada747ec6226dedb` |
+| `grc-lake-0.3.21.tgz`              | `e489e3959d4be7dce8f36c8aec23ddbd4529ba6f2a40a3c1b91c6c7b417145af` |
+
+The image `ghcr.io/koda-ai-studio/grc-lake:0.3.21` resolved to index
+`sha256:1d7f75a9fa48341dfaa743ce929c9646bb6bd16cadc3c8170804df051777a582`,
+containing `linux/amd64` and `linux/arm64`. The chart
+`oci://ghcr.io/koda-ai-studio/charts/grc-lake`, version `0.3.21`, has OCI digest
+`sha256:a439f4d4bfb224de2b594f75067840e8c30cf496638f28650bd6d8966d981542`.
+Wheel, source archive, chart-package, chart-OCI and image attestations verified
+with `gh attestation verify` for the `koda-ai-studio` owner. GitHub retains the
+CycloneDX SBOM and Python/chart provenance bundles.
+
+A fresh PyPI installation of `grc-lake[server]==0.3.21` outside the checkout
+reported version 0.3.21, loaded the golden fixture, served the bundled console
+and answered an investigation-graph request. This is a smoke check, not a
+qualification of TLS, an IdP, live providers or production capacity.
+
+The public MCP Registry lists `io.github.koda-ai-studio/grc-lake` at version
+`0.3.21`, and Artifact Hub reports chart version `0.3.21`. Exact-main CI
+completed in 8m32s, so the under-eight-minute target remains open in
+[#1111](https://github.com/koda-ai-studio/grc-lake/issues/1111).
 
 ## Verified 0.3.20 publication
 

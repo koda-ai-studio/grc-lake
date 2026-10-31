@@ -1,9 +1,14 @@
 # Current state and coverage
 
-Release verification: **2026-10-27**. Latest published release checked: **v0.3.17**.
-See the [publication receipt](RELEASE_READINESS.md#verified-0317-publication) for artifact and runtime evidence.
+Release verification: **2026-10-31**. Latest published release checked: **v0.3.21**.
+See the [publication receipt](RELEASE_READINESS.md#verified-0321-publication) for artifact and runtime evidence.
 Changes on `main` or in a pull request can be newer than the published package. Check the [releases](https://github.com/koda-ai-studio/grc-lake/releases)
 and [changelog](../CHANGELOG.md) for the version you install.
+
+0.3.21 isolates connector state by source account, adds named account
+connections and organization account selections, withholds passes from truncated
+mapped lake reads, and separates the investigation graph's assurance lanes from
+recorded lineage. See the [0.3.21 notes](RELEASE_READINESS.md#0321-release).
 
 0.3.17 makes missing review status and unattributed legacy mappings proposed,
 preserves explicit graph review provenance, and bounds graph layouts by both

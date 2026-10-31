@@ -116,3 +116,34 @@ def test_install_guides_pin_one_published_release() -> None:
             + re.findall(r"published \*\*v(\d+\.\d+\.\d+)\*\*", text)
         )
         assert refs and len(set(refs)) == 1 and set(refs) <= allowed, (doc, refs)
+
+
+def test_public_status_docs_name_the_verified_publication() -> None:
+    """Once a publication receipt exists, every public install guide and status
+    page names that release; an older pin after the receipt is stale copy."""
+    readiness = (ROOT / "docs/RELEASE_READINESS.md").read_text(encoding="utf-8")
+    published = re.search(r"\*\*(\d+\.\d+\.\d+) is published\*\*", readiness)
+    assert published, "release readiness must open with the published version"
+    version = published.group(1)
+    slug = version.replace(".", "")
+    assert f"## Verified {version} publication" in readiness, version
+    assert f"#verified-{slug}-publication" in readiness
+
+    for doc in ("README.md", "docs/TUTORIAL_5_MIN.md"):
+        text = (ROOT / doc).read_text(encoding="utf-8")
+        refs = (
+            re.findall(r"--branch v(\d+\.\d+\.\d+)", text)
+            + re.findall(r"grc-lake\[[\w,]+\]==(\d+\.\d+\.\d+)", text)
+            + re.findall(r"published \*\*v(\d+\.\d+\.\d+)\*\*", text)
+        )
+        assert set(refs) == {version}, (doc, refs)
+
+    current_state = (ROOT / "docs/CURRENT_STATE.md").read_text(encoding="utf-8")
+    checked = re.search(r"Latest published release checked: \*\*v(\d+\.\d+\.\d+)\*\*", current_state)
+    assert checked and checked.group(1) == version, checked and checked.group(0)
+    assert f"RELEASE_READINESS.md#verified-{slug}-publication" in current_state
+
+    roadmap = (ROOT / "ROADMAP.md").read_text(encoding="utf-8")
+    status = re.search(r"Status as of v(\d+\.\d+\.\d+)", roadmap)
+    assert status and status.group(1) == version, status and status.group(0)
+    assert f"**v{version} is published**" in roadmap
