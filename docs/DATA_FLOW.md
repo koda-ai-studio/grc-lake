@@ -119,6 +119,20 @@ source evidence
 | Snapshot          | `grc-lake assessment snapshot --lake build/lakehouse --reason ...` |
 | API               | `src/security_lakehouse/server_app.py`                             |
 
+Current posture separates observed-control scores from collection completeness.
+An observed `collection_scope` gap blocks aggregate readiness; it also blocks
+readiness for framework rows with controls observed from that source, including
+when the gap belongs to a different source account. It does not change technical
+control verdicts, passing-control scores, or per-asset CCF evidence. Critical
+failures keep their priority.
+
+The payload reports `posture.collection_gap_count`, `collection_gaps.sources`,
+`collection_gaps.affected_control_ids`, and each framework's
+`collection_gap_control_count`. These describe recorded gaps, not a proof of
+complete inventory when zero. Current API and CLI reads refresh with the evidence
+generation; snapshots retain the original gap and readiness result. Framework
+attestation still requires the separate reviewed CCF assessment.
+
 ## Connector Contract
 
 Connectors should emit evidence records with:
