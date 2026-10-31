@@ -131,3 +131,14 @@ def test_publication_status_matches_install_guides() -> None:
     anchor = "verified-" + published.replace(".", "") + "-publication"
     assert f"RELEASE_READINESS.md#{anchor}" in current
     assert f"## Verified {published} publication" in readiness
+
+
+def test_roadmap_status_names_the_published_release() -> None:
+    """The roadmap header must not lag the verified publication."""
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    published = re.search(r"--branch v(\d+\.\d+\.\d+)", readme).group(1)
+    roadmap = (ROOT / "ROADMAP.md").read_text(encoding="utf-8")
+    status = re.search(r"Status as of v(\d+\.\d+\.\d+)", roadmap)
+    assert status and status.group(1) == published, status and status.group(0)
+    assert f"**v{published} is published**" in roadmap
+    assert "RELEASE_READINESS.md#verified-" + published.replace(".", "") + "-publication" in roadmap

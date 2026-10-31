@@ -1,28 +1,28 @@
 # GRC Lake roadmap
 
-Status as of v0.3.13, checked **2026-10-25**; **v0.3.13 is published**.
-The release adds graph result parity, scoped OCSF identities and bounded
-Databricks/capacity evidence. Deeper provider and capacity qualification remain below.
+Status as of v0.3.21, checked **2026-10-31**; **v0.3.21 is published**.
+The release isolates connector state by source account, adds named account and
+organization scopes, withholds passes from truncated lake reads and reworks the
+investigation graph. Deeper provider and capacity qualification remain below.
 Start with [current state and coverage](docs/CURRENT_STATE.md) for shipped paths
 and qualification boundaries. This roadmap describes remaining work, not promises
 of release dates.
 
-## 0.3.14 candidate and stability period
+## Stability period after 0.3.21
 
-The candidate combines Databricks completeness/recovery checks, focused CCF review
-packets and the accepted [bounded local graph profile](docs/benchmarks/RELEASE_PROFILE.md).
-Release gates and remaining qualification are tracked in
-[release readiness](docs/RELEASE_READINESS.md#0314-candidate). After publication,
-follow the [14-day stability and pilot process](docs/PILOT.md): prioritize reported
+Release gates and the publication receipt are recorded in
+[release readiness](docs/RELEASE_READINESS.md#verified-0321-publication). After
+publication, follow the [14-day stability and pilot process](docs/PILOT.md): prioritize reported
 correctness, security, supported-workload performance and setup problems. New
 connectors and unrelated feature expansion wait. No pilot adoption or mapping
 approval is implied by preparing this process.
 
 ## Next milestone: deepen qualification
 
-The 0.3.13 release separates control-test posture from framework results across
-graph views, keeps graph versions deterministic, and bounds large console maps. Published-artifact verification
-now covers v0.3.13 in [release readiness](docs/RELEASE_READINESS.md).
+Releases 0.3.13 through 0.3.21 separated control-test posture from framework
+results, bounded graph layouts and reads, scoped evidence by provider and source
+account, and hardened transport and review-state validation. Published-artifact
+verification now covers v0.3.21 in [release readiness](docs/RELEASE_READINESS.md).
 Provider depth, independent mapping review and measured capacity remain separate
 work below. Correctness, security, migration and supported-workflow regressions
 remain release blockers.
@@ -104,7 +104,7 @@ provider HA and production capacity remain unqualified by this audit.
 
 ## Release work
 
-v0.3.13 is published. The earlier 0.3.3 changes include dependency remediation,
+v0.3.21 is published. The earlier 0.3.3 changes include dependency remediation,
 authentication hardening, evidence eligibility, versioned CCF governance, exact
 lineage and frozen requirement-gap explanations. The console now exposes those
 gaps and record-level investigation, with bounded graph navigation and shared
