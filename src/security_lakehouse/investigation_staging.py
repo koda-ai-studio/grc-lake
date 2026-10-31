@@ -149,7 +149,8 @@ class Staging:
             self.db.execute("""
                 INSERT INTO nodes SELECT
                     json_extract(data,'$.id'), json_extract(data,'$.kind'), json_extract(data,'$.label'),
-                    graph_casefold(json_extract(data,'$.label') || ' ' || json_extract(data,'$.id')),
+                    CASE WHEN json_type(data,'$.label')='text' AND json_type(data,'$.id')='text'
+                        THEN graph_casefold(json_extract(data,'$.label') || ' ' || json_extract(data,'$.id')) END,
                     CASE WHEN json_type(data,'$.source_account_id') IS NULL THEN ''
                         ELSE json_extract(data,'$.source_account_id') END,
                     CASE WHEN json_type(data,'$.framework_id') IS NULL THEN ''

@@ -523,3 +523,16 @@ def test_preparation_only_materializes_one_inventory_pass(tmp_path, monkeypatch)
     actual = graph.investigation_graph(tmp_path, root="control:TEST", depth=3)
     assert actual == expected
     assert graph.investigation_graph(tmp_path, view="environment", search="STRASSE")["root_count"] == 1
+
+
+@pytest.mark.parametrize("label", [17, {"unexpected": "object"}])
+def test_preparation_rejects_invalid_node_labels(tmp_path, label):
+    import sqlite3
+
+    from security_lakehouse.graph_index_cli import prepare_index
+
+    publish_generation(tmp_path, generation(tmp_path, label))
+    with pytest.raises((TypeError, sqlite3.DatabaseError)):
+        prepare_index(tmp_path)
+    assert not (tmp_path / ".graph-index/index.sqlite").exists()
+    assert not list((tmp_path / ".graph-index").glob(".building-*"))
