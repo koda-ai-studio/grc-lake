@@ -1,0 +1,11 @@
+{
+  "name": "@grc-lake/minimatch-compat",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Legacy CommonJS entry point backed by upstream minimatch 11",
+  "main": "index.cjs",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "minimatch-core": "npm:minimatch@11.0.3"
+  }
+}

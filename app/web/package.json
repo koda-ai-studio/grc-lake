@@ -48,6 +48,7 @@
     "tailwind-merge": "^3.7.0"
   },
   "devDependencies": {
+    "minimatch": "file:vendor/minimatch-compat",
     "@axe-core/playwright": "^4.14.0",
     "@playwright/test": "^1.64.1",
     "@types/node": "^26.6.5",
@@ -62,6 +63,7 @@
     "typescript": "^6.0.3"
   },
   "overrides": {
+    "minimatch@<9": "$minimatch",
     "@typescript-eslint/typescript-estree": {
       "minimatch": "11.0.1"
     },
