@@ -481,6 +481,11 @@ def _parser() -> argparse.ArgumentParser:
     )
     demo.add_argument("--port", type=int, default=8787, help="loopback port")
     demo.add_argument("--no-browser", action="store_true", help="print the console URL without opening a browser")
+    demo.add_argument(
+        "--lake",
+        default=None,
+        help="keep the demo lake in this new or empty directory for later CLI steps instead of deleting it on exit",
+    )
     demo.set_defaults(func=_demo)
 
     aibom = sub.add_parser("aibom", help="local CycloneDX/SPDX AI bill of materials commands")
@@ -2317,10 +2322,20 @@ def _demo(args: argparse.Namespace) -> int:
         signal.signal(signal.SIGTERM, previous)
 
 
-def _serve_demo(args: argparse.Namespace, host: str) -> int:
+def _demo_lake(args: argparse.Namespace) -> contextlib.AbstractContextManager[str]:
     import tempfile
 
-    with tempfile.TemporaryDirectory(prefix="grc-lake-demo-") as lake:
+    if args.lake is None:
+        return tempfile.TemporaryDirectory(prefix="grc-lake-demo-")
+    kept = Path(args.lake).resolve()
+    if kept.exists() and (not kept.is_dir() or any(kept.iterdir())):
+        raise SystemExit(f"--lake must name an empty or new directory; {kept} already has content")
+    kept.mkdir(parents=True, exist_ok=True)
+    return contextlib.nullcontext(str(kept))
+
+
+def _serve_demo(args: argparse.Namespace, host: str) -> int:
+    with _demo_lake(args) as lake:
         print(f"loading the synthetic {args.company} company...", flush=True)
         _load_fixture(args.company, lake, tenant_id="default", rebase_times=True, demo_records=True)
         page = "ai-governance" if args.company == "ai_lab" else "dashboard"
@@ -2339,7 +2354,10 @@ def _serve_demo(args: argparse.Namespace, host: str) -> int:
         if args.company == "ai_lab":
             print("Start with the discovered models and agents, then inspect their recorded evidence and gaps.")
             print("Synthetic observations do not establish live coverage or framework compliance.")
-        print("press Ctrl+C to stop; the temporary lake is deleted on exit", flush=True)
+        if args.lake is None:
+            print("press Ctrl+C to stop; the temporary lake is deleted on exit", flush=True)
+        else:
+            print(f"press Ctrl+C to stop; lake kept at {lake} for `grc-lake ... --lake {lake}`", flush=True)
         with contextlib.suppress(KeyboardInterrupt):
             if not full_server:
                 from security_lakehouse.server import serve as serve_local
