@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import fcntl
 import hashlib
+import importlib
 import json
 import os
 import shutil
@@ -72,13 +73,12 @@ def _matches(path, state):
 
 
 def read(lake, vendors, tenant, check, *, allow_build=True, **query):
-    from security_lakehouse.investigation_graph import (
-        _MODEL_FILES,
-        _build_model,
-        _graph_version,
-        catalog,
-        safeguard_catalog,
-    )
+    graph = importlib.import_module("security_lakehouse.investigation_graph")
+    _MODEL_FILES = graph._MODEL_FILES
+    _build_model = graph._build_model
+    _graph_version = graph._graph_version
+    catalog = graph.catalog
+    safeguard_catalog = graph.safeguard_catalog
 
     def identity():
         versions, racy = [], {}
