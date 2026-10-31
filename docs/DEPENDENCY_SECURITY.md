@@ -12,9 +12,9 @@ Both image reports contain zero reported vulnerabilities. Audits of the frozen
 Python dependencies, a fresh PyPI server/MCP installation and production npm
 dependencies also reported no known vulnerabilities on October 31, 2026.
 
-The full npm development audit still reports the moderate minimatch advisory
+At the 0.3.21 release review, the full npm development audit reported the moderate minimatch advisory
 [GHSA-g3hv-75wg-m249](https://github.com/advisories/GHSA-g3hv-75wg-m249),
-propagated through 15 dependency entries. The lock contains patched 11.0.1 for
+propagated through 15 dependency entries. That release lock contains patched 11.0.1 for
 TypeScript tooling and legacy 3.1.5 for ESLint dependencies. The
 [maintainer advisory](https://github.com/isaacs/minimatch/security/advisories/GHSA-g3hv-75wg-m249)
 identifies preprocessing in 10.2.6; the affected methods and optimization-level
@@ -27,6 +27,29 @@ This advisory-specific source review supports the false-positive disposition of
 Scorecard alert #238. It does not make the full development audit clean or waive
 other advisories. Reassess if the advisory, dependencies or Scorecard vulnerability
 set changes. The existing audit and image gates remain enabled.
+
+## Patched minimatch for legacy ESLint consumers
+
+The current development lock removes minimatch 3.1.5. A private, repository-local
+adapter at `app/web/vendor/minimatch-compat` supplies the callable CommonJS entry
+point expected by ESLint 9 and its plugins, backed by the unmodified upstream
+`minimatch@11.0.3` package under the `minimatch-core` npm alias. The lock retains
+its upstream package name, registry URL and SHA-512 integrity. TypeScript tooling
+continues to use patched 11.0.1 directly.
+
+The adapter delegates matching and constructor helpers to upstream. For
+`eslint-plugin-import`'s `makeRe(...).test(...)` usage it supplies a predicate
+backed by `Minimatch.match`; it does not generate a regular expression. This is
+compatibility for the installed tooling, not a general replacement for all
+legacy minimatch APIs. There are no installation scripts or runtime patches.
+Remove the adapter and its override when these consumers support upstream's
+current exports.
+
+`npm run test:dependencies` checks the lock for older upstream engines, exercises
+all six legacy consumers, retains the bounded preprocessing regression, and
+verifies that the import restriction rule still rejects forbidden paths.
+The full npm audit reports zero known vulnerabilities with this lock as of
+October 31, 2026; retain audits and behavioral tests for subsequent updates.
 
 ## Container runtime findings
 
