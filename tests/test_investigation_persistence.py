@@ -8,6 +8,48 @@ from security_lakehouse.investigation_cache import ModelCache
 from test_investigation_cache import generation
 
 
+def test_staged_node_insertion_does_not_read_back_every_evidence_payload(tmp_path):
+    import sqlite3
+
+    from security_lakehouse.investigation_staging import Staging
+    from security_lakehouse.io import write_json, write_jsonl_from_iterable
+
+    write_json(tmp_path / "catalog/control_map.json", {"controls": [{"control_id": "TEST", "framework_id": "soc2"}]})
+    write_json(tmp_path / "catalog/safeguards.json", {"safeguards": []})
+    events = [
+        {
+            "event_id": f"event-{i}",
+            "tenant_id": "account",
+            "asset_id": f"asset-{i % 5}",
+            "asset_name": f"Name {i} 雪",
+            "event_type": "identity.test",
+            "status": "fail",
+            "severity": "high",
+            "control_ids": ["TEST"],
+        }
+        for i in range(200)
+    ]
+    write_jsonl_from_iterable(tmp_path / "silver/normalized_events.jsonl", events + events[:10])
+
+    def check():
+        return None
+
+    expected_nodes, expected_edges, _ = graph._build_model(tmp_path, [], check)
+    payload_reads = []
+    with sqlite3.connect(":memory:") as db:
+        staged = Staging(db, tmp_path, check)
+        db.set_trace_callback(
+            lambda sql: (
+                payload_reads.append(sql) if sql.startswith("SELECT data FROM objects WHERE space='nodes'") else None
+            )
+        )
+        nodes, edges, _ = graph._build_model(tmp_path, [], check, storage=staged)
+        assert list(nodes.values()) == list(expected_nodes.values())
+        assert list(edges.values()) == list(expected_edges.values())
+        # Only bounded finding summaries need node payload reads, not every insert.
+        assert len(payload_reads) <= 100
+
+
 @pytest.mark.parametrize("tenant", [None, "tenant-a"])
 def test_public_graph_uses_prepared_index_without_in_memory_fallback(tmp_path, monkeypatch, tenant):
     from security_lakehouse.graph_index_cli import prepare_index
@@ -474,6 +516,80 @@ def test_one_hop_response_edges_do_not_scan_the_whole_inventory():
         assert result["matching_nodes"] == 10001
         assert len(result["nodes"]) == 2
         assert len(result["edges"]) == 1
+
+
+@pytest.mark.parametrize("view", ["controls", "environment", "investigation"])
+@pytest.mark.parametrize("layers", [None, {"control", "framework", "evidence_type", "asset", "source"}])
+def test_control_neighborhood_work_does_not_grow_with_unrelated_inventory(view, layers):
+    import sqlite3
+
+    from security_lakehouse.investigation_sqlite import initialize, populate, query
+
+    nodes = [
+        {"id": key, "kind": key.split(":")[0], "label": key}
+        for key in (
+            "control:test",
+            "control:sibling",
+            "framework:test",
+            "evidence_type:test",
+            "asset:test",
+            "source:test",
+            "finding:test",
+        )
+    ]
+    links = [
+        ("framework:test", "control:test"),
+        ("framework:test", "control:sibling"),
+        ("control:test", "evidence_type:test"),
+        ("evidence_type:test", "asset:test"),
+        ("source:test", "evidence_type:test"),
+        ("finding:test", "evidence_type:test"),
+    ]
+    nodes += [{"id": f"evidence_type:unrelated-{i}", "kind": "evidence_type", "label": str(i)} for i in range(10000)]
+    links += [(f"evidence_type:unrelated-{i}", f"evidence_type:unrelated-{i}") for i in range(10000)]
+    edges = [{"id": str(i), "source": source, "target": target} for i, (source, target) in enumerate(links)]
+    with sqlite3.connect(":memory:") as db:
+        initialize(db)
+        populate(db, nodes, edges, version="fixture", key="fixture", frameworks={}, check=lambda: None)
+        calls = 0
+        traversing = False
+
+        def trace(statement):
+            nonlocal traversing
+            if "CREATE TEMP TABLE selected" in statement:
+                traversing = True
+
+        db.set_trace_callback(trace)
+
+        def budget():
+            nonlocal calls
+            # Filtered root ranking may enumerate roots; a rooted walk must stay local.
+            calls += int(traversing)
+            assert calls <= 60, "small neighborhoods must not scan unrelated evidence on each hop"
+
+        result = query(
+            db,
+            key="fixture",
+            check=budget,
+            root="control:test",
+            view=view,
+            depth=2,
+            limit=150,
+            layers=layers,
+            search="",
+            root_offset=0,
+            framework="",
+            control_offset=0,
+            expected_version=None,
+        )
+    expected = {"control:test", "framework:test", "evidence_type:test", "asset:test", "source:test"}
+    if view != "controls" and layers is None:
+        expected.add("finding:test")
+    assert {node["id"] for node in result["nodes"]} == expected
+    assert result["matching_nodes"] == len(expected)
+    assert {(edge["source"], edge["target"]) for edge in result["edges"]} == {
+        (source, target) for source, target in links if source in expected and target in expected
+    }
 
 
 def test_temporary_staging_respects_disk_ceiling(tmp_path, monkeypatch):
