@@ -31,6 +31,41 @@ retain their exact source revisions and synthetic workload limits. They do not
 establish production capacity or qualify a deployment memory budget; 100k records
 remain outside the accepted local interactive profile.
 
+## 0.3.22 candidate
+
+0.3.22 is prepared for review and is not published. The latest verified release
+remains 0.3.21 until the release workflow and artifact checks complete.
+
+The candidate adds evidence applicability checks, collection-gap readiness,
+compact console pages and scoped persistent graph preparation/navigation.
+Reevaluate existing lakes after upgrading: unsupported safeguard or requirement
+results can become `not_evaluated`. Incremental evaluation invalidates its prior
+evaluator fingerprint and creates a new generation; existing generations and
+snapshots retain their original content. No database migration or mapping-review
+approval is introduced by this release.
+
+Derived graph indexes include runtime source identity. After upgrading, prepare
+them again with `grc-lake graph prepare-index --lake PATH`, supplying the platform
+tenant where required. Local synthetic 500k prepared-index measurements do not
+qualify ingestion or production capacity. The million-record preparation reached
+its 30-minute watchdog; broader capacity work remains in issue #910. Retain the
+supported profile in [release qualification](benchmarks/RELEASE_PROFILE.md).
+
+Local candidate checks passed: 40 packaging/release tests, lint, formatting,
+type checking and console build/lint. The clean wheel contains the same 263
+console files as the static export. An isolated core install passed fixture,
+replay, integrity, snapshot and console checks. Upgrading a copied 0.3.21 lake
+created a corrected generation while preserving previous generation and snapshot
+bytes. Authenticated loopback reads rejected missing/invalid credentials and
+cross-tenant access. These checks do not establish publication or live-provider
+qualification.
+
+Release gates remain independent human approval, exact merged-main CI,
+version/changelog consistency, verified package and console contents, fresh
+installation and upgrade integrity, both image architectures' vulnerability and
+authenticated runtime checks, chart/provenance verification and public registry
+visibility. Coordinate security-advisory publication with the verified patch.
+
 ## 0.3.21 release
 
 0.3.21 is published; see the [publication receipt](#verified-0321-publication).

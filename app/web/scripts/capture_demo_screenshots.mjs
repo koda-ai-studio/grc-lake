@@ -122,7 +122,7 @@ const shots = [
     route: "/frameworks/",
     dark: true,
     viewport: TALL,
-    endAt: (page) => page.getByLabel("Framework roster").locator("li").nth(7),
+    endAt: (page) => page.getByRole("region", { name: "Framework catalog" }),
   },
   {
     file: "grc-lake-demo-mapping-review.png",
