@@ -86,3 +86,44 @@ def test_editable_checkout_keeps_own_data_even_inside_prefix(tmp_path, monkeypat
     monkeypatch.setattr(catalog, "__file__", str(checkout / "src/security_lakehouse/catalog.py"))
     monkeypatch.setattr(catalog.sys, "prefix", str(prefix))
     assert catalog._data_root() == checkout
+
+
+@pytest.mark.parametrize("damaged", [False, True])
+def test_cached_wheel_uses_own_recorded_data_outside_interpreter_prefix(tmp_path, monkeypatch, damaged):
+    imported = tmp_path / "cached-wheel"
+    active = tmp_path / "active-interpreter"
+    _catalogs(imported)
+    _catalogs(active)
+    module = _installed_module(imported)
+    module.parent.mkdir(parents=True)
+    module.write_text("")
+    metadata = module.parent.parent / "grc_lake-0.0.0.dist-info"
+    metadata.mkdir()
+    (metadata / "METADATA").write_text("Metadata-Version: 2.1\nName: grc-lake\nVersion: 0.0.0\n")
+    (metadata / "RECORD").write_text("security_lakehouse/catalog.py,,\n../../../frameworks/registry.json,,\n")
+    if damaged:
+        (imported / "controls/catalog.json").unlink()
+    monkeypatch.delenv("GRC_LAKE_DATA_DIR", raising=False)
+    monkeypatch.setattr(catalog, "__file__", str(module))
+    monkeypatch.setattr(catalog.sys, "prefix", str(active))
+    monkeypatch.setattr(catalog.sys, "base_prefix", str(active))
+    assert catalog._data_root() == imported
+
+
+def test_editable_checkout_does_not_borrow_unrelated_distribution_data(tmp_path, monkeypatch):
+    from importlib.metadata import Distribution
+
+    checkout = tmp_path / "checkout"
+    module = checkout / "src/security_lakehouse/catalog.py"
+    unrelated = tmp_path / "unrelated-wheel"
+    _catalogs(unrelated)
+    other_module = _installed_module(unrelated)
+    other_module.parent.mkdir(parents=True)
+    metadata = other_module.parent.parent / "grc_lake-0.0.0.dist-info"
+    metadata.mkdir()
+    (metadata / "METADATA").write_text("Metadata-Version: 2.1\nName: grc-lake\nVersion: 0.0.0\n")
+    (metadata / "RECORD").write_text("../../../frameworks/registry.json,,\n")
+    monkeypatch.delenv("GRC_LAKE_DATA_DIR", raising=False)
+    monkeypatch.setattr(catalog, "__file__", str(module))
+    monkeypatch.setattr(catalog, "distributions", lambda **kwargs: [Distribution.at(metadata)], raising=False)
+    assert catalog._data_root() == checkout

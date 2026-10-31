@@ -93,6 +93,14 @@ jobs:
             unset PYTHONPATH GRC_LAKE_DATA_DIR
             "$install_root/core/bin/python" "$core_smoke" "$install_root/core"
           )
+          # uv can import the wheel from a cache outside sys.prefix.
+          (
+            cd "$install_root"
+            unset PYTHONPATH GRC_LAKE_DATA_DIR
+            uv run --isolated --no-project --with "$wheel" grc-lake --help
+            uv run --isolated --no-project --with "$wheel" grc-lake fixtures load --company golden --out isolated-lake --rebase-times
+            uv run --isolated --no-project --with "$wheel" grc-lake assessment status --lake isolated-lake
+          )
           python -m venv "$install_root/venv"
           uv pip install --python "$install_root/venv/bin/python" --require-hashes -r "$requirements"
           cd "$install_root"
