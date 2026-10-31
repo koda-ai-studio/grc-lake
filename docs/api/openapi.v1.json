@@ -6195,6 +6195,90 @@
       }
     },
     "/api/v1/mapping-reviews/decisions": {
+      "get": {
+        "description": "Requires scope: read, mapping_review.",
+        "operationId": "get_mapping_reviews_decisions",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "safeguard_id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "control_id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "framework_id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "reviewer",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "decision",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sort",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V1Envelope"
+                }
+              }
+            },
+            "description": "v1 envelope"
+          }
+        },
+        "summary": "List mapping-reviews.decisions",
+        "tags": ["mapping-reviews"]
+      },
       "post": {
         "description": "Approve, reject, or request changes to safeguard mappings for this tenant.\n\nRequires the ``mapping_review`` scope and a signed-in console session.\nBearer API keys, which agents, CI, and MCP clients use, can read the\nqueue and history but are refused here whatever their role.",
         "operationId": "mapping_review_decide_api_v1_mapping_reviews_decisions_post",

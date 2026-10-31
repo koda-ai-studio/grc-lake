@@ -1,5 +1,30 @@
 import { expect, test, type Page } from "@playwright/test";
 
+test.afterEach(async ({ page }) => {
+  await page.unrouteAll({ behavior: "wait" });
+});
+
+async function mockReviewIdentity(
+  page: Page,
+  authMethod: string,
+  scopes = ["read", "mapping_review"],
+) {
+  await page.route("**/api/v1/auth/whoami", (route) =>
+    route.fulfill({
+      json: {
+        data: {
+          user_id: "synthetic-reviewer",
+          tenant_id: "synthetic-workspace",
+          email: "reviewer@example.test",
+          role: "compliance_reviewer",
+          scopes,
+          auth_method: authMethod,
+        },
+      },
+    }),
+  );
+}
+
 async function openQueue(page: Page) {
   await page.goto("/console/mapping-review/");
   await expect(
@@ -55,45 +80,23 @@ test.describe("mapping review", () => {
     page,
   }) => {
     const table = await openQueue(page);
-    const rationale = `Evidence confirms the requirement (e2e ${Date.now()})`;
-
-    const firstRow = table.getByRole("row").nth(1);
-    const requirement = (await firstRow.getAttribute("data-mapping")) ?? "";
-    expect(requirement).toContain("|");
-    const [safeguardId, controlId] = requirement.split("|");
-
-    // Keyboard: the row checkbox is reachable and toggles with Space.
-    const checkbox = firstRow.getByRole("checkbox");
+    const checkbox = table.getByRole("row").nth(1).getByRole("checkbox");
     await checkbox.focus();
     await page.keyboard.press("Space");
     await expect(checkbox).toBeChecked();
-
     const decision = page.getByRole("region", { name: "Record a decision" });
     await expect(decision.getByText("1 selected")).toBeVisible();
-    const approve = decision.getByRole("button", { name: "Approve" });
-    await expect(approve).toBeDisabled();
-    await decision.getByLabel("Rationale").fill(rationale);
-    const submission = page.waitForRequest(
-      (request) =>
-        request.method() === "POST" &&
-        request.url().endsWith("/api/v1/mapping-reviews/decisions"),
-    );
-    await approve.click();
-    const submitted = (await submission).postDataJSON();
-    expect(submitted.items[0].review_basis_sha256).toMatch(/^[0-9a-f]{64}$/);
-    expect(submitted.items[0]).toHaveProperty("expected_decision_id", null);
-
-    // This browser suite uses the explicitly unauthenticated demo server.
-    // Successful authenticated review is covered by test_mapping_review_api.py.
-    await expect(
-      page.getByText(
-        /mapping review decisions require a signed-in console session/,
-      ),
-    ).toBeVisible();
+    await expect(decision.getByText(/signed-in console session/)).toBeVisible();
+    await expect(decision.getByLabel("Rationale")).toHaveCount(0);
+    await expect(decision.getByRole("button")).toHaveCount(0);
     await expect(page.getByText("Recorded 1 decision")).toHaveCount(0);
-    await expect(
-      table.locator(`tr[data-mapping="${safeguardId}|${controlId}"]`),
-    ).toBeVisible();
+    await table
+      .getByRole("button", { name: /^History for/ })
+      .first()
+      .click();
+    const drawer = page.getByRole("region", { name: "Decide this mapping" });
+    await expect(drawer.getByText(/signed-in console session/)).toBeVisible();
+    await expect(drawer.getByRole("button")).toHaveCount(0);
   });
 
   test("works at 390px without horizontal page scroll", async ({ page }) => {
@@ -199,6 +202,7 @@ test("review drawer exposes operating and evidence requirements", async ({
 test("stale review clears the selection without claiming a decision", async ({
   page,
 }) => {
+  await mockReviewIdentity(page, "session:oidc");
   await page.route("**/api/v1/mapping-reviews/decisions", async (route) => {
     if (route.request().method() !== "POST") return route.continue();
     await route.fulfill({
@@ -275,6 +279,7 @@ test("a stale approval is history without current review credit", async ({
 test("background queue refresh cannot replace the selected review basis", async ({
   page,
 }) => {
+  await mockReviewIdentity(page, "session:saml");
   await page.clock.install();
   let reads = 0;
   await page.route("**/api/v1/mapping-reviews/queue?**", async (route) => {
@@ -296,18 +301,34 @@ test("background queue refresh cannot replace the selected review basis", async 
   });
   await expect.poll(() => reads).toBeGreaterThan(1);
   const decision = page.getByRole("region", { name: "Record a decision" });
+  await expect(
+    decision.getByRole("button", { name: "Approve" }),
+  ).toBeDisabled();
   await decision
     .getByLabel("Rationale")
     .fill("I inspected the original definition.");
+  await page.route("**/api/v1/mapping-reviews/decisions", (route) => {
+    if (route.request().method() !== "POST") return route.continue();
+    return route.fulfill({
+      status: 400,
+      json: {
+        data: null,
+        errors: [
+          { code: "bad_request", detail: "Synthetic submission captured" },
+        ],
+      },
+    });
+  });
   const submission = page.waitForRequest(
     (request) =>
       request.method() === "POST" &&
       request.url().endsWith("/api/v1/mapping-reviews/decisions"),
   );
   await decision.getByRole("button", { name: "Approve" }).click();
-  expect((await submission).postDataJSON().items[0].review_basis_sha256).toBe(
-    "1".repeat(64),
-  );
+  const submitted = (await submission).postDataJSON();
+  expect(submitted.items[0].review_basis_sha256).toBe("1".repeat(64));
+  expect(submitted.items[0]).toHaveProperty("expected_decision_id", null);
+  await expect(page.getByText("Synthetic submission captured")).toBeVisible();
 });
 
 test("an out-of-date maintainer review is not labeled as a current review", async ({
@@ -382,3 +403,38 @@ test("framework marks fit their badge on one line", async ({ page }) => {
   );
   expect(broken).toEqual([]);
 });
+
+for (const [method, scopes] of [
+  ["api_key", ["read", "mapping_review"]],
+  ["session:api_key", ["read", "mapping_review"]],
+  ["session:oidc", ["read"]],
+  ["session:saml", ["read"]],
+] as const) {
+  test(`${method} with ${scopes.join(",")} cannot record mapping decisions`, async ({
+    page,
+  }) => {
+    await mockReviewIdentity(page, method, [...scopes]);
+    let submissions = 0;
+    page.on("request", (request) => {
+      if (
+        request.method() === "POST" &&
+        request.url().endsWith("/api/v1/mapping-reviews/decisions")
+      )
+        submissions += 1;
+    });
+    const table = await openQueue(page);
+    await table.getByRole("row").nth(1).getByRole("checkbox").check();
+    const decision = page.getByRole("region", { name: "Record a decision" });
+    await expect(decision.getByText(/signed-in console session/)).toBeVisible();
+    await expect(decision.getByLabel("Rationale")).toHaveCount(0);
+    await expect(decision.getByRole("button")).toHaveCount(0);
+    await table
+      .getByRole("button", { name: /^History for/ })
+      .first()
+      .click();
+    const drawer = page.getByRole("region", { name: "Decide this mapping" });
+    await expect(drawer.getByText(/signed-in console session/)).toBeVisible();
+    await expect(drawer.getByRole("button")).toHaveCount(0);
+    expect(submissions).toBe(0);
+  });
+}

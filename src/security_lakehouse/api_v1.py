@@ -1221,8 +1221,13 @@ def merge_openapi(spec: JsonObject) -> JsonObject:
     # arbitrary path segment, which is worse than absent.
     paths.pop("/api/v1/{rest}", None)
     paths.pop("/api/{rest}", None)
+    # Merge per method: FastAPI documents a decorated POST on a path whose GET
+    # is still served by the catch-all, so a path-level setdefault would drop
+    # the GET (mapping-reviews/decisions lists and decides on one path).
     for path, item in openapi_paths().items():
-        paths.setdefault(path, item)
+        existing = paths.setdefault(path, {})
+        for method, operation in item.items():
+            existing.setdefault(method, operation)
     for path in (
         "/api/v1/ingestion/eval",
         "/api/v1/scheduler/tick",

@@ -173,6 +173,9 @@ def _validate_mapping_source(source: Any, *, context: str) -> list[str]:
     return problems
 
 
+_LOAD_TIME_KEYS = ("inherited_review_valid", "current_control_version")
+
+
 def load_safeguards(path: str | Path | None = None) -> JsonObject:
     """Return the raw safeguards payload."""
     payload = json.loads(Path(path or DEFAULT_SAFEGUARDS).read_text(encoding="utf-8"))
@@ -181,6 +184,10 @@ def load_safeguards(path: str | Path | None = None) -> JsonObject:
     catalog = load_control_catalog()
     for entry in payload["safeguards"]:
         for member in entry.get("satisfies", []):
+            # Computed below from the catalog; a shipped value (including a
+            # re-saved loaded payload) is never trusted, only recomputed.
+            for runtime_key in _LOAD_TIME_KEYS:
+                member.pop(runtime_key, None)
             if "control_version" in member:
                 member["current_control_version"] = catalog.get(member["control_id"], {}).get("version", "1.0.0")
         _check_inherited_reviews(entry, catalog)

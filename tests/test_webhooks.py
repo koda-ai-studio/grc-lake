@@ -1118,3 +1118,29 @@ def test_network_errors_report_the_error_class_only(monkeypatch: pytest.MonkeyPa
         "https://hooks.example.com/x", secret="s", event_type="x", envelope=envelope, max_retries=0
     )
     assert result["error"] == "URLError"
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "http://127.0.0.1:8899/hook",
+        "http://localhost/hook",
+        "http://[::1]/hook",
+        "http://10.0.0.5/hook",
+        "ftp://hooks.example.com/x",
+    ],
+)
+def test_webhook_registration_rejects_non_public_literal_targets(env, url: str) -> None:
+    """Delivery already blocks SSRF; registration must fail fast instead of
+    accepting a subscription whose every delivery will be refused."""
+    _app, client, tokens, _tenant_id = env
+    before = client.get("/api/v1/webhooks", headers=_bearer(tokens["security_admin"])).json()["data"]
+    response = client.post(
+        "/api/v1/webhooks",
+        json={"url": url, "event_types": ["assessment.completed"]},
+        headers=_bearer(tokens["security_admin"]),
+    )
+    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY, response.text
+    assert response.json()["errors"], response.text
+    after = client.get("/api/v1/webhooks", headers=_bearer(tokens["security_admin"])).json()["data"]
+    assert len(after) == len(before)

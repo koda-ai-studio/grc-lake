@@ -415,3 +415,27 @@ def test_validation_rejects_an_unattributed_reviewed_mapping() -> None:
 
     assert any("reviewed_by" in problem for problem in problems)
     assert any("maintainer_review_ref" in problem for problem in problems)
+
+
+def test_loading_recomputes_shipped_load_time_annotations(tmp_path: Path) -> None:
+    """These keys are derived from the catalog at load time; a shipped value,
+    including one from a re-saved loaded payload, is dropped and recomputed."""
+    from security_lakehouse.safeguards import DEFAULT_SAFEGUARDS
+
+    payload = json.loads(Path(DEFAULT_SAFEGUARDS).read_text(encoding="utf-8"))
+    member = _first_proposed_member(payload)
+    member["current_control_version"] = "99.0.0"
+    member["inherited_review_valid"] = False
+    shipped = tmp_path / "safeguards.json"
+    shipped.write_text(json.dumps(payload), encoding="utf-8")
+
+    loaded = load_safeguards(shipped)
+    reloaded = next(
+        m
+        for s in loaded["safeguards"]
+        for m in s["satisfies"]
+        if s["safeguard_id"] == payload["safeguards"][0]["safeguard_id"] and m["control_id"] == member["control_id"]
+    )
+    assert reloaded["current_control_version"] != "99.0.0"
+    assert "inherited_review_valid" not in reloaded
+    assert validate_safeguards(loaded) == []
