@@ -454,18 +454,18 @@ def test_ocsf_rows_reach_the_ccf_assessment_through_sync_and_pipeline(tmp_path: 
         if row["safeguard_id"] in {"SG-IDENTITY-001", "SG-IDENTITY-002"}
     }
     assert {key: row["status"] for key, row in by_asset.items()} == {
-        ("SG-IDENTITY-001", "user-alice"): "pass",
-        ("SG-IDENTITY-001", "user-bob"): "fail",
+        ("SG-IDENTITY-001", "user-alice"): "not_evaluated",
+        ("SG-IDENTITY-001", "user-bob"): "not_evaluated",
         ("SG-IDENTITY-002", "user-build-bot"): "not_evaluated",
         ("SG-IDENTITY-002", "group-admins"): "not_evaluated",
         ("SG-IDENTITY-002", "group-readers"): "not_evaluated",
     }
     for key in [("SG-IDENTITY-002", "user-build-bot"), ("SG-IDENTITY-002", "group-admins")]:
-        assert any("unknown or unevaluated" in reason for reason in by_asset[key]["reasons"])
+        assert any("no declared evidence-type contract" in reason for reason in by_asset[key]["reasons"])
 
     safeguards = {row["safeguard_id"]: row for row in assessment["safeguards"]}
     identity = safeguards["SG-IDENTITY-001"]
-    assert identity["status"] == "fail"
+    assert identity["status"] == "not_evaluated"
     # carol, dave, erin, frank, build-bot, and the three groups were observed without MFA
     # evidence: never silently passed
     assert (identity["assessed_asset_count"], identity["unassessed_asset_count"]) == (2, 8)
@@ -506,18 +506,18 @@ def test_ocsf_findings_reach_the_ccf_assessment_without_ambiguous_assets(tmp_pat
         if row["safeguard_id"] in {VULN_SG, BASELINE_SG}
     }
     assert by_asset == {
-        (VULN_SG, EC2_A): "fail",
-        (VULN_SG, IMAGE): "pass",
+        (VULN_SG, EC2_A): "not_evaluated",
+        (VULN_SG, IMAGE): "not_evaluated",
         (VULN_SG, EC2_B): "not_evaluated",  # only a suppressed finding
-        (BASELINE_SG, EC2_A): "fail",
+        (BASELINE_SG, EC2_A): "not_evaluated",
         (BASELINE_SG, EC2_B): "not_evaluated",  # only a Warning check
-        (BASELINE_SG, EC2_C): "pass",
+        (BASELINE_SG, EC2_C): "not_evaluated",
     }
 
     safeguards = {row["safeguard_id"]: row for row in assessment["safeguards"]}
     vulnerability, baseline = safeguards[VULN_SG], safeguards[BASELINE_SG]
-    assert (vulnerability["status"], vulnerability["invalid_binding_count"]) == ("fail", 0)
-    assert (baseline["status"], baseline["invalid_binding_count"]) == ("fail", 0)
+    assert (vulnerability["status"], vulnerability["invalid_binding_count"]) == ("not_evaluated", 0)
+    assert (baseline["status"], baseline["invalid_binding_count"]) == ("not_evaluated", 0)
     # a third instance and the S3 bucket are observed and in the vulnerability safeguard's
     # scope, but no vulnerability evidence covers them: unassessed, not passed
     assert (vulnerability["assessed_asset_count"], vulnerability["unassessed_asset_count"]) == (3, 2)
@@ -527,7 +527,7 @@ def test_ocsf_findings_reach_the_ccf_assessment_without_ambiguous_assets(tmp_pat
     assert VULN_SG not in requirements["SOC2-CC7.1"]["reviewed_safeguard_ids"]
     assert requirements["SOC2-CC7.1"]["status"] == "not_evaluated"
     assert requirements["NIST-CSF-PR.PS-01"]["reviewed_safeguard_ids"] == [BASELINE_SG]
-    assert requirements["NIST-CSF-PR.PS-01"]["status"] == "fail"
+    assert requirements["NIST-CSF-PR.PS-01"]["status"] == "not_evaluated"
     # the baseline safeguard's mapping to CM-6 is only proposed, so it is never attested
     cm6 = requirements["NIST-800-53-CM-6"]
     assert BASELINE_SG not in cm6["reviewed_safeguard_ids"]
@@ -576,7 +576,16 @@ def test_ocsf_accounts_keep_colliding_users_and_event_ids_separate_through_ccf(t
         for r in assessment["asset_results"]
         if r["safeguard_id"] == "SG-IDENTITY-001"
     }
-    assert results == {"scope-a": "pass", "scope-b": "fail"}
+    assert {row["tenant_id"]: row["status"] for row in raw} == {"scope-a": "pass", "scope-b": "open"}
+    assert results == {"scope-a": "not_evaluated", "scope-b": "not_evaluated"}
+    event_ids = {
+        row["source_tenant_id"]: row["event_ids"]
+        for row in assessment["asset_results"]
+        if row["safeguard_id"] == "SG-IDENTITY-001"
+    }
+    silver = read_jsonl(out / "silver/normalized_events.jsonl")
+    assert len(silver) == 2
+    assert event_ids == {row["tenant_id"]: [row["event_id"]] for row in silver}
 
 
 @pytest.mark.parametrize(

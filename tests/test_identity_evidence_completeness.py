@@ -44,6 +44,7 @@ def test_identity_requirements_cannot_borrow_types_from_another_scope(tenants):
                 "safeguard_id": "SG-0",
                 "title": "Identity",
                 "asset_types": ["iam_role"],
+                "required_evidence_types": KINDS,
                 "evaluation_rule": "fail_when_open_violation",
                 "satisfies": [{"control_id": "REQ", "effective_review_state": "maintainer_reviewed"}],
             }
@@ -52,7 +53,7 @@ def test_identity_requirements_cannot_borrow_types_from_another_scope(tenants):
     result = evaluate_safeguards(
         rows, payload, {"REQ": {"framework_id": "fixture", "required_evidence_types": KINDS}}, now=datetime.now(UTC)
     )
-    assert result["requirements"][0]["status"] == "stale"
+    assert result["requirements"][0]["status"] == "not_evaluated"
 
 
 def test_identity_complete_types_can_arrive_from_different_sources():

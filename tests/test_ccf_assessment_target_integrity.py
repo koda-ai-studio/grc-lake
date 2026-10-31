@@ -18,6 +18,7 @@ def payload():
                 "title": "Fixture",
                 "asset_types": ["iam_role"],
                 "evaluation_rule": "fail_when_open_violation",
+                "required_evidence_types": ["fixture.assessment"],
                 "satisfies": [{"control_id": "REQ", "framework_id": "alpha", "review_status": "reviewed"}],
             }
         ],

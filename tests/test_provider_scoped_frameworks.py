@@ -31,14 +31,22 @@ def _no_ambient_aws_account(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("AWS_ACCOUNT_ID", raising=False)
 
 
+@pytest.fixture
+def identity_evidence_type() -> str:
+    return "gcp.cloud.org_policy"
+
+
 @pytest.fixture(autouse=True)
-def _explicit_reviewed_provider_mappings(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def _explicit_reviewed_provider_mappings(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, identity_evidence_type: str
+) -> None:
     """Test provider isolation with an explicit test-only reviewed catalog."""
     from security_lakehouse import safeguards
 
     payload = json.loads(safeguards.DEFAULT_SAFEGUARDS.read_text())
     for entry in payload["safeguards"]:
         if entry["safeguard_id"] == "SG-IDENTITY-001":
+            entry["required_evidence_types"] = [identity_evidence_type]
             for member in entry["satisfies"]:
                 if member["control_id"] in {CIS_AWS, SOC2}:
                     member["review_status"] = "reviewed"
@@ -90,6 +98,7 @@ def test_passing_gcp_evidence_never_attests_cis_aws(tmp_path: Path) -> None:
     assert _requirements(lake)[CIS_AWS] == "not_evaluated"
 
 
+@pytest.mark.parametrize("identity_evidence_type", ["aws.iam.password_policy"])
 def test_failing_aws_evidence_still_fails_cis_aws_alongside_gcp(tmp_path: Path) -> None:
     lake = tmp_path / "lake"
     _sync(lake, "gcp-posture", _gcp_fixture(tmp_path, org_policies=ENFORCED, assets={"assets": []}))

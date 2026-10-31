@@ -84,7 +84,7 @@ def test_repaired_contracts_require_scoped_typed_evidence_and_separate_review(ca
         rows = [] if case == "missing" else [row]
         payload = {"review_log_verified": True, "safeguards": [entry]}
         result = evaluate_safeguards(rows, payload, {cid: catalog[cid]})
-        expected = {"pass": "pass", "failed": "fail", "wrong_type": "stale", "stale": "stale"}.get(
+        expected = {"pass": "pass", "failed": "fail", "wrong_type": "not_evaluated", "stale": "stale"}.get(
             case, "not_evaluated"
         )
         assert result["safeguards"][0]["status"] == expected

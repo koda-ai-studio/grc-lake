@@ -8,11 +8,11 @@ from test_assurance_truth import event
 
 def test_pipeline_publishes_ccf_assessment_from_explicit_safeguard_evidence(tmp_path):
     raw = tmp_path / "raw.jsonl"
-    write_jsonl(raw, [{**event(), "safeguard_ids": ["SG-IDENTITY-001"]}])
+    write_jsonl(raw, [{**event(), "event_type": "nist53_ac_10_assessment", "safeguard_ids": ["SG-NIST53-AC-10"]}])
     lake = tmp_path / "lake"
     run_pipeline(raw, lake, tenant_id="audit")
     result = read_json(lake / "gold/ccf_assessment.json")
-    safeguard = next(row for row in result["safeguards"] if row["safeguard_id"] == "SG-IDENTITY-001")
+    safeguard = next(row for row in result["safeguards"] if row["safeguard_id"] == "SG-NIST53-AC-10")
     assert safeguard["status"] == "pass"
     assert safeguard["assessed_asset_count"] == 1
     assert safeguard["unassessed_asset_count"] == 0
@@ -46,6 +46,7 @@ def assessment(events, *, states=("maintainer_reviewed",), verified=True):
                 "title": f"Safeguard {i}",
                 "asset_types": ["iam_role"],
                 "evaluation_rule": "fail_when_open_violation",
+                "required_evidence_types": ["fixture.assessment"],
                 "satisfies": [
                     {
                         "control_id": "REQ",
@@ -68,6 +69,7 @@ def normalized(asset="a", status="pass", bindings=None, **overrides):
         "asset_id": asset,
         "asset_type": "iam_role",
         "source": "fixture",
+        "event_type": "fixture.assessment",
         "event_time": datetime.now(UTC).isoformat(),
         "evidence_collected_at": datetime.now(UTC).isoformat(),
         "evidence_ref": f"fixture://{asset}",

@@ -1,4 +1,4 @@
-"""AWS IAM and GitHub change-approval verdicts reach CCF safeguards end to end."""
+"""Technical verdicts remain visible while untyped safeguards cannot be attested."""
 
 from __future__ import annotations
 
@@ -46,6 +46,15 @@ def _asset_results(assessment: dict[str, Any], safeguard_id: str) -> dict[str, d
     return {row["asset_id"]: row for row in assessment["asset_results"] if row["safeguard_id"] == safeguard_id}
 
 
+def _assert_untyped(assessment: dict[str, Any], safeguard_id: str) -> None:
+    assert _safeguard(assessment, safeguard_id)["status"] == "not_evaluated"
+    results = _asset_results(assessment, safeguard_id)
+    assert results
+    for row in results.values():
+        assert row["status"] == "not_evaluated"
+        assert row["reasons"] == ["The safeguard has no declared evidence-type contract."]
+
+
 def _sync(lake: Path, connector_id: str, fixture: Path, **options: Any) -> None:
     append_config_event(lake, connector_id=connector_id, state="enabled", actor="alice", options=options or None)
     repo = "acme/model-service" if connector_id == "github-security" else None
@@ -75,19 +84,19 @@ STRONG_POLICY = {
 }
 
 
-def test_aws_open_mfa_and_password_policy_fail_the_identity_safeguard(tmp_path: Path) -> None:
+def test_aws_open_mfa_and_password_policy_do_not_attest_an_untyped_safeguard(tmp_path: Path) -> None:
     _sync(tmp_path, "aws-posture", AWS_FIXTURE)
     assessment = _assessment(tmp_path)
 
-    assert _safeguard(assessment, IDENTITY)["status"] == "fail"
-    results = _asset_results(assessment, IDENTITY)
-    assert results["aws:iam:user/grace-hopper"]["status"] == "fail"
-    assert results["aws:iam:user/ada-lovelace"]["status"] == "pass"
-    account = next(row for asset, row in results.items() if asset.startswith("aws:account:"))
-    assert account["status"] == "fail"
+    _assert_untyped(assessment, IDENTITY)
+    rows = read_jsonl(tmp_path / CONNECTOR_RAW_FILE)
+    mfa = {row["entity"]["asset_id"]: row["status"] for row in rows if row["event_type"] == "aws.iam.mfa_enrollment"}
+    assert mfa["aws:iam:user/grace-hopper"] == "open"
+    assert mfa["aws:iam:user/ada-lovelace"] == "pass"
+    assert next(row for row in rows if row["event_type"] == "aws.iam.password_policy")["status"] == "open"
 
 
-def test_aws_stale_access_key_fails_the_identity_safeguard(tmp_path: Path) -> None:
+def test_aws_stale_access_key_stays_open_without_a_safeguard_contract(tmp_path: Path) -> None:
     fixture = _write_aws_fixture(
         tmp_path / "aws",
         users=["svc-deploy"],
@@ -98,8 +107,9 @@ def test_aws_stale_access_key_fails_the_identity_safeguard(tmp_path: Path) -> No
     _sync(lake, "aws-posture", fixture)
     assessment = _assessment(lake)
 
-    assert _safeguard(assessment, IDENTITY)["status"] == "fail"
-    assert _asset_results(assessment, IDENTITY)["aws:iam:user/svc-deploy"]["status"] == "fail"
+    _assert_untyped(assessment, IDENTITY)
+    rows = read_jsonl(lake / CONNECTOR_RAW_FILE)
+    assert any(row["status"] == "open" and row["entity"]["asset_id"] == "aws:iam:user/svc-deploy" for row in rows)
 
 
 def test_aws_observation_only_users_never_produce_a_pass(tmp_path: Path) -> None:
@@ -144,7 +154,7 @@ def _change_approval(lake: Path) -> dict[str, Any]:
     return rows[0]
 
 
-def test_github_compliant_protection_passes_change_approval(tmp_path: Path) -> None:
+def test_github_compliant_protection_does_not_attest_untyped_change_approval(tmp_path: Path) -> None:
     lake = tmp_path / "lake"
     _sync(lake, "github-security", _github_fixture(tmp_path, COMPLIANT_PROTECTION))
 
@@ -152,7 +162,7 @@ def test_github_compliant_protection_passes_change_approval(tmp_path: Path) -> N
     assert event["status"] == "pass"
     assert event["safeguard_ids"] == [CHANGE_APPROVAL]
     assessment = _assessment(lake)
-    assert _safeguard(assessment, CHANGE_APPROVAL)["status"] == "pass"
+    _assert_untyped(assessment, CHANGE_APPROVAL)
     # The observation records stay observations.
     branch = next(
         row
@@ -173,7 +183,7 @@ def test_github_compliant_protection_passes_change_approval(tmp_path: Path) -> N
         ({"enforce_admins": {"enabled": False}}, "admins_not_included"),
     ],
 )
-def test_github_weak_protection_fails_change_approval_with_reason(
+def test_github_weak_protection_keeps_the_technical_failure_reason(
     tmp_path: Path, change: dict[str, Any], reason: str
 ) -> None:
     protection = {**COMPLIANT_PROTECTION, **change}
@@ -184,7 +194,7 @@ def test_github_weak_protection_fails_change_approval_with_reason(
     event = _change_approval(lake)
     assert event["status"] == "open"
     assert event["attributes"]["unmet_requirements"] == [reason]
-    assert _safeguard(_assessment(lake), CHANGE_APPROVAL)["status"] == "fail"
+    _assert_untyped(_assessment(lake), CHANGE_APPROVAL)
 
 
 @pytest.mark.parametrize(
@@ -217,7 +227,7 @@ def test_github_resync_replaces_the_change_approval_verdict(tmp_path: Path) -> N
     )
 
     assert _change_approval(lake)["status"] == "open"
-    assert _safeguard(_assessment(lake), CHANGE_APPROVAL)["status"] == "fail"
+    _assert_untyped(_assessment(lake), CHANGE_APPROVAL)
 
 
 def test_operator_bindings_merge_with_connector_bindings(tmp_path: Path) -> None:

@@ -35,7 +35,9 @@ def test_passing_operational_evidence_does_not_approve_these_candidates(tmp_path
     lake = tmp_path / "lake"
     run_pipeline(raw, lake, tenant_id="audit")
     result = read_json(lake / "gold/ccf_assessment.json")
-    assert next(row for row in result["safeguards"] if row["safeguard_id"] == safeguard)["status"] == "pass"
+    assert next(row for row in result["safeguards"] if row["safeguard_id"] == safeguard)["status"] == "not_evaluated"
+    bound = next(row for row in result["asset_results"] if row["safeguard_id"] == safeguard)
+    assert bound["reasons"] == ["The safeguard has no declared evidence-type contract."]
     requirement = next(row for row in result["requirements"] if row["control_id"] == control)
     assert requirement["status"] == "not_evaluated"
     assert requirement["reviewed_safeguard_ids"] == []

@@ -105,7 +105,7 @@ def _safeguard(lake: Path, safeguard_id: str) -> tuple[dict[str, Any], dict[str,
     return safeguard, results
 
 
-def test_unhealthy_mapped_assessment_fails_the_bound_safeguard(tmp_path: Path) -> None:
+def test_unhealthy_assessment_stays_open_without_attesting_an_untyped_safeguard(tmp_path: Path) -> None:
     lake = tmp_path / "lake"
     _sync(lake, FIXTURES / "azure_defender")
 
@@ -118,16 +118,19 @@ def test_unhealthy_mapped_assessment_fails_the_bound_safeguard(tmp_path: Path) -
     assert secure_transfer["entity"]["asset_type"] == "cloud_resource"
 
     safeguard, results = _safeguard(lake, "SG-DATAPROTECTION-001")
-    assert results[STORAGE_ASSET]["status"] == "fail"
-    assert safeguard["status"] == "fail"
+    assert results[STORAGE_ASSET]["status"] == "not_evaluated"
+    assert results[STORAGE_ASSET]["reasons"] == ["The safeguard has no declared evidence-type contract."]
+    assert safeguard["status"] == "not_evaluated"
 
     logging, logging_results = _safeguard(lake, "SG-LOGGING-001")
-    assert logging_results[VAULT_ASSET]["status"] == "pass"
+    assert rows[(VAULT_ASSET, VAULT_DIAGNOSTICS)]["status"] == "pass"
+    assert logging_results[VAULT_ASSET]["status"] == "not_evaluated"
     # Two other resources are inventoried but not assessed for logging.
     assert logging["status"] == "not_evaluated"
 
     identity, identity_results = _safeguard(lake, "SG-IDENTITY-001")
-    assert identity_results[SUBSCRIPTION_ASSET]["status"] == "pass"
+    assert rows[(SUBSCRIPTION_ASSET, DISABLED_OWNERS)]["status"] == "pass"
+    assert identity_results[SUBSCRIPTION_ASSET]["status"] == "not_evaluated"
     assert rows[(SUBSCRIPTION_ASSET, DISABLED_OWNERS)]["entity"]["asset_type"] == "account_config"
     assert identity["status"] != "pass"
 
@@ -142,7 +145,7 @@ def test_unmapped_assessments_keep_their_verdict_but_never_bind(tmp_path: Path) 
     assert public_access["controls"] == []
 
 
-def test_all_healthy_fully_assessed_population_passes(tmp_path: Path) -> None:
+def test_healthy_population_needs_a_declared_safeguard_contract(tmp_path: Path) -> None:
     fixture = _fixture(
         tmp_path,
         resources=[_resource(STORAGE)],
@@ -152,8 +155,10 @@ def test_all_healthy_fully_assessed_population_passes(tmp_path: Path) -> None:
     _sync(lake, fixture)
 
     safeguard, results = _safeguard(lake, "SG-DATAPROTECTION-001")
-    assert results[STORAGE_ASSET]["status"] == "pass"
-    assert safeguard["status"] == "pass"
+    assert _assessment_rows(lake)[(STORAGE_ASSET, SECURE_TRANSFER)]["status"] == "pass"
+    assert results[STORAGE_ASSET]["status"] == "not_evaluated"
+    assert results[STORAGE_ASSET]["reasons"] == ["The safeguard has no declared evidence-type contract."]
+    assert safeguard["status"] == "not_evaluated"
     assert safeguard["assessed_asset_count"] == safeguard["applicable_asset_count"] == 1
 
 
@@ -167,7 +172,9 @@ def test_healthy_assessment_does_not_pass_while_other_resources_are_unassessed(t
     _sync(lake, fixture)
 
     safeguard, results = _safeguard(lake, "SG-DATAPROTECTION-001")
-    assert results[STORAGE_ASSET]["status"] == "pass"
+    assert _assessment_rows(lake)[(STORAGE_ASSET, SECURE_TRANSFER)]["status"] == "pass"
+    assert results[STORAGE_ASSET]["status"] == "not_evaluated"
+    assert results[STORAGE_ASSET]["reasons"] == ["The safeguard has no declared evidence-type contract."]
     assert safeguard["status"] == "not_evaluated"
     assert safeguard["unassessed_asset_count"] == 1
 

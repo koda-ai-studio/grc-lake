@@ -504,16 +504,22 @@ def test_fixture_sync_reaches_the_ccf_assessment_through_runner_and_pipeline(tmp
         if row["safeguard_id"] == VULNERABILITY_SAFEGUARD
     }
     assert by_asset == {
-        f"snyk:project:{_pid(1)}": "fail",  # an open high vulnerability
-        f"snyk:project:{_pid(2)}": "pass",  # tested recently, no issues
+        f"snyk:project:{_pid(1)}": "not_evaluated",  # an open high vulnerability
+        f"snyk:project:{_pid(2)}": "not_evaluated",  # tested recently, no issues
         f"snyk:project:{_pid(3)}": "not_evaluated",  # last test is out of window
         f"snyk:project:{_pid(4)}": "not_evaluated",  # an ignored issue blocks the pass
-        f"snyk:project:{_pid(5)}": "pass",  # only a resolved vulnerability
+        f"snyk:project:{_pid(5)}": "not_evaluated",  # only a resolved vulnerability
         f"snyk:project:{_pid(7)}": "not_evaluated",  # never tested
         f"snyk:project:{_pid(8)}": "not_evaluated",  # counts say issues, none were listed
     }
     [safeguard] = [row for row in assessment["safeguards"] if row["safeguard_id"] == VULNERABILITY_SAFEGUARD]
-    assert safeguard["status"] == "fail"
+    assert safeguard["status"] == "not_evaluated"
+    assert _issue_row(raw, 1)["status"] == "open"
+    assert all(
+        row["reasons"] == ["The safeguard has no declared evidence-type contract."]
+        for row in assessment["asset_results"]
+        if row["safeguard_id"] == VULNERABILITY_SAFEGUARD
+    )
     assert (safeguard["assessed_asset_count"], safeguard["invalid_binding_count"]) == (7, 0)
     requirements = {row["control_id"]: row for row in assessment["requirements"]}
     assert VULNERABILITY_SAFEGUARD not in requirements["SOC2-CC7.1"]["reviewed_safeguard_ids"]

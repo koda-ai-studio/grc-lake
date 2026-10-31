@@ -99,7 +99,7 @@ def test_clauses_require_their_own_assessment_and_keep_proposed_status(case):
                 "failed": "fail",
                 "observed": "not_evaluated",
                 "unbound": "not_evaluated",
-                "wrong_type": "stale",
+                "wrong_type": "not_evaluated",
                 "stale": "stale",
             }[case]
         )

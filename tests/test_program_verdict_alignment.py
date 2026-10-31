@@ -68,6 +68,7 @@ def test_reviewed_ccf_requirement_cannot_omit_required_evidence_types():
                 "safeguard_id": "SG-0",
                 "title": "Fixture",
                 "asset_types": ["iam_role"],
+                "required_evidence_types": ["fixture.assessment"],
                 "evaluation_rule": "fail_when_open_violation",
                 "satisfies": [{"control_id": "REQ", "effective_review_state": "maintainer_reviewed"}],
             }

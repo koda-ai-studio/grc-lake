@@ -7,6 +7,7 @@ asset evidence cannot become passes. Inventory completeness is a separate claim.
 from collections import Counter, defaultdict
 from collections.abc import Iterable, Mapping
 from datetime import datetime
+from functools import cache
 
 from security_lakehouse.catalog import framework_registry_view
 from security_lakehouse.control_verdict import evaluate_evidence_verdict
@@ -16,7 +17,15 @@ from security_lakehouse.jsontypes import JsonObject
 from security_lakehouse.safeguards import ATTESTABLE_STATES, contributes_to_coverage, effective_review_state
 from security_lakehouse.vocabulary import ControlVerdict
 
-__all__ = ["INVALID_ASSET_TYPE_REASON", "binding_applies", "evaluate_safeguards", "framework_provider_sources"]
+__all__ = [
+    "EVALUATION_VERSION",
+    "INVALID_ASSET_TYPE_REASON",
+    "binding_applies",
+    "evaluate_safeguards",
+    "framework_provider_sources",
+]
+
+EVALUATION_VERSION = "trustops.ccf_evaluation.v2"
 
 INVALID_ASSET_TYPE_REASON = "The asset type does not establish safeguard applicability."
 COLLECTION_SCOPE = "collection_scope"
@@ -44,6 +53,34 @@ def framework_provider_sources() -> dict[str, frozenset[str]]:
         for framework_id, framework in framework_registry_view().items()
         if framework.get("provider_sources")
     }
+
+
+def _bound_verdict(
+    safeguard_id: str,
+    rows: list[JsonObject],
+    definition: JsonObject,
+    freshness: dict[tuple[str, str], JsonObject],
+) -> tuple[str, list[str]]:
+    required = set(definition.get("required_evidence_types") or [])
+    if not required:
+        return ControlVerdict.NOT_EVALUATED.value, ["The safeguard has no declared evidence-type contract."]
+    matching = [
+        row
+        for row in rows
+        if required.intersection(freshness[(str(row.get("tenant_id", "")), str(row["event_id"]))]["evidence_types"])
+    ]
+    if not matching:
+        return ControlVerdict.NOT_EVALUATED.value, ["Bound evidence does not match the safeguard evidence types."]
+    records = [freshness[(str(row.get("tenant_id", "")), str(row["event_id"]))] for row in matching]
+    stale = current_evidence_is_stale(records, required_types=sorted(required))
+    verdict = evaluate_evidence_verdict(safeguard_id, matching, definition["evaluation_rule"], stale=stale)
+    observed = {kind for record in records if record["verdict_eligible"] for kind in record["evidence_types"]}
+    missing = sorted(required - observed)
+    if missing and verdict.status != ControlVerdict.FAIL:
+        return ControlVerdict.NOT_EVALUATED.value, [
+            "Required evaluated evidence types are missing: " + ", ".join(missing)
+        ]
+    return verdict.status, list(verdict.reasons)
 
 
 def evaluate_safeguards(
@@ -103,9 +140,6 @@ def evaluate_safeguards(
     global_ambiguous_count = sum(len(types) != 1 for types in assets.values())
     results = []
     asset_results = []
-    # Per-asset states with their evidence sources, so a provider benchmark is
-    # assessed only from its own provider's evidence.
-    asset_states: dict[str, list[tuple[frozenset[str], str]]] = defaultdict(list)
     incomplete: set[str] = set()
     incomplete_sources: dict[str, set[str]] = defaultdict(set)
     for safeguard_id, definition in definitions.items():
@@ -128,15 +162,8 @@ def evaluate_safeguards(
                 invalid += 1
             else:
                 assessed += 1
-                stale = current_evidence_is_stale(
-                    [freshness[(str(row.get("tenant_id", "")), str(row["event_id"]))] for row in rows],
-                    required_types=definition.get("required_evidence_types"),
-                )
-                verdict = evaluate_evidence_verdict(safeguard_id, rows, definition["evaluation_rule"], stale=stale)
-                status = verdict.status
-                reasons = list(verdict.reasons)
+                status, reasons = _bound_verdict(safeguard_id, rows, definition, freshness)
             states.append(status)
-            asset_states[safeguard_id].append((frozenset(str(row.get("source", "")) for row in rows), status))
             asset_results.append(
                 {
                     "safeguard_id": safeguard_id,
@@ -172,8 +199,20 @@ def evaluate_safeguards(
         ).items()
     }
 
+    @cache
     def provider_status(safeguard_id: str, sources: frozenset[str]) -> str:
-        states = [status for asset_sources, status in asset_states[safeguard_id] if asset_sources & sources]
+        definition = definitions[safeguard_id]
+        eligible_types = set(definition.get("asset_types") or [])
+        states = []
+        for asset_key, rows in bound[safeguard_id].items():
+            scoped = [row for row in rows if str(row.get("source", "")) in sources]
+            if not scoped:
+                continue
+            if not binding_applies(assets[asset_key], eligible_types):
+                states.append(ControlVerdict.NOT_EVALUATED.value)
+            else:
+                status, _ = _bound_verdict(safeguard_id, scoped, definition, freshness)
+                states.append(status)
         if not states:
             return ControlVerdict.NOT_EVALUATED.value
         gaps = bound_sources[safeguard_id] & gap_sources

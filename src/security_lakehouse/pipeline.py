@@ -436,6 +436,7 @@ def _write_generation(
 
 
 def _evaluation_dependencies_sha256(*, lake: Path | None = None, ccf_payload: dict[str, Any] | None = None) -> str:
+    from security_lakehouse.ccf_evaluation import EVALUATION_VERSION
     from security_lakehouse.connectors import load_connector_catalog
     from security_lakehouse.mapping_review import effective_safeguards
     from security_lakehouse.programs import load_program_catalog
@@ -445,6 +446,7 @@ def _evaluation_dependencies_sha256(*, lake: Path | None = None, ccf_payload: di
             "normalization": NORMALIZATION_TRANSFORM_VERSION,
             "control_evaluation": CONTROL_EVALUATION_VERSION,
             "ccf_projection_version": 2,
+            "ccf_evaluation_version": EVALUATION_VERSION,
             "mart_schema_version": MART_SCHEMA_VERSION,
             "freshness": {key: row.get("freshness_slo_minutes") for key, row in load_connector_catalog().items()},
             "programs": load_program_catalog(),

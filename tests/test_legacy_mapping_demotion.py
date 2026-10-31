@@ -33,7 +33,9 @@ def test_legacy_mapping_does_not_attest_passing_evidence_or_enter_oscal(tmp_path
     run_pipeline(raw, lake, tenant_id="audit")
     assessment = read_json(lake / "gold/ccf_assessment.json")
     safeguard = next(row for row in assessment["safeguards"] if row["safeguard_id"] == "SG-IDENTITY-001")
-    assert safeguard["status"] == "pass"
+    assert safeguard["status"] == "not_evaluated"
+    bound = next(row for row in assessment["asset_results"] if row["safeguard_id"] == "SG-IDENTITY-001")
+    assert bound["reasons"] == ["The safeguard has no declared evidence-type contract."]
     requirement = next(row for row in assessment["requirements"] if row["control_id"] == control)
     assert requirement["status"] == "not_evaluated"
     assert requirement["reviewed_safeguard_ids"] == []
