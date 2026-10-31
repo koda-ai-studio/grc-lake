@@ -3,7 +3,17 @@
 All notable GRC Lake changes are summarized here. Versions follow semver for the
 Python package, Helm chart, and bundled web console.
 
-## Unreleased
+## 0.3.21 - 2026-10-30
+
+- Preserve the current page when logout fails and offer retry; successful logout clears the previous session state. Explain rejected, forbidden, throttled and failed sign-in attempts, retry identity-provider discovery, and restore investigation destinations after keyboard sign-in.
+
+- Add `grc-lake demo --company ai_lab` to open a temporary synthetic AI inventory. Retain runtime-backed inference agents and distinguish observed inference from missing runtime evidence.
+
+- Trace exact recorded graph connections, route reverse arrows to the matching handles, and reveal inspected relationships hidden by layer filters without inventing links.
+
+- Scope incomplete discovered assets to the relevant provider when evaluating provider-specific framework requirements, while retaining global collection gaps.
+
+- Refresh the pinned ASN.1 dependency and bound glob expansion in the TypeScript tooling dependency. The full development-tool audit remains distinct from the production dependency audit.
 
 - Discover Kubernetes nodes and reported CPU/GPU/TPU capacity, allocatable resources, OS/runtime configuration and scheduling state. Include TPU workload requests; preserve collection gaps and unknown hardware type without turning inventory into a compliance pass.
 
