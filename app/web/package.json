@@ -19,7 +19,7 @@
     "lint": "eslint src",
     "demo-screenshots": "node scripts/capture_demo_screenshots.mjs",
     "test:e2e": "playwright test",
-    "test:dependencies": "node --test scripts/test_braces_security.mjs scripts/test_sidebar_state.mjs",
+    "test:dependencies": "node --test scripts/test_braces_security.mjs scripts/test_minimatch_security.mjs scripts/test_sidebar_state.mjs",
     "test:sidebar": "node --test scripts/test_sidebar_state.mjs"
   },
   "dependencies": {
@@ -61,6 +61,9 @@
     "typescript": "^6.0.3"
   },
   "overrides": {
+    "@typescript-eslint/typescript-estree": {
+      "minimatch": "11.0.1"
+    },
     "tailwindcss": {
       "postcss-selector-parser": "7.1.6"
     },

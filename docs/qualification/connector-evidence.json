@@ -239,6 +239,7 @@
       "fixture_tests": [
         "tests/test_kubernetes_connector.py",
         "tests/test_kubernetes_gpu_evidence.py",
+        "tests/test_kubernetes_discovery.py",
         "tests/test_neocloud_ccf_assessment.py",
         "tests/test_collection_completeness.py"
       ],
