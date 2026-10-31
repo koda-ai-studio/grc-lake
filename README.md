@@ -49,7 +49,8 @@ and opens your browser. Ctrl+C stops it and deletes the lake. With pip:
 
 **First task:** find a failing control, inspect its evidence and mapping, and export
 the frozen result: follow the [sample-data tutorial](docs/TUTORIAL_5_MIN.md), then the
-[auditor workpaper example](docs/AUDITOR_WALKTHROUGH.md).
+[auditor workpaper example](docs/AUDITOR_WALKTHROUGH.md). Their CLI steps need the
+lake to outlive the demo, so start it with `grc-lake demo --lake ./lake`.
 
 **Exploring AI assets?** The [AI discovery walkthrough](docs/AI_DISCOVERY_WALKTHROUGH.md) in 0.3.21 opens a synthetic model-and-agent inventory with one command, then follows recorded evidence into the graph and assessment.
 
@@ -273,7 +274,7 @@ cannot establish an attested pass.
 <!-- BEGIN README AT A GLANCE -->
 
 - **Reviewed requirements by framework:** SOC 2 49/61, ISO 27001 43/93, HIPAA 0/24, PCI DSS 0/12 (top-level), NIST CSF 2.0 72/106, NIST SP 800-53 399/1,014 (381 source-native self-maps). Every pack is in the [coverage matrix](docs/FRAMEWORK_COVERAGE.md).
-- **22 framework packs, 2,284 catalogued requirements (1,997 distinct; FedRAMP Moderate's 287 rows restate NIST SP 800-53 controls),** linked through 1,200 safeguards, including source-native assessment contracts. 2,198 requirements have safeguard mappings; 886 have reviewed mappings and the other 1,312 are proposed. Of the reviewed, 381 are source-native self-maps (written from that requirement's own pinned source) and 505 rest on reviewed crosswalk mappings; 0 rest only on legacy reviews with no recorded reviewer. The blended total is not a per-framework readiness figure.
+- **22 framework packs, 2,284 catalogued requirements (1,997 distinct; FedRAMP Moderate's 287 rows restate NIST SP 800-53 controls),** linked through 1,200 safeguards, including source-native assessment contracts. 2,198 requirements have safeguard mappings; 886 have reviewed mappings and the other 1,312 are proposed. Of the reviewed, 381 are source-native self-maps (written from that requirement's own pinned source) and 505 rest on reviewed crosswalk mappings; 0 rest only on legacy reviews with no recorded reviewer. The blended total is not a per-framework readiness figure. Every reviewed mapping names one maintainer reviewer across 3 review receipts; no independent second review is recorded yet ([review method](docs/MAPPING_REVIEW.md)).
 - **28 executable adapters (18 implemented, 10 preview) and 3 configuration boundaries**. Read-only provider collection includes OCSF presets for existing security lakes.
 - **Evidence stays scoped:** missing or stale evidence leaves gaps; a passing sample does not prove complete population coverage. Proposed mappings are not attestable.
 - **One engine, four surfaces:** console, REST API, CLI, and MCP server. Agents propose; humans approve.

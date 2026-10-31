@@ -355,6 +355,33 @@ def headline_framework_phrase(frameworks: dict[str, dict[str, int]]) -> str:
     return ", ".join(parts)
 
 
+def review_provenance() -> tuple[int, int]:
+    """Distinct reviewers and review receipts behind every reviewed mapping."""
+    safeguards = json.loads((ROOT / "controls" / "safeguards.json").read_text(encoding="utf-8"))["safeguards"]
+    reviewed = [
+        member
+        for safeguard in safeguards
+        for member in safeguard.get("satisfies", [])
+        if member.get("review_status") == "reviewed"
+    ]
+    reviewers = {member["reviewed_by"] for member in reviewed}
+    receipts = {member["maintainer_review_ref"] for member in reviewed}
+    return len(reviewers), len(receipts)
+
+
+def _provenance_phrase() -> str:
+    reviewers, receipts = review_provenance()
+    if reviewers == 1:
+        return (
+            f"Every reviewed mapping names one maintainer reviewer across {receipts} review receipts; "
+            "no independent second review is recorded yet ([review method](docs/MAPPING_REVIEW.md))."
+        )
+    return (
+        f"Reviewed mappings name {reviewers} reviewers across {receipts} review receipts "
+        "([review method](docs/MAPPING_REVIEW.md))."
+    )
+
+
 def render_readme_glance() -> str:
     coverage = coverage_by_framework()
     safeguard_count, requirement_count, framework_count = _coverage_summary()
@@ -372,7 +399,7 @@ def render_readme_glance() -> str:
         f"Of the reviewed, {coverage['source_native_reviewed']:,} are source-native self-maps (written from that "
         f"requirement's own pinned source) and {coverage['crosswalk_reviewed']:,} rest on reviewed crosswalk "
         f"mappings; {coverage['legacy_only_reviewed']:,} rest only on legacy reviews with no recorded reviewer. "
-        "The blended total is not a per-framework readiness figure.\n"
+        f"The blended total is not a per-framework readiness figure. {_provenance_phrase()}\n"
         f"- **{standard_sources + preview_sources} executable adapters ({standard_sources} implemented, "
         f"{preview_sources} preview) and {boundaries} configuration boundaries**. Read-only provider collection includes "
         "OCSF presets for existing security lakes.\n"

@@ -392,3 +392,21 @@ def test_demo_site_build_publishes_absolute_share_urls() -> None:
     step = workflow.split("Build the static demo site", 1)[1].split("- name:", 1)[0]
     assert "NEXT_PUBLIC_APP_URL: https://${{ github.repository_owner }}.github.io" in step
     assert "run: npm run build:demo" in step
+
+
+def test_readme_glance_discloses_reviewer_provenance() -> None:
+    """Reviewed counts must say how many people reviewed them; today that is one."""
+    from tools.render_readme_header import review_provenance
+
+    reviewers, receipts = review_provenance()
+    safeguards = json.loads((ROOT / "controls" / "safeguards.json").read_text(encoding="utf-8"))
+    members = [m for s in safeguards["safeguards"] for m in s.get("satisfies", [])]
+    reviewed = [m for m in members if m.get("review_status") == "reviewed"]
+    assert reviewers == len({m["reviewed_by"] for m in reviewed})
+    assert receipts == len({m["maintainer_review_ref"] for m in reviewed})
+    block = README.read_text(encoding="utf-8").split("<!-- BEGIN README AT A GLANCE -->", 1)[1]
+    if reviewers == 1:
+        assert f"one maintainer reviewer across {receipts} review receipts; no independent second review" in block
+    else:
+        assert f"{reviewers} reviewers across {receipts} review receipts" in block
+    assert "(docs/MAPPING_REVIEW.md)" in block
