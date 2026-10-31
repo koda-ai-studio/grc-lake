@@ -15,7 +15,7 @@ __all__ = ["register", "prepare_index"]
 
 @generation_reader
 def prepare_index(lake: Path, *, tenant: str | None = None, vendors=None, timeout: float = 1800) -> dict:
-    from security_lakehouse.investigation_graph import _model_key
+    from security_lakehouse.investigation_graph import _MODEL_FILES, _build_model, _graph_version, _model_key
     from security_lakehouse.investigation_persistence import read
 
     if not math.isfinite(timeout) or timeout <= 0:
@@ -33,6 +33,9 @@ def prepare_index(lake: Path, *, tenant: str | None = None, vendors=None, timeou
         vendors,
         tenant,
         check,
+        model_files=_MODEL_FILES,
+        build_model=_build_model,
+        graph_version=_graph_version,
         root=None,
         view="environment",
         depth=1,

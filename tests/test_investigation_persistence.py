@@ -8,6 +8,92 @@ from security_lakehouse.investigation_cache import ModelCache
 from test_investigation_cache import generation
 
 
+@pytest.mark.parametrize("tenant", [None, "tenant-a"])
+def test_public_graph_uses_prepared_index_without_in_memory_fallback(tmp_path, monkeypatch, tenant):
+    from security_lakehouse.graph_index_cli import prepare_index
+
+    publish_generation(tmp_path, generation(tmp_path))
+    expected = graph.investigation_graph(tmp_path, platform_tenant_id=tenant)
+    prepared = prepare_index(tmp_path, tenant=tenant)
+    assert prepared["version"] == expected["version"]
+    monkeypatch.setattr(graph, "_PERSISTENT_MIN_BYTES", 0)
+
+    def forbidden(*args, **kwargs):
+        pytest.fail("a prepared public graph read entered the in-memory fallback")
+
+    monkeypatch.setattr(graph, "_model", forbidden)
+    assert graph.investigation_graph(tmp_path, platform_tenant_id=tenant) == expected
+
+
+@pytest.mark.parametrize("interruption", ["deadline", "keyboard", "exit"])
+@pytest.mark.parametrize("phase", ["prepare", "read"])
+def test_sqlite_progress_preserves_interruption_and_cleans_up(tmp_path, monkeypatch, interruption, phase):
+    import sqlite3
+
+    from security_lakehouse import investigation_sqlite as sql
+    from security_lakehouse.graph_admission import BuildToken, GraphBuildAborted
+    from security_lakehouse.graph_index_cli import prepare_index
+    from security_lakehouse.io import file_sha256
+
+    publish_generation(tmp_path, generation(tmp_path))
+    prepare_index(tmp_path)
+    path = tmp_path / ".graph-index/index.sqlite"
+    original = file_sha256(path)
+    expired = False
+    token = BuildToken(1, clock=lambda: 2 if expired else 0)
+    error = {"deadline": GraphBuildAborted, "keyboard": KeyboardInterrupt, "exit": SystemExit}[interruption]
+    callbacks = 0
+
+    def check():
+        nonlocal callbacks
+        if expired:
+            callbacks += 1
+            if interruption == "deadline":
+                token.check()
+            raise error("interrupted in SQLite")
+
+    def expensive(db, *args, **kwargs):
+        nonlocal expired
+        expired = True
+        db.execute(
+            "WITH RECURSIVE n(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM n WHERE x<1000000) SELECT sum(x) FROM n"
+        ).fetchone()
+        pytest.fail("SQLite work ignored interruption")
+
+    monkeypatch.setattr(graph, "_PERSISTENT_MIN_BYTES", 0)
+    if phase == "prepare":
+        publish_generation(tmp_path, generation(tmp_path, "replacement"))
+        monkeypatch.setattr(sql, "populate", expensive)
+        with pytest.raises(error):
+            graph.investigation_graph(tmp_path, checkpoint=check)
+        assert not list(path.parent.glob(".building-*"))
+    else:
+        monkeypatch.setattr(sql, "_query", expensive)
+        with sqlite3.connect(":memory:") as db:
+            with pytest.raises(error):
+                sql.query(
+                    db,
+                    key="fixture",
+                    check=check,
+                    root=None,
+                    view="environment",
+                    depth=1,
+                    limit=1,
+                    layers=None,
+                    search="",
+                    root_offset=0,
+                    framework="",
+                    control_offset=0,
+                    expected_version=None,
+                )
+            # The callback must be detached even though its token remains expired.
+            assert db.execute(
+                "WITH RECURSIVE n(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM n WHERE x<1000) SELECT sum(x) FROM n"
+            ).fetchone() == (500500,)
+    assert callbacks == 1
+    assert file_sha256(path) == original
+
+
 def test_persisted_neighborhood_survives_process_cache_loss(tmp_path, monkeypatch):
     publish_generation(tmp_path, generation(tmp_path))
     monkeypatch.setattr(graph, "_PERSISTENT_MIN_BYTES", 0, raising=False)

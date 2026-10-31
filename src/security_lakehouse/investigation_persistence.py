@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import fcntl
 import hashlib
-import importlib
 import json
 import os
 import shutil
@@ -15,7 +14,9 @@ from contextlib import closing
 from functools import lru_cache
 from pathlib import Path
 
+from security_lakehouse import catalog
 from security_lakehouse import investigation_sqlite as sql
+from security_lakehouse import safeguards as safeguard_catalog
 from security_lakehouse.generations import generation_identity, pinned_path, verify_generation
 from security_lakehouse.investigation_staging import Staging
 from security_lakehouse.io import canonical_sha256, file_sha256, file_version, read_json, write_json
@@ -72,18 +73,11 @@ def _matches(path, state):
         raise ValueError("graph index is unreadable; remove the derived index and rebuild") from exc
 
 
-def read(lake, vendors, tenant, check, *, allow_build=True, **query):
-    graph = importlib.import_module("security_lakehouse.investigation_graph")
-    _MODEL_FILES = graph._MODEL_FILES
-    _build_model = graph._build_model
-    _graph_version = graph._graph_version
-    catalog = graph.catalog
-    safeguard_catalog = graph.safeguard_catalog
-
+def read(lake, vendors, tenant, check, *, model_files, build_model, graph_version, allow_build=True, **query):
     def identity():
         versions, racy = [], {}
         for relative in (
-            *_MODEL_FILES,
+            *model_files,
             "mart/security_lakehouse.sqlite",
             *(("entities/bindings.jsonl",) if tenant is not None else ()),
         ):
@@ -151,7 +145,8 @@ def read(lake, vendors, tenant, check, *, allow_build=True, **query):
                 def progress():
                     try:
                         bounded()
-                    except BaseException as exc:  # noqa: BLE001 — SQLite callbacks must retain and rethrow cancellation.
+                    except (RuntimeError, ValueError, OSError, AssertionError, KeyboardInterrupt, SystemExit) as exc:
+                        # SQLite discards callback exceptions; rethrow after it interrupts the statement.
                         failure.append(exc)
                         return 1
                     return 0
@@ -168,8 +163,8 @@ def read(lake, vendors, tenant, check, *, allow_build=True, **query):
                         db.execute(f"PRAGMA temp.max_page_count={MAX_INDEX_BYTES // 4096}")
                         db.set_progress_handler(progress, 1000)
                         stage = Staging(db, lake, bounded)
-                        nodes, edges, frameworks = _build_model(lake, vendors, bounded, tenant, storage=stage)
-                        version = _graph_version(nodes.values(), edges.values(), bounded)
+                        nodes, edges, frameworks = build_model(lake, vendors, bounded, tenant, storage=stage)
+                        version = graph_version(nodes.values(), edges.values(), bounded)
                         sql.populate(
                             db,
                             nodes.values(),

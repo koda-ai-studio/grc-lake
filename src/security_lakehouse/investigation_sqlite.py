@@ -146,7 +146,8 @@ def query(
     def progress() -> int:
         try:
             check()
-        except BaseException as exc:  # noqa: BLE001 — SQLite callbacks must retain and rethrow cancellation.
+        except (RuntimeError, ValueError, OSError, AssertionError, KeyboardInterrupt, SystemExit) as exc:
+            # SQLite discards callback exceptions; rethrow after it interrupts the statement.
             failure.append(exc)
             return 1
         return 0
