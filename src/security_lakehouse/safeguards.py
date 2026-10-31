@@ -184,12 +184,10 @@ def load_safeguards(path: str | Path | None = None) -> JsonObject:
     catalog = load_control_catalog()
     for entry in payload["safeguards"]:
         for member in entry.get("satisfies", []):
+            # Computed below from the catalog; a shipped value (including a
+            # re-saved loaded payload) is never trusted, only recomputed.
             for runtime_key in _LOAD_TIME_KEYS:
-                if runtime_key in member:
-                    # Computed below from the catalog; a shipped value could read as verified.
-                    raise ValueError(
-                        f"{entry.get('safeguard_id')}: {member.get('control_id')!r} must not ship {runtime_key}"
-                    )
+                member.pop(runtime_key, None)
             if "control_version" in member:
                 member["current_control_version"] = catalog.get(member["control_id"], {}).get("version", "1.0.0")
         _check_inherited_reviews(entry, catalog)
