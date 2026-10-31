@@ -13,6 +13,7 @@ import { useAuthMethods, useSessionFromKeyMutation } from "@/lib/api/hooks";
 import type { AuthMethod } from "@/lib/api/types";
 import { notify } from "@/lib/toast";
 import { docsUrl } from "@/lib/format";
+import { ApiError } from "@/lib/api/client";
 
 const SESSION_GUARANTEES = [
   {
@@ -91,7 +92,7 @@ export default function LoginPage() {
   const auth = useAuthMethods();
   const sessionFromKey = useSessionFromKeyMutation();
   const [apiKey, setApiKey] = useState("");
-  const data = auth.data;
+  const data = auth.isError ? undefined : auth.data;
   const browserMethods =
     data?.methods.filter(
       (method) => method.id === "oidc" || method.id === "saml",
@@ -118,7 +119,16 @@ export default function LoginPage() {
       notify.success("Signed in with API key");
       window.location.assign(redirectAfterLogin());
     } catch (err) {
-      notify.error(String((err as Error).message));
+      const status = err instanceof ApiError ? err.status : 0;
+      notify.error(
+        status === 401
+          ? "This API key was not accepted. It may be invalid, expired, or revoked."
+          : status === 403
+            ? "This sign-in is not allowed. Ask your administrator to check your access."
+            : status === 429
+              ? "Too many sign-in attempts. Wait and try again."
+              : "Sign-in is temporarily unavailable. Try again.",
+      );
     }
   };
 
@@ -180,11 +190,12 @@ export default function LoginPage() {
             )}
 
             {!auth.isPending &&
+              !auth.isError &&
               configured.map((method) => (
                 <BrowserMethodCard key={method.id} method={method} />
               ))}
 
-            {!auth.isPending && configured.length === 0 && (
+            {!auth.isPending && !auth.isError && configured.length === 0 && (
               <div className="rounded-lg border border-line bg-surfaceMuted p-4">
                 <div className="flex items-start gap-3">
                   <Terminal className="mt-0.5 h-5 w-5 text-muted" />
@@ -215,9 +226,13 @@ export default function LoginPage() {
             )}
 
             {apiKeyMethod && (
-              <div
+              <form
                 id="api-key"
                 className="rounded-xl border border-dashed border-line bg-panel p-4"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  if (!sessionFromKey.isPending) void submitApiKey();
+                }}
               >
                 <div className="flex items-center gap-2 text-sm font-black text-ink">
                   <KeyRound className="h-4 w-4 text-brand" />
@@ -238,11 +253,11 @@ export default function LoginPage() {
                   />
                 </label>
                 <Button
+                  type="submit"
                   variant="primary"
                   size="sm"
                   className="mt-3"
                   disabled={sessionFromKey.isPending}
-                  onClick={submitApiKey}
                 >
                   {sessionFromKey.isPending ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -251,12 +266,25 @@ export default function LoginPage() {
                   )}
                   Open console session
                 </Button>
-              </div>
+              </form>
             )}
 
             {auth.isError && (
-              <div className="rounded-lg border border-warning/40 bg-warning-bg p-4 text-sm font-bold text-warning-fg">
-                Auth discovery is unavailable on this server.
+              <div
+                role="alert"
+                className="grid gap-3 rounded-lg border border-warning/40 bg-warning-bg p-4 text-sm font-bold text-warning-fg"
+              >
+                <p>
+                  Couldn't load sign-in options. Check your connection and try
+                  again.
+                </p>
+                <Button
+                  size="sm"
+                  disabled={auth.isFetching}
+                  onClick={() => void auth.refetch()}
+                >
+                  Retry sign-in options
+                </Button>
               </div>
             )}
           </CardContent>
