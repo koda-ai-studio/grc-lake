@@ -1,5 +1,29 @@
 import { expect, test } from "@playwright/test";
 
+for (const theme of ["light", "dark"]) {
+  test(`BambooHR, BigQuery and Google Cloud use brand marks in ${theme} mode`, async ({
+    page,
+  }) => {
+    await page.addInitScript((mode) => {
+      window.localStorage.setItem("trustops:theme", JSON.stringify(mode));
+    }, theme);
+    await page.goto("/console/connectors/");
+    for (const [search, vendor] of [
+      ["BambooHR", "BambooHR"],
+      ["BigQuery", "Google BigQuery"],
+      ["GCP", "Google Cloud"],
+    ]) {
+      await page.getByRole("textbox", { name: "Search sources" }).fill(search);
+      const mark = page.getByRole("img", {
+        name: `${vendor} connector`,
+        exact: true,
+      });
+      await expect(mark.locator("svg")).toBeVisible();
+      expect(await mark.locator("svg path").count()).toBeGreaterThan(0);
+    }
+  });
+}
+
 test("connections separates source browsing from account setup and status", async ({
   page,
 }) => {

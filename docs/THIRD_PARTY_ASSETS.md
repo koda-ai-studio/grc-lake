@@ -27,6 +27,18 @@ actually holds that certification and the mark usage terms permit the display.
 
 ## Approved Official Assets
 
+Connector marks added on 2026-10-31 identify the integrated products only;
+they imply no endorsement or certification. Asset owner: GRC Lake maintainers.
+
+| Mark            | Official source                                                                                                                                            | Rendering and attribution                                                                                           |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| BambooHR        | [BambooHR header SVG](https://www.bamboohr.com/)                                                                                                           | Original green leaf path, with its own view box; BambooHR trademark, nominative integration identification          |
+| Google BigQuery | [Google Cloud icon library](https://cloud.google.com/icons), [core product SVG archive](https://services.google.com/fh/files/misc/core-products-icons.zip) | `BigQuery-512-color.svg` path geometry and colors retained; Google trademark, nominative integration identification |
+
+Both are bundled as path data in `connector-brand-logos.ts`; the console makes
+no external image requests. The existing four-color Google Cloud mark remains
+specific to GCP posture, distinct from the BigQuery product icon.
+
 The following are framework illustrations, not agency logos or certification
 seals. NIST does not endorse GRC Lake or its control evaluations.
 
