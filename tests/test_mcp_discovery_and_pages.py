@@ -1,6 +1,8 @@
 """Advertised MCP tools must be usable, bounded, and honest about authority."""
 
 import json
+import re
+from pathlib import Path
 
 import anyio
 import pytest
@@ -44,6 +46,27 @@ def test_remote_discovery_excludes_human_attestations(tmp_path, monkeypatch):
         "reject_agent_decision",
     }
     assert len(json.dumps([tool.model_dump(mode="json") for tool in tools]).encode()) < 160 * 1024
+
+
+def test_documented_mcp_table_tools_are_advertised(tmp_path, monkeypatch):
+    monkeypatch.setenv("GRC_LAKE_MCP_MODE", "remote")
+    monkeypatch.setenv("GRC_LAKE_API_URL", "https://example.test")
+    monkeypatch.setenv("GRC_LAKE_API_KEY", "fixture")
+    names = {tool.name for tool in anyio.run(mcp_server.build_server(tmp_path).list_tools)}
+    document = Path(__file__).resolve().parents[1] / "docs/api/AGENT_SKILLS.md"
+    documented = set()
+    column = None
+    for line in document.read_text().splitlines():
+        if not line.startswith("|"):
+            column = None
+            continue
+        cells = [cell.strip() for cell in line.strip("|").split("|")]
+        if "MCP tool" in cells:
+            column = cells.index("MCP tool")
+        elif column is not None:
+            documented.update(re.findall(r"`([a-z_]+)`", cells[column]))
+    assert documented
+    assert documented <= names, sorted(documented - names)
 
 
 def test_server_identity_reports_the_installed_trustops_version(tmp_path):

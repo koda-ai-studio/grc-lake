@@ -108,6 +108,7 @@ def test_install_guides_pin_one_published_release() -> None:
     changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
     releases = re.findall(r"^## (\d+\.\d+\.\d+) - ", changelog, re.MULTILINE)
     allowed = set(releases[:2])
+    published_versions = set()
     for doc in ("README.md", "docs/TUTORIAL_5_MIN.md"):
         text = (ROOT / doc).read_text(encoding="utf-8")
         refs = (
@@ -116,3 +117,17 @@ def test_install_guides_pin_one_published_release() -> None:
             + re.findall(r"published \*\*v(\d+\.\d+\.\d+)\*\*", text)
         )
         assert refs and len(set(refs)) == 1 and set(refs) <= allowed, (doc, refs)
+        published_versions.update(refs)
+    assert len(published_versions) == 1, published_versions
+
+
+def test_publication_status_matches_install_guides() -> None:
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    published = re.search(r"--branch v(\d+\.\d+\.\d+)", readme).group(1)
+    current = (ROOT / "docs/CURRENT_STATE.md").read_text(encoding="utf-8")
+    readiness = (ROOT / "docs/RELEASE_READINESS.md").read_text(encoding="utf-8")
+    assert f"Latest published release checked: **v{published}**" in current
+    assert readiness.startswith(f"# Release readiness\n\nGRC Lake **{published} is published**")
+    anchor = "verified-" + published.replace(".", "") + "-publication"
+    assert f"RELEASE_READINESS.md#{anchor}" in current
+    assert f"## Verified {published} publication" in readiness

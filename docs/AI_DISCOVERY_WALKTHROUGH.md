@@ -6,11 +6,10 @@ without a passing control is still an asset worth investigating.
 
 ## Run the synthetic AI lab
 
-From a source checkout containing this change (the `--company` demo option is
-unreleased):
+The `--company` demo option is available in the published 0.3.21 package:
 
 ```bash
-uv run --extra server grc-lake demo --company ai_lab
+uvx --from "grc-lake[server]==0.3.21" grc-lake demo --company ai_lab
 ```
 
 This opens **AI governance** on loopback with a temporary lake. No credentials or

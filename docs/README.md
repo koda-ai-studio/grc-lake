@@ -24,7 +24,7 @@ For a real evaluation and contribution feedback, use the [bounded pilot guide](P
 
 [Current state and coverage](CURRENT_STATE.md) · [Contributor roadmap](../ROADMAP.md) · [Contributing](../CONTRIBUTING.md)
 
-[Connector qualification matrix](CONNECTOR_QUALIFICATION.md) · [GitHub collection contracts](GITHUB_QUALIFICATION.md) · [Live receipts, 2026-10-24](qualification/live/2026-10-24.md) · [Databricks trial receipt](qualification/live/2026-10-25-databricks.md) · [AWS and GitHub binding receipt](qualification/live/2026-10-26-aws-github-binding.md) · [GCP effective-policy receipt](qualification/live/2026-10-26-gcp-effective-policy.md) · [Azure Defender receipt](qualification/live/2026-10-26-azure-defender.md)
+[Published GitHub connector receipt, 2026-10-31](qualification/live/2026-10-31-github-published.md) · [Connector qualification matrix](CONNECTOR_QUALIFICATION.md) · [GitHub collection contracts](GITHUB_QUALIFICATION.md) · [Live receipts, 2026-10-24](qualification/live/2026-10-24.md) · [Databricks trial receipt](qualification/live/2026-10-25-databricks.md) · [AWS and GitHub binding receipt](qualification/live/2026-10-26-aws-github-binding.md) · [GCP effective-policy receipt](qualification/live/2026-10-26-gcp-effective-policy.md) · [Azure Defender receipt](qualification/live/2026-10-26-azure-defender.md)
 
 ## Operate
 

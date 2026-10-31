@@ -43,10 +43,10 @@
         "tests/test_connector_runner.py"
       ],
       "live_record": {
-        "date": "2026-10-26",
-        "source_basis": "0dbe7c73",
-        "scope": "One public repository with a user OAuth token, before and after safeguard binding: 7 records including a change-approval verdict reconciled with the GitHub branch-protection API; SG-CHANGEAPPROVAL-001 passes. Not a GitHub App installation, private repositories or rulesets.",
-        "reference": "docs/qualification/live/2026-10-26-aws-github-binding.md#github-security"
+        "date": "2026-10-31",
+        "source_basis": "2aced4a3",
+        "scope": "Published 0.3.21 with a user OAuth token: one public repository through a fresh named connection; seven records recollected without duplicates, alert counts and default-branch protection reconciled with GitHub, account binding and integrity verified. Not GitHub App installation, private repositories, live throttling or expiry.",
+        "reference": "docs/qualification/live/2026-10-31-github-published.md#github-security"
       },
       "owner": "maintainer"
     },
