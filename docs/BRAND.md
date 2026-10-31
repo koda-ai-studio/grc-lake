@@ -82,7 +82,8 @@ Primary assets:
 - `src/security_lakehouse/brand_assets.py` — matching embedded MCP icon
 - `app/web/src/components/brand/GrcLakeMark.tsx` — UI mark
 - `app/web/src/components/brand/GrcLakeLogo.tsx` — UI lockup
-- `app/web/public/og/grc-lake-share.svg` — social preview
+- `app/web/public/og/grc-lake-share.svg` — social preview source
+- `app/web/public/og/grc-lake-share.png` — 1200×630 raster the console advertises for link previews (`make readme-header` renders it)
 
 Do not stretch, rotate, shadow, or recolor the mark. Framework and connector logos follow [THIRD_PARTY_ASSETS.md](THIRD_PARTY_ASSETS.md).
 

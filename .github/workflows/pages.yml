@@ -61,6 +61,7 @@ jobs:
         working-directory: app/web
         env:
           CONSOLE_BASE_PATH: /${{ github.event.repository.name }}/console
+          NEXT_PUBLIC_APP_URL: https://${{ github.repository_owner }}.github.io
         run: npm run build:demo
       - name: Click through the demo as Pages serves it
         working-directory: app/web

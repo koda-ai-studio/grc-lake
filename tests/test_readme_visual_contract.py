@@ -367,3 +367,46 @@ def test_mobile_readme_hero_is_legible_at_github_content_width():
     from tools.render_readme_header import render_mobile_preview
 
     assert mobile.read_text() == render_mobile_preview()
+
+
+def test_share_preview_ships_a_raster_image_for_link_unfurls() -> None:
+    """Chat and social unfurlers ignore SVG Open Graph images; the console must
+    advertise a 1200x630 PNG rendered from the deterministic SVG."""
+    from PIL import Image
+
+    png = ROOT / "app" / "web" / "public" / "og" / "grc-lake-share.png"
+    assert png.exists(), "run `make readme-header` to render the PNG share preview"
+    with Image.open(png) as image:
+        assert image.size == (1200, 630)
+        assert image.format == "PNG"
+    layout = (ROOT / "app" / "web" / "src" / "app" / "layout.tsx").read_text(encoding="utf-8")
+    assert 'consolePath("/og/grc-lake-share.png")' in layout
+    assert 'type: "image/png"' in layout
+    assert "/og/grc-lake-share.svg" not in layout
+
+
+def test_demo_site_build_publishes_absolute_share_urls() -> None:
+    """The Pages build must set the public origin, or Open Graph URLs resolve
+    to the localhost fallback and link previews break."""
+    workflow = (ROOT / ".github" / "workflows" / "pages.yml").read_text(encoding="utf-8")
+    step = workflow.split("Build the static demo site", 1)[1].split("- name:", 1)[0]
+    assert "NEXT_PUBLIC_APP_URL: https://${{ github.repository_owner }}.github.io" in step
+    assert "run: npm run build:demo" in step
+
+
+def test_readme_glance_discloses_reviewer_provenance() -> None:
+    """Reviewed counts must say how many people reviewed them; today that is one."""
+    from tools.render_readme_header import review_provenance
+
+    reviewers, receipts = review_provenance()
+    safeguards = json.loads((ROOT / "controls" / "safeguards.json").read_text(encoding="utf-8"))
+    members = [m for s in safeguards["safeguards"] for m in s.get("satisfies", [])]
+    reviewed = [m for m in members if m.get("review_status") == "reviewed"]
+    assert reviewers == len({m["reviewed_by"] for m in reviewed})
+    assert receipts == len({m["maintainer_review_ref"] for m in reviewed})
+    block = README.read_text(encoding="utf-8").split("<!-- BEGIN README AT A GLANCE -->", 1)[1]
+    if reviewers == 1:
+        assert f"one maintainer reviewer across {receipts} review receipts; no independent second review" in block
+    else:
+        assert f"{reviewers} reviewers across {receipts} review receipts" in block
+    assert "(docs/MAPPING_REVIEW.md)" in block
