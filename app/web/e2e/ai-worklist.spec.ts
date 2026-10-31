@@ -49,6 +49,12 @@ test("model worklist exposes evidence gaps and follows only the selected asset",
   await expect(
     worklist.getByText("Documented model", { exact: true }),
   ).toBeVisible();
+  await worklist.getByLabel("Filter AI inventory").selectOption("agents");
+  await expect(
+    worklist.getByText("No observed assets match this filter."),
+  ).toBeVisible();
+  await expect(worklist.locator("li")).toHaveCount(0);
+  await worklist.getByLabel("Filter AI inventory").selectOption("all");
   await worklist.getByRole("button", { name: "Inspect Review model" }).click();
   const detail = worklist.getByRole("region", { name: "Review model details" });
   await expect(detail).toContainText("Purpose, limitations and intended use");
@@ -122,9 +128,21 @@ for (const width of [390, 768, 1440]) {
       ),
     ).toBe(true);
     await worklist.getByLabel("Filter AI inventory").selectOption("agents");
+    await expect(worklist.locator("li")).toHaveCount(4);
+    for (const name of [
+      "Ops copilot agent",
+      "Release helper agent",
+      "Ticket router agent",
+      "Triage agent",
+    ]) {
+      await expect(worklist.getByRole("heading", { name })).toBeVisible();
+    }
     await expect(
-      worklist.getByText("No observed assets match this filter."),
-    ).toBeVisible();
+      worklist.getByText("Runtime recorded", { exact: true }),
+    ).toHaveCount(4);
+    await expect(
+      worklist.getByRole("heading", { name: "Doc summarizer model" }),
+    ).toHaveCount(0);
     await worklist.getByLabel("Filter AI inventory").selectOption("all");
     await expect(
       worklist.getByRole("heading", { name: "Doc summarizer model" }),
