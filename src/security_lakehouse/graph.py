@@ -110,6 +110,8 @@ _GRAPH_INPUTS = (
     "silver/normalized_events.jsonl",
     "gold/asset_risk.jsonl",
     "gold/control_posture.jsonl",
+    "gold/control_tests.jsonl",
+    "gold/evidence_freshness.jsonl",
     "gold/ccf_assessment.json",
     "mart/security_lakehouse.sqlite",
     "generation.json",
@@ -160,6 +162,14 @@ def _build_compliance_graph(lake: Path) -> dict[str, Any]:
     posture = {
         r["control_id"]: r for r in read_jsonl(lake / "gold/control_posture.jsonl", missing_ok=True, base_dir=lake)
     }
+    # The control test is the verdict the Controls page and the investigation
+    # view show; posture alone reports missing evidence as stale.
+    tests = {r["control_id"]: r for r in read_jsonl(lake / "gold/control_tests.jsonl", missing_ok=True, base_dir=lake)}
+    # Keyed exactly as the freshness projection records each source row.
+    freshness = {
+        (str(r.get("tenant_id") or ""), str(r.get("event_id") or ""), str(r.get("asset_id") or "")): r
+        for r in read_jsonl(lake / "gold/evidence_freshness.jsonl", missing_ok=True, base_dir=lake)
+    }
 
     nodes: list[dict[str, Any]] = []
     edges: list[dict[str, Any]] = []
@@ -190,6 +200,8 @@ def _build_compliance_graph(lake: Path) -> dict[str, Any]:
     # Control nodes + framework→control edges
     for control_id, control in controls.items():
         framework_id = control.get("framework_id") or ""
+        evaluated = posture.get(control_id, {})
+        tested = tests.get(control_id, {})
         _add_node(
             {
                 "id": f"control:{control_id}",
@@ -198,8 +210,13 @@ def _build_compliance_graph(lake: Path) -> dict[str, Any]:
                 "subtitle": control.get("title"),
                 "framework_id": framework_id,
                 "owner": control.get("owner"),
-                "status": posture.get(control_id, {}).get("status", "not_evaluated"),
-                "risk_score": posture.get(control_id, {}).get("risk_score"),
+                "status": tested.get("result") or evaluated.get("status", "not_evaluated"),
+                "posture_status": evaluated.get("status", "not_evaluated"),
+                "missing_evidence_types": sorted(tested.get("missing_evidence_types") or []),
+                "stale_evidence_types": sorted(
+                    {*(tested.get("stale_evidence_types") or []), *(tested.get("expired_evidence_types") or [])}
+                ),
+                "risk_score": evaluated.get("risk_score"),
                 **ccf_result_fields(ccf_results, control_id),
             }
         )
@@ -223,6 +240,9 @@ def _build_compliance_graph(lake: Path) -> dict[str, Any]:
         node_id = "evidence:" + canonical_sha256(event)
         if node_id in existing_ids:
             continue
+        recorded = str(event.get("tenant_id") or ""), str(event.get("event_id") or "")
+        # Rows written without an asset id apply to the event as a whole.
+        fresh = freshness.get((*recorded, str(event.get("asset_id") or "")), freshness.get((*recorded, ""), {}))
         _add_node(
             {
                 "id": node_id,
@@ -236,6 +256,11 @@ def _build_compliance_graph(lake: Path) -> dict[str, Any]:
                 "evidence_ref": event.get("evidence_ref"),
                 "provider": event.get("source"),
                 "observed_at": event.get("event_time"),
+                "collected_at": event.get("evidence_collected_at"),
+                "freshness_status": fresh.get("status", "missing"),
+                "freshness_age_minutes": fresh.get("age_minutes"),
+                "freshness_evaluated_at": fresh.get("evaluated_at"),
+                "freshness_expires_at": fresh.get("expires_at"),
                 "raw_sha256": event.get("raw_sha256"),
                 "owner": event.get("asset_owner"),
                 "environment": event.get("environment"),
