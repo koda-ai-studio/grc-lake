@@ -1,6 +1,6 @@
 # CI posture gate playbook
 
-Versioned examples below target v0.3.21. Until it is published, use the latest verified release templates linked from [release readiness](../RELEASE_READINESS.md).
+Versioned examples below target the published v0.3.21 release. Artifact verification and release templates are linked from [release readiness](../RELEASE_READINESS.md).
 
 Block merges and deployments when GRC Lake posture regresses. Platform engineers should
 wire this **before** the human console — same `/api/v1` routes agents and MCP use.

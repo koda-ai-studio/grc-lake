@@ -1,6 +1,6 @@
 # Agent Skill Catalog
 
-Versioned examples below target v0.3.21. Until it is published, use the latest verified release templates linked from [release readiness](../RELEASE_READINESS.md).
+Versioned examples below target the published v0.3.21 release. Artifact verification and release templates are linked from [release readiness](../RELEASE_READINESS.md).
 
 Composable **skills** for coding agents, CI jobs, and MCP clients. Each skill maps
 intent → `/api/v1` routes → MCP tools → example payloads.
@@ -77,7 +77,14 @@ Regenerate committed artifacts: `make openapi-export`
 
 **Full route catalog:** [resource-catalog.v1.json](resource-catalog.v1.json) (all
 `/api/v1` dispatch routes). **OpenAPI:** [openapi.v1.json](openapi.v1.json)
-(FastAPI-registered routes only).
+merges the FastAPI routes with the catalogued dispatch routes.
+
+Discover tools in the mode you will use. Local MCP omits server-only operations;
+remote MCP uses the authenticated API and preserves its tenant, scope and human
+authority checks. CLI evaluation and snapshot commands use the same assessment services, but local
+filesystem access does not establish a human review identity. Equivalent
+assessment results do not imply identical commands or permissions on every
+surface. See the [assessment application contract](../ASSESSMENT_APPLICATION_CONTRACT.md).
 
 ---
 
@@ -210,19 +217,23 @@ curl -sS -X POST "$GRC_LAKE_API_URL/api/v1/snapshots" \
 
 ## Skill: `remediate.propose`
 
-**Intent:** Propose governed remediation via the agent harness — evaluations and
-write proposals stay **approval-gated** until a human approves.
+**Intent:** Propose governed remediation via the agent harness. A proposed action
+is separate from the human decision authorizing it.
 
 | Action           | REST                                                 | MCP tool                  |
 | ---------------- | ---------------------------------------------------- | ------------------------- |
 | Run harness      | `POST /api/v1/agent-runs`                            | `create_agent_run`        |
-| Inspect run      | `GET /api/v1/agent-runs/{id}`                        | (SDK)                     |
-| Approve decision | `POST /api/v1/agent-runs/{id}/decisions/{i}/approve` | `approve_agent_decision`  |
-| Reject decision  | `POST /api/v1/agent-runs/{id}/decisions/{i}/reject`  | `reject_agent_decision`   |
+| Inspect run      | `GET /api/v1/agent-runs/{id}`                        | `get_agent_run`           |
+| Approve decision | `POST /api/v1/agent-runs/{id}/decisions/{i}/approve` | — human session required  |
+| Reject decision  | `POST /api/v1/agent-runs/{id}/decisions/{i}/reject`  | — human session required  |
 | Remediation task | `POST /api/v1/remediation/tasks`                     | `create_remediation_task` |
-| Evidence request | `POST /api/v1/remediation/evidence-requests`         | —                         |
+| Evidence request | `POST /api/v1/remediation/evidence-requests`         | `create_evidence_request` |
 
 **Scope:** `agents` for harness; `write` for approved side effects.
+
+MCP does not advertise approval or rejection tools. An eligible independent human
+must record these decisions through the console or authenticated API; an API key
+or the agent's own proposal does not supply that authority.
 
 **Example (rules-only posture review):**
 

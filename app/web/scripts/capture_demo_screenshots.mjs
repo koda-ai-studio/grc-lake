@@ -58,7 +58,8 @@ const shots = [
     route: "/ai-governance/",
     dark: true,
     viewport: { width: 390, height: 2200 },
-    endAt: (page) => page.getByRole("region", { name: "Models and agents" }),
+    endAt: (page) =>
+      page.getByRole("region", { name: "Models and agents" }).locator("li").nth(4),
   },
   {
     file: "grc-lake-demo-overview-mobile.png",
