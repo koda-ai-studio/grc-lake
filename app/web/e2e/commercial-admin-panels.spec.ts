@@ -184,8 +184,6 @@ test("a server without the feature probe still hides 501 panels", async ({
   await expect(page.getByText("SCIM provisioning")).toHaveCount(0);
   await expect(page.getByText("Billing", { exact: true })).toHaveCount(0);
   await expect(
-    page.getByText(
-      /Some requests were rejected|Can.t reach the assessment API/,
-    ),
+    page.getByText(/Some requests were rejected|Some data is unavailable/),
   ).toHaveCount(0);
 });

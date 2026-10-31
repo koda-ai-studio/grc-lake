@@ -87,9 +87,7 @@ export default function InsightsPage() {
             {ROUTE_LABELS["/insights"]}
           </h1>
           <p className="mt-2 max-w-[720px] text-sm text-muted">
-            Posture score, framework readiness, evidence freshness, mean time to
-            resolve (MTTR), and SLA attainment over time. Capture a data point
-            now, or schedule a daily capture so trends fill in on their own.{" "}
+            Track assessment, freshness and remediation trends.{" "}
             <a
               href={docsUrl("api/AGENT_API.md")}
               target="_blank"

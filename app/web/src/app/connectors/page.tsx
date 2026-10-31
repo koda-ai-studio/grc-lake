@@ -15,11 +15,16 @@ import { PageHeader } from "@/components/PageHeader";
 import { QueryState } from "@/components/QueryState";
 import { ConnectorDrawer } from "@/components/drawers/ConnectorDrawer";
 import { ConnectorMark } from "@/components/connectors/ConnectorMark";
+import {
+  DetailTabs,
+  DetailTabList,
+  DetailTab,
+} from "@/components/ui/detail-tabs";
 import { ListPagination } from "@/components/ui/list-pagination";
 import { EvidencePathPanel } from "@/components/connectors/EvidencePathPanel";
 import { OnboardingGuideBanner } from "@/components/onboarding/OnboardingGuideBanner";
 import { connectorNotify } from "@/lib/connector-notify";
-import { CONNECT_FLOW, PREVIEW_COPY, ROUTE_LABELS } from "@/lib/console-copy";
+import { CONNECT_FLOW, ROUTE_LABELS } from "@/lib/console-copy";
 import { connectionReadiness } from "@/lib/connection-readiness";
 import { OrganizationScopes } from "@/components/connectors/OrganizationScopes";
 import { NamedConnectionCreate } from "@/components/connectors/NamedConnectionCreate";
@@ -81,7 +86,7 @@ function ConnectorRow({
   const preview = connector.release_stage === "preview";
   return (
     <div
-      className={`relative grid w-full min-w-0 grid-cols-[auto_minmax(0,1fr)] items-start gap-3 overflow-hidden rounded-lg border bg-surface p-3 text-left transition-colors focus-within:border-brand hover:border-brand hover:shadow-card ${
+      className={`relative grid w-full min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-3 overflow-hidden rounded-lg border bg-surface p-3 text-left transition-colors focus-within:border-brand hover:border-brand hover:shadow-card ${
         runnable
           ? "border-line"
           : "border-dashed border-warning/40 bg-warning-bg "
@@ -119,14 +124,6 @@ function ConnectorRow({
             <PreviewBadge className="pointer-events-auto relative z-10" />
           ) : null}
         </span>
-        <span className="mt-1 line-clamp-2 text-xs leading-5 text-muted">
-          {connector.state === "disabled" && !connector.last_probe
-            ? (connector.setup_hint ?? progress.detail)
-            : progress.detail}
-        </span>
-      </span>
-      <span className="pointer-events-none col-start-2 text-xs font-semibold text-brand">
-        {progress.action} →
       </span>
     </div>
   );
@@ -134,6 +131,7 @@ function ConnectorRow({
 
 export default function ConnectorsPage() {
   const connectors = useConnectors();
+  const [hubView, setHubView] = useState("sources");
   const [connectId, setConnectId] = useState<string | null>(null);
   const [linkSessionId, setLinkSessionId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
@@ -233,131 +231,145 @@ export default function ConnectorsPage() {
         description="Connect a source, test access, then sync evidence."
         actions={
           totals.unhealthy > 0 ? (
-            <span className="rounded-full border border-danger/40 bg-danger-bg px-3 py-1.5 text-xs font-semibold text-danger-fg">
+            <button
+              type="button"
+              onClick={() => setHubView("status")}
+              className="rounded-full border border-danger/40 bg-danger-bg px-3 py-1.5 text-xs font-semibold text-danger-fg"
+            >
               {totals.unhealthy} need attention
-            </span>
+            </button>
           ) : null
         }
       />
 
-      {connectors.isSuccess && (
-        <ConnectionProgressPanel connectors={data} onSelect={setSelected} />
-      )}
-      <OrganizationScopes connectors={data} />
-      <NamedConnectionCreate connectors={data} onToast={connectorNotify} />
-      <EvidencePathPanel connectors={connectors.data ?? []} />
-
-      <div className="grid min-w-0 gap-2 overflow-hidden rounded-lg border border-line bg-surface p-2 shadow-card">
-        <div className="flex min-w-0 flex-wrap items-center gap-2">
-          <div className="relative min-w-[min(100%,260px)] flex-1">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
-            <input
-              value={query}
-              onChange={(e) => {
-                setQuery(e.target.value);
-                setPage(0);
-              }}
-              aria-label="Search sources"
-              placeholder="Search sources..."
-              className="w-full rounded-lg border border-line bg-surface py-2.5 pl-10 pr-3 text-sm focus:outline-none focus:ring-1 focus:ring-brand"
-            />
-          </div>
-          <div
-            aria-label="Connection view"
-            className="flex max-w-full gap-1 overflow-x-auto rounded-lg border border-line bg-panel p-1"
-            role="tablist"
-          >
-            {VIEW_TABS.map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                role="tab"
-                aria-selected={viewFilter === tab.id}
-                className={`shrink-0 rounded-md px-3 py-2 text-xs font-semibold ${
-                  viewFilter === tab.id
-                    ? "bg-surface text-ink shadow-card ring-1 ring-line"
-                    : "text-muted hover:bg-surface"
-                }`}
-                onClick={() => {
-                  setViewFilter(tab.id);
+      <DetailTabs value={hubView} onValueChange={setHubView}>
+        <DetailTabList
+          label="Connections workspace"
+          items={[
+            { value: "sources", label: "Sources" },
+            { value: "status", label: "Status" },
+            { value: "accounts", label: "Accounts & scope" },
+          ]}
+        />
+        <DetailTab value="status">
+          <QueryState queries={connectors} label="connection status">
+            <ConnectionProgressPanel connectors={data} onSelect={setSelected} />
+          </QueryState>
+        </DetailTab>
+        <DetailTab value="accounts">
+          <OrganizationScopes connectors={data} />
+          <NamedConnectionCreate connectors={data} onToast={connectorNotify} />
+          <EvidencePathPanel connectors={data} />
+        </DetailTab>
+        <DetailTab value="sources">
+          <div className="grid min-w-0 gap-2 overflow-hidden rounded-lg border border-line bg-surface p-2 shadow-card">
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
+              <div className="relative min-w-[min(100%,260px)] flex-1">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+                <input
+                  value={query}
+                  onChange={(e) => {
+                    setQuery(e.target.value);
+                    setPage(0);
+                  }}
+                  aria-label="Search sources"
+                  placeholder="Search sources..."
+                  className="w-full rounded-lg border border-line bg-surface py-2.5 pl-10 pr-3 text-sm focus:outline-none focus:ring-1 focus:ring-brand"
+                />
+              </div>
+              <div
+                aria-label="Connection view"
+                className="flex max-w-full gap-1 overflow-x-auto rounded-lg border border-line bg-panel p-1"
+                role="tablist"
+              >
+                {VIEW_TABS.map((tab) => (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    role="tab"
+                    aria-selected={viewFilter === tab.id}
+                    className={`shrink-0 rounded-md px-3 py-2 text-xs font-semibold ${
+                      viewFilter === tab.id
+                        ? "bg-surface text-ink shadow-card ring-1 ring-line"
+                        : "text-muted hover:bg-surface"
+                    }`}
+                    onClick={() => {
+                      setViewFilter(tab.id);
+                      setPage(0);
+                    }}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+              <label className="sr-only" htmlFor="connector-category-filter">
+                Category
+              </label>
+              <select
+                id="connector-category-filter"
+                aria-label="Category filter"
+                value={categoryFilter}
+                onChange={(event) => {
+                  setCategoryFilter(event.target.value as CategoryFilter);
                   setPage(0);
                 }}
+                className="min-w-[150px] rounded-lg border border-line bg-panel px-3 py-2.5 text-xs font-semibold text-ink focus:outline-none focus:ring-1 focus:ring-brand"
               >
-                {tab.label}
-              </button>
-            ))}
+                {CATEGORY_OPTIONS.map((option) => (
+                  <option key={option.id} value={option.id}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
-          <label className="sr-only" htmlFor="connector-category-filter">
-            Category
-          </label>
-          <select
-            id="connector-category-filter"
-            aria-label="Category filter"
-            value={categoryFilter}
-            onChange={(event) => {
-              setCategoryFilter(event.target.value as CategoryFilter);
-              setPage(0);
-            }}
-            className="min-w-[150px] rounded-lg border border-line bg-panel px-3 py-2.5 text-xs font-semibold text-ink focus:outline-none focus:ring-1 focus:ring-brand"
-          >
-            {CATEGORY_OPTIONS.map((option) => (
-              <option key={option.id} value={option.id}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
-        <p className="px-1 text-xs text-muted">
-          <span className="font-semibold text-ink">{PREVIEW_COPY.label}</span>:{" "}
-          {PREVIEW_COPY.definition}
-        </p>
-      </div>
 
-      <QueryState queries={connectors} label="connectors">
-        <Card className="overflow-hidden">
-          <CardHeader>
-            <CardTitle>{filtered.length} sources</CardTitle>
-            <CardDescription>
-              Pick a source to configure or review.
-            </CardDescription>
-          </CardHeader>
-          <div className="grid gap-2 p-3 pt-0 md:grid-cols-2 xl:grid-cols-3">
-            {filtered.length === 0 && (
-              <div className="rounded-lg border border-dashed border-line p-4 text-sm text-muted">
-                {totals.enabled === 0 ? (
-                  <div className="grid gap-3">
-                    <p>{CONNECT_FLOW.emptySources}</p>
-                    <Button asChild size="sm" className="w-fit">
-                      <Link href="/onboarding">Open setup guide</Link>
-                    </Button>
+          <QueryState queries={connectors} label="connectors">
+            <Card className="overflow-hidden">
+              <CardHeader>
+                <CardTitle>{filtered.length} sources</CardTitle>
+                <CardDescription>
+                  Pick a source to configure or review.
+                </CardDescription>
+              </CardHeader>
+              <div className="grid gap-2 p-3 pt-0 md:grid-cols-2 xl:grid-cols-3">
+                {filtered.length === 0 && (
+                  <div className="rounded-lg border border-dashed border-line p-4 text-sm text-muted">
+                    {totals.enabled === 0 ? (
+                      <div className="grid gap-3">
+                        <p>{CONNECT_FLOW.emptySources}</p>
+                        <Button asChild size="sm" className="w-fit">
+                          <Link href="/onboarding">Open setup guide</Link>
+                        </Button>
+                      </div>
+                    ) : (
+                      "No connectors match the current filter."
+                    )}
                   </div>
-                ) : (
-                  "No connectors match the current filter."
                 )}
+                {filtered
+                  .slice(currentPage * pageSize, (currentPage + 1) * pageSize)
+                  .map((c) => (
+                    <ConnectorRow
+                      key={c.connection_id ?? c.connector_id}
+                      connector={c}
+                      onSelect={() => setSelected(c)}
+                    />
+                  ))}
               </div>
-            )}
-            {filtered
-              .slice(currentPage * pageSize, (currentPage + 1) * pageSize)
-              .map((c) => (
-                <ConnectorRow
-                  key={c.connection_id ?? c.connector_id}
-                  connector={c}
-                  onSelect={() => setSelected(c)}
+              <div className="px-4 pb-4">
+                <ListPagination
+                  label="Sources"
+                  page={currentPage}
+                  total={filtered.length}
+                  pageSize={pageSize}
+                  onPage={setPage}
                 />
-              ))}
-          </div>
-          <div className="px-4 pb-4">
-            <ListPagination
-              label="Sources"
-              page={currentPage}
-              total={filtered.length}
-              pageSize={pageSize}
-              onPage={setPage}
-            />
-          </div>
-        </Card>
-      </QueryState>
-
+              </div>
+            </Card>
+          </QueryState>
+        </DetailTab>
+      </DetailTabs>
       <div id="connector-drawer-anchor" />
       <ConnectorDrawer
         key={

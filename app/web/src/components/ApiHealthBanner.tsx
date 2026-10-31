@@ -21,6 +21,7 @@ export function ApiHealthBanner() {
         .getAll()
         .filter(
           (q) =>
+            q.isActive() &&
             q.state.status === "error" &&
             !/\b501\b/.test(String(q.state.error?.message ?? "")),
         )
@@ -32,16 +33,16 @@ export function ApiHealthBanner() {
       if (statuses.includes(401))
         return "Your session has ended. Sign in again to restore access.";
       if (statuses.includes(403))
-        return "Some data requires additional permission. Ask a workspace administrator for access.";
+        return "Some data requires additional permission.";
       if (statuses.includes(429))
-        return "Too many requests. Some data is unavailable until the request limit resets.";
+        return "Request limit reached. Some data is unavailable.";
       if (
         statuses.every(
           (status) => status !== undefined && status >= 400 && status < 500,
         )
       )
         return "Some requests were rejected. Check the selected filters and request details.";
-      return "Can't reach the assessment API — some data failed to load. What you see may be incomplete, not an all-clear. Check that the server is reachable and use Refresh to retry.";
+      return "Some data is unavailable. Results are incomplete.";
     },
     () => "",
   );

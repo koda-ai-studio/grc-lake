@@ -25,7 +25,7 @@ def test_connector_hub_uses_compact_interactive_filters_and_grid() -> None:
     assert "connectionReadiness(connector)" in page
     assert "{progress.label}" in page
     assert "{connector.state}</Badge>" not in page
-    assert "line-clamp-2" in page
+    assert "<ConnectorDrawer" in page
     assert "if (!isRunnableConnector(c)) return false;" in page
     assert "RunnerFilter" not in page
     assert "RUNNER_TABS" not in page
@@ -103,7 +103,7 @@ def test_preview_connectors_are_wired_into_the_console_and_badged() -> None:
     assert "PREVIEW_COPY" in badge
     assert 'type="button"' in badge
     assert "Tooltip.Content" in badge
-    assert "PREVIEW_COPY.definition" in page, "legend under the filter bar"
+    assert "PREVIEW_COPY.definition" in badge, "explanation remains available on each preview badge"
 
 
 def test_connector_surfaces_use_theme_tokens_and_catalog_driven_lake_copy() -> None:

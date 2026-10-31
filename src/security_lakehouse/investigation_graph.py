@@ -143,9 +143,10 @@ def _build_model(
     """Release source rows and temporary bindings before fingerprinting and traversal."""
     nodes: dict[str, dict[str, Any]] = {} if storage is None else storage.nodes
     edges: dict[str, dict[str, Any]] = {} if storage is None else storage.edges
+    insert_node = nodes.setdefault if storage is None else storage.nodes.insert_default
 
     def node(kind, identity, label, **fields):
-        nodes.setdefault(identity, {"id": identity, "kind": kind, "label": label, **fields})
+        insert_node(identity, {"id": identity, "kind": kind, "label": label, **fields})
         return identity
 
     def edge(source, target, kind, **fields):

@@ -115,6 +115,7 @@ for (const theme of ["light", "dark"]) {
     await expect(
       page.getByText("Below assessment coverage threshold", { exact: true }),
     ).toBeVisible();
+    await page.getByText("Scope and thresholds", { exact: true }).click();
     await expect(
       page.getByText(/Framework thresholds: score 100\/100/),
     ).toBeVisible();

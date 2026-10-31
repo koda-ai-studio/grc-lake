@@ -37,9 +37,6 @@ export function ConnectionProgressPanel({
           >
             From connection to evidence
           </h2>
-          <p className="mt-1 text-sm text-muted">
-            Set up read-only access, collect evidence, then evaluate controls.
-          </p>
         </div>
         <dl className="flex flex-wrap gap-5 text-sm">
           {[
@@ -65,12 +62,15 @@ export function ConnectionProgressPanel({
                 ? "Your evidence is ready to inspect"
                 : "Choose your first evidence source"}
           </h3>
-          <p className="mt-1 text-xs leading-5 text-muted">
-            {progress?.detail ??
-              (recent.length
-                ? "Open control results to evaluate collected evidence and review gaps. Collection alone does not establish compliance."
-                : "Pick a source below or use the setup guide. Configuration and access checks come before collection.")}
-          </p>
+          <details className="mt-1 text-xs text-muted">
+            <summary className="cursor-pointer">Next-step details</summary>
+            <p className="mt-2 leading-5">
+              {progress?.detail ??
+                (recent.length
+                  ? "Open control results to evaluate collected evidence and review gaps. Collection alone does not establish compliance."
+                  : "Pick a source below or use the setup guide. Configuration and access checks come before collection.")}
+            </p>
+          </details>
         </div>
         {next && progress ? (
           <Button size="sm" onClick={() => onSelect(next)}>
@@ -85,8 +85,8 @@ export function ConnectionProgressPanel({
         )}
       </div>
       <p className="mt-3 text-xs leading-5 text-muted">
-        Counts reflect recorded syncs, including any demo sources. They do not
-        establish live-provider qualification or framework coverage.
+        Recorded syncs, including demo data · not coverage or provider
+        qualification.
       </p>
     </section>
   );

@@ -34,6 +34,7 @@ import {
 import { plural } from "@/lib/format";
 import { displayLabel } from "@/lib/display";
 import { EvidenceLifecycle } from "./EvidenceLifecycle";
+import { PaginatedCollection } from "@/components/ui/paginated-collection";
 
 const KIND_TONE: Record<
   GraphNodeKind,
@@ -164,10 +165,12 @@ export function GraphNodeDrawer({
   const related = graph?.nodes.filter((item) => relatedIds.has(item.id)) ?? [];
   return (
     <aside
+      key={node.id}
       ref={inspectorRef}
+      tabIndex={0}
       aria-label="Selected graph node"
       data-testid="graph-node-inspector"
-      className="min-w-0 scroll-mt-20 self-start rounded-xl border border-line bg-surface xl:max-h-[650px] xl:overflow-auto"
+      className="min-w-0 scroll-mt-20 self-start rounded-xl border border-line bg-surface max-h-[clamp(400px,calc(100dvh-300px),650px)] overflow-y-auto overscroll-contain"
     >
       <div className="sticky top-0 z-10 flex items-start gap-3 border-b border-line bg-surface p-4">
         <div className="min-w-0 flex-1">
@@ -211,27 +214,53 @@ export function GraphNodeDrawer({
           )}
         </div>
 
-        {node.basis && <p className="text-sm text-muted">{node.basis}</p>}
+        {action && (
+          <Button variant="primary" asChild>
+            <Link href={action.href}>
+              {action.label}
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+        )}
+        {onFocusPath && (
+          <Button onClick={onFocusPath}>Focus this evidence path</Button>
+        )}
+        {node.source_account_id && (
+          <p className="break-all text-xs text-muted">
+            Source account: {node.source_account_id}
+          </p>
+        )}
+        {node.basis && (
+          <details className="text-sm text-muted">
+            <summary className="cursor-pointer font-medium">
+              Assessment context
+            </summary>
+            <p className="mt-2">{node.basis}</p>
+          </details>
+        )}
         {(node.control_ids?.length ?? 0) > 0 && (
-          <div>
-            <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">
+          <details className="rounded-lg border border-line p-3">
+            <summary className="cursor-pointer text-xs font-semibold">
               {node.kind === "finding"
                 ? "Impacted controls"
-                : "Linked controls"}
+                : "Linked controls"}{" "}
+              ({node.control_ids!.length})
+            </summary>
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              <PaginatedCollection label="Linked controls" pageSize={6}>
+                {node.control_ids!.map((controlId) => (
+                  <Link
+                    key={controlId}
+                    href="/controls"
+                    className="inline-flex items-center gap-1 rounded-full border border-line bg-surface px-2.5 py-1 text-xs font-semibold hover:border-brand"
+                  >
+                    <ShieldCheck className="h-3 w-3" />
+                    {controlId}
+                  </Link>
+                ))}
+              </PaginatedCollection>
             </div>
-            <div className="flex flex-wrap gap-1.5">
-              {node.control_ids!.map((controlId) => (
-                <Link
-                  key={controlId}
-                  href="/controls"
-                  className="inline-flex items-center gap-1 rounded-full border border-line bg-surface px-2.5 py-1 text-xs font-semibold hover:border-brand"
-                >
-                  <ShieldCheck className="h-3 w-3" />
-                  {controlId}
-                </Link>
-              ))}
-            </div>
-          </div>
+          </details>
         )}
 
         {(isEvidence || ["control", "safeguard"].includes(node.kind)) && (
@@ -243,7 +272,14 @@ export function GraphNodeDrawer({
           </div>
         )}
         {node.kind === "evidence_type" && graphMode === "investigation" && (
-          <EvidenceLifecycle node={node} />
+          <details className="rounded-lg border border-line p-3">
+            <summary className="cursor-pointer text-sm font-medium">
+              Evidence timeline
+            </summary>
+            <div className="mt-3">
+              <EvidenceLifecycle node={node} />
+            </div>
+          </details>
         )}
         {hasFrameworkResult && (
           <section
@@ -287,17 +323,22 @@ export function GraphNodeDrawer({
                 </>
               )}
             </dl>
-            {(node.rule_reasons?.length ?? 0) > 0 && (
-              <ul className="grid list-disc gap-1 pl-4 text-xs leading-5 text-muted">
-                {node.rule_reasons!.map((reason) => (
-                  <li key={reason}>{reason}</li>
-                ))}
-              </ul>
-            )}
-            <p className="text-xs leading-5 text-muted">
-              Proposed safeguard mappings are never attestable; only reviewed
-              mappings count toward the framework result.
-            </p>
+            <details>
+              <summary className="cursor-pointer text-xs font-medium">
+                Evaluation details
+              </summary>
+              {(node.rule_reasons?.length ?? 0) > 0 && (
+                <ul className="grid list-disc gap-1 pl-4 text-xs leading-5 text-muted">
+                  {node.rule_reasons!.map((reason) => (
+                    <li key={reason}>{reason}</li>
+                  ))}
+                </ul>
+              )}
+              <p className="text-xs leading-5 text-muted">
+                Proposed safeguard mappings are never attestable; only reviewed
+                mappings count toward the framework result.
+              </p>
+            </details>
           </section>
         )}
         {node.kind === "control" && (node.finding_count ?? 0) > 0 && (
@@ -305,21 +346,23 @@ export function GraphNodeDrawer({
             <h3 className="text-sm font-semibold">
               {plural(node.finding_count!, "finding")}
             </h3>
-            {node.findings?.map((item) => (
-              <button
-                key={item.id}
-                className="grid gap-1 rounded-lg border border-line p-2 text-left hover:border-brand"
-                onClick={() => onInspectNode?.(item)}
-              >
-                <span className="text-xs font-semibold">{item.label}</span>
-                <span className="text-xs text-muted">
-                  {[displayLabel(item.severity), displayLabel(item.status)]
-                    .filter(Boolean)
-                    .join(" · ")}
-                  {item.owner ? ` · Owner ${item.owner}` : ""}
-                </span>
-              </button>
-            ))}
+            <PaginatedCollection label="Control findings" pageSize={3}>
+              {node.findings?.map((item) => (
+                <button
+                  key={item.id}
+                  className="grid gap-1 rounded-lg border border-line p-2 text-left hover:border-brand"
+                  onClick={() => onInspectNode?.(item)}
+                >
+                  <span className="text-xs font-semibold">{item.label}</span>
+                  <span className="text-xs text-muted">
+                    {[displayLabel(item.severity), displayLabel(item.status)]
+                      .filter(Boolean)
+                      .join(" · ")}
+                    {item.owner ? ` · Owner ${item.owner}` : ""}
+                  </span>
+                </button>
+              ))}
+            </PaginatedCollection>
             {node.finding_count! > (node.findings?.length ?? 0) && (
               <p className="text-xs text-muted">
                 Showing the {node.findings?.length ?? 0} most severe of{" "}
@@ -340,32 +383,28 @@ export function GraphNodeDrawer({
               Recorded links in this view. An absent record does not establish a
               missing setting.
             </p>
-            {related.slice(0, 8).map((item) => (
-              <button
-                key={item.id}
-                className="grid gap-1 rounded-lg border border-line p-2 text-left hover:border-brand"
-                onClick={() => onInspectNode?.(item)}
-              >
-                <span className="text-xs font-semibold">
-                  {graphRecordLabel(item)}
-                </span>
-                <span className="text-xs text-muted">
-                  {item.kind === "finding"
-                    ? `${displayLabel(item.severity)} · ${displayLabel(item.status)}`
-                    : graphEvidenceState(item).label}
-                </span>
-              </button>
-            ))}
+            <PaginatedCollection label="Related records" pageSize={3}>
+              {related.map((item) => (
+                <button
+                  key={item.id}
+                  className="grid gap-1 rounded-lg border border-line p-2 text-left hover:border-brand"
+                  onClick={() => onInspectNode?.(item)}
+                >
+                  <span className="text-xs font-semibold">
+                    {graphRecordLabel(item)}
+                  </span>
+                  <span className="text-xs text-muted">
+                    {item.kind === "finding"
+                      ? `${displayLabel(item.severity)} · ${displayLabel(item.status)}`
+                      : graphEvidenceState(item).label}
+                  </span>
+                </button>
+              ))}
+            </PaginatedCollection>
             {related.length === 0 && (
               <p className="text-xs text-muted">
                 Explore this repository or increase depth to inspect its
                 recorded connections.
-              </p>
-            )}
-            {related.length > 8 && (
-              <p className="text-xs text-muted">
-                Showing 8 of {related.length} visible records. Explore the
-                repository to narrow the view.
               </p>
             )}
           </section>
@@ -392,88 +431,81 @@ export function GraphNodeDrawer({
           </div>
         )}
 
-        {action && (
-          <Button variant="primary" asChild>
-            <Link href={action.href}>
-              {action.label}
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
-        )}
-        {onFocusPath && (
-          <Button onClick={onFocusPath}>Focus this evidence path</Button>
-        )}
-        <dl className="grid grid-cols-[100px_minmax(0,1fr)] gap-x-3 gap-y-2 border-t border-line pt-4 text-sm">
-          {(
-            [
+        <details className="rounded-lg border border-line p-3">
+          <summary className="cursor-pointer text-sm font-medium">
+            Record provenance
+          </summary>
+          <dl className="mt-3 grid grid-cols-[100px_minmax(0,1fr)] gap-x-3 gap-y-2 text-sm">
+            {(
               [
-                "Status",
-                node.status && !hasOutcome
-                  ? displayLabel(node.status)
-                  : undefined,
-              ],
-              ["Source account", node.source_account_id],
-              ["Observed", node.observed_at],
-              ["Asserted by", node.asserted_by],
-              ["Asserted at", node.asserted_at],
-              ["Reason", node.assertion_reason],
-              ["Revision", node.binding_revision?.toString()],
-              ["Evidence hash", node.evidence_sha256],
-              ["Revision hash", node.binding_record_hash],
-            ] as const
-          )
-            .filter(([, value]) => value)
-            .map(([label, value]) => (
-              <div key={label} className="contents">
-                <dt className="text-muted">{label}</dt>
-                <dd className="break-all">{value}</dd>
-              </div>
-            ))}
-          {node.owner && (
-            <>
-              <dt className="text-muted">Owner</dt>
-              <dd className="break-words font-semibold">{node.owner}</dd>
-            </>
-          )}
-          {node.environment && (
-            <>
-              <dt className="text-muted">Environment</dt>
-              <dd className="font-semibold">{node.environment}</dd>
-            </>
-          )}
-          {node.evidence_id && (
-            <>
-              <dt className="text-muted">Evidence id</dt>
-              <dd className="break-all font-semibold">{node.evidence_id}</dd>
-            </>
-          )}
-          {node.evidence_ref && (
-            <>
-              <dt className="text-muted">Evidence ref</dt>
-              <dd className="break-all text-xs">{node.evidence_ref}</dd>
-            </>
-          )}
-          {node.event_type && (
-            <>
-              <dt className="text-muted">Event type</dt>
-              <dd className="break-all font-semibold">{node.event_type}</dd>
-            </>
-          )}
-          {node.freshness_status && (
-            <>
-              <dt className="text-muted">Freshness</dt>
-              <dd className="font-semibold">
-                {displayLabel(node.freshness_status)}
-              </dd>
-            </>
-          )}
-          {node.severity && (
-            <>
-              <dt className="text-muted">Severity</dt>
-              <dd className="font-semibold">{displayLabel(node.severity)}</dd>
-            </>
-          )}
-        </dl>
+                [
+                  "Status",
+                  node.status && !hasOutcome
+                    ? displayLabel(node.status)
+                    : undefined,
+                ],
+                ["Observed", node.observed_at],
+                ["Asserted by", node.asserted_by],
+                ["Asserted at", node.asserted_at],
+                ["Reason", node.assertion_reason],
+                ["Revision", node.binding_revision?.toString()],
+                ["Evidence hash", node.evidence_sha256],
+                ["Revision hash", node.binding_record_hash],
+              ] as const
+            )
+              .filter(([, value]) => value)
+              .map(([label, value]) => (
+                <div key={label} className="contents">
+                  <dt className="text-muted">{label}</dt>
+                  <dd className="break-all">{value}</dd>
+                </div>
+              ))}
+            {node.owner && (
+              <>
+                <dt className="text-muted">Owner</dt>
+                <dd className="break-words font-semibold">{node.owner}</dd>
+              </>
+            )}
+            {node.environment && (
+              <>
+                <dt className="text-muted">Environment</dt>
+                <dd className="font-semibold">{node.environment}</dd>
+              </>
+            )}
+            {node.evidence_id && (
+              <>
+                <dt className="text-muted">Evidence id</dt>
+                <dd className="break-all font-semibold">{node.evidence_id}</dd>
+              </>
+            )}
+            {node.evidence_ref && (
+              <>
+                <dt className="text-muted">Evidence ref</dt>
+                <dd className="break-all text-xs">{node.evidence_ref}</dd>
+              </>
+            )}
+            {node.event_type && (
+              <>
+                <dt className="text-muted">Event type</dt>
+                <dd className="break-all font-semibold">{node.event_type}</dd>
+              </>
+            )}
+            {node.freshness_status && (
+              <>
+                <dt className="text-muted">Freshness</dt>
+                <dd className="font-semibold">
+                  {displayLabel(node.freshness_status)}
+                </dd>
+              </>
+            )}
+            {node.severity && (
+              <>
+                <dt className="text-muted">Severity</dt>
+                <dd className="font-semibold">{displayLabel(node.severity)}</dd>
+              </>
+            )}
+          </dl>
+        </details>
 
         <details className="rounded-lg border border-line p-3 text-xs">
           <summary className="cursor-pointer font-semibold">
@@ -530,7 +562,7 @@ export function GraphNodeDrawer({
       <div
         aria-hidden="true"
         data-testid="inspector-more-below"
-        className="pointer-events-none sticky bottom-0 -mt-10 hidden h-10 rounded-b-xl bg-gradient-to-t from-surface to-transparent xl:block"
+        className="pointer-events-none sticky bottom-0 -mt-10 h-10 rounded-b-xl bg-gradient-to-t from-surface to-transparent"
       />
     </aside>
   );

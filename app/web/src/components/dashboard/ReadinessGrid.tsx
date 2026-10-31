@@ -7,14 +7,12 @@ import {
   type ReadinessCoverage as Coverage,
 } from "@/lib/readiness-coverage";
 import Link from "next/link";
-import { ChevronDown, ChevronUp } from "lucide-react";
 import type { FrameworkPosture, FrameworkView } from "@/lib/api/types";
 import { CollapsibleCard } from "@/components/ui/collapsible-card";
 import { FrameworkBadge } from "@/components/framework/FrameworkBadge";
 import { frameworkDetailHref } from "@/lib/framework-links";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { PaginatedCollection } from "@/components/ui/paginated-collection";
 import { SCORE_COPY } from "@/lib/console-copy";
 import { splitFrameworkPacks, stubCountLabel } from "@/lib/framework-packs";
 
@@ -146,7 +144,6 @@ export function ReadinessGrid({
   catalog?: FrameworkView[];
   embedded?: boolean;
 }) {
-  const [expanded, setExpanded] = useState(false);
   const [sort, setSort] = useState<"priority" | "name">("priority");
   const sorted = useMemo(
     () => [...frameworks].sort(sort === "name" ? byName : worstFirst),
@@ -189,16 +186,6 @@ export function ReadinessGrid({
     [packs, monitoredIds],
   );
   const totalCount = sorted.length + unmonitored.length;
-  const visibleLimit = expanded ? totalCount : PREVIEW;
-  const visibleFrameworks = sorted.slice(0, visibleLimit);
-  const visibleUnmonitored = unmonitored.slice(
-    0,
-    Math.max(visibleLimit - visibleFrameworks.length, 0),
-  );
-  const hiddenCount = Math.max(
-    totalCount - visibleFrameworks.length - visibleUnmonitored.length,
-    0,
-  );
 
   return (
     <CollapsibleCard
@@ -226,50 +213,31 @@ export function ReadinessGrid({
             </label>
           </div>
           <div
-            className={cn(
-              "grid min-w-0 divide-y divide-line",
-              expanded &&
-                "max-h-[420px] overflow-y-auto overscroll-contain [scrollbar-width:thin]",
-            )}
+            className="grid min-w-0 divide-y divide-line"
             tabIndex={0}
             role="region"
             aria-label="Framework posture list"
           >
-            {visibleFrameworks.map((f) => (
-              <FrameworkRow
-                key={f.framework}
-                framework={f}
-                coverage={coverageByName.get(f.framework)}
-              />
-            ))}
-            {visibleUnmonitored.map((framework) => (
-              <FrameworkRow
-                key={framework.framework_id}
-                unmonitored={framework}
-              />
-            ))}
+            <PaginatedCollection
+              key={sort}
+              label="Framework posture"
+              pageSize={PREVIEW}
+            >
+              {sorted.map((f) => (
+                <FrameworkRow
+                  key={f.framework}
+                  framework={f}
+                  coverage={coverageByName.get(f.framework)}
+                />
+              ))}
+              {unmonitored.map((framework) => (
+                <FrameworkRow
+                  key={framework.framework_id}
+                  unmonitored={framework}
+                />
+              ))}
+            </PaginatedCollection>
           </div>
-          {totalCount > PREVIEW ? (
-            <div className="border-t border-line px-2 py-1.5">
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="w-full text-muted hover:text-ink"
-                aria-expanded={expanded}
-                onClick={() => setExpanded(!expanded)}
-              >
-                {expanded ? (
-                  <ChevronUp aria-hidden="true" className="h-4 w-4" />
-                ) : (
-                  <ChevronDown aria-hidden="true" className="h-4 w-4" />
-                )}
-                {expanded
-                  ? "Show fewer"
-                  : `Show all ${totalCount} framework packs (${hiddenCount} more)`}
-              </Button>
-            </div>
-          ) : null}
           {stubs.length ? (
             <p className="border-t border-line px-4 py-2 text-xs text-muted sm:px-5">
               Not counted: {stubCountLabel(stubs.length)} registry{" "}

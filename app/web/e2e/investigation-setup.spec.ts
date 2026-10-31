@@ -414,9 +414,17 @@ for (const [status, label] of [
       name: "Selected graph node",
     });
     await expect(inspector.getByText(label, { exact: true })).toBeVisible();
+    await inspector
+      .locator("summary")
+      .filter({ hasText: "Linked controls" })
+      .click();
     await expect(
       inspector.getByRole("link", { name: "SOC2-CC6.1", exact: true }),
     ).toBeVisible();
+    await inspector
+      .locator("summary")
+      .filter({ hasText: "Assessment context" })
+      .click();
     await expect(
       inspector.getByText(/required reviews, status checks/),
     ).toBeVisible();

@@ -31,6 +31,9 @@ for (const width of [1280, 390]) {
     });
     await page.goto("/console/connectors/");
     await page
+      .getByRole("tab", { name: "Accounts & scope", exact: true })
+      .click();
+    await page
       .getByRole("button", { name: "New organization scope", exact: true })
       .click();
     await page.getByLabel("Organization ID", { exact: true }).fill("org");

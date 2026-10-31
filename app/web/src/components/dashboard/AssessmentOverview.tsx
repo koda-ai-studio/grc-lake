@@ -245,8 +245,8 @@ export function AssessmentOverview({
             suffix={posture ? "/ 100" : undefined}
             detail={
               frameworkCount == null
-                ? `Headline score · ${assessed} framework packs assessed · total unknown`
-                : `Headline score · ${assessed} of ${frameworkCount} framework packs assessed`
+                ? `${assessed} assessed · total unknown`
+                : `${assessed} of ${frameworkCount} framework packs assessed`
             }
           >
             {posture ? (
@@ -271,7 +271,7 @@ export function AssessmentOverview({
             suffix={coveragePercent != null ? "%" : undefined}
             detail={
               coverage && coveragePercent != null
-                ? `${formatCount(coverage.assessed)} of ${formatCount(coverage.total)} requirements assessed${attested != null ? ` · ${formatCount(attested)} attested` : ""}${needsEvidence ? ` · ${needsEvidence} need evidence` : ""}`
+                ? `${formatCount(coverage.assessed)} of ${formatCount(coverage.total)} assessed`
                 : catalogError
                   ? "Framework catalog unavailable"
                   : !posture
@@ -292,7 +292,7 @@ export function AssessmentOverview({
           </Tile>
           <InfoHint
             label={SCORE_COPY.assessedCoverage.label}
-            text={`${SCORE_COPY.assessedCoverage.scope}. ${SCORE_COPY.assessedCoverage.definition}`}
+            text={`${SCORE_COPY.assessedCoverage.scope}. ${SCORE_COPY.assessedCoverage.definition}${attested != null ? ` ${formatCount(attested)} attested control tests.` : ""}${needsEvidence ? ` ${formatCount(needsEvidence)} need evidence.` : ""}`}
             className="absolute right-2 top-2"
           />
         </div>
@@ -316,7 +316,7 @@ export function AssessmentOverview({
             posture
               ? staleRows > 0
                 ? `Past freshness SLA · ${staleControls} ${staleControls === 1 ? "control" : "controls"}`
-                : "All evidence within its freshness SLA"
+                : "Within freshness SLA"
               : "Freshness unavailable"
           }
         />

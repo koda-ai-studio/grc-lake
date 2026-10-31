@@ -158,6 +158,8 @@ for (const theme of ["light", "dark"])
       const lifecycle = page.getByRole("region", {
         name: "Evidence lifecycle",
       });
+      await expect(lifecycle).not.toBeVisible();
+      await inspector.getByText("Evidence timeline", { exact: true }).click();
       await expect(lifecycle).toContainText("01 Oct 2026");
       await expect(lifecycle).toContainText("23:00:00 UTC");
       await lifecycle

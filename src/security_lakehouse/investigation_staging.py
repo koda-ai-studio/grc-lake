@@ -59,10 +59,13 @@ class Rows(MutableMapping):
         for row in self.db.execute("SELECT data FROM objects WHERE space=? ORDER BY ordinal", (self.space,)):
             yield json.loads(row[0])
 
-    def setdefault(self, key, default=None):
+    def insert_default(self, key, default):
         self.db.execute(
             "INSERT OR IGNORE INTO objects(space,key,data) VALUES (?,?,?)", (self.space, encoded(key), encoded(default))
         )
+
+    def setdefault(self, key, default=None):
+        self.insert_default(key, default)
         return self[key]
 
 
@@ -73,7 +76,6 @@ class Staging:
             CREATE TEMP TABLE objects (ordinal INTEGER PRIMARY KEY,space TEXT NOT NULL,key TEXT NOT NULL,data TEXT NOT NULL,UNIQUE(space,key));
             CREATE INDEX objects_order ON objects(space,ordinal);
             CREATE TEMP TABLE events (ordinal INTEGER PRIMARY KEY,hash TEXT NOT NULL,data TEXT NOT NULL);
-            CREATE INDEX events_order ON events(hash,ordinal);
             CREATE TEMP TABLE asset_types (account TEXT,asset TEXT,type TEXT,PRIMARY KEY(account,asset,type)) WITHOUT ROWID;
             CREATE TEMP TABLE evidence (account TEXT,event TEXT,asset TEXT,id TEXT,PRIMARY KEY(account,event,asset,id)) WITHOUT ROWID;
             CREATE TEMP TABLE findings (control TEXT,id TEXT,severity INTEGER,PRIMARY KEY(control,id)) WITHOUT ROWID;
@@ -102,6 +104,9 @@ class Staging:
             db.execute("INSERT INTO events(hash,data) VALUES (?,?)", (canonical_sha256(row), encoded(row)))
             account, asset = source_asset_key({**row, "asset_id": row.get("asset_id") or ""})
             db.execute("INSERT OR IGNORE INTO asset_types VALUES (?,?,?)", (account, asset, str(row.get("asset_type"))))
+        check()
+        db.execute("CREATE INDEX events_order ON events(hash,ordinal)")
+        check()
 
     def events(self):
         for digest, data in self.db.execute("SELECT hash,data FROM events ORDER BY hash,ordinal"):

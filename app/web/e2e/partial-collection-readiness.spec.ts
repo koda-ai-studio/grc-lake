@@ -56,6 +56,10 @@ for (const width of [1280, 390]) {
       }),
     );
     await page.goto("/console/connectors/");
+    await expect(
+      page.getByRole("button", { name: "1 need attention", exact: true }),
+    ).toBeVisible();
+    await page.getByRole("tab", { name: "Status", exact: true }).click();
     const progress = page.getByRole("region", {
       name: "From connection to evidence",
     });
@@ -65,6 +69,7 @@ for (const width of [1280, 390]) {
     await expect(
       progress.getByText("With recent evidence").locator(".."),
     ).toContainText("0");
+    await page.getByRole("tab", { name: "Sources", exact: true }).click();
     await page.getByRole("tab", { name: "Needs attention" }).click();
     await expect(
       page.getByRole("button", { name: "Open GitHub Security" }),
@@ -75,6 +80,7 @@ for (const width of [1280, 390]) {
         () => document.documentElement.scrollWidth <= window.innerWidth,
       ),
     ).toBe(true);
+    await page.getByRole("tab", { name: "Status", exact: true }).click();
     await progress
       .getByRole("button", { name: "Review collection gaps" })
       .click();

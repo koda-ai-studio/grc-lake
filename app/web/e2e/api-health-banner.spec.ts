@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-const BANNER = /Can.t reach the assessment API/;
+const BANNER = /Some data is unavailable/;
 
 const USAGE_ON = {
   data: {

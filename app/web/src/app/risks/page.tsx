@@ -248,7 +248,7 @@ export default function RisksPage() {
     <div className="page-shell space-y-6">
       <PageHeader
         title={ROUTE_LABELS["/risks"]}
-        description="Track identified risks, treatment and ownership. An accepted register status records intent; independently reviewed decisions and time-limited exceptions establish approval. Neither changes a control result."
+        description="Track risks, ownership and treatment. Register status alone is not approval."
       />
       <Card className="overflow-hidden">
         <CardHeader>

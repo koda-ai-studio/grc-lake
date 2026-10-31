@@ -485,7 +485,7 @@ export default function VendorRiskPage() {
     <div className="page-shell space-y-6">
       <PageHeader
         title={ROUTE_LABELS["/vendor-risk"]}
-        description="Run standardized vendor diligence questionnaires, capture yes/partial/no answers, and score third-party readiness against SOC 2 vendor-risk controls."
+        description="Review vendors, record diligence and track assessment status."
       />
 
       <QueryState queries={[templates, assessments]} label="vendor risk">

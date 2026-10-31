@@ -174,10 +174,21 @@ test("overview leads with overall posture and distinguishes score from coverage"
     overview
       .getByRole("link", { name: /Assessed coverage/ })
       .getByText(
-        `${coverage.assessed.toLocaleString()} of ${coverage.total.toLocaleString()} requirements assessed · ${attested} attested · ${accuracy.needs_evidence} need evidence`,
+        `${coverage.assessed.toLocaleString()} of ${coverage.total.toLocaleString()} assessed`,
         { exact: true },
       ),
   ).toBeVisible();
+  const coverageHelp = overview.getByRole("button", {
+    name: /^About Assessed coverage:/,
+  });
+  await expect(coverageHelp).toHaveAttribute(
+    "aria-label",
+    new RegExp(`${attested} attested control tests`),
+  );
+  await expect(coverageHelp).toHaveAttribute(
+    "aria-label",
+    new RegExp(`${accuracy.needs_evidence} need evidence`),
+  );
   await expect(
     overview.getByText("Control pass rate", { exact: true }),
   ).toHaveCount(0);

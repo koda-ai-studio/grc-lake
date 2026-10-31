@@ -244,64 +244,74 @@ export default function AuditRoomPage() {
                     </CardHeader>
                     <CardContent className="grid gap-4">
                       <div
-                        className="grid gap-3 max-h-64 overflow-y-auto rounded outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                        className="grid gap-3 rounded outline-none focus-visible:ring-2 focus-visible:ring-brand"
                         role="region"
                         tabIndex={0}
                         aria-label="Evaluated framework scope"
                       >
-                        {data.frameworks?.map((row) => (
-                          <div
-                            key={row.framework}
-                            className="flex items-center gap-3"
-                          >
-                            <FrameworkMark
-                              frameworkId={row.framework}
-                              fallbackLabel={row.framework}
-                              size={32}
-                            />
-                            <div className="min-w-0 text-sm">
-                              <div className="font-medium text-ink">
-                                {row.framework}
+                        <PaginatedCollection
+                          label="Evaluated frameworks"
+                          pageSize={3}
+                        >
+                          {data.frameworks?.map((row) => (
+                            <div
+                              key={row.framework}
+                              className="flex items-center gap-3"
+                            >
+                              <FrameworkMark
+                                frameworkId={row.framework}
+                                fallbackLabel={row.framework}
+                                size={32}
+                              />
+                              <div className="min-w-0 text-sm">
+                                <div className="font-medium text-ink">
+                                  {row.framework}
+                                </div>
+                                <div className="text-xs text-muted">
+                                  {row.assessed_controls} of{" "}
+                                  {row.total_controls ?? "unknown"} controls
+                                  assessed
+                                </div>
+                                {row.blocking_reasons?.length ? (
+                                  <p className="mt-1 text-xs text-serious-fg">
+                                    {row.blocking_reasons
+                                      .map(
+                                        (reason) =>
+                                          FRAMEWORK_BLOCKERS[reason] ??
+                                          displayLabel(reason),
+                                      )
+                                      .join(" · ")}
+                                  </p>
+                                ) : null}
                               </div>
-                              <div className="text-xs text-muted">
-                                {row.assessed_controls} of{" "}
-                                {row.total_controls ?? "unknown"} controls
-                                assessed
-                              </div>
-                              {row.blocking_reasons?.length ? (
-                                <p className="mt-1 text-xs text-serious-fg">
-                                  {row.blocking_reasons
-                                    .map(
-                                      (reason) =>
-                                        FRAMEWORK_BLOCKERS[reason] ??
-                                        displayLabel(reason),
-                                    )
-                                    .join(" · ")}
-                                </p>
-                              ) : null}
                             </div>
-                          </div>
-                        ))}
+                          ))}
+                        </PaginatedCollection>
                         {!data.frameworks?.length && (
                           <p className="text-sm text-muted">
                             No frameworks evaluated yet.
                           </p>
                         )}
                       </div>
-                      <p className="text-xs text-muted">
-                        Counts describe the evidence in this workspace;
-                        unobserved assets and vendors may be missing.
-                        {data.framework_ready_criteria && (
-                          <>
-                            {" "}
-                            Framework thresholds: score{" "}
-                            {data.framework_ready_criteria.min_score}/100 and at
-                            least{" "}
-                            {data.framework_ready_criteria.min_coverage_pct}% of
-                            catalog controls assessed.
-                          </>
-                        )}
-                      </p>
+                      <details className="text-xs text-muted">
+                        <summary className="cursor-pointer font-medium">
+                          Scope and thresholds
+                        </summary>
+                        <p className="mt-2">
+                          Counts describe the evidence in this workspace;
+                          unobserved assets and vendors may be missing.
+                          {data.framework_ready_criteria && (
+                            <>
+                              {" "}
+                              Framework thresholds: score{" "}
+                              {data.framework_ready_criteria.min_score}/100 and
+                              at least{" "}
+                              {data.framework_ready_criteria.min_coverage_pct}%
+                              of catalog controls assessed.
+                            </>
+                          )}
+                        </p>
+                      </details>
                       <div className="border-t border-line pt-4">
                         <div className="flex items-center gap-2 text-sm font-semibold">
                           <FileCheck2
