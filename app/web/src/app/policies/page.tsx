@@ -257,7 +257,7 @@ export default function PoliciesPage() {
     <div className="page-shell space-y-6">
       <PageHeader
         title={ROUTE_LABELS["/policies"]}
-        description="Browse bundled SOC 2 and ISO-aligned policy templates, adopt them for your tenant, edit markdown drafts, and publish to prove control coverage."
+        description="Adopt, review and publish policies; track acknowledgments."
       />
 
       <QueryState

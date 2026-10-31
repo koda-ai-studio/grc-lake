@@ -46,6 +46,7 @@ for (const recorded of [true, false]) {
     });
     await page.goto("/console/graph/?root=evidence%3Arecord");
     await page.locator('.react-flow__node[data-id="evidence:record"]').click();
+    await page.getByText("Evidence timeline", { exact: true }).click();
     const lifecycle = page.getByRole("region", { name: "Evidence lifecycle" });
     await expect(lifecycle).toBeVisible();
     await expect(lifecycle).toContainText("Observed at source");

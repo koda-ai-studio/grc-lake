@@ -41,6 +41,9 @@ for (const width of [1280, 390]) {
       .toBe(true);
     await page.keyboard.press("Escape");
     await page
+      .getByRole("tab", { name: "Accounts & scope", exact: true })
+      .click();
+    await page
       .getByRole("button", { name: "Add account connection", exact: true })
       .click();
     await page.getByLabel("Connection ID", { exact: true }).fill("account-d");

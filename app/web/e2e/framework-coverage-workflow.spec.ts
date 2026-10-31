@@ -18,6 +18,7 @@ test.describe("framework coverage workflow", () => {
     await expect(
       portfolio.getByText("Reviewed requirements", { exact: true }),
     ).toBeVisible();
+    await portfolio.getByText("Coverage details", { exact: true }).click();
     await expect(
       portfolio.getByText(/requirements with a reviewed mapping/),
     ).toBeVisible();

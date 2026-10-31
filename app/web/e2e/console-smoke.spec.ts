@@ -32,7 +32,7 @@ test.describe("console smoke", () => {
     await expect(page.getByText("Scale tier")).toHaveCount(0);
   });
 
-  test("dashboard framework portfolio sorts, expands, scrolls, and collapses", async ({
+  test("dashboard framework portfolio sorts, paginates, and collapses", async ({
     page,
   }) => {
     await page.goto("/console/dashboard/");
@@ -41,7 +41,7 @@ test.describe("console smoke", () => {
     });
     await expect(portfolio).toBeVisible();
     await expect(portfolio.getByText("SOC 2", { exact: true })).toBeVisible();
-    // One sort control, one expander: no parallel Priority/All filter.
+    // One sort control and bounded pages; no parallel Priority/All filter.
     await expect(
       page.getByRole("button", { name: "Priority", exact: true }),
     ).toHaveCount(0);
@@ -58,8 +58,8 @@ test.describe("console smoke", () => {
     ).length;
     const stubs = registry.length - packs;
     expect(stubs).toBeGreaterThan(0);
-    const expand = page.getByRole("button", {
-      name: new RegExp(`^Show all ${packs} framework packs`),
+    const pagination = page.getByRole("navigation", {
+      name: "Framework posture pages",
     });
     await expect(
       page.getByText(`Not counted: ${stubs} planned or superseded`),
@@ -67,14 +67,13 @@ test.describe("console smoke", () => {
     await expect(
       page.getByText(new RegExp(`of ${packs} framework packs assessed`)),
     ).toBeVisible();
-    await expand.click();
-    expect(await portfolio.getByRole("link").count()).toBeGreaterThan(
-      previewCount,
-    );
-    expect(
-      await portfolio.evaluate((node) => node.scrollHeight > node.clientHeight),
-    ).toBe(true);
+    await pagination
+      .getByRole("button", { name: "Next framework posture page" })
+      .click();
+    await expect(portfolio.getByRole("link")).toHaveCount(previewCount);
+    await expect(pagination.getByRole("status")).toHaveText(`5–8 of ${packs}`);
     await sort.selectOption("name");
+    await expect(pagination.getByRole("status")).toHaveText(`1–4 of ${packs}`);
     const names = await portfolio
       .getByRole("link")
       .evaluateAll((links) =>
@@ -88,9 +87,9 @@ test.describe("console smoke", () => {
     const assessed = (assessment.frameworks as { framework: string }[])
       .map((f) => f.framework)
       .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
-    expect(names.slice(0, assessed.length)).toEqual(assessed);
-    await page.getByRole("button", { name: "Show fewer", exact: true }).click();
-    await expect(portfolio.getByRole("link")).toHaveCount(previewCount);
+    expect(names.slice(0, assessed.length)).toEqual(
+      assessed.slice(0, previewCount),
+    );
     const toggle = page.getByRole("button", {
       name: /^Framework coverage$/,
     });

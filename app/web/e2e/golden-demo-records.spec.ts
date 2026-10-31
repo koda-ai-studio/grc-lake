@@ -86,7 +86,9 @@ test("overview headline score is the assessment score, with its definition", asy
   page,
 }) => {
   await page.goto("/console/dashboard/");
-  await expect(page.getByText(/^Headline score · \d+ of \d+/)).toBeVisible({
+  await expect(
+    page.getByText(/^\d+ of \d+ framework packs assessed/),
+  ).toBeVisible({
     timeout: 20_000,
   });
   await expect(

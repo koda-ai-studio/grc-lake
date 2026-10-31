@@ -140,10 +140,7 @@ function Row({
 
       <div className="grid gap-3">
         {topLevelCoverage && (
-          <p className="text-xs text-muted">
-            Top-level coverage only; sub-requirements and safeguards are not
-            counted.
-          </p>
+          <p className="text-xs text-muted">Top-level requirements only.</p>
         )}
         <div>
           <div className="flex items-center justify-between gap-3 text-xs">
@@ -175,13 +172,18 @@ function Row({
             />
           </div>
           {selfMapCount || legacyOnlyCount ? (
-            <p className="mt-1 text-[11px] text-muted">
-              {formatCount(selfMapCount)} source-native self-maps ·{" "}
-              {formatCount(attestableCount - selfMapCount)} crosswalk-reviewed
-              {legacyOnlyCount
-                ? ` · ${formatCount(legacyOnlyCount)} with no recorded reviewer`
-                : ""}
-            </p>
+            <details className="mt-1 text-[11px] text-muted">
+              <summary className="cursor-pointer">
+                Mapping scope{legacyOnlyCount ? " · legacy reviews" : ""}
+              </summary>
+              <p className="mt-2">
+                {formatCount(selfMapCount)} source-native self-maps ·{" "}
+                {formatCount(attestableCount - selfMapCount)} crosswalk-reviewed
+                {legacyOnlyCount
+                  ? ` · ${formatCount(legacyOnlyCount)} with no recorded reviewer`
+                  : ""}
+              </p>
+            </details>
           ) : null}
         </div>
       </div>
@@ -805,10 +807,6 @@ function FrameworksPageContent() {
         <div className="flex flex-wrap items-start justify-between gap-3 border-b border-line px-4 py-3 sm:px-5">
           <div className="min-w-0">
             <h2 className="ui-section-title">Requirement coverage</h2>
-            <p className="mt-0.5 text-xs text-muted">
-              Catalogued, mapped, and reviewed counts are reported separately.
-              Proposed mappings stay in the review queue.
-            </p>
           </div>
           <Badge
             tone={
@@ -820,7 +818,7 @@ function FrameworksPageContent() {
             {portfolio.ready} of {portfolio.total} framework packs ready
           </Badge>
         </div>
-        <dl className="grid divide-line sm:grid-cols-2 sm:divide-x xl:grid-cols-4 [&>div]:border-line max-sm:divide-y">
+        <dl className="grid grid-cols-2 divide-x divide-line xl:grid-cols-4 [&>div]:border-line">
           <div className="px-4 py-4 sm:px-5">
             <dt className="ui-label">Catalogued requirements</dt>
             <dd className="ui-kpi-value mt-1.5">
@@ -828,8 +826,7 @@ function FrameworksPageContent() {
             </dd>
             <dd className="mt-1.5 text-xs text-muted">
               Across {coverageSummary?.seeded_framework_count ?? packs.length}{" "}
-              framework packs
-              {stubNote ? ` · ${stubNote} not counted` : ""}
+              packs{stubNote ? " · stubs excluded" : ""}
             </dd>
           </div>
           <div className="px-4 py-4 sm:px-5">
@@ -861,38 +858,11 @@ function FrameworksPageContent() {
             </dd>
             <dd className="mt-1.5 text-xs text-muted">
               {formatCount(coverageSummary?.attestable_requirement_count)}{" "}
-              requirements with a reviewed mapping:{" "}
-              {formatCount(
-                coverageSummary?.maintainer_reviewed_requirement_count ??
-                  coverageSummary?.attestable_requirement_count,
-              )}{" "}
-              {MAPPING_REVIEW_GLOSSARY.maintainer_reviewed.label.toLowerCase()}{" "}
-              ·{" "}
-              {formatCount(
-                coverageSummary?.org_reviewed_requirement_count ?? 0,
-              )}{" "}
-              {MAPPING_REVIEW_GLOSSARY.org_reviewed.label.toLowerCase()}
-              {coverageSummary?.legacy_only_reviewed_requirement_count ? (
-                <span className="mt-1 block text-warning-fg">
-                  {formatCount(
-                    coverageSummary.legacy_only_reviewed_requirement_count,
-                  )}{" "}
-                  rest only on legacy reviews with no recorded reviewer
-                </span>
-              ) : null}
+              reviewed
+              {coverageSummary?.legacy_only_reviewed_requirement_count
+                ? ` · ${formatCount(coverageSummary.legacy_only_reviewed_requirement_count)} legacy`
+                : " · mixed review scope"}
             </dd>
-            {coverageSummary?.source_native_reviewed_requirement_count ? (
-              <dd className="mt-1 text-xs text-muted">
-                {formatCount(
-                  coverageSummary.source_native_reviewed_requirement_count,
-                )}{" "}
-                source-native self-maps ·{" "}
-                {formatCount(
-                  coverageSummary.crosswalk_reviewed_requirement_count ?? 0,
-                )}{" "}
-                crosswalk-reviewed. A blended total; read each framework below.
-              </dd>
-            ) : null}
           </div>
           <div className="px-4 py-4 sm:px-5">
             <dt className="ui-label">Requirements awaiting review</dt>
@@ -904,13 +874,7 @@ function FrameworksPageContent() {
                   )
                 : "—"}
             </dd>
-            <dd className="mt-1.5 text-xs text-muted">
-              Requirements whose only links are proposed. Mapping review counts
-              individual mappings; one requirement can have several.
-              {coverageSummary?.rejected_mapping_count
-                ? ` · ${formatCount(coverageSummary.rejected_mapping_count)} mapping(s) rejected by your org`
-                : ""}
-            </dd>
+            <dd className="mt-1.5 text-xs text-muted">Proposed links only</dd>
             <dd className="mt-2">
               <Link href="/mapping-review" className="ui-link text-xs">
                 Review mappings
@@ -918,6 +882,70 @@ function FrameworksPageContent() {
             </dd>
           </div>
         </dl>
+        <details className="border-t border-line px-4 py-3 text-xs sm:px-5">
+          <summary className="cursor-pointer font-medium text-ink">
+            Coverage details
+          </summary>
+          <p className="mt-3 text-muted">
+            Catalogued, mapped, and reviewed counts are reported separately.
+            Proposed mappings cannot attest.{" "}
+            {stubNote
+              ? `${stubNote} registry entries have no requirements and are excluded.`
+              : ""}
+          </p>
+          <dl className="mt-3 grid gap-3 sm:grid-cols-2">
+            <div>
+              <dt className="font-medium text-ink">Review scope</dt>{" "}
+              <dd className="mt-1.5 text-xs text-muted">
+                {formatCount(coverageSummary?.attestable_requirement_count)}{" "}
+                requirements with a reviewed mapping:{" "}
+                {formatCount(
+                  coverageSummary?.maintainer_reviewed_requirement_count ??
+                    coverageSummary?.attestable_requirement_count,
+                )}{" "}
+                {MAPPING_REVIEW_GLOSSARY.maintainer_reviewed.label.toLowerCase()}{" "}
+                ·{" "}
+                {formatCount(
+                  coverageSummary?.org_reviewed_requirement_count ?? 0,
+                )}{" "}
+                {MAPPING_REVIEW_GLOSSARY.org_reviewed.label.toLowerCase()}
+                {coverageSummary?.legacy_only_reviewed_requirement_count ? (
+                  <span className="mt-1 block text-warning-fg">
+                    {formatCount(
+                      coverageSummary.legacy_only_reviewed_requirement_count,
+                    )}{" "}
+                    rest only on legacy reviews with no recorded reviewer
+                  </span>
+                ) : null}
+              </dd>
+              {coverageSummary?.source_native_reviewed_requirement_count ? (
+                <dd className="mt-1 text-xs text-muted">
+                  {formatCount(
+                    coverageSummary.source_native_reviewed_requirement_count,
+                  )}{" "}
+                  source-native self-maps ·{" "}
+                  {formatCount(
+                    coverageSummary.crosswalk_reviewed_requirement_count ?? 0,
+                  )}{" "}
+                  crosswalk-reviewed. A blended total; read each framework
+                  below.
+                </dd>
+              ) : null}
+            </div>
+            <div>
+              <dt className="font-medium text-ink">
+                Requirements and mappings
+              </dt>{" "}
+              <dd className="mt-1.5 text-xs text-muted">
+                Requirements whose only links are proposed. Mapping review
+                counts individual mappings; one requirement can have several.
+                {coverageSummary?.rejected_mapping_count
+                  ? ` · ${formatCount(coverageSummary.rejected_mapping_count)} mapping(s) rejected by your org`
+                  : ""}
+              </dd>
+            </div>
+          </dl>
+        </details>
       </section>
 
       <SafeguardAssessment />

@@ -32,9 +32,9 @@ function RelationshipGroup({
       aria-label={`${direction} relationships`}
       className="min-w-0 space-y-2"
     >
-      <h4 className="font-semibold">
+      <h3 className="font-semibold">
         {direction} · {edges.length}
-      </h4>
+      </h3>
       {edges.length === 0 && (
         <p className="text-muted">None in this loaded neighborhood.</p>
       )}

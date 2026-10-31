@@ -41,6 +41,7 @@ for (const width of [1280, 390]) {
       await route.fulfill({ response, json: body });
     });
     await page.goto("/console/connectors/");
+    await page.getByRole("tab", { name: "Status", exact: true }).click();
     const progress = page.getByRole("region", {
       name: "From connection to evidence",
     });
@@ -48,6 +49,7 @@ for (const width of [1280, 390]) {
     await expect(
       progress.getByText("With recent evidence").locator(".."),
     ).toContainText("0");
+    await page.getByRole("tab", { name: "Sources", exact: true }).click();
     await page.getByRole("tab", { name: "Needs attention" }).click();
     await expect(
       page.getByRole("button", { name: "Open GitHub Security" }),
@@ -58,6 +60,7 @@ for (const width of [1280, 390]) {
         () => document.documentElement.scrollWidth <= window.innerWidth,
       ),
     ).toBe(true);
+    await page.getByRole("tab", { name: "Status", exact: true }).click();
     await progress.getByRole("button", { name: "Review failed sync" }).click();
     await expect(page.getByRole("dialog")).toBeVisible();
     await expect(page.getByRole("dialog")).toContainText("Latest sync failed");
@@ -69,6 +72,7 @@ test("empty workspace explains the first evidence step", async ({ page }) => {
     route.fulfill({ json: { data: [], meta: { total: 0 } } }),
   );
   await page.goto("/console/connectors/");
+  await page.getByRole("tab", { name: "Status", exact: true }).click();
   const progress = page.getByRole("region", {
     name: "From connection to evidence",
   });

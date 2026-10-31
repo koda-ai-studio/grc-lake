@@ -152,6 +152,9 @@ test("evidence paths name every lake reader from the connector catalog", async (
   await expect(
     page.getByRole("button", { name: "Copy normalize command" }),
   ).toBeHidden();
+  await page
+    .getByRole("tab", { name: "Accounts & scope", exact: true })
+    .click();
   await page.getByText("Existing lake or JSONL?", { exact: true }).click();
   const panel = page.getByRole("region", { name: "Existing lake or JSONL?" });
   await expect(
