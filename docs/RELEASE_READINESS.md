@@ -31,6 +31,30 @@ retain their exact source revisions and synthetic workload limits. They do not
 establish production capacity or qualify a deployment memory budget; 100k records
 remain outside the accepted local interactive profile.
 
+## 0.3.23 release candidate
+
+0.3.23 is being prepared and is not yet published. Installation instructions
+remain on the verified 0.3.22 artifacts until publication checks complete.
+
+This patch adds an explicit second-review packet mode and tightens qualification
+receipt and benchmark correctness checks. No provider is newly live-qualified,
+no mapping approval is recorded, and no capacity limit is expanded. The 0.3.22
+evidence-applicability fix remains in place. There is no database migration or
+dependency upgrade. Re-prepare derived graph indexes after upgrading because
+index identity includes the installed runtime source.
+
+Local candidate checks passed for version consistency, changelog, package data,
+release provenance and image gates (50 tests), plus evidence applicability
+(23 tests). A built wheel passed isolated core and server installation smoke
+checks, including the bundled console, replay, integrity and snapshots. The
+advisory reproduction against that installed wheel kept both the unrelated
+safeguard and framework requirement `not_evaluated`. These are synthetic local
+checks; they are not publication or additional provider receipts.
+
+Independent human approval, exact merged-main CI, final package/install checks,
+and the release workflow's image, chart and provenance gates remain required
+before publication can be claimed.
+
 ## 0.3.22 release
 
 0.3.22 is published; see the [publication receipt](#verified-0322-publication).
