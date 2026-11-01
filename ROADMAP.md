@@ -22,7 +22,7 @@ approval is implied by preparing this process.
 Releases 0.3.13 through 0.3.22 separated control-test posture from framework
 results, bounded graph layouts and reads, scoped evidence by provider and source
 account, and hardened transport and review-state validation. Published-artifact
-verification now covers v0.3.23 in [release readiness](docs/RELEASE_READINESS.md).
+verification now covers v0.3.23 in the [publication receipt](docs/RELEASE_READINESS.md#verified-0323-publication).
 Provider depth, independent mapping review and measured capacity remain separate
 work below. Correctness, security, migration and supported-workflow regressions
 remain release blockers.
