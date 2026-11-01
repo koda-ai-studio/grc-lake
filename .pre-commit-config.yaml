@@ -49,7 +49,11 @@ repos:
             app/web/\.next/.*|
             uv\.lock|
             src/security_lakehouse/web/dist/.*|
-            deploy/helm/.*
+            deploy/helm/.*|
+            # Already in .prettierignore; prettier errors when a batch holds only ignored files.
+            docs/FRAMEWORK_COVERAGE\.md|
+            docs/CONNECTOR_QUALIFICATION\.md|
+            frameworks/packs/sources/fedramp-2026/(rules|schema)\.json
           )$
 
   - repo: https://github.com/gitleaks/gitleaks

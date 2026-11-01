@@ -63,6 +63,22 @@ After upgrading the evaluator, re-run ingestion or incremental evaluation to
 publish a new assessment generation. Existing generations and snapshots retain
 their recorded results; reading them does not apply a new evaluation rule.
 
+### Reviewed without an evidence contract
+
+A reviewed mapping confirms the crosswalk; it does not make the requirement
+evaluable. When every reviewed safeguard behind a requirement declares no
+`required_evidence_types`, the coverage ledger reports that requirement as
+`reviewed_without_contract` (per framework and in total), the Frameworks page
+labels it "await an evidence contract", and `docs/FRAMEWORK_COVERAGE.md` carries
+the column. The number is a subset of the reviewed count, never a change to it.
+
+`grc-lake frameworks contracts` prints the inventory: each safeguard without a
+contract, its asset scope and evidence requirement text, the reviewed mappings it
+carries per framework, the requirements that only it reviews, and the maintainer
+receipts whose inspected basis would change if its definition changed. The
+command proposes no contracts and records nothing. Defining a contract is a
+definition change that needs independent human re-review and a new receipt.
+
 ## Console journey
 
 Open **Frameworks**, select a framework and expand a requirement. Choose

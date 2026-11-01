@@ -775,7 +775,15 @@ def framework_mapping_coverage(
     reviewer_counts: Counter[str] = Counter()
     receipt_counts: Counter[str] = Counter()
     reviewer_buckets: Counter[str] = Counter()
+    # Requirements with at least one attestable mapping from a safeguard that
+    # declares ``required_evidence_types``; the evaluator returns
+    # ``not_evaluated`` for every other reviewed mapping (ccf_evaluation).
+    contracted_reviewed: set[str] = set()
+    safeguards_without_contract = 0
     for entry in unambiguous_safeguards(data):
+        has_contract = bool(entry.get("required_evidence_types"))
+        if not has_contract:
+            safeguards_without_contract += 1
         for member in entry.get("satisfies", []):
             framework = mapping_target_framework(member, controls)
             if framework is None:
@@ -796,6 +804,8 @@ def framework_mapping_coverage(
             if provenance == "legacy_unattributed":
                 legacy_by_framework[framework] = legacy_by_framework.get(framework, 0) + 1
             if state in ATTESTABLE_STATES:
+                if has_contract:
+                    contracted_reviewed.add(control_id)
                 names: set[str] = set()
                 if state == "maintainer_reviewed":
                     name = member.get("reviewed_by")
@@ -842,6 +852,7 @@ def framework_mapping_coverage(
                 "maintainer_reviewed": 0,
                 "org_reviewed": 0,
                 "legacy_only_reviewed": 0,
+                "reviewed_without_contract": 0,
                 "rejected_requirements": 0,
                 "source_native_reviewed": 0,
                 "crosswalk_reviewed": 0,
@@ -857,6 +868,8 @@ def framework_mapping_coverage(
             row[bucket] += 1
             if provenance_by_control.get(control_id) == {"legacy_unattributed"}:
                 row["legacy_only_reviewed"] += 1
+            if control_id not in contracted_reviewed:
+                row["reviewed_without_contract"] += 1
             native_only = "crosswalk" not in reviewed_kinds.get(control_id, set())
             row["source_native_reviewed" if native_only else "crosswalk_reviewed"] += 1
         elif bucket == "rejected":
@@ -901,6 +914,11 @@ def framework_mapping_coverage(
         # never mistaken for receipt-backed review.
         "receipt_reviewed": reviewed - legacy_only,
         "legacy_only_reviewed": legacy_only,
+        # Reviewed requirements whose every attestable mapping sits on a
+        # safeguard with no evidence contract: reviewed, but not evaluable until
+        # a maintainer re-review defines the contract.
+        "reviewed_without_contract": sum(row["reviewed_without_contract"] for row in per_framework.values()),
+        "safeguards_without_contract": safeguards_without_contract,
         "legacy_unattributed_mappings": sum(legacy_by_framework.values()),
         "source_native_reviewed": sum(row["source_native_reviewed"] for row in per_framework.values()),
         "crosswalk_reviewed": sum(row["crosswalk_reviewed"] for row in per_framework.values()),
