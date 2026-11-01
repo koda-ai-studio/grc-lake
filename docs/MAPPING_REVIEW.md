@@ -320,6 +320,7 @@ grc-lake frameworks review resign --lake ./lake --previous-key-env OLD_KEY  # af
 # Coverage, queue, and OSCAL with your decisions applied
 grc-lake frameworks safeguards --lake ./lake --format table
 grc-lake frameworks coverage --lake ./lake
+grc-lake frameworks contracts   # safeguards with no evidence contract; reviewed but not evaluable
 grc-lake frameworks review-queue --lake ./lake
 grc-lake oscal export --component-definition --lake ./lake --out cd.json
 ```

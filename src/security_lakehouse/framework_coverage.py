@@ -28,6 +28,7 @@ from security_lakehouse.mappings import (
 from security_lakehouse.safeguards import (
     framework_mapping_coverage,
     load_safeguards,
+    unambiguous_safeguards,
 )
 
 
@@ -136,6 +137,9 @@ def build_framework_coverage(
                 "maintainer_reviewed_requirement_count": shared.get("maintainer_reviewed", 0),
                 "org_reviewed_requirement_count": shared.get("org_reviewed", 0),
                 "legacy_only_reviewed_requirement_count": shared.get("legacy_only_reviewed", 0),
+                # Reviewed requirements whose reviewed safeguards declare no
+                # evidence contract; the evaluator cannot give them a verdict.
+                "reviewed_without_contract_requirement_count": shared.get("reviewed_without_contract", 0),
                 "legacy_unattributed_mapping_count": shared.get("legacy_unattributed_mappings", 0),
                 # Disjoint split of attestable requirements: reviewed only through
                 # source-native self-maps vs. through a reviewed crosswalk mapping.
@@ -199,6 +203,12 @@ def framework_coverage_summary(
             int(row.get("legacy_only_reviewed_requirement_count", 0)) for row in rows
         ),
         "legacy_unattributed_mapping_count": sum(int(row.get("legacy_unattributed_mapping_count", 0)) for row in rows),
+        "reviewed_without_contract_requirement_count": sum(
+            int(row.get("reviewed_without_contract_requirement_count", 0)) for row in rows
+        ),
+        "contractless_safeguard_count": sum(
+            1 for entry in unambiguous_safeguards(load_safeguards()) if not entry.get("required_evidence_types")
+        ),
         "source_native_reviewed_requirement_count": source_native,
         "crosswalk_reviewed_requirement_count": crosswalk,
         "crosswalk_reviewed_coverage_pct": round(crosswalk / seeded * 100, 1) if seeded else 0.0,
@@ -259,17 +269,19 @@ def render_framework_coverage_markdown(
     summary = framework_coverage_summary(rows, applicability)
     header = (
         "| Framework | Official source | Status | Requirements | Source-cited | Mapped | Reviewed mappings | Reviewed %"
-        " | Source-native self-maps | Crosswalk reviewed | Crosswalk reviewed % | No recorded reviewer | Source state |"
+        " | Source-native self-maps | Crosswalk reviewed | Crosswalk reviewed % | No recorded reviewer"
+        " | Reviewed without contract | Source state |"
     )
     lines = [
         header,
-        "| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |",
+        "| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |",
     ]
     for row in rows:
         lines.append(
             (
                 "| {name} | [{source}]({url}) | {status} | {controls} | {mappings} | {evaluatable} | {attestable}"
-                " | {attestable_pct}% | {self_maps} | {crosswalk} | {crosswalk_pct}% | {legacy} | {freshness} |"
+                " | {attestable_pct}% | {self_maps} | {crosswalk} | {crosswalk_pct}% | {legacy} | {without_contract}"
+                " | {freshness} |"
             ).format(
                 name=_markdown_text(row["name"])
                 + (" (top-level coverage)" if row.get("coverage_level") == "top_level" else ""),
@@ -285,6 +297,7 @@ def render_framework_coverage_markdown(
                 crosswalk=row.get("crosswalk_reviewed_requirement_count", 0),
                 crosswalk_pct=row.get("crosswalk_reviewed_coverage_pct", 0.0),
                 legacy=row.get("legacy_only_reviewed_requirement_count", 0),
+                without_contract=row.get("reviewed_without_contract_requirement_count", 0),
                 freshness=str(row["freshness_state"]).replace("_", " "),
             )
         )
@@ -307,6 +320,10 @@ def render_framework_coverage_markdown(
             f"{summary['crosswalk_reviewed_requirement_count']} are crosswalk-reviewed "
             f"({summary['crosswalk_reviewed_coverage_pct']}%); "
             f"{summary['legacy_only_reviewed_requirement_count']} rest only on legacy reviews with no recorded reviewer",
+            f"Reviewed without an evidence contract: {summary['reviewed_without_contract_requirement_count']} "
+            f"requirements on {summary['contractless_safeguard_count']} safeguards that declare no "
+            "`required_evidence_types`; reviewed, but the evaluator returns `not_evaluated` for them "
+            "until a maintainer re-review defines the contract (`grc-lake frameworks contracts`)",
             f"Asset types modeled: {summary['asset_type_count']}",
             "",
             "> `Source-cited` = the requirement has an official source link. "
@@ -319,6 +336,9 @@ def render_framework_coverage_markdown(
             + "cross-framework safeguard. The blended total spans uneven frameworks; read coverage per row. "
             + "`No recorded reviewer` = reviewed requirements whose only reviewed mappings predate decision "
             + "receipts and name no reviewer (controls/reviews/legacy-unattributed.json). "
+            + "`Reviewed without contract` = reviewed requirements whose reviewed safeguards declare no "
+            + "`required_evidence_types`; the evaluator returns `not_evaluated` for them, so review here "
+            + "confirms the mapping but establishes no evaluable coverage. "
             + "An assessment still needs scoped evidence and tests of operating effectiveness.",
             "",
             *lines,

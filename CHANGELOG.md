@@ -3,6 +3,10 @@
 All notable GRC Lake changes are summarized here. Versions follow semver for the
 Python package, Helm chart, and bundled web console.
 
+## Unreleased
+
+- Disclose reviewed requirements that cannot be evaluated because every reviewed safeguard behind them declares no evidence contract: a `reviewed_without_contract` count per framework and in total in the coverage ledger, API, MCP and coverage document, labelled on the Frameworks page and roster. Add `grc-lake frameworks contracts` to inventory those safeguards, their reviewed mappings and the maintainer receipts a definition change would re-bind; it proposes no contracts and records no decisions. Name the unit next to every review total (requirements, mappings, control-to-article links).
+
 ## 0.3.23 - 2026-10-31
 
 - Prepare currently reviewed mappings for a second human inspection with `frameworks review packet --reviewed-only`. Preserve existing attribution, decision fingerprints and adverse organization decisions; generated packets record no approval or independence credit.

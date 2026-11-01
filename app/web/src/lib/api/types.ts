@@ -1077,6 +1077,9 @@ export interface FrameworkCoverageSummary {
   org_reviewed_requirement_count?: number;
   /** Reviewed requirements whose only reviewed mappings name no reviewer. */
   legacy_only_reviewed_requirement_count?: number;
+  /** Reviewed requirements whose reviewed safeguards declare no evidence contract; not evaluable. */
+  reviewed_without_contract_requirement_count?: number;
+  contractless_safeguard_count?: number;
   legacy_unattributed_mapping_count?: number;
   /** Reviewed only through source-native self-maps (no crosswalk judgement). */
   source_native_reviewed_requirement_count?: number;
@@ -1122,6 +1125,8 @@ export interface FrameworkCoverageRow {
   maintainer_reviewed_requirement_count?: number;
   org_reviewed_requirement_count?: number;
   legacy_only_reviewed_requirement_count?: number;
+  /** Reviewed requirements whose reviewed safeguards declare no evidence contract; not evaluable. */
+  reviewed_without_contract_requirement_count?: number;
   legacy_unattributed_mapping_count?: number;
   source_native_reviewed_requirement_count?: number;
   crosswalk_reviewed_requirement_count?: number;
