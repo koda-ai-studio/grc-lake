@@ -72,7 +72,7 @@ def _check_document(raw: bytes) -> None:
     else:
         rejected = None
     try:
-        text = raw.decode("utf-8-sig")
+        text = raw.decode("utf-8")
     except UnicodeDecodeError:
         if rejected is None:
             raise AssertionError("loads accepted bytes that are not UTF-8") from None
