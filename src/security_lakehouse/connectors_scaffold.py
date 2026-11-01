@@ -936,7 +936,7 @@ def scaffold_connector(
             "the asset; leave rows observed until you do. Do not edit safeguard definitions.",
             f"Grow tests/{test_path.name} (429 Retry-After, page budget, malformed page) and keep the "
             "fixture synthetic.",
-            "Review the console entries in app/web/src/lib/connector-visuals.ts, connector-forms.ts and "
+            "Review the console entries in app/web/src/lib/connector-visuals.ts, connector-forms.ts and " +
             "integration-presets.ts (added by --into-tree) and run npm --prefix app/web run typecheck.",
             "Raise the Preview count pinned in tests/test_connector_qualification_doc.py by one.",
             "Document permissions and setup in docs/CONNECTORS.md, add a CHANGELOG line under Unreleased, "
