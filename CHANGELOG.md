@@ -3,6 +3,16 @@
 All notable GRC Lake changes are summarized here. Versions follow semver for the
 Python package, Helm chart, and bundled web console.
 
+## 0.3.22 - 2026-10-31
+
+- Require declared, matching evidence before a safeguard can determine a verdict. Evaluate provider-specific requirements using their own provider evidence. Missing contracts or required evaluated evidence remain `not_evaluated`; historical generations, snapshots and mapping review decisions are preserved. Incremental evaluation refreshes results after this upgrade.
+- Keep collection gaps visible in assessment readiness and catalog failures visible in coverage summaries without changing the denominator or treating unavailable evidence as passing.
+- Add scoped persistent investigation indexes with bounded preparation, tenant/generation validation and cancellation. Reduce preparation decoding and staging work, avoid unrelated inventory scans, and reduce traversal writes for high-degree control queries. Re-prepare derived graph indexes after upgrading; million-record capacity remains unqualified.
+- Compact Overview, Frameworks, Graph, Connections and Audit room with short KPI summaries, expandable explanations, tabs, pagination and bounded inspectors. Correct BambooHR and BigQuery icons and clear cached error warnings when their queries are no longer active.
+- Locate packaged catalogs during isolated wheel launches and retain a demo lake with `grc-lake demo --lake DIR`. Document the first authenticated server sign-in and publish a PNG preview for shared demo links.
+- Align console actions and API contracts with server authority, reject private webhook targets at registration, atomically publish framework registries and recompute catalog review annotations at load time.
+- Use patched minimatch through the legacy lint-tool compatibility adapter, with bounded glob regression coverage. Keep production and development dependency audits distinct.
+
 ## 0.3.21 - 2026-10-30
 
 - Preserve the current page when logout fails and offer retry; successful logout clears the previous session state. Explain rejected, forbidden, throttled and failed sign-in attempts, retry identity-provider discovery, and restore investigation destinations after keyboard sign-in.
