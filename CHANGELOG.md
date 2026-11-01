@@ -8,6 +8,7 @@ Python package, Helm chart, and bundled web console.
 - Prepare currently reviewed mappings for a second human inspection with `frameworks review packet --reviewed-only`. Preserve existing attribution, decision fingerprints and adverse organization decisions; generated packets record no approval or independence credit.
 - Bind live-receipt source revisions to their linked receipt sections, preserving shared run bases and short commit references without borrowing another run's revision.
 - Require normalized record parity before a synthetic scale benchmark can pass or increase load. Source-account, asset, outcome and binding changes remain visible even when row counts and artifact integrity pass.
+- Require newly persisted, complete collection receipts for initial collection, recollection and recovery in the offline connector workflow. Cached successes, partial reads and failed recovery cannot qualify repeat operation; earlier evidence and snapshots remain preserved.
 
 ## 0.3.22 - 2026-10-31
 

@@ -45,7 +45,7 @@ index identity includes the installed runtime source.
 
 Local candidate checks passed for version consistency, changelog, package data,
 release provenance and image gates (50 tests), plus evidence applicability
-(23 tests). A built wheel passed isolated core and server installation smoke
+(23 tests) and connector recollection/recovery (13 tests). A built wheel passed isolated core and server installation smoke
 checks, including the bundled console, replay, integrity and snapshots. The
 advisory reproduction against that installed wheel kept both the unrelated
 safeguard and framework requirement `not_evaluated`. These are synthetic local
