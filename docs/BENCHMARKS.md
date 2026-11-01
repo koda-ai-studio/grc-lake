@@ -30,7 +30,15 @@ uv run python tools/benchmark_assessment_pipeline.py --workload ccf --sizes 1000
 
 Run without concurrent tests or other workload and report the actual environment.
 The default fixture tests framework-control fan-out without explicit safeguard
-bindings. The `ccf` fixture uses one explicit identity safeguard and five cases:
+bindings. Both workloads verify every normalized event against labels retained
+before pipeline execution: source account, provider, event type, asset identity/type,
+outcome, control fan-out and safeguard bindings. Missing, duplicate or altered
+records fail the attempt even when artifact integrity and row counts pass.
+The label oracle is retained in worker memory and included in peak RSS; pipeline
+wall time excludes fixture creation and post-run verification. Historical receipts
+do not establish this additional check.
+
+The `ccf` fixture uses one explicit identity safeguard and five cases:
 pass, fail, unknown, stale, and missing binding. It checks independently assigned
 asset verdicts and event IDs at an explicit pipeline evaluation time pinned to
 `--base-time`; real elapsed time cannot change the freshness labels between

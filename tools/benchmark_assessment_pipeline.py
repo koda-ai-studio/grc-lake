@@ -26,12 +26,13 @@ MIN_FREE_BYTES = 5 * 2**30
 
 
 def worker(count: int, *, workload: str, root: Path, base_time: datetime) -> dict:
-    from security_lakehouse.io import file_sha256, read_json, write_jsonl_from_iterable
+    from security_lakehouse.io import file_sha256, iter_jsonl, read_json, write_jsonl_from_iterable
     from security_lakehouse.pipeline import run_pipeline
     from security_lakehouse.scale_synthesis import iter_synthesize_audit_events
     from security_lakehouse.verification import verify_lake_integrity
 
     expected = {}
+    expected_records = {}
 
     def events():
         for index, row in enumerate(
@@ -55,6 +56,17 @@ def worker(count: int, *, workload: str, root: Path, base_time: datetime) -> dic
                         ("pass", "fail", "not_evaluated", "stale")[case],
                         row["event_id"],
                     )
+            expected_records[row["event_id"]] = (
+                row["tenant_id"],
+                row["tenant_id"],
+                row["source"],
+                row["event_type"],
+                row["entity"]["asset_id"],
+                row["entity"]["asset_type"],
+                "not_evaluated" if row["status"] == "unknown" else row["status"],
+                sorted(row["controls"]),
+                sorted(row.get("safeguard_ids", [])),
+            )
             yield row
 
     raw = root / "raw.jsonl"
@@ -77,6 +89,21 @@ def worker(count: int, *, workload: str, root: Path, base_time: datetime) -> dic
     details = ccf["asset_results"]
     actual = {(r["source_tenant_id"], r["asset_id"]): (r["status"], r["event_ids"]) for r in details}
     expected_details = {key: (status, [event_id]) for key, (status, event_id) in expected.items()}
+    normalized_records_ok = True
+    for row in iter_jsonl(root / "lake/silver/normalized_events.jsonl"):
+        fields = (
+            row["tenant_id"],
+            row["source_account_id"],
+            row["source"],
+            row["event_type"],
+            row["asset_id"],
+            row["asset_type"],
+            row["status"],
+            sorted(row["control_ids"]),
+            sorted(row.get("safeguard_ids", [])),
+        )
+        if expected_records.pop(row["event_id"], None) != fields:
+            normalized_records_ok = False
     rss = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
     if sys.platform != "darwin":
         rss *= 1024
@@ -87,6 +114,7 @@ def worker(count: int, *, workload: str, root: Path, base_time: datetime) -> dic
         "peak_rss_mib": round(rss / 2**20, 1),
         "silver_count": result.silver_count,
         "integrity_ok": valid,
+        "normalized_records_ok": normalized_records_ok and not expected_records,
         "ccf_labels_ok": actual == expected_details and len(details) == len(expected) and ccf["asset_count"] == count,
         "ccf_asset_count": ccf["asset_count"],
         "ccf_asset_result_count": len(details),
@@ -149,6 +177,15 @@ def attempt(count: int, workload: str, base_time: str) -> dict:
             return json.load(output)
 
 
+def _attempt_passed(row: dict) -> bool:
+    return bool(
+        row.get("integrity_ok")
+        and row.get("ccf_labels_ok")
+        and row.get("normalized_records_ok")
+        and row.get("silver_count") == row["events"]
+    )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--sizes", nargs="+", type=int, choices=SIZES, default=[1000, 10000])
@@ -182,7 +219,7 @@ def main() -> int:
         for repeat in range(args.repeats):
             row = {"events": count, "repeat": repeat + 1, **attempt(count, args.workload, args.base_time)}
             attempts.append(row)
-            if not (row.get("integrity_ok") and row.get("ccf_labels_ok") and row.get("silver_count") == count):
+            if not _attempt_passed(row):
                 break
         else:
             continue
@@ -213,13 +250,7 @@ def main() -> int:
         "attempts": attempts,
     }
     print(json.dumps(result, indent=2))
-    return (
-        0
-        if all(
-            r.get("integrity_ok") and r.get("ccf_labels_ok") and r.get("silver_count") == r["events"] for r in attempts
-        )
-        else 1
-    )
+    return 0 if all(_attempt_passed(row) for row in attempts) else 1
 
 
 if __name__ == "__main__":

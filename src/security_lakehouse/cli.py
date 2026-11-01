@@ -773,14 +773,20 @@ def _parser() -> argparse.ArgumentParser:
     )
     review_packet.add_argument("--batch-size", type=int, default=25, help="distinct requirements per batch (1-100)")
     review_packet.add_argument(
-        "--control", action="append", default=None, help="select a pending requirement; repeat for a focused packet"
+        "--reviewed-only", action="store_true", help="prepare currently reviewed mappings for a second human review"
+    )
+    review_packet.add_argument(
+        "--control",
+        action="append",
+        default=None,
+        help="select a requirement in the review mode; repeat for a focused packet",
     )
     review_packet.add_argument("--out", default=None, help="write JSON to this path (default stdout)")
     review_packet.add_argument(
         "--safeguard",
         action="append",
         default=None,
-        help="select pending mappings on this safeguard, including alternatives to reviewed requirements; repeat to select more",
+        help="select mappings on this safeguard in the review mode; repeat to select more",
     )
     review_packet.set_defaults(func=_frameworks_review_packet)
     review_export = review_sub.add_parser("export", help="export the decision log with its chain verification")
@@ -2687,6 +2693,7 @@ def _frameworks_review_packet(args: argparse.Namespace) -> int:
         framework_id=args.framework,
         control_ids=args.control,
         safeguard_ids=args.safeguard,
+        reviewed_only=args.reviewed_only,
         batch_size=args.batch_size,
     )
     text = json.dumps(packet, indent=2, sort_keys=True) + "\n"
