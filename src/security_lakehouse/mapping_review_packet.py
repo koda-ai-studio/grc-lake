@@ -21,11 +21,12 @@ def build_review_packet(
     framework_id: str | None = None,
     control_ids: Sequence[str] | None = None,
     safeguard_ids: Sequence[str] | None = None,
+    reviewed_only: bool = False,
     batch_size: int = 25,
     target_mapped_pct: int = 80,
     target_reviewed_pct: int = 50,
 ) -> dict[str, Any]:
-    """Group distinct unreviewed requirements; never write or infer a decision.
+    """Group distinct requirements for initial or second review; never infer a decision.
 
     Multiple candidate mappings remain visible under one requirement so they
     cannot inflate its potential contribution. Citation presence is not source
@@ -42,6 +43,15 @@ def build_review_packet(
     effective = effective_safeguards(lake_dir, payload=shipped)
     coverage = coverage_by_framework(effective)
     items = list_review_items(lake_dir, payload=shipped)
+    prior_maintainer_reviews = {
+        (entry["safeguard_id"], member["control_id"]): {
+            "reviewed_by": member.get("reviewed_by"),
+            "maintainer_review_ref": member.get("maintainer_review_ref"),
+        }
+        for entry in effective["safeguards"]
+        for member in entry["satisfies"]
+        if member.get("effective_review_state") == "maintainer_reviewed"
+    }
     reviewed = {
         item["control_id"]
         for item in items
@@ -53,9 +63,15 @@ def build_review_packet(
             continue
         if selected_safeguards is not None and item["safeguard_id"] not in selected_safeguards:
             continue
-        if (selected_safeguards is None and item["control_id"] in reviewed) or not item["contributes_to_coverage"]:
+        if not item["contributes_to_coverage"]:
             continue
-        if item["review_state"] not in {"proposed", "needs_changes"}:
+        if reviewed_only:
+            if item["review_state"] not in ATTESTABLE_STATES or not item["review_basis_sha256"]:
+                continue
+        elif (selected_safeguards is None and item["control_id"] in reviewed) or item["review_state"] not in {
+            "proposed",
+            "needs_changes",
+        }:
             continue
         grouped[item["control_id"]].append(item)
     selected = sorted(set(control_ids)) if control_ids is not None else None
@@ -64,14 +80,16 @@ def build_review_packet(
             raise ValueError("select at least one requirement")
         unavailable = set(selected) - grouped.keys()
         if unavailable:
-            raise ValueError("requirements are not pending in the requested scope: " + ", ".join(sorted(unavailable)))
+            state = "reviewed" if reviewed_only else "pending"
+            raise ValueError(f"requirements are not {state} in the requested scope: " + ", ".join(sorted(unavailable)))
         grouped = {control_id: grouped[control_id] for control_id in selected}
     if selected_safeguards is not None:
         found = {item["safeguard_id"] for candidates in grouped.values() for item in candidates}
         unavailable_safeguards = set(selected_safeguards) - found
         if unavailable_safeguards:
+            state = "reviewed" if reviewed_only else "pending"
             raise ValueError(
-                "safeguards have no pending mappings in the requested scope: "
+                f"safeguards have no {state} mappings in the requested scope: "
                 + ", ".join(sorted(unavailable_safeguards))
             )
     catalog = load_control_catalog()
@@ -86,6 +104,15 @@ def build_review_packet(
                 "candidates": [
                     {
                         **item,
+                        **(
+                            {
+                                "maintainer_review": prior_maintainer_reviews.get(
+                                    (item["safeguard_id"], item["control_id"])
+                                )
+                            }
+                            if reviewed_only
+                            else {}
+                        ),
                         "decision": None,
                         "reviewer": None,
                         "rationale": None,
@@ -113,6 +140,7 @@ def build_review_packet(
     body = {
         "schema": "grc_lake.mapping_review_packet.v1",
         "scope": "organization" if lake_dir is not None else "catalog",
+        **({"review_mode": "second_review"} if reviewed_only else {}),
         "framework_filter": framework_id,
         **({"control_filter": selected} if selected is not None else {}),
         **({"safeguard_filter": selected_safeguards} if selected_safeguards is not None else {}),
@@ -136,7 +164,7 @@ def build_review_packet(
             "batch_count": len(batches),
             **(
                 {"additional_coverage_candidates": sum(row["control_id"] not in reviewed for row in requirements)}
-                if selected_safeguards is not None
+                if selected_safeguards is not None or reviewed_only
                 else {}
             ),
         },
