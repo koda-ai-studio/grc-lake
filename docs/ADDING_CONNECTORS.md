@@ -7,19 +7,45 @@ registers itself at runtime via a Python entry point, without editing this
 repo's source tree — see [Shipping a connector as a package](#shipping-a-connector-as-a-package)
 further down.
 
-## Quick start
+## Quick start: a first connector in about 30 minutes
+
+From a checkout with `make uv-sync` and `make web-install` done:
 
 ```bash
-grc-lake connectors scaffold my-vendor-evidence --title "My Vendor Evidence"
+grc-lake connectors scaffold acme-assets --vendor Acme --kind rest --into-tree
+uv run python -m pytest -q tests/test_acme_assets_connector.py tests/test_connector_registry.py
 ```
 
-This writes starter files under `./connector-scaffold/` (module, test, and next
-steps). Move them into the tree, implement the collector, then run:
+`--kind rest` generates a paged, read-only API client; `--kind export` reads CSV
+files from the operator's allowed local root. `--into-tree` writes and wires
+everything a connector needs, and refuses to overwrite an existing file or id:
 
-```bash
-grc-lake connectors validate
-uv run pytest tests/test_my_vendor_evidence_connector.py
-```
+| Written or extended                                  | What it holds                                                                                  |
+| ---------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `src/security_lakehouse/connectors_<slug>.py`        | Live and fixture clients; fixed host, same-host paging, bounded pages, `Retry-After`, gap rows |
+| `tests/test_<slug>_connector.py`, `tests/fixtures/…` | Synthetic fixture, pipeline test, 401, 403 gap, foreign-host paging, token never stored        |
+| `connectors/catalog.json`                            | Catalog row at **Preview**                                                                     |
+| `connector_runner.py`                                | `_build_<slug>` builder and its `REGISTRY` entry                                               |
+| Console `connector-forms.ts`, `-visuals.ts`, presets | Connection form, card visual and setup copy                                                    |
+| Qualification evidence and registry test lists       | The fixture test pointer and the adapter id                                                    |
+
+The generated connector passes the registry, catalog, console and qualification
+guards on day one (after the pinned Preview count in step 4) and emits `observed`
+rows only, so nothing it collects can pass a control yet. Your work
+is the vendor-specific part:
+
+1. Replace each `TODO(vendor)` in the module with values from the vendor's
+   official API reference: host, list endpoint, auth header, paging field and
+   the attributes worth keeping.
+2. Map fields to `pass`, `open` or `not_evaluated` and bind a safeguard whose
+   `asset_types` accept the asset (see the contributor checklist below).
+3. Grow the generated test with the vendor's real response shapes, kept synthetic.
+4. Raise the Preview count pinned in `tests/test_connector_qualification_doc.py`,
+   document permissions in `docs/CONNECTORS.md`, add a CHANGELOG line, then run
+   `make connector-qualification-doc` and `pre-commit run --files <changed files>`.
+
+Without `--into-tree`, the same files are staged under `./connector-scaffold/`
+with a `catalog-entry.json` and `registry-builder.py` to copy in by hand.
 
 ## Contributor checklist
 
