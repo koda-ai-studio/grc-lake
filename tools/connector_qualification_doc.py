@@ -52,8 +52,20 @@ def build_rows(catalog: list[dict], records: list[dict], *, root: Path = ROOT) -
                 raise ValueError(f"{connector_id}: invalid live record source")
             _, _, anchor = live["reference"].partition("#")
             text = source.read_text()
-            if not anchor or f'<a id="{anchor}"></a>' not in text or live["source_basis"] not in text:
+            anchors = list(re.finditer(r'<a id="([^"]+)"></a>', text))
+            matches = [index for index, match in enumerate(anchors) if match[1] == anchor]
+            if not anchor or len(matches) != 1:
                 raise ValueError(f"{connector_id}: receipt anchor or source revision is missing")
+            index = matches[0]
+            while index + 1 < len(anchors) and not text[anchors[index].end() : anchors[index + 1].start()].strip():
+                index += 1
+            end = anchors[index + 1].start() if index + 1 < len(anchors) else len(text)
+            # Multi-adapter receipts share a run basis before the first anchor.
+            # Other anchored receipts must never supply this receipt's revision.
+            receipt = text[: anchors[0].start()] + text[anchors[index].end() : end]
+            revisions = re.findall(r"(?<![0-9a-f])[0-9a-f]{7,40}(?![0-9a-f])", receipt)
+            if not any(revision.startswith(live["source_basis"]) for revision in revisions):
+                raise ValueError(f"{connector_id}: source revision is missing from the linked receipt")
         rows.append({**definition, "fixture_tests": fixtures, "owner": record["owner"], "live_record": live})
     return rows
 

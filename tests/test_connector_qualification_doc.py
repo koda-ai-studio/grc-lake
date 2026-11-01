@@ -114,3 +114,46 @@ def test_live_reference_must_resolve_to_its_recorded_anchor_and_revision(change)
         record["source_basis"] = "0" * 40
     with pytest.raises(ValueError, match="receipt"):
         qualification.build_rows(catalog, records)
+
+
+@pytest.mark.parametrize(
+    "placement",
+    ["earlier_receipt", "later_receipt", "digest_substring", "duplicate_anchor", "shared_basis", "full_revision"],
+)
+def test_live_revision_must_belong_to_the_linked_receipt(tmp_path, placement):
+    (tmp_path / "tests").mkdir()
+    (tmp_path / "tests/test_adapter.py").write_text("")
+    (tmp_path / "docs").mkdir()
+    receipt = '<a id="selected"></a>\nSource: `bbbbbbbb`.\n'
+    if placement == "earlier_receipt":
+        receipt = '<a id="earlier"></a>\nSource: `aaaaaaaa`.\n' + receipt
+    elif placement == "later_receipt":
+        receipt += '<a id="later"></a>\nSource: `aaaaaaaa`.\n'
+    elif placement == "digest_substring":
+        receipt += "Artifact digest: `" + "a" * 64 + "`.\n"
+    elif placement == "shared_basis":
+        receipt = "Shared run basis: `aaaaaaaa`.\n" + receipt
+    elif placement == "full_revision":
+        receipt += "Source: `" + "a" * 40 + "`.\n"
+    else:
+        receipt += '<a id="selected"></a>\nSource: `aaaaaaaa`.\n'
+    (tmp_path / "docs/receipt.md").write_text(receipt)
+    catalog = [{"connector_id": "adapter", "is_implemented": True}]
+    records = [
+        {
+            "connector_id": "adapter",
+            "fixture_tests": ["tests/test_adapter.py"],
+            "owner": None,
+            "live_record": {
+                "date": "2026-10-31",
+                "source_basis": "aaaaaaaa",
+                "scope": "Synthetic validation case",
+                "reference": "docs/receipt.md#selected",
+            },
+        }
+    ]
+    if placement in {"shared_basis", "full_revision"}:
+        assert qualification.build_rows(catalog, records, root=tmp_path)[0]["live_record"] == records[0]["live_record"]
+    else:
+        with pytest.raises(ValueError, match="receipt"):
+            qualification.build_rows(catalog, records, root=tmp_path)

@@ -103,6 +103,22 @@ second independent review. Have a separate person inspect a bounded sample of
 each receipt and record their actual decision, current fingerprint and per-mapping
 rationale. A prepared packet or passing test does not supply that human review.
 
+To prepare that second inspection, opt into currently reviewed mappings:
+
+```bash
+grc-lake frameworks review packet --reviewed-only --framework soc2 \
+  --safeguard SG-IDENTITY-001 --control SOC2-CC6.1 --out second-review.json
+```
+
+`--reviewed-only` selects current attestable mappings, preserving their semantic
+fingerprints, maintainer attribution and receipt references, and any latest
+organization decision. New decision, reviewer and rationale fields stay empty.
+Proposed, rejected and needs-changes mappings are excluded; explicit selections
+outside this mode fail before writing output. The packet reports zero additional
+coverage candidates and records no decision or independent-review credit. Use
+`--lake` to inspect organization decisions; without it the packet uses the shipped
+catalog. The default packet remains a pending-review queue.
+
 ## What "reviewed" means
 
 A maintainer review inherited through `review_basis.inherited_from` remains valid
