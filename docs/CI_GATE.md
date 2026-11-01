@@ -1,6 +1,6 @@
 # CI posture gate
 
-Versioned examples below target the v0.3.22 release candidate; use the v0.3.21 tag until publication is verified. Artifact verification and release templates are linked from [release readiness](RELEASE_READINESS.md).
+Versioned examples below target the published v0.3.22 release. Artifact verification and release templates are linked from [release readiness](RELEASE_READINESS.md).
 
 The posture gate is a GitHub Action that asks a GRC Lake deployment for its
 current posture and failing control tests, and fails the job when they cross

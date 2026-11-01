@@ -1,16 +1,16 @@
 # Current state and coverage
 
-Release verification: **2026-10-31**. Latest published release checked: **v0.3.21**.
-See the [publication receipt](RELEASE_READINESS.md#verified-0321-publication) for artifact and runtime evidence.
+Release verification: **2026-10-31**. Latest published release checked: **v0.3.22**.
+See the [publication receipt](RELEASE_READINESS.md#verified-0322-publication) for artifact and runtime evidence.
 Changes on `main` or in a pull request can be newer than the published package. Check the [releases](https://github.com/koda-ai-studio/grc-lake/releases)
 and [changelog](../CHANGELOG.md) for the version you install.
 
-0.3.21 includes source-account isolation, organization account selection,
-partial-read safeguards, authentication recovery, and readable investigation
-hierarchy with overview, drill-down and roll-up. Kubernetes node/accelerator
-discovery and the synthetic AI-lab walkthrough are also included. Proposed
-mappings remain unreviewed and cannot attest framework requirements. See the
-[0.3.21 notes](RELEASE_READINESS.md#0321-release).
+0.3.22 requires declared, applicable evidence before a safeguard can determine a
+verdict and scopes provider-specific requirements to that provider's evidence.
+Missing contracts remain `not_evaluated`. It also includes compact console pages,
+scoped prepared graphs and isolated-install fixes. Proposed mappings remain
+unreviewed and cannot attest framework requirements. See the
+[0.3.22 notes](RELEASE_READINESS.md#0322-release).
 
 The provider-scoping fix from 0.3.16 is retained: benchmarks use only their own
 provider's evidence (CIS AWS from AWS sources), so GCP or identity-provider evidence can no longer pass
@@ -94,7 +94,7 @@ separate qualification. Historical test totals are not a current coverage claim.
 
 ## Coverage depth
 
-The product-tour screenshots were recaptured from source `2aced4a3` (0.3.21)
+The product-tour screenshots were refreshed for the 0.3.22 release candidate
 on October 31, 2026, using a fresh synthetic golden lake and one browser clock
 for each light/dark pair. Desktop and mobile captures retain the same catalog
 and evidence semantics. The graph separates assurance hierarchy from evidence

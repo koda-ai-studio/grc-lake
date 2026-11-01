@@ -1,6 +1,6 @@
 # Agent Skill Catalog
 
-Versioned examples below target the v0.3.22 release candidate; use the v0.3.21 tag until publication is verified. Artifact verification and release templates are linked from [release readiness](../RELEASE_READINESS.md).
+Versioned examples below target the published v0.3.22 release. Artifact verification and release templates are linked from [release readiness](../RELEASE_READINESS.md).
 
 Composable **skills** for coding agents, CI jobs, and MCP clients. Each skill maps
 intent → `/api/v1` routes → MCP tools → example payloads.
