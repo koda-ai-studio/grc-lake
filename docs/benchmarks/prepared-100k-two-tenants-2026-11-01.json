@@ -1,0 +1,312 @@
+{
+  "revision": "0e6152b665cba884da47c0d3080ba5c2a86a255b",
+  "tracked_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "untracked_sha256": {},
+  "harness_sha256": "0aa64dc3859be43460af8fc86ce4f3d2a2de0c314b0a77643d252a0378d61777",
+  "measured_at": "2026-11-01T02:33:06.574460+00:00",
+  "python": "3.13.5",
+  "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "load_average_after": [2.9267578125, 3.08349609375, 3.28271484375],
+  "configuration": {
+    "records": 100000,
+    "assets": 10000,
+    "findings": 100000,
+    "tenants": 2,
+    "repeats": 3,
+    "timeout": 600.0,
+    "max_rss_mib": 1536
+  },
+  "scope": "Sequential prepared-index HTTP reads; synthetic normalized evidence, not ingestion, provider accuracy, saturation or HA.",
+  "elapsed_seconds": 134.96920687519014,
+  "sampled_peak_rss_mib": 268.0625,
+  "stopped": null,
+  "worker_exit_code": 0,
+  "result": {
+    "correctness_ok": true,
+    "peak_rss_mib": 268.0625,
+    "preparation": [
+      {
+        "counts": {
+          "account": 2,
+          "asset": 10000,
+          "ccf_category": 10,
+          "ccf_family": 34,
+          "control": 2284,
+          "evidence_type": 100000,
+          "finding": 100000,
+          "framework": 22,
+          "safeguard": 1200,
+          "source": 2
+        },
+        "index_bytes": 993505280,
+        "input_sha256": "54d979199e177d29e84f4eda50d72e7330df0c59aa16b7ad03a8deadfa80aec8",
+        "platform_tenant_id": "benchmark-0",
+        "seconds": 57.0606310418807,
+        "tenant": "benchmark-0",
+        "version": "44a74f686d1fc15117d9671a19bb8da574253cecdaf354b54a361ab66b76b280"
+      },
+      {
+        "counts": {
+          "account": 2,
+          "asset": 10000,
+          "ccf_category": 10,
+          "ccf_family": 34,
+          "control": 2284,
+          "evidence_type": 100000,
+          "finding": 100000,
+          "framework": 22,
+          "safeguard": 1200,
+          "source": 2
+        },
+        "index_bytes": 993955840,
+        "input_sha256": "aef9fee3372e0b61646a8888158b17d1e33b75ef333a6aaae554f0de71cf1a31",
+        "platform_tenant_id": "benchmark-1",
+        "seconds": 59.70180629193783,
+        "tenant": "benchmark-1",
+        "version": "c8ca64f5218371dd20f145a0470bdac20dc30ef658da012b0a8dc79f473e6052"
+      }
+    ],
+    "reads": [
+      {
+        "edges": 31,
+        "http_status": 200,
+        "matching_nodes": 22,
+        "nodes": 22,
+        "query": "asset",
+        "repeat": 1,
+        "seconds": 0.046878415858373046,
+        "tenant": "benchmark-0"
+      },
+      {
+        "edges": 31,
+        "http_status": 200,
+        "matching_nodes": 22,
+        "nodes": 22,
+        "query": "asset",
+        "repeat": 2,
+        "seconds": 0.017223292030394077,
+        "tenant": "benchmark-0"
+      },
+      {
+        "edges": 31,
+        "http_status": 200,
+        "matching_nodes": 22,
+        "nodes": 22,
+        "query": "asset",
+        "repeat": 3,
+        "seconds": 0.016424415865913033,
+        "tenant": "benchmark-0"
+      },
+      {
+        "edges": 149,
+        "http_status": 200,
+        "matching_nodes": 5001,
+        "nodes": 150,
+        "query": "account",
+        "repeat": 1,
+        "seconds": 0.06689204182475805,
+        "tenant": "benchmark-0"
+      },
+      {
+        "edges": 149,
+        "http_status": 200,
+        "matching_nodes": 5001,
+        "nodes": 150,
+        "query": "account",
+        "repeat": 2,
+        "seconds": 0.028275334043428302,
+        "tenant": "benchmark-0"
+      },
+      {
+        "edges": 149,
+        "http_status": 200,
+        "matching_nodes": 5001,
+        "nodes": 150,
+        "query": "account",
+        "repeat": 3,
+        "seconds": 0.02779508288949728,
+        "tenant": "benchmark-0"
+      },
+      {
+        "edges": 31,
+        "http_status": 200,
+        "matching_nodes": 22,
+        "nodes": 22,
+        "query": "root_page",
+        "repeat": 1,
+        "seconds": 0.025282958056777716,
+        "tenant": "benchmark-0"
+      },
+      {
+        "edges": 31,
+        "http_status": 200,
+        "matching_nodes": 22,
+        "nodes": 22,
+        "query": "root_page",
+        "repeat": 2,
+        "seconds": 0.015950583154335618,
+        "tenant": "benchmark-0"
+      },
+      {
+        "edges": 31,
+        "http_status": 200,
+        "matching_nodes": 22,
+        "nodes": 22,
+        "query": "root_page",
+        "repeat": 3,
+        "seconds": 0.01674783299677074,
+        "tenant": "benchmark-0"
+      },
+      {
+        "edges": 149,
+        "http_status": 200,
+        "matching_nodes": 110005,
+        "nodes": 150,
+        "query": "control",
+        "repeat": 1,
+        "seconds": 1.9321088748984039,
+        "tenant": "benchmark-0"
+      },
+      {
+        "edges": 149,
+        "http_status": 200,
+        "matching_nodes": 110005,
+        "nodes": 150,
+        "query": "control",
+        "repeat": 2,
+        "seconds": 1.392372916918248,
+        "tenant": "benchmark-0"
+      },
+      {
+        "edges": 149,
+        "http_status": 200,
+        "matching_nodes": 110005,
+        "nodes": 150,
+        "query": "control",
+        "repeat": 3,
+        "seconds": 1.3843127919826657,
+        "tenant": "benchmark-0"
+      },
+      {
+        "edges": 31,
+        "http_status": 200,
+        "matching_nodes": 22,
+        "nodes": 22,
+        "query": "asset",
+        "repeat": 1,
+        "seconds": 0.018635750049725175,
+        "tenant": "benchmark-1"
+      },
+      {
+        "edges": 31,
+        "http_status": 200,
+        "matching_nodes": 22,
+        "nodes": 22,
+        "query": "asset",
+        "repeat": 2,
+        "seconds": 0.017821749905124307,
+        "tenant": "benchmark-1"
+      },
+      {
+        "edges": 31,
+        "http_status": 200,
+        "matching_nodes": 22,
+        "nodes": 22,
+        "query": "asset",
+        "repeat": 3,
+        "seconds": 0.01681074989028275,
+        "tenant": "benchmark-1"
+      },
+      {
+        "edges": 149,
+        "http_status": 200,
+        "matching_nodes": 5001,
+        "nodes": 150,
+        "query": "account",
+        "repeat": 1,
+        "seconds": 0.029679750092327595,
+        "tenant": "benchmark-1"
+      },
+      {
+        "edges": 149,
+        "http_status": 200,
+        "matching_nodes": 5001,
+        "nodes": 150,
+        "query": "account",
+        "repeat": 2,
+        "seconds": 0.028683874988928437,
+        "tenant": "benchmark-1"
+      },
+      {
+        "edges": 149,
+        "http_status": 200,
+        "matching_nodes": 5001,
+        "nodes": 150,
+        "query": "account",
+        "repeat": 3,
+        "seconds": 0.02840649988502264,
+        "tenant": "benchmark-1"
+      },
+      {
+        "edges": 31,
+        "http_status": 200,
+        "matching_nodes": 22,
+        "nodes": 22,
+        "query": "root_page",
+        "repeat": 1,
+        "seconds": 0.017117833951488137,
+        "tenant": "benchmark-1"
+      },
+      {
+        "edges": 31,
+        "http_status": 200,
+        "matching_nodes": 22,
+        "nodes": 22,
+        "query": "root_page",
+        "repeat": 2,
+        "seconds": 0.018307916121557355,
+        "tenant": "benchmark-1"
+      },
+      {
+        "edges": 31,
+        "http_status": 200,
+        "matching_nodes": 22,
+        "nodes": 22,
+        "query": "root_page",
+        "repeat": 3,
+        "seconds": 0.017592124873772264,
+        "tenant": "benchmark-1"
+      },
+      {
+        "edges": 149,
+        "http_status": 200,
+        "matching_nodes": 110005,
+        "nodes": 150,
+        "query": "control",
+        "repeat": 1,
+        "seconds": 1.3641901249065995,
+        "tenant": "benchmark-1"
+      },
+      {
+        "edges": 149,
+        "http_status": 200,
+        "matching_nodes": 110005,
+        "nodes": 150,
+        "query": "control",
+        "repeat": 2,
+        "seconds": 1.3674676660448313,
+        "tenant": "benchmark-1"
+      },
+      {
+        "edges": 149,
+        "http_status": 200,
+        "matching_nodes": 110005,
+        "nodes": 150,
+        "query": "control",
+        "repeat": 3,
+        "seconds": 1.403992084087804,
+        "tenant": "benchmark-1"
+      }
+    ]
+  }
+}
