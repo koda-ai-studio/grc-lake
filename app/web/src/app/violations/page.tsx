@@ -7,6 +7,7 @@ import {
   useTable,
   type SortingState,
 } from "@tanstack/react-table";
+import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,12 +21,14 @@ import { notify } from "@/lib/toast";
 import { Toolbar, matchesQuery } from "@/components/Toolbar";
 import { TagFilterBar } from "@/components/TagFilterBar";
 import { ViolationDrawer } from "@/components/drawers/ViolationDrawer";
+import { api } from "@/lib/api/client";
 import {
   useControls,
   useTagEntityIds,
   useViolations,
   useTags,
 } from "@/lib/api/hooks";
+import { downloadBlob } from "@/lib/download";
 import { useToolbar } from "@/lib/state/filters";
 import {
   sortableTableFeatures,
@@ -41,6 +44,45 @@ const helper = createColumnHelper<typeof sortableTableFeatures, Violation>();
 
 const SURFACE = "violations";
 const UNASSIGNED = "__unassigned__";
+// The recorded demo snapshot has no live API to stream an export from.
+const EXPORT_AVAILABLE = process.env.NEXT_PUBLIC_DEMO_SNAPSHOT !== "1";
+
+/** Download the open findings in the portable grc-lake.findings.v1 contract. */
+function ExportFindingsActions({ disabled }: { disabled: boolean }) {
+  const [pending, setPending] = useState<"csv" | "jsonl" | null>(null);
+  const run = async (format: "csv" | "jsonl") => {
+    setPending(format);
+    try {
+      const file = await api.exportFindings(format);
+      downloadBlob(file.filename, file.blob);
+      if (file.truncated) {
+        notify.message(
+          `Export capped at ${file.limit ?? "the server limit"} of ${file.totalCount ?? "all"} open findings.`,
+        );
+      }
+    } catch (err) {
+      notify.error(`Export failed: ${(err as Error).message}`);
+    } finally {
+      setPending(null);
+    }
+  };
+  return (
+    <>
+      {(["csv", "jsonl"] as const).map((format) => (
+        <Button
+          key={format}
+          size="sm"
+          disabled={disabled || pending !== null}
+          aria-label={`Export findings as ${format.toUpperCase()}`}
+          onClick={() => run(format)}
+        >
+          <Download className="h-4 w-4" aria-hidden="true" />
+          {pending === format ? "Exporting…" : `Export ${format.toUpperCase()}`}
+        </Button>
+      ))}
+    </>
+  );
+}
 
 function ViolationsPageContent() {
   const violations = useViolations();
@@ -284,6 +326,13 @@ function ViolationsPageContent() {
       <PageHeader
         title={ROUTE_LABELS["/violations"]}
         description="Prioritize findings, assign owners, and review evidence."
+        actions={
+          EXPORT_AVAILABLE ? (
+            <ExportFindingsActions
+              disabled={!violations.data || violations.data.length === 0}
+            />
+          ) : undefined
+        }
       />
       <TrustPipelineStrip activeStage="findings" />
 

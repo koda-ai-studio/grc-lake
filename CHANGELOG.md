@@ -3,6 +3,10 @@
 All notable GRC Lake changes are summarized here. Versions follow semver for the
 Python package, Helm chart, and bundled web console.
 
+## Unreleased
+
+- Export open findings as portable CSV or JSONL (`grc-lake.findings.v1`) from the API, console, CLI, MCP and SDK with stable finding identifiers, framework ids, evidence references, formula-safe cells and a bounded row limit. Emit a signed `finding.resolved` webhook event only for a transition recorded between two snapshots, never for a source with a collection gap.
+
 ## 0.3.23 - 2026-10-31
 
 - Prepare currently reviewed mappings for a second human inspection with `frameworks review packet --reviewed-only`. Preserve existing attribution, decision fingerprints and adverse organization decisions; generated packets record no approval or independence credit.

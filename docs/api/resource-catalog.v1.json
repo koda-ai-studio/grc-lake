@@ -386,6 +386,16 @@
       "scopes": ["read"]
     },
     {
+      "export_schema_version": "grc-lake.findings.v1",
+      "formats": ["csv", "jsonl"],
+      "kind": "action",
+      "methods": ["GET"],
+      "path": "/api/v1/findings/export",
+      "query": ["format", "limit"],
+      "resource": "findings.export",
+      "scopes": ["read"]
+    },
+    {
       "kind": "collection",
       "methods": ["GET"],
       "path": "/api/v1/frameworks",

@@ -57,6 +57,7 @@ import { InvestigationExplorer } from "@/components/graph/InvestigationExplorer"
 import { GraphNodeDrawer } from "@/components/graph/GraphNodeDrawer";
 import { useComplianceGraph, useRepositoryGraph } from "@/lib/api/hooks";
 import type { GraphNode, GraphNodeKind } from "@/lib/api/types";
+import { downloadBlob } from "@/lib/download";
 import { formatCount, plural } from "@/lib/format";
 import { frameworkVisual } from "@/lib/framework-visuals";
 import { graphRecordLabel } from "@/lib/graph-evidence";
@@ -190,17 +191,6 @@ interface RepoMappingRow {
   signalCount: number;
   gapCount: number;
   controlIds: string[];
-}
-
-function downloadBlob(filename: string, blob: Blob) {
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  URL.revokeObjectURL(url);
 }
 
 const SEARCH_RESULT_LIMIT = 8;

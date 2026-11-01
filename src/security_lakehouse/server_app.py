@@ -2681,6 +2681,51 @@ def create_app(lake_dir: str | Path, *, require_auth: bool = True) -> FastAPI:
             },
         )
 
+    @app.get(
+        "/api/v1/findings/export",
+        tags=["assessment"],
+        response_class=StreamingResponse,
+        responses={
+            200: {
+                "description": "Open findings in the grc-lake.findings.v1 contract (see docs/FINDING_EXPORTS.md)",
+                "content": {"text/csv": {}, "application/x-ndjson": {}},
+            },
+            400: {"description": "Unknown format or a limit outside 1..MAX_EXPORT_LIMIT"},
+        },
+    )
+    def findings_export(
+        identity: Identity = Depends(_require_read),
+        format: str | None = Query(None, description="csv or jsonl (default jsonl)"),
+        limit: str | None = Query(None, description="row bound, 1..10000 (default 1000)"),
+    ) -> Response:
+        from security_lakehouse import finding_exports
+
+        try:
+            fmt = finding_exports.parse_export_format(format)
+            limit_value = finding_exports.parse_export_limit(limit)
+        except ValueError as exc:
+            return JSONResponse(
+                api_v1.error_envelope("bad_request", str(exc), resource="findings.export"),
+                status_code=status.HTTP_400_BAD_REQUEST,
+            )
+        with server_execution(identity.tenant_id):
+            export = finding_exports.prepare_export(
+                lake_for(identity), tenant_id=identity.tenant_id, fmt=fmt, limit=limit_value
+            )
+        return StreamingResponse(
+            export.chunks,
+            media_type=export.media_type,
+            headers={
+                "Content-Disposition": f'attachment; filename="{export.filename}"',
+                "Cache-Control": "no-store",
+                "X-Content-Type-Options": "nosniff",
+                "X-Export-Schema-Version": finding_exports.EXPORT_SCHEMA_VERSION,
+                "X-Export-Limit": str(export.limit),
+                "X-Export-Total-Count": str(export.total_count),
+                "X-Export-Truncated": "true" if export.truncated else "false",
+            },
+        )
+
     # --- versioned data surface (authenticated) ---
     @app.get("/api/v1/{rest:path}")
     def v1_get(rest: str, request: Request, identity: Identity = Depends(_require_read)) -> JSONResponse:

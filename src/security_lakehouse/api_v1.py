@@ -964,6 +964,16 @@ def resource_catalog() -> list[JsonObject]:
         }
     )
     catalog.append(
+        _resource(
+            "findings.export",
+            "/api/v1/findings/export",
+            kind="action",
+            query=["format", "limit"],
+            formats=["csv", "jsonl"],
+            export_schema_version="grc-lake.findings.v1",
+        )
+    )
+    catalog.append(
         {
             "resource": "tracking.integrity",
             "path": "/api/v1/tracking/integrity",

@@ -102,6 +102,7 @@ check retained run evidence and link bounded connector qualification.
 | [Iceberg REST](ICEBERG_REST.md)                                      | Iceberg REST evidence publication                             |
 | [Parquet export](PARQUET_EXPORT.md)                                  | Portable evidence with Parquet                                |
 | [OSCAL export](OSCAL_EXPORT.md)                                      | Portable CCF bundles and assessment results                   |
+| [Finding exports](FINDING_EXPORTS.md)                                | CSV/JSONL findings for SIEM and ticket round trips            |
 | [Webhooks](WEBHOOKS.md)                                              | Outbound event delivery                                       |
 | [CI gate](CI_GATE.md)                                                | Failing a pipeline on posture                                 |
 | [CI posture gate playbook](playbooks/CI_POSTURE_GATE.md)             | Setting up the gate in CI                                     |

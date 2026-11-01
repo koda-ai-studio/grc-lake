@@ -235,6 +235,40 @@ def _server_api_request(
     return decoded
 
 
+def _server_api_text_request(path: str, *, accept: str, **params: Any) -> str:
+    """GET a non-JSON (text) resource from the authenticated server API.
+
+    Same base URL, bearer header, redirect refusal, timeout and size cap as
+    :func:`_server_api_request`; only the response is returned as text instead
+    of being validated as a v1 envelope.
+    """
+    if not _remote_api_configured():
+        raise ValueError("This tool requires remote MCP mode with GRC_LAKE_API_URL and GRC_LAKE_API_KEY")
+    query = {key: str(value) for key, value in params.items() if value is not None and value != ""}
+    url = f"{resolve_api_base_url()}{path}"
+    if query:
+        url = f"{url}?{urllib.parse.urlencode(query)}"
+    token = _api_key()
+    request = urllib.request.Request(url, method="GET", headers={"accept": accept, "authorization": f"Bearer {token}"})
+    timeout = float(runtime_env().get("GRC_LAKE_API_TIMEOUT_SECONDS", "30"))
+    if not math.isfinite(timeout):
+        raise ValueError("GRC_LAKE_API_TIMEOUT_SECONDS must be finite")
+    try:
+        with _open_api_request(request, timeout=max(1.0, min(timeout, 120.0))) as response:
+            payload = response.read(MAX_API_RESPONSE_BYTES + 1)
+    except urllib.error.HTTPError as exc:
+        detail = _api_error_detail(exc.read(MAX_API_RESPONSE_BYTES + 1)).replace(token, "[redacted]")[:2048]
+        raise ValueError(f"GRC Lake API request failed ({exc.code}): {detail}") from exc
+    except urllib.error.URLError as exc:
+        raise ValueError("GRC Lake API request failed: unreachable") from exc
+    if len(payload) > MAX_API_RESPONSE_BYTES:
+        raise ValueError("GRC Lake API response exceeds the 8 MiB limit; request a smaller limit")
+    try:
+        return payload.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise ValueError("GRC Lake API request failed: response is not UTF-8 text") from exc
+
+
 def _parse_json_object(raw: str, field_name: str) -> dict[str, Any]:
     try:
         parsed = strict_json.loads(raw or "{}")
@@ -663,6 +697,28 @@ def build_server(lake_dir: Path | None = None) -> FastMCP:
     def list_violations(limit: int = 100, offset: int = 0) -> list[JsonObject]:
         """List open control/asset violations requiring owner action, highest severity first."""
         return _get("/api/v1/violations", lake, limit=str(limit), offset=str(offset))
+
+    @trustops_tool()
+    def export_findings(format: str = "jsonl", limit: int = 100) -> str:
+        """Export open findings as portable ``grc-lake.findings.v1`` text for SIEM or ticket round trips.
+
+        ``format`` is ``jsonl`` (one object per line) or ``csv`` (RFC 4180, header
+        row, formula-safe cells). ``limit`` bounds the rows (1-10000, highest
+        severity first). Rows carry evidence references, never evidence payloads.
+        """
+        from security_lakehouse import finding_exports
+
+        fmt = finding_exports.parse_export_format(format)
+        bounded = finding_exports.parse_export_limit(limit)
+        if _remote_api_configured():
+            return _server_api_text_request(
+                "/api/v1/findings/export",
+                accept=finding_exports.MEDIA_TYPES[fmt].split(";", 1)[0],
+                format=fmt,
+                limit=bounded,
+            )
+        export = finding_exports.prepare_export(lake, tenant_id="local", fmt=fmt, limit=bounded)
+        return "".join(export.chunks)
 
     @trustops_tool()
     def list_snapshots(limit: int = 100, offset: int = 0) -> list[JsonObject]:

@@ -5154,6 +5154,78 @@
         "tags": ["evidence"]
       }
     },
+    "/api/v1/findings/export": {
+      "get": {
+        "operationId": "findings_export_api_v1_findings_export_get",
+        "parameters": [
+          {
+            "description": "csv or jsonl (default jsonl)",
+            "in": "query",
+            "name": "format",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "csv or jsonl (default jsonl)",
+              "title": "Format"
+            }
+          },
+          {
+            "description": "row bound, 1..10000 (default 1000)",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "row bound, 1..10000 (default 1000)",
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/x-ndjson": {},
+              "text/csv": {}
+            },
+            "description": "Open findings in the grc-lake.findings.v1 contract (see docs/FINDING_EXPORTS.md)"
+          },
+          "400": {
+            "description": "Unknown format or a limit outside 1..MAX_EXPORT_LIMIT"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Findings Export",
+        "tags": ["assessment"]
+      }
+    },
     "/api/v1/frameworks": {
       "get": {
         "operationId": "get_frameworks",
