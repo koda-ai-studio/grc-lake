@@ -761,16 +761,12 @@ def repair_history(lake_dir: str | Path, *, now: datetime | None = None) -> dict
 
 
 def _tick_connections(lake: str | Path, moment) -> list[dict[str, Any]]:
-    from security_lakehouse.ledger import chain_lock
-
     """Attempt each due named connection once; parent scheduling owns evaluation."""
     from security_lakehouse.connection_registry import connection_records
     from security_lakehouse.connections import sync_connection
     from security_lakehouse.connector_runner import ConnectorSyncError
     from security_lakehouse.connector_state import latest_config
-    from security_lakehouse.ingestion.watermark import collection_scope
-    from security_lakehouse.lake_scale import connector_materialize_on_sync
-    from security_lakehouse.schedule_expr import parse_schedule
+    from security_lakehouse.ledger import chain_lock
 
     results = []
     for child, info in connection_records(lake):

@@ -3,6 +3,14 @@
 All notable GRC Lake changes are summarized here. Versions follow semver for the
 Python package, Helm chart, and bundled web console.
 
+## 0.3.23 - 2026-10-31
+
+- Prepare currently reviewed mappings for a second human inspection with `frameworks review packet --reviewed-only`. Preserve existing attribution, decision fingerprints and adverse organization decisions; generated packets record no approval or independence credit.
+- Bind live-receipt source revisions to their linked receipt sections, preserving shared run bases and short commit references without borrowing another run's revision.
+- Require normalized record parity before a synthetic scale benchmark can pass or increase load. Source-account, asset, outcome and binding changes remain visible even when row counts and artifact integrity pass.
+- Require newly persisted, complete collection receipts for initial collection, recollection and recovery in the offline connector workflow. Cached successes, partial reads and failed recovery cannot qualify repeat operation; earlier evidence and snapshots remain preserved.
+- Record a bounded prepared-graph measurement with two synthetic tenants at 100,000 records each, retaining slower control-query results and the existing accepted interactive profile. This does not qualify production capacity.
+
 ## 0.3.22 - 2026-10-31
 
 - Require declared, matching evidence before a safeguard can determine a verdict. Evaluate provider-specific requirements using their own provider evidence. Missing contracts or required evaluated evidence remain `not_evaluated`; historical generations, snapshots and mapping review decisions are preserved. Incremental evaluation refreshes results after this upgrade.

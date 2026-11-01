@@ -1595,8 +1595,6 @@ def _collect_clickhouse(
             raise ValueError(
                 "clickhouse-telemetry-lake sync requires --fixture-dir, or host plus read-only credentials"
             )
-        from security_lakehouse import netguard
-
         netguard.assert_url_is_public(host, label="clickhouse host")
         client = ClickHouseClient(host, user=user, password=password, database=database)
     mapped = _collect_mapped(client, options, since=since, source="clickhouse")

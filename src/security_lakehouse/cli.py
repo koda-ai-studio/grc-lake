@@ -2454,8 +2454,6 @@ def _benchmark_pipeline(args: argparse.Namespace) -> int:
 
 
 def _fixtures_write_golden(args: argparse.Namespace) -> int:
-    from pathlib import Path
-
     from security_lakehouse.golden_fixture import (
         build_golden_fixture_rows,
         golden_fixture_summary,
