@@ -769,7 +769,7 @@ class VendorAssessment(Base):
 # instead of polling. Event types are intentionally small and map to concrete,
 # detectable state in the assessment engine — see assessment.py's snapshot
 # chain diffing for how ``finding.created``/``control.failed`` are derived.
-WEBHOOK_EVENT_TYPES = ("finding.created", "assessment.completed", "control.failed")
+WEBHOOK_EVENT_TYPES = ("finding.created", "finding.resolved", "assessment.completed", "control.failed")
 WEBHOOK_DELIVERY_STATUSES = ("success", "failed")
 
 

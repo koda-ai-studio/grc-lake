@@ -140,6 +140,7 @@ agent action should be rendered back to humans with the same audit trail.
 | `GET`  | `/api/v1/platform/features`                                        | which commercial surfaces are enabled (`read`)                                                                                            |
 | `GET`  | `/api/v1/platform/usage`                                           | hosted plan tier and usage vs limits (`admin`)                                                                                            |
 | `GET`  | `/api/v1/snapshots/{snapshot_id}/export.pdf`                       | executive PDF export for a point-in-time snapshot (`read`)                                                                                |
+| `GET`  | `/api/v1/findings/export`                                          | open findings as CSV or JSONL in the `grc-lake.findings.v1` contract, bounded by `limit` (`read`)                                         |
 | `GET`  | `/api/v1/oscal/component-definition`                               | NIST OSCAL component-definition JSON from the CCF safeguards + catalog                                                                    |
 | `GET`  | `/api/v1/oscal/assessment-results`                                 | NIST OSCAL assessment-results JSON from current (or `?snapshot_id=`) posture                                                              |
 
@@ -185,6 +186,7 @@ MCP equivalents: `get_ingestion_status`, `list_eval_runs`, `run_lake_eval`,
 | -------------------------- | ---------------------------------------------- | ------------------------------------------- |
 | Activity / SIEM            | `GET /api/v1/audit-log`                        | `category`, `include_requests` filters      |
 | Executive PDF              | `GET /api/v1/snapshots/{id}/export.pdf`        | `Accept: application/pdf`                   |
+| Findings export            | `GET /api/v1/findings/export`                  | `format=csv\|jsonl`, `limit` (max 10000)    |
 | SPRS score                 | `GET /api/v1/gov-compliance/sprs`              | CMMC Level 2 from failing 800-171 practices |
 | Audit readiness            | `GET /api/v1/platform/audit-readiness`         | audit-room score + workflow checklist       |
 | AI governance              | `GET /api/v1/platform/ai-governance`           | model inventory, lineage, framework mapping |

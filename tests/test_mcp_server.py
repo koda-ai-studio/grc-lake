@@ -36,6 +36,7 @@ EXPECTED_TOOLS = {
     "list_evidence",
     "list_assets",
     "list_violations",
+    "export_findings",
     "list_snapshots",
     "get_snapshots_integrity",
     "get_snapshot_detail",

@@ -250,6 +250,7 @@ def dispatch_snapshot_events(
     assessment: dict[str, Any],
     new_violations: list[dict[str, Any]],
     newly_failing_controls: list[str],
+    resolved_violations: list[dict[str, Any]] | None = None,
     deliver: Any = None,
 ) -> None:
     """Build and dispatch the webhook events one snapshot write can produce.
@@ -258,27 +259,29 @@ def dispatch_snapshot_events(
     at call time for the same reason as :func:`dispatch_event`.
 
     Always fires ``assessment.completed``. Fires ``finding.created`` for each
-    violation newly present since the prior snapshot, and ``control.failed``
-    for each control that had zero open violations in the prior snapshot but
-    has at least one now (see ``assessment._diff_violations`` for exactly how
-    that transition is derived). On the very first snapshot of a lake there is
-    no prior snapshot to diff against, so only ``assessment.completed`` fires.
+    violation newly present since the prior snapshot, ``control.failed`` for
+    each control that had zero open violations in the prior snapshot but has
+    at least one now, and ``finding.resolved`` for each prior violation that
+    is absent now and whose source has no collection gap in this snapshot
+    (see ``assessment._diff_violations`` for exactly how each transition is
+    derived). On the very first snapshot of a lake there is no prior snapshot
+    to diff against, so only ``assessment.completed`` fires.
 
     This is the function server-mode call sites (the FastAPI routes) pass as
     ``write_assessment_snapshot``'s ``on_snapshot_written`` hook, invoked after
     the snapshot's chain lock is already released.
 
-    ``new_violations``/``newly_failing_controls`` are each capped at
-    ``MAX_SNAPSHOT_EVENTS_PER_DISPATCH`` before dispatch -- a snapshot
-    surfacing more than that in one write still always dispatches
-    ``assessment.completed``, but stops issuing individual
-    ``finding.created``/``control.failed`` deliveries beyond the cap (logged),
-    since delivery is synchronous and unbounded fan-out here would block the
-    triggering request.
+    ``new_violations``/``newly_failing_controls``/``resolved_violations`` are
+    each capped at ``MAX_SNAPSHOT_EVENTS_PER_DISPATCH`` before dispatch -- a
+    snapshot surfacing more than that in one write still always dispatches
+    ``assessment.completed``, but stops issuing individual per-finding or
+    per-control deliveries beyond the cap (logged), since delivery is
+    synchronous and unbounded fan-out here would block the triggering request.
     """
     posture = assessment.get("posture") or {}
     occurred_at = str(assessment.get("evaluated_at") or datetime.now(UTC).isoformat())
     snapshot_id = snapshot_path.stem
+    resolved_violations = list(resolved_violations or [])
 
     if len(new_violations) > MAX_SNAPSHOT_EVENTS_PER_DISPATCH:
         logger.warning(
@@ -299,6 +302,16 @@ def dispatch_snapshot_events(
             MAX_SNAPSHOT_EVENTS_PER_DISPATCH,
         )
         newly_failing_controls = newly_failing_controls[:MAX_SNAPSHOT_EVENTS_PER_DISPATCH]
+    if len(resolved_violations) > MAX_SNAPSHOT_EVENTS_PER_DISPATCH:
+        logger.warning(
+            "webhook dispatch: tenant=%s snapshot=%s had %d resolved violations, dispatching finding.resolved for"
+            " first %d",
+            tenant_id,
+            snapshot_id,
+            len(resolved_violations),
+            MAX_SNAPSHOT_EVENTS_PER_DISPATCH,
+        )
+        resolved_violations = resolved_violations[:MAX_SNAPSHOT_EVENTS_PER_DISPATCH]
 
     dispatch_event(
         session,
@@ -353,6 +366,25 @@ def dispatch_snapshot_events(
                 "snapshot_id": snapshot_id,
                 "control_id": control_id,
                 "evaluated_at": assessment.get("evaluated_at"),
+            },
+        )
+
+    for violation in resolved_violations:
+        dispatch_event(
+            session,
+            tenant_id,
+            event_type="finding.resolved",
+            occurred_at=occurred_at,
+            deliver=deliver,
+            data={
+                "finding_id": violation.get("violation_id"),
+                "violation_id": violation.get("violation_id"),
+                "control_id": violation.get("control_id"),
+                "asset_id": violation.get("asset_id"),
+                "source": violation.get("source"),
+                "prior_snapshot_id": violation.get("prior_snapshot_id"),
+                "snapshot_id": snapshot_id,
+                "resolved_at": assessment.get("evaluated_at"),
             },
         )
 

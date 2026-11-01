@@ -11,7 +11,7 @@ from security_lakehouse.assessment import SnapshotWrittenHook
 from security_lakehouse.services import webhooks as webhook_services
 
 
-def snapshot_written_hook(session: Session, tenant_id: str) -> SnapshotWrittenHook:
+def snapshot_written_hook(session: Session, tenant_id: str, *, deliver: Any = None) -> SnapshotWrittenHook:
     """Build the ``write_assessment_snapshot`` hook that dispatches webhook events.
 
     Captures ``session``/``tenant_id`` by closure so ``assessment.py`` itself
@@ -32,6 +32,7 @@ def snapshot_written_hook(session: Session, tenant_id: str) -> SnapshotWrittenHo
         assessment: dict[str, Any],
         new_violations: list[dict[str, Any]],
         newly_failing_controls: list[str],
+        resolved_violations: list[dict[str, Any]] | None = None,
     ) -> None:
         webhook_services.dispatch_snapshot_events(
             session,
@@ -40,6 +41,8 @@ def snapshot_written_hook(session: Session, tenant_id: str) -> SnapshotWrittenHo
             assessment=assessment,
             new_violations=new_violations,
             newly_failing_controls=newly_failing_controls,
+            resolved_violations=resolved_violations,
+            deliver=deliver,
         )
 
     return _hook

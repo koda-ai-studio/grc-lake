@@ -411,6 +411,7 @@ def _hosted_snapshot_hook(factory: Any, tenant_id: str) -> SnapshotWrittenHook:
         assessment: dict[str, Any],
         new_violations: list[dict[str, Any]],
         newly_failing_controls: list[str],
+        resolved_violations: list[dict[str, Any]] | None = None,
     ) -> None:
         with session_scope(factory) as session:
             dispatch_snapshot_events(
@@ -420,6 +421,7 @@ def _hosted_snapshot_hook(factory: Any, tenant_id: str) -> SnapshotWrittenHook:
                 assessment=assessment,
                 new_violations=new_violations,
                 newly_failing_controls=newly_failing_controls,
+                resolved_violations=resolved_violations,
             )
 
     return hook
