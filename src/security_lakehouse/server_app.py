@@ -2703,9 +2703,9 @@ def create_app(lake_dir: str | Path, *, require_auth: bool = True) -> FastAPI:
         try:
             fmt = finding_exports.parse_export_format(format)
             limit_value = finding_exports.parse_export_limit(limit)
-        except ValueError as exc:
+        except ValueError:
             return JSONResponse(
-                api_v1.error_envelope("bad_request", str(exc), resource="findings.export"),
+                api_v1.error_envelope("bad_request", "invalid export parameters", resource="findings.export"),
                 status_code=status.HTTP_400_BAD_REQUEST,
             )
         with server_execution(identity.tenant_id):
