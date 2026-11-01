@@ -1,0 +1,112 @@
+name: GRC Lake Readiness
+description: >-
+  Read framework readiness from a GRC Lake deployment, write a summary table to the
+  job summary, optionally keep one pull request comment up to date, and enforce
+  posture thresholds. Reads only; never changes GRC Lake state.
+author: GRC Lake
+branding:
+  icon: shield
+  color: blue
+inputs:
+  grc-lake-url:
+    description: Base URL of the GRC Lake deployment (for example https://grc-lake.example.com)
+    required: true
+  api-token:
+    description: GRC Lake API bearer token with read scope (omit for a local --allow-insecure-no-auth server)
+    required: false
+    default: ""
+  correlation-id:
+    description: X-Correlation-ID for the GRC Lake audit trail (defaults to GITHUB_RUN_ID)
+    required: false
+    default: ""
+  summary:
+    description: When true, write the readiness summary to the job summary
+    required: false
+    default: "true"
+  comment-on-pr:
+    description: When true on a pull_request run, create or update one readiness comment on the pull request
+    required: false
+    default: "false"
+  github-token:
+    description: Token used only to write the pull request comment (needs pull-requests write)
+    required: false
+    default: ${{ github.token }}
+  framework:
+    description: Show only this framework (exact name, for example "SOC 2") and count only its failing control tests
+    required: false
+    default: ""
+  min-score:
+    description: Minimum posture score (0-100) required to pass
+    required: false
+    default: "0"
+  max-critical-violations:
+    description: Maximum allowed open critical violations
+    required: false
+    default: "0"
+  max-open-violations:
+    description: Maximum allowed open violations (-1 skips this check)
+    required: false
+    default: "-1"
+  max-failing-control-tests:
+    description: Maximum allowed failing control tests (-1 skips this check)
+    required: false
+    default: "0"
+  allowed-failing-controls:
+    description: Comma-separated control_ids that may fail without failing the gate
+    required: false
+    default: ""
+  fail-on-stale-evidence:
+    description: When true, fail if any controls have stale or expired evidence
+    required: false
+    default: "false"
+  enforce:
+    description: When false, report threshold results without failing the job
+    required: false
+    default: "true"
+outputs:
+  posture_score:
+    description: Posture score returned by GRC Lake
+    value: ${{ steps.readiness.outputs.posture_score }}
+  posture_state:
+    description: Posture state label (healthy, critical, etc.)
+    value: ${{ steps.readiness.outputs.posture_state }}
+  open_violation_count:
+    description: Open violation count at evaluation time
+    value: ${{ steps.readiness.outputs.open_violation_count }}
+  critical_violation_count:
+    description: Open critical violation count at evaluation time
+    value: ${{ steps.readiness.outputs.critical_violation_count }}
+  failed_control_test_count:
+    description: Failing control test count after allowlist filtering
+    value: ${{ steps.readiness.outputs.failed_control_test_count }}
+  summary-path:
+    description: Path of the rendered Markdown summary on the runner
+    value: ${{ steps.readiness.outputs.summary-path }}
+  frameworks-ready-count:
+    description: Frameworks whose every control passes with current evidence
+    value: ${{ steps.readiness.outputs.frameworks-ready-count }}
+  frameworks-evaluated-count:
+    description: Frameworks in the summary (after the framework filter)
+    value: ${{ steps.readiness.outputs.frameworks-evaluated-count }}
+runs:
+  using: composite
+  steps:
+    - id: readiness
+      shell: bash
+      run: bash "${{ github.action_path }}/.github/actions/readiness/readiness-summary.sh"
+      env:
+        GRC_LAKE_URL: ${{ inputs.grc-lake-url }}
+        GRC_LAKE_API_TOKEN: ${{ inputs.api-token }}
+        CORRELATION_ID: ${{ inputs.correlation-id != '' && inputs.correlation-id || github.run_id }}
+        SUMMARY: ${{ inputs.summary }}
+        COMMENT_ON_PR: ${{ inputs.comment-on-pr }}
+        GITHUB_TOKEN: ${{ inputs.comment-on-pr == 'true' && inputs.github-token || '' }}
+        ENFORCE: ${{ inputs.enforce }}
+        MIN_SCORE: ${{ inputs.min-score }}
+        MAX_CRITICAL_VIOLATIONS: ${{ inputs.max-critical-violations }}
+        MAX_OPEN_VIOLATIONS: ${{ inputs.max-open-violations }}
+        MAX_FAILING_CONTROL_TESTS: ${{ inputs.max-failing-control-tests }}
+        ALLOWED_FAILING_CONTROLS: ${{ inputs.allowed-failing-controls }}
+        FRAMEWORK: ${{ inputs.framework }}
+        FAIL_ON_STALE_EVIDENCE: ${{ inputs.fail-on-stale-evidence }}
+        POSTURE_GATE_SCRIPT: ${{ github.action_path }}/.github/actions/posture-gate/posture-gate.sh
