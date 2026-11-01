@@ -1,9 +1,9 @@
 # GRC Lake roadmap
 
-Status as of v0.3.22, checked **2026-10-31**; **v0.3.22 is published**.
-The release requires applicable evidence for assessment verdicts, compacts console
-pages and adds scoped prepared-graph navigation. Deeper provider, safeguard-contract
-and capacity qualification remain below.
+Status as of v0.3.23, checked **2026-11-01**; **v0.3.23 is published**.
+This patch tightens qualification receipts, supports second-review packet
+preparation and records bounded synthetic graph measurements. Deeper provider,
+safeguard-contract and capacity qualification remain below.
 Start with [current state and coverage](docs/CURRENT_STATE.md) for shipped paths
 and qualification boundaries. This roadmap describes remaining work, not promises
 of release dates.
@@ -22,7 +22,7 @@ approval is implied by preparing this process.
 Releases 0.3.13 through 0.3.22 separated control-test posture from framework
 results, bounded graph layouts and reads, scoped evidence by provider and source
 account, and hardened transport and review-state validation. Published-artifact
-verification now covers v0.3.22 in [release readiness](docs/RELEASE_READINESS.md).
+verification now covers v0.3.23 in [release readiness](docs/RELEASE_READINESS.md).
 Provider depth, independent mapping review and measured capacity remain separate
 work below. Correctness, security, migration and supported-workflow regressions
 remain release blockers.
@@ -104,7 +104,7 @@ provider HA and production capacity remain unqualified by this audit.
 
 ## Release work
 
-v0.3.22 is published. The earlier 0.3.3 changes include dependency remediation,
+v0.3.23 is published. The earlier 0.3.3 changes include dependency remediation,
 authentication hardening, evidence eligibility, versioned CCF governance, exact
 lineage and frozen requirement-gap explanations. The console now exposes those
 gaps and record-level investigation, with bounded graph navigation and shared

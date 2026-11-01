@@ -1,11 +1,11 @@
 # Release readiness
 
-GRC Lake **0.3.22 is published** on
-[PyPI](https://pypi.org/project/grc-lake/0.3.22/),
-[GitHub](https://github.com/koda-ai-studio/grc-lake/releases/tag/v0.3.22), and as
-`ghcr.io/koda-ai-studio/grc-lake:0.3.22`.
-Use the [v0.3.22 release templates](https://github.com/koda-ai-studio/grc-lake/tree/v0.3.22)
-for a published deployment. The [publication receipt](#verified-0322-publication)
+GRC Lake **0.3.23 is published** on
+[PyPI](https://pypi.org/project/grc-lake/0.3.23/),
+[GitHub](https://github.com/koda-ai-studio/grc-lake/releases/tag/v0.3.23), and as
+`ghcr.io/koda-ai-studio/grc-lake:0.3.23`.
+Use the [v0.3.23 release templates](https://github.com/koda-ai-studio/grc-lake/tree/v0.3.23)
+for a published deployment. The [publication receipt](#verified-0323-publication)
 records the verified source, artifact hashes and runtime checks. Later changes
 on `main` are unreleased until a new tag passes the release gates.
 
@@ -31,10 +31,9 @@ retain their exact source revisions and synthetic workload limits. They do not
 establish production capacity or qualify a deployment memory budget; 100k records
 remain outside the accepted local interactive profile.
 
-## 0.3.23 release candidate
+## 0.3.23 release
 
-0.3.23 is being prepared and is not yet published. Installation instructions
-remain on the verified 0.3.22 artifacts until publication checks complete.
+0.3.23 is published; see the [publication receipt](#verified-0323-publication).
 
 This patch adds an explicit second-review packet mode and tightens qualification
 receipt and benchmark correctness checks. No provider is newly live-qualified,
@@ -51,9 +50,9 @@ advisory reproduction against that installed wheel kept both the unrelated
 safeguard and framework requirement `not_evaluated`. These are synthetic local
 checks; they are not publication or additional provider receipts.
 
-Independent human approval, exact merged-main CI, final package/install checks,
-and the release workflow's image, chart and provenance gates remain required
-before publication can be claimed.
+Independent human approval, exact merged-main CI, final package/install and
+upgrade checks, and the release workflow's image, chart and provenance gates
+passed. The publication receipt records their exact scope.
 
 ## 0.3.22 release
 
@@ -340,6 +339,55 @@ for security, correctness, supported-workload performance and setup/documentatio
 repairs. Independent human review, required PR checks, exact-main CI and published
 artifact/runtime verification remain release gates; this candidate section is not
 a completion receipt.
+
+## Verified 0.3.23 publication
+
+The [release workflow](https://github.com/koda-ai-studio/grc-lake/actions/runs/41271430900)
+passed every job on source `925e7314f17867538817f58ccf9b69d90b8b94d3`, after
+independent human approval and merge of [#1203](https://github.com/koda-ai-studio/grc-lake/pull/1203)
+and successful [exact-main CI](https://github.com/koda-ai-studio/grc-lake/actions/runs/41270857153)
+and [CodeQL](https://github.com/koda-ai-studio/grc-lake/actions/runs/41270857150).
+The annotated `v0.3.23` tag resolves to that commit. Publication was verified on
+November 1, 2026. Wheel and source-archive bytes match between PyPI, GitHub and
+the release workflow; an anonymous Helm pull matches the GitHub chart asset.
+
+| Artifact                           | SHA-256                                                            |
+| ---------------------------------- | ------------------------------------------------------------------ |
+| `grc_lake-0.3.23-py3-none-any.whl` | `ff0db0f660f415068502faafa3742d0f2669ea4604c80c0acac5f5c929513921` |
+| `grc_lake-0.3.23.tar.gz`           | `3f5708820e2fc1f4723ad3924b39cf16e0204a15c0a8ac2978c0699b35ff8248` |
+| `grc-lake-0.3.23.tgz`              | `2d38c7b95b84d17a88252d7d1a83db7e3c3a70acc78c9b9857d146f98ab3cd62` |
+
+The image `ghcr.io/koda-ai-studio/grc-lake:0.3.23` and `latest` resolve to
+`sha256:862c8e520214cdd0f302ae8c0c75b515ab96e48c08cdef60ddc7db339da88094`.
+Anonymous downloads verified all 21 distinct layer blobs and both image
+configurations by digest. Published AMD64 and ARM64 root filesystems and runtime
+configuration match the scanned and exercised images. Each architecture's
+unfiltered Trivy report contains zero reported vulnerabilities, and each passed
+11 authenticated runtime checks, including tenant isolation, revoked-key denial,
+persistence, snapshot integrity, non-root execution and the bundled console.
+These are dated synthetic checks, not TLS/IdP, provider or capacity qualification.
+
+The chart `oci://ghcr.io/koda-ai-studio/charts/grc-lake`, version `0.3.23`, has
+OCI digest `sha256:afa52c83d5d23655d0ffa08205066291b66b819c0faf720e398231f9bf4de389`.
+Wheel, source archive, chart package, chart OCI and image provenance verified
+against this repository's release workflow, exact source commit and tag. The
+chart renders with shipped self-hosted values. GitHub retains the SBOM and
+Python/chart provenance bundles. The public MCP Registry lists 0.3.23.
+
+Fresh public-PyPI core and server/MCP installations passed their package smoke
+checks outside the checkout. The wheel contains 263 console files. An upgrade
+of a copied synthetic 0.3.22 lake preserved all 59 records and all 18 historical
+files checked, with integrity and snapshot-chain verification passing. The
+advisory reproduction against the installed final wheel kept the unrelated
+safeguard and framework requirement `not_evaluated`.
+
+The [assessment-integrity advisory](https://github.com/koda-ai-studio/grc-lake/security/advisories/GHSA-76q3-wh53-hvv2)
+was fixed in 0.3.22; 0.3.23 retains that fix. Live receipts remain linked for five
+of 28 executable adapters. Second-review packets record no independent mapping
+approval. The accepted interactive profile remains 1k/10k synthetic records per
+tenant; bounded 100k measurements do not qualify production capacity. Vendor
+qualification, independent human mapping/workpaper review and broader capacity
+remain separate follow-up work.
 
 ## Verified 0.3.22 publication
 
