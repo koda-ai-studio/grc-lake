@@ -462,10 +462,11 @@ def test_snapshot_hook_fires_only_assessment_completed_on_first_snapshot(tmp_pat
     calls: list[tuple] = []
     write_assessment_snapshot(tmp_path, reason="first", on_snapshot_written=lambda *a: calls.append(a))
     assert len(calls) == 1
-    _path, _assessment, new_violations, newly_failing_controls = calls[0]
-    # No prior snapshot to diff against -- nothing is reported as "new".
+    _path, _assessment, new_violations, newly_failing_controls, resolved_violations = calls[0]
+    # No prior snapshot to diff against -- nothing is reported as "new" or "resolved".
     assert new_violations == []
     assert newly_failing_controls == []
+    assert resolved_violations == []
 
 
 def test_snapshot_hook_detects_new_violation_and_newly_failing_control(tmp_path: Path) -> None:
@@ -486,9 +487,10 @@ def test_snapshot_hook_detects_new_violation_and_newly_failing_control(tmp_path:
     calls: list[tuple] = []
     write_assessment_snapshot(tmp_path, reason="second", on_snapshot_written=lambda *a: calls.append(a))
     assert len(calls) == 1
-    _path, _assessment, new_violations, newly_failing_controls = calls[0]
+    _path, _assessment, new_violations, newly_failing_controls, resolved_violations = calls[0]
     assert [v["violation_id"] for v in new_violations] == ["SOC2-CC7.1:evt-999"]
     assert newly_failing_controls == ["SOC2-CC7.1"]
+    assert resolved_violations == []
 
 
 def test_snapshot_hook_does_not_refire_control_failed_for_an_already_failing_control(tmp_path: Path) -> None:
@@ -508,10 +510,261 @@ def test_snapshot_hook_does_not_refire_control_failed_for_an_already_failing_con
 
     calls: list[tuple] = []
     write_assessment_snapshot(tmp_path, reason="second", on_snapshot_written=lambda *a: calls.append(a))
-    _path, _assessment, new_violations, newly_failing_controls = calls[0]
+    _path, _assessment, new_violations, newly_failing_controls, _resolved = calls[0]
     assert [v["violation_id"] for v in new_violations] == ["SOC2-CC6.1:evt-998"]
     # SOC2-CC6.1 was already failing in the prior snapshot -- not a transition.
     assert newly_failing_controls == []
+
+
+def _set_event_status(lake: Path, event_id: str, status: str) -> None:
+    path = lake / "silver" / "normalized_events.jsonl"
+    rows = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    for row in rows:
+        if row["event_id"] == event_id:
+            row["status"] = status
+    path.write_text("\n".join(json.dumps(row, sort_keys=True) for row in rows) + "\n", encoding="utf-8")
+
+
+_COLLECTION_GAP_EVENT = {
+    "event_id": "gap-okta-001",
+    "event_time": "2026-05-21T00:00:00Z",
+    "event_type": "collection.partial",
+    "control_ids": ["SOC2-CC6.1"],
+    "asset_id": "okta:collection_scope",
+    "asset_owner": "security-platform",
+    "asset_type": "collection_scope",
+    "environment": "prod",
+    "source": "okta",
+    "status": "observed",
+    "severity": "low",
+    "severity_score": 0,
+    "evidence_ref": "s3://evidence/gap-okta-001.json",
+    "raw_sha256": "gap",
+}
+
+
+def test_snapshot_hook_reports_a_resolved_violation_only_on_a_recorded_transition(tmp_path: Path) -> None:
+    _seed_lake(tmp_path)
+    baseline = write_assessment_snapshot(tmp_path, reason="baseline")  # SOC2-CC6.1:evt-001 is open here
+    _set_event_status(tmp_path, "evt-001", "resolved")
+
+    calls: list[tuple] = []
+    write_assessment_snapshot(tmp_path, reason="second", on_snapshot_written=lambda *a: calls.append(a))
+    _path, _assessment, new_violations, _newly_failing, resolved_violations = calls[0]
+    assert new_violations == []
+    assert [row["violation_id"] for row in resolved_violations] == ["SOC2-CC6.1:evt-001"]
+    assert resolved_violations[0]["control_id"] == "SOC2-CC6.1"
+    assert resolved_violations[0]["asset_id"] == "aws:iam:role/admin"
+    assert resolved_violations[0]["prior_snapshot_id"] == baseline.stem
+
+    # The transition was already recorded: a third snapshot must not report it again.
+    calls.clear()
+    write_assessment_snapshot(tmp_path, reason="third", on_snapshot_written=lambda *a: calls.append(a))
+    assert calls[0][4] == []
+
+
+def test_snapshot_hook_never_reports_resolved_when_the_source_has_a_collection_gap(tmp_path: Path) -> None:
+    """A finding that vanished because its source was only partially read is unknown, not resolved."""
+    _seed_lake(tmp_path)
+    write_assessment_snapshot(tmp_path, reason="baseline")
+    _set_event_status(tmp_path, "evt-001", "resolved")
+    _append_event(tmp_path, _COLLECTION_GAP_EVENT)
+
+    calls: list[tuple] = []
+    write_assessment_snapshot(tmp_path, reason="second", on_snapshot_written=lambda *a: calls.append(a))
+    _path, assessment, _new, _failing, resolved_violations = calls[0]
+    assert "okta" in assessment["collection_gaps"]["sources"]
+    assert resolved_violations == []
+
+
+def test_diff_violations_resolved_excludes_gap_sources_and_malformed_rows() -> None:
+    from security_lakehouse.assessment import _diff_violations
+
+    prior = {
+        "violations": [
+            {"violation_id": "A:1", "control_id": "A", "source": "okta"},
+            {"violation_id": "B:1", "control_id": "B", "source": "github"},
+            {"violation_id": ["not", "a", "string"], "control_id": "C", "source": "github"},
+            "not-a-row",
+        ]
+    }
+    current = {"violations": [], "collection_gaps": {"sources": ["okta"], "affected_control_ids": ["A"]}}
+    _new, _failing, resolved = _diff_violations(prior, current)
+    assert [row["violation_id"] for row in resolved] == ["B:1"]
+    assert _diff_violations(None, current) == ([], [], [])
+    assert _diff_violations(prior, {"violations": "malformed"}) == ([], [], [])
+
+
+def _subscribe(session, tenant_id: str, url: str, event_types: list[str]) -> None:
+    webhooks_db.create_subscription(
+        session, tenant_id=tenant_id, url=url, secret="s3cr3t-value-1234", event_types=event_types
+    )
+
+
+def _resolved_row(index: int = 1) -> dict[str, object]:
+    return {
+        "violation_id": f"SOC2-CC6.1:evt-{index:03d}",
+        "control_id": "SOC2-CC6.1",
+        "asset_id": "aws:iam:role/admin",
+        "source": "okta",
+        "prior_snapshot_id": "assessment-20260520T130100Z-prior0000",
+    }
+
+
+def test_finding_resolved_is_a_subscribable_event_type(tmp_path: Path) -> None:
+    _seed_lake(tmp_path)
+    app = create_app(tmp_path)
+    with session_scope(app.state.sessionmaker) as session:
+        tenant = create_tenant(session, slug="acme", name="Acme")
+        subscription = webhooks_db.create_subscription(
+            session,
+            tenant_id=tenant.id,
+            url="https://hooks.example.com/resolved",
+            secret="s3cr3t-value-1234",
+            event_types=["finding.resolved"],
+        )
+        assert webhooks_db.subscription_to_dict(subscription)["event_types"] == ["finding.resolved"]
+
+
+def test_dispatch_snapshot_events_sends_finding_resolved_with_the_shared_envelope_and_signature(
+    tmp_path: Path,
+) -> None:
+    _seed_lake(tmp_path)
+    app = create_app(tmp_path)
+    with session_scope(app.state.sessionmaker) as session:
+        tenant = create_tenant(session, slug="acme", name="Acme")
+        _subscribe(session, tenant.id, "https://hooks.example.com/all", ["finding.created", "finding.resolved"])
+        session.commit()
+
+        delivered: list[tuple[str, str, dict]] = []
+
+        def _deliver(url, *, secret, event_type, envelope):
+            delivered.append((secret, event_type, envelope))
+            return {"ok": True, "status_code": 200, "attempts": 1, "error": None}
+
+        assessment = {
+            "evaluated_at": "2026-05-22T13:01:00+00:00",
+            "assessment_hash": "b" * 64,
+            "posture": {"score": 50, "state": "attention_required"},
+        }
+        webhook_services.dispatch_snapshot_events(
+            session,
+            tenant.id,
+            snapshot_path=tmp_path / "gold/snapshots/assessment-20260522T130100Z-bbbbbbbbbbbb.json",
+            assessment=assessment,
+            new_violations=[{**_resolved_row(2), "event_id": "evt-002", "severity": "high", "state": "open"}],
+            newly_failing_controls=[],
+            resolved_violations=[_resolved_row(1)],
+            deliver=_deliver,
+        )
+
+    by_type = {event_type: (secret, envelope) for secret, event_type, envelope in delivered}
+    assert set(by_type) == {"finding.created", "finding.resolved"}
+    created_secret, created = by_type["finding.created"]
+    resolved_secret, resolved = by_type["finding.resolved"]
+    # Same signing secret, same envelope shape and tenant binding as finding.created.
+    assert resolved_secret == created_secret == "s3cr3t-value-1234"
+    assert set(resolved) == set(created) == {"event", "event_id", "occurred_at", "tenant_id", "data"}
+    assert resolved["tenant_id"] == tenant.id
+    assert resolved["occurred_at"] == "2026-05-22T13:01:00+00:00"
+    assert resolved["event_id"] != created["event_id"]
+    assert resolved["data"] == {
+        "finding_id": "SOC2-CC6.1:evt-001",
+        "violation_id": "SOC2-CC6.1:evt-001",
+        "control_id": "SOC2-CC6.1",
+        "asset_id": "aws:iam:role/admin",
+        "source": "okta",
+        "prior_snapshot_id": "assessment-20260520T130100Z-prior0000",
+        "snapshot_id": "assessment-20260522T130100Z-bbbbbbbbbbbb",
+        "resolved_at": "2026-05-22T13:01:00+00:00",
+    }
+    body = json.dumps(resolved, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    signature = webhook_delivery.sign_payload(resolved_secret, body)
+    assert webhook_delivery.verify_signature(resolved_secret, body, signature)
+
+
+def test_finding_resolved_never_crosses_tenants_sharing_a_violation_id(tmp_path: Path) -> None:
+    _seed_lake(tmp_path)
+    app = create_app(tmp_path)
+    with session_scope(app.state.sessionmaker) as session:
+        acme = create_tenant(session, slug="acme", name="Acme")
+        globex = create_tenant(session, slug="globex", name="Globex")
+        _subscribe(session, acme.id, "https://hooks.example.com/acme", ["finding.resolved"])
+        _subscribe(session, globex.id, "https://hooks.example.com/globex", ["finding.resolved"])
+        session.commit()
+
+        delivered: list[tuple[str, str]] = []
+
+        def _deliver(url, *, secret, event_type, envelope):
+            delivered.append((url, envelope["tenant_id"]))
+            return {"ok": True, "status_code": 200, "attempts": 1, "error": None}
+
+        webhook_services.dispatch_snapshot_events(
+            session,
+            acme.id,
+            snapshot_path=tmp_path / "assessment-x.json",
+            assessment={"evaluated_at": "2026-05-22T13:01:00+00:00", "posture": {}},
+            new_violations=[],
+            newly_failing_controls=[],
+            resolved_violations=[_resolved_row(1)],
+            deliver=_deliver,
+        )
+        assert delivered == [("https://hooks.example.com/acme", acme.id)]
+        assert webhook_services.list_deliveries(session, globex.id) == []
+
+
+def test_finding_resolved_respects_the_snapshot_dispatch_cap(tmp_path: Path) -> None:
+    _seed_lake(tmp_path)
+    app = create_app(tmp_path)
+    with session_scope(app.state.sessionmaker) as session:
+        tenant = create_tenant(session, slug="acme", name="Acme")
+        _subscribe(session, tenant.id, "https://hooks.example.com/resolved", ["finding.resolved"])
+        session.commit()
+
+        count = 0
+
+        def _deliver(url, *, secret, event_type, envelope):
+            nonlocal count
+            count += 1
+            return {"ok": True, "status_code": 200, "attempts": 1, "error": None}
+
+        cap = webhook_services.MAX_SNAPSHOT_EVENTS_PER_DISPATCH
+        webhook_services.dispatch_snapshot_events(
+            session,
+            tenant.id,
+            snapshot_path=tmp_path / "assessment-x.json",
+            assessment={"evaluated_at": "2026-05-22T13:01:00+00:00", "posture": {}},
+            new_violations=[],
+            newly_failing_controls=[],
+            resolved_violations=[_resolved_row(index) for index in range(cap + 25)],
+            deliver=_deliver,
+        )
+        assert count == cap
+
+
+def test_snapshot_hook_dispatches_finding_resolved_end_to_end(tmp_path: Path) -> None:
+    """write_assessment_snapshot -> the real service hook -> one finding.resolved delivery."""
+    from security_lakehouse.services.snapshot_events import snapshot_written_hook
+
+    _seed_lake(tmp_path)
+    app = create_app(tmp_path)
+    write_assessment_snapshot(tmp_path, reason="baseline")
+    _set_event_status(tmp_path, "evt-001", "resolved")
+    with session_scope(app.state.sessionmaker) as session:
+        tenant = create_tenant(session, slug="acme", name="Acme")
+        _subscribe(session, tenant.id, "https://hooks.example.com/resolved", ["finding.resolved"])
+        session.commit()
+        events: list[str] = []
+
+        def _deliver(url, *, secret, event_type, envelope):
+            events.append(envelope["data"]["finding_id"])
+            return {"ok": True, "status_code": 200, "attempts": 1, "error": None}
+
+        hook = snapshot_written_hook(session, tenant.id, deliver=_deliver)
+        write_assessment_snapshot(tmp_path, reason="second", on_snapshot_written=hook)
+        assert events == ["SOC2-CC6.1:evt-001"]
+        deliveries = webhook_services.list_deliveries(session, tenant.id)
+        assert [row["event_type"] for row in deliveries] == ["finding.resolved"]
 
 
 def test_snapshot_hook_failure_does_not_break_the_write(tmp_path: Path) -> None:
@@ -562,7 +815,7 @@ def test_write_assessment_snapshot_succeeds_even_when_every_webhook_delivery_fai
         def _always_fails(url, *, secret, event_type, envelope):
             raise TimeoutError("receiver did not respond")
 
-        def _hook(snapshot_path, assessment, new_violations, newly_failing_controls) -> None:
+        def _hook(snapshot_path, assessment, new_violations, newly_failing_controls, resolved_violations) -> None:
             webhook_services.dispatch_snapshot_events(
                 session,
                 tenant.id,
@@ -570,6 +823,7 @@ def test_write_assessment_snapshot_succeeds_even_when_every_webhook_delivery_fai
                 assessment=assessment,
                 new_violations=new_violations,
                 newly_failing_controls=newly_failing_controls,
+                resolved_violations=resolved_violations,
                 deliver=_always_fails,
             )
 
@@ -805,7 +1059,7 @@ def test_scheduler_tick_threads_on_snapshot_written_through_run_workflow(tmp_pat
     assert len(result) == 1
     assert result[0]["result"] == "ok"
     assert len(calls) == 1
-    _path, _assessment, _unused_new_violations, _newly_failing = calls[0]
+    _path, _assessment, _unused_new_violations, _newly_failing, _resolved = calls[0]
 
 
 def test_scheduler_tick_with_test_runner_override_does_not_receive_the_hook(tmp_path: Path) -> None:

@@ -61,6 +61,7 @@ WRITE_ANNOTATIONS = {
 }
 READ_TOOLS = {
     "describe_api",
+    "export_findings",
     "get_access_review",
     "get_access_reviews_coverage",
     "get_agent_run",

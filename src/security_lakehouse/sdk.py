@@ -80,6 +80,9 @@ def _params(
     return params
 
 
+_EXPORT_MEDIA_TYPES = {"csv": "text/csv", "jsonl": "application/x-ndjson"}
+
+
 def _parse_envelope(response: httpx.Response) -> Any:
     """Validate status, parse the v1 envelope, and return ``data``.
 
@@ -248,6 +251,23 @@ class GrcLakeClient:
     ) -> list[JsonObject]:
         """List open posture violations."""
         return self._get("/api/v1/violations", params=_params(limit=limit, offset=offset, sort=sort, filter=filter))
+
+    def export_findings(self, *, format: str = "jsonl", limit: int | None = None) -> str:
+        """Download open findings as portable ``grc-lake.findings.v1`` text.
+
+        ``format`` is ``"jsonl"`` (one object per line) or ``"csv"`` (RFC 4180
+        with a header row). ``limit`` bounds the rows (server default 1000,
+        maximum 10000); the server's ``X-Export-Truncated`` header reports
+        whether more findings exist. See ``docs/FINDING_EXPORTS.md``.
+        """
+        response = self._client.get(
+            "/api/v1/findings/export",
+            params=_params(limit=limit, format=format),
+            headers={"accept": _EXPORT_MEDIA_TYPES.get(format, "*/*")},
+        )
+        if not response.is_success:
+            _parse_envelope(response)
+        return response.text
 
     def list_snapshots(
         self,
@@ -473,6 +493,17 @@ class AsyncGrcLakeClient:
         return await self._get(
             "/api/v1/violations", params=_params(limit=limit, offset=offset, sort=sort, filter=filter)
         )
+
+    async def export_findings(self, *, format: str = "jsonl", limit: int | None = None) -> str:
+        """Download open findings as portable ``grc-lake.findings.v1`` text (see the sync client)."""
+        response = await self._client.get(
+            "/api/v1/findings/export",
+            params=_params(limit=limit, format=format),
+            headers={"accept": _EXPORT_MEDIA_TYPES.get(format, "*/*")},
+        )
+        if not response.is_success:
+            _parse_envelope(response)
+        return response.text
 
     async def list_snapshots(
         self,

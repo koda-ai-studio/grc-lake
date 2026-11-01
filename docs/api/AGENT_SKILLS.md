@@ -159,6 +159,7 @@ violations — read-only; redact private evidence before including it in agent o
 | Point-in-time    | `GET /api/v1/posture/as-of`             | `posture_as_of`           |
 | Control tests    | `GET /api/v1/control-tests?result=fail` | (via SDK / fetch)         |
 | Violations       | `GET /api/v1/violations`                | `list_violations`         |
+| Findings export  | `GET /api/v1/findings/export`           | `export_findings`         |
 | Evidence         | `GET /api/v1/evidence`                  | `list_evidence`           |
 | Freshness        | `GET /api/v1/evidence/freshness`        | `list_evidence_freshness` |
 | Ingestion health | `GET /api/v1/ingestion/status`          | `get_ingestion_status`    |

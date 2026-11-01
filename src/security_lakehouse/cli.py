@@ -591,7 +591,23 @@ def _parser() -> argparse.ArgumentParser:
     posture_as_of.set_defaults(func=_assessment_posture_as_of)
     violations = assessment_sub.add_parser("violations", help="list open framework/control violations")
     violations.add_argument("--lake", required=True, help="security data lake output directory")
-    violations.add_argument("--framework", default=None, help="optional framework filter")
+    violations.add_argument("--framework", default=None, help="optional framework filter (json format only)")
+    violations.add_argument(
+        "--format",
+        default="json",
+        choices=["json", "csv", "jsonl"],
+        help="json (default, full rows) or the portable grc-lake.findings.v1 export as csv/jsonl",
+    )
+    violations.add_argument("--out", default=None, help="write to this path instead of stdout")
+    violations.add_argument(
+        "--limit",
+        type=int,
+        default=None,
+        help="csv/jsonl row bound (default 1000, maximum 10000); json output is never truncated",
+    )
+    violations.add_argument(
+        "--tenant-id", default="local", help="tenant label written into csv/jsonl rows (default: local)"
+    )
     violations.set_defaults(func=_assessment_violations)
     tests = assessment_sub.add_parser("tests", help="list continuous control tests")
     tests.add_argument("--lake", required=True, help="security data lake output directory")
@@ -2204,6 +2220,37 @@ def _assessment_posture_as_of(args: argparse.Namespace) -> int:
 def _assessment_violations(args: argparse.Namespace) -> int:
     from security_lakehouse.assessment import build_current_posture
 
+    output_format = getattr(args, "format", "json")
+    out = getattr(args, "out", None)
+    if output_format in {"csv", "jsonl"}:
+        from security_lakehouse import finding_exports
+
+        if args.framework is not None:
+            raise SystemExit("--framework applies to --format json; csv/jsonl rows carry framework_ids per finding")
+        try:
+            export = finding_exports.prepare_export(
+                args.lake,
+                tenant_id=args.tenant_id,
+                fmt=output_format,
+                limit=finding_exports.parse_export_limit(args.limit),
+            )
+        except ValueError as exc:
+            raise SystemExit(str(exc)) from exc
+        if out is None:
+            for chunk in export.chunks:
+                sys.stdout.write(chunk)
+        else:
+            with Path(out).open("w", encoding="utf-8", newline="") as handle:
+                for chunk in export.chunks:
+                    handle.write(chunk)
+        if export.truncated:
+            print(
+                f"note: wrote {export.limit} of {export.total_count} open findings (--limit); raise --limit up to"
+                f" {finding_exports.MAX_EXPORT_LIMIT} for more",
+                file=sys.stderr,
+            )
+        return 0
+
     posture = build_current_posture(args.lake, inline_violation_cap=None)
     framework_controls = {
         control["control_id"]: control["framework"]
@@ -2214,7 +2261,11 @@ def _assessment_violations(args: argparse.Namespace) -> int:
         for violation in posture["violations"]
         if args.framework is None or framework_controls.get(violation["control_id"]) == args.framework
     ]
-    print(json.dumps({"count": len(rows), "violations": rows}, indent=2, sort_keys=True))
+    rendered = json.dumps({"count": len(rows), "violations": rows}, indent=2, sort_keys=True)
+    if out is None:
+        print(rendered)
+    else:
+        Path(out).write_text(rendered + "\n", encoding="utf-8")
     return 0
 
 

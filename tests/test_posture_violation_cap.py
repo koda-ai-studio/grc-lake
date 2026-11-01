@@ -100,3 +100,13 @@ def test_gold_posture_file_is_capped_by_violation_count(large_lake: Path, tmp_pa
     written = read_json(output)
     assert len(written["violations"]) == CAP
     assert written["violation_summary"]["total_count"] == CAP + 1
+
+
+def test_finding_export_limit_bounds_rows_below_the_inline_cap(large_lake: Path) -> None:
+    from security_lakehouse import finding_exports
+
+    export = finding_exports.prepare_export(large_lake, tenant_id="t", fmt="jsonl", limit=25)
+    lines = "".join(export.chunks).splitlines()
+    assert len(lines) == 25
+    assert export.truncated is True
+    assert export.total_count == CAP + 1
