@@ -70,7 +70,7 @@ grc-lake serve --server --allow-insecure-no-auth --lake ./lake
 Docker (public image, no registry login):
 
 ```bash
-git clone --branch v0.3.22 --depth 1 https://github.com/koda-ai-studio/grc-lake.git
+git clone --branch v0.3.23 --depth 1 https://github.com/koda-ai-studio/grc-lake.git
 cd grc-lake && docker compose up
 ```
 

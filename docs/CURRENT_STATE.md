@@ -1,9 +1,13 @@
 # Current state and coverage
 
-Release verification: **2026-10-31**. Latest published release checked: **v0.3.22**.
-See the [publication receipt](RELEASE_READINESS.md#verified-0322-publication) for artifact and runtime evidence.
+Release verification: **2026-11-01**. Latest published release checked: **v0.3.23**.
+See the [publication receipt](RELEASE_READINESS.md#verified-0323-publication) for artifact and runtime evidence.
 Changes on `main` or in a pull request can be newer than the published package. Check the [releases](https://github.com/koda-ai-studio/grc-lake/releases)
 and [changelog](../CHANGELOG.md) for the version you install.
+
+0.3.23 adds second-review packet preparation, stricter qualification receipt
+checks and bounded synthetic scale measurements without expanding live-provider,
+mapping-review or production-capacity claims. See the [0.3.23 notes](RELEASE_READINESS.md#0323-release).
 
 0.3.22 requires declared, applicable evidence before a safeguard can determine a
 verdict and scopes provider-specific requirements to that provider's evidence.
@@ -94,7 +98,7 @@ separate qualification. Historical test totals are not a current coverage claim.
 
 ## Coverage depth
 
-The product-tour screenshots were refreshed for the 0.3.22 release candidate
+The product-tour screenshots were refreshed for the 0.3.23 release candidate
 on October 31, 2026, using a fresh synthetic golden lake and one browser clock
 for each light/dark pair. Desktop and mobile captures retain the same catalog
 and evidence semantics. The graph separates assurance hierarchy from evidence
