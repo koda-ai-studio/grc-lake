@@ -148,14 +148,30 @@ def _parser() -> argparse.ArgumentParser:
     connectors_list.set_defaults(func=_connectors_list)
     connectors_scaffold = connectors_sub.add_parser(
         "scaffold",
-        help="generate starter connector adapter files for the in-repo registry",
+        help="generate a working read-only connector skeleton (module, fixture, tests, Preview catalog row)",
     )
-    connectors_scaffold.add_argument("connector_id", help="connector id slug (e.g. okta-system-log)")
-    connectors_scaffold.add_argument("--title", default=None, help="human title for generated module docstring")
+    connectors_scaffold.add_argument("connector_id", help="connector id slug (e.g. acme-assets)")
+    connectors_scaffold.add_argument("--title", default=None, help="human title for the connector")
+    connectors_scaffold.add_argument("--vendor", default=None, help="vendor name used in docs and errors")
+    connectors_scaffold.add_argument(
+        "--kind",
+        choices=["rest", "export"],
+        default="rest",
+        help="rest: paged read-only API client; export: CSV files from an allowed local root",
+    )
     connectors_scaffold.add_argument(
         "--output",
         default="connector-scaffold",
-        help="directory to write starter files (default: ./connector-scaffold)",
+        help="directory to stage starter files (default: ./connector-scaffold)",
+    )
+    connectors_scaffold.add_argument(
+        "--into-tree",
+        nargs="?",
+        const=".",
+        default=None,
+        metavar="REPO",
+        help="write into a repository checkout (default: current directory), appending the catalog row "
+        "and registry entry; never overwrites existing files",
     )
     connectors_scaffold.set_defaults(func=_connectors_scaffold)
     connectors_configure = connectors_sub.add_parser("configure", help="enable or disable a connector")
@@ -1175,7 +1191,14 @@ def _connectors_list(args: argparse.Namespace) -> int:
 def _connectors_scaffold(args: argparse.Namespace) -> int:
     from security_lakehouse.connectors_scaffold import scaffold_connector
 
-    result = scaffold_connector(args.connector_id, title=args.title, output_dir=args.output)
+    if args.into_tree is not None:
+        result = scaffold_connector(
+            args.connector_id, title=args.title, vendor=args.vendor, kind=args.kind, into_tree=args.into_tree
+        )
+    else:
+        result = scaffold_connector(
+            args.connector_id, title=args.title, vendor=args.vendor, kind=args.kind, output_dir=args.output
+        )
     print(json.dumps(result, indent=2, sort_keys=True))
     return 0
 
