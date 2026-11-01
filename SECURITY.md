@@ -43,13 +43,36 @@ as a new patch release. Upgrade to the newest patch to receive them.
 | Latest `0.3.x` patch release | Yes       |
 | Earlier releases             | No        |
 
+## Published assessment-integrity advisory
+
+[GHSA-76q3-wh53-hvv2](https://github.com/koda-ai-studio/grc-lake/security/advisories/GHSA-76q3-wh53-hvv2)
+is fixed in **0.3.22 and later**. Version 0.3.21 is confirmed affected; earlier
+versions have not been qualified. The advisory remains published as a record of
+the issue and its fix.
+
+Upgrade to the latest patch, then reevaluate existing lakes. An explicit
+safeguard binding alone cannot establish applicability: the evaluator requires
+a declared evidence-type contract and matching evidence. Unrelated evidence
+must produce neither a passing nor a failing safeguard verdict. Missing
+applicable evidence remains `not_evaluated`.
+
+Historical generations and snapshots retain their original results. Use the
+corrected generation after reevaluation; do not treat an old snapshot as a
+corrected assessment. The fix does not supply missing safeguard contracts or
+approve framework mappings; those need requirement-specific human review.
+
+The [published-advisory regression](tests/test_ccf_published_advisory.py) uses
+the shipped catalog with synthetic MFA evidence bound to `SG-PHYSICAL-001` and
+`NIST-CSF-PR.AA-06`. It checks the materialized assessment, API, OSCAL export,
+incremental replay and snapshot preservation. It makes no live-provider claim.
+
 ## Scope
 
 In scope:
 
 - the `grc-lake` Python package and its CLI, API, console,
   and MCP server;
-- the `ghcr.io/msaad00/grc-lake` container image and the Helm chart in
+- the `ghcr.io/koda-ai-studio/grc-lake` container image and the Helm chart in
   [`deploy/helm/grc-lake`](deploy/helm/grc-lake/);
 - the posture-gate GitHub Action in [`.github/actions/posture-gate`](.github/actions/posture-gate/);
 - deployment templates in [`deploy/`](deploy/) and [`compose.yaml`](compose.yaml).
