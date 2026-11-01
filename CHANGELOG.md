@@ -7,6 +7,7 @@ Python package, Helm chart, and bundled web console.
 
 - Export open findings as portable CSV or JSONL (`grc-lake.findings.v1`) from the API, console, CLI, MCP and SDK with stable finding identifiers, framework ids, evidence references, formula-safe cells and a bounded row limit. Emit a signed `finding.resolved` webhook event only for a transition recorded between two snapshots, never for a source with a collection gap.
 - Disclose reviewed requirements that cannot be evaluated because every reviewed safeguard behind them declares no evidence contract: a `reviewed_without_contract` count per framework and in total in the coverage ledger, API, MCP and coverage document, labelled on the Frameworks page and roster. Add `grc-lake frameworks contracts` to inventory those safeguards, their reviewed mappings and the maintainer receipts a definition change would re-bind; it proposes no contracts and records no decisions. Name the unit next to every review total (requirements, mappings, control-to-article links).
+- Keep graph layer filters on the loaded neighborhood in the live console, as in the static demo: hiding a layer no longer refetches a server-pruned graph, revealing it restores the same nodes, and inspecting a relationship hidden by a layer keeps direct focus. The starting point, depth, hidden layers, drill-down trail, direct focus and selected node are kept in the URL, so reload, back/forward and shared links restore them. The 150-node response bound and server-side starting-point search and paging are unchanged.
 
 ## 0.3.23 - 2026-10-31
 

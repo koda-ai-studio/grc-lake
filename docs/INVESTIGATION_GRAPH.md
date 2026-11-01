@@ -4,7 +4,23 @@ Open **Graph → Evidence investigation** to inspect a bounded neighborhood of r
 
 Neighborhoods prioritize nearby nodes before deeper records, with upstream context first at the same depth. Controls walk upstream and downstream separately; a shared framework does not pull in sibling controls. Producer sources remain context without expanding their other records.
 
-The console requests at most 150 nodes per neighborhood. The API allows 1–300 and reports truncation and the matching node count. Starting points are paginated in groups of 50; search narrows that list. Optional layers remove nodes before traversal. A missing starting point produces an explicit empty result. The full framework and repository maps remain available separately.
+The console requests at most 150 nodes per neighborhood. The API allows 1–300 and reports truncation and the matching node count. Starting points are paginated in groups of 50; search narrows that list. A missing starting point produces an explicit empty result. The full framework and repository maps remain available separately.
+
+**Visible relationship layers** hide node kinds within the neighborhood already loaded; they do not request a different neighborhood. The console requests every layer, so hiding a layer keeps your place, showing it again restores the same nodes, and the status line compares shown with loaded nodes and relationships. Hidden nodes still count toward the 150-node bound; when a response is truncated the status line says so. Inspecting a relationship whose endpoint is hidden turns that layer back on and keeps **Focus direct relationships** when the endpoint is a direct link. The live console and the static demo behave the same way. The API's `layers` parameter is different: it removes nodes before traversal, so it can return a different neighborhood (see [API](#api)).
+
+The investigation keeps its state in the page URL, so reload, back/forward and a shared link restore it:
+
+| URL parameter | Meaning                                                                                        |
+| ------------- | ---------------------------------------------------------------------------------------------- |
+| `root`        | Starting point node ID; omitted uses the default starting point                                |
+| `view`        | `controls`, `environment` or `investigation`, when it differs from the one implied by `root`   |
+| `depth`       | `1` or `3`; omitted means two hops                                                             |
+| `hide`        | Comma-separated hidden optional layers                                                         |
+| `trail`       | Repeated, one per drill-down level (at most 20), oldest first; **Roll up** returns to the last |
+| `direct`      | Node shown with **Focus direct relationships**                                                 |
+| `node`        | Node open in the inspector                                                                     |
+
+Choosing a starting point, drilling down, rolling up and direct focus add a history entry. Layer, depth and selection changes update the current entry. Starting-point pages, framework and evidence pages, and the pinned graph version are not in the URL. A `direct` or `node` ID that is not in the loaded neighborhood is ignored; an unknown `root` shows **Starting point not found**.
 
 The canvas lays out at most 500 visible nodes and 1,000 visible relationships. Above either limit it shows the counts and asks for a narrower view; it does not silently discard relationships to fit. Framework, control, workflow and stale-evidence map filters advance one hop at a time, independent of edge order. These browser bounds are not a production capacity qualification.
 
@@ -88,16 +104,16 @@ Graph versions are content hashes built in a deterministic order, so every worke
 
 `GET /api/v1/graph/investigation` requires `read` scope and uses the authenticated tenant's lake and vendor assessments.
 
-| Parameter     | Meaning                                                     |
-| ------------- | ----------------------------------------------------------- |
-| `view`        | `controls`, `environment`, or `investigation`               |
-| `root`        | Exact graph node ID; omitted selects a starting point       |
-| `depth`       | `1`, `2`, or `3` (default `2`)                              |
-| `limit`       | Returned node bound, `1`–`300` (default `150`)              |
-| `root_offset` | Starting-point offset, in groups of 50                      |
-| `search`      | Starting-point search, up to 200 characters                 |
-| `layers`      | Comma-separated node kinds                                  |
-| `version`     | Previous response version; a changed graph requires refresh |
+| Parameter     | Meaning                                                         |
+| ------------- | --------------------------------------------------------------- |
+| `view`        | `controls`, `environment`, or `investigation`                   |
+| `root`        | Exact graph node ID; omitted selects a starting point           |
+| `depth`       | `1`, `2`, or `3` (default `2`)                                  |
+| `limit`       | Returned node bound, `1`–`300` (default `150`)                  |
+| `root_offset` | Starting-point offset, in groups of 50                          |
+| `search`      | Starting-point search, up to 200 characters                     |
+| `layers`      | Comma-separated node kinds; others are removed before traversal |
+| `version`     | Previous response version; a changed graph requires refresh     |
 
 Generated evidence and frozen requirement/safeguard catalogs are read within one pinned generation. When frozen catalogs are unavailable in a legacy lake, catalog definitions use the current catalog. Taxonomy labels are catalog navigation metadata. Current vendor and triage records are operational overlays; the response version covers those overlays as well as graph contents.
 
