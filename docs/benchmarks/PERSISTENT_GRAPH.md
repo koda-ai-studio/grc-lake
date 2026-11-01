@@ -93,3 +93,41 @@ source fingerprints. This fixture uses normalized synthetic evidence with frozen
 catalogs; it does not run collection or the full evaluation pipeline. Increase to
 a million distinct assets separately; a million records sharing fewer assets does
 not demonstrate that asset cardinality.
+
+## Two-tenant measurement at source 0e6152b6
+
+The [November 1 UTC receipt](prepared-100k-two-tenants-2026-11-01.json) measures
+clean source `0e6152b665cba884da47c0d3080ba5c2a86a255b` with Python 3.13.5 on
+local ARM64 macOS. Each of two platform tenants has 100,000 synthetic normalized
+evidence records, 100,000 failing records and 10,000 scoped assets. The tenants
+reuse source-account and asset identifiers. Preparation counts and all 24
+sequential authenticated HTTP reads passed the harness correctness checks;
+missing and invalid credentials were rejected.
+
+| Measurement                    | Observed result         |
+| ------------------------------ | ----------------------- |
+| Index preparation, per tenant  | 57.06 and 59.70 seconds |
+| Index size, per tenant         | 947.5 and 947.9 MiB     |
+| Sampled peak worker RSS        | 268.1 MiB               |
+| Asset neighborhood reads       | 16.4–46.9 ms            |
+| Account neighborhood reads     | 27.8–66.9 ms            |
+| Deep starting-point page reads | 15.9–25.3 ms            |
+| Two-hop control reads          | 1,364.2–1,932.1 ms      |
+
+Read ranges include all three repetitions for each tenant, after preparation;
+they are not p95 estimates or cold preparation latency. Two-hop control reads
+remain materially slower than the other measured queries. The 600-second and
+1,536-MiB watchdogs did not fire. These measurements do not extend the accepted
+[interactive release profile](RELEASE_PROFILE.md): there is no concurrent-load,
+sustained-throughput, ingestion, evaluation or production-capacity result here.
+No million-record success is established. Shared-host load and OS caches remain
+uncontrolled; see the receipt for configuration and source fingerprints.
+
+Reproduce on the recorded revision with a new output path:
+
+```bash
+uv run --frozen python tools/benchmark_persistent_graph.py \
+  --records 100000 --assets 10000 --findings 100000 \
+  --tenants 2 --repeats 3 --timeout 600 --max-rss-mib 1536 \
+  --out /tmp/prepared-100k-two-tenants.json
+```
