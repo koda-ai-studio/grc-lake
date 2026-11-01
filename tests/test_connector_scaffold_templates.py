@@ -223,6 +223,11 @@ def test_generated_tests_are_real_and_name_the_remaining_steps(tmp_path: Path) -
     assert "run_pipeline" in test_source and "validate_raw_events" in test_source
     assert "TOKEN not in" in test_source
     steps = "\n".join(result["next_steps"])
+    # Each step is one complete instruction, never a fragment split across list items.
+    assert all(step.rstrip()[-1] in ".)" or step.startswith("Run:") for step in result["next_steps"])
+    assert any(
+        "docs/CONNECTORS.md" in step and "make connector-qualification-doc" in step for step in result["next_steps"]
+    )
     assert "connector_runner.py" in steps and "connectors/catalog.json" in steps
     assert "connector-visuals.ts" in steps and "connector-forms.ts" in steps and "integration-presets.ts" in steps
     assert "docs/CONNECTORS.md" in steps and "make connector-qualification-doc" in steps

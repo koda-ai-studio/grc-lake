@@ -924,23 +924,23 @@ def scaffold_connector(
                 if into_tree is not None
                 else [
                     "Rerun with --into-tree from a repository checkout to wire everything below automatically, or "
-                    "move src/ and tests/ into the repository, append catalog-entry.json to connectors/catalog.json, "
-                    "add registry-builder.py plus the registry line to src/security_lakehouse/connector_runner.py, "
-                    "add a docs/qualification/connector-evidence.json row and the id to REAL_ADAPTERS and "
-                    "PREVIEW_CONNECTORS in tests/test_connector_registry.py."
+                    + "move src/ and tests/ into the repository, append catalog-entry.json to connectors/catalog.json, "
+                    + "add registry-builder.py plus the registry line to src/security_lakehouse/connector_runner.py, "
+                    + "add a docs/qualification/connector-evidence.json row and the id to REAL_ADAPTERS and "
+                    + "PREVIEW_CONNECTORS in tests/test_connector_registry.py."
                 ]
             ),
             f"Replace every TODO(vendor) in {module} with values from {vendor}'s official API reference; "
-            "keep reads GET-only on the fixed host.",
+            + "keep reads GET-only on the fixed host.",
             "Map vendor fields to pass/open/not_evaluated and bind a safeguard whose asset_types accept "
-            "the asset; leave rows observed until you do. Do not edit safeguard definitions.",
+            + "the asset; leave rows observed until you do. Do not edit safeguard definitions.",
             f"Grow tests/{test_path.name} (429 Retry-After, page budget, malformed page) and keep the "
-            "fixture synthetic.",
-            "Review the console entries in app/web/src/lib/connector-visuals.ts, connector-forms.ts and " +
-            "integration-presets.ts (added by --into-tree) and run npm --prefix app/web run typecheck.",
+            + "fixture synthetic.",
+            "Review the console entries in app/web/src/lib/connector-visuals.ts, connector-forms.ts and "
+            + "integration-presets.ts (added by --into-tree) and run npm --prefix app/web run typecheck.",
             "Raise the Preview count pinned in tests/test_connector_qualification_doc.py by one.",
-            "Document permissions and setup in docs/CONNECTORS.md, add a CHANGELOG line under Unreleased, ",
-            "then run make connector-qualification-doc and make readme-header (both regenerate committed files).",
+            "Document permissions and setup in docs/CONNECTORS.md, add a CHANGELOG line under Unreleased, "
+            + "then run make connector-qualification-doc and make readme-header (both regenerate committed files).",
             f"Run: uv run python -m pytest -q tests/{test_path.name} && grc-lake connectors validate",
         ],
     }
