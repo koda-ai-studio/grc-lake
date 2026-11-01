@@ -104,6 +104,22 @@ def test_fixed_crashes_stay_fixed(target: Callable[[bytes], None], data: bytes) 
     target(data)
 
 
+@pytest.mark.parametrize("target", ["fuzz_strict_json"], indirect=True)
+@pytest.mark.parametrize("bom_count", [0, 1, 2, 3])
+def test_json_fuzzer_preserves_bom_rejection(target: Callable[[bytes], None], bom_count: int) -> None:
+    from security_lakehouse import strict_json
+
+    text = "\ufeff" * bom_count + '["x=;[x"]'
+    raw = text.encode("utf-8")
+    if bom_count > 1:
+        for document in (raw, text):
+            with pytest.raises(strict_json.InvalidJSON):
+                strict_json.loads(document)
+    else:
+        assert strict_json.loads(raw) == strict_json.loads(text) == ["x=;[x"]
+    target(b"\x01" + raw)
+
+
 def test_clusterfuzzlite_builds_every_target_with_its_seed_corpus() -> None:
     project = yaml.safe_load((ROOT / ".clusterfuzzlite/project.yaml").read_text())
     assert project == {"language": "python"}
