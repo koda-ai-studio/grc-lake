@@ -18,6 +18,11 @@ test.describe("framework coverage workflow", () => {
     await expect(
       portfolio.getByText("Reviewed requirements", { exact: true }),
     ).toBeVisible();
+    // Reviewed requirements whose safeguards declare no evidence contract are
+    // disclosed next to the reviewed total, never folded into it.
+    await expect(
+      portfolio.getByText(/^\d[\d,]* await an evidence contract$/),
+    ).toBeVisible();
     await portfolio.getByText("Coverage details", { exact: true }).click();
     await expect(
       portfolio.getByText(/requirements with a reviewed mapping/),

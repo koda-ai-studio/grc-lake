@@ -75,6 +75,32 @@ export const MAPPING_REVIEW_GLOSSARY = {
 
 export type MappingReviewGlossaryKey = keyof typeof MAPPING_REVIEW_GLOSSARY;
 
+/** Units behind every review total. Requirements, mappings and crosswalk
+ * links are counted on different spines and are never interchangeable; name
+ * the unit next to the number wherever one is shown. */
+export const REVIEW_UNIT_COPY = {
+  requirements: {
+    label: "requirements",
+    definition:
+      "Catalogued framework requirements with at least one reviewed safeguard mapping. The Frameworks page counts this unit.",
+  },
+  mappings: {
+    label: "mappings",
+    definition:
+      "Individual safeguard-to-requirement links. One requirement can carry several; Mapping review counts this unit.",
+  },
+  links: {
+    label: "control-to-article links",
+    definition:
+      "Reviewed equivalences between one framework's requirements and another's articles. The Crosswalk counts this unit.",
+  },
+  withoutContract: {
+    label: "await an evidence contract",
+    definition:
+      "Reviewed requirements whose reviewed safeguards declare no required evidence types. The evaluator returns not evaluated for them: the mapping is confirmed, but no evidence can establish a verdict until a maintainer re-review defines the contract.",
+  },
+} as const;
+
 /** Who stands behind an attestable mapping. Labels match the server's
  * REVIEW_PROVENANCE_LABELS (safeguards.py). */
 export const REVIEW_PROVENANCE_LABELS = {

@@ -49,7 +49,11 @@ import type {
   FrameworkView,
   ReadinessStage,
 } from "@/lib/api/types";
-import { MAPPING_REVIEW_GLOSSARY, ROUTE_LABELS } from "@/lib/console-copy";
+import {
+  MAPPING_REVIEW_GLOSSARY,
+  REVIEW_UNIT_COPY,
+  ROUTE_LABELS,
+} from "@/lib/console-copy";
 import { attestedHeadline, mappingReviewHref } from "@/lib/control-attestation";
 import { SM_UP, useMediaQuery } from "@/lib/use-media-query";
 import { displayLabel } from "@/lib/display";
@@ -90,6 +94,8 @@ function Row({
   const attestablePct = coverage?.attestable_coverage_pct ?? 0;
   const selfMapCount = coverage?.source_native_reviewed_requirement_count ?? 0;
   const legacyOnlyCount = coverage?.legacy_only_reviewed_requirement_count ?? 0;
+  const withoutContractCount =
+    coverage?.reviewed_without_contract_requirement_count ?? 0;
   const topLevelCoverage =
     coverage?.coverage_level === "top_level" ||
     ["pci-dss-v4", "cis-controls-v8.1"].includes(framework.framework_id);
@@ -171,6 +177,17 @@ function Row({
               style={{ width: `${attestablePct}%` }}
             />
           </div>
+          {withoutContractCount ? (
+            <p
+              className="mt-1 text-[11px] text-muted"
+              title={REVIEW_UNIT_COPY.withoutContract.definition}
+            >
+              {withoutContractCount === attestableCount
+                ? `None evaluable yet: all ${formatCount(attestableCount)} reviewed `
+                : `${formatCount(withoutContractCount)} of ${formatCount(attestableCount)} reviewed `}
+              {REVIEW_UNIT_COPY.withoutContract.label}
+            </p>
+          ) : null}
           {selfMapCount || legacyOnlyCount ? (
             <details className="mt-1 text-[11px] text-muted">
               <summary className="cursor-pointer">
@@ -858,11 +875,22 @@ function FrameworksPageContent() {
             </dd>
             <dd className="mt-1.5 text-xs text-muted">
               {formatCount(coverageSummary?.attestable_requirement_count)}{" "}
-              reviewed
+              reviewed {REVIEW_UNIT_COPY.requirements.label}
               {coverageSummary?.legacy_only_reviewed_requirement_count
                 ? ` · ${formatCount(coverageSummary.legacy_only_reviewed_requirement_count)} legacy`
-                : " · mixed review scope"}
+                : ""}
             </dd>
+            {coverageSummary?.reviewed_without_contract_requirement_count ? (
+              <dd
+                className="mt-1 text-xs text-muted"
+                title={REVIEW_UNIT_COPY.withoutContract.definition}
+              >
+                {formatCount(
+                  coverageSummary.reviewed_without_contract_requirement_count,
+                )}{" "}
+                {REVIEW_UNIT_COPY.withoutContract.label}
+              </dd>
+            ) : null}
           </div>
           <div className="px-4 py-4 sm:px-5">
             <dt className="ui-label">Requirements awaiting review</dt>

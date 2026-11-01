@@ -740,6 +740,11 @@ def _parser() -> argparse.ArgumentParser:
     frameworks_coverage.add_argument("--format", choices=["json", "markdown"], default="json", help="output format")
     frameworks_coverage.add_argument("--lake", default=None, help=_REVIEW_LAKE_HELP)
     frameworks_coverage.set_defaults(func=_frameworks_coverage)
+    frameworks_contracts = frameworks_sub.add_parser(
+        "contracts",
+        help="inventory safeguards without an evidence contract and the reviewed requirements they leave unevaluable",
+    )
+    frameworks_contracts.set_defaults(func=_frameworks_contracts)
     frameworks_review = frameworks_sub.add_parser(
         "review-queue",
         help="list proposed mappings with anchors and available source provenance",
@@ -2682,6 +2687,13 @@ def _frameworks_safeguards(args: argparse.Namespace) -> int:
                 f"  {row['label']:32s} {row['safeguard_count']:10d} {row['framework_count']:10d} "
                 f"{row['reviewed_mapping_count']:10d} {row['proposed_mapping_count']:10d}"
             )
+    return 0
+
+
+def _frameworks_contracts(args: argparse.Namespace) -> int:
+    from security_lakehouse.ccf_contracts import evidence_contract_inventory
+
+    print(json.dumps(evidence_contract_inventory(), indent=2, sort_keys=True))
     return 0
 
 

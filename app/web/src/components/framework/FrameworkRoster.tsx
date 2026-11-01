@@ -11,6 +11,7 @@ import type {
   FrameworkView,
 } from "@/lib/api/types";
 import { formatCount } from "@/lib/format";
+import { REVIEW_UNIT_COPY } from "@/lib/console-copy";
 import {
   splitFrameworkPacks,
   stubCountLabel,
@@ -45,6 +46,8 @@ function FrameworkLine({
   const total = coverage?.seeded_control_count ?? framework.control_count;
   const attestable = coverage?.attestable_requirement_count ?? 0;
   const orgReviewed = coverage?.org_reviewed_requirement_count ?? 0;
+  const withoutContract =
+    coverage?.reviewed_without_contract_requirement_count ?? 0;
 
   return (
     <li className="flex min-w-0 items-center gap-3 border-b border-line py-3.5 last:border-b-0">
@@ -61,7 +64,7 @@ function FrameworkLine({
         <div className="mt-0.5 truncate text-xs font-medium leading-5 text-muted">
           {notEvaluated
             ? stubLabel
-            : `${formatCount(mapped)}/${formatCount(total)} controls mapped · ${formatCount(attestable)} reviewed${orgReviewed ? ` (${formatCount(orgReviewed)} by your org)` : ""}`}
+            : `${formatCount(mapped)}/${formatCount(total)} controls mapped · ${formatCount(attestable)} reviewed${orgReviewed ? ` (${formatCount(orgReviewed)} by your org)` : ""}${withoutContract ? ` · ${formatCount(withoutContract)} ${REVIEW_UNIT_COPY.withoutContract.label}` : ""}`}
         </div>
       </div>
       {notEvaluated ? (
