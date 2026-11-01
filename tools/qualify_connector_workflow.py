@@ -16,7 +16,7 @@ from pathlib import Path
 
 from security_lakehouse.assessment import verify_snapshot_chain, write_assessment_snapshot
 from security_lakehouse.connector_runner import CONNECTOR_RAW_FILE, ConnectorSyncError, run_connector_sync
-from security_lakehouse.connector_state import append_config_event, latest_run
+from security_lakehouse.connector_state import append_config_event, latest_run, list_runs
 from security_lakehouse.dashboard import render_dashboard
 from security_lakehouse.execution_mode import in_server_mode
 from security_lakehouse.io import file_sha256, read_json, read_jsonl
@@ -44,6 +44,27 @@ def collect(lake: Path, fixtures: Path, connector_id: str):
         materialize=False,
         actor="synthetic-qualification",
     )
+
+
+def _collect_receipt(lake: Path, fixtures: Path, connector_id: str) -> tuple[dict, bool]:
+    before = list_runs(lake, connector_id)
+    result = collect(lake, fixtures, connector_id)
+    run = result.run
+    metadata = run.get("metadata") or {}
+    complete = (
+        list_runs(lake, connector_id) == [run, *before]
+        and run.get("connector_id") == connector_id
+        and run.get("kind") == "sync"
+        and run.get("result") == result.result == "ok"
+        and not run.get("error")
+        and not metadata.get("partial")
+        and not metadata.get("coverage_gaps")
+        and not result.coverage_gaps
+        and run.get("evidence_count") == result.evidence_count
+        and result.evidence_count
+        == sum(row.get("connector_id") == connector_id for row in read_jsonl(lake / CONNECTOR_RAW_FILE))
+    )
+    return run, bool(complete)
 
 
 def qualify(out: Path) -> dict:
@@ -77,13 +98,15 @@ def qualify(out: Path) -> dict:
         }
         lake = out / "lake"
         report["runs"] = []
+        checks = report["checks"]
+        checks["initial_runs_recorded"] = True
         for connector_id in SOURCES:
             append_config_event(lake, connector_id=connector_id, state="enabled", actor="synthetic-qualification")
-            result = collect(lake, fixtures, connector_id)
-            report["runs"].append(result.run)
+            run, complete = _collect_receipt(lake, fixtures, connector_id)
+            report["runs"].append(run)
+            checks["initial_runs_recorded"] = checks["initial_runs_recorded"] and complete
         raw_path = lake / CONNECTOR_RAW_FILE
         rows = read_jsonl(raw_path)
-        checks = report["checks"]
         report["observed_counts"] = dict(Counter(row["source"] for row in rows))
         checks["expected_source_counts"] = report["observed_counts"] == EXPECTED_COUNTS
         ids = {row["event_id"] for row in rows}
@@ -146,8 +169,12 @@ def qualify(out: Path) -> dict:
         )
         # Recollect through every adapter, retaining both run events and the
         # original frozen snapshot. Observation times may legitimately advance.
+        report["recollection_runs"] = []
+        checks["recollection_runs_recorded"] = True
         for connector_id in SOURCES:
-            collect(lake, fixtures, connector_id)
+            run, complete = _collect_receipt(lake, fixtures, connector_id)
+            report["recollection_runs"].append(run)
+            checks["recollection_runs_recorded"] = checks["recollection_runs_recorded"] and complete
         replay = read_jsonl(raw_path)
         checks["replay_preserves_event_ids"] = len(replay) == len(rows) and {row["event_id"] for row in replay} == ids
         checks["replay_preserves_outcomes"] = {
@@ -164,15 +191,37 @@ def qualify(out: Path) -> dict:
         (broken / "jira/issues.json").write_text("{invalid-json\n")
         before_raw = file_sha256(raw_path)
         before_posture = file_sha256(lake / "gold/current_posture.json")
+        failed_run = None
         try:
             collect(lake, broken, "jira-ticketing")
         except ConnectorSyncError:
-            checks["failed_collection_recorded"] = latest_run(lake, "jira-ticketing", kind="sync")["result"] == "error"
+            failed_run = latest_run(lake, "jira-ticketing", kind="sync")
+            checks["failed_collection_recorded"] = bool(failed_run and failed_run["result"] == "error")
         else:
             checks["failed_collection_recorded"] = False
         checks["failed_collection_preserves_evidence"] = before_raw == file_sha256(
             raw_path
         ) and before_posture == file_sha256(lake / "gold/current_posture.json")
+        report["failed_run"] = failed_run
+        report["recovery_run"], checks["recovery_run_recorded"] = _collect_receipt(lake, fixtures, "jira-ticketing")
+        recovered = read_jsonl(raw_path)
+        checks["recovery_preserves_event_ids"] = (
+            len(recovered) == len(rows) and {row["event_id"] for row in recovered} == ids
+        )
+        run_pipeline(raw_path, lake, tenant_id="connector-qualification")
+        recovered_silver = read_jsonl(lake / "silver/normalized_events.jsonl")
+        checks["recovery_preserves_outcomes"] = (
+            len(recovered_silver) == len(silver)
+            and {(row["event_type"], row["asset_id"]): row["status"] for row in recovered_silver} == statuses
+            and {row["control_id"]: row["status"] for row in read_jsonl(lake / "gold/control_posture.jsonl")}
+            == evaluated
+        )
+        checks["failed_run_retained_after_recovery"] = failed_run is not None and failed_run in list_runs(
+            lake, "jira-ticketing"
+        )
+        checks["recovery_integrity_verified"] = verify_lake_integrity(lake)["ok"] is True
+        checks["snapshot_frozen_after_recovery"] = file_sha256(snapshot) == snapshot_hash
+        checks["recovery_snapshot_chain_verified"] = verify_snapshot_chain(lake)["ok"] is True
         report["artifacts_sha256"] = {
             name: file_sha256(out / name) for name in ("verification.json", "evidence.html", "assessment-results.json")
         }
