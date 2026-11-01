@@ -152,6 +152,39 @@ async function get<T>(path: string): Promise<T> {
   return (await res.json()) as T;
 }
 
+export interface FileDownload {
+  blob: Blob;
+  filename: string;
+  truncated: boolean;
+  limit: number | null;
+  totalCount: number | null;
+}
+
+/** GET a file-style response (CSV/JSONL), keeping the server's filename and bound. */
+async function getFile(
+  path: string,
+  fallbackName: string,
+): Promise<FileDownload> {
+  const res = await fetch(`${BASE}${path}`, {
+    cache: "no-store",
+    credentials: "same-origin",
+    headers: headers(),
+  });
+  if (res.status === 401) redirectToLogin();
+  if (!res.ok) throw new ApiError(res.status, `${path} -> ${res.status}`);
+  const disposition = res.headers.get("content-disposition") ?? "";
+  const match = /filename="([^"]+)"/.exec(disposition);
+  const limit = res.headers.get("x-export-limit");
+  const total = res.headers.get("x-export-total-count");
+  return {
+    blob: await res.blob(),
+    filename: match?.[1] ?? fallbackName,
+    truncated: res.headers.get("x-export-truncated") === "true",
+    limit: limit === null ? null : Number(limit),
+    totalCount: total === null ? null : Number(total),
+  };
+}
+
 async function post<T>(path: string, body: unknown): Promise<T> {
   const deferred =
     path === "/v1/repositories/public-audit" ||
@@ -512,6 +545,13 @@ export const api = {
       count,
       violations: items,
     })),
+  // Portable grc-lake.findings.v1 export; the server caps rows at 10,000 and
+  // reports the bound in X-Export-Limit / X-Export-Truncated.
+  exportFindings: (format: "csv" | "jsonl") =>
+    getFile(
+      `/v1/findings/export?format=${format}&limit=10000`,
+      `grc-lake-findings.${format}`,
+    ),
   evidence: () =>
     getAllV1<NormalizedEvent>("/v1/evidence").then(({ items, count }) => ({
       count,

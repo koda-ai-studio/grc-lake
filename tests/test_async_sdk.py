@@ -192,3 +192,36 @@ def test_async_explicit_close_releases_pool(tmp_path: Path) -> None:
 
         catalog = asyncio.run(run())
     assert catalog["api_version"] == "v1"
+
+
+def test_async_export_findings_matches_the_sync_contract(tmp_path: Path) -> None:
+    import csv
+    import io
+    import json
+
+    from security_lakehouse.finding_exports import EXPORT_COLUMNS
+
+    _seed_lake(tmp_path)
+
+    async def _run(base_url: str) -> tuple[str, str]:
+        async with AsyncGrcLakeClient(base_url, timeout=10.0) as client:
+            return await client.export_findings(format="csv", limit=5), await client.export_findings(limit=5)
+
+    with _server(create_app(tmp_path, require_auth=False)) as base_url:
+        csv_text, jsonl_text = asyncio.run(_run(base_url))
+    parsed = list(csv.reader(io.StringIO(csv_text)))
+    assert parsed[0] == list(EXPORT_COLUMNS)
+    rows = [json.loads(line) for line in jsonl_text.splitlines()]
+    assert [row["finding_id"] for row in rows] == ["SOC2-CC6.1:evt-001"]
+
+
+def test_async_export_findings_bad_format_raises_typed_error(tmp_path: Path) -> None:
+    _seed_lake(tmp_path)
+
+    async def _run(base_url: str) -> None:
+        async with AsyncGrcLakeClient(base_url, timeout=10.0) as client:
+            await client.export_findings(format="xlsx")
+
+    with _server(create_app(tmp_path, require_auth=False)) as base_url, pytest.raises(GrcLakeError) as excinfo:
+        asyncio.run(_run(base_url))
+    assert excinfo.value.status_code == 400

@@ -174,3 +174,34 @@ def test_unauthorized_write_raises_typed_error(tmp_path: Path) -> None:
     ):
         client.create_risk(title="x")
     assert excinfo.value.status_code == 401
+
+
+def test_export_findings_returns_csv_and_jsonl_text(tmp_path: Path) -> None:
+    import csv
+    import io
+    import json
+
+    from security_lakehouse.finding_exports import EXPORT_COLUMNS
+
+    _seed_lake(tmp_path)
+    with _client(create_app(tmp_path, require_auth=False)) as client:
+        csv_text = client.export_findings(format="csv", limit=5)
+        parsed = list(csv.reader(io.StringIO(csv_text)))
+        assert parsed[0] == list(EXPORT_COLUMNS)
+        assert parsed[1][parsed[0].index("finding_id")] == "SOC2-CC6.1:evt-001"
+
+        jsonl_text = client.export_findings(limit=5)
+        rows = [json.loads(line) for line in jsonl_text.splitlines()]
+        assert [row["finding_id"] for row in rows] == ["SOC2-CC6.1:evt-001"]
+        assert rows[0]["export_schema_version"] == "grc-lake.findings.v1"
+
+
+def test_export_findings_bad_format_raises_typed_error(tmp_path: Path) -> None:
+    _seed_lake(tmp_path)
+    with (
+        _client(create_app(tmp_path, require_auth=False)) as client,
+        pytest.raises(GrcLakeError) as excinfo,
+    ):
+        client.export_findings(format="xlsx")
+    assert excinfo.value.status_code == 400
+    assert excinfo.value.errors[0]["code"] == "bad_request"

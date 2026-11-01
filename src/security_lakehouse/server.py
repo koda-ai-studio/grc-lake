@@ -160,10 +160,39 @@ class _Handler(BaseHTTPRequestHandler):
             snapshot_id = path[len(export_prefix) : -len("/export.pdf")]
             self._handle_snapshot_pdf_export(snapshot_id)
             return
+        if path == "/api/v1/findings/export":
+            self._handle_findings_export(query)
+            return
         if path.startswith("/api/v1/evidence/") and path.endswith("/lineage"):
             path = unquote(path)
         status, body = api_v1.handle_get(path, query, self.lake_dir)
         self._send_json(body, status=status)
+
+    def _handle_findings_export(self, query: dict[str, list[str]]) -> None:
+        from security_lakehouse import finding_exports
+
+        try:
+            fmt = finding_exports.parse_export_format(api_v1.first_param(query, "format"))
+            limit = finding_exports.parse_export_limit(api_v1.first_param(query, "limit"))
+        except ValueError as exc:
+            self._send_json(
+                api_v1.error_envelope("bad_request", str(exc), resource="findings.export"),
+                status=HTTPStatus.BAD_REQUEST,
+            )
+            return
+        # Local mode serves one unauthenticated lake, so rows carry the ``local`` tenant label.
+        export = finding_exports.prepare_export(self.lake_dir, tenant_id="local", fmt=fmt, limit=limit)
+        self._send_bytes(
+            "".join(export.chunks).encode("utf-8"),
+            content_type=export.media_type,
+            headers={
+                "Content-Disposition": f'attachment; filename="{export.filename}"',
+                "X-Export-Schema-Version": finding_exports.EXPORT_SCHEMA_VERSION,
+                "X-Export-Limit": str(export.limit),
+                "X-Export-Total-Count": str(export.total_count),
+                "X-Export-Truncated": "true" if export.truncated else "false",
+            },
+        )
 
     def _handle_snapshot_pdf_export(self, snapshot_id: str) -> None:
         from security_lakehouse.assessment import load_snapshot

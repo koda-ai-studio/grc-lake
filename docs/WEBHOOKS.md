@@ -14,11 +14,20 @@ dispatch webhooks with and does not deliver them.
 
 ## Event types
 
-| Event                  | Fires when                                                                                                                                                             |
-| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `assessment.completed` | A point-in-time snapshot is written (`POST /api/v1/snapshots`, a scheduled workflow, or an approved agent decision that freezes one).                                  |
-| `finding.created`      | A violation present in a new snapshot was not present in the immediately prior snapshot — a real open/failed/blocked control result that is new since the last freeze. |
-| `control.failed`       | A control had zero open violations in the prior snapshot and at least one in the new one — a detected pass→fail transition.                                            |
+| Event                  | Fires when                                                                                                                                                                      |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `assessment.completed` | A point-in-time snapshot is written (`POST /api/v1/snapshots`, a scheduled workflow, or an approved agent decision that freezes one).                                           |
+| `finding.created`      | A violation present in a new snapshot was not present in the immediately prior snapshot — a real open/failed/blocked control result that is new since the last freeze.          |
+| `control.failed`       | A control had zero open violations in the prior snapshot and at least one in the new one — a detected pass→fail transition.                                                     |
+| `finding.resolved`     | A violation open in the immediately prior snapshot is absent from the new one **and** its source has no collection gap in the new snapshot — a recorded open→closed transition. |
+
+`finding.resolved` is never inferred from an incomplete collection: when the
+new snapshot records a collection gap for a source (`collection_gaps.sources`
+in the posture, written when a connector reports a partial read), every prior
+finding from that source is treated as unknown rather than resolved, and no
+event fires for it. The transition is detected once; a later snapshot that
+still lacks the finding does not re-fire it. Like the other transition events,
+it never fires on the first snapshot of a lake.
 
 **How the transition is detected.** GRC Lake snapshots are hash-chained
 point-in-time exports (`docs/ARCHITECTURE.md`, `assessment.py`). Each snapshot
@@ -54,7 +63,7 @@ curl -s -X POST -H "Authorization: Bearer $TOKEN" \
   -H 'content-type: application/json' \
   --data '{
     "url": "https://siem.example.com/ingest/grc-lake",
-    "event_types": ["assessment.completed", "finding.created", "control.failed"],
+    "event_types": ["assessment.completed", "finding.created", "finding.resolved", "control.failed"],
     "description": "SOC SIEM ingest"
   }' | jq .
 ```
@@ -151,6 +160,29 @@ more than this summary.
 }
 ```
 
+</details>
+
+<details>
+<summary><code>finding.resolved</code> <code>data</code></summary>
+
+```json
+{
+  "finding_id": "SOC2-CC6.1:evt-001",
+  "violation_id": "SOC2-CC6.1:evt-001",
+  "control_id": "SOC2-CC6.1",
+  "asset_id": "aws:iam:role/admin",
+  "source": "okta",
+  "prior_snapshot_id": "assessment-20260915T140311Z-f6e5d4c3b2a1",
+  "snapshot_id": "assessment-20260922T140311Z-a1b2c3d4e5f6",
+  "resolved_at": "2026-09-22T14:03:11+00:00"
+}
+```
+
+`finding_id` equals the `violation_id` the matching `finding.created` event
+and the [findings export](FINDING_EXPORTS.md) carry, so a ticket opened from
+either can be closed from this event. `prior_snapshot_id` is the last snapshot
+in which the finding was open; `resolved_at` is the new snapshot's
+`evaluated_at` (the moment the absence was recorded, not when the fix landed).
 </details>
 
 ## Signature verification

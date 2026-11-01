@@ -46,9 +46,10 @@ from security_lakehouse.vocabulary import ControlVerdict
 logger = logging.getLogger(__name__)
 
 # Called after a snapshot is written (and the chain lock released) with
-# ``(snapshot_path, assessment, new_violations, newly_failing_controls)``. See
-# ``write_assessment_snapshot`` for how the diff arguments are derived.
-SnapshotWrittenHook = Callable[[Path, dict[str, Any], list[dict[str, Any]], list[str]], None]
+# ``(snapshot_path, assessment, new_violations, newly_failing_controls,
+# resolved_violations)``. See ``write_assessment_snapshot`` for how the diff
+# arguments are derived.
+SnapshotWrittenHook = Callable[[Path, dict[str, Any], list[dict[str, Any]], list[str], list[dict[str, Any]]], None]
 
 VIOLATION_STATUSES = FAIL_STATUSES
 
@@ -431,43 +432,52 @@ def _chain_tip(lake_dir: str | Path) -> str | None:
     return entries[-1].get("assessment_hash") if entries else None
 
 
-def _prior_snapshot_payload(lake_dir: str | Path) -> dict[str, Any] | None:
-    """Best-effort load of the most recently ledgered snapshot's full payload.
+def _prior_snapshot_payload(lake_dir: str | Path) -> tuple[str | None, dict[str, Any] | None]:
+    """Best-effort load of the most recently ledgered snapshot as ``(snapshot_id, payload)``.
 
     Read-only and additive: used only to diff violations for webhook event
     detection (see :func:`_diff_violations`), never to decide the hash chain
-    itself. A missing/unreadable prior snapshot yields ``None`` rather than
-    raising, so a corrupt or pruned history never blocks a new snapshot write
-    -- but unlike the genuine "this is the first snapshot ever" case (an empty
-    ledger, which also returns ``None``), that outcome is silent data loss for
-    the diff (every violation open since before the gap will never fire
-    ``finding.created``/``control.failed``), so it is logged at warning level
-    to make the failure observable instead of indistinguishable from "no gap."
+    itself. A missing/unreadable prior snapshot yields ``(None, None)`` rather
+    than raising, so a corrupt or pruned history never blocks a new snapshot
+    write -- but unlike the genuine "this is the first snapshot ever" case (an
+    empty ledger, which also returns ``(None, None)``), that outcome is silent
+    data loss for the diff (every violation open since before the gap will
+    never fire ``finding.created``/``control.failed``/``finding.resolved``), so
+    it is logged at warning level to make the failure observable instead of
+    indistinguishable from "no gap."
     """
     entries = read_jsonl(_ledger_path(lake_dir), missing_ok=True)
     if not entries:
-        return None
+        return None, None
     name = entries[-1].get("snapshot")
     if not isinstance(name, str) or not name:
         logger.warning("prior snapshot read failed for %s: ledger's last entry has no snapshot filename", lake_dir)
-        return None
+        return None, None
     path = Path(lake_dir) / "gold" / "snapshots" / name
     if not path.is_file():
         logger.warning("prior snapshot read failed for %s: %s is missing (ledger entry points to it)", lake_dir, path)
-        return None
+        return None, None
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
         logger.warning("prior snapshot read failed for %s: %s is unreadable (%s)", lake_dir, path, exc)
-        return None
+        return None, None
     if not isinstance(payload, dict):
         logger.warning("prior snapshot read failed for %s: %s did not contain a JSON object", lake_dir, path)
-        return None
-    return payload
+        return None, None
+    return path.stem, payload
 
 
-def _diff_violations(prior: dict[str, Any] | None, current: dict[str, Any]) -> tuple[list[dict[str, Any]], list[str]]:
-    """Return ``(new_violations, newly_failing_control_ids)`` between two snapshots.
+def _gap_sources(current: dict[str, Any]) -> set[str]:
+    gaps = current.get("collection_gaps")
+    sources = gaps.get("sources") if isinstance(gaps, dict) else None
+    return {source for source in sources if isinstance(source, str)} if isinstance(sources, list) else set()
+
+
+def _diff_violations(
+    prior: dict[str, Any] | None, current: dict[str, Any]
+) -> tuple[list[dict[str, Any]], list[str], list[dict[str, Any]]]:
+    """Return ``(new_violations, newly_failing_control_ids, resolved_violations)`` between two snapshots.
 
     A violation is "new" when its ``violation_id`` is not present in the prior
     snapshot's open-violations list. A control is "newly failing" when it had
@@ -477,6 +487,13 @@ def _diff_violations(prior: dict[str, Any] | None, current: dict[str, Any]) -> t
     on the very first freeze of a lake, so nothing is reported as "new" then
     (everything open at that point is the starting state, not a transition).
 
+    A prior violation is "resolved" when its ``violation_id`` is absent from
+    the current snapshot **and** its ``source`` is not among the current
+    snapshot's collection-gap sources: a finding that vanished because its
+    source was only partially read this time is unknown, never resolved
+    (:mod:`security_lakehouse.assessment` records those sources under
+    ``collection_gaps.sources``). Resolved rows are the prior snapshot's rows.
+
     Defensive against malformed rows (e.g. a ``violation_id``/``control_id``
     that is not a string -- an unhashable value like a list would otherwise
     raise ``TypeError`` on set membership and break every caller of
@@ -484,13 +501,14 @@ def _diff_violations(prior: dict[str, Any] | None, current: dict[str, Any]) -> t
     this runs inside the chain lock). Only string ids are ever added to the
     dedup sets; a violation whose id cannot be matched against the prior
     snapshot is conservatively treated as new rather than silently dropped or
-    raising.
+    raising, and a prior row without a string id is never reported resolved.
     """
     if prior is None:
-        return [], []
+        return [], [], []
     prior_violations = prior.get("violations")
     prior_ids: set[str] = set()
     prior_failing_controls: set[str] = set()
+    prior_rows: list[dict[str, Any]] = []
     if isinstance(prior_violations, list):
         for row in prior_violations:
             if not isinstance(row, dict):
@@ -498,19 +516,23 @@ def _diff_violations(prior: dict[str, Any] | None, current: dict[str, Any]) -> t
             violation_id = row.get("violation_id")
             if isinstance(violation_id, str):
                 prior_ids.add(violation_id)
+                prior_rows.append(row)
             control_id = row.get("control_id")
             if isinstance(control_id, str):
                 prior_failing_controls.add(control_id)
     current_violations = current.get("violations")
     if not isinstance(current_violations, list):
-        return [], []
+        return [], [], []
     new_violations: list[dict[str, Any]] = []
+    current_ids: set[str] = set()
     for row in current_violations:
         if not isinstance(row, dict):
             continue
         violation_id = row.get("violation_id")
-        if isinstance(violation_id, str) and violation_id in prior_ids:
-            continue  # present in the prior snapshot too -- not new
+        if isinstance(violation_id, str):
+            current_ids.add(violation_id)
+            if violation_id in prior_ids:
+                continue  # present in the prior snapshot too -- not new
         new_violations.append(row)
     newly_failing_controls = sorted(
         {
@@ -519,7 +541,13 @@ def _diff_violations(prior: dict[str, Any] | None, current: dict[str, Any]) -> t
             if isinstance(row.get("control_id"), str) and row["control_id"] not in prior_failing_controls
         }
     )
-    return new_violations, newly_failing_controls
+    gap_sources = _gap_sources(current)
+    resolved_violations = [
+        row
+        for row in prior_rows
+        if row["violation_id"] not in current_ids and str(row.get("source", "")) not in gap_sources
+    ]
+    return new_violations, newly_failing_controls, resolved_violations
 
 
 @generation_reader
@@ -541,8 +569,10 @@ def write_assessment_snapshot(
     released with the new snapshot plus a violations diff against the prior
     snapshot (see :func:`_diff_violations`) — the hook point event-driven
     callers (e.g. the webhook dispatcher) use to push ``assessment.completed``,
-    ``finding.created``, and ``control.failed`` notifications without this
-    module taking on any DB/tenant/transport dependency itself. A failing hook
+    ``finding.created``, ``control.failed`` and ``finding.resolved``
+    notifications without this module taking on any DB/tenant/transport
+    dependency itself. Each resolved row is the prior snapshot's violation row
+    plus the ``prior_snapshot_id`` it was last seen open in. A failing hook
     is logged and swallowed, never allowed to turn a successful snapshot write
     into a caller-visible error.
     """
@@ -556,7 +586,7 @@ def write_assessment_snapshot(
         if not _snapshot_chain_rows_unlocked(lake.resolve(), metadata_only=True)[1]["ok"]:
             raise SnapshotIntegrityError("snapshot integrity verification failed; history requires reconciliation")
         prev_hash = _chain_tip(lake)
-        prior_payload = _prior_snapshot_payload(lake)
+        prior_snapshot_id, prior_payload = _prior_snapshot_payload(lake)
         # A snapshot is the audit record: freeze every violation, not the inline sample.
         assessment = build_current_posture(lake, freshness_days=freshness_days, inline_violation_cap=None)
         assessment["assessment_type"] = "point_in_time_snapshot"
@@ -610,15 +640,16 @@ def write_assessment_snapshot(
             },
         )
         try:
-            new_violations, newly_failing_controls = _diff_violations(prior_payload, assessment)
+            new_violations, newly_failing_controls, resolved = _diff_violations(prior_payload, assessment)
+            resolved_violations = [{**row, "prior_snapshot_id": prior_snapshot_id} for row in resolved]
         except Exception:  # the diff is a defensive best-effort add-on, never allowed to break a snapshot write
             logger.exception("violations diff failed for %s; webhook finding/control events will not fire", output_path)
-            new_violations, newly_failing_controls = [], []
+            new_violations, newly_failing_controls, resolved_violations = [], [], []
     # Lock released above -- the hook (and any outbound webhook delivery it
     # triggers) must never hold up a concurrent writer.
     if on_snapshot_written is not None:
         try:
-            on_snapshot_written(output_path, assessment, new_violations, newly_failing_controls)
+            on_snapshot_written(output_path, assessment, new_violations, newly_failing_controls, resolved_violations)
         except Exception:  # a hook failure must never fail a successful snapshot write
             logger.exception("on_snapshot_written hook failed for %s", output_path)
     return output_path
