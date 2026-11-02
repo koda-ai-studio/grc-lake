@@ -1,11 +1,11 @@
 # Release readiness
 
-GRC Lake **0.3.23 is published** on
-[PyPI](https://pypi.org/project/grc-lake/0.3.23/),
-[GitHub](https://github.com/koda-ai-studio/grc-lake/releases/tag/v0.3.23), and as
-`ghcr.io/koda-ai-studio/grc-lake:0.3.23`.
-Use the [v0.3.23 release templates](https://github.com/koda-ai-studio/grc-lake/tree/v0.3.23)
-for a published deployment. The [publication receipt](#verified-0323-publication)
+GRC Lake **0.3.24 is published** on
+[PyPI](https://pypi.org/project/grc-lake/0.3.24/),
+[GitHub](https://github.com/koda-ai-studio/grc-lake/releases/tag/v0.3.24), and as
+`ghcr.io/koda-ai-studio/grc-lake:0.3.24`.
+Use the [v0.3.24 release templates](https://github.com/koda-ai-studio/grc-lake/tree/v0.3.24)
+for a published deployment. The [publication receipt](#verified-0324-publication)
 records the verified source, artifact hashes and runtime checks. Later changes
 on `main` are unreleased until a new tag passes the release gates.
 
@@ -35,10 +35,36 @@ Listing the root [GRC Lake Readiness action](CI_GATE.md#readiness-summary-action
 GitHub Marketplace is a manual maintainer step after a release tag is published; the
 release workflow does not publish it.
 
-## 0.3.24 release candidate
+## 0.3.25 release candidate
 
-0.3.24 is being prepared and is not yet published. Installation instructions
-remain on the verified 0.3.23 artifacts until publication checks complete.
+0.3.25 is being prepared and is not yet published. Installation instructions
+remain on verified 0.3.24 artifacts until publication checks complete.
+
+This maintenance patch updates the locked console dependencies and setup-uv
+action, and synchronizes workflow uv inputs with the digest-pinned uv 0.13.6
+container image. It introduces no database migration, evidence contract,
+mapping approval, new provider qualification or capacity claim. The evidence
+applicability regression for GHSA-76q3-wh53-hvv2 remains covered by tests.
+
+Local candidate validation passed: version consistency and changelog checks;
+CCF applicability, uv pin, release image/provenance and readiness-action
+regressions; Python lint, formatting and type checking; catalog validation;
+console type checking, static build, lint and dependency security tests; Python
+and npm dependency audits; Helm lint/render; and documentation checks. The
+candidate wheel contains 263 console files and passes isolated core and
+server/MCP installation smoke checks. Upgrading a copied synthetic 0.3.24 lake
+preserved all 59 records and 18 historical files checked, with integrity and
+snapshot-chain verification passing. The advisory reproduction against the
+installed wheel left unrelated safeguard and requirement results
+`not_evaluated`.
+
+Independent human approval, exact merged-main CI and CodeQL, final published
+artifact verification, and release image, chart and provenance gates remain
+required before publication can be claimed.
+
+## 0.3.24 release
+
+0.3.24 is published; see the [publication receipt](#verified-0324-publication).
 
 This release is aimed at adoption and evidence honesty. It discloses reviewed
 requirements that cannot be evaluated because their safeguards declare no
@@ -59,10 +85,10 @@ and the streamed API), connector scaffold, the evidence-contract inventory, the
 coverage API's contract disclosure and the bundled console. These are synthetic
 local checks; they are not publication or provider receipts.
 
-Independent human approval, exact merged-main CI, final package/install and
-upgrade checks, and the release workflow's image, chart and provenance gates
-remain required before publication can be claimed. Listing the readiness action
-on the Marketplace follows the tag.
+The release workflow passed after independent human approval and exact-main
+CI. The publication receipt below records the artifact checks actually repeated;
+it does not claim a separate local upgrade test. Marketplace listing remains a
+manual maintainer step.
 
 ## 0.3.23 release
 
@@ -372,6 +398,38 @@ for security, correctness, supported-workload performance and setup/documentatio
 repairs. Independent human review, required PR checks, exact-main CI and published
 artifact/runtime verification remain release gates; this candidate section is not
 a completion receipt.
+
+## Verified 0.3.24 publication
+
+Verified on November 2, 2026. The [release workflow](https://github.com/koda-ai-studio/grc-lake/actions/runs/41370196811)
+passed all jobs on source `79702340fa2e9a5f3ea3490f039244be2eeec4bd`, following
+independent approval and merge of [#1212](https://github.com/koda-ai-studio/grc-lake/pull/1212)
+and successful [exact-main CI](https://github.com/koda-ai-studio/grc-lake/actions/runs/41369759080).
+The published wheel and source archive have identical bytes on PyPI, GitHub and
+in the workflow artifacts. Their provenance verifies against that exact source,
+tag and repository release workflow, with self-hosted runners denied. The wheel
+contains 263 console files and the required catalogs.
+
+| Artifact                           | SHA-256                                                            |
+| ---------------------------------- | ------------------------------------------------------------------ |
+| `grc_lake-0.3.24-py3-none-any.whl` | `ff03f4386f3f0ada64da7cc4345c36fa36f63ad8e3f2a17ee66b856546acc028` |
+| `grc_lake-0.3.24.tar.gz`           | `27f7e2690b642274c1b17ff471b1535a2db81129407573f0dcec3563dc3c1407` |
+
+The published image `ghcr.io/koda-ai-studio/grc-lake:0.3.24` and `latest` resolved to
+`sha256:046eb9fd4886c35dd4b7dd314a913cfc15fd3929f8c00557e33a09bf958e2a83` at verification time.
+Anonymous downloads verified all 21 distinct layer blobs by digest. Both
+AMD64 and ARM64 root filesystems and runtime configurations match the release's
+scanned images. Each architecture's retained unfiltered Trivy report contains
+zero reported vulnerabilities, and its release receipt records 11 successful
+authenticated runtime checks, including tenant isolation, revoked-key denial,
+non-root execution, persistence, snapshot integrity and the bundled console.
+These are retained release-run checks; the containers were not rerun locally
+for this documentation update. Vulnerability results are dated evidence.
+
+The workflow also completed its chart, image provenance and MCP Registry jobs.
+This receipt does not claim a new provider run, independent mapping review,
+local upgrade test or production-capacity qualification. The 0.3.22 CCF
+applicability fix remains covered by the 0.3.25 candidate regression suite.
 
 ## Verified 0.3.23 publication
 

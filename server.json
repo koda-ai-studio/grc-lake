@@ -8,18 +8,18 @@
     "source": "github"
   },
   "websiteUrl": "https://koda-ai-studio.github.io/grc-lake/",
-  "version": "0.3.24",
+  "version": "0.3.25",
   "packages": [
     {
       "registryType": "pypi",
       "identifier": "grc-lake",
-      "version": "0.3.24",
+      "version": "0.3.25",
       "runtimeHint": "uvx",
       "runtimeArguments": [
         {
           "type": "named",
           "name": "--from",
-          "value": "grc-lake[mcp]==0.3.24"
+          "value": "grc-lake[mcp]==0.3.25"
         }
       ],
       "packageArguments": [

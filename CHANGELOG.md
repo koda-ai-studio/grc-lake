@@ -3,6 +3,11 @@
 All notable GRC Lake changes are summarized here. Versions follow semver for the
 Python package, Helm chart, and bundled web console.
 
+## 0.3.25 - 2026-11-02
+
+- Refresh the locked console dependencies, including Next.js 16.4.3, Dagre 3.1.3 and TanStack Query 5.105.0, and update the commit-pinned setup-uv action.
+- Synchronize all workflow uv inputs to the digest-pinned container's uv 0.13.6, fixing the version-contract regression triggered by the container dependency update. Release, vulnerability and provenance gates remain unchanged.
+
 ## 0.3.24 - 2026-11-01
 
 - Add the GRC Lake Readiness GitHub Action at the repository root (`uses: koda-ai-studio/grc-lake@<release>`). It reads `/api/v1/posture/current` once, writes a framework readiness table to the job summary (score, state, passing and total controls, not evaluated, collection-gap controls, a synthetic-data banner and named collection gap sources), runs the existing posture gate with the same threshold inputs, and with `comment-on-pr` keeps one pull request comment up to date. `enforce: false` reports without failing. A framework is counted as ready only when every control passes. CI runs the action against the loopback sample on every pull request. The posture gate's `framework` input is documented as the exact framework name (for example `SOC 2`).
