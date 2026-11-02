@@ -35,6 +35,35 @@ Listing the root [GRC Lake Readiness action](CI_GATE.md#readiness-summary-action
 GitHub Marketplace is a manual maintainer step after a release tag is published; the
 release workflow does not publish it.
 
+## 0.3.24 release candidate
+
+0.3.24 is being prepared and is not yet published. Installation instructions
+remain on the verified 0.3.23 artifacts until publication checks complete.
+
+This release is aimed at adoption and evidence honesty. It discloses reviewed
+requirements that cannot be evaluated because their safeguards declare no
+evidence contract (453 requirements on 96 safeguards in the shipped catalog),
+without changing any verdict, denominator or review state. It adds portable
+finding exports (CSV and JSONL, `grc-lake.findings.v1`) with a signed
+`finding.resolved` webhook event, a connector scaffold that generates a
+working, tested Preview connector, the root GRC Lake Readiness GitHub Action,
+and live-console graph layer filters that keep the loaded neighborhood and
+restore from the URL. No provider is newly live-qualified, no mapping approval
+is recorded, no evidence contract is defined, and no capacity limit is
+expanded. There is no database migration or dependency change since 0.3.23.
+
+Local candidate checks passed for version consistency, changelog, the readiness
+action and posture gate (98 tests). A built wheel passed `tools/verify_wheel.py`
+and an isolated `[server,mcp]` install smoke: fixture load, finding export (CSV
+and the streamed API), connector scaffold, the evidence-contract inventory, the
+coverage API's contract disclosure and the bundled console. These are synthetic
+local checks; they are not publication or provider receipts.
+
+Independent human approval, exact merged-main CI, final package/install and
+upgrade checks, and the release workflow's image, chart and provenance gates
+remain required before publication can be claimed. Listing the readiness action
+on the Marketplace follows the tag.
+
 ## 0.3.23 release
 
 0.3.23 is published; see the [publication receipt](#verified-0323-publication).

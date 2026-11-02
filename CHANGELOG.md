@@ -3,7 +3,7 @@
 All notable GRC Lake changes are summarized here. Versions follow semver for the
 Python package, Helm chart, and bundled web console.
 
-## Unreleased
+## 0.3.24 - 2026-11-01
 
 - Add the GRC Lake Readiness GitHub Action at the repository root (`uses: koda-ai-studio/grc-lake@<release>`). It reads `/api/v1/posture/current` once, writes a framework readiness table to the job summary (score, state, passing and total controls, not evaluated, collection-gap controls, a synthetic-data banner and named collection gap sources), runs the existing posture gate with the same threshold inputs, and with `comment-on-pr` keeps one pull request comment up to date. `enforce: false` reports without failing. A framework is counted as ready only when every control passes. CI runs the action against the loopback sample on every pull request. The posture gate's `framework` input is documented as the exact framework name (for example `SOC 2`).
 - Generate a working, tested Preview connector with `grc-lake connectors scaffold <id> --vendor <name> --kind rest|export --into-tree`: a read-only collector with fixed-host paging, `Retry-After` handling and collection-gap rows, a synthetic fixture and pipeline test, and the catalog, registry, console and qualification entries, refusing to overwrite existing files or ids. Generated rows are `observed` until a contributor maps vendor fields to an outcome.
