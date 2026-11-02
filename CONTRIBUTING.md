@@ -31,7 +31,11 @@ Ready-to-pick work:
   scoped connectors and presets that need no vendor account; fixtures are enough.
 - [Help wanted: connectors](https://github.com/koda-ai-studio/grc-lake/issues?q=is%3Aopen+label%3A%22help+wanted%22+label%3Aarea-connectors):
   read-only evidence sources requested for common SOC 2 and ISO 27001 evidence, each
-  with its target safeguard and done-when checklist.
+  with its target safeguard and done-when checklist. Issues labelled
+  [`scaffold-ready`](https://github.com/koda-ai-studio/grc-lake/issues?q=is%3Aopen+label%3Ascaffold-ready)
+  start from one command, `grc-lake connectors scaffold <id> --vendor <name> --into-tree`,
+  which generates a working, tested Preview connector; you fill in the vendor's
+  endpoint and field mapping ([quick start](docs/ADDING_CONNECTORS.md#quick-start-a-first-connector-in-about-30-minutes)).
 - [Questions and ideas](https://github.com/koda-ai-studio/grc-lake/discussions):
   ask before you build if the scope is unclear.
 
