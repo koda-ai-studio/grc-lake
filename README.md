@@ -61,7 +61,7 @@ one independently checked result, then a repeat collection and review.
 summary and can gate the merge ([CI gate](docs/CI_GATE.md#readiness-summary-action)):
 
 ```yaml
-- uses: koda-ai-studio/grc-lake@v0.3.23
+- uses: koda-ai-studio/grc-lake@v0.3.24
   with:
     grc-lake-url: ${{ secrets.GRC_LAKE_URL }}
     api-token: ${{ secrets.GRC_LAKE_API_TOKEN }}
