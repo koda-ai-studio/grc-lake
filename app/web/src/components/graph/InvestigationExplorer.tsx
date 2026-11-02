@@ -32,6 +32,10 @@ const optional: GraphNodeKind[] = [
   "safeguard",
 ];
 
+const views = ["controls", "environment", "investigation"];
+const TRAIL_LIMIT = 20;
+const URL_KEYS = ["view", "root", "depth", "hide", "trail", "direct", "node"];
+
 type NavigationStep = {
   id: string;
   label: string;
@@ -44,12 +48,82 @@ type NavigationStep = {
   version: string;
 };
 
+// Starting point, depth, hidden layers, drill-down trail, direct focus and the
+// selected node live in the URL so reload, back/forward and shared links
+// restore them. Paging and the pinned model version stay in memory.
+type UrlState = {
+  view: string;
+  root: string;
+  depth: number;
+  hidden: GraphNodeKind[];
+  trail: string[];
+  direct: string;
+  node: string;
+};
+
+const defaultView = (root: string) =>
+  !root || /^(control|safeguard|framework|category|family):/.test(root)
+    ? "controls"
+    : "investigation";
+
+const visibleFrom = (hidden: GraphNodeKind[]) =>
+  new Set(layers.filter((kind) => !hidden.includes(kind)));
+
+function readUrlState(params: URLSearchParams): UrlState {
+  const root = params.get("root") ?? "";
+  const view = params.get("view") ?? "";
+  const depth = Number(params.get("depth"));
+  const hidden = new Set((params.get("hide") ?? "").split(","));
+  return {
+    view: views.includes(view) ? view : defaultView(root),
+    root,
+    depth: [1, 2, 3].includes(depth) ? depth : 2,
+    hidden: optional.filter((kind) => hidden.has(kind)),
+    trail: params.getAll("trail").filter(Boolean).slice(-TRAIL_LIMIT),
+    direct: params.get("direct") ?? "",
+    node: params.get("node") ?? "",
+  };
+}
+
+function writeUrlState(base: URLSearchParams, state: UrlState) {
+  const params = new URLSearchParams(base);
+  for (const key of URL_KEYS) params.delete(key);
+  // `focus` opens the framework maps; keeping it would reopen them on reload.
+  params.delete("focus");
+  if (state.view !== defaultView(state.root)) params.set("view", state.view);
+  if (state.root) params.set("root", state.root);
+  if (state.depth !== 2) params.set("depth", String(state.depth));
+  if (state.hidden.length) params.set("hide", state.hidden.join(","));
+  for (const id of state.trail.slice(-TRAIL_LIMIT)) params.append("trail", id);
+  if (state.direct) params.set("direct", state.direct);
+  if (state.node) params.set("node", state.node);
+  return params;
+}
+
+const urlStep = (id: string, state: UrlState): NavigationStep => ({
+  id,
+  label: id,
+  depth: state.depth,
+  rootOffset: 0,
+  safeguardPage: { root: "", framework: "", offset: 0 },
+  repositoryView: "evidence",
+  evidencePage: 0,
+  visible: visibleFrom(state.hidden),
+  version: "",
+});
+
 export function InvestigationExplorer() {
   const workspace = useRef<HTMLElement>(null);
   const [expanded, setExpanded] = useState(false);
   const [inlineExpanded, setInlineExpanded] = useState(false);
   const expandButton = useRef<HTMLButtonElement>(null);
-  const [trail, setTrail] = useState<NavigationStep[]>([]);
+  const searchParams = useSearchParams();
+  const [initial] = useState(() => readUrlState(searchParams));
+  const [trail, setTrail] = useState<NavigationStep[]>(() =>
+    initial.trail.map((id) => urlStep(id, initial)),
+  );
+  // Levels left by drilling down, so history and roll up can restore paging.
+  const steps = useRef(new Map<string, NavigationStep>());
   useEffect(() => {
     const update = () =>
       setExpanded(document.fullscreenElement === workspace.current);
@@ -104,34 +178,89 @@ export function InvestigationExplorer() {
     framework: "",
     offset: 0,
   });
-  const searchParams = useSearchParams();
-  const [view, setView] = useState(
-    /^(control|safeguard|framework|category|family):/.test(
-      searchParams.get("root") ?? "",
-    ) || !searchParams.get("root")
-      ? "controls"
-      : "investigation",
-  );
-  const [root, setRoot] = useState(searchParams.get("root") ?? "");
-  const [depth, setDepth] = useState(2);
+  const [view, setView] = useState(initial.view);
+  const [root, setRoot] = useState(initial.root);
+  const [depth, setDepth] = useState(initial.depth);
   const [relationshipLabels, setRelationshipLabels] = useState(false);
   const [search, setSearch] = useState("");
   const [version, setVersion] = useState("");
-  const [visible, setVisible] = useState(new Set(layers));
+  const [visible, setVisible] = useState(() => visibleFrom(initial.hidden));
   const [repositoryView, setRepositoryView] = useState("evidence");
   const [evidencePage, setEvidencePage] = useState(0);
-  const [directFocus, setDirectFocus] = useState<{
-    id: string;
-    key: string;
-  } | null>(null);
-  const [selected, setSelected] = useState<GraphNode | null>(null);
+  const [directFocus, setDirectFocus] = useState<string | null>(
+    initial.direct || null,
+  );
+  const [selectedId, setSelectedId] = useState<string | null>(
+    initial.node || null,
+  );
+  const setSelected = (node: GraphNode | null) =>
+    setSelectedId(node?.id ?? null);
+  const urlState = useMemo<UrlState>(
+    () => ({
+      view,
+      root,
+      depth,
+      hidden: optional.filter((kind) => !visible.has(kind)),
+      trail: trail.map((step) => step.id),
+      direct: directFocus ?? "",
+      node: selectedId ?? "",
+    }),
+    [view, root, depth, visible, trail, directFocus, selectedId],
+  );
+  const written = useRef<UrlState>(initial);
+  useEffect(() => {
+    const current = new URLSearchParams(window.location.search);
+    const next = writeUrlState(current, urlState);
+    const previous = written.current;
+    written.current = urlState;
+    if (next.toString() === current.toString()) return;
+    const href = `${window.location.pathname}${next.size ? `?${next}` : ""}${window.location.hash}`;
+    // A new neighborhood or direct focus is a history step; layer, depth and
+    // selection changes refine the current entry.
+    if (
+      previous.view !== urlState.view ||
+      previous.root !== urlState.root ||
+      previous.direct !== urlState.direct ||
+      previous.trail.join("\n") !== urlState.trail.join("\n")
+    )
+      window.history.pushState(null, "", href);
+    else window.history.replaceState(null, "", href);
+  }, [urlState]);
+  useEffect(() => {
+    const restore = () => {
+      const state = readUrlState(new URLSearchParams(window.location.search));
+      const memory = steps.current.get(state.root);
+      written.current = state;
+      setView(state.view);
+      setRoot(state.root);
+      setDepth(state.depth);
+      setVisible(visibleFrom(state.hidden));
+      setTrail(
+        state.trail.map((id) => steps.current.get(id) ?? urlStep(id, state)),
+      );
+      setDirectFocus(state.direct || null);
+      setSelectedId(state.node || null);
+      setRootOffset(memory?.rootOffset ?? 0);
+      setSafeguardPage(
+        memory?.safeguardPage ?? { root: "", framework: "", offset: 0 },
+      );
+      setRepositoryView(memory?.repositoryView ?? "evidence");
+      setEvidencePage(memory?.evidencePage ?? 0);
+      setVersion("");
+    };
+    window.addEventListener("popstate", restore);
+    return () => window.removeEventListener("popstate", restore);
+  }, []);
   const params = new URLSearchParams({
     view,
     root_offset: String(demo ? 0 : rootOffset),
     depth: String(depth),
     limit: "150",
     search: demo ? "" : search,
-    layers: (demo ? layers : [...visible]).slice().sort().join(","),
+    // Layers filter the loaded neighborhood in the browser. The API's layer
+    // filter prunes nodes before traversal, so sending visible layers would
+    // turn a view toggle into a different bounded query.
+    layers: layers.slice().sort().join(","),
   });
   if (root) params.set("root", root);
   if (safeguardPage.root === root) {
@@ -244,25 +373,30 @@ export function InvestigationExplorer() {
       ]),
     };
   }, [data, currentRoot, evidenceScope, evidencePage]);
-  const focusKey = `${params.toString()}:${data?.version ?? ""}`;
   const directId =
-    directFocus?.key === focusKey &&
-    data?.nodes.some((n) => n.id === directFocus.id)
-      ? directFocus.id
+    directFocus && data?.nodes.some((n) => n.id === directFocus)
+      ? directFocus
       : null;
-  const scopeIds = useMemo(() => {
-    const scope =
+  // Scope before layer visibility, so inspecting a node hidden only by its
+  // layer can reveal the layer without leaving the current focus.
+  const focusScope = useMemo(
+    () =>
       directId && data
         ? graphScope(data.edges, new Set([directId]), 1)
         : repositoryRoot && repositoryView === "evidence"
           ? evidencePages.ids
-          : new Set(data?.nodes.map((node) => node.id));
-    return new Set(
-      data?.nodes
-        .filter((node) => scope.has(node.id) && visible.has(node.kind))
-        .map((node) => node.id),
-    );
-  }, [data, directId, evidencePages, repositoryRoot, repositoryView, visible]);
+          : new Set(data?.nodes.map((node) => node.id)),
+    [data, directId, evidencePages, repositoryRoot, repositoryView],
+  );
+  const scopeIds = useMemo(
+    () =>
+      new Set(
+        data?.nodes
+          .filter((node) => focusScope.has(node.id) && visible.has(node.kind))
+          .map((node) => node.id),
+      ),
+    [data, focusScope, visible],
+  );
   const canvasGraph = useMemo(
     () =>
       directId && data
@@ -292,7 +426,7 @@ export function InvestigationExplorer() {
       data?.edges.flatMap((e) => (e.review_state ? [e.review_state] : [])),
     ),
   ];
-  const selectedNode = data?.nodes.find((n) => n.id === selected?.id) ?? null;
+  const selectedNode = data?.nodes.find((n) => n.id === selectedId) ?? null;
   const recordedParent = data?.edges.find(
     (e) =>
       e.target === currentRoot &&
@@ -303,22 +437,21 @@ export function InvestigationExplorer() {
     if (query.isFetching) return;
     setDirectFocus(null);
     if (target.id !== currentRoot) {
-      setTrail((current) => [
-        ...current,
-        {
-          id: currentRoot,
-          label:
-            data?.nodes.find((node) => node.id === currentRoot)?.label ??
-            currentRoot,
-          depth,
-          rootOffset: rootPageOffset,
-          safeguardPage,
-          repositoryView,
-          evidencePage,
-          visible: new Set(visible),
-          version: data?.version ?? "",
-        },
-      ]);
+      const step: NavigationStep = {
+        id: currentRoot,
+        label:
+          data?.nodes.find((node) => node.id === currentRoot)?.label ??
+          currentRoot,
+        depth,
+        rootOffset: rootPageOffset,
+        safeguardPage,
+        repositoryView,
+        evidencePage,
+        visible: new Set(visible),
+        version: data?.version ?? "",
+      };
+      steps.current.set(step.id, step);
+      setTrail((current) => [...current, step]);
       setRoot(target.id);
       setRepositoryView("evidence");
       setEvidencePage(0);
@@ -329,7 +462,7 @@ export function InvestigationExplorer() {
   const inspectNode = (node: GraphNode) => {
     if (!data?.nodes.some((item) => item.id === node.id)) {
       exploreNode(node);
-    } else if (!scopeIds.has(node.id)) {
+    } else if (!focusScope.has(node.id)) {
       setDirectFocus(null);
       setRepositoryView("all");
     }
@@ -405,6 +538,7 @@ export function InvestigationExplorer() {
                 value={currentRoot}
                 onChange={(e) => {
                   setTrail([]);
+                  setDirectFocus(null);
                   setRoot(e.target.value);
                   setSafeguardPage({ root: "", framework: "", offset: 0 });
                   setRepositoryView("evidence");
@@ -455,7 +589,10 @@ export function InvestigationExplorer() {
                 aria-label="Graph depth"
                 className="ui-input"
                 value={depth}
-                onChange={(e) => setDepth(Number(e.target.value))}
+                onChange={(e) => {
+                  setDepth(Number(e.target.value));
+                  setDirectFocus(null);
+                }}
               >
                 {[1, 2, 3].map((n) => (
                   <option key={n} value={n}>
@@ -474,14 +611,14 @@ export function InvestigationExplorer() {
               Refresh evidence
             </Button>
           </div>
-          {demo && (
-            <p className="text-xs text-muted">
-              Searches recorded starting points. Layer filters apply to the
-              loaded neighborhood.
-              {recordedRoots.length === 0 &&
-                " No recorded starting points match this search."}
-            </p>
-          )}
+          <p className="text-xs text-muted">
+            {demo && "Searches recorded starting points. "}
+            Layer filters hide nodes in the loaded neighborhood; they do not
+            change what is loaded.
+            {demo &&
+              recordedRoots.length === 0 &&
+              " No recorded starting points match this search."}
+          </p>
           <details>
             <summary className="cursor-pointer text-xs font-semibold">
               Visible relationship layers
@@ -499,7 +636,6 @@ export function InvestigationExplorer() {
                         else next.delete(kind);
                         return next;
                       });
-                      if (!demo) setVersion("");
                     }}
                   />
                   {kind.replaceAll("_", " ")}
@@ -573,6 +709,7 @@ export function InvestigationExplorer() {
                         setVisible(new Set(previous.visible));
                       }
                       setTrail(trail.slice(0, -1));
+                      setDirectFocus(null);
                       setSelected(null);
                       setVersion(previous?.version ?? data.version);
                     }}
@@ -601,7 +738,10 @@ export function InvestigationExplorer() {
                         aria-label="Workspace graph depth"
                         className="ui-input"
                         value={depth}
-                        onChange={(e) => setDepth(Number(e.target.value))}
+                        onChange={(e) => {
+                          setDepth(Number(e.target.value));
+                          setDirectFocus(null);
+                        }}
                       >
                         {[1, 2, 3].map((n) => (
                           <option key={n} value={n}>
@@ -832,9 +972,7 @@ export function InvestigationExplorer() {
                   {selectedNode && !directId && (
                     <Button
                       size="sm"
-                      onClick={() =>
-                        setDirectFocus({ id: selectedNode.id, key: focusKey })
-                      }
+                      onClick={() => setDirectFocus(selectedNode.id)}
                     >
                       Focus direct relationships
                     </Button>
@@ -938,7 +1076,7 @@ export function InvestigationExplorer() {
                     : `${scopeIds.size} of ${data.nodes.length} loaded nodes · ${shownEdges} of ${data.edges.length} relationships`}{" "}
                   · {data.boundary}.{" "}
                   {data.truncated
-                    ? `${data.matching_nodes} nodes match; showing a bounded subset. Reduce depth or expand a selected node.`
+                    ? `${data.matching_nodes} nodes match; showing a bounded subset${urlState.hidden.length ? " that includes hidden layers" : ""}. Reduce depth or expand a selected node.`
                     : ""}{" "}
                   {demo ? "Recorded demo starting points. " : ""}
                   {rootCount > 50
