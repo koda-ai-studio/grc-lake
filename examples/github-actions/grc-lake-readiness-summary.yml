@@ -1,0 +1,71 @@
+# Targets v0.3.24; use after that release is published.
+# Try the GRC Lake Readiness action with no deployment of your own.
+#
+# Copy into .github/workflows/ of any repository. The job installs GRC Lake on
+# the runner, loads the bundled "golden" sample company, serves it on the
+# runner's loopback interface, and runs the readiness action, which writes a
+# framework readiness table to the job summary and keeps one comment on the
+# pull request up to date. The sample is synthetic and not ready, so the
+# action runs with enforce: "false" (report only).
+#
+# Against a real deployment, set grc-lake-url and api-token from secrets and
+# leave enforce at its default to block on your thresholds.
+# Reference: docs/CI_GATE.md
+name: GRC Lake readiness (sample data)
+
+on:
+  workflow_dispatch:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  readiness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pull-requests: write # only for comment-on-pr
+    env:
+      GRC_LAKE_URL: http://127.0.0.1:8787
+    steps:
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: Install GRC Lake
+        run: pip install "grc-lake[server]==0.3.23"
+
+      - name: Load the sample company
+        run: grc-lake fixtures load --company golden --out "$RUNNER_TEMP/lake" --rebase-times
+
+      # No authentication, bound to the runner's loopback only, sample data only.
+      - name: Serve GRC Lake on the runner
+        run: |
+          nohup grc-lake serve --server --allow-insecure-no-auth \
+            --lake "$RUNNER_TEMP/lake" --host 127.0.0.1 --port 8787 \
+            > "$RUNNER_TEMP/grc-lake.log" 2>&1 &
+          for _ in $(seq 1 30); do
+            curl -fsS "$GRC_LAKE_URL/api/healthz" && exit 0
+            sleep 2
+          done
+          cat "$RUNNER_TEMP/grc-lake.log"
+          exit 1
+
+      - name: GRC Lake readiness
+        id: readiness
+        uses: koda-ai-studio/grc-lake@v0.3.23
+        with:
+          grc-lake-url: ${{ env.GRC_LAKE_URL }}
+          comment-on-pr: ${{ github.event_name == 'pull_request' }}
+          enforce: "false"
+          min-score: "70"
+          max-critical-violations: "0"
+
+      - name: Use the outputs
+        env:
+          READY: ${{ steps.readiness.outputs.frameworks-ready-count }}
+          EVALUATED: ${{ steps.readiness.outputs.frameworks-evaluated-count }}
+          SCORE: ${{ steps.readiness.outputs.posture_score }}
+        run: echo "${READY} of ${EVALUATED} frameworks ready; posture ${SCORE}"

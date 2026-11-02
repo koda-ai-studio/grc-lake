@@ -83,18 +83,18 @@ The legacy `trustops-url` input remains accepted; `grc-lake-url` takes precedenc
 
 ## Inputs
 
-| Input                       | Default         | Meaning                                                                      |
-| --------------------------- | --------------- | ---------------------------------------------------------------------------- |
-| `grc-lake-url`              | required        | Base URL of the deployment, no trailing slash.                               |
-| `api-token`                 | empty           | Bearer API key with read scope. Empty only for a local no-auth server.       |
-| `correlation-id`            | `github.run_id` | Sent as `X-Correlation-ID`, so the run appears in the GRC Lake audit trail.  |
-| `min-score`                 | `0`             | Minimum posture score, 0 to 100.                                             |
-| `max-critical-violations`   | `0`             | Maximum open critical violations.                                            |
-| `max-open-violations`       | `-1`            | Maximum open violations of any severity; `-1` skips the check.               |
-| `max-failing-control-tests` | `0`             | Maximum failing control tests after the allowlist; `-1` skips the check.     |
-| `allowed-failing-controls`  | empty           | Comma-separated control IDs that may fail without failing the gate.          |
-| `framework`                 | empty           | Only count failing control tests for this framework ID (for example `soc2`). |
-| `fail-on-stale-evidence`    | `false`         | `true` also fails the gate when any control has stale or expired evidence.   |
+| Input                       | Default         | Meaning                                                                         |
+| --------------------------- | --------------- | ------------------------------------------------------------------------------- |
+| `grc-lake-url`              | required        | Base URL of the deployment, no trailing slash.                                  |
+| `api-token`                 | empty           | Bearer API key with read scope. Empty only for a local no-auth server.          |
+| `correlation-id`            | `github.run_id` | Sent as `X-Correlation-ID`, so the run appears in the GRC Lake audit trail.     |
+| `min-score`                 | `0`             | Minimum posture score, 0 to 100.                                                |
+| `max-critical-violations`   | `0`             | Maximum open critical violations.                                               |
+| `max-open-violations`       | `-1`            | Maximum open violations of any severity; `-1` skips the check.                  |
+| `max-failing-control-tests` | `0`             | Maximum failing control tests after the allowlist; `-1` skips the check.        |
+| `allowed-failing-controls`  | empty           | Comma-separated control IDs that may fail without failing the gate.             |
+| `framework`                 | empty           | Only count failing control tests for this framework name (for example `SOC 2`). |
+| `fail-on-stale-evidence`    | `false`         | `true` also fails the gate when any control has stale or expired evidence.      |
 
 ## Outputs
 
@@ -112,10 +112,106 @@ The legacy `trustops-url` input remains accepted; `grc-lake-url` takes precedenc
   things. The gate then fails only on regressions.
 - **Known exceptions.** List a control in `allowed-failing-controls` while an
   approved exception is open, and remove it when the exception closes.
-- **Per framework.** Use `framework` to gate one program, for example a SOC 2
+- **Per framework.** Use `framework` with the exact framework name GRC Lake reports
+  (case-sensitive, for example `SOC 2`) to gate one program, for example a SOC 2
   audit window, without blocking on the others.
 
 The gate needs `curl` and `jq` on the runner; GitHub-hosted Ubuntu runners
 have both. It calls `GET /api/v1/posture/current` and, unless
 `max-failing-control-tests` is `-1` and there is no allowlist,
 `GET /api/v1/control-tests?result=fail`.
+
+## Readiness summary action
+
+The **GRC Lake Readiness** action is the repository's root [`action.yml`](../action.yml),
+so a workflow calls it as `koda-ai-studio/grc-lake@<release>`. It ships starting with
+v0.3.24. It reads `GET /api/v1/posture/current` once and writes a framework table to
+the job summary, runs the same posture gate as above with the same threshold inputs,
+and can keep one comment on the pull request up to date. It contacts only
+`grc-lake-url` and, when commenting, the GitHub API of the run (`GITHUB_API_URL`).
+
+```yaml
+name: GRC Lake readiness
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  readiness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: GRC Lake readiness
+        id: readiness
+        uses: koda-ai-studio/grc-lake@v0.3.23
+        with:
+          grc-lake-url: ${{ secrets.GRC_LAKE_URL }}
+          api-token: ${{ secrets.GRC_LAKE_API_TOKEN }}
+          comment-on-pr: "true"
+          min-score: "70"
+          max-critical-violations: "0"
+```
+
+To try it with no deployment, copy
+[`examples/github-actions/grc-lake-readiness-summary.yml`](../examples/github-actions/grc-lake-readiness-summary.yml),
+which serves the bundled sample company on the runner's loopback.
+
+The table has one row per framework: score, state, passing and total controls,
+failing controls, controls not evaluated, and controls affected by a collection gap.
+A framework counts as ready only when GRC Lake reports `ready` and every control
+passes: a framework with a control that is not evaluated or affected by a
+collection gap is never shown or counted as ready. When the lake holds the bundled
+sample data, the summary opens with a synthetic data banner; collection gap sources
+are named under the table; the gate result and its reasons close the summary. If the
+deployment cannot be reached or returns an unusable response, the step fails and
+writes no summary.
+
+### Readiness inputs
+
+| Input                       | Default         | Meaning                                                                                        |
+| --------------------------- | --------------- | ---------------------------------------------------------------------------------------------- |
+| `grc-lake-url`              | required        | Base URL of the deployment.                                                                    |
+| `api-token`                 | empty           | Bearer API key with read scope. Empty only for a local no-auth server.                         |
+| `correlation-id`            | `github.run_id` | Sent as `X-Correlation-ID`.                                                                    |
+| `summary`                   | `true`          | Write the summary to the job summary. The file at `summary-path` is written either way.        |
+| `comment-on-pr`             | `false`         | On a `pull_request` run, create or update one pull request comment with the summary.           |
+| `github-token`              | `github.token`  | Used only when `comment-on-pr` is `true`; needs `pull-requests: write`.                        |
+| `framework`                 | empty           | Show only this framework (exact name, for example `SOC 2`) and gate only its failing tests.    |
+| `min-score`                 | `0`             | As in the posture gate.                                                                        |
+| `max-critical-violations`   | `0`             | As in the posture gate.                                                                        |
+| `max-open-violations`       | `-1`            | As in the posture gate.                                                                        |
+| `max-failing-control-tests` | `0`             | As in the posture gate.                                                                        |
+| `allowed-failing-controls`  | empty           | As in the posture gate.                                                                        |
+| `fail-on-stale-evidence`    | `false`         | As in the posture gate.                                                                        |
+| `enforce`                   | `true`          | `false` reports threshold failures as warnings in the summary and never fails the job on them. |
+
+### Readiness outputs
+
+| Output                       | Meaning                                                  |
+| ---------------------------- | -------------------------------------------------------- |
+| `posture_score`              | As in the posture gate.                                  |
+| `posture_state`              | As in the posture gate.                                  |
+| `open_violation_count`       | As in the posture gate.                                  |
+| `critical_violation_count`   | As in the posture gate.                                  |
+| `failed_control_test_count`  | As in the posture gate.                                  |
+| `summary-path`               | Path of the rendered Markdown summary on the runner.     |
+| `frameworks-ready-count`     | Frameworks in the summary that are ready.                |
+| `frameworks-evaluated-count` | Frameworks in the summary, after the `framework` filter. |
+
+### Pull request comment
+
+With `comment-on-pr: "true"` on a `pull_request` (or `pull_request_target`) run, the
+action looks for its own comment, identified by the first line
+`<!-- grc-lake-readiness -->`, and updates it in place; if there is none, it creates
+one. Grant `pull-requests: write` to the job only when you turn commenting on;
+otherwise `contents: read` is enough. On any other event the comment is skipped with
+a notice. The token is never printed. If GitHub rejects the comment (for example a
+read-only token on a pull request from a fork), the step logs a warning and the job
+summary and gate result are unaffected. A missing `github-token` is a configuration
+error and fails the step.

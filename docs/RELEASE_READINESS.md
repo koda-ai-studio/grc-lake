@@ -31,6 +31,10 @@ retain their exact source revisions and synthetic workload limits. They do not
 establish production capacity or qualify a deployment memory budget; 100k records
 remain outside the accepted local interactive profile.
 
+Listing the root [GRC Lake Readiness action](CI_GATE.md#readiness-summary-action) on the
+GitHub Marketplace is a manual maintainer step after a release tag is published; the
+release workflow does not publish it.
+
 ## 0.3.23 release
 
 0.3.23 is published; see the [publication receipt](#verified-0323-publication).
