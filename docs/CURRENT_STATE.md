@@ -1,9 +1,13 @@
 # Current state and coverage
 
-Release verification: **2026-11-01**. Latest published release checked: **v0.3.23**.
-See the [publication receipt](RELEASE_READINESS.md#verified-0323-publication) for artifact and runtime evidence.
+Release verification: **2026-11-02**. Latest published release checked: **v0.3.24**.
+See the [publication receipt](RELEASE_READINESS.md#verified-0324-publication) for artifact and runtime evidence.
 Changes on `main` or in a pull request can be newer than the published package. Check the [releases](https://github.com/koda-ai-studio/grc-lake/releases)
 and [changelog](../CHANGELOG.md) for the version you install.
+
+0.3.24 adds the readiness action, finding exports, a Preview connector scaffold,
+reviewed-without-contract disclosure and restorable graph filters. These do not
+expand live-provider, human-review or production-capacity qualification.
 
 0.3.23 adds second-review packet preparation, stricter qualification receipt
 checks and bounded synthetic scale measurements without expanding live-provider,
