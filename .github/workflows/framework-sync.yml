@@ -30,7 +30,7 @@ jobs:
           python-version: "3.11"
       - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
         with:
-          version: "0.13.5" # keep in step with the Dockerfile uv image
+          version: "0.13.6" # keep in step with the Dockerfile uv image
       - name: Install package (frozen lockfile)
         run: uv sync --frozen
       # A regulator that is down or blocking us is reported per framework and

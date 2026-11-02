@@ -27,7 +27,7 @@ jobs:
           python-version: "3.13"
       - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
         with:
-          version: "0.13.5" # keep in step with the Dockerfile uv image
+          version: "0.13.6" # keep in step with the Dockerfile uv image
           enable-cache: true
       - name: Install
         run: uv sync --frozen --extra server
