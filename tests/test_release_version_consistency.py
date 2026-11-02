@@ -32,14 +32,20 @@ def test_release_version_is_consistent_across_package_chart_and_console() -> Non
     compose = (ROOT / "compose.yaml").read_text(encoding="utf-8")
     assert compose.count(f"ghcr.io/koda-ai-studio/grc-lake:${{GRC_LAKE_VERSION:-{RELEASE_VERSION}}}") == 2
     for doc in (
+        "README.md",
         "docs/CI_GATE.md",
         "docs/playbooks/CI_POSTURE_GATE.md",
         "docs/api/AGENT_SKILLS.md",
         "examples/github-actions/grc-lake-golden-gate.yml",
         "examples/github-actions/grc-lake-posture-gate.yml",
+        "examples/github-actions/grc-lake-readiness-summary.yml",
     ):
         text = (ROOT / doc).read_text(encoding="utf-8")
-        refs = re.findall(r"posture-gate@v([\d.]+)", text) + re.findall(r"grc-lake\[server\]==([\d.]+)", text)
+        refs = (
+            re.findall(r"posture-gate@v([\d.]+)", text)
+            + re.findall(r"koda-ai-studio/grc-lake@v([\d.]+)", text)
+            + re.findall(r"grc-lake\[server\]==([\d.]+)", text)
+        )
         assert refs and set(refs) == {RELEASE_VERSION}, (doc, refs)
     # Development after a release may add an Unreleased section without
     # changing the published package/chart/console version.
@@ -67,6 +73,8 @@ def test_every_workflow_action_is_pinned_to_a_commit_sha() -> None:
         for name, text in _workflow_texts().items()
         for line in text.splitlines()
         if re.match(r"^\s*(-\s+)?uses:", line)
+        # This repository's own root action, checked out at the commit under test.
+        and not re.search(r"uses: \./$", line)
         and not re.search(r"uses: [\w./-]+@[0-9a-f]{40} # v\d+(\.\d+){0,2}$", line)
     ]
     assert not unpinned, unpinned

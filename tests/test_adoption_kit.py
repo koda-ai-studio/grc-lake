@@ -13,6 +13,7 @@ from repo_files import repo_files
 
 ROOT = Path(__file__).resolve().parents[1]
 ACTION = yaml.safe_load((ROOT / ".github" / "actions" / "posture-gate" / "action.yml").read_text(encoding="utf-8"))
+READINESS_ACTION = yaml.safe_load((ROOT / "action.yml").read_text(encoding="utf-8"))
 EXAMPLES = sorted((ROOT / "examples" / "github-actions").glob("*.yml"))
 
 
@@ -124,12 +125,20 @@ def test_server_env_example_lists_the_signing_key_without_a_value() -> None:
 # --- posture gate CI docs and examples ---------------------------------------
 
 
-def _gate_steps(workflow: dict[str, Any]) -> list[dict[str, Any]]:
+def _action_for(uses: str) -> dict[str, Any] | None:
+    if "posture-gate" in uses:
+        return ACTION
+    if re.fullmatch(r"koda-ai-studio/grc-lake@\S+|\./", uses):
+        return READINESS_ACTION
+    return None
+
+
+def _gate_steps(workflow: dict[str, Any]) -> list[tuple[dict[str, Any], dict[str, Any]]]:
     return [
-        step
+        (step, action)
         for job in workflow["jobs"].values()
         for step in job["steps"]
-        if "posture-gate" in str(step.get("uses", ""))
+        if (action := _action_for(str(step.get("uses", "")))) is not None
     ]
 
 
@@ -138,22 +147,24 @@ def test_example_workflows_only_use_declared_action_inputs_and_outputs(path: Pat
     text = path.read_text(encoding="utf-8")
     workflow = yaml.safe_load(text)
     steps = _gate_steps(workflow)
-    assert steps, f"{path.name} never calls the posture gate"
-    required = {name for name, spec in ACTION["inputs"].items() if spec.get("required")}
-    for step in steps:
-        assert set(step["with"]) <= set(ACTION["inputs"]), set(step["with"]) - set(ACTION["inputs"])
+    assert steps, f"{path.name} never calls the posture gate or the readiness action"
+    outputs_by_id = {}
+    for step, action in steps:
+        required = {name for name, spec in action["inputs"].items() if spec.get("required")}
+        assert set(step["with"]) <= set(action["inputs"]), set(step["with"]) - set(action["inputs"])
         assert required <= set(step["with"])
-    gate_ids = {step["id"] for step in steps if "id" in step}
+        if "id" in step:
+            outputs_by_id[step["id"]] = action["outputs"]
     for step_id, output in re.findall(r"steps\.([\w-]+)\.outputs\.([\w-]+)", text):
-        if step_id in gate_ids:
-            assert output in ACTION["outputs"], output
+        if step_id in outputs_by_id:
+            assert output in outputs_by_id[step_id], output
 
 
 @pytest.mark.parametrize("path", EXAMPLES, ids=lambda p: p.name)
 def test_example_workflows_pin_third_party_actions_to_a_commit(path: Path) -> None:
     for line in path.read_text(encoding="utf-8").splitlines():
         match = re.match(r"^\s*(?:-\s+)?uses:\s*(\S+)", line)
-        if not match or "posture-gate" in match.group(1):
+        if not match or _action_for(match.group(1)) is not None:
             continue
         assert re.search(r"@[0-9a-f]{40} # v\d+(\.\d+){2}$", line), line
 
@@ -166,8 +177,8 @@ def test_ci_gate_doc_covers_every_action_input_and_output() -> None:
         parsed = yaml.safe_load(block)
         workflows = [parsed] if isinstance(parsed, dict) and "jobs" in parsed else []
         for workflow in workflows:
-            for step in _gate_steps(workflow):
-                assert set(step["with"]) <= set(ACTION["inputs"])
+            for step, action in _gate_steps(workflow):
+                assert set(step["with"]) <= set(action["inputs"])
 
 
 # --- community files ----------------------------------------------------------

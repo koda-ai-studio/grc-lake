@@ -1,0 +1,82 @@
+name: readiness action
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sample:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    env:
+      GRC_LAKE_URL: http://127.0.0.1:8787
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.13"
+      - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
+        with:
+          version: "0.13.5" # keep in step with the Dockerfile uv image
+          enable-cache: true
+      - name: Install
+        run: uv sync --frozen --extra server
+      - name: Load and serve the sample company on loopback
+        run: |
+          uv run grc-lake fixtures load --company golden --out "$RUNNER_TEMP/lake" --rebase-times
+          nohup uv run grc-lake serve --server --allow-insecure-no-auth \
+            --lake "$RUNNER_TEMP/lake" --host 127.0.0.1 --port 8787 \
+            > "$RUNNER_TEMP/grc-lake.log" 2>&1 &
+          for _ in $(seq 1 30); do
+            curl -fsS "$GRC_LAKE_URL/api/healthz" && exit 0
+            sleep 2
+          done
+          cat "$RUNNER_TEMP/grc-lake.log"
+          exit 1
+      - name: Readiness summary (report only)
+        id: report
+        uses: ./
+        with:
+          grc-lake-url: ${{ env.GRC_LAKE_URL }}
+          enforce: "false"
+          min-score: "70"
+          max-failing-control-tests: "0"
+      - name: Readiness gate (expected to fail on the sample)
+        id: strict
+        continue-on-error: true
+        uses: ./
+        with:
+          grc-lake-url: ${{ env.GRC_LAKE_URL }}
+          summary: "false"
+          min-score: "70"
+      - name: Assert the summary and the gate
+        env:
+          SUMMARY_PATH: ${{ steps.report.outputs.summary-path }}
+          READY: ${{ steps.report.outputs.frameworks-ready-count }}
+          EVALUATED: ${{ steps.report.outputs.frameworks-evaluated-count }}
+          STATE: ${{ steps.report.outputs.posture_state }}
+          REPORT_OUTCOME: ${{ steps.report.outcome }}
+          STRICT_OUTCOME: ${{ steps.strict.outcome }}
+        run: |
+          test "${REPORT_OUTCOME}" = "success"
+          test "${STRICT_OUTCOME}" = "failure"
+          test "${EVALUATED}" -gt 0
+          test "${READY}" -le "${EVALUATED}"
+          test -n "${STATE}"
+          grep -q '^<!-- grc-lake-readiness -->$' "${SUMMARY_PATH}"
+          grep -q '^| Framework | Score | State |' "${SUMMARY_PATH}"
+          grep -q 'Synthetic sample data' "${SUMMARY_PATH}"
+          grep -q '^\*\*Gate: not enforced\*\*' "${SUMMARY_PATH}"
+      - name: Server log
+        if: failure()
+        run: cat "$RUNNER_TEMP/grc-lake.log"

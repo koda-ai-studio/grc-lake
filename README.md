@@ -57,6 +57,16 @@ lake to outlive the demo, so start it with `grc-lake demo --lake ./lake`.
 For a real evaluation, follow the [bounded pilot guide](docs/PILOT.md): one source,
 one independently checked result, then a repeat collection and review.
 
+**Use it in CI.** From v0.3.24, one step posts a framework readiness table to the job
+summary and can gate the merge ([CI gate](docs/CI_GATE.md#readiness-summary-action)):
+
+```yaml
+- uses: koda-ai-studio/grc-lake@v0.3.23
+  with:
+    grc-lake-url: ${{ secrets.GRC_LAKE_URL }}
+    api-token: ${{ secrets.GRC_LAKE_API_TOKEN }}
+```
+
 <details>
 <summary>Keep a lake, Docker, source development, or MCP</summary>
 
