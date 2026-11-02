@@ -1,4 +1,4 @@
-# Targets the published v0.3.25 release.
+# Targets v0.3.25 (published release).
 # Try the GRC Lake Readiness action with no deployment of your own.
 #
 # Copy into .github/workflows/ of any repository. The job installs GRC Lake on
