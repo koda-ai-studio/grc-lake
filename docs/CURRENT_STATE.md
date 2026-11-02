@@ -1,9 +1,12 @@
 # Current state and coverage
 
-Release verification: **2026-11-02**. Latest published release checked: **v0.3.24**.
-See the [publication receipt](RELEASE_READINESS.md#verified-0324-publication) for artifact and runtime evidence.
+Release verification: **2026-11-02**. Latest published release checked: **v0.3.25**.
+See the [publication receipt](RELEASE_READINESS.md#verified-0325-publication) for artifact and runtime evidence.
 Changes on `main` or in a pull request can be newer than the published package. Check the [releases](https://github.com/koda-ai-studio/grc-lake/releases)
 and [changelog](../CHANGELOG.md) for the version you install.
+
+0.3.25 updates console dependencies and the uv build toolchain. Published-package,
+upgrade and CCF evidence-applicability checks passed within their recorded scope.
 
 0.3.24 adds the readiness action, finding exports, a Preview connector scaffold,
 reviewed-without-contract disclosure and restorable graph filters. These do not
