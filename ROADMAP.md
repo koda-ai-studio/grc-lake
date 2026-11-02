@@ -1,9 +1,8 @@
 # GRC Lake roadmap
 
-Status as of v0.3.24, checked **2026-11-02**; **v0.3.24 is published**.
-This release adds the readiness action, portable finding exports, a Preview
-connector scaffold and reviewed-without-contract disclosure. Deeper provider,
-safeguard-contract and capacity qualification remain below.
+Status as of v0.3.25, checked **2026-11-02**; **v0.3.25 is published**.
+This maintenance patch updates console dependencies and the uv build toolchain.
+Deeper provider, safeguard-contract and capacity qualification remain below.
 Start with [current state and coverage](docs/CURRENT_STATE.md) for shipped paths
 and qualification boundaries. This roadmap describes remaining work, not promises
 of release dates.
@@ -22,7 +21,7 @@ approval is implied by preparing this process.
 Releases 0.3.13 through 0.3.22 separated control-test posture from framework
 results, bounded graph layouts and reads, scoped evidence by provider and source
 account, and hardened transport and review-state validation. Published-artifact
-verification now covers v0.3.24 in the [publication receipt](docs/RELEASE_READINESS.md#verified-0324-publication).
+verification now covers v0.3.25 in the [publication receipt](docs/RELEASE_READINESS.md#verified-0325-publication).
 Provider depth, independent mapping review and measured capacity remain separate
 work below. Correctness, security, migration and supported-workflow regressions
 remain release blockers.

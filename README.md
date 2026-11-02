@@ -59,7 +59,7 @@ one independently checked result, then a repeat collection and review.
 
 **Use it in CI.** From v0.3.24, one step posts a framework readiness table to the job
 summary and can gate the merge ([CI gate](docs/CI_GATE.md#readiness-summary-action)).
-The example below targets 0.3.25; use it after that release is published.
+The example below uses the published 0.3.25 release.
 
 ```yaml
 - uses: koda-ai-studio/grc-lake@v0.3.25
@@ -81,7 +81,7 @@ grc-lake serve --server --allow-insecure-no-auth --lake ./lake
 Docker (public image, no registry login):
 
 ```bash
-git clone --branch v0.3.24 --depth 1 https://github.com/koda-ai-studio/grc-lake.git
+git clone --branch v0.3.25 --depth 1 https://github.com/koda-ai-studio/grc-lake.git
 cd grc-lake && docker compose up
 ```
 
