@@ -1,0 +1,342 @@
+{
+  "batches": [
+    {
+      "basis_sha256": "1933ab2c6a0045080c2e88adffabcad43bbcafeb1c1ae5c695722a7c137ba106",
+      "batch_id": "review-001",
+      "mapping_count": 3,
+      "requirement_count": 3,
+      "requirements": [
+        {
+          "candidates": [
+            {
+              "contributes_to_coverage": true,
+              "control_id": "SOC2-A1.1",
+              "control_title": "Capacity and performance are monitored against availability commitments",
+              "decision": null,
+              "decision_count": 0,
+              "expected_decision_id": null,
+              "framework_id": "soc2",
+              "latest_decision": null,
+              "maintainer_review": {
+                "maintainer_review_ref": "controls/reviews/2026-10-15-soc2-iso-repairs.json",
+                "reviewed_by": "msaad00"
+              },
+              "mapping_basis": "vendor_guided_proposal",
+              "mapping_source": {
+                "locator": "CCF 335; CCF 336; Implementation guidance only; not a published equivalence to the GRC Lake safeguard or complete normative requirement text.",
+                "name": "Cisco Cloud Controls Framework 4.0",
+                "sha256": "056e09766e40caba0156cb9ecdd76c969d8ea2d789e2b77c944dcf040aa49e8d",
+                "url": "https://www.cisco.com/c/dam/en_us/about/doing_business/trust-center/docs/cisco-ccf-v4.zip"
+              },
+              "operating_contract": {
+                "asset_types": [
+                  "cloud_resource",
+                  "data_store",
+                  "host",
+                  "service"
+                ],
+                "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+                "evidence_requirement": "A scoped assessor record, explicitly bound to this safeguard and asset, must identify the assessor, assessment period, population, applicability, evidence references, tests and exceptions. Examine and test capacity thresholds, utilization trends, demand forecasts, and capacity changes linked to service commitments. Record unmet checks and remaining uncertainty. A sampled pass does not establish population completeness. An imported pass flag does not verify these checks or approve the mapping.",
+                "frequency": "documented assessment schedule and after material change",
+                "objective": "Assess the requirement \u201cCapacity and performance are monitored against availability commitments\u201d within the declared system, period, and population.",
+                "owner": "security-assurance",
+                "required_evidence_types": ["review_soc2_a1_1"]
+              },
+              "rationale": null,
+              "requirement_evidence": "Current evidence demonstrates capacity and performance are monitored against availability commitments with no open high-risk failure or stale proof.",
+              "requires_catalog_repair": false,
+              "review_basis_sha256": "7ce361749ea183cb78ee004d5324ad7f231951cf4ba2259051d09d0cbac2a1d8",
+              "review_label": "maintainer-reviewed",
+              "review_provenance": "maintainer_receipt",
+              "review_state": "maintainer_reviewed",
+              "reviewed_anchors": [],
+              "reviewer": null,
+              "risk_domain": "availability",
+              "role": "primary",
+              "safeguard_id": "SG-REVIEW-SOC2-A1-1",
+              "safeguard_title": "Capacity and performance are monitored against availability commitments",
+              "shipped_review_status": "reviewed",
+              "source_reference_present": true
+            }
+          ],
+          "control_id": "SOC2-A1.1",
+          "control_title": "Capacity and performance are monitored against availability commitments",
+          "framework_id": "soc2",
+          "requirement": {
+            "asset_types": ["service", "host", "data_store", "cloud_resource"],
+            "change_reason": "Framework pack sync",
+            "control_id": "SOC2-A1.1",
+            "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+            "evidence_requirement": "Current evidence demonstrates capacity and performance are monitored against availability commitments with no open high-risk failure or stale proof.",
+            "framework": "SOC 2",
+            "framework_id": "soc2",
+            "framework_ref": "SOC 2 A1.1",
+            "frequency": "continuous",
+            "implementation_status": "implemented",
+            "lifecycle_status": "active",
+            "mapping_rationale": "Pack mapping: control identifier matches SOC 2 A1.1 verbatim.",
+            "official_source_ref": "soc2",
+            "owner": "platform-engineering",
+            "reviewed_by": "internal-trust-team",
+            "reviewed_date": "2026-06-30",
+            "risk_domain": "availability",
+            "signal_source": "silver/normalized_events.jsonl",
+            "source_url": "https://www.aicpa-cima.com/resources/download/2017-trust-services-criteria-with-revised-points-of-focus-2022",
+            "superseded_by": null,
+            "supersedes": null,
+            "title": "Capacity and performance are monitored against availability commitments",
+            "valid_from": "2026-06-30",
+            "valid_to": null,
+            "version": "1.0.0"
+          }
+        },
+        {
+          "candidates": [
+            {
+              "contributes_to_coverage": true,
+              "control_id": "SOC2-C1.2",
+              "control_title": "Confidential information is disposed of securely",
+              "decision": null,
+              "decision_count": 0,
+              "expected_decision_id": null,
+              "framework_id": "soc2",
+              "latest_decision": null,
+              "maintainer_review": {
+                "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json",
+                "reviewed_by": "msaad00"
+              },
+              "mapping_basis": null,
+              "mapping_source": null,
+              "operating_contract": {
+                "asset_types": [
+                  "audit_log",
+                  "cloud_policy",
+                  "cloud_resource",
+                  "container_image",
+                  "data_store",
+                  "host",
+                  "identity_user",
+                  "repo",
+                  "s3_bucket",
+                  "service"
+                ],
+                "evaluation_rule": "fail_when_missing_evidence",
+                "evidence_requirement": "CUI protection evidence supports NIST SP 800-171 Rev 2 requirement 3.7.3 (Ensure equipment removed for off-site maintenance is sanitized of any CUI) for CMMC Level 2 assessment.",
+                "frequency": "continuous",
+                "objective": "Retention limits and secure disposal are assessed separately from encryption.",
+                "owner": "platform-engineering",
+                "required_evidence_types": null
+              },
+              "rationale": null,
+              "requirement_evidence": "Current evidence demonstrates confidential information is disposed of securely with no open high-risk failure or stale proof.",
+              "requires_catalog_repair": false,
+              "review_basis_sha256": "b0f145d061d7c45261648f30d6a77716ad53e08cda8ab9576471e178f58c190a",
+              "review_label": "maintainer-reviewed",
+              "review_provenance": "maintainer_receipt",
+              "review_state": "maintainer_reviewed",
+              "reviewed_anchors": [
+                "SOC2-P4.2",
+                "SOC2-P4.3",
+                "NIST-RMF-M-7",
+                "NIST-800-171R3-03.08.03",
+                "NIST-800-171R3-03.14.08"
+              ],
+              "reviewer": null,
+              "risk_domain": "data-protection",
+              "role": "equivalent",
+              "safeguard_id": "SG-DATARETENTION-001",
+              "safeguard_title": "Data retention and secure disposal",
+              "shipped_review_status": "reviewed",
+              "source_reference_present": false
+            }
+          ],
+          "control_id": "SOC2-C1.2",
+          "control_title": "Confidential information is disposed of securely",
+          "framework_id": "soc2",
+          "requirement": {
+            "asset_types": [
+              "data_store",
+              "s3_bucket",
+              "cloud_resource",
+              "service"
+            ],
+            "change_reason": "Framework pack sync",
+            "control_id": "SOC2-C1.2",
+            "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+            "evidence_requirement": "Current evidence demonstrates confidential information is disposed of securely with no open high-risk failure or stale proof.",
+            "framework": "SOC 2",
+            "framework_id": "soc2",
+            "framework_ref": "SOC 2 C1.2",
+            "frequency": "continuous",
+            "implementation_status": "implemented",
+            "lifecycle_status": "active",
+            "mapping_rationale": "Pack mapping: control identifier matches SOC 2 C1.2 verbatim.",
+            "official_source_ref": "soc2",
+            "owner": "security-platform",
+            "reviewed_by": "internal-trust-team",
+            "reviewed_date": "2026-06-30",
+            "risk_domain": "confidentiality",
+            "signal_source": "silver/normalized_events.jsonl",
+            "source_url": "https://www.aicpa-cima.com/resources/download/2017-trust-services-criteria-with-revised-points-of-focus-2022",
+            "superseded_by": null,
+            "supersedes": null,
+            "title": "Confidential information is disposed of securely",
+            "valid_from": "2026-06-30",
+            "valid_to": null,
+            "version": "1.0.0"
+          }
+        },
+        {
+          "candidates": [
+            {
+              "contributes_to_coverage": true,
+              "control_id": "SOC2-CC6.3",
+              "control_title": "Role-based access is provisioned and reviewed",
+              "decision": null,
+              "decision_count": 0,
+              "expected_decision_id": null,
+              "framework_id": "soc2",
+              "latest_decision": null,
+              "maintainer_review": {
+                "maintainer_review_ref": "controls/reviews/2026-10-25-soc2-iso27001-batch.json",
+                "reviewed_by": "msaad00"
+              },
+              "mapping_basis": null,
+              "mapping_source": null,
+              "operating_contract": {
+                "asset_types": [
+                  "account_config",
+                  "audit_log",
+                  "cloud_policy",
+                  "cloud_resource",
+                  "iam_role",
+                  "identity_account",
+                  "identity_group",
+                  "identity_role_assignment",
+                  "identity_user",
+                  "okta_user",
+                  "s3_bucket",
+                  "service",
+                  "user"
+                ],
+                "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+                "evidence_requirement": "Current identity, access review, privileged access, or authorization policy evidence exists and has no open high-risk failure.",
+                "frequency": "continuous",
+                "objective": "Logical access restrictions and MFA are assessed across SOC 2 CC6, ISO 27001 A.5.15, NIST CSF PR.AA, FedRAMP AC-2, CIS IAM, and HIPAA access management.",
+                "owner": "security-platform",
+                "required_evidence_types": null
+              },
+              "rationale": null,
+              "requirement_evidence": "Current evidence demonstrates role-based access is provisioned and reviewed with no open high-risk failure or stale proof.",
+              "requires_catalog_repair": false,
+              "review_basis_sha256": "cf20d11d3e45016045b6951bc9e157c764cdd991e6049a3577ca4314dfc742e5",
+              "review_label": "maintainer-reviewed",
+              "review_provenance": "maintainer_receipt",
+              "review_state": "maintainer_reviewed",
+              "reviewed_anchors": [
+                "NIST-800-171R3-03.01.01",
+                "NIST-800-171R3-03.01.02",
+                "NIST-800-171R3-03.01.05",
+                "NIST-800-171R3-03.01.06",
+                "NIST-800-171R3-03.01.07",
+                "NIST-800-171R3-03.01.10",
+                "NIST-800-171R3-03.01.11",
+                "NIST-800-171R3-03.01.12",
+                "NIST-800-171R3-03.01.18",
+                "NIST-800-171R3-03.01.20",
+                "NIST-800-171R3-03.05.01",
+                "NIST-800-171R3-03.05.02",
+                "NIST-800-171R3-03.05.03",
+                "NIST-800-171R3-03.05.04",
+                "NIST-800-171R3-03.05.05",
+                "NIST-800-171R3-03.05.07",
+                "NIST-800-171R3-03.05.11",
+                "NIST-800-171R3-03.05.12",
+                "NIS2-Art21.2(i)",
+                "NIS2-Art21.2(j)",
+                "DORA-Art9.4(c)",
+                "DORA-Art9.4(d)"
+              ],
+              "reviewer": null,
+              "risk_domain": "identity",
+              "role": "equivalent",
+              "safeguard_id": "SG-IDENTITY-001",
+              "safeguard_title": "Logical access and MFA",
+              "shipped_review_status": "reviewed",
+              "source_reference_present": false
+            }
+          ],
+          "control_id": "SOC2-CC6.3",
+          "control_title": "Role-based access is provisioned and reviewed",
+          "framework_id": "soc2",
+          "requirement": {
+            "asset_types": [
+              "iam_role",
+              "identity_user",
+              "identity_group",
+              "okta_user"
+            ],
+            "change_reason": "Framework pack sync",
+            "control_id": "SOC2-CC6.3",
+            "evaluation_rule": "fail_when_open_violation_or_stale_evidence",
+            "evidence_requirement": "Current evidence demonstrates role-based access is provisioned and reviewed with no open high-risk failure or stale proof.",
+            "framework": "SOC 2",
+            "framework_id": "soc2",
+            "framework_ref": "SOC 2 CC6.3",
+            "frequency": "continuous",
+            "implementation_status": "implemented",
+            "lifecycle_status": "active",
+            "mapping_rationale": "Pack mapping: control identifier matches SOC 2 CC6.3 verbatim.",
+            "official_source_ref": "soc2",
+            "owner": "security-platform",
+            "reviewed_by": "internal-trust-team",
+            "reviewed_date": "2026-06-30",
+            "risk_domain": "identity",
+            "signal_source": "silver/normalized_events.jsonl",
+            "source_url": "https://www.aicpa-cima.com/resources/download/2017-trust-services-criteria-with-revised-points-of-focus-2022",
+            "superseded_by": null,
+            "supersedes": null,
+            "title": "Role-based access is provisioned and reviewed",
+            "valid_from": "2026-06-30",
+            "valid_to": null,
+            "version": "1.0.0"
+          }
+        }
+      ]
+    }
+  ],
+  "boundaries": [
+    "This packet records no decisions and grants no review or assessment credit.",
+    "Source-reference presence is not verification of the source or mapping correctness.",
+    "Counts are distinct catalog requirements; alternate mappings are not additional coverage.",
+    "Organization decisions affect that organization's coverage, not the shipped catalog's maintainer-reviewed count."
+  ],
+  "control_filter": ["SOC2-A1.1", "SOC2-C1.2", "SOC2-CC6.3"],
+  "framework_filter": "soc2",
+  "packet_sha256": "959bdc1f2aea67d05441c7fe35308597672871db59cab4338ba062267a7c93e6",
+  "review_checklist": [
+    "Compare the complete requirement and source with the safeguard operating contract; a related topic is not equivalence.",
+    "Check evidence specificity, applicability, parameters, prerequisites and limitations.",
+    "Record your actual approve, needs_changes or reject decision with reviewer identity and rationale; no default is approval.",
+    "Refresh the queue if a source, definition or another review decision changes before submission."
+  ],
+  "review_mode": "second_review",
+  "schema": "grc_lake.mapping_review_packet.v1",
+  "scope": "catalog",
+  "summary": {
+    "additional_coverage_candidates": 0,
+    "additional_mapped_needed": 0,
+    "additional_reviewed_needed": 256,
+    "batch_count": 1,
+    "catalog_requirements": 2284,
+    "distinct_requirements_in_packet": 3,
+    "mapped_pct": 96.2,
+    "mapped_requirements": 2198,
+    "mapped_target": 1828,
+    "requirements_needing_catalog_repair": 0,
+    "requirements_with_source_references": 1,
+    "reviewed_pct": 38.8,
+    "reviewed_requirements": 886,
+    "reviewed_target": 1142
+  }
+}

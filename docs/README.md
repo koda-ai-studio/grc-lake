@@ -24,7 +24,7 @@ For a real evaluation and contribution feedback, use the [bounded pilot guide](P
 
 [Current state and coverage](CURRENT_STATE.md) · [Contributor roadmap](../ROADMAP.md) · [Contributing](../CONTRIBUTING.md)
 
-[Published GitHub connector receipt, 2026-10-31](qualification/live/2026-10-31-github-published.md) · [Connector qualification matrix](CONNECTOR_QUALIFICATION.md) · [GitHub collection contracts](GITHUB_QUALIFICATION.md) · [Live receipts, 2026-10-24](qualification/live/2026-10-24.md) · [Databricks trial receipt](qualification/live/2026-10-25-databricks.md) · [AWS and GitHub binding receipt](qualification/live/2026-10-26-aws-github-binding.md) · [GCP effective-policy receipt](qualification/live/2026-10-26-gcp-effective-policy.md) · [Azure Defender receipt](qualification/live/2026-10-26-azure-defender.md)
+[GitHub repeat-collection receipt, 2026-11-02](qualification/live/2026-11-02-github-repeat.md) · [Published GitHub connector receipt, 2026-10-31](qualification/live/2026-10-31-github-published.md) · [Connector qualification matrix](CONNECTOR_QUALIFICATION.md) · [GitHub collection contracts](GITHUB_QUALIFICATION.md) · [Live receipts, 2026-10-24](qualification/live/2026-10-24.md) · [Databricks trial receipt](qualification/live/2026-10-25-databricks.md) · [AWS and GitHub binding receipt](qualification/live/2026-10-26-aws-github-binding.md) · [GCP effective-policy receipt](qualification/live/2026-10-26-gcp-effective-policy.md) · [Azure Defender receipt](qualification/live/2026-10-26-azure-defender.md)
 
 ## Operate
 
@@ -78,6 +78,7 @@ check retained run evidence and link bounded connector qualification.
 | [ISO 27001 ISMS assessments](ISO27001_ISMS_ASSESSMENTS.md)                 | Management-clause contracts, evidence, and review boundaries      |
 | [Mapping review](MAPPING_REVIEW.md)                                        | Reviewing proposed safeguard mappings                             |
 | [SOC 2 and ISO review batches](reviews/SOC2_ISO_REVIEW.md)                 | Source-guided proposals, operating contracts and review questions |
+| [SOC 2 second review](reviews/SOC2_SECOND_REVIEW.md)                       | Bounded independent mapping and workpaper inspection              |
 | [Recovery and confidentiality review](reviews/RECOVERY_CONFIDENTIALITY.md) | Focused SOC 2 candidates and required substantiation              |
 | [NIST assessment expansion](NIST53_ASSESSMENTS.md)                         | Source-native assessment contracts and review boundaries          |
 | [Catalog versioning](CATALOG_VERSIONING.md)                                | Catalog versions and audit pinning                                |

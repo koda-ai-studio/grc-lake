@@ -35,6 +35,50 @@ Listing the root [GRC Lake Readiness action](CI_GATE.md#readiness-summary-action
 GitHub Marketplace is a manual maintainer step after a release tag is published; the
 release workflow does not publish it.
 
+## 0.3.26 release candidate
+
+0.3.26 is being prepared and is not yet published. Installation instructions
+remain on verified 0.3.25 artifacts until publication checks complete.
+
+This patch opens exact control, finding and evidence records from graph actions,
+separates evidence-posture explanations from reviewed CCF results, and adds
+KnowBe4 and Absorb training-export header presets. The presets use synthetic
+fixtures and remain file-only mappings; they do not qualify a live LMS connection.
+There is no database migration, dependency change, safeguard-definition change
+or mapping approval relative to 0.3.25.
+
+Local validation passed 147 release, CCF, graph and training tests, Python lint,
+formatting and type checking, catalog/documentation checks, and the console build
+and lint. Fresh core and server/MCP installations passed their smoke checks. An
+upgrade from 0.3.25 preserved 59 synthetic records and 20 historical files, with
+integrity and snapshot verification passing. The installed candidate preserved
+`not_evaluated` for both passing and failing unrelated evidence and retained its
+history on replay.
+
+Graph validation passed 53 browser checks covering exact record links,
+posture/CCF separation, hierarchy and evidence flow, mobile/desktop light and
+dark layouts, zoom, fit, keyboard navigation, layer history and dense-layout
+refusal. Rendered desktop and phone views were inspected. The canvas keeps the
+whole neighborhood visible in overview; zoom and the inspector provide readable
+details without dropping recorded relationships.
+
+A bounded local HTTP benchmark at 1,000 and 10,000 synthetic records per tenant
+(two tenants, one client, one repeat, seed 910, frozen catalogs) passed its
+correctness checks. Complete workloads took 6.10 and 16.53 seconds, with process
+peak RSS of 241 and 410 MiB. Browser checks ran concurrently on the shared host;
+these are finite workload measurements, not latency SLOs or qualification of
+100k/million-record interactive or production capacity. The
+[existing scale boundaries](benchmarks/INVESTIGATION_CACHE.md) remain in effect.
+
+The [bounded live repeat receipt](qualification/live/2026-11-02-github-repeat.md)
+records two successful source collections and the evidence-contract omission.
+The [SOC 2 second-review packet](reviews/SOC2_SECOND_REVIEW.md) prepares a human
+inspection; no independent review decision has been recorded.
+
+Independent human approval, exact merged-main CI and CodeQL, package install and
+upgrade checks, and the release image, chart and provenance gates remain required
+before publication. Independent mapping/workpaper review is a separate decision.
+
 ## 0.3.25 release
 
 0.3.25 is published; see the [publication receipt](#verified-0325-publication).
