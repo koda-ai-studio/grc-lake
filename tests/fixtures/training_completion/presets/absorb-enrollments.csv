@@ -1,0 +1,3 @@
+COURSE,COURSENAME,DATECOMPLETED,DATEENROLLED,EMAILADDRESS,EMPLOYEENUMBER,FIRSTNAME,ISENROLLED,SCORE(%),STATUS
+SAT,Annual awareness,2026-05-01,2026-04-01,ada@example.com,101,Synthetic Ada,Yes,95,Complete
+SAT,Annual awareness,,2026-04-01,alan@example.com,103,Synthetic Alan,Yes,,Not Started

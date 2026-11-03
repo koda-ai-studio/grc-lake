@@ -1488,6 +1488,43 @@ If the export uses other headers, rename them with `options.column_map`, for exa
 are ignored and never stored. When a person has several rows for one course, the
 row with the most recent activity wins.
 
+### Named export presets
+
+Set `options.preset` to one of the following case-sensitive names. These are
+header maps for local exports, not API integrations or live-provider qualification.
+Synthetic examples are in `tests/fixtures/training_completion/presets/`.
+
+| Preset                     | Documented export                                                      | Contract → export header                                                                                                                                                                                                             |
+| -------------------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `knowbe4-team-assignments` | KnowBe4 classic Team Dashboard, **Assigned training (last 12 months)** | `person_email` → `Email`; `course_id` → `Assigned Training`; `status` → `Status`; `completed_at` → `Completion Date`; `due_at` → `Due Date`                                                                                          |
+| `absorb-enrollments`       | Absorb **Export All Enrollment Data**, unzipped CSV                    | `person_email` → `EMAILADDRESS`; `employee_id` → `EMPLOYEENUMBER`; `course_id` → `COURSE`; `course_name` → `COURSENAME`; `status` → `STATUS`; `assigned_at` → `DATEENROLLED`; `completed_at` → `DATECOMPLETED`; `score` → `SCORE(%)` |
+
+Sources: [KnowBe4's assigned-training export columns](https://support.knowbe4.com/hc/en-us/articles/56495247336979-Learner-Support-Team-Dashboard-Overview-for-Managers-Classic),
+[Absorb's export scope and procedure](https://support.absorblms.com/hc/en-us/articles/115012643888-Generated-Reports-Export-All-Enrollment-Data)
+and its linked [header reference](https://support.absorblms.com/hc/article_attachments/360001672968).
+
+For example, connector options can contain:
+
+```json
+{ "preset": "knowbe4-team-assignments", "system": "knowbe4" }
+```
+
+`options.column_map` explicitly overrides individual preset entries. Unknown
+presets and duplicate header assignments fail validation. Headers are not guessed;
+the date and status validation above still applies. Convert localized dates to
+ISO-8601 before import, retaining the original export privately. Absorb statuses
+such as `Pending Evaluation Required` remain unsupported and fail the sync rather
+than becoming completed training. Zip and spreadsheet files are not read.
+
+The KnowBe4 export is bounded to direct reports and 12 months. Its training label
+is the course key; use a `course_id` override if labels are not unique. Absorb's
+export includes only active users, can contain historical enrollments, and updates
+weekly. Select current enrollments (`ISENROLLED = Yes`) and the required-course
+scope before import. Neither preset infers an HR population, required-course
+coverage or optional-course flags: the existing `required=true` default applies
+unless an explicit column supplies it. Unmapped personal fields are discarded.
+Missing HR evidence and undeclared safeguard contracts still block a CCF pass.
+
 Validation is strict. An unreadable, non-UTF-8, oversized or empty export fails the
 sync, as does an unknown status or invalid date. The error names files, row numbers
 and columns, never values. The previous evidence and assessment stay in place.
