@@ -55,6 +55,21 @@ integrity and snapshot verification passing. The installed candidate preserved
 `not_evaluated` for both passing and failing unrelated evidence and retained its
 history on replay.
 
+Graph validation passed 53 browser checks covering exact record links,
+posture/CCF separation, hierarchy and evidence flow, mobile/desktop light and
+dark layouts, zoom, fit, keyboard navigation, layer history and dense-layout
+refusal. Rendered desktop and phone views were inspected. The canvas keeps the
+whole neighborhood visible in overview; zoom and the inspector provide readable
+details without dropping recorded relationships.
+
+A bounded local HTTP benchmark at 1,000 and 10,000 synthetic records per tenant
+(two tenants, one client, one repeat, seed 910, frozen catalogs) passed its
+correctness checks. Complete workloads took 6.10 and 16.53 seconds, with process
+peak RSS of 241 and 410 MiB. Browser checks ran concurrently on the shared host;
+these are finite workload measurements, not latency SLOs or qualification of
+100k/million-record interactive or production capacity. The
+[existing scale boundaries](benchmarks/INVESTIGATION_CACHE.md) remain in effect.
+
 The [bounded live repeat receipt](qualification/live/2026-11-02-github-repeat.md)
 records two successful source collections and the evidence-contract omission.
 The [SOC 2 second-review packet](reviews/SOC2_SECOND_REVIEW.md) prepares a human
