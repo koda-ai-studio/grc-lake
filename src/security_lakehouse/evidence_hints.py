@@ -13,7 +13,7 @@ from security_lakehouse.pack_data import PACK_DATA_DIR
 HINTS_PATH = PACK_DATA_DIR / "evidence_connector_hints.json"
 
 _DOMAIN_RATIONALE = {
-    "identity": "Identity and access controls are evidenced from IdP and cloud IAM posture.",
+    "identity": "Identity and access management controls are evidenced from IdP and cloud IAM posture.",
     "monitoring": "Monitoring controls need audit logs, SIEM detections, or telemetry streams.",
     "controls-operations": "Operational controls map to cloud posture and configuration evidence.",
     "governance": "Governance controls use policy attestations, tickets, and documented approvals.",

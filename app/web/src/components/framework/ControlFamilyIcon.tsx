@@ -1,3 +1,4 @@
+import familyLabels from "../../lib/ccf-family-labels.json";
 import {
   Activity,
   Bot,
@@ -25,42 +26,39 @@ import {
   Wrench,
 } from "lucide-react";
 
-const FAMILIES = {
-  identity: { label: "Identity & access", icon: Fingerprint },
-  "data-protection": { label: "Data protection", icon: Database },
-  "change-management": { label: "Change management", icon: GitBranch },
-  governance: { label: "Governance", icon: Landmark },
-  detection: { label: "Detection", icon: Radar },
-  logging: { label: "Logging", icon: FileClock },
-  "vulnerability-management": { label: "Vulnerability management", icon: Bug },
-  "third-party-risk": { label: "Third-party risk", icon: Users },
-  "risk-management": { label: "Risk management", icon: Scale },
-  availability: { label: "Availability", icon: HeartPulse },
-  "ai-governance": { label: "AI governance", icon: Bot },
-  "incident-response": { label: "Incident response", icon: ShieldAlert },
-  privacy: { label: "Privacy", icon: LockKeyhole },
-  "controls-operations": { label: "Control operations", icon: Workflow },
-  monitoring: { label: "Monitoring", icon: Activity },
-  "configuration-management": {
-    label: "Configuration management",
-    icon: SlidersHorizontal,
-  },
-  "secure-development": { label: "Secure development", icon: Code2 },
-  "secure-architecture": { label: "Secure architecture", icon: Boxes },
-  "network-security": { label: "Network security", icon: Network },
-  "people-security": { label: "People security", icon: UserCheck },
-  "physical-security": { label: "Physical security", icon: Building2 },
-  "system-maintenance": { label: "System maintenance", icon: Wrench },
-  "processing-integrity": { label: "Processing integrity", icon: CheckCheck },
+const FAMILY_LABELS = new Map(Object.entries(familyLabels));
+
+const FAMILY_ICONS = {
+  identity: Fingerprint,
+  "data-protection": Database,
+  "change-management": GitBranch,
+  governance: Landmark,
+  detection: Radar,
+  logging: FileClock,
+  "vulnerability-management": Bug,
+  "third-party-risk": Users,
+  "risk-management": Scale,
+  availability: HeartPulse,
+  "ai-governance": Bot,
+  "incident-response": ShieldAlert,
+  privacy: LockKeyhole,
+  "controls-operations": Workflow,
+  monitoring: Activity,
+  "configuration-management": SlidersHorizontal,
+  "secure-development": Code2,
+  "secure-architecture": Boxes,
+  "network-security": Network,
+  "people-security": UserCheck,
+  "physical-security": Building2,
+  "system-maintenance": Wrench,
+  "processing-integrity": CheckCheck,
 };
 
 export function controlFamily(domain: string) {
-  return (
-    FAMILIES[domain as keyof typeof FAMILIES] ?? {
-      label: domain.replaceAll("-", " "),
-      icon: Layers,
-    }
-  );
+  return {
+    label: FAMILY_LABELS.get(domain) ?? domain.replaceAll("-", " "),
+    icon: FAMILY_ICONS[domain as keyof typeof FAMILY_ICONS] ?? Layers,
+  };
 }
 
 export function ControlFamilyIcon({ domain }: { domain: string }) {

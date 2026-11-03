@@ -67,6 +67,26 @@ collapsing them would overstate both coverage and failure.
 
 ## Control families and categories
 
+The hierarchy is **CCF → category → family → safeguard**. Framework requirements
+are connected to safeguards through the crosswalk; they are not another level of
+the family hierarchy. These are GRC Lake's common control names, not an official
+taxonomy shared by every framework. NIST SP 800-53 and CIS retain their own names
+and identifiers.
+
+For example, the **Identity and access management (IAM)** category
+(`identity-access`) contains the broad **Identity and access management** family
+(`identity`) and the focused Authentication and MFA, Privileged access, Access
+review, and Identity lifecycle families. `SG-IDENTITY-001`, **Logical access and
+MFA**, belongs to the broad IAM family because its contract spans several access
+obligations. `SG-IDENTITY-002`, **Access review and recertification**, belongs to
+the Access review family (`access-review`).
+
+`SG` means safeguard. The rest of a safeguard ID is a stable identifier, not a
+reliable way to derive its current family: use its `risk_domain` field to look up
+the `family_id` in `controls/families.json`. Display the catalog's full `label`
+instead of expanding the ID into a name. Renaming a display label does not change
+the ID, evidence requirement, evaluation rule, or mapping review state.
+
 Every safeguard belongs to exactly one family defined in
 [`controls/families.json`](../controls/families.json); the validator rejects any
 other value. Each family records the NIST SP 800-53 families and CIS Controls it
@@ -87,8 +107,8 @@ carries a `trustops-category` property.
 A family is placed by what it operates, not by which framework asked for it. AI
 safeguards that operate a general control, such as access control on inference
 endpoints or AI incident handling, sit in that control's family (Identity and
-access, Incident response) rather than in AI governance, so they roll up with the
-rest of that control.
+access management, Incident response) rather than in AI governance, so they roll
+up with the rest of that control.
 
 Focused identity families separate authentication/MFA, privileged access,
 access review, and identity lifecycle. Supplier groups separate inventory,
@@ -106,42 +126,47 @@ Evidence requirements, evaluation rules, mappings, and review receipts remain
 unchanged. Maintainer review of the taxonomy is distinct from an independent
 review of the underlying control effectiveness.
 
-| Category                     | Family                        | ID                          | Safeguards | NIST SP 800-53 families | CIS Controls |
-| ---------------------------- | ----------------------------- | --------------------------- | ---------: | ----------------------- | ------------ |
-| AI governance                | AI data governance            | `ai-data-governance`        |          1 | —                       | —            |
-| AI governance                | AI evaluation and impact      | `ai-evaluation`             |          3 | —                       | —            |
-| AI governance                | AI governance                 | `ai-governance`             |          9 | —                       | —            |
-| AI governance                | AI inventory and context      | `ai-inventory-context`      |          3 | —                       | —            |
-| AI governance                | AI monitoring                 | `ai-monitoring`             |          2 | —                       | —            |
-| AI governance                | AI oversight and transparency | `ai-oversight-transparency` |          3 | —                       | —            |
-| Data protection and privacy  | Data protection               | `data-protection`           |        166 | SC, MP                  | 1, 3         |
-| Data protection and privacy  | Privacy                       | `privacy`                   |         29 | PT                      | —            |
-| Detection and response       | Audit logging                 | `logging`                   |         59 | AU                      | 8            |
-| Detection and response       | Detection                     | `detection`                 |          3 | SI                      | 10, 13       |
-| Detection and response       | Incident response             | `incident-response`         |         50 | IR                      | 17           |
-| Governance and risk          | Governance                    | `governance`                |         91 | PL, PM                  | —            |
-| Governance and risk          | Remediation tracking          | `remediation-tracking`      |          1 | CA                      | —            |
-| Governance and risk          | Risk management               | `risk-management`           |         71 | RA, CA, PM              | 18           |
-| Identity and access          | Access review                 | `access-review`             |          2 | AC                      | 5, 6         |
-| Identity and access          | Authentication and MFA        | `authentication`            |         32 | IA, AC                  | 5, 6         |
-| Identity and access          | Identity and access           | `identity`                  |        141 | AC, IA                  | 5, 6         |
-| Identity and access          | Identity lifecycle            | `identity-lifecycle`        |         15 | IA, AC                  | 5, 6         |
-| Identity and access          | Privileged access             | `privileged-access`         |         10 | AC                      | 5, 6         |
-| Infrastructure security      | Configuration management      | `configuration-management`  |         62 | CM                      | 2, 4         |
-| Infrastructure security      | Network security              | `network-security`          |          1 | SC                      | 12           |
-| Infrastructure security      | Vulnerability management      | `vulnerability-management`  |          3 | RA, SI                  | 7            |
-| People and physical          | People security               | `people-security`           |         42 | AT, PS                  | 14           |
-| People and physical          | Physical security             | `physical-security`         |         55 | PE                      | —            |
-| Resilience and integrity     | Availability and recovery     | `availability`              |         54 | CP                      | 11           |
-| Resilience and integrity     | Processing integrity          | `processing-integrity`      |        106 | SI                      | —            |
-| Resilience and integrity     | System maintenance            | `system-maintenance`        |         32 | MA                      | —            |
-| Secure engineering           | Change management             | `change-management`         |          5 | CM                      | —            |
-| Secure engineering           | Secure architecture           | `secure-architecture`       |          4 | SA, SC                  | —            |
-| Secure engineering           | Secure development            | `secure-development`        |        112 | SA                      | 16           |
-| Third-party and supply chain | Supplier assurance            | `supplier-assurance`        |          2 | SR, SA                  | 15           |
-| Third-party and supply chain | Supplier inventory            | `supplier-inventory`        |          1 | SR, SA                  | 15           |
-| Third-party and supply chain | Supply chain integrity        | `supply-chain-integrity`    |         13 | SR, SA                  | 15, 16       |
-| Third-party and supply chain | Third-party risk              | `third-party-risk`          |         17 | SR, SA                  | 15           |
+The family tables here and in [AI context](CCF_AI_CONTEXT.md), along with the
+console's generated `app/web/src/lib/ccf-family-labels.json`, are refreshed from
+the catalog with `uv run --frozen python tools/sync_ccf_doc.py`. The console keeps
+this generated copy so its standalone Docker build needs only `app/web/`.
+
+| Category                       | Family                         | ID                          | Safeguards | NIST SP 800-53 families | CIS Controls |
+| ------------------------------ | ------------------------------ | --------------------------- | ---------: | ----------------------- | ------------ |
+| AI governance                  | AI data governance             | `ai-data-governance`        |          1 | —                       | —            |
+| AI governance                  | AI evaluation and impact       | `ai-evaluation`             |          3 | —                       | —            |
+| AI governance                  | AI governance                  | `ai-governance`             |          9 | —                       | —            |
+| AI governance                  | AI inventory and context       | `ai-inventory-context`      |          3 | —                       | —            |
+| AI governance                  | AI monitoring                  | `ai-monitoring`             |          2 | —                       | —            |
+| AI governance                  | AI oversight and transparency  | `ai-oversight-transparency` |          3 | —                       | —            |
+| Data protection and privacy    | Data protection                | `data-protection`           |        166 | SC, MP                  | 1, 3         |
+| Data protection and privacy    | Privacy                        | `privacy`                   |         29 | PT                      | —            |
+| Detection and response         | Audit logging                  | `logging`                   |         59 | AU                      | 8            |
+| Detection and response         | Detection                      | `detection`                 |          3 | SI                      | 10, 13       |
+| Detection and response         | Incident response              | `incident-response`         |         50 | IR                      | 17           |
+| Governance and risk            | Governance                     | `governance`                |         91 | PL, PM                  | —            |
+| Governance and risk            | Remediation tracking           | `remediation-tracking`      |          1 | CA                      | —            |
+| Governance and risk            | Risk management                | `risk-management`           |         71 | RA, CA, PM              | 18           |
+| Identity and access management | Access review                  | `access-review`             |          2 | AC                      | 5, 6         |
+| Identity and access management | Authentication and MFA         | `authentication`            |         32 | IA, AC                  | 5, 6         |
+| Identity and access management | Identity and access management | `identity`                  |        141 | AC, IA                  | 5, 6         |
+| Identity and access management | Identity lifecycle             | `identity-lifecycle`        |         15 | IA, AC                  | 5, 6         |
+| Identity and access management | Privileged access              | `privileged-access`         |         10 | AC                      | 5, 6         |
+| Infrastructure security        | Configuration management       | `configuration-management`  |         62 | CM                      | 2, 4         |
+| Infrastructure security        | Network security               | `network-security`          |          1 | SC                      | 12           |
+| Infrastructure security        | Vulnerability management       | `vulnerability-management`  |          3 | RA, SI                  | 7            |
+| People and physical            | People security                | `people-security`           |         42 | AT, PS                  | 14           |
+| People and physical            | Physical security              | `physical-security`         |         55 | PE                      | —            |
+| Resilience and integrity       | Availability and recovery      | `availability`              |         54 | CP                      | 11           |
+| Resilience and integrity       | Processing integrity           | `processing-integrity`      |        106 | SI                      | —            |
+| Resilience and integrity       | System maintenance             | `system-maintenance`        |         32 | MA                      | —            |
+| Secure engineering             | Change management              | `change-management`         |          5 | CM                      | —            |
+| Secure engineering             | Secure architecture            | `secure-architecture`       |          4 | SA, SC                  | —            |
+| Secure engineering             | Secure development             | `secure-development`        |        112 | SA                      | 16           |
+| Third-party and supply chain   | Supplier assurance             | `supplier-assurance`        |          2 | SR, SA                  | 15           |
+| Third-party and supply chain   | Supplier inventory             | `supplier-inventory`        |          1 | SR, SA                  | 15           |
+| Third-party and supply chain   | Supply chain integrity         | `supply-chain-integrity`    |         13 | SR, SA                  | 15, 16       |
+| Third-party and supply chain   | Third-party risk               | `third-party-risk`          |         17 | SR, SA                  | 15           |
 
 ## Where it stands
 

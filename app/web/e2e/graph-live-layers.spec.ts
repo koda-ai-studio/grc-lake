@@ -73,11 +73,11 @@ async function openLayers(page: Page) {
   });
   if (
     !(await page
-      .getByRole("checkbox", { name: "source", exact: true })
+      .getByRole("checkbox", { name: "Source", exact: true })
       .isVisible())
   )
     await layers.click();
-  return page.getByRole("checkbox", { name: "source", exact: true });
+  return page.getByRole("checkbox", { name: "Source", exact: true });
 }
 
 const status = (page: Page) =>
@@ -190,7 +190,7 @@ test("live direct focus reveals a hidden relationship and survives reload and hi
     })
     .click();
   const sourceLayer = page.getByRole("checkbox", {
-    name: "source",
+    name: "Source",
     exact: true,
   });
   await expect(sourceLayer).toBeChecked();

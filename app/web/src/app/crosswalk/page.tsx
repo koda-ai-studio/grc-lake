@@ -19,7 +19,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { PageHeader } from "@/components/PageHeader";
-import { ControlFamilyIcon } from "@/components/framework/ControlFamilyIcon";
+import {
+  ControlFamilyIcon,
+  controlFamily,
+} from "@/components/framework/ControlFamilyIcon";
 import { FrameworkBadge } from "@/components/framework/FrameworkBadge";
 import {
   useCrosswalk,
@@ -242,7 +245,9 @@ export default function CrosswalkPage() {
                   <span className="text-sm font-semibold text-ink">
                     {group.label}
                   </span>
-                  <Badge tone="info">{group.risk_domain}</Badge>
+                  <Badge tone="info">
+                    {controlFamily(group.risk_domain).label}
+                  </Badge>
                   <Badge>{group.controls.length} controls</Badge>
                 </div>
                 <p className="mt-2 text-xs leading-5 text-muted">
@@ -627,7 +632,11 @@ export default function CrosswalkPage() {
                           </span>
                         ) : (
                           <div className="flex flex-wrap gap-1">
-                            <CappedChips items={cell.shared_risk_domains} />
+                            <CappedChips
+                              items={cell.shared_risk_domains.map(
+                                (domain) => controlFamily(domain).label,
+                              )}
+                            />
                           </div>
                         )}
                       </td>

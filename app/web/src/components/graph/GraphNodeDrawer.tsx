@@ -194,7 +194,7 @@ export function GraphNodeDrawer({
       tabIndex={0}
       aria-label="Selected graph node"
       data-testid="graph-node-inspector"
-      className="min-w-0 scroll-mt-20 self-start rounded-xl border border-line bg-surface max-h-[clamp(400px,calc(100dvh-300px),650px)] overflow-y-auto overscroll-contain"
+      className="min-w-0 scroll-mt-20 self-start rounded-xl border border-line bg-surface max-h-[clamp(400px,calc(100dvh-300px),650px)] overflow-y-auto"
     >
       <div className="sticky top-0 z-10 flex items-start gap-3 border-b border-line bg-surface p-4">
         <div className="min-w-0 flex-1">

@@ -24,7 +24,7 @@ Choosing a starting point, drilling down, rolling up and direct focus add a hist
 
 The canvas lays out at most 500 visible nodes and 1,000 visible relationships. Above either limit it shows the counts and asks for a narrower view; it does not silently discard relationships to fit. Framework, control, workflow and stale-evidence map filters advance one hop at a time, independent of edge order. These browser bounds are not a production capacity qualification.
 
-Investigation opens with the entire loaded neighborhood in view, including when the inspector is open. The **Fit View** icon restores that overview. **+** reaches readable zoom, then zooms in further; **−** zooms out. Pan the canvas to follow relationships when enlarged. The chosen view refits when the canvas resizes or expands. Lane headings distinguish assurance hierarchy from evidence lineage without adding nodes or relationships. The visible line-style key distinguishes recorded links, reviewed mappings, pending review and invalid bindings. A mapping without a review state reads **Review not recorded** and uses an unreviewed line style. Only explicit maintainer or organization review receives reviewed styling; rejected and needs-changes states remain distinct.
+Investigation opens with the entire loaded neighborhood in view, including when the inspector is open. The **Fit View** icon restores that overview. **+** reaches readable zoom, then zooms in further; **−** zooms out. Drag or **Shift+scroll** to pan the canvas without changing zoom. Ordinary scrolling moves the page; at the inspector's top or bottom it continues onto the page. The chosen view refits when the canvas resizes or expands. Lane headings distinguish assurance hierarchy from evidence lineage without adding nodes or relationships. The visible line-style key distinguishes recorded links, reviewed mappings, pending review and invalid bindings. A mapping without a review state reads **Review not recorded** and uses an unreviewed line style. Only explicit maintainer or organization review receives reviewed styling; rejected and needs-changes states remain distinct.
 
 ## Relationship meaning
 
@@ -56,6 +56,10 @@ links while keeping the surrounding nodes readable. Use **Focus direct relations
 to show only the selected node and its incoming/outgoing links. Visible counts
 compare that subset with the loaded neighborhood; **Show full neighborhood** restores
 all loaded nodes. This local focus does not fetch additional evidence.
+
+Relationship labels use the space between cards, with separate positions for
+links to a shared asset. The console calls exact observations **Evidence records**;
+the API retains the legacy `evidence_type` kind for compatibility.
 
 Readable titles keep the original record label in the inspector. Dates display in
 UTC; **Exact recorded timestamps** retains the original precision and timezone offset.

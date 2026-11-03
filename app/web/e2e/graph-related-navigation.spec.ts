@@ -85,11 +85,11 @@ for (const width of [1440, 390]) {
       .getByText("Visible relationship layers", { exact: true })
       .click();
     const sourceLayer = page.getByRole("checkbox", {
-      name: "source",
+      name: "Source",
       exact: true,
     });
     await sourceLayer.uncheck();
-    await page.getByRole("checkbox", { name: "vendor", exact: true }).uncheck();
+    await page.getByRole("checkbox", { name: "Vendor", exact: true }).uncheck();
     await expect(
       page.locator('.react-flow__node[data-id^="source:"]'),
     ).toHaveCount(0);
@@ -107,7 +107,7 @@ for (const width of [1440, 390]) {
       .click();
     await expect(sourceLayer).toBeChecked();
     await expect(
-      page.getByRole("checkbox", { name: "vendor", exact: true }),
+      page.getByRole("checkbox", { name: "Vendor", exact: true }),
     ).not.toBeChecked();
     const selected = page.locator('.react-flow__node[data-id="source:b"]');
     await expect(selected).toBeVisible();

@@ -20,7 +20,7 @@ function FamilyRow({ family }: { family: CcfFamilyRow }) {
       <summary className="flex cursor-pointer items-center gap-3 rounded py-2.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand">
         <ControlFamilyIcon domain={family.family_id} />
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-sm font-semibold text-ink">
+          <span className="block break-words text-sm font-semibold text-ink">
             {family.label}
           </span>
           <span className="block text-xs text-muted">

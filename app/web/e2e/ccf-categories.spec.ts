@@ -1,4 +1,15 @@
 import { expect, test } from "@playwright/test";
+import taxonomy from "../../../controls/families.json";
+import { controlFamily } from "../src/components/framework/ControlFamilyIcon";
+
+test("all console family names match the canonical CCF taxonomy", () => {
+  for (const family of taxonomy.families) {
+    expect(controlFamily(family.family_id).label, family.family_id).toBe(
+      family.label,
+    );
+  }
+  expect(controlFamily("unknown-family").label).toBe("unknown family");
+});
 
 type Coverage = {
   categories: { category_id: string; label: string; family_ids: string[] }[];
@@ -52,6 +63,7 @@ test("control families render under their categories and link to review", async 
   expect(seen.size).toBe(data.families.length);
 
   const family = data.families.find((row) => row.family_id === "identity")!;
+  expect(family.label).toBe("Identity and access management");
   const row = panel.locator('details[data-family="identity"]');
   await row.locator("summary").click();
   await row
@@ -70,14 +82,29 @@ test("control families stay inside the viewport on mobile", async ({
     .getByRole("tab", { name: "Control families", exact: true })
     .click();
   const panel = page.getByRole("tabpanel", { name: "Control families" });
-  await panel
-    .locator("details[data-family]")
-    .first()
-    .locator("summary")
-    .click();
+  const iam = panel.locator('details[data-family="identity"]');
+  await iam.locator("summary").click();
+  const name = iam.getByText("Identity and access management", { exact: true });
+  await expect(name).toBeVisible();
+  expect(
+    await name.evaluate(
+      (element) => element.scrollWidth <= element.clientWidth,
+    ),
+  ).toBe(true);
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= window.innerWidth,
     ),
   ).toBe(true);
+});
+
+test("crosswalk displays the canonical IAM name instead of its internal id", async ({
+  page,
+}) => {
+  await page.goto("/console/crosswalk/");
+  const groups = page.locator("#equivalence-groups");
+  await expect(
+    groups.getByText("Identity and access management", { exact: true }).first(),
+  ).toBeVisible();
+  await expect(groups.getByText("identity", { exact: true })).toHaveCount(0);
 });

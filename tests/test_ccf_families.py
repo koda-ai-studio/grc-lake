@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from collections import Counter
 from pathlib import Path
 
@@ -146,6 +147,31 @@ def test_family_ledger_carries_definitions() -> None:
         assert row["label"] == families[row["family_id"]]["label"]
         assert row["description"] == families[row["family_id"]]["description"]
         assert row["nist_800_53_families"] == families[row["family_id"]]["nist_800_53_families"]
+
+
+def test_documented_family_names_match_the_catalog() -> None:
+    families = load_ccf_families()
+    entries = {row["safeguard_id"]: row for row in load_safeguards()["safeguards"]}
+    document = (ROOT / "docs/CCF_AI_CONTEXT.md").read_text()
+    rows = re.findall(r"^\| `(?P<sid>SG-[^`]+)`[^|]*\|\s*(?P<label>[^|]+?)\s*\|", document, re.M)
+    assert len(rows) == 16
+    for sid, label in rows:
+        assert label == families[entries[sid]["risk_domain"]]["label"], sid
+    document = (ROOT / "docs/COMMON_CONTROL_FRAMEWORK.md").read_text()
+    rows = re.findall(r"^\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|\s*`([^`]+)`\s*\|", document, re.M)
+    assert len(rows) == len(families)
+    ledger = {row["family_id"]: row for row in coverage_by_family()}
+    for category_label, family_label, fid in rows:
+        assert (category_label, family_label) == (ledger[fid]["category_label"], ledger[fid]["label"])
+
+
+def test_readme_flow_uses_catalog_safeguard_names() -> None:
+    entries = {row["safeguard_id"]: row for row in load_safeguards()["safeguards"]}
+    document = (ROOT / "README.md").read_text()
+    nodes = re.findall(r'\["(SG-[^<]+)<br/>([^"\]]+)"\]', document)
+    assert len(nodes) == 4
+    for sid, title in nodes:
+        assert title.replace("<br/>", " ") == entries[sid]["title"], sid
 
 
 def test_title_theme_members_never_inherit_a_safeguard_citation() -> None:

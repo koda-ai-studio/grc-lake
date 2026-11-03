@@ -63,7 +63,7 @@ _TASKS: tuple[dict[str, Any], ...] = (
 _RISKS: tuple[dict[str, Any], ...] = (
     {
         "title": "Privileged access outlives role changes",
-        "category": "Identity & access",
+        "category": "Identity and access management",
         "severity": "high",
         "likelihood": "high",
         "impact": "high",

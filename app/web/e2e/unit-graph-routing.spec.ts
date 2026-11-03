@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 import {
   investigationPositions,
   investigationRoute,
+  investigationLabelPosition,
 } from "../src/lib/graph-layout";
 
 const nodes = [
@@ -20,6 +21,31 @@ const edges = [
   { id: "ea", source: "e", target: "a", kind: "evidence_covers_asset" },
   { id: "s2e2", source: "s2", target: "e2", kind: "produces" },
 ];
+
+test("a label clears the adjacent assurance trunk without entering an asset card", () => {
+  const label = investigationLabelPosition(
+    [
+      { x: 640, y: 300 },
+      { x: 840, y: 300 },
+    ],
+    138,
+    [
+      { x: 420, y: 254, width: 220, height: 92 },
+      { x: 840, y: 254, width: 220, height: 92 },
+    ],
+    [],
+    false,
+    [
+      [
+        { x: 675, y: 46 },
+        { x: 675, y: 500 },
+      ],
+    ],
+  );
+  expect(label).toBeDefined();
+  expect(label!.x - 69).toBeGreaterThan(675);
+  expect(label!.x + 69).toBeLessThan(840);
+});
 
 test("assurance stays above lineage, recorded chains align, accounts stay distinct", () => {
   const p = investigationPositions(nodes, edges);

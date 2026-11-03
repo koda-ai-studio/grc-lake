@@ -154,18 +154,22 @@ export function graphCheckGuidance(
 const KIND_NAME: Partial<Record<GraphNodeKind, string>> = {
   ccf_category: "CCF category",
   ccf_family: "CCF family",
+  evidence_type: "Evidence record",
 };
 
-/** Singular, sentence-case kind name ("evidence_type" -> "Evidence type"). */
+/** Public node roles; the legacy evidence_type kind holds exact records. */
 export function graphKindLabel(kind: GraphNodeKind) {
   return KIND_NAME[kind] ?? displayLabel(kind);
 }
 
 /** "label · kind", unless the label already ends with the kind word. */
 export function labelWithKind(label: string, kind: GraphNodeKind) {
-  const word = kind.replaceAll("_", " ");
+  const word = kind.startsWith("ccf_")
+    ? graphKindLabel(kind)
+    : graphKindLabel(kind).toLowerCase();
   const lower = label.toLowerCase();
-  return lower === word || lower.endsWith(` ${word}`)
+  return lower === word.toLowerCase() ||
+    lower.endsWith(` ${word.toLowerCase()}`)
     ? label
     : `${label} · ${word}`;
 }

@@ -1,5 +1,6 @@
-"""Refresh CCF documentation figures from the same version-aware coverage API."""
+"""Refresh CCF documentation and console labels from the canonical catalogs."""
 
+import json
 import re
 from pathlib import Path
 
@@ -10,6 +11,7 @@ from security_lakehouse.safeguards import (
     coverage_by_family,
     coverage_by_framework,
     effective_review_state,
+    load_ccf_families,
     load_safeguards,
 )
 
@@ -105,6 +107,19 @@ def main():
         flags=re.S,
     )
     path.write_text(text)
+    families = load_ccf_families()
+    labels_path = path.parent.parent / "app/web/src/lib/ccf-family-labels.json"
+    labels_path.write_text(json.dumps({fid: row["label"] for fid, row in families.items()}, indent=2) + "\n")
+    entries = {row["safeguard_id"]: row for row in load_safeguards()["safeguards"]}
+    ai_path = path.parent / "CCF_AI_CONTEXT.md"
+    ai_path.write_text(
+        re.sub(
+            r"^(\| `(SG-[^`]+)`[^|]*\|)[^|]+\|",
+            lambda match: match[1] + " " + families[entries[match[2]]["risk_domain"]]["label"] + " |",
+            ai_path.read_text(),
+            flags=re.M,
+        )
+    )
     states = [
         effective_review_state(member)
         for safeguard in load_safeguards()["safeguards"]

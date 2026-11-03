@@ -11,6 +11,7 @@ import { PaginatedCollection } from "@/components/ui/paginated-collection";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import { controlFamily } from "@/components/framework/ControlFamilyIcon";
 import { PageHeader } from "@/components/PageHeader";
 import {
   useAuthWhoami,
@@ -358,7 +359,9 @@ function CampaignDetail({ campaignId }: { campaignId: string }) {
                       {expanded === item.id && (
                         <div className="grid gap-5 border-t border-line p-4 [grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr))]">
                           <div className="grid content-start gap-3 text-sm [overflow-wrap:anywhere]">
-                            <h3 className="font-semibold">Identity & access</h3>
+                            <h3 className="font-semibold">
+                              {controlFamily("identity").label}
+                            </h3>
                             <dl className="grid gap-2">
                               <dt className="text-xs text-muted">Subject ID</dt>
                               <dd>{item.subject_id}</dd>
