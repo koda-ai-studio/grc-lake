@@ -167,7 +167,12 @@ export function GraphNodeDrawer({
     node.kind === "control" &&
     (node.ccf_status !== undefined ||
       node.reviewed_safeguard_count !== undefined ||
-      node.proposed_safeguard_count !== undefined ||
+      node.proposed_safeguard_count !== undefined);
+  const hasPostureResult =
+    node.kind === "control" &&
+    (node.posture_status !== undefined ||
+      node.evaluation_rule ||
+      node.open_event_count !== undefined ||
       (node.rule_reasons?.length ?? 0) > 0);
   const relatedIds = new Set(
     graph?.edges.flatMap((edge) =>
@@ -322,11 +327,34 @@ export function GraphNodeDrawer({
                 <>
                   <dt className="text-muted">Safeguards</dt>
                   <dd>
-                    {node.reviewed_safeguard_count ?? 0} reviewed ·{" "}
-                    {node.proposed_safeguard_count ?? 0} proposed
+                    {node.reviewed_safeguard_count ?? "Not recorded"} reviewed ·{" "}
+                    {node.proposed_safeguard_count ?? "Not recorded"} proposed
                   </dd>
                 </>
               )}
+            </dl>
+            <p className="text-xs leading-5 text-muted">
+              Proposed safeguard mappings are never attestable; only reviewed
+              mappings count toward the framework result. A reviewed mapping
+              alone does not establish sufficient evidence or a passing result.
+            </p>
+          </section>
+        )}
+        {hasPostureResult && (
+          <section
+            aria-label="Evidence posture"
+            className="grid gap-2 rounded-lg border border-line p-3 text-sm"
+          >
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-muted">
+              Evidence posture
+            </h3>
+            <dl className="grid grid-cols-[110px_minmax(0,1fr)] gap-x-3 gap-y-1">
+              <dt className="text-muted">Posture result</dt>
+              <dd className="font-semibold">
+                {node.posture_status
+                  ? displayLabel(node.posture_status)
+                  : "Not recorded"}
+              </dd>
               {node.evaluation_rule && (
                 <>
                   <dt className="text-muted">Rule</dt>
@@ -342,22 +370,22 @@ export function GraphNodeDrawer({
                 </>
               )}
             </dl>
-            <details>
-              <summary className="cursor-pointer text-xs font-medium">
-                Evaluation details
-              </summary>
-              {(node.rule_reasons?.length ?? 0) > 0 && (
+            {(node.rule_reasons?.length ?? 0) > 0 && (
+              <details>
+                <summary className="cursor-pointer text-xs font-medium">
+                  Posture rule details
+                </summary>
                 <ul className="grid list-disc gap-1 pl-4 text-xs leading-5 text-muted">
                   {node.rule_reasons!.map((reason) => (
                     <li key={reason}>{reason}</li>
                   ))}
                 </ul>
-              )}
-              <p className="text-xs leading-5 text-muted">
-                Proposed safeguard mappings are never attestable; only reviewed
-                mappings count toward the framework result.
-              </p>
-            </details>
+              </details>
+            )}
+            <p className="text-xs leading-5 text-muted">
+              This rule evaluates evidence tagged to the control; it does not
+              establish the CCF framework result.
+            </p>
           </section>
         )}
         {node.kind === "control" && (node.finding_count ?? 0) > 0 && (
