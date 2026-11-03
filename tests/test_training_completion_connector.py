@@ -159,6 +159,66 @@ def test_repeated_attempts_keep_the_latest_completion(tmp_path: Path) -> None:
     assert record.completed_at == "2026-05-01"
 
 
+@pytest.mark.parametrize("preset", ["knowbe4-team-assignments", "absorb-enrollments"])
+def test_named_export_preset_maps_and_evaluates_through_connector_sync(tmp_path: Path, preset: str) -> None:
+    export = FIXTURES / "presets" / f"{preset}.csv"
+    settings = TrainingExportSettings.from_options({"preset": preset})
+    records = read_training_export(export, settings=settings, collected_at=COLLECTED)
+    ada = next(record for record in records if record.person_email == "ada@example.com")
+    assert (ada.course_id, ada.status, ada.completed_at) == ("SAT", "completed", "2026-05-01")
+    assert len(records) == 2
+    assert all(len(record.export_sha256) == 64 for record in records)
+
+    lake = tmp_path / "lake"
+    append_config_event(lake, connector_id=CONNECTOR_ID, state="enabled", actor="test", options={"preset": preset})
+    fixture = tmp_path / "export"
+    fixture.mkdir()
+    (fixture / "export.csv").write_bytes(export.read_bytes())
+    connector_runner.run_connector_sync(lake, connector_id=CONNECTOR_ID, fixture_dir=fixture)
+    rows = read_jsonl(lake / connector_runner.CONNECTOR_RAW_FILE)
+    assignments = [row for row in rows if row["event_type"] == "training.assignment.record"]
+    assert len(assignments) == 2
+    assert all(row["status"] == "observed" for row in assignments)
+    assert "Synthetic Ada" not in json.dumps(rows)
+    derived = [row for row in rows if row.get("connector_id") == TRAINING_COVERAGE_CONNECTOR_ID]
+    assert _summary(derived)["attributes"]["population_source"] == "none"
+    assert not any(row["status"] == "pass" for row in derived)
+    assert _assessment(lake)[0]["status"] == "not_evaluated"
+    if preset == "knowbe4-team-assignments":
+        assert _by_email(derived)["alan@example.com"]["status"] == "open"
+
+
+@pytest.mark.parametrize("preset", ["unknown-private-value", "", True, [], {}])
+def test_unknown_export_preset_is_rejected_without_echoing_values(preset: Any) -> None:
+    with pytest.raises(TrainingExportError, match="options.preset must be one of") as error:
+        TrainingExportSettings.from_options({"preset": preset})
+    assert "unknown-private-value" not in str(error.value)
+
+
+def test_preset_column_overrides_are_explicit_and_validate_combined_map(tmp_path: Path) -> None:
+    export = tmp_path / "custom.csv"
+    export.write_text("Address,Assigned Training,Status,Completion Date\nada@example.com,SAT,Complete,2026-05-01\n")
+    settings = TrainingExportSettings.from_options(
+        {"preset": "knowbe4-team-assignments", "column_map": {"person_email": "Address"}}
+    )
+    [record] = read_training_export(export, settings=settings, collected_at=COLLECTED)
+    assert record.person_email == "ada@example.com"
+    with pytest.raises(TrainingExportError, match="two columns"):
+        TrainingExportSettings.from_options(
+            {"preset": "knowbe4-team-assignments", "column_map": {"employee_id": "Email"}}
+        )
+
+
+def test_named_preset_does_not_guess_wrong_headers_or_unknown_statuses(tmp_path: Path) -> None:
+    settings = TrainingExportSettings.from_options({"preset": "absorb-enrollments"})
+    with pytest.raises(TrainingExportError, match="missing required column"):
+        read_training_export(CSV_DIR, settings=settings, collected_at=COLLECTED)
+    export = tmp_path / "unknown.csv"
+    export.write_text("EMAILADDRESS,COURSE,STATUS\nada@example.com,SAT,Pending Evaluation Required\n")
+    with pytest.raises(TrainingExportError, match="unknown status"):
+        read_training_export(export, settings=settings, collected_at=COLLECTED)
+
+
 @pytest.mark.parametrize(
     ("content", "message"),
     [
