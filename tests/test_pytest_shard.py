@@ -23,8 +23,10 @@ def run_pytest(directory: Path, *args: str) -> subprocess.CompletedProcess[str]:
     )
 
 
-def test_shards_partition_parametrized_tests_without_splitting_modules(tmp_path: Path) -> None:
-    for name, size in [("a", 13), ("b", 7), ("c", 5), ("d", 2), ("new_module", 3)]:
+@pytest.mark.parametrize("shard_count", [4, 8])
+def test_shards_partition_parametrized_tests_without_splitting_modules(tmp_path: Path, shard_count: int) -> None:
+    modules = [("a", 13), ("b", 7), ("c", 5), ("d", 2), ("new_module", 3), ("e", 2), ("f", 2), ("g", 2)]
+    for name, size in modules:
         (tmp_path / f"test_{name}.py").write_text(
             f"import pytest\n@pytest.mark.parametrize('value', range({size}))\n"
             "def test_value(value):\n    assert value >= 0\n"
@@ -34,8 +36,8 @@ def test_shards_partition_parametrized_tests_without_splitting_modules(tmp_path:
     expected = {line for line in full.stdout.splitlines() if "::" in line}
     seen: set[str] = set()
     module_owner: dict[str, int] = {}
-    for index in range(1, 5):
-        result = run_pytest(tmp_path, "--collect-only", f"--ci-shard={index}/4")
+    for index in range(1, shard_count + 1):
+        result = run_pytest(tmp_path, "--collect-only", f"--ci-shard={index}/{shard_count}")
         assert result.returncode == 0, result.stderr + result.stdout
         selected = {line for line in result.stdout.splitlines() if "::" in line}
         assert selected
@@ -44,11 +46,11 @@ def test_shards_partition_parametrized_tests_without_splitting_modules(tmp_path:
         for node in selected:
             module = node.split("::", 1)[0]
             assert module_owner.setdefault(module, index) == index
-        executed = run_pytest(tmp_path, f"--ci-shard={index}/4")
+        executed = run_pytest(tmp_path, f"--ci-shard={index}/{shard_count}")
         assert executed.returncode == 0, executed.stderr + executed.stdout
         assert f"{len(selected)} passed" in executed.stdout
     assert seen == expected
-    assert len(seen) == 30
+    assert len(seen) == sum(size for _, size in modules)
 
 
 @pytest.mark.parametrize("shard", ["0/4", "5/4", "1/0", "1", "one/four"])

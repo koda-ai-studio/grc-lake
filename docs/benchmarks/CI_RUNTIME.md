@@ -1,6 +1,6 @@
 # CI duration balancing
 
-CI keeps six Python runners and two browser runners. Whole test files are
+CI uses eight Python runners and two browser runners. Whole test files are
 assigned deterministically to the currently lightest runner, longest estimated
 file first. No test, retry, timeout, security gate, or required job is removed.
 New files participate automatically using collected test counts and the measured
@@ -10,6 +10,63 @@ Before execution, each browser runner collects the complete Playwright inventory
 then collects its selected file filters again. The selected inventory must exactly
 match the plan; collection errors and empty shards fail. The actual Playwright
 exit status remains the job result. This guards against a passing partial selection.
+
+## Python runtime headroom (2026-11-02)
+
+The six-runner layout no longer leaves enough headroom for the eight-minute
+workflow target. Refresh weights from both complete successful main runs below:
+each contains 7,835 cases across 541 modules, with 86 explicit skips and identical
+test identities. The owning importer checked all six JUnit reports from each run.
+
+| Successful main run                                                                | Source                                     | Full workflow | Largest job queue | Last job |
+| ---------------------------------------------------------------------------------- | ------------------------------------------ | ------------: | ----------------: | -------- |
+| [41520773340](https://github.com/koda-ai-studio/grc-lake/actions/runs/41520773340) | `a092932f5359820f9e9d76afdcdb338e9773b606` |         8m26s |                7s | coverage |
+| [41505878655](https://github.com/koda-ai-studio/grc-lake/actions/runs/41505878655) | `6705f1eb7c0f245e91e5609215f4c8e3cc711b12` |         9m07s |               12s | smoke    |
+
+Elapsed time is workflow `created_at` to `updated_at`; queue is the largest
+job `created_at` to `started_at` interval. These are not cold-cache qualifications.
+On the first run, the longest Python job took 451s (403s in the test step).
+On the second, Docker took 493s: image building used 248s and distributed-store
+qualification 170s. Python scheduling cannot remove that Docker bottleneck.
+
+The updated mean recorded case load is 1,864.91s. Replaying the allocator gives
+310.81–310.82s per runner with six shards and 233.11–233.12s with eight. The
+250s planning-budget regression leaves room for collection, coverage processing,
+runner overhead and dependent reporting; it is not a wall-clock guarantee.
+Two additional Python runners increase concurrency and duplicate setup/collection
+work, while each test module still runs exactly once. The partition test now
+executes and checks disjoint inventories with both four and eight shards.
+
+Refresh from these historical six-shard runs with:
+
+```bash
+uv run --frozen python tools/update_test_durations.py --expected-reports 6 \
+  --run-dir build/ci-timings-41520773340 --run-dir build/ci-timings-41505878655
+```
+
+For new eight-shard runs, require `--expected-reports 8`. Test selection, explicit
+skip policy, coverage reporting, security scans, fuzz budgets, migration checks,
+timeouts, browser shards and real distributed-store qualification are unchanged.
+The release workflow and its multi-architecture publication gates are unchanged.
+Issue #1111 remains open pending repeated full PR/main runs, including cold/warm
+evidence. Record over-target runs even when all checks pass.
+
+### First PR measurements
+
+Both full CI attempts on PR #1221 at `040eb7b4e94be50c050675a268c4f8e1df92b052`
+passed all jobs before rebasing onto the merged graph-link fix:
+
+| Attempt                                                                                              | Full workflow elapsed | Largest job queue | Last job |
+| ---------------------------------------------------------------------------------------------------- | --------------------: | ----------------: | -------- |
+| [First run](https://github.com/koda-ai-studio/grc-lake/actions/runs/41552090291/attempts/1)          |                 7m48s |               12s | smoke    |
+| [Same-commit repeat](https://github.com/koda-ai-studio/grc-lake/actions/runs/41552090291/attempts/2) |                 8m00s |                6s | smoke    |
+
+Elapsed time is each attempt's `run_started_at` to `updated_at`, including initial
+scheduling. The repeat uses its own start, not the original run's creation time.
+The second result meets neither a strict **under** eight-minute target nor a claim
+of consistent sub-eight-minute CI. Cache state was not qualified, and these are
+PR results, not merged-main evidence. Keep #1111 open; retain the complete
+verification and publication gates.
 
 ## First hosted measurement
 
