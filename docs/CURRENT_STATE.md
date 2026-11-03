@@ -1,9 +1,15 @@
 # Current state and coverage
 
-Release verification: **2026-11-02**. Latest published release checked: **v0.3.25**.
-See the [publication receipt](RELEASE_READINESS.md#verified-0325-publication) for artifact and runtime evidence.
+Release verification: **2026-11-02**. Latest published release checked: **v0.3.26**.
+See the [publication receipt](RELEASE_READINESS.md#verified-0326-publication) for artifact and runtime evidence.
 Changes on `main` or in a pull request can be newer than the published package. Check the [releases](https://github.com/koda-ai-studio/grc-lake/releases)
 and [changelog](../CHANGELOG.md) for the version you install.
+
+0.3.26 adds exact graph-record navigation, separate posture/CCF explanations, and
+KnowBe4/Absorb file-export presets. Published installation, upgrade, provenance
+and image checks passed within the recorded scope; the presets are file-only
+and were validated with synthetic exports. Independent SOC 2 mapping/workpaper review remains pending in
+[#1223](https://github.com/koda-ai-studio/grc-lake/issues/1223).
 
 0.3.25 updates console dependencies and the uv build toolchain. Published-package,
 upgrade and CCF evidence-applicability checks passed within their recorded scope.
@@ -60,6 +66,12 @@ The generated [connector qualification matrix](CONNECTOR_QUALIFICATION.md)
 links offline test modules, bounded live records, declared permissions
 and qualification owners for every built-in contract. Its
 [GitHub slice](GITHUB_QUALIFICATION.md) documents tested collection failure modes.
+
+The [November 2 repeat-collection receipt](qualification/live/2026-11-02-github-repeat.md)
+records two source runs with reconciled counts, stable record identities and
+matching graph/CCF explanations. It also records a missing declared change-approval
+evidence contract, which correctly leaves the safeguard `not_evaluated`. This
+source-installation receipt does not qualify the published 0.3.26 package.
 
 The [published 0.3.21 GitHub receipt](qualification/live/2026-10-31-github-published.md)
 records one public repository through a fresh named connection: seven governance

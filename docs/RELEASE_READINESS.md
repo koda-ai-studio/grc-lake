@@ -1,11 +1,11 @@
 # Release readiness
 
-GRC Lake **0.3.25 is published** on
-[PyPI](https://pypi.org/project/grc-lake/0.3.25/),
-[GitHub](https://github.com/koda-ai-studio/grc-lake/releases/tag/v0.3.25), and as
-`ghcr.io/koda-ai-studio/grc-lake:0.3.25`.
-Use the [v0.3.25 release templates](https://github.com/koda-ai-studio/grc-lake/tree/v0.3.25)
-for a published deployment. The [publication receipt](#verified-0325-publication)
+GRC Lake **0.3.26 is published** on
+[PyPI](https://pypi.org/project/grc-lake/0.3.26/),
+[GitHub](https://github.com/koda-ai-studio/grc-lake/releases/tag/v0.3.26), and as
+`ghcr.io/koda-ai-studio/grc-lake:0.3.26`.
+Use the [v0.3.26 release templates](https://github.com/koda-ai-studio/grc-lake/tree/v0.3.26)
+for a published deployment. The [publication receipt](#verified-0326-publication)
 records the verified source, artifact hashes and runtime checks. Later changes
 on `main` are unreleased until a new tag passes the release gates.
 
@@ -35,10 +35,10 @@ Listing the root [GRC Lake Readiness action](CI_GATE.md#readiness-summary-action
 GitHub Marketplace is a manual maintainer step after a release tag is published; the
 release workflow does not publish it.
 
-## 0.3.26 release candidate
+## 0.3.26 release
 
-0.3.26 is being prepared and is not yet published. Installation instructions
-remain on verified 0.3.25 artifacts until publication checks complete.
+0.3.26 is published; see the [publication receipt](#verified-0326-publication).
+The local candidate checks below preceded final artifact verification.
 
 This patch opens exact control, finding and evidence records from graph actions,
 separates evidence-posture explanations from reviewed CCF results, and adds
@@ -76,8 +76,8 @@ The [SOC 2 second-review packet](reviews/SOC2_SECOND_REVIEW.md) prepares a human
 inspection; no independent review decision has been recorded.
 
 Independent human approval, exact merged-main CI and CodeQL, package install and
-upgrade checks, and the release image, chart and provenance gates remain required
-before publication. Independent mapping/workpaper review is a separate decision.
+upgrade checks, and the release image, chart and provenance gates passed as
+recorded below. Independent mapping/workpaper review remains a separate decision.
 
 ## 0.3.25 release
 
@@ -441,6 +441,56 @@ for security, correctness, supported-workload performance and setup/documentatio
 repairs. Independent human review, required PR checks, exact-main CI and published
 artifact/runtime verification remain release gates; this candidate section is not
 a completion receipt.
+
+## Verified 0.3.26 publication
+
+Verified on November 2, 2026. The [release workflow](https://github.com/koda-ai-studio/grc-lake/actions/runs/41561818206)
+passed on source `65131b22587871bb14a46260b0d3f3bd8d682ef4`, following
+independent human approval and merge of [#1222](https://github.com/koda-ai-studio/grc-lake/pull/1222),
+successful [exact-main CI](https://github.com/koda-ai-studio/grc-lake/actions/runs/41560906196)
+and [CodeQL](https://github.com/koda-ai-studio/grc-lake/actions/runs/41560906251).
+The signed annotated `v0.3.26` tag resolves to that source commit.
+
+Wheel and source-archive bytes match public PyPI, GitHub release assets and the
+workflow artifacts. An anonymous Helm pull matches the GitHub chart package.
+
+| Artifact                           | SHA-256                                                            |
+| ---------------------------------- | ------------------------------------------------------------------ |
+| `grc_lake-0.3.26-py3-none-any.whl` | `8b884c5fa44721434e49025dd9cccf50a95edf09d9844162f01cd8b53a82bf02` |
+| `grc_lake-0.3.26.tar.gz`           | `8ed7c762930c8248ee2f7f6b383dd753352e3828c673788300fdee00af7f7326` |
+| `grc-lake-0.3.26.tgz`              | `3ef6b638ac5be9bfcf8d60a37c83a63494fb45ca5a7b9e51ed5e2c6e3ed6644f` |
+
+The image `ghcr.io/koda-ai-studio/grc-lake:0.3.26` and `latest` resolved to
+`sha256:dd44cd597530a243b5a8b9e0a7610a8d822dd3cc2071efe7993a8ec739c2d98f` at verification time.
+Anonymous downloads verified 21 distinct layer blobs by digest. Published AMD64
+and ARM64 root filesystems and runtime configurations match the scanned images.
+Each architecture passed 11 authenticated checks, including tenant isolation,
+revocation, persistence, snapshot integrity, non-root execution and the console.
+A fresh pull of the published ARM64 digest repeated all 11 checks locally.
+Each retained unfiltered Trivy report contains zero reported vulnerabilities.
+Both passed the HIGH/CRITICAL and fixable MEDIUM release policy.
+
+The Helm chart OCI digest is `sha256:37d2ef2c6b7d2066da07a90ff6f00ea8e42303b6197dc2824adf5138eb827b95`.
+The pulled package renders with the shipped self-hosted values.
+Wheel, source archive, chart package, chart OCI and image provenance verified
+against the exact source commit, tag and repository release workflow, with
+self-hosted runners denied. The public MCP Registry lists 0.3.26 with its matching
+package and runtime pin. GitHub retains the SBOM and provenance bundles.
+
+Fresh public-PyPI core and server/MCP installations passed package smoke checks
+outside the checkout. The wheel includes 263 console files and the required
+catalogs. An in-place 0.3.25 to 0.3.26 upgrade preserved the synthetic
+lake unchanged during installation. Re-evaluation retained all 59 records and
+20 historical files byte-for-byte; integrity, snapshot-chain and duplicate-free
+replay checks passed. The installed final package retained `not_evaluated` for
+both passing and failing unrelated evidence, including historical replay.
+
+These checks qualify the recorded release artifacts and bounded synthetic
+scenarios. They do not establish production capacity, live-provider completeness,
+TLS/IdP qualification or independent mapping/workpaper assurance. The
+[real-source repeat receipt](qualification/live/2026-11-02-github-repeat.md) uses
+the separately identified source installation. The human second review remains
+pending in [#1223](https://github.com/koda-ai-studio/grc-lake/issues/1223).
 
 ## Verified 0.3.25 publication
 
