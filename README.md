@@ -59,10 +59,10 @@ one independently checked result, then a repeat collection and review.
 
 **Use it in CI.** From v0.3.24, one step posts a framework readiness table to the job
 summary and can gate the merge ([CI gate](docs/CI_GATE.md#readiness-summary-action)).
-The example below uses the published 0.3.25 release.
+The example below targets 0.3.26; use it after that release is published.
 
 ```yaml
-- uses: koda-ai-studio/grc-lake@v0.3.25
+- uses: koda-ai-studio/grc-lake@v0.3.26
   with:
     grc-lake-url: ${{ secrets.GRC_LAKE_URL }}
     api-token: ${{ secrets.GRC_LAKE_API_TOKEN }}
