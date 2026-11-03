@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Open the selected control, finding, or evidence record from the graph inspector, retaining stable record identifiers in finding summaries. Nodes without a linked record still open the corresponding workbench.
+
 All notable GRC Lake changes are summarized here. Versions follow semver for the
 Python package, Helm chart, and bundled web console.
 

@@ -83,9 +83,16 @@ interface Props {
   onInspectNode?: (node: GraphNode) => void;
 }
 
+function recordHref(path: string, id?: string): string {
+  return id ? `${path}?id=${encodeURIComponent(id)}` : path;
+}
+
 function primaryHref(node: GraphNode): { href: string; label: string } | null {
   if (node.kind === "finding")
-    return { href: "/violations", label: "Review finding and remediation" };
+    return {
+      href: recordHref("/violations", node.violation_id),
+      label: "Review finding and remediation",
+    };
   if (node.kind === "vendor")
     return { href: "/vendor-risk", label: "Review vendor assessment" };
   if (node.kind === "source")
@@ -94,10 +101,22 @@ function primaryHref(node: GraphNode): { href: string; label: string } | null {
       label: "Review source connection",
     };
   if (node.kind === "control") {
-    return { href: "/controls", label: "Open controls workbench" };
+    return {
+      href: recordHref(
+        "/controls",
+        node.id.startsWith("control:") ? node.id.slice(8) : undefined,
+      ),
+      label: "Open controls workbench",
+    };
   }
   if (node.kind === "evidence" || node.kind === "evidence_type") {
-    return { href: "/evidence", label: "Open evidence room" };
+    return {
+      href: recordHref(
+        "/evidence",
+        node.kind === "evidence" ? node.event_id : node.evidence_id,
+      ),
+      label: "Open evidence room",
+    };
   }
   if (node.kind === "signal_gap") {
     return {
@@ -251,7 +270,7 @@ export function GraphNodeDrawer({
                 {node.control_ids!.map((controlId) => (
                   <Link
                     key={controlId}
-                    href="/controls"
+                    href={recordHref("/controls", controlId)}
                     className="inline-flex items-center gap-1 rounded-full border border-line bg-surface px-2.5 py-1 text-xs font-semibold hover:border-brand"
                   >
                     <ShieldCheck className="h-3 w-3" />

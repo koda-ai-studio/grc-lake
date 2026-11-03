@@ -1407,6 +1407,10 @@ export type GraphEdgeKind =
   | "requires_status_check";
 
 export interface GraphNode {
+  /** Repository evidence may have a reference ID distinct from its event ID. */
+  event_id?: string;
+  /** Finding record identifier; graph node IDs are separate navigation keys. */
+  violation_id?: string;
   asserted_by?: string;
   asserted_at?: string;
   assertion_reason?: string;

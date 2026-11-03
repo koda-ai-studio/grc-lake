@@ -36,7 +36,18 @@ from security_lakehouse.tracking import list_events
 _MODEL_CACHE = ModelCache()
 _PERSISTENT_MIN_BYTES = 8 * 1024 * 1024
 _SEVERITY_RANK = {"critical": 0, "high": 1, "medium": 2, "low": 3}
-_FINDING_SUMMARY = ("id", "kind", "label", "owner", "severity", "status", "next_action", "evidence_id", "event_type")
+_FINDING_SUMMARY = (
+    "id",
+    "kind",
+    "label",
+    "owner",
+    "severity",
+    "status",
+    "next_action",
+    "evidence_id",
+    "event_type",
+    "violation_id",
+)
 _FINDING_SUMMARY_LIMIT = 5
 # Every generated input read by _build_model/add_repository_context. Missing
 # optional files also participate, so later additions cannot reuse an old model.
@@ -338,6 +349,11 @@ def _build_model(
                     **{**observed, "owner": decision.get("assignee") or observed["owner"]},
                     severity=event.get("severity"),
                     status=decision.get("state", "open"),
+                    violation_id=(
+                        cid + ":" + event["event_id"]
+                        if isinstance(event.get("event_id"), str) and event["event_id"]
+                        else None
+                    ),
                     evidence_id=event.get("event_id"),
                     event_type=event.get("event_type"),
                     control_ids=[cid],
