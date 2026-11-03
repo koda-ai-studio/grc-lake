@@ -165,6 +165,7 @@ def test_failing_control_reaches_its_finding_within_the_default_depth(golden: Pa
         assert summary["next_action"] == finding["next_action"] and summary["next_action"]
         assert summary["severity"] == finding["severity"]
         assert summary["status"] == finding["status"]
+        assert summary["violation_id"] == finding["violation_id"] == root[8:] + ":" + finding["evidence_id"]
 
 
 def _failing_events(count: int, control_ids: list[str]) -> list[dict]:

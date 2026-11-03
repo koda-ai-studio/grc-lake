@@ -1407,6 +1407,8 @@ export type GraphEdgeKind =
   | "requires_status_check";
 
 export interface GraphNode {
+  /** Finding record identifier; graph node IDs are separate navigation keys. */
+  violation_id?: string;
   asserted_by?: string;
   asserted_at?: string;
   assertion_reason?: string;
