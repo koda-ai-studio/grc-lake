@@ -1,7 +1,8 @@
 # GRC Lake roadmap
 
-Status as of v0.3.25, checked **2026-11-02**; **v0.3.25 is published**.
-This maintenance patch updates console dependencies and the uv build toolchain.
+Status as of v0.3.26, checked **2026-11-02**; **v0.3.26 is published**.
+This patch improves graph navigation and assessment explanations, and adds
+training file-export presets.
 Deeper provider, safeguard-contract and capacity qualification remain below.
 Start with [current state and coverage](docs/CURRENT_STATE.md) for shipped paths
 and qualification boundaries. This roadmap describes remaining work, not promises
@@ -21,7 +22,7 @@ approval is implied by preparing this process.
 Releases 0.3.13 through 0.3.22 separated control-test posture from framework
 results, bounded graph layouts and reads, scoped evidence by provider and source
 account, and hardened transport and review-state validation. Published-artifact
-verification now covers v0.3.25 in the [publication receipt](docs/RELEASE_READINESS.md#verified-0325-publication).
+verification now covers v0.3.26 in the [publication receipt](docs/RELEASE_READINESS.md#verified-0326-publication).
 Provider depth, independent mapping review and measured capacity remain separate
 work below. Correctness, security, migration and supported-workflow regressions
 remain release blockers.
@@ -33,6 +34,15 @@ expected versus actual behavior, and relevant counts. Do not include credentials
 customer evidence. Qualification depth and measured capacity come before unsupported
 parity or scale claims.
 
+The [GitHub repeat-collection receipt](docs/qualification/live/2026-11-02-github-repeat.md)
+reconciles collected governance observations but exposes a missing declared
+evidence-type contract for `SG-CHANGEAPPROVAL-001`. Follow the existing
+[change-approval review queue](https://github.com/koda-ai-studio/grc-lake/issues/1082)
+to substantiate the contract and its requirement mappings. Branch settings alone
+do not prove that changes were reviewed throughout an assessment period. Keep
+the safeguard `not_evaluated` until its required evidence can be evaluated;
+any definition change also requires maintainer re-review.
+
 ## Choose a contribution
 
 Check [open issues](https://github.com/koda-ai-studio/grc-lake/issues) and
@@ -43,13 +53,13 @@ Maintainers confirm scope and review; an untracked row is not an assigned task.
 See [Contributing](CONTRIBUTING.md) for setup and checks. Never post credentials
 or real provider evidence in issues or pull requests.
 
-| Priority / slice                        | Start here                                                                                                                                        | Complete when                                                                                                                                                         | Access / size                                 |
-| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
-| Next: Databricks reader qualification   | [#734](https://github.com/koda-ai-studio/grc-lake/issues/734), `connectors_databricks.py`                                                         | Approved read-only workspace run verifies probe, paging, SQL/schema mapping, normalized identity and failure reporting; reviewer accepts sanitized results.           | Authorized workspace + reviewer; medium       |
-| Next: SOC 2 and ISO mapping review      | [SOC 2 and ISO batches](docs/reviews/SOC2_ISO_REVIEW.md), [Coverage ledger](docs/FRAMEWORK_COVERAGE.md), [mapping review](docs/MAPPING_REVIEW.md) | A named framework subset has source/version references and independent human review; stale reviews cannot count; generated coverage agrees.                           | Qualified domain reviewer; small per subset   |
-| Next: reproducible capacity baseline    | [#910](https://github.com/koda-ai-studio/grc-lake/issues/910), `tools/benchmark_assessment_pipeline.py`, `tools/benchmark_distributed.py`         | Publish sanitized workload/configuration and measured latency, memory, disk and queue fairness; report saturation and failures without inferring production capacity. | Sufficient disk; medium                       |
-| Later: provider recovery qualification  | [Backup/restore](docs/runbooks/BACKUP_RESTORE.md), [distributed mode](docs/DISTRIBUTED.md)                                                        | Real PostgreSQL/object-store restore and worker interruption drills preserve tenant isolation and generation identity, with measured recovery bounds.                 | Isolated deployment; large                    |
-| Next: deepen live adapter qualification | [Qualification matrix](docs/CONNECTOR_QUALIFICATION.md), [Connectors](docs/CONNECTORS.md), [live-cloud runbook](docs/LIVE_CLOUD_POC.md)           | Each adapter records tested scope, permission-denied behavior, pagination, replay and normalization; preview changes only with reviewed evidence.                     | Authorized vendor tenants; one adapter per PR |
+| Priority / slice                         | Start here                                                                                                                                                                                                   | Complete when                                                                                                                                                                | Access / size                                 |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| Next: Databricks reader qualification    | [#734](https://github.com/koda-ai-studio/grc-lake/issues/734), `connectors_databricks.py`                                                                                                                    | Approved read-only workspace run verifies probe, paging, SQL/schema mapping, normalized identity and failure reporting; reviewer accepts sanitized results.                  | Authorized workspace + reviewer; medium       |
+| Next: SOC 2 mapping and workpaper review | [Second review #1223](https://github.com/koda-ai-studio/grc-lake/issues/1223), [review packet](docs/reviews/SOC2_SECOND_REVIEW.md), [recovery and confidentiality](docs/reviews/RECOVERY_CONFIDENTIALITY.md) | A bounded subset has source-pinned, independent human decisions and inspected workpapers; recovery and confidentiality evidence contracts are substantiated before approval. | Qualified domain reviewer; small per subset   |
+| Next: reproducible capacity baseline     | [#910](https://github.com/koda-ai-studio/grc-lake/issues/910), `tools/benchmark_assessment_pipeline.py`, `tools/benchmark_distributed.py`                                                                    | Publish sanitized workload/configuration and measured latency, memory, disk and queue fairness; report saturation and failures without inferring production capacity.        | Sufficient disk; medium                       |
+| Later: provider recovery qualification   | [Backup/restore](docs/runbooks/BACKUP_RESTORE.md), [distributed mode](docs/DISTRIBUTED.md)                                                                                                                   | Real PostgreSQL/object-store restore and worker interruption drills preserve tenant isolation and generation identity, with measured recovery bounds.                        | Isolated deployment; large                    |
+| Next: deepen live adapter qualification  | [Qualification matrix](docs/CONNECTOR_QUALIFICATION.md), [Connectors](docs/CONNECTORS.md), [live-cloud runbook](docs/LIVE_CLOUD_POC.md)                                                                      | Each adapter records tested scope, permission-denied behavior, pagination, replay and normalization; preview changes only with reviewed evidence.                            | Authorized vendor tenants; one adapter per PR |
 
 The branded not-found work in [#768](https://github.com/koda-ai-studio/grc-lake/issues/768)
 and the earlier mapping slice in [#909](https://github.com/koda-ai-studio/grc-lake/issues/909)
@@ -76,8 +86,11 @@ not approve additional mappings. A merged proposal or passing CI does not
 approve a mapping.
 
 SOC 2 has 49 of 61 reviewed requirements after demotion of unattributed legacy
-mappings. Prioritize bounded review of the reopened legacy mappings and the
-remaining ISO 42001 and ISO 27001 candidates. Title-theme suggestions need
+mappings. Prioritize the independent SOC 2 mapping/workpaper review, then
+SOC2-A1.3 recovery testing and SOC2-C1.1 confidential-data protection before
+expanding ISO coverage. Backup activity alone does not establish a recovery
+exercise; a data inventory alone does not establish protection. Keep the
+remaining ISO 42001 and ISO 27001 candidates pending. Title-theme suggestions need
 requirement-specific contracts before a maintainer decision. Prepare clause-specific source evidence,
 safeguard rationale, evidence requirements and limitations before requesting new
 human decisions. Report progress per framework; the aggregate milestone does not
@@ -103,7 +116,7 @@ provider HA and production capacity remain unqualified by this audit.
 
 ## Release work
 
-v0.3.23 is published. The earlier 0.3.3 changes include dependency remediation,
+v0.3.26 is published. The earlier 0.3.3 changes include dependency remediation,
 authentication hardening, evidence eligibility, versioned CCF governance, exact
 lineage and frozen requirement-gap explanations. The console now exposes those
 gaps and record-level investigation, with bounded graph navigation and shared
