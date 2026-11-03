@@ -9,7 +9,7 @@ qualify; the export's completeness is the operator's responsibility and the
 file's SHA-256 is kept as provenance.
 
 Column contract (header names, case-sensitive; rename with
-``options.column_map``):
+``options.column_map`` or select ``options.preset``):
 
 * ``person_email`` and/or ``employee_id`` — at least one per row
 * ``course_id`` (required), ``course_name``
@@ -56,6 +56,26 @@ MAX_WINDOW_DAYS = 1095
 DEFAULT_GRACE_DAYS = 30
 MAX_GRACE_DAYS = 365
 DEFAULT_SYSTEM = "training-export"
+
+_COLUMN_PRESETS = {
+    "knowbe4-team-assignments": {
+        "person_email": "Email",
+        "course_id": "Assigned Training",
+        "status": "Status",
+        "completed_at": "Completion Date",
+        "due_at": "Due Date",
+    },
+    "absorb-enrollments": {
+        "person_email": "EMAILADDRESS",
+        "employee_id": "EMPLOYEENUMBER",
+        "course_id": "COURSE",
+        "course_name": "COURSENAME",
+        "status": "STATUS",
+        "assigned_at": "DATEENROLLED",
+        "completed_at": "DATECOMPLETED",
+        "score": "SCORE(%)",
+    },
+}
 
 COLUMNS = (
     "person_email",
@@ -119,7 +139,7 @@ class TrainingExportSettings:
             ),
             new_hire_grace_days=_bounded_int(options, "new_hire_grace_days", DEFAULT_GRACE_DAYS, 0, MAX_GRACE_DAYS),
             system=_system(options.get("system")),
-            column_map=_column_map(options.get("column_map")),
+            column_map=_preset_columns(options),
         )
 
 
@@ -483,6 +503,15 @@ def _system(value: Any) -> str:
     if not isinstance(value, str) or not _SYSTEM.fullmatch(value):
         raise TrainingExportError("options.system must be a short lowercase label such as 'lms'")
     return value
+
+
+def _preset_columns(options: Mapping[str, Any]) -> dict[str, str]:
+    preset = options.get("preset")
+    if preset is None:
+        return _column_map(options.get("column_map"))
+    if not isinstance(preset, str) or preset not in _COLUMN_PRESETS:
+        raise TrainingExportError("options.preset must be one of: " + ", ".join(sorted(_COLUMN_PRESETS)))
+    return _column_map({**_COLUMN_PRESETS[preset], **_column_map(options.get("column_map"))})
 
 
 def _column_map(value: Any) -> dict[str, str]:

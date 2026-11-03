@@ -3,6 +3,8 @@
 ## Unreleased
 
 - Open the selected control, finding, or evidence record from the graph inspector, retaining stable record identifiers in finding summaries. Nodes without a linked record still open the corresponding workbench.
+- Separate evidence-posture rules and reasons from reviewed CCF framework results in the graph inspector, preserving unknown posture and mapping counts instead of inferring a pass or zero.
+- Add explicit KnowBe4 Team Dashboard and Absorb enrollment header presets for local training exports, with validated overrides and synthetic connector-to-assessment tests. Presets preserve strict validation and do not establish live-provider or framework qualification.
 
 All notable GRC Lake changes are summarized here. Versions follow semver for the
 Python package, Helm chart, and bundled web console.
