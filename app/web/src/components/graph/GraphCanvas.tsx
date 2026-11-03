@@ -72,6 +72,7 @@ import {
   graphScope,
   investigationPositions,
   investigationRoute,
+  investigationLabelPosition,
   graphAssuranceKind,
 } from "@/lib/graph-layout";
 import { formatCount } from "@/lib/format";
@@ -304,7 +305,7 @@ function GraphNodeCard({ id, data, selected }: NodeProps<FlowGraphNode>) {
               <div
                 className={`mt-1 text-[11px] leading-4 ${(isEvidence && outcomeClass) || "text-muted"}`}
               >
-                {isEvidence ? outcomeLabel : data.kind.replaceAll("_", " ")}
+                {isEvidence ? outcomeLabel : graphKindLabel(data.kind)}
               </div>
             </div>
           </div>
@@ -396,7 +397,7 @@ function GraphNodeCard({ id, data, selected }: NodeProps<FlowGraphNode>) {
                     ? [statusLabel(data.severity), statusLabel(data.status)]
                         .filter(Boolean)
                         .join(" · ") || "Finding"
-                    : data.kind.replaceAll("_", " ")}
+                    : graphKindLabel(data.kind)}
               </div>
             </div>
           </div>
@@ -550,7 +551,7 @@ function GraphNodeCard({ id, data, selected }: NodeProps<FlowGraphNode>) {
                 .filter(Boolean)
                 .join(" · ") || "Finding"
             ) : (
-              data.kind.replaceAll("_", " ")
+              graphKindLabel(data.kind)
             )}
           </div>
         </div>
@@ -562,7 +563,7 @@ function GraphNodeCard({ id, data, selected }: NodeProps<FlowGraphNode>) {
           className="z-[80] max-w-[280px] rounded-lg border border-line bg-surface p-3 text-xs text-ink shadow-hero"
         >
           <div className="text-[11px] font-semibold uppercase tracking-wider text-muted">
-            {data.kind.replace("_", " ")}
+            {graphKindLabel(data.kind)}
           </div>
           <div className="mt-1 font-semibold">{data.label}</div>
           {data.subtitle && (
@@ -760,7 +761,9 @@ function InvestigationEdge(props: EdgeProps) {
   const path = points?.length
     ? points.map((p, i) => `${i ? "L" : "M"} ${p.x} ${p.y}`).join(" ")
     : getSmoothStepPath(props)[0];
-  const middle = points?.[Math.floor(points.length / 2)];
+  const middle =
+    (props.data?.labelPosition as { x: number; y: number } | undefined) ??
+    points?.[Math.floor(points.length / 2)];
   return (
     <BaseEdge
       id={props.id}
@@ -912,7 +915,7 @@ function InnerGraphCanvas({
   const [hydrated, setHydrated] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
   useEffect(() => setHydrated(true), []);
-  const { setCenter, setViewport, getZoom } = useReactFlow();
+  const { setCenter, setViewport, getViewport, getZoom } = useReactFlow();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const activeId = hoveredId ?? selectedId;
@@ -1294,9 +1297,56 @@ function InnerGraphCanvas({
         }),
     );
   }, [laidOut.nodes, laidOut.edges, dragged, placementKey]);
+  const labelPositions = useMemo(() => {
+    const positions = new Map<string, { x: number; y: number }>();
+    const labelBoxes: {
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+    }[] = [];
+    const cardBoxes = laidOut.nodes.map((node) => ({
+      ...(dragged.key === placementKey
+        ? (dragged.positions[node.id] ?? node.position)
+        : node.position),
+      width: node.width ?? NODE_W,
+      height: node.height ?? NODE_H,
+    }));
+    for (const edge of laidOut.edges) {
+      if (!edge.label || edge.type !== "investigation") continue;
+      const width = String(edge.label).length * 6 + 12;
+      const position = investigationLabelPosition(
+        routes.get(edge.id) ?? [],
+        width,
+        cardBoxes,
+        labelBoxes,
+        edge.targetHandle === "assurance",
+        [...routes]
+          .filter(([id]) => id !== edge.id)
+          .map(([, points]) => points),
+      );
+      if (position) {
+        positions.set(edge.id, position);
+        labelBoxes.push({
+          x: position.x - width / 2,
+          y: position.y - 10,
+          width,
+          height: 20,
+        });
+      }
+    }
+    return positions;
+  }, [laidOut, routes, dragged, placementKey]);
   const routedEdges = rfEdges.map((edge) =>
     edge.type === "investigation"
-      ? { ...edge, data: { ...edge.data, points: routes.get(edge.id) } }
+      ? {
+          ...edge,
+          data: {
+            ...edge.data,
+            points: routes.get(edge.id),
+            labelPosition: labelPositions.get(edge.id),
+          },
+        }
       : edge,
   );
 
@@ -1503,6 +1553,31 @@ function InnerGraphCanvas({
       cancelAnimationFrame(frame);
     };
   }, [scopeIds, hydrated, tooLarge]);
+
+  useEffect(() => {
+    const wrapper = wrapperRef.current;
+    if (!wrapper) return;
+    const pan = (event: WheelEvent) => {
+      if (!event.shiftKey || event.ctrlKey) return;
+      event.preventDefault();
+      event.stopPropagation();
+      const viewport = getViewport();
+      const scale =
+        event.deltaMode === 1
+          ? 16
+          : event.deltaMode === 2
+            ? wrapper.clientHeight
+            : 1;
+      setViewport({
+        ...viewport,
+        x: viewport.x - event.deltaX * scale,
+        y: viewport.y - event.deltaY * scale,
+      });
+      setOverflow(true);
+    };
+    wrapper.addEventListener("wheel", pan, { passive: false, capture: true });
+    return () => wrapper.removeEventListener("wheel", pan, { capture: true });
+  }, [getViewport, setViewport, hydrated, tooLarge]);
 
   // When the search has exactly one match, recentre the viewport on it so the
   // user sees the result immediately.
@@ -1789,9 +1864,9 @@ function InnerGraphCanvas({
           data-testid="graph-overflow-hint"
           className="text-xs leading-5 text-muted"
         >
-          Part of this map is outside the view. Drag the canvas to follow
-          connections. Use the fit icon to see the entire loaded graph, or + to
-          enlarge labels.
+          Part of this map is outside the view. Drag or Shift+scroll to follow
+          connections. Scroll normally to move the page. Use the fit icon to see
+          the entire loaded graph, or + to enlarge labels.
         </p>
       )}
     </div>

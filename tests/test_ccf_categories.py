@@ -119,6 +119,18 @@ def test_ccf_coverage_api_returns_categories(tmp_path: Path) -> None:
     assert all(row["category_id"] in EXPECTED_CATEGORIES for row in data["families"])
 
 
+def test_iam_name_is_explicit_in_api_and_cli(tmp_path: Path, capsys) -> None:
+    status, body = api_v1.handle_get("/api/v1/ccf/coverage", {}, tmp_path)
+    assert status == HTTPStatus.OK
+    data = body["data"]
+    category = next(row for row in data["categories"] if row["category_id"] == "identity-access")
+    family = next(row for row in data["families"] if row["family_id"] == "identity")
+    assert category["label"] == family["label"] == "Identity and access management"
+    assert family["category_id"] == "identity-access"
+    assert main(["frameworks", "safeguards", "--format", "table"]) == 0
+    assert "Identity and access management (" in capsys.readouterr().out
+
+
 def test_oscal_components_name_their_category() -> None:
     families = load_ccf_families()
     safeguards = {s["safeguard_id"]: s for s in load_safeguards()["safeguards"]}

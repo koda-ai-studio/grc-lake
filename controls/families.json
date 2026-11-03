@@ -9,7 +9,7 @@
     },
     {
       "category_id": "identity-access",
-      "label": "Identity and access",
+      "label": "Identity and access management",
       "description": "Who can authenticate and what they can reach, across people, services, and AI agents."
     },
     {
@@ -56,7 +56,7 @@
   "families": [
     {
       "family_id": "identity",
-      "label": "Identity and access",
+      "label": "Identity and access management",
       "category": "identity-access",
       "description": "Who can authenticate and what they can reach: accounts, MFA, access reviews, logon limits, and separation of duties.",
       "nist_800_53_families": ["AC", "IA"],

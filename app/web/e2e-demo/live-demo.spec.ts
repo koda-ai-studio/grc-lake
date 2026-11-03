@@ -336,7 +336,7 @@ for (const width of [1440, 390])
         .getByText("Visible relationship layers", { exact: true })
         .click();
       await page
-        .getByRole("checkbox", { name: "source", exact: true })
+        .getByRole("checkbox", { name: "Source", exact: true })
         .uncheck();
       await expect
         .poll(
@@ -392,7 +392,7 @@ for (const width of [1440, 390])
         path: testInfo.outputPath("filtered-recorded-graph.png"),
         fullPage: true,
       });
-      await page.getByRole("checkbox", { name: "source", exact: true }).check();
+      await page.getByRole("checkbox", { name: "Source", exact: true }).check();
       await expect.poll(ids).toEqual(original);
       expect(
         await page.evaluate(
@@ -487,7 +487,7 @@ test("an unavailable graph resets its query to recorded defaults", async ({
     .getByLabel("Find a starting point", { exact: true })
     .fill("unrecorded search");
   await page.getByText("Visible relationship layers", { exact: true }).click();
-  await page.getByRole("checkbox", { name: "source", exact: true }).uncheck();
+  await page.getByRole("checkbox", { name: "Source", exact: true }).uncheck();
   await page.getByRole("button", { name: "Reset to current evidence" }).click();
   await expect(page.getByLabel("Graph depth", { exact: true })).toHaveValue(
     "2",
@@ -496,7 +496,7 @@ test("an unavailable graph resets its query to recorded defaults", async ({
     page.getByLabel("Find a starting point", { exact: true }),
   ).toHaveValue("");
   await expect(
-    page.getByRole("checkbox", { name: "source", exact: true }),
+    page.getByRole("checkbox", { name: "Source", exact: true }),
   ).toBeChecked();
   await expect(page.locator(".react-flow__node").nth(1)).toBeVisible();
   await expectHealthy(page);

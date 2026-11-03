@@ -105,7 +105,7 @@ const KIND_LABEL: Record<GraphNodeKind, string> = {
 
   framework: "Frameworks",
   control: "Controls",
-  evidence_type: "Evidence types",
+  evidence_type: "Evidence records",
   asset: "Assets",
   repository: "Repositories",
   directory: "Directories",
@@ -284,7 +284,7 @@ function GraphPageContent() {
   const [rawActiveResult, setActiveResult] = useState(0);
   const searchListId = useId();
   // The compliance graph opens on one control path (framework, control, its
-  // evidence types, their assets) so it is readable; the whole framework
+  // evidence records, their assets) so it is readable; the whole framework
   // slice is one click away.
   const [pathRoot, setPathRoot] = useState<string | null>(null);
   const pathRootDefaulted = useRef(false);
@@ -438,7 +438,7 @@ function GraphPageContent() {
     return ids;
   }, [data, filterFramework]);
 
-  // A control path: everything downstream of the root (evidence types, then
+  // A control path: everything downstream of the root (evidence records, then
   // assets) plus the chain upstream of it (control, framework). Upstream walks
   // never turn back down, so sibling controls stay out.
   const pathScopeIds = useMemo(() => {
@@ -463,7 +463,7 @@ function GraphPageContent() {
     return ids;
   }, [graphIndex, graphMode, pathRoot]);
 
-  // The richest mapped control in the framework slice: most evidence types,
+  // The richest mapped control in the framework slice: most evidence records,
   // then most covered assets. Ties go to the lower control id.
   const defaultPathRoot = useMemo(() => {
     if (graphMode !== "compliance" || !data || !filterFramework) return null;
@@ -977,7 +977,7 @@ function GraphPageContent() {
         <p data-testid="graph-summary-line" className="text-xs text-muted">
           <b className="text-ink">{focusLabel}</b> ·{" "}
           {graphMode === "compliance"
-            ? `${plural(visibleSummary.controls, "control")} · ${plural(visibleSummary.evidenceTypes, "evidence type")} · ${plural(visibleSummary.assets, "asset")} in view`
+            ? `${plural(visibleSummary.controls, "control")} · ${plural(visibleSummary.evidenceTypes, "evidence record")} · ${plural(visibleSummary.assets, "asset")} in view`
             : `${plural(visibleSummary.signals, "signal")} · ${plural(visibleSummary.repositories, "repository", "repositories")} in view`}
         </p>
         <details>
@@ -1010,7 +1010,7 @@ function GraphPageContent() {
             <KpiTile
               label={
                 graphMode === "compliance"
-                  ? "Evidence types in view"
+                  ? "Evidence records in view"
                   : "Repositories in view"
               }
               value={
@@ -1459,7 +1459,7 @@ function GraphPageContent() {
                             <span className="truncate text-muted">
                               {evidenceTypes.length > 0
                                 ? evidenceTypes.map(graphRecordLabel).join(", ")
-                                : "No evidence type mapped"}
+                                : "No evidence record linked"}
                             </span>
                             <span className="font-semibold text-ink">
                               {plural(assetCount, "asset")}

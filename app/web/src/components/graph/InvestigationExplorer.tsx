@@ -8,7 +8,11 @@ import { CONSOLE_BASE_PATH } from "@/lib/base-path";
 import type { GraphNode, GraphNodeKind } from "@/lib/api/types";
 import { GRAPH_KIND_COLOR } from "@/lib/graph-palette";
 import { graphScope } from "@/lib/graph-layout";
-import { graphRecordLabel, labelWithKind } from "@/lib/graph-evidence";
+import {
+  graphKindLabel,
+  graphRecordLabel,
+  labelWithKind,
+} from "@/lib/graph-evidence";
 import { GraphRelationships } from "./GraphRelationships";
 import { GraphCanvas } from "./GraphCanvas";
 import { GraphNodeDrawer } from "./GraphNodeDrawer";
@@ -638,7 +642,7 @@ export function InvestigationExplorer() {
                       });
                     }}
                   />
-                  {kind.replaceAll("_", " ")}
+                  {graphKindLabel(kind)}
                 </label>
               ))}
             </div>
@@ -1085,7 +1089,8 @@ export function InvestigationExplorer() {
                 </p>
                 <p className="text-xs text-muted">
                   Hover to follow links. Drag to arrange. Click for details.
-                  Double-click or press Shift+Enter to explore its connections.
+                  Double-click or press Shift+Enter to explore its connections.{" "}
+                  Scroll to move the page; Shift+scroll to pan the graph.
                 </p>
                 {mappingStates.length > 0 && (
                   <p

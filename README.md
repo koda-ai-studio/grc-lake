@@ -138,8 +138,12 @@ Filter by result, owner, or framework; open a control for its evidence, findings
 
 ### Navigate control families and the CCF
 
-The Common Control Framework (CCF) groups reusable safeguards into families linked to
-framework requirements. Proposed mappings are not attestable.
+The Common Control Framework (CCF) organizes safeguards as **category → family →
+safeguard**. For example, Identity and access management (IAM) contains the Access
+review family, whose `SG-IDENTITY-002` safeguard covers access review and
+recertification. Safeguards connect to framework requirements through a crosswalk.
+Proposed mappings are not attestable. The `SG-…` IDs are stable GRC Lake identifiers,
+not official framework control numbers or a substitute for the current family name.
 [How common safeguards work](docs/COMMON_CONTROL_FRAMEWORK.md).
 
 ### Trace a finding through the evidence graph
@@ -225,13 +229,15 @@ or [build one](docs/ADDING_CONNECTORS.md).
 If your telemetry is already normalized to [OCSF](https://schema.ocsf.io/1.1.0/), for
 example in Amazon Security Lake or OCSF tables on Databricks or Snowflake, point GRC
 Lake at those tables. Keep your existing source-ingestion pipeline: GRC Lake runs
-read-only queries, retains a mapped copy and evaluates the rows it imports. Built-in presets bind events to CCF safeguards,
-and framework requirements follow each safeguard's reviewed crosswalk:
+read-only queries, retains a mapped copy and evaluates the rows it imports. Built-in
+presets bind events to CCF safeguards. The diagram shows example crosswalk links to
+framework requirements; these links may be proposed or reviewed. Only reviewed
+mappings can support attestation.
 
 ```mermaid
 flowchart LR
   A["OCSF Authentication 3002<br/>successful Logon, is_mfa"] --> S1["SG-IDENTITY-001<br/>Logical access and MFA"]
-  B["OCSF Account Change 3001<br/>Attach Policy"] --> S2["SG-IDENTITY-002<br/>Access review"]
+  B["OCSF Account Change 3001<br/>Attach Policy"] --> S2["SG-IDENTITY-002<br/>Access review and<br/>recertification"]
   G["OCSF Group Management 3006<br/>Add User, Assign Privileges"] --> S2
   V["OCSF Vulnerability Finding 2002<br/>EC2 instance, ECR image"] --> S3["SG-VULNERABILITYMANAGEMENT-001<br/>Vulnerability management"]
   C["OCSF Compliance Finding 2003<br/>EC2 instance"] --> S4["SG-CONFIGBASELINE-001<br/>Hardened configuration baselines"]

@@ -105,7 +105,8 @@ test("node accessible names state kind, label and status", () => {
 
 test("kind labels and duplicated kind suffixes read naturally", () => {
   expect(graphKindLabel("safeguard")).toBe("Safeguard");
-  expect(graphKindLabel("evidence_type")).toBe("Evidence type");
+  expect(graphKindLabel("evidence_type")).toBe("Evidence record");
+  expect(labelWithKind("MFA", "evidence_type")).toBe("MFA · evidence record");
   expect(labelWithKind("acme/model-service repository", "repository")).toBe(
     "acme/model-service repository",
   );

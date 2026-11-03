@@ -182,7 +182,7 @@ export function investigationPositions(
         while (occupied.has(row)) row++;
         occupied.add(row);
         lastRow = Math.max(lastRow, row);
-        positions.set(node.id, { x: column * 340, y: top + row * 136 });
+        positions.set(node.id, { x: column * 420, y: top + row * 136 });
       }
     }
     if (section.length) top += (lastRow + 1) * 136 + 72;
@@ -210,7 +210,19 @@ export function investigationRoute(
           Math.max(a.x, b.x) > box.x &&
           Math.min(a.x, b.x) < box.x + box.width,
     );
-  const right = source.x + 20 + offset;
+  if (
+    targetSide === "left" &&
+    source.x < target.x &&
+    source.y === target.y &&
+    clear(source, target)
+  )
+    return [source, target];
+  const right =
+    source.x +
+    (targetSide === "left" && source.x < target.x
+      ? (target.x - source.x) / 2
+      : 20) +
+    offset;
   if (targetSide === "top") {
     const approach = target.y - 18;
     const route = [
@@ -258,5 +270,57 @@ export function investigationRoute(
     candidates.find((points) =>
       points.slice(1).every((p, i) => clear(points[i], p)),
     ) ?? []
+  );
+}
+
+/** Keep relationship text inside clear gutters, not on the first route bend. */
+export function investigationLabelPosition(
+  points: Point[],
+  width: number,
+  boxes: RoutingBox[],
+  occupied: RoutingBox[],
+  topTarget = false,
+  otherRoutes: Point[][] = [],
+): Point | undefined {
+  if (points.length < 2) return;
+  const candidates: Point[] = [];
+  const target = points.at(-1)!;
+  if (topTarget) candidates.push({ x: target.x, y: target.y - 22 });
+  const segments = points.slice(1).map((b, i) => ({ a: points[i], b }));
+  segments.sort((a, b) => Math.abs(b.a.x - b.b.x) - Math.abs(a.a.x - a.b.x));
+  for (const { a, b } of segments) {
+    if (a.x === b.x && a.y === b.y) continue;
+    const x = (a.x + b.x) / 2;
+    const y = (a.y + b.y) / 2;
+    for (const dy of [0, -32, 32])
+      for (const dx of [0, 20, -20]) candidates.push({ x: x + dx, y: y + dy });
+  }
+  return candidates.find(
+    (point) =>
+      [...boxes, ...occupied].every(
+        (box) =>
+          point.x + width / 2 + 6 <= box.x ||
+          point.x - width / 2 - 6 >= box.x + box.width ||
+          point.y + 10 + 6 <= box.y ||
+          point.y - 10 - 6 >= box.y + box.height,
+      ) &&
+      otherRoutes.every((route) =>
+        route.slice(1).every((b, i) => {
+          const a = route[i];
+          const left = point.x - width / 2 - 2,
+            right = point.x + width / 2 + 2;
+          const top = point.y - 12,
+            bottom = point.y + 12;
+          return a.x === b.x
+            ? a.x <= left ||
+                a.x >= right ||
+                Math.max(a.y, b.y) <= top ||
+                Math.min(a.y, b.y) >= bottom
+            : a.y <= top ||
+                a.y >= bottom ||
+                Math.max(a.x, b.x) <= left ||
+                Math.min(a.x, b.x) >= right;
+        }),
+      ),
   );
 }
