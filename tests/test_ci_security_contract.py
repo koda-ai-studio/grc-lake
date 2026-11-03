@@ -91,6 +91,19 @@ def test_python_matrix_runs_complete_suite_once_and_preserves_artifact_dependenc
     assert not any("pytest" in step.get("run", "") for step in jobs["pipeline-smoke"]["steps"])
 
 
+def test_python_shards_leave_runtime_headroom_for_collection_and_runner_overhead() -> None:
+    import yaml
+    from tools.pytest_shard import assign_shards
+
+    jobs = yaml.safe_load((ROOT / ".github/workflows/ci.yml").read_text())["jobs"]
+    count = len(jobs["python-tests"]["strategy"]["matrix"]["shard"])
+    weights = json.loads((ROOT / "tools/ci_test_durations.json").read_text())
+    owners = assign_shards(weights, count)
+    loads = [sum(seconds for name, seconds in weights.items() if owners[name] == index) for index in range(count)]
+    # A planning budget over recorded case times, not a wall-clock guarantee.
+    assert 0 < min(loads) <= max(loads) <= 250, loads
+
+
 def test_consolidated_copy_artifact_hook_preserves_filename_coverage() -> None:
     import re
 
