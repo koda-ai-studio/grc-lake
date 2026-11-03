@@ -111,7 +111,10 @@ function primaryHref(node: GraphNode): { href: string; label: string } | null {
   }
   if (node.kind === "evidence" || node.kind === "evidence_type") {
     return {
-      href: recordHref("/evidence", node.evidence_id),
+      href: recordHref(
+        "/evidence",
+        node.kind === "evidence" ? node.event_id : node.evidence_id,
+      ),
       label: "Open evidence room",
     };
   }

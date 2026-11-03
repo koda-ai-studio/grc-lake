@@ -349,7 +349,11 @@ def _build_model(
                     **{**observed, "owner": decision.get("assignee") or observed["owner"]},
                     severity=event.get("severity"),
                     status=decision.get("state", "open"),
-                    violation_id=cid + ":" + str(event.get("event_id")),
+                    violation_id=(
+                        cid + ":" + event["event_id"]
+                        if isinstance(event.get("event_id"), str) and event["event_id"]
+                        else None
+                    ),
                     evidence_id=event.get("event_id"),
                     event_type=event.get("event_type"),
                     control_ids=[cid],

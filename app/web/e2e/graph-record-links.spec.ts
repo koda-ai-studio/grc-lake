@@ -1,5 +1,51 @@
 import { expect, test } from "@playwright/test";
 
+for (const eventId of ["raw/event?key=1", undefined]) {
+  test(`repository evidence uses its event ID, not its reference: ${eventId ?? "missing"}`, async ({
+    page,
+  }) => {
+    await page.route(/\/api\/v1\/repo-graph(?:\?|$)/, (route) =>
+      route.fulfill({
+        json: {
+          data: {
+            nodes: [
+              {
+                id: "evidence:reference",
+                kind: "evidence",
+                label: "Recorded evidence",
+                evidence_id: "external-reference",
+                event_id: eventId,
+              },
+            ],
+            edges: [],
+            counts: { evidence: 1 },
+          },
+        },
+      }),
+    );
+    await page.goto("/console/graph/");
+    await page
+      .getByRole("button", {
+        name: "Framework and repository maps",
+        exact: true,
+      })
+      .click();
+    await page.getByRole("button", { name: "Repository", exact: true }).click();
+    await page
+      .locator('.react-flow__node[data-id="evidence:reference"]')
+      .click();
+    const link = page
+      .getByRole("complementary", { name: "Selected graph node" })
+      .getByRole("link", { name: "Open evidence room" });
+    await expect(link).toHaveAttribute(
+      "href",
+      eventId
+        ? `/console/evidence/?id=${encodeURIComponent(eventId)}`
+        : "/console/evidence/",
+    );
+  });
+}
+
 test("graph actions open the selected control, finding, and evidence", async ({
   page,
 }) => {

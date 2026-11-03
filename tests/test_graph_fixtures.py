@@ -255,6 +255,9 @@ def test_build_repository_graph_links_repo_governance_and_controls(tmp_path: Pat
         edge_kinds
     )
     assert graph["counts"]["repository"] == 1
+    evidence = next(node for node in graph["nodes"] if node["id"] == "evidence:ev-codeowners")
+    assert evidence["evidence_id"] == "ev-codeowners"
+    assert evidence["event_id"] == "repo-codeowners"
 
 
 def test_build_repository_graph_fixture_includes_link_metadata() -> None:

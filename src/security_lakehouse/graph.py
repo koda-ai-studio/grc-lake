@@ -587,6 +587,7 @@ def build_repository_graph(lake_dir: str | Path) -> dict[str, Any]:
         freshness = freshness_index.get(evidence_id) or freshness_index.get(str(event.get("event_id") or ""))
         evidence_extra: dict[str, Any] = {
             "event_count": 1,
+            "event_id": event.get("event_id"),
             "evidence_id": evidence.get("evidence_id") or evidence_id,
             "evidence_ref": evidence.get("evidence_ref"),
             "control_ids": [str(c) for c in event.get("controls") or []],

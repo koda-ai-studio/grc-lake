@@ -204,6 +204,16 @@ def test_passing_control_carries_no_findings(tmp_path: Path) -> None:
     assert "findings" not in control and "finding_count" not in control
 
 
+def test_finding_without_a_record_id_does_not_invent_a_workbench_link(tmp_path: Path) -> None:
+    [event] = _failing_events(1, ["SOC2-CC6.1"])
+    del event["event_id"]
+    _write_jsonl(tmp_path / "silver/normalized_events.jsonl", [event])
+    graph = investigation_graph(tmp_path, root="control:SOC2-CC6.1", depth=2)
+    control = next(node for node in graph["nodes"] if node["id"] == "control:SOC2-CC6.1")
+    assert control["findings"]
+    assert control["findings"][0].get("violation_id") is None
+
+
 def test_passed_evidence_without_a_freshness_record_is_never_fresh(tmp_path: Path) -> None:
     _write_jsonl(
         tmp_path / "silver/normalized_events.jsonl",
