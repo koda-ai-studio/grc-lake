@@ -120,3 +120,11 @@ def test_runtime_expat_includes_vendor_security_fixes():
     packages = dict(line.split("=", 1) for line in lock.read_text().splitlines())
     version, revision = packages["libexpat1"].rsplit("-r", 1)
     assert (tuple(map(int, version.split("."))), int(revision)) >= ((2, 10, 0), 0)
+
+
+@pytest.mark.parametrize("name", ["glibc-2.44", "glibc-2.44-locale-posix", "ld-linux-2.44"])
+def test_runtime_glibc_includes_vendor_security_fix(name):
+    lock = Path(build_runtime_root.__file__).with_name("runtime-packages.txt")
+    packages = dict(line.split("=", 1) for line in lock.read_text().splitlines())
+    version, revision = packages[name].rsplit("-r", 1)
+    assert (tuple(map(int, version.split("."))), int(revision)) >= ((2, 44), 16)

@@ -1,8 +1,8 @@
 ca-certificates-bundle=20260909-r3
 gdbm=1.26-r7
-glibc-2.44=2.44-r8
-glibc-2.44-locale-posix=2.44-r8
-ld-linux-2.44=2.44-r8
+glibc-2.44=2.44-r16
+glibc-2.44-locale-posix=2.44-r16
+ld-linux-2.44=2.44-r16
 libbrotlicommon1=1.2.0-r7
 libbrotlidec1=1.2.0-r7
 libbrotlienc1=1.2.0-r7
