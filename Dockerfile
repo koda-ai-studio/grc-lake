@@ -25,7 +25,7 @@ RUN apk add --root /runtime-root --initdb --no-scripts --no-cache \
 
 # Use the same interpreter and native libraries for building and running.
 FROM runtime-system AS python-base
-RUN apk add --no-cache $(cat /tmp/runtime-packages.txt) \
+RUN apk add --no-cache libcrypt1-2.44=2.44-r16 $(cat /tmp/runtime-packages.txt) \
   && mkdir -p /usr/local/bin \
   && ln -s /usr/bin/python3.14 /usr/local/bin/python
 
