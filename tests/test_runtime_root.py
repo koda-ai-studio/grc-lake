@@ -113,3 +113,10 @@ def test_vendor_resolution_matches_lock(tmp_path):
     lock = tmp_path / "runtime-packages.txt"
     lock.write_text("zlib=1.0-r0\n")
     build_runtime_root.validate_package_lock(tmp_path, lock)
+
+
+def test_runtime_expat_includes_vendor_security_fixes():
+    lock = Path(build_runtime_root.__file__).with_name("runtime-packages.txt")
+    packages = dict(line.split("=", 1) for line in lock.read_text().splitlines())
+    version, revision = packages["libexpat1"].rsplit("-r", 1)
+    assert (tuple(map(int, version.split("."))), int(revision)) >= ((2, 10, 0), 0)
