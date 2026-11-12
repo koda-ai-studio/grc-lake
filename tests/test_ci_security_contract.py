@@ -141,6 +141,7 @@ def test_postgres_recovery_uses_matching_client_major() -> None:
     import yaml
 
     job = yaml.safe_load((ROOT / ".github/workflows/ci.yml").read_text())["jobs"]["postgres-migrations"]
+    assert job["runs-on"] == "ubuntu-24.04"
     major = job["services"]["postgres"]["image"].split(":")[1].split("-")[0]
     steps = job["steps"]
     recovery = next(i for i, step in enumerate(steps) if "tests/test_distributed_" in step.get("run", ""))

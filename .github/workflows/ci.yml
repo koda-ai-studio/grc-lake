@@ -412,7 +412,7 @@ jobs:
             test "$E2E_RESULT" = success && test "$POSTGRES_RESULT" = success
 
   postgres-migrations:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     services:
       postgres:
