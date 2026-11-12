@@ -135,3 +135,29 @@ def test_console_e2e_runs_as_independent_playwright_shards() -> None:
     receipt = next(s for s in job["steps"] if s.get("name") == "Retain browser plan and timings")
     assert receipt["if"] == "always()"
     assert receipt["with"]["path"] == "build/e2e-shard-${{ matrix.shard }}/"
+
+
+def test_postgres_recovery_uses_matching_client_major() -> None:
+    import yaml
+
+    job = yaml.safe_load((ROOT / ".github/workflows/ci.yml").read_text())["jobs"]["postgres-migrations"]
+    assert job["runs-on"] == "ubuntu-24.04"
+    major = job["services"]["postgres"]["image"].split(":")[1].split("-")[0]
+    steps = job["steps"]
+    recovery = next(i for i, step in enumerate(steps) if "tests/test_distributed_" in step.get("run", ""))
+    setup = "\n".join(step.get("run", "") for step in steps[:recovery])
+    assert f"postgresql-client-{major}" in setup
+    assert f'/usr/lib/postgresql/{major}/bin" >> "$GITHUB_PATH"' in setup
+
+
+def test_ci_uv_version_matches_digest_pinned_container() -> None:
+    import re
+
+    import yaml
+
+    version = re.search(r"FROM ghcr.io/astral-sh/uv:([^@]+)@", (ROOT / "Dockerfile").read_text())[1]
+    for workflow in (ROOT / ".github/workflows").glob("*.yml"):
+        for job in yaml.safe_load(workflow.read_text()).get("jobs", {}).values():
+            for step in job.get("steps", []):
+                if step.get("uses", "").startswith("astral-sh/setup-uv@"):
+                    assert step["with"]["version"] == version, workflow.name

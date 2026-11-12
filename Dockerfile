@@ -12,7 +12,7 @@
 # Base images are pinned by multi-arch index digest to prevent silent tag
 # changes. Dependabot updates those pins; runtime package versions are tracked
 # separately in tools/runtime-packages.txt. uv also uses its official digest.
-FROM ghcr.io/astral-sh/uv:0.13.6@sha256:af22a52f5eafef3d78e551599d405c02df61919d18028f0cea8eda93bc9986d0 AS uv
+FROM ghcr.io/astral-sh/uv:0.13.7@sha256:96f40d3904aad8d0bd010539001d36c8e2188b981e1334471a90c4a1d93bb490 AS uv
 
 # Signed runtime packages --------------------------------------------
 FROM cgr.dev/chainguard/wolfi-base:latest@sha256:256c88bb066424045021090932d50be93c8e3f2ce3586707702a401b146f3e43 AS runtime-system
@@ -25,7 +25,7 @@ RUN apk add --root /runtime-root --initdb --no-scripts --no-cache \
 
 # Use the same interpreter and native libraries for building and running.
 FROM runtime-system AS python-base
-RUN apk add --no-cache $(cat /tmp/runtime-packages.txt) \
+RUN apk add --no-cache libcrypt1-2.44=2.44-r16 $(cat /tmp/runtime-packages.txt) \
   && mkdir -p /usr/local/bin \
   && ln -s /usr/bin/python3.14 /usr/local/bin/python
 

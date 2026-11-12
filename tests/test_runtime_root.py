@@ -113,3 +113,25 @@ def test_vendor_resolution_matches_lock(tmp_path):
     lock = tmp_path / "runtime-packages.txt"
     lock.write_text("zlib=1.0-r0\n")
     build_runtime_root.validate_package_lock(tmp_path, lock)
+
+
+def test_runtime_expat_includes_vendor_security_fixes():
+    lock = Path(build_runtime_root.__file__).with_name("runtime-packages.txt")
+    packages = dict(line.split("=", 1) for line in lock.read_text().splitlines())
+    version, revision = packages["libexpat1"].rsplit("-r", 1)
+    assert (tuple(map(int, version.split("."))), int(revision)) >= ((2, 10, 0), 0)
+
+
+@pytest.mark.parametrize("name", ["glibc-2.44", "glibc-2.44-locale-posix", "ld-linux-2.44"])
+def test_runtime_glibc_includes_vendor_security_fix(name):
+    lock = Path(build_runtime_root.__file__).with_name("runtime-packages.txt")
+    packages = dict(line.split("=", 1) for line in lock.read_text().splitlines())
+    version, revision = packages[name].rsplit("-r", 1)
+    assert (tuple(map(int, version.split("."))), int(revision)) >= ((2, 44), 16)
+
+
+def test_builder_libcrypt_matches_pinned_runtime_glibc():
+    root = Path(build_runtime_root.__file__).resolve().parents[1]
+    packages = dict(line.split("=", 1) for line in (root / "tools/runtime-packages.txt").read_text().splitlines())
+    builder = (root / "Dockerfile").read_text().split("FROM runtime-system AS python-base", 1)[1].split("FROM ", 1)[0]
+    assert f"libcrypt1-2.44={packages['glibc-2.44']}" in builder
