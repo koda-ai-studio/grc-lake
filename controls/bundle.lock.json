@@ -5,7 +5,7 @@
   "control_count": 2284,
   "crosswalk_count": 2284,
   "components": {
-    "frameworks": "092dd43d622d05a126e284ece7e91fbf36fb42df331b4366179c0b6617a7056e",
+    "frameworks": "45115191065f43b9c307f80400444ec6bd72a319f95e4f61209813762ac55717",
     "controls": "155e570cffca31a963c8253e39f3bae856df17734e1019557bf57b3143b32900",
     "crosswalk": "4830ce108b1429945999795f87ce90ed9b4c9073a780e45c026f311309d3f06b",
     "safeguards": "c8b8f91f6c8bb2e5054df5886be73e79381d1acbd7cdd3a4caa016d5111fec59"
@@ -16,14 +16,14 @@
       "version": "v8.1",
       "effective_date": "2024-06-25",
       "superseded_by": null,
-      "source_sha256": null
+      "source_sha256": "d7a84f9283c6ec904e6d368592ea6397ceb01e371f5f4bd367d1899ec318ce61"
     },
     {
       "framework_id": "cis_aws",
       "version": "v3.0.0",
       "effective_date": "2024-01-31",
       "superseded_by": null,
-      "source_sha256": null
+      "source_sha256": "2c7e6a5ca844d4a23ef1f0ec48bf75dbe50e78489ea6cd322f89d3f82849fef1"
     },
     {
       "framework_id": "cmmc-2-level2",
@@ -37,14 +37,14 @@
       "version": "Regulation (EU) 2022/2554",
       "effective_date": "2025-01-17",
       "superseded_by": null,
-      "source_sha256": "85307f9e2a0409826dd0f54489645935816d16e929f0db4db3ef15badd11d38c"
+      "source_sha256": "e7399b405b5245b158c762af5a288d7478db374848fff55ca0182845401df21c"
     },
     {
       "framework_id": "eu-ai-act-2024-1689",
       "version": "Regulation (EU) 2024/1689",
       "effective_date": "2024-08-01",
       "superseded_by": null,
-      "source_sha256": null
+      "source_sha256": "dc85cf687864d9a9ed9aad4ee6b73f36d6483af4b9a8d83bda18f3103f926f7d"
     },
     {
       "framework_id": "fedramp-ksi-2026",
@@ -58,14 +58,14 @@
       "version": "FedRAMP Rev 5 / NIST SP 800-53B Moderate",
       "effective_date": "2023-05-30",
       "superseded_by": null,
-      "source_sha256": null
+      "source_sha256": "0bee0a3d6cf0008f62e1da5c479534834fec38e60a169fbda3abfcaa6c18e8a5"
     },
     {
       "framework_id": "gdpr-2016-679",
       "version": "Regulation (EU) 2016/679",
       "effective_date": "2018-05-25",
       "superseded_by": null,
-      "source_sha256": null
+      "source_sha256": "d4647a2512ded2513387ee19ef5d1779f8477f4327d425e8543588ff91bc9b39"
     },
     {
       "framework_id": "hipaa-security-rule",
@@ -121,63 +121,63 @@
       "version": "Directive (EU) 2022/2555",
       "effective_date": "2023-01-16",
       "superseded_by": null,
-      "source_sha256": "20d29e9c5300ae1095530996f04731311bf82bb7d4d6a7a0102cd0f075755cf3"
+      "source_sha256": "632de6b7bee8cdcab1b0669115133a0c438948cf2c62e77f26d022356c4ac5c1"
     },
     {
       "framework_id": "nist-800-171-rev3",
       "version": "Revision 3",
       "effective_date": "2024-05-14",
       "superseded_by": null,
-      "source_sha256": "21b6f3b118b6e5b305aaed3a0e4b70fa5d1d9aa388a0b92e7d6ddfed69e93ac3"
+      "source_sha256": "e6d808648520612fafc26b151499699e384f6c3ad5d4ffd2ca760c28fd4a9578"
     },
     {
       "framework_id": "nist-800-53-rev5",
       "version": "Release 5.2.0",
       "effective_date": "2025-08-27",
       "superseded_by": null,
-      "source_sha256": "01f37cf90ea99d92242c936cbfbdebcc338eef1f71454e2acac36cc56e9bc062"
+      "source_sha256": "72225e5680904814d222449c5ca1a88e6c2d994845ce84b751ef6ccccda492ea"
     },
     {
       "framework_id": "nist-ai-rmf",
       "version": "AI RMF 1.0, NIST AI 100-1",
       "effective_date": "2023-01-26",
       "superseded_by": null,
-      "source_sha256": null
+      "source_sha256": "7ad15b435935747292aaff6c512f1c3e94636737a7ce73644502795df52919f4"
     },
     {
       "framework_id": "nist-csf-2.0",
       "version": "CSF 2.0",
       "effective_date": "2024-02-26",
       "superseded_by": null,
-      "source_sha256": null
+      "source_sha256": "d51bc7db04b513135bf2efc3f109ec9db7314a2ef607af2ea09cd06e4d24fb31"
     },
     {
       "framework_id": "nist-rmf-800-37r2",
       "version": "Revision 2",
       "effective_date": "2018-12-20",
       "superseded_by": null,
-      "source_sha256": "4f75e1136bb905a654f1bcd9eefefb4108f47597276ee5eec0688f6d96f6a01d"
+      "source_sha256": "b9d3f65a4a41a4469b5585867ca0aa098c6a9eb958f4c6035a97f2fe77617729"
     },
     {
       "framework_id": "pci-dss-v4",
       "version": "v4.0.1",
       "effective_date": "2024-06-11",
       "superseded_by": null,
-      "source_sha256": null
+      "source_sha256": "c935eb3ca50db43b4c6aab9fe5933c7172cd4f6610b86c05e41647b3e2249a66"
     },
     {
       "framework_id": "soc1",
       "version": "SSAE 18 (AT-C 320)",
       "effective_date": "2022-12-15",
       "superseded_by": null,
-      "source_sha256": null
+      "source_sha256": "60d1be949477fdd6cfcee729a2340b46c4074d173897ca9362b7631c37307e81"
     },
     {
       "framework_id": "soc2",
       "version": "2017 TSC with revised points of focus 2022",
       "effective_date": "2022-12-15",
       "superseded_by": null,
-      "source_sha256": null
+      "source_sha256": "42bedcd804edaf8cdfac755264d59dcf44da3a09cdc9b1f29977e646428101f8"
     }
   ],
   "control_versions": [
@@ -16170,5 +16170,5 @@
       "lifecycle_status": "active"
     }
   ],
-  "bundle_sha256": "037fd5809959a55d284873e3ee3f0d562e582b474ac55711fcdf1e99ed753816"
+  "bundle_sha256": "6b3beb3a718976a1175bf240faa452686c3211cd1dc1bbec02468e6d7d77d292"
 }
