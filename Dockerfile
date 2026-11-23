@@ -12,7 +12,7 @@
 # Base images are pinned by multi-arch index digest to prevent silent tag
 # changes. Dependabot updates those pins; runtime package versions are tracked
 # separately in tools/runtime-packages.txt. uv also uses its official digest.
-FROM ghcr.io/astral-sh/uv:0.13.8@sha256:5cc1805e2426484abca4ad46ea783bab281fdb225fd82d8ce6d66a81254bac85 AS uv
+FROM ghcr.io/astral-sh/uv:0.13.9@sha256:d3b601f0c7b118bc1753febf7c41cc80981df678445e0254284eecf84db79a7d AS uv
 
 # Signed runtime packages --------------------------------------------
 FROM cgr.dev/chainguard/wolfi-base:latest@sha256:256c88bb066424045021090932d50be93c8e3f2ce3586707702a401b146f3e43 AS runtime-system
