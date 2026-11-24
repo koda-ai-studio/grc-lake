@@ -33,7 +33,7 @@ jobs:
           python-version: "3.12"
       - uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
         with:
-          version: "0.13.8" # keep in step with the Dockerfile uv image
+          version: "0.13.9" # keep in step with the Dockerfile uv image
           enable-cache: true
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
