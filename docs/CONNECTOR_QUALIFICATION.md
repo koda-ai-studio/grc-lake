@@ -21,7 +21,7 @@ provider identities and raw live evidence stay private.
 | Catalog stage | Executable adapters | Linked live receipt | No linked live receipt |
 | --- | --- | --- | --- |
 | Implemented | 18 | 4 | 14 |
-| Preview | 12 | 1 | 11 |
+| Preview | 13 | 1 | 12 |
 
 No linked live receipt does not mean never tested or no demo account exists.
 An existing trial may have a private run record that has not been reconciled into this index.
@@ -64,6 +64,7 @@ and [Databricks #734](https://github.com/koda-ai-studio/grc-lake/issues/734).
 | `object-storage-evidence` | Implemented | [s3_connector](../tests/test_s3_connector.py) | No scoped live record linked | Unassigned |
 | `okta-identity` | Implemented | [okta_connector](../tests/test_okta_connector.py); [collection_completeness](../tests/test_collection_completeness.py) | No scoped live record linked | Unassigned |
 | `okta-system-log` | Implemented | [okta_system_log_connector](../tests/test_okta_system_log_connector.py) | No scoped live record linked | Unassigned |
+| `pagerduty-incidents` | Preview | [pagerduty_connector](../tests/test_pagerduty_connector.py) | No scoped live record linked | Unassigned |
 | `rippling-personnel` | Implemented | [rippling_workday_connectors](../tests/test_rippling_workday_connectors.py); [collection_completeness](../tests/test_collection_completeness.py) | No scoped live record linked | Unassigned |
 | `runtime-gateway` | Implemented | [runtime_gateway_connector](../tests/test_runtime_gateway_connector.py); [collection_completeness](../tests/test_collection_completeness.py) | No scoped live record linked | Unassigned |
 | `siem-alerts` | Implemented | [siem_connector](../tests/test_siem_connector.py); [collection_completeness](../tests/test_collection_completeness.py) | No scoped live record linked | Unassigned |
@@ -105,6 +106,7 @@ Qualify the actual principal, account, resource scope and provider version separ
 | `object-storage-evidence` | `read_only_role` | LIST evidence prefix; GET evidence objects |
 | `okta-identity` | `scoped_token` | okta.users.read; okta.userFactors.read; okta.policies.read |
 | `okta-system-log` | `scoped_token` | okta.logs.read |
+| `pagerduty-incidents` | `scoped_token` | Read-only REST API key: incidents, services and on-calls |
 | `rippling-personnel` | `scoped_token` | workers.read |
 | `runtime-gateway` | `read_only_role` | read runtime event stream; read policy decision logs |
 | `siem-alerts` | `read_only_role` | read alert index; read detection metadata |
