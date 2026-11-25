@@ -30,6 +30,7 @@ from datetime import UTC, datetime, timedelta
 from functools import partial
 from http import HTTPStatus
 from pathlib import Path
+from secrets import token_urlsafe
 from typing import Any, Literal
 from urllib.parse import urlsplit
 
@@ -1475,12 +1476,24 @@ def create_app(lake_dir: str | Path, *, require_auth: bool = True) -> FastAPI:
         if app.state.oauth is None:
             raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED, detail="OIDC SSO is not configured")
         redirect_uri = runtime_env().get("GRC_LAKE_OIDC_REDIRECT_URL") or str(request.url_for("sso_callback"))
-        return await app.state.oauth.oidc.authorize_redirect(request, redirect_uri)
+        from security_lakehouse.auth.return_path import console_return_path
+
+        state = token_urlsafe(32)
+        targets = request.session.setdefault("console_return_paths", {})
+        while len(targets) >= 8:
+            targets.pop(next(iter(targets)))
+        targets[state] = console_return_path(request.query_params.get("return_to"))
+        while len(targets) > 1 and len(json.dumps(targets)) > 2200:
+            targets.pop(next(iter(targets)))
+        return await app.state.oauth.oidc.authorize_redirect(request, redirect_uri, state=state)
 
     @app.get("/api/v1/auth/callback", name="sso_callback")
     async def sso_callback(request: Request, session: Session = Depends(get_session)):
         if app.state.oauth is None:
             raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED, detail="OIDC SSO is not configured")
+        from security_lakehouse.auth.return_path import console_return_path
+
+        targets = request.session.get("console_return_paths", {})
         try:
             token = await app.state.oauth.oidc.authorize_access_token(request)
         except Exception:  # noqa: BLE001 - authlib surfaces several OAuth error types
@@ -1503,7 +1516,8 @@ def create_app(lake_dir: str | Path, *, require_auth: bool = True) -> FastAPI:
         except OIDCLoginError:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="OIDC login rejected") from None
         session.commit()
-        response = RedirectResponse(url="/console", status_code=status.HTTP_302_FOUND)
+        target = targets.pop(request.query_params.get("state", ""), None)
+        response = RedirectResponse(url=console_return_path(target), status_code=status.HTTP_302_FOUND)
         response.set_cookie(
             SESSION_COOKIE,
             encode_session_cookie(sess_token),
