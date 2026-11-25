@@ -33,6 +33,7 @@ import {
 } from "@/lib/graph-evidence";
 import { plural } from "@/lib/format";
 import { displayLabel } from "@/lib/display";
+import { frameworkVisual } from "@/lib/framework-visuals";
 import { EvidenceLifecycle } from "./EvidenceLifecycle";
 import { PaginatedCollection } from "@/components/ui/paginated-collection";
 
@@ -201,6 +202,17 @@ export function GraphNodeDrawer({
           })
       : [];
 
+  const mappedRequirements =
+    node.kind === "safeguard"
+      ? (graph?.edges ?? [])
+          .filter((edge) => edge.target === node.id && edge.kind === "maps_to")
+          .flatMap((edge) => {
+            const target = graph?.nodes.find(
+              (item) => item.id === edge.source && item.kind === "control",
+            );
+            return target ? [{ edge, target }] : [];
+          })
+      : [];
   return (
     <aside
       key={node.id}
@@ -479,6 +491,55 @@ export function GraphNodeDrawer({
               <p className="text-xs text-muted">
                 Showing the {node.findings?.length ?? 0} most severe of{" "}
                 {node.finding_count}. Review the rest in Findings.
+              </p>
+            )}
+          </section>
+        )}
+        {node.kind === "safeguard" && graph && (
+          <section
+            aria-label="Mapped framework requirements"
+            className="grid gap-2"
+          >
+            <h3 className="text-sm font-semibold">
+              Mapped framework requirements
+            </h3>
+            <p className="text-xs leading-5 text-muted">
+              Loaded graph only — {mappedRequirements.length} requirement
+              mappings. A reviewed mapping does not establish an assessed pass.
+            </p>
+            <PaginatedCollection label="Mapped requirements" pageSize={3}>
+              {mappedRequirements.map(({ edge, target }) => (
+                <button
+                  key={edge.id}
+                  disabled={!onInspectNode}
+                  className="grid min-w-0 gap-1 rounded-lg border border-line p-2 text-left hover:border-brand disabled:opacity-60"
+                  onClick={() => onInspectNode?.(target)}
+                >
+                  <span className="break-words text-sm font-semibold">
+                    {target.label}
+                  </span>
+                  {target.framework_id && (
+                    <span className="text-xs text-muted">
+                      {frameworkVisual(target.framework_id).label}
+                    </span>
+                  )}
+                  <span className="text-xs font-semibold text-muted">
+                    {edge.review_state === "reviewed"
+                      ? "Reviewed mapping"
+                      : edge.review_state === "proposed"
+                        ? "Proposed — not attestable"
+                        : edge.review_state
+                          ? "Unrecognized review state — not attestable"
+                          : "Review state not recorded"}
+                  </span>
+                </button>
+              ))}
+            </PaginatedCollection>
+            {mappedRequirements.length === 0 && (
+              <p className="text-xs leading-5 text-muted">
+                No requirement mappings loaded in this view. Increase depth or
+                change the view; absence here does not establish that no mapping
+                exists.
               </p>
             )}
           </section>
