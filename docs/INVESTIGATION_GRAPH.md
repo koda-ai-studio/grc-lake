@@ -1,5 +1,12 @@
 # Evidence investigation
 
+Selecting a safeguard shows its declared required evidence types and the
+applicable, assessed, unassessed and invalid-binding counts recorded in the
+same assessment used for its status. Missing assessment counts read **Not
+recorded**, rather than zero. An assessed asset is not necessarily passing;
+follow its recorded evidence links to investigate the result. A missing
+evidence contract remains explicit, and proposed mappings remain unattestable.
+
 Open **Graph → Evidence investigation** to inspect a bounded neighborhood of recorded relationships. Controls & CCF, Environment, and Findings, sources & vendors use the same model. Choose a starting point, search the server-side list, and select a depth of one, two, or three hops. Select a node to see its evidence, owner, severity, observation time, and next action; focus it to drill into another neighborhood. **Roll up** restores the previous starting point with its hop depth, visible layers, framework and evidence pages, and pinned model version. Without navigation history it follows a visible recorded containing framework, family, environment, or account. Navigation waits for the current neighborhood request to finish, so retained loading content cannot become the wrong parent. **Expand graph workspace** gives the graph the full browser screen, with depth and zoom controls still available; exit with its button or Escape.
 
 Neighborhoods prioritize nearby nodes before deeper records, with upstream context first at the same depth. Controls walk upstream and downstream separately; a shared framework does not pull in sibling controls. Producer sources remain context without expanding their other records.

@@ -1458,6 +1458,12 @@ export interface GraphNode {
   rule_reasons?: string[];
   evaluation_rule?: string;
   open_event_count?: number;
+  /** Safeguard nodes: recorded assessment coverage, absent when not recorded. */
+  applicable_asset_count?: number;
+  assessed_asset_count?: number;
+  unassessed_asset_count?: number;
+  invalid_binding_count?: number;
+  required_evidence_types?: string[];
 }
 
 export interface GraphEdge {
