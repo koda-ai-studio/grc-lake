@@ -210,3 +210,24 @@ test("a forbidden resource does not turn into a sign-in loop", async ({
   ).toBeVisible();
   await expect(page).toHaveURL(/\/console\/graph\//);
 });
+
+for (const target of [
+  "%2Fconsole%2Fevidence%2F",
+  "javascript:alert(1)",
+  "//example.com/console/",
+  "/console/../api/",
+]) {
+  test(`API-key return navigation stays on this console: ${target}`, async ({
+    page,
+  }) => {
+    await identity(page);
+    await page.route("**/api/v1/auth/session-from-key", (route) =>
+      route.fulfill({ json: { data: { user_id: "synthetic-user" } } }),
+    );
+    await page.goto(`/console/login/?return_to=${encodeURIComponent(target)}`);
+    const origin = new URL(page.url()).origin;
+    await page.getByLabel("Bearer token").fill("synthetic-accepted-key");
+    await page.getByLabel("Bearer token").press("Enter");
+    await expect(page).toHaveURL(`${origin}/console/dashboard/`);
+  });
+}

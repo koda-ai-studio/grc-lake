@@ -539,3 +539,14 @@ Review the proxy configuration and use a full TLS scanner for that broader
 scope. Keep endpoint-specific results outside the public repository.
 
 Reference: [Python SSL defaults](https://docs.python.org/3/library/ssl.html#ssl.create_default_context).
+
+### Returning to a shared console link
+
+OIDC sign-in from the console preserves a valid local console destination,
+including graph/evidence query parameters and fragments. The server stores the
+validated destination in the signed login session, bound to that OAuth state,
+and consumes it after callback verification. External URLs, traversal paths and
+login loops fall back to the console root. Pending destinations are bounded; an
+older evicted flow also falls back to the root. Callback query parameters cannot
+replace the stored destination. This does not change tenant or role authorization.
+SAML continues to return to the console root.
