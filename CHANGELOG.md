@@ -3,6 +3,10 @@
 All notable GRC Lake changes are summarized here. Versions follow semver for the
 Python package, Helm chart, and bundled web console.
 
+## Unreleased
+
+- Add a Preview Cloudflare zone security connector with bounded read-only collection, explicit gaps and synthetic runner-to-CCF tests.
+
 ## 0.3.26 - 2026-11-02
 
 - Open the selected control, finding, or evidence record from the graph inspector, retaining stable record identifiers in finding summaries. Nodes without a linked record still open the corresponding workbench.

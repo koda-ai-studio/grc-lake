@@ -40,6 +40,7 @@ SOURCE_CONNECTOR_ALIASES = {
     "scanner": "object-storage-evidence",
     "siem": "siem-alerts",
     "snyk": "snyk-vulnerabilities",
+    "cloudflare": "cloudflare-zones",
     "ticketing": "ticketing",
 }
 
