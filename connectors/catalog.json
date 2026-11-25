@@ -849,6 +849,37 @@
       "vendor": "PagerDuty",
       "description": "Incident age and response timing, service escalation policy and current on-call observations.",
       "setup_hint": "Read-only API token via credential_ref and a stable account label."
+    },
+    {
+      "connector_id": "kandji-devices",
+      "name": "Kandji Devices",
+      "category": "endpoint",
+      "collection_mode": "direct_api_read",
+      "access_boundary": "scoped_token",
+      "credential_type": "kandji_devices_api_token",
+      "minimum_permissions": [
+        "Devices: List Devices, Device Details and Device Parameters (read only)",
+        "Prism: Application Firewall (read only)"
+      ],
+      "evidence_types": [
+        "kandji.device.encryption",
+        "kandji.device.management",
+        "kandji.device.os_patch",
+        "kandji.device.screen_lock",
+        "kandji.device.firewall",
+        "kandji.device.collection_gap"
+      ],
+      "default_route": "dual",
+      "freshness_slo_minutes": 1440,
+      "is_implemented": true,
+      "production_status": "supported_connector",
+      "release_stage": "preview",
+      "velocity": "medium_api",
+      "native_connector": false,
+      "data_shape": "current_state",
+      "vendor": "Kandji",
+      "description": "Mac device encryption, management, firewall and explicitly selected policy parameter checks. Missing or stale posture remains not evaluated.",
+      "setup_hint": "Tenant subdomain, US/EU region and a read-only API token secret reference; optional screen-lock and OS-policy parameter IDs."
     }
   ]
 }

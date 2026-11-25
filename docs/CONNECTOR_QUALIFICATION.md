@@ -21,7 +21,7 @@ provider identities and raw live evidence stay private.
 | Catalog stage | Executable adapters | Linked live receipt | No linked live receipt |
 | --- | --- | --- | --- |
 | Implemented | 18 | 4 | 14 |
-| Preview | 13 | 1 | 12 |
+| Preview | 14 | 1 | 13 |
 
 No linked live receipt does not mean never tested or no demo account exists.
 An existing trial may have a private run record that has not been reconciled into this index.
@@ -58,6 +58,7 @@ and [Databricks #734](https://github.com/koda-ai-studio/grc-lake/issues/734).
 | `jamf-devices` | Preview | [jamf_connector](../tests/test_jamf_connector.py); [collection_completeness](../tests/test_collection_completeness.py) | No scoped live record linked | Unassigned |
 | `jira-ticketing` | Implemented | [jira_connector](../tests/test_jira_connector.py); [collection_completeness](../tests/test_collection_completeness.py) | No scoped live record linked | Unassigned |
 | `jumpcloud-identity` | Preview | [jumpcloud_connector](../tests/test_jumpcloud_connector.py) | No scoped live record linked | Unassigned |
+| `kandji-devices` | Preview | [kandji_devices_connector](../tests/test_kandji_devices_connector.py) | No scoped live record linked | Unassigned |
 | `kubernetes-cluster` | Preview | [kubernetes_connector](../tests/test_kubernetes_connector.py); [kubernetes_gpu_evidence](../tests/test_kubernetes_gpu_evidence.py); [kubernetes_discovery](../tests/test_kubernetes_discovery.py); [neocloud_ccf_assessment](../tests/test_neocloud_ccf_assessment.py); [collection_completeness](../tests/test_collection_completeness.py) | No scoped live record linked | Unassigned |
 | `lambda-cloud` | Preview | [lambda_cloud_connector](../tests/test_lambda_cloud_connector.py); [neocloud_ccf_assessment](../tests/test_neocloud_ccf_assessment.py) | No scoped live record linked | Unassigned |
 | `managed-local-evidence` | Configuration boundary | Catalog validation only | Not applicable: no standalone collector | Unassigned |
@@ -100,6 +101,7 @@ Qualify the actual principal, account, resource scope and provider version separ
 | `jamf-devices` | `scoped_token` | Read Computers; Read Mobile Devices |
 | `jira-ticketing` | `scoped_token` | read:jira-work; read:jira-user; read:project:jira |
 | `jumpcloud-identity` | `scoped_token` | users.readonly; groups.readonly |
+| `kandji-devices` | `scoped_token` | Devices: List Devices, Device Details and Device Parameters (read only); Prism: Application Firewall (read only) |
 | `kubernetes-cluster` | `scoped_token` | get/list clusterrolebindings and rolebindings; get/list namespaces, pods, services, and networkpolicies; get/list deployments, daemonsets, statefulsets, replicasets, jobs, and cronjobs; get/list inferenceservices.serving.kserve.io (optional; KServe clusters) |
 | `lambda-cloud` | `scoped_token` | GET account, instances, firewall rulesets, and SSH keys; Read API keys of user and service identities (optional; key hygiene evidence) |
 | `managed-local-evidence` | `dedicated_schema` | write dedicated GRC Lake output directory; read generated GRC Lake output directory |

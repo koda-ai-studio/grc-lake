@@ -56,6 +56,7 @@ REAL_ADAPTERS = {
     "training-completion",
     "iceberg-parquet-lake",
     "bigquery-evidence-lake",
+    "kandji-devices",
 }
 PREVIEW_CONNECTORS = {
     "entra-identity",
@@ -70,6 +71,7 @@ PREVIEW_CONNECTORS = {
     "training-completion",
     "iceberg-parquet-lake",
     "bigquery-evidence-lake",
+    "kandji-devices",
 }
 FIXTURES = Path(__file__).parent / "fixtures"
 REPO_ROOT = Path(__file__).resolve().parents[1]

@@ -1,0 +1,44 @@
+{
+  "/api/v1/devices?limit=300&offset=0": [
+    {
+      "device_id": "00000000-0000-4000-8000-000000000001",
+      "platform": "Mac",
+      "os_version": "15.7",
+      "last_check_in": "2026-11-24T12:00:00Z",
+      "mdm_enabled": true,
+      "serial_number": "SYNTHETIC-NOT-STORED"
+    }
+  ],
+  "/api/v1/devices/00000000-0000-4000-8000-000000000001/details": {
+    "general": {
+      "device_id": "00000000-0000-4000-8000-000000000001"
+    },
+    "filevault": {
+      "filevault_enabled": true
+    }
+  },
+  "/api/v1/devices/00000000-0000-4000-8000-000000000001/parameters": {
+    "device_id": "00000000-0000-4000-8000-000000000001",
+    "parameters": [
+      {
+        "item_id": "00000000-0000-4000-8000-000000000002",
+        "status": "PASS"
+      },
+      {
+        "item_id": "00000000-0000-4000-8000-000000000003",
+        "status": "PENDING"
+      }
+    ]
+  },
+  "/api/v1/prism/application_firewall?limit=300&offset=0": {
+    "data": [
+      {
+        "device_id": "00000000-0000-4000-8000-000000000001",
+        "status": false,
+        "last_collected_at": "2026-11-24T12:00:00Z"
+      }
+    ],
+    "cursor": null,
+    "total": 1
+  }
+}

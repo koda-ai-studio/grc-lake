@@ -954,6 +954,31 @@ def _build_bigquery(inputs: SyncInputs) -> list[dict[str, Any]]:
     return collect_bigquery_evidence(client, specs, since=inputs.since, max_rows=_max_rows_per_sync(inputs.options))
 
 
+def _build_kandji_devices(inputs: SyncInputs) -> list[dict[str, Any]]:
+    from security_lakehouse import connectors_kandji_devices as connector
+
+    kwargs: dict[str, Any] = {
+        "subdomain": str(inputs.credentials.get("subdomain") or ""),
+        "region": str(inputs.credentials.get("region") or "us"),
+        "max_pages": inputs.options.get("max_pages", 100),
+    }
+    if inputs.fixture_dir:
+        client: connector.KandjiDevicesClient = connector.KandjiDevicesFixtureClient(inputs.fixture_dir, **kwargs)
+    else:
+        ref = str(inputs.credentials.get("credential_ref") or "")
+        if not ref:
+            raise ConnectorConfigError("kandji-devices requires a credential_ref naming a read-only API token")
+        token = resolve_secret_ref(ref, runtime_env(inputs.env))
+        if not token:
+            raise ConnectorConfigError("kandji-devices API token reference could not be resolved")
+        client = connector.KandjiDevicesClient(token=token, **kwargs)
+    return connector.collect_kandji_devices_evidence(
+        client,
+        screen_lock_parameter_id=str(inputs.credentials.get("screen_lock_parameter_id") or ""),
+        os_patch_parameter_id=str(inputs.credentials.get("os_patch_parameter_id") or ""),
+    )
+
+
 REGISTRY: dict[str, ConnectorBuilder] = {
     "snowflake-evidence-lake": _build_snowflake,
     "clickhouse-telemetry-lake": _build_clickhouse,
@@ -986,6 +1011,7 @@ REGISTRY: dict[str, ConnectorBuilder] = {
     TRAINING_CONNECTOR_ID: _build_training,
     "iceberg-parquet-lake": _build_iceberg,
     "bigquery-evidence-lake": _build_bigquery,
+    "kandji-devices": _build_kandji_devices,
 }
 
 
