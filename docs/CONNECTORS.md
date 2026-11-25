@@ -170,7 +170,7 @@ grc-lake connectors list
 
 ## Connector Runner
 
-The catalog contains **34 catalog contracts**: **31 executable adapters** and
+The catalog contains **35 catalog contracts**: **32 executable adapters** and
 3 configuration/access boundaries. Adapters include direct source/API collectors,
 existing-lake readers and incremental event-log readers. Boundaries describe
 read-only access or managed evidence; they have no standalone sync adapter.
