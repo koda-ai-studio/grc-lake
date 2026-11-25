@@ -22,7 +22,7 @@ Sources (AWS, Azure, GCP, Snowflake, GitHub, Okta, Jira, …)
 
 | Layer           | Path / module                                               | Role                                                  |
 | --------------- | ----------------------------------------------------------- | ----------------------------------------------------- |
-| **Contracts**   | `connectors/catalog.json`                                   | 33 catalog contracts (30 executable adapters)         |
+| **Contracts**   | `connectors/catalog.json`                                   | 34 catalog contracts (31 executable adapters)         |
 | **Registry**    | `connector_runner.REGISTRY`                                 | Built-ins plus `grc_lake.connectors` entry points     |
 | **State**       | `connector_state.py`                                        | Probe-gated enablement, run history JSONL             |
 | **Incremental** | `ingestion/watermark.py`                                    | Cursors in `gold/watermarks.jsonl`                    |

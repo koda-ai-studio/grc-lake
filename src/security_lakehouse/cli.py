@@ -913,6 +913,13 @@ def _parser() -> argparse.ArgumentParser:
 
     auth = sub.add_parser("auth", help="server-mode auth: tenants, users, API keys (requires the 'server' extra)")
     auth_sub = auth.add_subparsers(dest="auth_command", required=True)
+    bootstrap = auth_sub.add_parser("bootstrap", help="create a fresh tenant, first admin and private expiring key")
+    bootstrap.add_argument("--lake", required=True, help="server's persistent lake directory")
+    bootstrap.add_argument("--slug", required=True, help="new tenant slug; existing tenants are refused")
+    bootstrap.add_argument("--name", required=True, help="tenant display name")
+    bootstrap.add_argument("--email", required=True, help="first administrator email")
+    bootstrap.add_argument("--expires-days", type=int, default=7, help="positive key lifetime in days (default: 7)")
+    bootstrap.set_defaults(func=_auth_bootstrap)
     auth_tenant = auth_sub.add_parser("create-tenant", help="create a tenant/workspace")
     auth_tenant.add_argument("--lake", required=True, help="security data lake output directory")
     auth_tenant.add_argument("--slug", required=True, help="unique tenant slug")
@@ -1850,6 +1857,36 @@ def _auth_resolve_tenant(session, slug: str):
     if tenant is None:
         raise SystemExit(f"no tenant with slug {slug!r}; create it with `auth create-tenant`")
     return tenant
+
+
+def _auth_bootstrap(args: argparse.Namespace) -> int:
+    from datetime import UTC, datetime, timedelta
+
+    from security_lakehouse.db import repository
+
+    if args.expires_days <= 0:
+        raise ValueError("--expires-days must be positive")
+    if not all(value.strip() for value in (args.slug, args.name, args.email)):
+        raise ValueError("tenant slug, name and admin email must not be blank")
+    expires_at = datetime.now(UTC) + timedelta(days=args.expires_days)
+    with _auth_session(args.lake) as session:
+        if repository.get_tenant_by_slug(session, slug=args.slug) is not None:
+            raise ValueError("tenant already exists; use auth issue-key for an existing user or auth create-user")
+        tenant = repository.create_tenant(session, slug=args.slug, name=args.name)
+        user = repository.create_user(session, tenant_id=tenant.id, email=args.email, role="admin")
+        key, token = repository.create_api_key(
+            session, tenant_id=tenant.id, user_id=user.id, name="bootstrap", expires_at=expires_at
+        )
+        _store_new_api_key(session, args.lake, key.id, token)
+        result = {
+            "tenant": tenant.slug,
+            "user_email": user.email,
+            "api_key_id": key.id,
+            "expires_at": expires_at.isoformat(),
+            "token_file": str(_credential_delivery_path(args.lake, key.id)),
+        }
+    print(json.dumps(result, indent=2, sort_keys=True))
+    return 0
 
 
 def _auth_create_tenant(args: argparse.Namespace) -> int:
