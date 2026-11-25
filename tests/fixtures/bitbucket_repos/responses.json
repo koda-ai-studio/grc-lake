@@ -1,0 +1,54 @@
+{
+  "https://api.bitbucket.org/2.0/repositories/example?pagelen=100": {
+    "values": [
+      {
+        "slug": "demo",
+        "full_name": "example/demo",
+        "uuid": "{00000000-0000-4000-8000-000000000001}",
+        "mainbranch": {
+          "name": "main"
+        },
+        "is_private": true
+      }
+    ],
+    "size": 1
+  },
+  "https://api.bitbucket.org/2.0/repositories/example/demo/branch-restrictions?pagelen=100": {
+    "values": [
+      {
+        "id": 1,
+        "kind": "require_approvals_to_merge",
+        "branch_match_kind": "glob",
+        "pattern": "main",
+        "value": 2
+      },
+      {
+        "id": 2,
+        "kind": "force",
+        "branch_match_kind": "glob",
+        "pattern": "main"
+      },
+      {
+        "id": 3,
+        "kind": "delete",
+        "branch_match_kind": "glob",
+        "pattern": "main"
+      },
+      {
+        "id": 4,
+        "kind": "enforce_merge_checks",
+        "branch_match_kind": "glob",
+        "pattern": "main"
+      },
+      {
+        "id": 5,
+        "kind": "push",
+        "branch_match_kind": "glob",
+        "pattern": "main",
+        "users": [],
+        "groups": []
+      }
+    ],
+    "size": 5
+  }
+}

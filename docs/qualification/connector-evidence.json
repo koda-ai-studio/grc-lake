@@ -302,6 +302,12 @@
       "fixture_tests": ["tests/test_kandji_devices_connector.py"],
       "live_record": null,
       "owner": null
+    },
+    {
+      "connector_id": "bitbucket-repos",
+      "fixture_tests": ["tests/test_bitbucket_repos_connector.py"],
+      "live_record": null,
+      "owner": null
     }
   ]
 }

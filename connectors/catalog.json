@@ -880,6 +880,31 @@
       "vendor": "Kandji",
       "description": "Mac device encryption, management, firewall and explicitly selected policy parameter checks. Missing or stale posture remains not evaluated.",
       "setup_hint": "Tenant subdomain, US/EU region and a read-only API token secret reference; optional screen-lock and OS-policy parameter IDs."
+    },
+    {
+      "connector_id": "bitbucket-repos",
+      "name": "Bitbucket Repos",
+      "category": "developer_platform",
+      "collection_mode": "direct_api_read",
+      "access_boundary": "scoped_token",
+      "credential_type": "bitbucket_repos_api_token",
+      "minimum_permissions": ["repository"],
+      "evidence_types": [
+        "repository.governance.visibility",
+        "repository.governance.change_approval",
+        "repository.governance.collection_gap"
+      ],
+      "default_route": "dual",
+      "freshness_slo_minutes": 1440,
+      "is_implemented": true,
+      "production_status": "supported_connector",
+      "release_stage": "preview",
+      "velocity": "medium_api",
+      "native_connector": false,
+      "data_shape": "current_state",
+      "vendor": "Bitbucket",
+      "description": "Read-only Bitbucket Cloud repository visibility and default-branch change-approval settings. Ambiguous or unreadable restrictions remain not evaluated.",
+      "setup_hint": "Workspace slug and workspace access token secret reference. The GET branch-restrictions API requires Repository Admin permission."
     }
   ]
 }

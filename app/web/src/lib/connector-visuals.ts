@@ -269,6 +269,13 @@ export const CONNECTOR_VISUALS: Record<string, ConnectorVisual> = {
     bg: "#f1f5f9",
     categoryLabel: "Vendor API",
   },
+  "bitbucket-repos": {
+    vendor: "Bitbucket",
+    mark: "BI",
+    accent: "#475569",
+    bg: "#f1f5f9",
+    categoryLabel: "Vendor API",
+  },
 };
 
 export function connectorVisual(

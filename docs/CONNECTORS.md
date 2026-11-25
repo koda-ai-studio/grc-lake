@@ -1863,3 +1863,40 @@ the existing endpoint connectors; other signals retain their existing control
 tags without inventing reviewed mappings. Qualification is synthetic/offline;
 a live receipt requires an authorized tenant, the stated permissions, and fresh
 Mac/Prism inventory. No live tenant qualification is claimed.
+
+### Bitbucket Cloud repositories (Preview)
+
+`bitbucket-repos` uses GET requests to `api.bitbucket.org/2.0` to list repositories
+visible to a workspace access token and read their branch restrictions. Configure
+`workspace` with the workspace slug and `credential_ref` with the environment
+variable containing the token, for example `BITBUCKET_ACCESS_TOKEN`.
+
+The minimum permission is **Repository Read** (`repository`), which collects
+visibility and reports inaccessible branch restrictions as gaps. Full governance
+collection additionally requires **Repository Admin** (`repository:admin`). Atlassian requires administration
+scope even for this GET endpoint: the token itself is not read-only, although the
+collector is. No write requests, app passwords or user API tokens are used.
+See [workspace token permissions](https://support.atlassian.com/bitbucket-cloud/docs/workspace-access-token-permissions/)
+and [the branch-restrictions API](https://developer.atlassian.com/cloud/bitbucket/rest/api-group-branch-restrictions/).
+Use a dedicated token scoped to the workspace and rotate it according to your policy.
+
+The default-branch configuration passes only when it has at least one required
+approval, enforced merge checks, force-push and deletion restrictions, and a push
+restriction with empty user/group exceptions. Missing restrictions are `open`.
+Unsupported branching-model matchers, overlapping relevant rules, malformed data,
+missing default branches and denied reads are `not_evaluated`. Glob matching
+follows Bitbucket's literal-character and `*` semantics. Repository visibility is
+an observation; private visibility alone does not imply compliance.
+
+Change-approval evidence uses the existing `repository.governance.change_approval`
+shape, `repo` asset type and `SG-CHANGEAPPROVAL-001` crosswalk. It describes current
+settings, not proof that an individual change was approved or that the entire
+secure-development lifecycle is effective. No additional mappings are approved.
+
+Pagination follows `next` only on the same HTTPS host and collection path, with
+100 results/page and a default `max_pages` of 100 per collection (maximum 1,000).
+Retries honor `Retry-After`; exhausted retries, empty repository scope, inconsistent
+counts and incomplete pages mark the sync partial. The inventory is bounded by
+the token's visibility, not a claim of all organization repositories. Synthetic
+fixtures qualify this as Preview; live qualification still needs an authorized
+workspace token and a recorded receipt.
