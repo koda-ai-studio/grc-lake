@@ -280,6 +280,18 @@
       "live_record": null
     },
     {
+      "connector_id": "cloudflare-zones",
+      "fixture_tests": ["tests/test_cloudflare_connector.py"],
+      "live_record": null,
+      "owner": null
+    },
+    {
+      "connector_id": "jumpcloud-identity",
+      "fixture_tests": ["tests/test_jumpcloud_connector.py"],
+      "live_record": null,
+      "owner": null
+    },
+    {
       "connector_id": "pagerduty-incidents",
       "fixture_tests": ["tests/test_pagerduty_connector.py"],
       "live_record": null,

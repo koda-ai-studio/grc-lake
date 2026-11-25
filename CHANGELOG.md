@@ -6,6 +6,8 @@ Python package, Helm chart, and bundled web console.
 ## Unreleased
 
 - Add a Preview PagerDuty incident-response connector with bounded read-only collection, overdue incident observations, response timing and explicit on-call gaps.
+- Add a Preview JumpCloud identity connector with scoped read-only collection, explicit gaps, account-state/MFA observations and synthetic runner-to-CCF tests.
+- Add a Preview Cloudflare zone security connector with bounded read-only collection, explicit gaps and synthetic runner-to-CCF tests.
 
 ## 0.3.26 - 2026-11-02
 

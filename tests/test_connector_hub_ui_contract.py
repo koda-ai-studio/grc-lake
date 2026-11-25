@@ -91,6 +91,7 @@ def test_preview_connectors_are_wired_into_the_console_and_badged() -> None:
         "region",
         "credential_ref",
         "account",
+        "organization_id",
     }
 
     page = PAGE.read_text(encoding="utf-8")

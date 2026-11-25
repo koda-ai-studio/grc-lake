@@ -288,6 +288,36 @@ export const CONNECTOR_CREDENTIAL_FIELDS: Record<string, ConnectorFieldDef[]> =
         hint: "API client secret, stored as a secret reference. GRC Lake mints short-lived tokens from it.",
       },
     ],
+    "cloudflare-zones": [
+      {
+        name: "credential_ref",
+        label: "API token env var",
+        placeholder: "CLOUDFLARE_API_TOKEN",
+        required: true,
+        hint: "Zone-scoped read-only token reference. Do not paste the token.",
+      },
+    ],
+    "jumpcloud-identity": [
+      {
+        name: "credential_ref",
+        label: "API key env var",
+        placeholder: "JUMPCLOUD_API_KEY",
+        required: true,
+        hint: "Read-only administrator API key reference; do not paste the key.",
+      },
+      {
+        name: "organization_id",
+        label: "Organization ID",
+        placeholder: "24-character organization ID",
+        required: true,
+      },
+      {
+        name: "region",
+        label: "Region",
+        placeholder: "us",
+        hint: "us (default), eu or in.",
+      },
+    ],
     "pagerduty-incidents": [
       {
         name: "credential_ref",

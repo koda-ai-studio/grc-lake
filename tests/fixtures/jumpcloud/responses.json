@@ -1,0 +1,76 @@
+{
+  "systemusers?limit=100&skip=0": {
+    "results": [
+      {
+        "_id": "111111111111111111111111",
+        "state": "ACTIVATED",
+        "suspended": false,
+        "activated": true,
+        "totp_enabled": true,
+        "mfaEnrollment": {
+          "totpStatus": "ENROLLED",
+          "webAuthnStatus": "NOT_ENROLLED"
+        },
+        "admin": {
+          "id": "dddddddddddddddddddddddd",
+          "roleNames": ["Help Desk"]
+        },
+        "email": "private@example.com"
+      },
+      {
+        "_id": "222222222222222222222222",
+        "state": "ACTIVATED",
+        "suspended": false,
+        "activated": true,
+        "totp_enabled": false,
+        "mfaEnrollment": {
+          "totpStatus": "NOT_ENROLLED",
+          "webAuthnStatus": "NOT_ENROLLED"
+        },
+        "admin": null,
+        "email": "private@example.com"
+      },
+      {
+        "_id": "333333333333333333333333",
+        "state": "SUSPENDED",
+        "suspended": true,
+        "activated": false,
+        "totp_enabled": false,
+        "mfaEnrollment": {
+          "totpStatus": "NOT_ENROLLED",
+          "webAuthnStatus": "NOT_ENROLLED"
+        },
+        "admin": null,
+        "email": "private@example.com"
+      },
+      {
+        "_id": "444444444444444444444444",
+        "state": "ACTIVATED",
+        "suspended": false,
+        "activated": true,
+        "totp_enabled": false,
+        "mfaEnrollment": {
+          "totpStatus": "NOT_ENROLLED",
+          "webAuthnStatus": "ENROLLED"
+        },
+        "admin": null,
+        "email": "private@example.com"
+      }
+    ],
+    "totalCount": 4
+  },
+  "v2/usergroups?limit=100&skip=0": [
+    {
+      "id": "bbbbbbbbbbbbbbbbbbbbbbbb",
+      "name": "Example group"
+    }
+  ],
+  "v2/usergroups/bbbbbbbbbbbbbbbbbbbbbbbb/members?limit=100&skip=0": [
+    {
+      "to": {
+        "id": "111111111111111111111111",
+        "type": "user"
+      }
+    }
+  ]
+}

@@ -194,6 +194,39 @@ const PRESETS: Record<string, IntegrationPreset> = {
       "MAC and IP addresses, serial numbers, user names, and alert details beyond status and severity are never stored.",
     ],
   },
+  "cloudflare-zones": {
+    connectorId: "cloudflare-zones",
+    title: "Cloudflare zone security",
+    authLabel: "Read-only API token",
+    badges: ["Zone Read", "Zone Settings Read", "Zone WAF Read", "DNS Read"],
+    summary:
+      "Read TLS, HTTPS, HSTS, DNSSEC and managed WAF deployment configuration for visible zones.",
+    providerSetup:
+      "Create a token limited to the required zones with Zone Read, Zone Settings Read, Zone WAF Read and DNS Read permissions.",
+    trustOpsInput: "The environment variable holding the token.",
+    advancedTitle: "Assessment limits",
+    advancedDetails: [
+      "Unreadable or unknown configuration is a collection gap. No live qualification is claimed.",
+      "WAF deployment is observational: rule expressions, overrides and account-level rules are not evaluated. Existing CCF contracts remain not evaluated.",
+    ],
+  },
+  "jumpcloud-identity": {
+    connectorId: "jumpcloud-identity",
+    title: "JumpCloud identity",
+    authLabel: "Read-only administrator key",
+    badges: ["users.readonly", "groups.readonly"],
+    summary:
+      "Collect account state, TOTP/WebAuthn enrollment, administrator roles and user-group memberships.",
+    providerSetup:
+      "Use a read-only administrator API key scoped to the intended organization, with users.readonly and groups.readonly access.",
+    trustOpsInput:
+      "API key reference, organization ID and region (us, eu or in).",
+    advancedTitle: "Assessment limits",
+    advancedDetails: [
+      "Suspended and staged users are excluded from the active MFA population. Missing or contradictory state is a gap.",
+      "Enrollment is not proof of MFA enforcement. Roles and memberships are observations, not completed access reviews. Existing CCF contracts remain not evaluated.",
+    ],
+  },
   "pagerduty-incidents": {
     connectorId: "pagerduty-incidents",
     title: "PagerDuty incident response",

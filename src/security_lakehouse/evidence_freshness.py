@@ -41,6 +41,8 @@ SOURCE_CONNECTOR_ALIASES = {
     "siem": "siem-alerts",
     "snyk": "snyk-vulnerabilities",
     "pagerduty": "pagerduty-incidents",
+    "jumpcloud": "jumpcloud-identity",
+    "cloudflare": "cloudflare-zones",
     "ticketing": "ticketing",
 }
 

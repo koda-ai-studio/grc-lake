@@ -61,6 +61,11 @@ from security_lakehouse.connectors_clickhouse import (
     ClickHouseFixtureClient,
     collect_clickhouse_evidence,
 )
+from security_lakehouse.connectors_cloudflare import (
+    CloudflareClient,
+    CloudflareFixtureClient,
+    collect_cloudflare_evidence,
+)
 from security_lakehouse.connectors_crowdstrike import (
     CrowdStrikeClient,
     CrowdStrikeFixtureClient,
@@ -104,6 +109,7 @@ from security_lakehouse.connectors_jira import (
     JiraFixtureClient,
     collect_jira_evidence,
 )
+from security_lakehouse.connectors_jumpcloud import JumpCloudClient, JumpCloudFixtureClient, collect_jumpcloud_evidence
 from security_lakehouse.connectors_kubernetes import (
     KubernetesClient,
     KubernetesFixtureClient,
@@ -810,6 +816,36 @@ def _build_pagerduty(inputs: SyncInputs) -> list[dict[str, Any]]:
     )
 
 
+def _build_jumpcloud(inputs: SyncInputs) -> list[dict[str, Any]]:
+    organization = str(inputs.credentials.get("organization_id") or "")
+    region = str(inputs.credentials.get("region") or "us")
+    max_pages = inputs.options.get("max_pages", 100)
+    if inputs.fixture_dir:
+        return collect_jumpcloud_evidence(
+            JumpCloudFixtureClient(inputs.fixture_dir, organization=organization, region=region, max_pages=max_pages)
+        )
+    token = _resolve_provider_secret(
+        str(inputs.credentials.get("credential_ref") or ""), "JUMPCLOUD_API_KEY", runtime_env(inputs.env)
+    )
+    if not token:
+        raise ConnectorConfigError("jumpcloud-identity requires a credential_ref naming a read-only API key")
+    return collect_jumpcloud_evidence(
+        JumpCloudClient(token=token, organization=organization, region=region, max_pages=max_pages)
+    )
+
+
+def _build_cloudflare(inputs: SyncInputs) -> list[dict[str, Any]]:
+    max_pages = inputs.options.get("max_pages", 100)
+    if inputs.fixture_dir:
+        return collect_cloudflare_evidence(CloudflareFixtureClient(inputs.fixture_dir, max_pages=max_pages))
+    token = _resolve_provider_secret(
+        str(inputs.credentials.get("credential_ref") or ""), "CLOUDFLARE_API_TOKEN", runtime_env(inputs.env)
+    )
+    if not token:
+        raise ConnectorConfigError("cloudflare-zones requires a credential_ref naming a read-only API token")
+    return collect_cloudflare_evidence(CloudflareClient(token=token, max_pages=max_pages))
+
+
 def _build_snyk(inputs: SyncInputs) -> list[dict[str, Any]]:
     return _collect_snyk(
         fixture_dir=inputs.fixture_dir, env=inputs.env, credentials=inputs.credentials, options=inputs.options
@@ -943,6 +979,8 @@ REGISTRY: dict[str, ConnectorBuilder] = {
     "crowdstrike-falcon": _build_crowdstrike,
     "snyk-vulnerabilities": _build_snyk,
     "pagerduty-incidents": _build_pagerduty,
+    "jumpcloud-identity": _build_jumpcloud,
+    "cloudflare-zones": _build_cloudflare,
     "kubernetes-cluster": _build_kubernetes,
     "lambda-cloud": _build_lambda_cloud,
     TRAINING_CONNECTOR_ID: _build_training,

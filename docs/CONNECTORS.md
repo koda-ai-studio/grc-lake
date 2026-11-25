@@ -170,7 +170,7 @@ grc-lake connectors list
 
 ## Connector Runner
 
-The catalog contains **32 catalog contracts**: **29 executable adapters** and
+The catalog contains **34 catalog contracts**: **31 executable adapters** and
 3 configuration/access boundaries. Adapters include direct source/API collectors,
 existing-lake readers and incremental event-log readers. Boundaries describe
 read-only access or managed evidence; they have no standalone sync adapter.
@@ -1713,6 +1713,80 @@ membership or establish that every account in an organization has been collected
 
 For explicit multi-account collection and separate assessments, see
 [Organization account scopes](ORGANIZATION_SCOPES.md).
+
+## Cloudflare zone security (Preview)
+
+`cloudflare-zones` reads visible zone configuration with a zone-scoped API token
+stored through `credentials.credential_ref` (for example `CLOUDFLARE_API_TOKEN`).
+Grant **Zone Read**, **Zone Settings Read**, **Zone WAF Read** and **DNS Read** only
+for the intended zones. It makes GET requests exclusively to `api.cloudflare.com`
+through the shared public-address, no-redirect HTTP layer. `options.max_pages`
+defaults to 100 and is bounded at 1–1000; zone pages contain at most 50 entries.
+429 responses honor `Retry-After` within the shared retry budget.
+
+The [zone list](https://developers.cloudflare.com/api/resources/zones/methods/list/)
+uses numbered `result_info` pages. For each zone the collector reads
+[settings](https://developers.cloudflare.com/api/resources/zones/subresources/settings/methods/get/)
+`min_tls_version`, `always_use_https` and `security_header`,
+[DNSSEC](https://developers.cloudflare.com/api/resources/dns/subresources/dnssec/methods/get/),
+and the [managed-firewall phase entry point](https://developers.cloudflare.com/ruleset-engine/basic-operations/view-rulesets/).
+API shapes and permissions were checked on 2026-11-24.
+
+TLS below 1.2, disabled HTTPS/HSTS and disabled DNSSEC are open observations.
+Missing, unknown, denied, malformed or truncated reads produce collection gaps
+and partial run metadata. An empty visible-zone list also records a gap; the
+connector cannot discover zones outside the token's scope. Paused/inactive zones
+cannot establish enforcement. Enabled WAF execute rules record deployment as
+`observed`: expressions, overrides, account rules and effective request coverage
+are not evaluated. No enabled execute rule is an open configuration observation.
+
+TLS/HTTPS/HSTS bind to `SG-DATAPROTECTION-001`; WAF/DNSSEC bind to
+`SG-NETWORK-001` on `network` assets with crosswalk-compatible tags. Those
+safeguards currently lack declared evidence-type contracts, so CCF results remain
+`not_evaluated`. This connector does not change mappings or review receipts.
+
+Offline testing uses `tests/fixtures/cloudflare`; timestamps are collection times,
+not proof of how long settings have operated. Preview qualification is synthetic
+only. Live acceptance still needs scoped permission, count/replay and failure-mode
+reconciliation against an authorized Cloudflare account.
+
+## JumpCloud identity (Preview)
+
+`jumpcloud-identity` reads a single organization using a **read-only administrator
+API key** with `users.readonly` and `groups.readonly` access. Configure
+`credentials.credential_ref` (for example `JUMPCLOUD_API_KEY`),
+`credentials.organization_id` (24 hexadecimal characters) and `credentials.region`
+(`us`, `eu` or `in`, default `us`). Keys stay in secret storage. Requests always
+send `x-org-id` and `x-api-key` to the selected documented regional host.
+
+The official [v1 OpenAPI](https://docs.jumpcloud.com/api/1.0/index.yaml) documents
+`GET /systemusers`, `results`/`totalCount`, account state, `admin` roles,
+`totp_enabled` and `mfaEnrollment.totpStatus`/`webAuthnStatus`. The
+[v2 OpenAPI](https://docs.jumpcloud.com/api/2.0/index.yaml) documents
+`GET /usergroups` and `/usergroups/{group_id}/members` graph edges. These contracts
+were checked on 2026-11-24. Collection uses only GET through the shared no-redirect
+public-address HTTP layer. Offset pages use `limit=100`, bounded by
+`options.max_pages` (default 100, maximum 1000 per collection). 429 responses honor
+`Retry-After` within the retry budget; denied/malformed/truncated reads and changed
+or inconsistent user counts produce gaps and partial run metadata.
+
+An explicitly active account enrolled in TOTP or WebAuthn has passing enrollment
+posture; explicitly unenrolled accounts are open. This is not proof of MFA
+policy enforcement. Suspended/staged users are observations outside the active
+population. Missing or contradictory state blocks a pass. Admin roles and group
+memberships are observations, not approved access reviews. Emails, SSH keys,
+addresses and authentication secrets are not persisted.
+
+Identity-user/group assets bind to `SG-IDENTITY-001` (MFA) and
+`SG-IDENTITY-002` (access). Their current missing evidence-type contracts keep CCF
+`not_evaluated`; no mappings or maintainer receipts change. Provider-returned
+organization, regional host and object identity scope stable event IDs.
+
+Synthetic fixtures under `tests/fixtures/jumpcloud` exercise runner-to-assessment
+behavior. No live qualification is claimed. Live acceptance requires authorized
+organization count/replay reconciliation and permission/failure testing. Directory
+Insights events, MFA enforcement policy, standalone administrator inventory and
+transitive nested-group membership are outside this snapshot slice.
 
 ## PagerDuty incident response (Preview)
 
