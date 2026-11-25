@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { KeyRound, Loader2, LogIn, ShieldCheck, Terminal } from "lucide-react";
 import { AuthMark } from "@/components/auth/AuthMark";
 import { GrcLakeLogo } from "@/components/brand/GrcLakeLogo";
 import { BRAND } from "@/lib/brand";
-import { CONSOLE_BASE_PATH, consolePath } from "@/lib/base-path";
+import { consolePath } from "@/lib/base-path";
+import { consoleReturnPath } from "@/lib/auth/return-path";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,7 +31,17 @@ const SESSION_GUARANTEES = [
   },
 ] as const;
 
-function BrowserMethodCard({ method }: { method: AuthMethod }) {
+function BrowserMethodCard({
+  method,
+  returnTo,
+}: {
+  method: AuthMethod;
+  returnTo: string;
+}) {
+  const loginHref =
+    method.id === "oidc"
+      ? `${method.login_url}${method.login_url.includes("?") ? "&" : "?"}return_to=${encodeURIComponent(returnTo)}`
+      : method.login_url;
   return (
     <div className="grid gap-3 rounded-xl border border-line bg-surface p-4">
       <div className="flex flex-wrap items-center gap-3">
@@ -78,7 +89,7 @@ function BrowserMethodCard({ method }: { method: AuthMethod }) {
       </div>
       {method.configured && method.id !== "api_key" && (
         <Button asChild variant="primary" size="lg">
-          <a href={method.login_url}>
+          <a href={loginHref}>
             <LogIn className="h-4 w-4" />
             {method.label}
           </a>
@@ -92,6 +103,14 @@ export default function LoginPage() {
   const auth = useAuthMethods();
   const sessionFromKey = useSessionFromKeyMutation();
   const [apiKey, setApiKey] = useState("");
+  const [returnTo, setReturnTo] = useState(consolePath("/dashboard"));
+  useEffect(() => {
+    setReturnTo(
+      consoleReturnPath(
+        new URLSearchParams(window.location.search).get("return_to"),
+      ),
+    );
+  }, []);
   const data = auth.isError ? undefined : auth.data;
   const browserMethods =
     data?.methods.filter(
@@ -99,14 +118,6 @@ export default function LoginPage() {
     ) ?? [];
   const configured = browserMethods.filter((method) => method.configured);
   const apiKeyMethod = data?.methods.find((method) => method.id === "api_key");
-
-  const redirectAfterLogin = () => {
-    const params = new URLSearchParams(window.location.search);
-    const raw = params.get("return_to");
-    if (!raw || !raw.startsWith(CONSOLE_BASE_PATH))
-      return consolePath("/dashboard");
-    return raw;
-  };
 
   const submitApiKey = async () => {
     const token = apiKey.trim();
@@ -117,7 +128,7 @@ export default function LoginPage() {
     try {
       await sessionFromKey.mutateAsync(token);
       notify.success("Signed in with API key");
-      window.location.assign(redirectAfterLogin());
+      window.location.assign(window.location.origin + returnTo);
     } catch (err) {
       const status = err instanceof ApiError ? err.status : 0;
       notify.error(
@@ -192,7 +203,11 @@ export default function LoginPage() {
             {!auth.isPending &&
               !auth.isError &&
               configured.map((method) => (
-                <BrowserMethodCard key={method.id} method={method} />
+                <BrowserMethodCard
+                  key={method.id}
+                  method={method}
+                  returnTo={returnTo}
+                />
               ))}
 
             {!auth.isPending && !auth.isError && configured.length === 0 && (
@@ -219,7 +234,7 @@ export default function LoginPage() {
                 </div>
                 {browserMethods.map((method) => (
                   <div key={method.id} className="mt-3">
-                    <BrowserMethodCard method={method} />
+                    <BrowserMethodCard method={method} returnTo={returnTo} />
                   </div>
                 ))}
               </div>
