@@ -208,3 +208,10 @@ provenance and outcome, then open it in the evidence room. Invalid bindings are
 labelled separately and do not establish assessed coverage. The paginated list
 is bounded to the loaded graph; its size is not the assessment count, and an
 empty list does not prove missing evidence.
+
+The safeguard inspector also lists framework requirements connected by recorded
+`maps_to` edges in the loaded graph. Each entry shows its mapping review state;
+reviewed mappings are distinct from proposed mappings and unrecorded review
+states. Select a requirement to inspect its assessment and open its controls
+workbench. A reviewed mapping alone is not an assessed pass. Pagination changes
+only this loaded list, and an empty list does not prove that no mapping exists.
