@@ -194,6 +194,22 @@ const PRESETS: Record<string, IntegrationPreset> = {
       "MAC and IP addresses, serial numbers, user names, and alert details beyond status and severity are never stored.",
     ],
   },
+  "cloudflare-zones": {
+    connectorId: "cloudflare-zones",
+    title: "Cloudflare zone security",
+    authLabel: "Read-only API token",
+    badges: ["Zone Read", "Zone Settings Read", "Zone WAF Read", "DNS Read"],
+    summary:
+      "Read TLS, HTTPS, HSTS, DNSSEC and managed WAF deployment configuration for visible zones.",
+    providerSetup:
+      "Create a token limited to the required zones with Zone Read, Zone Settings Read, Zone WAF Read and DNS Read permissions.",
+    trustOpsInput: "The environment variable holding the token.",
+    advancedTitle: "Assessment limits",
+    advancedDetails: [
+      "Unreadable or unknown configuration is a collection gap. No live qualification is claimed.",
+      "WAF deployment is observational: rule expressions, overrides and account-level rules are not evaluated. Existing CCF contracts remain not evaluated.",
+    ],
+  },
   "snyk-vulnerabilities": {
     connectorId: "snyk-vulnerabilities",
     title: "Snyk vulnerabilities",

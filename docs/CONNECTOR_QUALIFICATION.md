@@ -21,7 +21,7 @@ provider identities and raw live evidence stay private.
 | Catalog stage | Executable adapters | Linked live receipt | No linked live receipt |
 | --- | --- | --- | --- |
 | Implemented | 18 | 4 | 14 |
-| Preview | 10 | 1 | 9 |
+| Preview | 11 | 1 | 10 |
 
 No linked live receipt does not mean never tested or no demo account exists.
 An existing trial may have a private run record that has not been reconciled into this index.
@@ -44,6 +44,7 @@ and [Databricks #734](https://github.com/koda-ai-studio/grc-lake/issues/734).
 | `bamboohr-personnel` | Implemented | [bamboohr_connector](../tests/test_bamboohr_connector.py); [collection_completeness](../tests/test_collection_completeness.py) | No scoped live record linked | Unassigned |
 | `bigquery-evidence-lake` | Preview | [bigquery_connector](../tests/test_bigquery_connector.py) | No scoped live record linked | Unassigned |
 | `clickhouse-telemetry-lake` | Implemented | [clickhouse_connector](../tests/test_clickhouse_connector.py); [collection_completeness](../tests/test_collection_completeness.py) | No scoped live record linked | Unassigned |
+| `cloudflare-zones` | Preview | [cloudflare_connector](../tests/test_cloudflare_connector.py) | No scoped live record linked | Unassigned |
 | `crowdstrike-falcon` | Preview | [crowdstrike_connector](../tests/test_crowdstrike_connector.py); [collection_completeness](../tests/test_collection_completeness.py) | No scoped live record linked | Unassigned |
 | `databricks-evidence-lake` | Preview | [databricks_connector](../tests/test_databricks_connector.py); [databricks_bootstrap](../tests/test_databricks_bootstrap.py) | [2026-10-26; source basis `8b2500cf`](../docs/qualification/live/2026-10-25-databricks.md#databricks-multichunk): One trial SQL warehouse with service-principal OAuth: a populated system audit log and a 3-chunk result (77,036 records) recollected without duplicates, with open audit events reconciled to the provider. Preview retained; no live throttling or credential-expiry qualification. | maintainer |
 | `entra-identity` | Preview | [entra_connector](../tests/test_entra_connector.py) | No scoped live record linked | Unassigned |
@@ -83,6 +84,7 @@ Qualify the actual principal, account, resource scope and provider version separ
 | `bamboohr-personnel` | `scoped_token` | employee dataset read via a dedicated read-only BambooHR user |
 | `bigquery-evidence-lake` | `read_only_role` | roles/bigquery.jobUser on the project that runs the queries; roles/bigquery.dataViewer on the source dataset or tables |
 | `clickhouse-telemetry-lake` | `read_only_role` | Read metadata for allowed databases; SELECT on discovered evidence tables or views; SELECT-only grants for selected evidence surfaces |
+| `cloudflare-zones` | `scoped_token` | Zone Read; Zone Settings Read; Zone WAF Read; DNS Read |
 | `crowdstrike-falcon` | `scoped_token` | Hosts: Read; Prevention policies: Read; Alerts: Read |
 | `databricks-evidence-lake` | `read_only_role` | databricks-sql-access entitlement for the service principal; CAN USE on the SQL warehouse; USE CATALOG on the evidence catalog; USE SCHEMA on the evidence schema; SELECT on the four GRC Lake evidence views |
 | `entra-identity` | `scoped_token` | Application.Read.All |
