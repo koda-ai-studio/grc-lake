@@ -968,7 +968,7 @@ def _build_kandji_devices(inputs: SyncInputs) -> list[dict[str, Any]]:
         ref = str(inputs.credentials.get("credential_ref") or "")
         if not ref:
             raise ConnectorConfigError("kandji-devices requires a credential_ref naming a read-only API token")
-        token = _resolve_provider_secret(ref, connector.TOKEN_ENV, runtime_env(inputs.env))
+        token = resolve_secret_ref(ref, runtime_env(inputs.env))
         if not token:
             raise ConnectorConfigError("kandji-devices API token reference could not be resolved")
         client = connector.KandjiDevicesClient(token=token, **kwargs)

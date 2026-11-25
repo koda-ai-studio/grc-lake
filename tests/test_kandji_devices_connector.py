@@ -194,3 +194,27 @@ def test_live_runner_requires_explicit_secret_reference(tmp_path: Path, monkeypa
     )
     with pytest.raises(ConnectorSyncError, match="credential_ref"):
         run_connector_sync(tmp_path, connector_id="kandji-devices", materialize=False)
+
+
+def test_unresolved_reference_does_not_fall_back_to_another_token(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from security_lakehouse.connector_runner import ConnectorSyncError, run_connector_sync
+    from security_lakehouse.connector_state import append_config_event
+
+    monkeypatch.setenv("KANDJI_API_TOKEN", TOKEN)
+    monkeypatch.delenv("KANDJI_MISSING_REF", raising=False)
+
+    def unexpected(*args: Any, **kwargs: Any) -> Any:
+        pytest.fail("Unresolved reference attempted a network request")
+
+    monkeypatch.setattr(netguard, "open_public", unexpected)
+    append_config_event(
+        tmp_path,
+        connector_id="kandji-devices",
+        state="enabled",
+        actor="test",
+        credentials={"subdomain": "example", "credential_ref": "KANDJI_MISSING_REF"},
+    )
+    with pytest.raises(ConnectorSyncError, match="could not be resolved"):
+        run_connector_sync(tmp_path, connector_id="kandji-devices", materialize=False)
