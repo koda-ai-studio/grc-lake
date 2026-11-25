@@ -124,8 +124,12 @@ For Compose or image changes, build locally with `docker build -t grc-lake:ci .`
 then run `python3 tools/compose_smoke.py --image grc-lake:ci`. Docker Compose
 2.24.4 or newer is required. The check uses a fresh project and a dynamic loopback
 port, recreates the demo container on the same volume, and removes its containers
-and volumes afterward. It also validates the authenticated server profile with
-synthetic configuration; it does not start that profile or contact cloud providers.
+and volumes afterward. It also validates the authenticated server profile with synthetic configuration.
+The separate required `tools/authenticated_smoke.py` check starts that profile,
+runs first-admin bootstrap and browser-session exchange, verifies two-tenant
+authorization, and recreates the container to check session, credential and evidence
+persistence. It sends cookies explicitly over the loopback backend hop with Secure
+still enabled; it does not qualify TLS proxy/browser delivery, OIDC or cloud providers.
 Diagnostics are saved in `build/compose-smoke/`; use `--output` with a new path
 for each repeat so earlier failure evidence remains available. CI runs this check
 inside the required `docker-build` job and retains its JSON result and container

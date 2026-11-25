@@ -3,7 +3,7 @@
 Uses the existing Compose server profile and readiness helper. No source package
 is mounted into the container. Only the disposable volume is seeded; credentials
 stay in memory and the temporary owner-only environment file is removed. This
-local API-key probe does not qualify TLS, an IdP, providers, or production load.
+local bootstrap, session and API-key probe does not qualify TLS, an IdP, providers, or production load.
 """
 
 from __future__ import annotations
@@ -18,6 +18,7 @@ import subprocess
 import urllib.error
 import urllib.request
 import uuid
+from http.cookies import SimpleCookie
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -88,6 +89,60 @@ def expect(base, method, path, status, **kwargs):
     actual, payload, headers = request(base, method, path, **kwargs)
     assert actual == status, f"{method} {path}: expected {status}, got {actual}"
     return payload, headers
+
+
+def bootstrap(compose):
+    command = [*compose, "exec", "-T", "grc-lake-server"]
+    metadata = json.loads(
+        run(
+            *command,
+            "grc-lake",
+            "auth",
+            "bootstrap",
+            "--lake",
+            "/lake",
+            "--slug",
+            "bootstrap-probe",
+            "--name",
+            "Bootstrap probe",
+            "--email",
+            "admin@example.com",
+        )
+    )
+    return run(
+        *command,
+        "python",
+        "-c",
+        "import pathlib,sys; p=pathlib.Path(sys.argv[1]); "
+        "assert p.stat().st_mode & 0o777 == 0o600; print(p.read_text().strip())",
+        metadata["token_file"],
+    )
+
+
+def session_identity(base, cookie):
+    # Direct backend hop on loopback, as behind a TLS proxy. Secure stays on;
+    # supplying the cookie explicitly does not qualify browser TLS delivery.
+    payload, _ = expect(base, "GET", "/api/v1/auth/whoami", 200, headers={"Cookie": cookie})
+    identity = payload["data"]
+    assert identity["email"] == "admin@example.com", "unexpected bootstrap identity"
+    assert identity["role"] == "admin", "bootstrap identity is not admin"
+    assert identity["auth_method"] == "session:api_key", "identity did not use the bootstrap session"
+    return identity
+
+
+def bootstrap_session(base, token):
+    expect(base, "GET", "/api/v1/auth/whoami", 401)
+    page, _ = expect(base, "GET", "/console/login/", 200)
+    assert b"<html" in page
+    _, headers = expect(base, "POST", "/api/v1/auth/session-from-key", 200, body={"api_key": token})
+    cookies = SimpleCookie()
+    cookies.load(headers.get("Set-Cookie", ""))
+    assert len(cookies) == 1, "session exchange did not issue exactly one cookie"
+    morsel = next(iter(cookies.values()))
+    assert morsel["secure"] and morsel["httponly"], "session cookie lacks security flags"
+    assert morsel["samesite"].lower() == "lax", "session cookie lacks SameSite=Lax"
+    cookie = morsel.OutputString(attrs=[])
+    return cookie, session_identity(base, cookie)
 
 
 def assert_isolated(payload, own, other):
@@ -217,7 +272,7 @@ def qualify(image: str, output: Path, platform: str | None = None):
         "platform": platform,
         "project": project,
         "ok": False,
-        "boundary": "local synthetic API-key qualification; no TLS, IdP, provider or capacity proof",
+        "boundary": "local synthetic bootstrap/session/API-key qualification; no TLS, IdP, provider or capacity proof",
     }
     try:
         run(*compose, "config", "--quiet")
@@ -253,16 +308,25 @@ def qualify(image: str, output: Path, platform: str | None = None):
             return base, container
 
         base, first = instance()
+        bootstrap_token = bootstrap(compose)
+        cookie, identity = bootstrap_session(base, bootstrap_token)
         credentials = json.loads(run(*compose, "exec", "-T", "grc-lake-server", "python", "-c", SEED, timeout=300))
         exercise(base, credentials)
         before = persistent_state(base, credentials)
         run(*up, "--force-recreate", "grc-lake-server")
         base, second = instance()
         assert first != second
+        assert session_identity(base, cookie) == identity, "bootstrap session did not survive recreation"
+        _, restored_identity = bootstrap_session(base, bootstrap_token)
+        assert restored_identity == identity, "bootstrap key identity changed after recreation"
         assert persistent_state(base, credentials) == before, "state changed across container recreation"
         receipt.update(
             ok=True,
             checks=[
+                "atomic-first-admin-bootstrap",
+                "private-bootstrap-credential",
+                "secure-browser-session-exchange",
+                "bootstrap-session-and-key-survive-recreation",
                 "missing-and-invalid-key-denied",
                 "reader-write-denied",
                 "two-tenant-evidence-isolation",
@@ -276,6 +340,7 @@ def qualify(image: str, output: Path, platform: str | None = None):
                 "bundled-console",
             ],
             tenants=2,
+            bootstrap_tenants=1,
         )
     finally:
         # Keep the primary failure visible even if the daemon died. Receipts
