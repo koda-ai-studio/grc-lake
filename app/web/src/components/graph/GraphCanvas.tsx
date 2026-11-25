@@ -1666,7 +1666,7 @@ function InnerGraphCanvas({
   return (
     <div className="grid gap-1">
       {compactCards && (
-        <div className="flex flex-wrap items-center justify-between gap-2 pb-2">
+        <div className="flex flex-wrap items-center justify-between gap-2 pb-2 sm:-mb-1 sm:pb-0">
           <div
             role="group"
             aria-label="Graph reading mode"
@@ -1674,6 +1674,7 @@ function InnerGraphCanvas({
           >
             <Button
               size="sm"
+              className="sm:h-6"
               variant={viewMode === "overview" ? "primary" : "default"}
               aria-pressed={viewMode === "overview"}
               onClick={() => {
@@ -1685,6 +1686,7 @@ function InnerGraphCanvas({
             </Button>
             <Button
               size="sm"
+              className="sm:h-6"
               variant={viewMode === "readable" ? "primary" : "default"}
               aria-pressed={viewMode === "readable"}
               onClick={() => {
