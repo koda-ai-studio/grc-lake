@@ -215,3 +215,27 @@ def test_missing_reference_never_uses_ambient_token(tmp_path: Path, monkeypatch:
     )
     with pytest.raises(ConnectorSyncError, match="credential_ref"):
         run_connector_sync(tmp_path, connector_id="bitbucket-repos", materialize=False)
+
+
+def test_unresolved_reference_does_not_fall_back_to_another_token(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from security_lakehouse.connector_runner import ConnectorSyncError, run_connector_sync
+    from security_lakehouse.connector_state import append_config_event
+
+    monkeypatch.setenv("BITBUCKET_ACCESS_TOKEN", TOKEN)
+    monkeypatch.delenv("BITBUCKET_MISSING_REF", raising=False)
+
+    def unexpected(*args: Any, **kwargs: Any) -> Any:
+        pytest.fail("Unresolved reference attempted a network request")
+
+    monkeypatch.setattr(netguard, "open_public", unexpected)
+    append_config_event(
+        tmp_path,
+        connector_id="bitbucket-repos",
+        state="enabled",
+        actor="test",
+        credentials={"workspace": "example", "credential_ref": "BITBUCKET_MISSING_REF"},
+    )
+    with pytest.raises(ConnectorSyncError, match="could not be resolved"):
+        run_connector_sync(tmp_path, connector_id="bitbucket-repos", materialize=False)

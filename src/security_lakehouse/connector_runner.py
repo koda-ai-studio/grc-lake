@@ -992,7 +992,7 @@ def _build_bitbucket_repos(inputs: SyncInputs) -> list[dict[str, Any]]:
         ref = str(inputs.credentials.get("credential_ref") or "")
         if not ref:
             raise ConnectorConfigError("bitbucket-repos requires an access token credential_ref")
-        token = _resolve_provider_secret(ref, connector.TOKEN_ENV, runtime_env(inputs.env))
+        token = resolve_secret_ref(ref, runtime_env(inputs.env))
         if not token:
             raise ConnectorConfigError("bitbucket-repos access token reference could not be resolved")
         client = connector.BitbucketReposClient(token=token, **kwargs)
