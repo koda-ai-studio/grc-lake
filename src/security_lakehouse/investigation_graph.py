@@ -222,6 +222,7 @@ def _build_model(
     for row in safeguards["safeguards"]:
         check()
         sid = "safeguard:" + row["safeguard_id"]
+        evaluated_safeguard = assessed.get(row["safeguard_id"], {})
         eligible_types[row["safeguard_id"]] = set(row.get("asset_types") or [])
         node(
             "safeguard",
@@ -229,7 +230,18 @@ def _build_model(
             row.get("title") or row["safeguard_id"],
             owner=row.get("owner"),
             basis="Catalog definition; a mapping does not establish assessment coverage",
-            status=assessed.get(row["safeguard_id"], {}).get("status", "not_evaluated"),
+            status=evaluated_safeguard.get("status", "not_evaluated"),
+            required_evidence_types=list(row.get("required_evidence_types") or []),
+            **{
+                field: evaluated_safeguard[field]
+                for field in (
+                    "applicable_asset_count",
+                    "assessed_asset_count",
+                    "unassessed_asset_count",
+                    "invalid_binding_count",
+                )
+                if field in evaluated_safeguard
+            },
         )
         edge("family:" + str(row.get("risk_domain")), sid, "contains")
         for member in row.get("satisfies", []):

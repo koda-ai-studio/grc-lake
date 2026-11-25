@@ -97,7 +97,7 @@ test("Shift scroll pans the graph while ordinary scroll moves the page", async (
     });
   await expect
     .poll(async () => (await matrix()).zoom)
-    .toBeGreaterThanOrEqual(0.7);
+    .toBeGreaterThanOrEqual(0.85);
   const before = await matrix();
   const scrollBefore = await page.evaluate(() => scrollY);
   await page.keyboard.down("Shift");

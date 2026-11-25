@@ -305,6 +305,57 @@ export function GraphNodeDrawer({
             </div>
           </details>
         )}
+        {node.kind === "safeguard" && (
+          <section
+            aria-label="Safeguard evidence coverage"
+            className="grid gap-3 rounded-lg border border-line p-3 text-sm"
+          >
+            <h3 className="font-semibold">Safeguard evidence coverage</h3>
+            <dl className="grid gap-2">
+              {(
+                [
+                  ["applicable_asset_count", "Applicable assets"],
+                  ["assessed_asset_count", "Assessed assets"],
+                  ["unassessed_asset_count", "Unassessed assets"],
+                  ["invalid_binding_count", "Invalid bindings"],
+                ] as const
+              ).map(([field, label]) => (
+                <div
+                  key={field}
+                  className="flex flex-wrap justify-between gap-x-3"
+                >
+                  <dt className="text-muted">{label}</dt>
+                  <dd data-testid={field} className="font-semibold">
+                    {node[field] ?? "Not recorded"}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+            <div className="grid gap-2">
+              <h4 className="text-xs font-semibold">Required evidence types</h4>
+              {(node.required_evidence_types?.length ?? 0) > 0 ? (
+                <ul className="grid list-disc gap-1 pl-4 text-xs">
+                  {node.required_evidence_types!.map((type) => (
+                    <li key={type} className="break-all">
+                      {type}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-xs text-muted">
+                  No required evidence types declared. A missing contract cannot
+                  establish a pass.
+                </p>
+              )}
+            </div>
+            <p className="text-xs leading-5 text-muted">
+              Assessed does not mean passing. Unassessed assets lack applicable
+              bound evidence; invalid bindings cannot establish coverage. Follow
+              the recorded evidence links to investigate. Proposed mappings
+              remain unattestable.
+            </p>
+          </section>
+        )}
         {hasFrameworkResult && (
           <section
             aria-label="Framework result"

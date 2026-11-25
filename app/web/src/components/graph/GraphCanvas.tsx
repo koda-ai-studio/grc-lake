@@ -82,6 +82,7 @@ import { GRAPH_KIND_COLOR } from "@/lib/graph-palette";
 import { ConnectorMark } from "@/components/connectors/ConnectorMark";
 import { controlFamily } from "@/components/framework/ControlFamilyIcon";
 import { FrameworkBadge } from "@/components/framework/FrameworkBadge";
+import { Button } from "@/components/ui/button";
 import type {
   ComplianceGraph,
   GraphNode,
@@ -295,7 +296,7 @@ function GraphNodeCard({ id, data, selected }: NodeProps<FlowGraphNode>) {
             <div className="min-w-0 flex-1">
               <div
                 data-testid="graph-node-label"
-                className="line-clamp-2 break-words text-xs font-semibold leading-4 text-ink"
+                className="line-clamp-2 break-words text-sm font-semibold leading-4 text-ink"
               >
                 {displayLabel}
               </div>
@@ -1439,6 +1440,7 @@ function InnerGraphCanvas({
       const width = wrapper?.clientWidth ?? 0;
       const height = wrapper?.clientHeight ?? 0;
       if (!width || !height || laidOutNodes.length === 0) return;
+      const bounds = getNodesBounds(laidOutNodes);
       if (
         compactCards &&
         !neighborhoodRoot &&
@@ -1446,14 +1448,21 @@ function InnerGraphCanvas({
         mobileX !== null &&
         mobileY !== null
       ) {
-        setCenter(mobileX, mobileY, { zoom: 0.85, duration });
+        setCenter(
+          mobileX,
+          Math.max(mobileY, bounds.y + height / 2 / 0.85 - 64 / 0.85),
+          { zoom: 0.85, duration },
+        );
         setOverflow(overflowsAt(0.85));
         return;
       }
-      const bounds = getNodesBounds(laidOutNodes);
       const fit = getViewportForBounds(bounds, width, height, 0.16, 1, 0.06);
-      const readableZoom = compactCards ? 0.7 : GRAPH_READABLE_ZOOM;
-      if (neighborhoodRoot || fit.zoom >= readableZoom) {
+      const readableZoom = compactCards
+        ? neighborhoodRoot
+          ? 1
+          : 0.85
+        : GRAPH_READABLE_ZOOM;
+      if (fit.zoom >= readableZoom) {
         setViewport(fit, { duration });
         setOverflow(false);
         return;
@@ -1462,9 +1471,10 @@ function InnerGraphCanvas({
       // readable zoom and start from the focus, or from where the layout
       // begins, and say that more of the map is outside the view.
       const zoom = readableZoom;
-      const margin = 16 / zoom;
+      const margin = (compactCards ? 64 : 16) / zoom;
       const anchor =
         focusNode ??
+        rfNodes.find((node) => node.id === neighborhoodRoot) ??
         (compactCards
           ? rfNodes.find((node) => node.data.kind === "control")
           : undefined);
@@ -1655,6 +1665,45 @@ function InnerGraphCanvas({
 
   return (
     <div className="grid gap-1">
+      {compactCards && (
+        <div className="flex flex-wrap items-center justify-between gap-2 pb-2 sm:-mb-1 sm:pb-0">
+          <div
+            role="group"
+            aria-label="Graph reading mode"
+            className="flex flex-wrap gap-2"
+          >
+            <Button
+              size="sm"
+              className="sm:h-6"
+              variant={viewMode === "overview" ? "primary" : "default"}
+              aria-pressed={viewMode === "overview"}
+              onClick={() => {
+                setViewMode("overview");
+                fitAllView(180);
+              }}
+            >
+              Whole graph
+            </Button>
+            <Button
+              size="sm"
+              className="sm:h-6"
+              variant={viewMode === "readable" ? "primary" : "default"}
+              aria-pressed={viewMode === "readable"}
+              onClick={() => {
+                setViewMode("readable");
+                fitReadableView(180);
+              }}
+            >
+              Readable view
+            </Button>
+          </div>
+          <p className="text-xs text-muted">
+            {viewMode === "overview"
+              ? "See the full flow. Choose Readable view to inspect labels."
+              : "Read from left to right; pan to follow recorded links."}
+          </p>
+        </div>
+      )}
       {connection.status !== "idle" && (
         <div
           role="status"
@@ -1809,11 +1858,7 @@ function InnerGraphCanvas({
             showFitView={false}
             onZoomIn={() => {
               setViewMode("readable");
-              const readableZoom = compactCards
-                ? (wrapperRef.current?.clientWidth ?? 0) < 600
-                  ? 0.85
-                  : 0.7
-                : GRAPH_READABLE_ZOOM;
+              const readableZoom = compactCards ? 0.85 : GRAPH_READABLE_ZOOM;
               if (!neighborhoodRoot && getZoom() < readableZoom)
                 fitReadableView(180);
             }}
@@ -1865,8 +1910,10 @@ function InnerGraphCanvas({
           className="text-xs leading-5 text-muted"
         >
           Part of this map is outside the view. Drag or Shift+scroll to follow
-          connections. Scroll normally to move the page. Use the fit icon to see
-          the entire loaded graph, or + to enlarge labels.
+          connections. Scroll normally to move the page.{" "}
+          {compactCards
+            ? "Choose Whole graph to see every loaded node, or Readable view to inspect labels."
+            : "Use the fit icon to see the entire loaded graph, or + to enlarge labels."}
         </p>
       )}
     </div>

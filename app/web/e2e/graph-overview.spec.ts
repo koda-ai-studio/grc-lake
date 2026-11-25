@@ -47,7 +47,10 @@ for (const theme of ["light", "dark"]) {
       ).toHaveCount(0);
       await expect(
         page.getByRole("button", { name: "Readable view", exact: true }),
-      ).toHaveCount(0);
+      ).toHaveAttribute("aria-pressed", "false");
+      await expect(
+        page.getByRole("button", { name: "Whole graph", exact: true }),
+      ).toHaveAttribute("aria-pressed", "true");
       await expect(page.locator(".react-flow__controls button")).toHaveCount(4);
       await expect(page.locator(".react-flow__minimap")).toBeHidden();
       await page
