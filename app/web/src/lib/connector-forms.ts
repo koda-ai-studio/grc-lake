@@ -608,6 +608,43 @@ export const CONNECTOR_CREDENTIAL_FIELDS: Record<string, ConnectorFieldDef[]> =
         hint: "Environment variable name holding the read-only export token.",
       },
     ],
+    "kandji-devices": [
+      {
+        name: "subdomain",
+        label: "Tenant subdomain",
+        placeholder: "example",
+        required: true,
+        hint: "The tenant part of your Settings → Access API URL; do not enter a URL.",
+      },
+      {
+        name: "region",
+        label: "API region",
+        placeholder: "us",
+        required: false,
+        hint: "us or eu; must match your API URL.",
+      },
+      {
+        name: "screen_lock_parameter_id",
+        label: "Screen-lock parameter ID",
+        placeholder: "UUID",
+        required: false,
+        hint: "Optional: ID of the policy parameter that checks your required screen-lock policy. Missing means not evaluated.",
+      },
+      {
+        name: "os_patch_parameter_id",
+        label: "OS currency parameter ID",
+        placeholder: "UUID",
+        required: false,
+        hint: "Optional: ID of the parameter checking your OS update policy. Version alone never proves currency.",
+      },
+      {
+        name: "credential_ref",
+        label: "API token env var",
+        placeholder: "KANDJI_API_TOKEN",
+        required: true,
+        hint: "Read-only Kandji API token, stored as a secret reference. Do not paste the token.",
+      },
+    ],
   };
 
 export const CONNECTOR_SCOPE_FIELDS: Record<string, ConnectorFieldDef[]> = {

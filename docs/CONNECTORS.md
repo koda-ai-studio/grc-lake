@@ -1829,3 +1829,37 @@ crosswalk-compatible tags. Its missing evidence-type contract keeps CCF
 fixtures under `tests/fixtures/pagerduty` exercise runner-to-assessment behavior.
 Live qualification still needs authorized count/replay, retention, scope and
 failure-mode reconciliation. Renaming the account label creates new identities.
+
+### Kandji devices (Preview)
+
+`kandji-devices` reads Mac inventory, FileVault, management, Prism application
+firewall, and explicitly selected device policy parameters. The current
+[Kandji/Iru API reference](https://api-docs.iru.com/) documents the US
+`<subdomain>.api.kandji.io` and EU `<subdomain>.api.eu.kandji.io` hosts.
+
+In Settings → Access, create a token with read permissions for **List Devices,
+Device Details, Device Parameters and Prism Application Firewall** only. Do not
+grant device actions or device secrets access. Put its environment-variable name
+in `credential_ref` (for example `KANDJI_API_TOKEN`); never enter the token itself.
+Set `subdomain` to the tenant label from your API URL and `region` to `us` or `eu`.
+
+Optional `screen_lock_parameter_id` and `os_patch_parameter_id` identify the
+parameters your administrator has verified enforce the required screen-lock and
+OS currency policies. These are policy checks, not an inferred latest OS version.
+Only `PASS` and `ERROR` produce a verdict; pending, remediated, warning, incompatible,
+missing or unconfigured parameters remain `not_evaluated`. Select IDs from the
+read-only Device Parameters response; parameter names are not used for matching.
+
+All posture older than 30 days, future/unknown check-ins, non-Mac platforms,
+denied reads, incomplete pages and empty inventory produce explicit gaps. Firewall
+also requires a fresh Prism collection timestamp. The connector reads devices
+with limit/offset pagination (300/page) and Prism with offset/cursor pagination;
+`max_pages` defaults to 100 per collection (maximum 1,000). HTTP 429 honors
+`Retry-After` within the shared retry budget. No serials, network addresses,
+recovery keys, device names or raw detail payloads are retained.
+
+FileVault evidence uses `managed_device` and `SG-ENDPOINTENCRYPTION-001`, matching
+the existing endpoint connectors; other signals retain their existing control
+tags without inventing reviewed mappings. Qualification is synthetic/offline;
+a live receipt requires an authorized tenant, the stated permissions, and fresh
+Mac/Prism inventory. No live tenant qualification is claimed.

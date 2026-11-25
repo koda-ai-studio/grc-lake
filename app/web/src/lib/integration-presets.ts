@@ -429,6 +429,23 @@ const PRESETS: Record<string, IntegrationPreset> = {
       "Unattended sync needs all three refresh fields; GRC Lake mints access tokens on demand and never persists them.",
     ],
   },
+  "kandji-devices": {
+    connectorId: "kandji-devices",
+    title: "Kandji Devices",
+    authLabel: "Read-only API token",
+    badges: ["Read-only", "Preview"],
+    summary:
+      "Collects Mac encryption, firewall, management and configured policy checks.",
+    providerSetup:
+      "In Settings → Access, grant read access to device listing, details, parameters and Prism Application Firewall.",
+    trustOpsInput:
+      "Tenant subdomain, region, token reference and optional screen-lock / OS-policy parameter IDs.",
+    advancedTitle: "What is collected",
+    advancedDetails: [
+      "Mac posture older than 30 days is not evaluated. Screen-lock and OS checks use explicitly configured policy parameter IDs.",
+      "Denied, incomplete or empty reads are recorded as collection gaps, never as a pass.",
+    ],
+  },
 };
 
 export function getIntegrationPreset(

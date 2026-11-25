@@ -262,6 +262,13 @@ export const CONNECTOR_VISUALS: Record<string, ConnectorVisual> = {
     bg: "#eff6ff",
     categoryLabel: "Workflow",
   },
+  "kandji-devices": {
+    vendor: "Kandji",
+    mark: "KA",
+    accent: "#475569",
+    bg: "#f1f5f9",
+    categoryLabel: "Vendor API",
+  },
 };
 
 export function connectorVisual(

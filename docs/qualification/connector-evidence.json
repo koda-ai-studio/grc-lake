@@ -296,6 +296,12 @@
       "fixture_tests": ["tests/test_pagerduty_connector.py"],
       "live_record": null,
       "owner": null
+    },
+    {
+      "connector_id": "kandji-devices",
+      "fixture_tests": ["tests/test_kandji_devices_connector.py"],
+      "live_record": null,
+      "owner": null
     }
   ]
 }
