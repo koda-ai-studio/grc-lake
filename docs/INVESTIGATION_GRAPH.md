@@ -201,3 +201,10 @@ The existing `/api/v1/graph` retains the `evidence_type` node kind for compatibi
 Repository nodes show the recorded GitHub or GitLab provider with a repository badge; unknown hosts retain the generic icon. Click to inspect, double-click or press Shift+Enter to explore recorded connections, and use Roll up to return. Expanded workspace falls back to an in-page view when browser fullscreen is unavailable.
 
 The repository inspector lists evidence and findings present in the bounded view. Evidence outcomes distinguish passing, failing, observed but not evaluated, and settings that are not observable with the collection access. Selected records expose their exact linked controls and review guidance. Missing records do not prove a missing configuration; mappings and source outcomes do not establish whole-framework compliance.
+
+Safeguard inspection lists evidence records connected by recorded `has_evidence`
+bindings in the loaded graph. Select a record to inspect its exact account,
+provenance and outcome, then open it in the evidence room. Invalid bindings are
+labelled separately and do not establish assessed coverage. The paginated list
+is bounded to the loaded graph; its size is not the assessment count, and an
+empty list does not prove missing evidence.
