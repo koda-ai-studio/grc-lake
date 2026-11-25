@@ -170,7 +170,7 @@ grc-lake connectors list
 
 ## Connector Runner
 
-The catalog contains **31 catalog contracts**: **28 executable adapters** and
+The catalog contains **32 catalog contracts**: **29 executable adapters** and
 3 configuration/access boundaries. Adapters include direct source/API collectors,
 existing-lake readers and incremental event-log readers. Boundaries describe
 read-only access or managed evidence; they have no standalone sync adapter.
@@ -1713,3 +1713,45 @@ membership or establish that every account in an organization has been collected
 
 For explicit multi-account collection and separate assessments, see
 [Organization account scopes](ORGANIZATION_SCOPES.md).
+
+## PagerDuty incident response (Preview)
+
+`pagerduty-incidents` uses a **read-only REST API key** via
+`credentials.credential_ref` (for example `PAGERDUTY_API_TOKEN`). Set
+`credentials.account` to a stable lowercase label for the account; it scopes
+record identities and never selects a host. Only `api.pagerduty.com` is used,
+with GET through the shared public-address/no-redirect HTTP layer. The key needs
+read access to incidents (including their logs), services and on-calls.
+
+Official references checked on 2026-11-24:
+[list incidents](https://docs.pagerduty.com/developer/api/reference/rest/incidents/list-incidents),
+[incident logs](https://docs.pagerduty.com/developer/api/reference/rest/incidents/list-incident-log-entries),
+[services](https://docs.pagerduty.com/developer/api/reference/rest/services/list-services),
+and [on-calls](https://docs.pagerduty.com/developer/api/reference/rest/on-calls/list-on-calls).
+The API uses `Authorization: Token token=…`, the v2 Accept header and
+`limit`/`offset`/`more` pagination. Collection requests all retained incidents
+(`date_range=all`) so older unresolved incidents are not hidden by a recent window.
+`options.max_pages` defaults to 100 and accepts 1–100, with 100 records per page,
+per collection. A cap, malformed page or denied read produces a gap, never an
+empty success. Retry-After is honored within the shared retry budget.
+
+`options.max_resolution_hours` (1–8760, default 24) is an operator policy threshold,
+not a vendor SLA. Triggered/acknowledged incidents older than that threshold are
+open. The collector records urgency and creation time, first acknowledgment and
+latest resolution from log entries, and elapsed seconds. Resolved incidents remain
+observations: resolution alone does not prove containment or root-cause analysis.
+Unavailable logs preserve an independently evidenced overdue finding and also mark
+the run partial. Descriptions, notes, responders' names and log content are omitted.
+
+Service observations include escalation-policy references and on-call coverage at
+the collection instant, with schedule IDs where present. Missing policies, unknown
+intervals and absent current coverage are gaps. Current coverage does not establish
+historical/future coverage or notification success. Service status is retained so
+disabled and maintenance services remain distinguishable.
+
+Incident `audit_log` and `service` assets bind to `SG-INCIDENTHANDLING-001` with
+crosswalk-compatible tags. Its missing evidence-type contract keeps CCF
+`not_evaluated`; no definitions, mappings or review receipts change. Synthetic
+fixtures under `tests/fixtures/pagerduty` exercise runner-to-assessment behavior.
+Live qualification still needs authorized count/replay, retention, scope and
+failure-mode reconciliation. Renaming the account label creates new identities.

@@ -90,6 +90,7 @@ def test_preview_connectors_are_wired_into_the_console_and_badged() -> None:
         "allowed_registries",
         "region",
         "credential_ref",
+        "account",
     }
 
     page = PAGE.read_text(encoding="utf-8")

@@ -121,6 +121,7 @@ from security_lakehouse.connectors_okta import (
     collect_okta_evidence,
     collect_okta_system_log_evidence,
 )
+from security_lakehouse.connectors_pagerduty import PagerDutyClient, PagerDutyFixtureClient, collect_pagerduty_evidence
 from security_lakehouse.connectors_rippling import (
     RipplingClient,
     RipplingFixtureClient,
@@ -790,6 +791,25 @@ def _build_crowdstrike(inputs: SyncInputs) -> list[dict[str, Any]]:
     return _collect_crowdstrike(fixture_dir=inputs.fixture_dir, env=inputs.env, credentials=inputs.credentials)
 
 
+def _build_pagerduty(inputs: SyncInputs) -> list[dict[str, Any]]:
+    account = str(inputs.credentials.get("account") or "")
+    max_pages = inputs.options.get("max_pages", 100)
+    max_resolution_hours = inputs.options.get("max_resolution_hours", 24)
+    if inputs.fixture_dir:
+        return collect_pagerduty_evidence(
+            PagerDutyFixtureClient(inputs.fixture_dir, account=account, max_pages=max_pages),
+            max_resolution_hours=max_resolution_hours,
+        )
+    token = _resolve_provider_secret(
+        str(inputs.credentials.get("credential_ref") or ""), "PAGERDUTY_API_TOKEN", runtime_env(inputs.env)
+    )
+    if not token:
+        raise ConnectorConfigError("pagerduty-incidents requires a credential_ref naming a read-only API token")
+    return collect_pagerduty_evidence(
+        PagerDutyClient(token=token, account=account, max_pages=max_pages), max_resolution_hours=max_resolution_hours
+    )
+
+
 def _build_snyk(inputs: SyncInputs) -> list[dict[str, Any]]:
     return _collect_snyk(
         fixture_dir=inputs.fixture_dir, env=inputs.env, credentials=inputs.credentials, options=inputs.options
@@ -922,6 +942,7 @@ REGISTRY: dict[str, ConnectorBuilder] = {
     "jamf-devices": _build_jamf,
     "crowdstrike-falcon": _build_crowdstrike,
     "snyk-vulnerabilities": _build_snyk,
+    "pagerduty-incidents": _build_pagerduty,
     "kubernetes-cluster": _build_kubernetes,
     "lambda-cloud": _build_lambda_cloud,
     TRAINING_CONNECTOR_ID: _build_training,

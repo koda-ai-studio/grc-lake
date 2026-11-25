@@ -288,6 +288,22 @@ export const CONNECTOR_CREDENTIAL_FIELDS: Record<string, ConnectorFieldDef[]> =
         hint: "API client secret, stored as a secret reference. GRC Lake mints short-lived tokens from it.",
       },
     ],
+    "pagerduty-incidents": [
+      {
+        name: "credential_ref",
+        label: "API token env var",
+        placeholder: "PAGERDUTY_API_TOKEN",
+        required: true,
+        hint: "Read-only REST API key reference; do not paste the key.",
+      },
+      {
+        name: "account",
+        label: "Account label",
+        placeholder: "example",
+        required: true,
+        hint: "Stable lowercase label for this PagerDuty account.",
+      },
+    ],
     "snyk-vulnerabilities": [
       {
         name: "region",

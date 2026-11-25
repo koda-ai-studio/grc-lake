@@ -503,6 +503,9 @@ def _missing_required_config(
 
     if connector_id == "lambda-cloud":
         return ["credential_ref"] if not _has_value(credentials, "credential_ref") else []
+    if connector_id == "pagerduty-incidents":
+        return [f for f in ("account", "credential_ref") if not _has_value(credentials, f)]
+
     if connector_id == "snyk-vulnerabilities":
         # The region defaults to SNYK-US-01 and is checked against the allowlist at sync.
         return [] if _has_value(credentials, "credential_ref") else ["credential_ref"]
