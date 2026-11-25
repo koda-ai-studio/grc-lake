@@ -127,6 +127,34 @@ Runbook: [Shareable POC Hosting](SHAREABLE_POC_HOSTING.md),
 
 ### First sign-in without an identity provider
 
+A source build containing `auth bootstrap` can create a fresh tenant and its
+first administrator in one command. For the authenticated Compose service:
+
+```bash
+docker compose exec grc-lake-server grc-lake auth bootstrap --lake /lake --slug acme --name "Acme" --email admin@example.com
+```
+
+For a native installation, run the same `grc-lake auth bootstrap` command with
+the server's persistent `--lake` directory. This local-mode command does not
+contact a provider or load demo data. Distributed deployments use
+[cluster commands and the authenticated API](DISTRIBUTED.md).
+
+The command creates the tenant, administrator and key together and writes the
+secret to `/lake/server/credentials/<key id>.token` with mode 0600. Output
+contains the file path and expiry, never the secret. The key expires after seven
+days by default; `--expires-days` accepts a positive lifetime. Copy the file
+privately from the container, paste its contents into **Sign in with API key**
+at `/console/login/`, store it in your secret manager if needed, then delete the
+delivery copy. Do not paste it into terminal commands, logs or tickets.
+
+An existing tenant slug is refused without creating another key or changing a
+user. If setup already succeeded, recover the original delivery file or use
+`auth issue-key` for the existing administrator. A failed credential-file write
+rolls back the new tenant and administrator. Configure SSO and revoke the
+bootstrap key after onboarding.
+
+For published versions without `auth bootstrap`, use the individual commands:
+
 A fresh server with only `GRC_LAKE_COOKIE_SIGNING_KEY` set serves the console
 and answers every data route with `401 missing credentials`; nothing creates
 the first tenant or user for you. Run these against the server's lake (inside
