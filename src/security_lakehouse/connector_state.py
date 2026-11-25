@@ -503,6 +503,9 @@ def _missing_required_config(
 
     if connector_id == "lambda-cloud":
         return ["credential_ref"] if not _has_value(credentials, "credential_ref") else []
+    if connector_id == "pagerduty-incidents":
+        return [f for f in ("account", "credential_ref") if not _has_value(credentials, f)]
+
     if connector_id == "jumpcloud-identity":
         return [f for f in ("organization_id", "credential_ref") if not _has_value(credentials, f)]
 

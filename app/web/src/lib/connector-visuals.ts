@@ -220,6 +220,13 @@ export const CONNECTOR_VISUALS: Record<string, ConnectorVisual> = {
     bg: "#ecfeff",
     categoryLabel: "Identity",
   },
+  "pagerduty-incidents": {
+    vendor: "PagerDuty",
+    mark: "PD",
+    accent: "#166534",
+    bg: "#f0fdf4",
+    categoryLabel: "Incident response",
+  },
   "snyk-vulnerabilities": {
     vendor: "Snyk",
     mark: "SK",

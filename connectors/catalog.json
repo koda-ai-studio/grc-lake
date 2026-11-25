@@ -826,6 +826,29 @@
       "vendor": "JumpCloud",
       "description": "MFA enrollment, user state, administrator roles and group membership snapshots.",
       "setup_hint": "Read-only administrator API key via credential_ref, organization_id and region."
+    },
+    {
+      "connector_id": "pagerduty-incidents",
+      "name": "PagerDuty Incident Response",
+      "category": "security",
+      "collection_mode": "direct_api_read",
+      "access_boundary": "scoped_token",
+      "credential_type": "api_token",
+      "minimum_permissions": [
+        "Read-only REST API key: incidents, services and on-calls"
+      ],
+      "evidence_types": ["incident_response"],
+      "default_route": "dual",
+      "freshness_slo_minutes": 1440,
+      "is_implemented": true,
+      "production_status": "supported_connector",
+      "release_stage": "preview",
+      "velocity": "medium_api",
+      "native_connector": false,
+      "data_shape": "current_state",
+      "vendor": "PagerDuty",
+      "description": "Incident age and response timing, service escalation policy and current on-call observations.",
+      "setup_hint": "Read-only API token via credential_ref and a stable account label."
     }
   ]
 }

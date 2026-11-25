@@ -227,6 +227,22 @@ const PRESETS: Record<string, IntegrationPreset> = {
       "Enrollment is not proof of MFA enforcement. Roles and memberships are observations, not completed access reviews. Existing CCF contracts remain not evaluated.",
     ],
   },
+  "pagerduty-incidents": {
+    connectorId: "pagerduty-incidents",
+    title: "PagerDuty incident response",
+    authLabel: "Read-only REST API key",
+    badges: ["Incidents", "Services", "On-calls", "Read-only"],
+    summary:
+      "Collect retained incidents, response timestamps, escalation-policy references and current on-call coverage.",
+    providerSetup:
+      "Create a REST API key with read-only access to incidents, services and on-calls.",
+    trustOpsInput: "API token reference and a stable account label.",
+    advancedTitle: "Assessment limits",
+    advancedDetails: [
+      "Unresolved incidents older than the configured threshold are open. Missing policies, logs or on-call data are gaps.",
+      "Resolution and current on-call coverage are observations, not proof of containment, root cause or historical SLA compliance. Existing CCF contracts remain not evaluated.",
+    ],
+  },
   "snyk-vulnerabilities": {
     connectorId: "snyk-vulnerabilities",
     title: "Snyk vulnerabilities",
