@@ -187,6 +187,20 @@ export function GraphNodeDrawer({
     ),
   );
   const related = graph?.nodes.filter((item) => relatedIds.has(item.id)) ?? [];
+  const safeguardBindings =
+    node.kind === "safeguard"
+      ? (graph?.edges ?? [])
+          .filter(
+            (edge) => edge.source === node.id && edge.kind === "has_evidence",
+          )
+          .flatMap((edge) => {
+            const target = graph?.nodes.find(
+              (item) => item.id === edge.target && item.kind === "evidence",
+            );
+            return target ? [{ edge, target }] : [];
+          })
+      : [];
+
   return (
     <aside
       key={node.id}
@@ -465,6 +479,58 @@ export function GraphNodeDrawer({
               <p className="text-xs text-muted">
                 Showing the {node.findings?.length ?? 0} most severe of{" "}
                 {node.finding_count}. Review the rest in Findings.
+              </p>
+            )}
+          </section>
+        )}
+        {node.kind === "safeguard" && graph && (
+          <section
+            aria-label="Safeguard evidence bindings"
+            className="grid gap-2"
+          >
+            <h3 className="text-sm font-semibold">
+              Recorded evidence bindings
+            </h3>
+            <p className="text-xs leading-5 text-muted">
+              Loaded graph only — {safeguardBindings.length} linked records.
+              This list is not the full assessment coverage. Select a record to
+              inspect its provenance and outcome.
+            </p>
+            <PaginatedCollection label="Safeguard bindings" pageSize={3}>
+              {safeguardBindings.map(({ edge, target }) => (
+                <button
+                  key={edge.id}
+                  disabled={!onInspectNode}
+                  className="grid min-w-0 gap-1 rounded-lg border border-line p-2 text-left hover:border-brand disabled:opacity-60"
+                  onClick={() => onInspectNode?.(target)}
+                >
+                  <span className="break-words text-sm font-semibold">
+                    {graphRecordLabel(target)}
+                  </span>
+                  <span className="break-all text-xs text-muted">
+                    Source account: {target.source_account_id ?? "Not recorded"}
+                  </span>
+                  <span className="break-all text-xs text-muted">
+                    Record: {target.event_id ?? target.id}
+                  </span>
+                  {edge.binding ? (
+                    <span className="text-xs font-semibold text-warning-fg">
+                      Invalid binding — excluded from assessed coverage
+                    </span>
+                  ) : (
+                    <span className="text-xs text-muted">
+                      {graphEvidenceState(target).label} · Recorded binding does
+                      not establish a pass
+                    </span>
+                  )}
+                </button>
+              ))}
+            </PaginatedCollection>
+            {safeguardBindings.length === 0 && (
+              <p className="text-xs leading-5 text-muted">
+                No evidence bindings loaded in this view. Increase depth or
+                explore this safeguard; absence here does not establish missing
+                evidence.
               </p>
             )}
           </section>
