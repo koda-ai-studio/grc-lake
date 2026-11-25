@@ -254,7 +254,9 @@ def test_product_preview_shows_distinct_views_without_repeating_the_overview() -
     readme = README.read_text(encoding="utf-8")
     tour = readme.split("## Product tour", maxsplit=1)[1].split("## Architecture", maxsplit=1)[0]
     assert "bundled synthetic company" in tour
-    assert "<details>" not in tour
+    assert tour.count("<details>") == 1
+    assert tour.index("grc-lake-demo-dashboard.png") < tour.index("<details>")
+    assert tour.index("<details>") < tour.index("grc-lake-demo-frameworks.png")
     views = ("dashboard", "frameworks", "controls", "graph", "ai-governance")
     assert tour.count("<picture>") == len(views)
     positions = []
