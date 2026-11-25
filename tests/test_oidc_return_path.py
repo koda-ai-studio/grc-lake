@@ -73,6 +73,7 @@ def test_two_oidc_flows_keep_their_own_return_paths(client):
     "target",
     [
         "https://example.com",
+        "%2Fconsole%2Fevidence%2F",
         "//example.com",
         "/console-elsewhere/",
         "/console/../api/",

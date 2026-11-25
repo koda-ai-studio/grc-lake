@@ -16,6 +16,7 @@ def console_return_path(value: str | None) -> str:
     if (
         parts.scheme
         or parts.netloc
+        or not (parts.path == "/console" or parts.path.startswith("/console/"))
         or not (path == "/console" or path.startswith("/console/"))
         or any(char in path for char in ("\\", "%"))
         or any(ord(char) < 32 or ord(char) == 127 for char in path)

@@ -128,7 +128,7 @@ export default function LoginPage() {
     try {
       await sessionFromKey.mutateAsync(token);
       notify.success("Signed in with API key");
-      window.location.assign(returnTo);
+      window.location.assign(window.location.origin + returnTo);
     } catch (err) {
       const status = err instanceof ApiError ? err.status : 0;
       notify.error(
