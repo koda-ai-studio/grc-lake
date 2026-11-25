@@ -194,6 +194,23 @@ const PRESETS: Record<string, IntegrationPreset> = {
       "MAC and IP addresses, serial numbers, user names, and alert details beyond status and severity are never stored.",
     ],
   },
+  "jumpcloud-identity": {
+    connectorId: "jumpcloud-identity",
+    title: "JumpCloud identity",
+    authLabel: "Read-only administrator key",
+    badges: ["users.readonly", "groups.readonly"],
+    summary:
+      "Collect account state, TOTP/WebAuthn enrollment, administrator roles and user-group memberships.",
+    providerSetup:
+      "Use a read-only administrator API key scoped to the intended organization, with users.readonly and groups.readonly access.",
+    trustOpsInput:
+      "API key reference, organization ID and region (us, eu or in).",
+    advancedTitle: "Assessment limits",
+    advancedDetails: [
+      "Suspended and staged users are excluded from the active MFA population. Missing or contradictory state is a gap.",
+      "Enrollment is not proof of MFA enforcement. Roles and memberships are observations, not completed access reviews. Existing CCF contracts remain not evaluated.",
+    ],
+  },
   "snyk-vulnerabilities": {
     connectorId: "snyk-vulnerabilities",
     title: "Snyk vulnerabilities",

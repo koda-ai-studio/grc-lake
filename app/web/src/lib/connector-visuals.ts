@@ -206,6 +206,13 @@ export const CONNECTOR_VISUALS: Record<string, ConnectorVisual> = {
     bg: "#fff1f2",
     categoryLabel: "Endpoint protection",
   },
+  "jumpcloud-identity": {
+    vendor: "JumpCloud",
+    mark: "JC",
+    accent: "#155e75",
+    bg: "#ecfeff",
+    categoryLabel: "Identity",
+  },
   "snyk-vulnerabilities": {
     vendor: "Snyk",
     mark: "SK",
