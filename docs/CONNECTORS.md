@@ -170,7 +170,7 @@ grc-lake connectors list
 
 ## Connector Runner
 
-The catalog contains **32 catalog contracts**: **29 executable adapters** and
+The catalog contains **33 catalog contracts**: **30 executable adapters** and
 3 configuration/access boundaries. Adapters include direct source/API collectors,
 existing-lake readers and incremental event-log readers. Boundaries describe
 read-only access or managed evidence; they have no standalone sync adapter.
@@ -1749,3 +1749,41 @@ Offline testing uses `tests/fixtures/cloudflare`; timestamps are collection time
 not proof of how long settings have operated. Preview qualification is synthetic
 only. Live acceptance still needs scoped permission, count/replay and failure-mode
 reconciliation against an authorized Cloudflare account.
+
+## JumpCloud identity (Preview)
+
+`jumpcloud-identity` reads a single organization using a **read-only administrator
+API key** with `users.readonly` and `groups.readonly` access. Configure
+`credentials.credential_ref` (for example `JUMPCLOUD_API_KEY`),
+`credentials.organization_id` (24 hexadecimal characters) and `credentials.region`
+(`us`, `eu` or `in`, default `us`). Keys stay in secret storage. Requests always
+send `x-org-id` and `x-api-key` to the selected documented regional host.
+
+The official [v1 OpenAPI](https://docs.jumpcloud.com/api/1.0/index.yaml) documents
+`GET /systemusers`, `results`/`totalCount`, account state, `admin` roles,
+`totp_enabled` and `mfaEnrollment.totpStatus`/`webAuthnStatus`. The
+[v2 OpenAPI](https://docs.jumpcloud.com/api/2.0/index.yaml) documents
+`GET /usergroups` and `/usergroups/{group_id}/members` graph edges. These contracts
+were checked on 2026-11-24. Collection uses only GET through the shared no-redirect
+public-address HTTP layer. Offset pages use `limit=100`, bounded by
+`options.max_pages` (default 100, maximum 1000 per collection). 429 responses honor
+`Retry-After` within the retry budget; denied/malformed/truncated reads and changed
+or inconsistent user counts produce gaps and partial run metadata.
+
+An explicitly active account enrolled in TOTP or WebAuthn has passing enrollment
+posture; explicitly unenrolled accounts are open. This is not proof of MFA
+policy enforcement. Suspended/staged users are observations outside the active
+population. Missing or contradictory state blocks a pass. Admin roles and group
+memberships are observations, not approved access reviews. Emails, SSH keys,
+addresses and authentication secrets are not persisted.
+
+Identity-user/group assets bind to `SG-IDENTITY-001` (MFA) and
+`SG-IDENTITY-002` (access). Their current missing evidence-type contracts keep CCF
+`not_evaluated`; no mappings or maintainer receipts change. Provider-returned
+organization, regional host and object identity scope stable event IDs.
+
+Synthetic fixtures under `tests/fixtures/jumpcloud` exercise runner-to-assessment
+behavior. No live qualification is claimed. Live acceptance requires authorized
+organization count/replay reconciliation and permission/failure testing. Directory
+Insights events, MFA enforcement policy, standalone administrator inventory and
+transitive nested-group membership are outside this snapshot slice.

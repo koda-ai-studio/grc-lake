@@ -284,6 +284,12 @@
       "fixture_tests": ["tests/test_cloudflare_connector.py"],
       "live_record": null,
       "owner": null
+    },
+    {
+      "connector_id": "jumpcloud-identity",
+      "fixture_tests": ["tests/test_jumpcloud_connector.py"],
+      "live_record": null,
+      "owner": null
     }
   ]
 }

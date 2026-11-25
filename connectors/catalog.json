@@ -805,6 +805,27 @@
       "vendor": "Cloudflare",
       "description": "Zone TLS, HTTPS, HSTS, DNSSEC and managed WAF deployment observations.",
       "setup_hint": "Zone-scoped read-only API token via credential_ref."
+    },
+    {
+      "connector_id": "jumpcloud-identity",
+      "name": "JumpCloud Identity",
+      "category": "identity",
+      "collection_mode": "direct_api_read",
+      "access_boundary": "scoped_token",
+      "credential_type": "api_key",
+      "minimum_permissions": ["users.readonly", "groups.readonly"],
+      "evidence_types": ["identity_access_review"],
+      "default_route": "dual",
+      "freshness_slo_minutes": 1440,
+      "is_implemented": true,
+      "production_status": "supported_connector",
+      "release_stage": "preview",
+      "velocity": "medium_api",
+      "native_connector": false,
+      "data_shape": "current_state",
+      "vendor": "JumpCloud",
+      "description": "MFA enrollment, user state, administrator roles and group membership snapshots.",
+      "setup_hint": "Read-only administrator API key via credential_ref, organization_id and region."
     }
   ]
 }
