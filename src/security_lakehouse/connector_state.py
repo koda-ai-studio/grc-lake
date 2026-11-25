@@ -506,7 +506,7 @@ def _missing_required_config(
     if connector_id == "jumpcloud-identity":
         return [f for f in ("organization_id", "credential_ref") if not _has_value(credentials, f)]
 
-    if connector_id == "snyk-vulnerabilities":
+    if connector_id in {"snyk-vulnerabilities", "cloudflare-zones"}:
         # The region defaults to SNYK-US-01 and is checked against the allowlist at sync.
         return [] if _has_value(credentials, "credential_ref") else ["credential_ref"]
 

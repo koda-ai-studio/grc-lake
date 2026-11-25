@@ -781,6 +781,32 @@
       "setup_hint": "Workload identity or an attached service account with BigQuery Job User on the query project and Data Viewer on the dataset."
     },
     {
+      "connector_id": "cloudflare-zones",
+      "name": "Cloudflare Zone Security",
+      "category": "cloud",
+      "collection_mode": "direct_api_read",
+      "access_boundary": "scoped_token",
+      "credential_type": "api_token",
+      "minimum_permissions": [
+        "Zone Read",
+        "Zone Settings Read",
+        "Zone WAF Read",
+        "DNS Read"
+      ],
+      "evidence_types": ["cloud_configuration"],
+      "default_route": "dual",
+      "freshness_slo_minutes": 1440,
+      "is_implemented": true,
+      "production_status": "supported_connector",
+      "release_stage": "preview",
+      "velocity": "medium_api",
+      "native_connector": false,
+      "data_shape": "current_state",
+      "vendor": "Cloudflare",
+      "description": "Zone TLS, HTTPS, HSTS, DNSSEC and managed WAF deployment observations.",
+      "setup_hint": "Zone-scoped read-only API token via credential_ref."
+    },
+    {
       "connector_id": "jumpcloud-identity",
       "name": "JumpCloud Identity",
       "category": "identity",

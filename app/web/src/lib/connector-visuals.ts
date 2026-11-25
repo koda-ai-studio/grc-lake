@@ -206,6 +206,13 @@ export const CONNECTOR_VISUALS: Record<string, ConnectorVisual> = {
     bg: "#fff1f2",
     categoryLabel: "Endpoint protection",
   },
+  "cloudflare-zones": {
+    vendor: "Cloudflare",
+    mark: "CF",
+    accent: "#b45309",
+    bg: "#fff7ed",
+    categoryLabel: "Zone security",
+  },
   "jumpcloud-identity": {
     vendor: "JumpCloud",
     mark: "JC",

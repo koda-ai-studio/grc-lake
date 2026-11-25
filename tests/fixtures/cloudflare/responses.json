@@ -1,0 +1,65 @@
+{
+  "zones?page=1&per_page=50": {
+    "success": true,
+    "result": [
+      {
+        "id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "name": "example.com",
+        "status": "active",
+        "paused": false
+      }
+    ],
+    "result_info": {
+      "page": 1,
+      "total_pages": 1
+    }
+  },
+  "zones/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/settings/min_tls_version": {
+    "success": true,
+    "result": {
+      "id": "min_tls_version",
+      "value": "1.2"
+    }
+  },
+  "zones/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/settings/always_use_https": {
+    "success": true,
+    "result": {
+      "id": "always_use_https",
+      "value": "on"
+    }
+  },
+  "zones/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/settings/security_header": {
+    "success": true,
+    "result": {
+      "id": "security_header",
+      "value": {
+        "strict_transport_security": {
+          "enabled": true,
+          "max_age": 31536000
+        }
+      }
+    }
+  },
+  "zones/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/dnssec": {
+    "success": true,
+    "result": {
+      "status": "active"
+    }
+  },
+  "zones/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/rulesets/phases/http_request_firewall_managed/entrypoint": {
+    "success": true,
+    "result": {
+      "rules": [
+        {
+          "id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "action": "execute",
+          "enabled": true,
+          "expression": "true",
+          "action_parameters": {
+            "id": "cccccccccccccccccccccccccccccccc"
+          }
+        }
+      ]
+    }
+  }
+}
