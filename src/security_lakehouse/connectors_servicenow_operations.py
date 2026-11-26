@@ -85,6 +85,9 @@ class ServicenowOperationsClient(ReadClient):
 
 
 class ServicenowOperationsFixtureClient(FixtureReads, ServicenowOperationsClient):
+    def get(self, *args: Any, **kwargs: Any) -> Any:
+        return FixtureReads.get(self, *args, **kwargs)
+
     def __init__(self, fixture_dir: str | Path, *, subdomain: str, max_pages: int = 100) -> None:
         super().__init__(token="", subdomain=subdomain, max_pages=max_pages)
         self.load(fixture_dir)
