@@ -21,7 +21,7 @@ provider identities and raw live evidence stay private.
 | Catalog stage | Executable adapters | Linked live receipt | No linked live receipt |
 | --- | --- | --- | --- |
 | Implemented | 18 | 4 | 14 |
-| Preview | 15 | 1 | 14 |
+| Preview | 17 | 1 | 16 |
 
 No linked live receipt does not mean never tested or no demo account exists.
 An existing trial may have a private run record that has not been reconciled into this index.
@@ -48,6 +48,7 @@ and [Databricks #734](https://github.com/koda-ai-studio/grc-lake/issues/734).
 | `cloudflare-zones` | Preview | [cloudflare_connector](../tests/test_cloudflare_connector.py) | No scoped live record linked | Unassigned |
 | `crowdstrike-falcon` | Preview | [crowdstrike_connector](../tests/test_crowdstrike_connector.py); [collection_completeness](../tests/test_collection_completeness.py) | No scoped live record linked | Unassigned |
 | `databricks-evidence-lake` | Preview | [databricks_connector](../tests/test_databricks_connector.py); [databricks_bootstrap](../tests/test_databricks_bootstrap.py) | [2026-10-26; source basis `8b2500cf`](../docs/qualification/live/2026-10-25-databricks.md#databricks-multichunk): One trial SQL warehouse with service-principal OAuth: a populated system audit log and a 3-chunk result (77,036 records) recollected without duplicates, with open audit events reconciled to the provider. Preview retained; no live throttling or credential-expiry qualification. | maintainer |
+| `defender-endpoint` | Preview | [endpoint_connectors](../tests/test_endpoint_connectors.py) | No scoped live record linked | Unassigned |
 | `entra-identity` | Preview | [entra_connector](../tests/test_entra_connector.py) | No scoped live record linked | Unassigned |
 | `gcp-posture` | Implemented | [gcp_connector](../tests/test_gcp_connector.py); [gcp_non_human_identities](../tests/test_gcp_non_human_identities.py) | [2026-10-26; source basis `8b2500cf`](../docs/qualification/live/2026-10-26-gcp-effective-policy.md#gcp-posture): One project with application-default credentials: 185 records recollected without duplicates; inherited org policies read from the effective policy (one enforced pass, one unenforced open, both checked with gcloud) move SG-IDENTITY-001 to fail. Not other projects, folders or organizations. | maintainer |
 | `github-security` | Implemented | [repo_governance](../tests/test_repo_governance.py); [github_collection_contract](../tests/test_github_collection_contract.py); [connector_runner](../tests/test_connector_runner.py) | [2026-10-31; source basis `2aced4a3`](../docs/qualification/live/2026-10-31-github-published.md#github-security): Published 0.3.21 with a user OAuth token: one public repository through a fresh named connection; seven records recollected without duplicates, alert counts and default-branch protection reconciled with GitHub, account binding and integrity verified. Not GitHub App installation, private repositories, live throttling or expiry. | maintainer |
@@ -69,6 +70,7 @@ and [Databricks #734](https://github.com/koda-ai-studio/grc-lake/issues/734).
 | `pagerduty-incidents` | Preview | [pagerduty_connector](../tests/test_pagerduty_connector.py) | No scoped live record linked | Unassigned |
 | `rippling-personnel` | Implemented | [rippling_workday_connectors](../tests/test_rippling_workday_connectors.py); [collection_completeness](../tests/test_collection_completeness.py) | No scoped live record linked | Unassigned |
 | `runtime-gateway` | Implemented | [runtime_gateway_connector](../tests/test_runtime_gateway_connector.py); [collection_completeness](../tests/test_collection_completeness.py) | No scoped live record linked | Unassigned |
+| `sentinelone-endpoint` | Preview | [endpoint_connectors](../tests/test_endpoint_connectors.py) | No scoped live record linked | Unassigned |
 | `siem-alerts` | Implemented | [siem_connector](../tests/test_siem_connector.py); [collection_completeness](../tests/test_collection_completeness.py) | No scoped live record linked | Unassigned |
 | `snowflake-evidence-lake` | Implemented | [snowflake_connector](../tests/test_snowflake_connector.py) | No scoped live record linked | Unassigned |
 | `snyk-vulnerabilities` | Preview | [snyk_connector](../tests/test_snyk_connector.py); [collection_completeness](../tests/test_collection_completeness.py) | No scoped live record linked | Unassigned |
@@ -92,6 +94,7 @@ Qualify the actual principal, account, resource scope and provider version separ
 | `cloudflare-zones` | `scoped_token` | Zone Read; Zone Settings Read; Zone WAF Read; DNS Read |
 | `crowdstrike-falcon` | `scoped_token` | Hosts: Read; Prevention policies: Read; Alerts: Read |
 | `databricks-evidence-lake` | `read_only_role` | databricks-sql-access entitlement for the service principal; CAN USE on the SQL warehouse; USE CATALOG on the evidence catalog; USE SCHEMA on the evidence schema; SELECT on the four GRC Lake evidence views |
+| `defender-endpoint` | `scoped_token` | Machine.Read.All; Alert.Read.All |
 | `entra-identity` | `scoped_token` | Application.Read.All |
 | `gcp-posture` | `scoped_token` | resourcemanager.projects.get; iam.roles.list; cloudasset.assets.listResource |
 | `github-security` | `scoped_token` | metadata:read; administration:read; code_scanning_alerts:read; secret_scanning_alerts:read; dependabot_alerts:read |
@@ -113,6 +116,7 @@ Qualify the actual principal, account, resource scope and provider version separ
 | `pagerduty-incidents` | `scoped_token` | Read-only REST API key: incidents, services and on-calls |
 | `rippling-personnel` | `scoped_token` | workers.read |
 | `runtime-gateway` | `read_only_role` | read runtime event stream; read policy decision logs |
+| `sentinelone-endpoint` | `scoped_token` | Read-only service user: Agents read, Threats read |
 | `siem-alerts` | `read_only_role` | read alert index; read detection metadata |
 | `snowflake-evidence-lake` | `read_only_role` | USAGE on warehouse; USAGE on database; USAGE on schema; SELECT on evidence views |
 | `snyk-vulnerabilities` | `scoped_token` | View Organization; View Project; View Project History |

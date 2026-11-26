@@ -58,6 +58,8 @@ REAL_ADAPTERS = {
     "bigquery-evidence-lake",
     "kandji-devices",
     "bitbucket-repos",
+    "defender-endpoint",
+    "sentinelone-endpoint",
 }
 PREVIEW_CONNECTORS = {
     "entra-identity",
@@ -74,6 +76,8 @@ PREVIEW_CONNECTORS = {
     "bigquery-evidence-lake",
     "kandji-devices",
     "bitbucket-repos",
+    "defender-endpoint",
+    "sentinelone-endpoint",
 }
 FIXTURES = Path(__file__).parent / "fixtures"
 REPO_ROOT = Path(__file__).resolve().parents[1]

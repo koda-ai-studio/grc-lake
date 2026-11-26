@@ -1,0 +1,40 @@
+{
+  "/api/machines?$top=1000&$skip=0": {
+    "value": [
+      {
+        "id": "machine-1",
+        "onboardingStatus": "onboarded",
+        "healthStatus": "Active",
+        "lastSeen": "2026-11-25T00:00:00Z"
+      }
+    ]
+  },
+  "/api/deviceavinfo?$top=1000&$skip=0": {
+    "value": [
+      {
+        "id": "av-1",
+        "machineId": "machine-1",
+        "avPlatformVersion": "4.18.0",
+        "avEngineVersion": "1.1.0",
+        "avMode": "0",
+        "lastSeenTime": "2026-11-25T00:00:00Z"
+      }
+    ]
+  },
+  "/api/alerts?$top=1000&$skip=0": {
+    "value": [
+      {
+        "id": "alert-1",
+        "machineId": "machine-1",
+        "status": "New",
+        "severity": "High"
+      },
+      {
+        "id": "alert-2",
+        "machineId": "machine-1",
+        "status": "Resolved",
+        "severity": "Low"
+      }
+    ]
+  }
+}

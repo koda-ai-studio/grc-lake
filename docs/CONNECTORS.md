@@ -170,7 +170,7 @@ grc-lake connectors list
 
 ## Connector Runner
 
-The catalog contains **36 catalog contracts**: **33 executable adapters** and
+The catalog contains **38 catalog contracts**: **35 executable adapters** and
 3 configuration/access boundaries. Adapters include direct source/API collectors,
 existing-lake readers and incremental event-log readers. Boundaries describe
 read-only access or managed evidence; they have no standalone sync adapter.
@@ -1900,3 +1900,43 @@ counts and incomplete pages mark the sync partial. The inventory is bounded by
 the token's visibility, not a claim of all organization repositories. Synthetic
 fixtures qualify this as Preview; live qualification still needs an authorized
 workspace token and a recorded receipt.
+
+## Defender for Endpoint and SentinelOne (Preview)
+
+These adapters collect read-only endpoint and alert snapshots. They are validated
+with synthetic fixtures, not live accounts. Healthy recent inventory is `observed`,
+not proof that malware scanning or a whole framework requirement passed. Missing,
+future-dated or more than seven-day-old activity is `not_evaluated`. Alert records
+retain distinct IDs, so a resolved alert cannot overwrite a different open alert.
+Proposed framework mappings remain unreviewed.
+
+- `defender-endpoint`: fixed `api.security.microsoft.com` host; GET `/api/machines`,
+  `/api/deviceavinfo`, `/api/alerts`. Supply `credential_ref` naming an Entra bearer
+  token with application permissions `Machine.Read.All` and `Alert.Read.All`.
+  Token acquisition/refresh is operator-managed. Antivirus engine/platform versions
+  are collected from device AV info; machine `version` is not a sensor version.
+  Inactive, unonboarded, missing or ambiguous device health cannot produce a pass.
+- `sentinelone-endpoint`: supply `subdomain` (the part before `.sentinelone.net`)
+  and `credential_ref` naming a read-only service-user API token with Agents and
+  Threats read access. GET `/web/api/v2.1/agents` and `/web/api/v2.1/threats` only.
+  Detect-only protection is open; unknown modes are not evaluated. Threat scope is
+  the records visible to the token, not proof of global absence of threats.
+
+Both use bounded pagination and shared rate-limit retries. Denied/malformed reads,
+page exhaustion, duplicate records and empty inventory become collection gaps.
+Neither connector follows foreign-host pagination, stores usernames/IP addresses,
+or changes devices, threats or policies. An empty alert list is not a compliance pass.
+To live-qualify, retain a sanitized reconciliation receipt against the same console
+scope, including a known open alert, a stale device and a denied read.
+
+```bash
+grc-lake connectors configure --state enabled --lake lake --connector-id defender-endpoint \
+  --credentials-json '{"credential_ref":"DEFENDER_ENDPOINT_API_TOKEN"}'
+grc-lake connectors configure --state enabled --lake lake --connector-id sentinelone-endpoint \
+  --credentials-json '{"subdomain":"example","credential_ref":"SENTINELONE_ENDPOINT_API_TOKEN"}'
+```
+
+Official contracts: [Microsoft machines](https://learn.microsoft.com/en-us/defender-endpoint/api/get-machines),
+[alerts](https://learn.microsoft.com/en-us/defender-endpoint/api/get-alerts),
+[antivirus health](https://learn.microsoft.com/en-us/defender-endpoint/api/device-health-export-antivirus-health-report-api),
+and [SentinelOne Management Console OpenAPI](https://github.com/Sentinel-One/ai-siem/blob/main/plugins/s1-secops-skills/skills/mgmt-console-api/spec/swagger_2_1.json).

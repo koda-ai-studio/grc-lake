@@ -999,6 +999,37 @@ def _build_bitbucket_repos(inputs: SyncInputs) -> list[dict[str, Any]]:
     return connector.collect_bitbucket_repos_evidence(client)
 
 
+def _build_defender_endpoint(inputs: SyncInputs) -> list[dict[str, Any]]:
+    from security_lakehouse import connectors_defender_endpoint as connector
+
+    collect = connector.collect_defender_endpoint_evidence
+    if inputs.fixture_dir:
+        return collect(connector.DefenderEndpointFixtureClient(inputs.fixture_dir))
+    ref = str(inputs.credentials.get("credential_ref") or "")
+    if not ref:
+        raise ConnectorConfigError("defender-endpoint requires a credential_ref")
+    token = resolve_secret_ref(ref, runtime_env(inputs.env))
+    if not token:
+        raise ConnectorConfigError("API token reference could not be resolved")
+    return collect(connector.DefenderEndpointClient(token=token))
+
+
+def _build_sentinelone_endpoint(inputs: SyncInputs) -> list[dict[str, Any]]:
+    from security_lakehouse import connectors_sentinelone_endpoint as connector
+
+    subdomain = str(inputs.credentials.get("subdomain") or "")
+    collect = connector.collect_sentinelone_endpoint_evidence
+    if inputs.fixture_dir:
+        return collect(connector.SentineloneEndpointFixtureClient(inputs.fixture_dir, subdomain=subdomain))
+    ref = str(inputs.credentials.get("credential_ref") or "")
+    if not ref:
+        raise ConnectorConfigError("sentinelone-endpoint requires a credential_ref")
+    token = resolve_secret_ref(ref, runtime_env(inputs.env))
+    if not token:
+        raise ConnectorConfigError("API token reference could not be resolved")
+    return collect(connector.SentineloneEndpointClient(token=token, subdomain=subdomain))
+
+
 REGISTRY: dict[str, ConnectorBuilder] = {
     "snowflake-evidence-lake": _build_snowflake,
     "clickhouse-telemetry-lake": _build_clickhouse,
@@ -1033,6 +1064,8 @@ REGISTRY: dict[str, ConnectorBuilder] = {
     "bigquery-evidence-lake": _build_bigquery,
     "kandji-devices": _build_kandji_devices,
     "bitbucket-repos": _build_bitbucket_repos,
+    "defender-endpoint": _build_defender_endpoint,
+    "sentinelone-endpoint": _build_sentinelone_endpoint,
 }
 
 

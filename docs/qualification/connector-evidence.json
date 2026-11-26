@@ -308,6 +308,18 @@
       "fixture_tests": ["tests/test_bitbucket_repos_connector.py"],
       "live_record": null,
       "owner": null
+    },
+    {
+      "connector_id": "defender-endpoint",
+      "fixture_tests": ["tests/test_endpoint_connectors.py"],
+      "live_record": null,
+      "owner": null
+    },
+    {
+      "connector_id": "sentinelone-endpoint",
+      "fixture_tests": ["tests/test_endpoint_connectors.py"],
+      "live_record": null,
+      "owner": null
     }
   ]
 }
