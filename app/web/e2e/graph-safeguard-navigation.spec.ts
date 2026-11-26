@@ -17,6 +17,7 @@ for (const width of [390, 1440]) {
         const root = payload.data.nodes.find(
           (node: { id: string }) => node.id === "safeguard:SG-IDENTITY-001",
         );
+        root.accepted_asset_types = ["identity_user"];
         payload.data.nodes = [
           root,
           ...["a", "b"].map((account) => ({
@@ -38,7 +39,14 @@ for (const width of [390, 1440]) {
           source: root.id,
           target: `evidence:${account}`,
           kind: "has_evidence",
-          ...(account === "b" ? { binding: "invalid_asset_type" } : {}),
+          ...(account === "b"
+            ? {
+                binding: "invalid_asset_type",
+                binding_reason:
+                  "The asset type does not establish safeguard applicability.",
+                recorded_asset_types: ["host", "repository"],
+              }
+            : {}),
         }));
         await route.fulfill({ response, json: payload });
       });
@@ -51,6 +59,16 @@ for (const width of [390, 1440]) {
       });
       await expect(region).toContainText("Loaded graph only");
       await expect(region).toContainText("Invalid binding");
+      await region
+        .getByText("Why this binding is excluded", { exact: true })
+        .click();
+      await expect(region).toContainText(
+        "Recorded asset types: host, repository",
+      );
+      await expect(region).toContainText("Accepted asset types: identity_user");
+      await expect(region).toContainText(
+        "The asset type does not establish safeguard applicability.",
+      );
       await expect(region).not.toContainText("Unrelated observation");
       await expect(region.getByRole("button")).toHaveCount(2);
       await region.screenshot({ path: testInfo.outputPath("bindings.png") });
