@@ -170,7 +170,7 @@ grc-lake connectors list
 
 ## Connector Runner
 
-The catalog contains **38 catalog contracts**: **35 executable adapters** and
+The catalog contains **40 catalog contracts**: **37 executable adapters** and
 3 configuration/access boundaries. Adapters include direct source/API collectors,
 existing-lake readers and incremental event-log readers. Boundaries describe
 read-only access or managed evidence; they have no standalone sync adapter.
@@ -1940,3 +1940,77 @@ Official contracts: [Microsoft machines](https://learn.microsoft.com/en-us/defen
 [alerts](https://learn.microsoft.com/en-us/defender-endpoint/api/get-alerts),
 [antivirus health](https://learn.microsoft.com/en-us/defender-endpoint/api/device-health-export-antivirus-health-report-api),
 and [SentinelOne Management Console OpenAPI](https://github.com/Sentinel-One/ai-siem/blob/main/plugins/s1-secops-skills/skills/mgmt-console-api/spec/swagger_2_1.json).
+
+## Datadog and ServiceNow (Preview)
+
+Both adapters are synthetic-fixture qualified. They emit scoped observations and
+open/not-evaluated outcomes, never a blanket compliance pass. Missing, denied,
+malformed, duplicate or page-budget-exhausted reads are explicit collection gaps;
+independent successful collections remain available. Neither adapter modifies a
+provider. Token acquisition and rotation remain operator-managed.
+
+### Datadog monitoring
+
+Configure `datadog-monitoring` with `credential_ref` naming an API-key secret,
+`application_key_ref` naming an application-key secret, and `site` (default
+`datadoghq.com`). The fixed site allowlist is `datadoghq.com`, `datadoghq.eu`,
+`us3.datadoghq.com`, `us5.datadoghq.com`, `ap1.datadoghq.com`, `ap2.datadoghq.com`,
+`uk1.datadoghq.com`, `ddog-gov.com`, and `us2.ddog-gov.com`. API calls use the
+corresponding `api.` host and require `logs_read_config`, `monitors_read`,
+`security_monitoring_signals_read`, and `audit_logs_read`.
+
+Read-only GET collections:
+
+- `/api/v1/logs/config/indexes`: standard-tier retention days and rate-limited
+  state bind to `SG-LOGGING-001`. Retention is observed without inventing a policy
+  minimum or claiming all sources are indexed.
+- `/api/v1/monitor`: state, v1 downtime/mute signals and notification-target count
+  bind to `SG-DETECTION-001`. Muted, draft, alerting or no-target monitors stay
+  open. Recipient addresses and monitor messages are not retained. An observed
+  monitor does not attest v2 downtime coverage or notification delivery.
+- `/api/v2/security_monitoring/signals`: the preceding 24-hour window, with stable
+  IDs and timestamps, binds to `SG-DETECTION-001`. Signals are observations; the
+  list response does not establish remediation state.
+- `/api/v2/audit/events`: event availability in the preceding 24 hours binds to
+  `SG-LOGGING-001`. **Current Audit Trail enablement remains unknown and not
+  evaluated**: event presence or an empty response cannot establish the current
+  organization setting. Verify that setting in the provider console.
+
+Official contracts: [indexes](https://docs.datadoghq.com/api/latest/logs-indexes/get-all-indexes/),
+[monitors](https://docs.datadoghq.com/api/latest/monitors/get-all-monitors/),
+[signals](https://docs.datadoghq.com/api/latest/security-monitoring/get-a-quick-list-of-security-signals/),
+[audit events](https://docs.datadoghq.com/api/latest/audit/get-a-list-of-audit-logs-events/),
+and [Audit Trail settings](https://docs.datadoghq.com/account_management/audit_trail/).
+
+### ServiceNow changes and incidents
+
+Configure `servicenow-operations` with `subdomain` (before `.service-now.com`)
+and `credential_ref` naming an OAuth bearer-token secret for a read-only integration
+identity. Grant table and field ACL read access to `change_request` and `incident`,
+with an instance-supported read-only role such as `snc_read_only`. No write scopes
+are needed. GET `/api/now/table/change_request` and `/api/now/table/incident`
+request only named evidence fields, raw values, deterministic ordering and bounded
+offset pagination; descriptions, work notes, assignees and caller identities are omitted.
+
+Changes retain approval, approval time, risk, implementation/review dates and state.
+Work started without an approval timestamp at or before implementation is open
+under `SG-CHANGEAPPROVAL-001`. Incidents retain priority, state, active flag,
+opened/resolved time and target date; an active unresolved incident past its
+recorded target is open under `SG-INCIDENTHANDLING-001`. Missing ACL-hidden fields,
+invalid/future dates and instance-specific missing targets remain unknown. Table
+API raw timestamps are UTC. This is a snapshot, not a reconstruction of approval
+history or proof of incident response effectiveness.
+
+Official contracts: [Table API](https://www.servicenow.com/docs/r/api-reference/rest-apis/c_TableAPI.html)
+and [change field definitions](https://www.servicenow.com/docs/r/api-reference/rest-apis/change-management-api.html).
+
+```bash
+grc-lake connectors configure --lake lake --state enabled --connector-id datadog-monitoring \
+  --credentials-json '{"site":"datadoghq.com","credential_ref":"DATADOG_API_KEY","application_key_ref":"DATADOG_APPLICATION_KEY"}'
+grc-lake connectors configure --lake lake --state enabled --connector-id servicenow-operations \
+  --credentials-json '{"subdomain":"example","credential_ref":"SERVICENOW_API_TOKEN"}'
+```
+
+Live qualification needs a sanitized receipt reconciling record counts and known
+open examples against the same token-visible scope, plus a denied-read case.
+Proposed mappings remain non-attestable until independent review.

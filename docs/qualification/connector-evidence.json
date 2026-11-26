@@ -320,6 +320,18 @@
       "fixture_tests": ["tests/test_endpoint_connectors.py"],
       "live_record": null,
       "owner": null
+    },
+    {
+      "connector_id": "datadog-monitoring",
+      "fixture_tests": ["tests/test_operations_connectors.py"],
+      "live_record": null,
+      "owner": null
+    },
+    {
+      "connector_id": "servicenow-operations",
+      "fixture_tests": ["tests/test_operations_connectors.py"],
+      "live_record": null,
+      "owner": null
     }
   ]
 }

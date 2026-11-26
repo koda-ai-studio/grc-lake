@@ -1030,6 +1030,48 @@ def _build_sentinelone_endpoint(inputs: SyncInputs) -> list[dict[str, Any]]:
     return collect(connector.SentineloneEndpointClient(token=token, subdomain=subdomain))
 
 
+def _build_datadog_monitoring(inputs: SyncInputs) -> list[dict[str, Any]]:
+    from security_lakehouse import connectors_datadog_monitoring as connector
+
+    kwargs: dict[str, Any] = {"site": str(inputs.credentials.get("site") or "datadoghq.com")}
+    if inputs.fixture_dir:
+        client: connector.DatadogMonitoringClient = connector.DatadogMonitoringFixtureClient(
+            inputs.fixture_dir, **kwargs
+        )
+    else:
+        for name, argument in {"credential_ref": "api_key", "application_key_ref": "application_key"}.items():
+            ref = str(inputs.credentials.get(name) or "")
+            if not ref:
+                raise ConnectorConfigError(f"datadog-monitoring requires {name}")
+            value = resolve_secret_ref(ref, runtime_env(inputs.env))
+            if not value:
+                raise ConnectorConfigError(f"{name} could not be resolved")
+            kwargs[argument] = value
+        client = connector.DatadogMonitoringClient(**kwargs)
+    return connector.collect_datadog_monitoring_evidence(client)
+
+
+def _build_servicenow_operations(inputs: SyncInputs) -> list[dict[str, Any]]:
+    from security_lakehouse import connectors_servicenow_operations as connector
+
+    kwargs: dict[str, Any] = {"subdomain": str(inputs.credentials.get("subdomain") or "")}
+    if inputs.fixture_dir:
+        client: connector.ServicenowOperationsClient = connector.ServicenowOperationsFixtureClient(
+            inputs.fixture_dir, **kwargs
+        )
+    else:
+        for name, argument in {"credential_ref": "token"}.items():
+            ref = str(inputs.credentials.get(name) or "")
+            if not ref:
+                raise ConnectorConfigError(f"servicenow-operations requires {name}")
+            value = resolve_secret_ref(ref, runtime_env(inputs.env))
+            if not value:
+                raise ConnectorConfigError(f"{name} could not be resolved")
+            kwargs[argument] = value
+        client = connector.ServicenowOperationsClient(**kwargs)
+    return connector.collect_servicenow_operations_evidence(client)
+
+
 REGISTRY: dict[str, ConnectorBuilder] = {
     "snowflake-evidence-lake": _build_snowflake,
     "clickhouse-telemetry-lake": _build_clickhouse,
@@ -1066,6 +1108,8 @@ REGISTRY: dict[str, ConnectorBuilder] = {
     "bitbucket-repos": _build_bitbucket_repos,
     "defender-endpoint": _build_defender_endpoint,
     "sentinelone-endpoint": _build_sentinelone_endpoint,
+    "datadog-monitoring": _build_datadog_monitoring,
+    "servicenow-operations": _build_servicenow_operations,
 }
 
 

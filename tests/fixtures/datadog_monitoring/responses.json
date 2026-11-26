@@ -1,0 +1,53 @@
+{
+  "/api/v1/logs/config/indexes": {
+    "indexes": [
+      {
+        "name": "main",
+        "num_retention_days": 15
+      }
+    ]
+  },
+  "/api/v1/monitor": [
+    {
+      "id": 1,
+      "overall_state": "OK",
+      "options": {
+        "silenced": {
+          "*": null
+        }
+      },
+      "matching_downtimes": [],
+      "message": "Notify @private@example.com"
+    },
+    {
+      "id": 2,
+      "overall_state": "OK",
+      "options": {
+        "silenced": {}
+      },
+      "matching_downtimes": [],
+      "message": ""
+    }
+  ],
+  "/api/v2/security_monitoring/signals": {
+    "data": [
+      {
+        "id": "signal-1",
+        "attributes": {
+          "timestamp": "2026-11-25T00:00:00Z"
+        }
+      }
+    ],
+    "meta": {
+      "status": "done",
+      "page": {}
+    }
+  },
+  "/api/v2/audit/events": {
+    "data": [],
+    "meta": {
+      "status": "done",
+      "page": {}
+    }
+  }
+}

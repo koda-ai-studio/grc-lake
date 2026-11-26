@@ -290,6 +290,20 @@ export const CONNECTOR_VISUALS: Record<string, ConnectorVisual> = {
     bg: "#f1f5f9",
     categoryLabel: "Vendor API",
   },
+  "datadog-monitoring": {
+    vendor: "Datadog",
+    mark: "DA",
+    accent: "#475569",
+    bg: "#f1f5f9",
+    categoryLabel: "Vendor API",
+  },
+  "servicenow-operations": {
+    vendor: "ServiceNow",
+    mark: "SE",
+    accent: "#475569",
+    bg: "#f1f5f9",
+    categoryLabel: "Vendor API",
+  },
 };
 
 export function connectorVisual(
