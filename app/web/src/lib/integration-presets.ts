@@ -493,6 +493,38 @@ const PRESETS: Record<string, IntegrationPreset> = {
       "Denied, incomplete or empty reads are recorded as collection gaps, never as a pass.",
     ],
   },
+  "datadog-monitoring": {
+    connectorId: "datadog-monitoring",
+    title: "Datadog Monitoring",
+    authLabel: "Read-only API token",
+    badges: ["Read-only", "Preview"],
+    summary:
+      "Collect log retention, monitor readiness and security signal observations.",
+    providerSetup:
+      "Create an API key and an application key with the listed read-only scopes.",
+    trustOpsInput: "API token reference.",
+    advancedTitle: "What is collected",
+    advancedDetails: [
+      "Muted monitors and missing notification targets remain open. Audit-event availability does not prove current Audit Trail enablement.",
+      "Denied, incomplete or empty reads are recorded as collection gaps, never as a pass.",
+    ],
+  },
+  "servicenow-operations": {
+    connectorId: "servicenow-operations",
+    title: "ServiceNow Changes and Incidents",
+    authLabel: "Read-only API token",
+    badges: ["Read-only", "Preview"],
+    summary:
+      "Collect change approval timing and incident target/resolution evidence.",
+    providerSetup:
+      "Use an OAuth integration user with read-only access to change_request and incident.",
+    trustOpsInput: "API token reference.",
+    advancedTitle: "What is collected",
+    advancedDetails: [
+      "Implemented changes without prior approval and overdue unresolved incidents remain open. Missing fields remain unknown.",
+      "Denied, incomplete or empty reads are recorded as collection gaps, never as a pass.",
+    ],
+  },
 };
 
 export function getIntegrationPreset(

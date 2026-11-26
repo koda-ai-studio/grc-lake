@@ -957,6 +957,65 @@
       "vendor": "SentinelOne",
       "description": "Agent protection modes, activity and threat mitigation state.",
       "setup_hint": "Console subdomain on sentinelone.net and a read-only API token secret reference."
+    },
+    {
+      "connector_id": "datadog-monitoring",
+      "name": "Datadog Monitoring",
+      "category": "monitoring",
+      "collection_mode": "direct_api_read",
+      "access_boundary": "scoped_token",
+      "credential_type": "datadog_monitoring_api_token",
+      "minimum_permissions": [
+        "logs_read_config",
+        "monitors_read",
+        "security_monitoring_signals_read",
+        "audit_logs_read"
+      ],
+      "evidence_types": [
+        "datadog_monitoring.log_index",
+        "datadog_monitoring.monitor",
+        "datadog_monitoring.signal",
+        "datadog_monitoring.audit_trail",
+        "datadog_monitoring.collection_gap"
+      ],
+      "default_route": "dual",
+      "freshness_slo_minutes": 1440,
+      "is_implemented": true,
+      "production_status": "supported_connector",
+      "release_stage": "preview",
+      "velocity": "medium_api",
+      "native_connector": false,
+      "data_shape": "current_state",
+      "vendor": "Datadog",
+      "description": "Log retention, monitor notification readiness, security signals and audit-event availability.",
+      "setup_hint": "Site from the fixed regional allowlist, API key reference and application key reference."
+    },
+    {
+      "connector_id": "servicenow-operations",
+      "name": "ServiceNow Changes and Incidents",
+      "category": "service_management",
+      "collection_mode": "direct_api_read",
+      "access_boundary": "scoped_token",
+      "credential_type": "servicenow_operations_api_token",
+      "minimum_permissions": [
+        "Read-only OAuth integration identity with table/field ACL access to change_request and incident; snc_read_only"
+      ],
+      "evidence_types": [
+        "servicenow_operations.change",
+        "servicenow_operations.incident",
+        "servicenow_operations.collection_gap"
+      ],
+      "default_route": "dual",
+      "freshness_slo_minutes": 1440,
+      "is_implemented": true,
+      "production_status": "supported_connector",
+      "release_stage": "preview",
+      "velocity": "medium_api",
+      "native_connector": false,
+      "data_shape": "current_state",
+      "vendor": "ServiceNow",
+      "description": "Change approval timing and incident target/resolution observations.",
+      "setup_hint": "Instance subdomain on service-now.com and read-only OAuth bearer token reference."
     }
   ]
 }
