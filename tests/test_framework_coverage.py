@@ -2,20 +2,15 @@ from __future__ import annotations
 
 import json
 
+from security_lakehouse import framework_coverage as coverage
 from security_lakehouse.catalog import load_control_catalog, load_framework_registry
 from security_lakehouse.cli import main
-import security_lakehouse.framework_coverage as _framework_coverage
-
-build_control_asset_applicability = _framework_coverage.build_control_asset_applicability
-build_framework_coverage = _framework_coverage.build_framework_coverage
-framework_coverage_summary = _framework_coverage.framework_coverage_summary
-render_framework_coverage_markdown = _framework_coverage.render_framework_coverage_markdown
 
 
 def test_framework_coverage_ledger_counts_seeded_mappings(capsys) -> None:
-    rows = build_framework_coverage()
-    applicability = build_control_asset_applicability()
-    summary = framework_coverage_summary(rows, applicability)
+    rows = coverage.build_framework_coverage()
+    applicability = coverage.build_control_asset_applicability()
+    summary = coverage.framework_coverage_summary(rows, applicability)
     implemented = [row for row in rows if row["implementation_status"] != "planned"]
     planned = [row for row in rows if row["implementation_status"] == "planned"]
     seeded_controls = load_control_catalog()
@@ -51,9 +46,9 @@ def test_framework_coverage_ledger_counts_seeded_mappings(capsys) -> None:
 
 
 def test_framework_coverage_markdown_is_source_linked_not_logo_based() -> None:
-    applicability = build_control_asset_applicability()
-    summary = framework_coverage_summary(build_framework_coverage(), applicability)
-    markdown = render_framework_coverage_markdown(build_framework_coverage(), applicability)
+    applicability = coverage.build_control_asset_applicability()
+    summary = coverage.framework_coverage_summary(coverage.build_framework_coverage(), applicability)
+    markdown = coverage.render_framework_coverage_markdown(coverage.build_framework_coverage(), applicability)
 
     # Honest coverage lines, not a single conflated "100%" claim.
     assert f"Requirements catalogued: {summary['seeded_control_count']} (all source-cited)" in markdown
@@ -77,11 +72,10 @@ def test_attestable_coverage_is_honest_and_bounded() -> None:
     (`source_cited_mapping_count`, always 100%) is a different, weaker claim and must
     not be conflated with attestable coverage.
     """
-    from security_lakehouse.framework_coverage import build_framework_coverage, framework_coverage_summary
     from security_lakehouse.safeguards import safeguards_by_requirement
 
-    rows = build_framework_coverage()
-    summary = framework_coverage_summary(rows)
+    rows = coverage.build_framework_coverage()
+    summary = coverage.framework_coverage_summary(rows)
 
     for row in rows:
         seeded = int(row["seeded_control_count"])
@@ -109,14 +103,12 @@ def test_committed_coverage_doc_matches_generator() -> None:
     """docs/FRAMEWORK_COVERAGE.md must equal the generator (regenerate: make coverage-doc)."""
     import pathlib
 
-    from security_lakehouse.framework_coverage import render_framework_coverage_doc
-
     committed = pathlib.Path("docs/FRAMEWORK_COVERAGE.md").read_text()
-    assert committed == render_framework_coverage_doc(), "run `make coverage-doc` and commit"
+    assert committed == coverage.render_framework_coverage_doc(), "run `make coverage-doc` and commit"
 
 
 def test_complete_mappings_do_not_imply_full_standard_or_company_assurance() -> None:
-    rows = {r["framework_id"]: r for r in build_framework_coverage()}
+    rows = {r["framework_id"]: r for r in coverage.build_framework_coverage()}
     assert "Clauses 4-10" in rows["iso-27001-2022"]["coverage_boundary"]
     assert "61" in rows["soc2"]["coverage_boundary"]
     for fid in ("soc2", "iso-27001-2022", "nist-csf-2.0", "nist-800-53-rev5"):
@@ -136,33 +128,30 @@ def test_mcp_framework_coverage_tool_reports_attestable() -> None:
 
     src = inspect.getsource(mcp_server)
     assert "def get_framework_coverage" in src
-    from security_lakehouse.framework_coverage import build_framework_coverage, framework_coverage_summary
 
     payload = {
-        "summary": framework_coverage_summary(build_framework_coverage()),
-        "frameworks": build_framework_coverage(),
+        "summary": coverage.framework_coverage_summary(coverage.build_framework_coverage()),
+        "frameworks": coverage.build_framework_coverage(),
     }
     assert "attestable_requirement_count" in payload["summary"]
     assert payload["summary"]["attestable_requirement_count"] <= payload["summary"]["evaluatable_requirement_count"]
 
 
 def test_coverage_separates_reviews_with_no_recorded_reviewer() -> None:
-    rows = build_framework_coverage()
+    rows = coverage.build_framework_coverage()
     by_id = {row["framework_id"]: row for row in rows}
-    summary = framework_coverage_summary(rows)
+    summary = coverage.framework_coverage_summary(rows)
     assert summary["legacy_only_reviewed_requirement_count"] == 0
     assert summary["legacy_unattributed_mapping_count"] == 0
     assert by_id["soc2"]["legacy_only_reviewed_requirement_count"] == 0
     assert by_id["dora-2022-2554"]["legacy_only_reviewed_requirement_count"] == 0
     assert all(row["legacy_only_reviewed_requirement_count"] <= row["attestable_requirement_count"] for row in rows)
-    markdown = render_framework_coverage_markdown(rows)
+    markdown = coverage.render_framework_coverage_markdown(rows)
     assert "No recorded reviewer |" in markdown
     assert "0 rest only on legacy reviews with no recorded reviewer" in markdown
 
 
 def test_committed_doc_is_stable_when_live_source_freshness_changes(monkeypatch) -> None:
-    coverage = _framework_coverage
-
     original = coverage.build_framework_view
     state = "fresh"
 
