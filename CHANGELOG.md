@@ -6,6 +6,7 @@ Python package, Helm chart, and bundled web console.
 ## Unreleased
 
 - Explain excluded safeguard bindings in graph inspection with recorded and accepted asset types, including conflicting asset classifications.
+- Keep POC source setup incomplete after partial, empty, failed or stale syncs, with actionable next steps and explicit synthetic-evidence disclosure.
 
 - Add a Preview Bitbucket Cloud connector for repository visibility and default-branch change-approval evidence, with safe pagination and explicit gaps.
 - Add Preview Datadog and ServiceNow read-only collectors with monitoring, approval timing, incident evidence and explicit collection gaps.

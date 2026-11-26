@@ -148,3 +148,89 @@ def test_public_url_step_has_plain_copy_link_and_follows_source_sync(
     assert public["detail"] == "Set the public URL so invite and share links work"
     assert public["href"] == "/console/deploy/"
     assert "GRC_LAKE_PUBLIC_URL" not in public["detail"]
+
+
+@pytest.mark.parametrize("metadata", [{"partial": True}, {"coverage_gaps": [{"reason": "permission_denied"}]}])
+def test_partial_sync_cannot_complete_poc_source_setup(
+    tmp_path: Path, metadata: dict, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from security_lakehouse.connector_state import append_config_event, append_run_event
+
+    _seed_lake(tmp_path)
+    monkeypatch.setattr(
+        "security_lakehouse.server_app.build_ingestion_status",
+        lambda _: {
+            "summary": {"enabled_connectors": 1, "evidence_count": 2, "failed_connectors": 0, "silent_connectors": 0}
+        },
+    )
+    config = append_config_event(tmp_path, connector_id="okta-identity", state="enabled", actor="test")
+    append_run_event(
+        tmp_path,
+        connector_id="okta-identity",
+        kind="sync",
+        result="ok",
+        evidence_count=2,
+        metadata=metadata,
+        access_fingerprint=config["credential_fingerprint"],
+    )
+    client = TestClient(create_app(tmp_path, require_auth=False))
+    data = client.get("/api/v1/platform/poc-readiness").json()["data"]
+    step = next(s for s in data["steps"] if s["id"] == "source_sync")
+    assert step["status"] == "needs_setup"
+    assert "partial" in step["detail"].lower()
+    assert data["shareable"] is False
+
+
+def test_zero_row_sync_does_not_borrow_existing_lake_evidence(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from security_lakehouse.connector_state import append_config_event, append_run_event
+
+    _seed_lake(tmp_path)
+    monkeypatch.setattr(
+        "security_lakehouse.server_app.build_ingestion_status",
+        lambda _: {
+            "summary": {"enabled_connectors": 1, "evidence_count": 2, "failed_connectors": 0, "silent_connectors": 0}
+        },
+    )
+    config = append_config_event(tmp_path, connector_id="okta-identity", state="enabled", actor="test")
+    append_run_event(
+        tmp_path,
+        connector_id="okta-identity",
+        kind="sync",
+        result="ok",
+        evidence_count=0,
+        access_fingerprint=config["credential_fingerprint"],
+    )
+    client = TestClient(create_app(tmp_path, require_auth=False))
+    data = client.get("/api/v1/platform/poc-readiness").json()["data"]
+    assert next(s for s in data["steps"] if s["id"] == "source_sync")["status"] == "needs_setup"
+
+
+def test_current_complete_sync_is_ready_and_labels_synthetic_evidence(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from security_lakehouse.connector_state import append_config_event, append_run_event
+
+    _seed_lake(tmp_path)
+    monkeypatch.setattr(
+        "security_lakehouse.server_app.build_ingestion_status",
+        lambda _: {
+            "summary": {"enabled_connectors": 1, "evidence_count": 2, "failed_connectors": 0, "silent_connectors": 0}
+        },
+    )
+    config = append_config_event(tmp_path, connector_id="okta-identity", state="enabled", actor="test")
+    append_run_event(
+        tmp_path,
+        connector_id="okta-identity",
+        kind="sync",
+        result="ok",
+        evidence_count=2,
+        access_fingerprint=config["credential_fingerprint"],
+    )
+    (tmp_path / "bronze").mkdir(exist_ok=True)
+    (tmp_path / "bronze/raw_events.jsonl").write_text(json.dumps({"raw": {"attributes": {"synthetic": True}}}) + "\n")
+    client = TestClient(create_app(tmp_path, require_auth=False))
+    step = next(
+        s for s in client.get("/api/v1/platform/poc-readiness").json()["data"]["steps"] if s["id"] == "source_sync"
+    )
+    assert step["status"] == "ready"
+    assert "synthetic/demo" in step["detail"]
