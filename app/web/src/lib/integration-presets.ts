@@ -462,6 +462,37 @@ const PRESETS: Record<string, IntegrationPreset> = {
       "Overlapping rules, branching-model matchers and denied reads remain not evaluated. Visibility is observed, not a compliance verdict.",
     ],
   },
+  "defender-endpoint": {
+    connectorId: "defender-endpoint",
+    title: "Microsoft Defender for Endpoint",
+    authLabel: "Read-only API token",
+    badges: ["Read-only", "Preview"],
+    summary:
+      "Collect device onboarding, antivirus versions and unresolved alerts.",
+    providerSetup:
+      "Use an Entra application token with Machine.Read.All and Alert.Read.All.",
+    trustOpsInput: "API token reference.",
+    advancedTitle: "What is collected",
+    advancedDetails: [
+      "Healthy, recent device inventory is observed evidence; stale or missing health is not evaluated.",
+      "Denied, incomplete or empty reads are recorded as collection gaps, never as a pass.",
+    ],
+  },
+  "sentinelone-endpoint": {
+    connectorId: "sentinelone-endpoint",
+    title: "SentinelOne Endpoint",
+    authLabel: "Read-only API token",
+    badges: ["Read-only", "Preview"],
+    summary: "Collect agent protection modes and unresolved threats.",
+    providerSetup:
+      "Create a read-only service user with Agents and Threats read access.",
+    trustOpsInput: "API token reference.",
+    advancedTitle: "What is collected",
+    advancedDetails: [
+      "Detect-only protection and unresolved threats remain open; unknown or stale activity is not evaluated.",
+      "Denied, incomplete or empty reads are recorded as collection gaps, never as a pass.",
+    ],
+  },
 };
 
 export function getIntegrationPreset(

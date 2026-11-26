@@ -661,6 +661,31 @@ export const CONNECTOR_CREDENTIAL_FIELDS: Record<string, ConnectorFieldDef[]> =
         hint: "Workspace access token secret reference. Repository Read and Admin are required to read branch restrictions; do not paste the token.",
       },
     ],
+    "defender-endpoint": [
+      {
+        name: "credential_ref",
+        label: "API token env var",
+        placeholder: "DEFENDER_ENDPOINT_API_TOKEN",
+        required: true,
+        hint: "Read-only Microsoft API token, stored as a secret reference. Do not paste the token.",
+      },
+    ],
+    "sentinelone-endpoint": [
+      {
+        name: "subdomain",
+        label: "Console subdomain",
+        placeholder: "example",
+        required: true,
+        hint: "The part before .sentinelone.net; no URL or path.",
+      },
+      {
+        name: "credential_ref",
+        label: "API token env var",
+        placeholder: "SENTINELONE_ENDPOINT_API_TOKEN",
+        required: true,
+        hint: "Read-only SentinelOne API token, stored as a secret reference. Do not paste the token.",
+      },
+    ],
   };
 
 export const CONNECTOR_SCOPE_FIELDS: Record<string, ConnectorFieldDef[]> = {

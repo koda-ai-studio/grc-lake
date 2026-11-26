@@ -905,6 +905,58 @@
       "vendor": "Bitbucket",
       "description": "Read-only Bitbucket Cloud repository visibility and default-branch change-approval settings. Ambiguous or unreadable restrictions remain not evaluated.",
       "setup_hint": "Workspace slug and workspace access token secret reference. The GET branch-restrictions API requires Repository Admin permission."
+    },
+    {
+      "connector_id": "defender-endpoint",
+      "name": "Microsoft Defender for Endpoint",
+      "category": "endpoint_security",
+      "collection_mode": "direct_api_read",
+      "access_boundary": "scoped_token",
+      "credential_type": "defender_endpoint_api_token",
+      "minimum_permissions": ["Machine.Read.All", "Alert.Read.All"],
+      "evidence_types": [
+        "defender_endpoint.protection",
+        "defender_endpoint.alert",
+        "defender_endpoint.collection_gap"
+      ],
+      "default_route": "dual",
+      "freshness_slo_minutes": 1440,
+      "is_implemented": true,
+      "production_status": "supported_connector",
+      "release_stage": "preview",
+      "velocity": "medium_api",
+      "native_connector": false,
+      "data_shape": "current_state",
+      "vendor": "Microsoft",
+      "description": "Device onboarding, sensor health, antivirus versions and alert status.",
+      "setup_hint": "Reference an Entra application bearer token with Machine.Read.All and Alert.Read.All."
+    },
+    {
+      "connector_id": "sentinelone-endpoint",
+      "name": "SentinelOne Endpoint",
+      "category": "endpoint_security",
+      "collection_mode": "direct_api_read",
+      "access_boundary": "scoped_token",
+      "credential_type": "sentinelone_endpoint_api_token",
+      "minimum_permissions": [
+        "Read-only service user: Agents read, Threats read"
+      ],
+      "evidence_types": [
+        "sentinelone_endpoint.protection",
+        "sentinelone_endpoint.alert",
+        "sentinelone_endpoint.collection_gap"
+      ],
+      "default_route": "dual",
+      "freshness_slo_minutes": 1440,
+      "is_implemented": true,
+      "production_status": "supported_connector",
+      "release_stage": "preview",
+      "velocity": "medium_api",
+      "native_connector": false,
+      "data_shape": "current_state",
+      "vendor": "SentinelOne",
+      "description": "Agent protection modes, activity and threat mitigation state.",
+      "setup_hint": "Console subdomain on sentinelone.net and a read-only API token secret reference."
     }
   ]
 }

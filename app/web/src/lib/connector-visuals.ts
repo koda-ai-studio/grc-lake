@@ -276,6 +276,20 @@ export const CONNECTOR_VISUALS: Record<string, ConnectorVisual> = {
     bg: "#f1f5f9",
     categoryLabel: "Vendor API",
   },
+  "defender-endpoint": {
+    vendor: "Microsoft",
+    mark: "MI",
+    accent: "#475569",
+    bg: "#f1f5f9",
+    categoryLabel: "Vendor API",
+  },
+  "sentinelone-endpoint": {
+    vendor: "SentinelOne",
+    mark: "SE",
+    accent: "#475569",
+    bg: "#f1f5f9",
+    categoryLabel: "Vendor API",
+  },
 };
 
 export function connectorVisual(

@@ -1,0 +1,48 @@
+{
+  "/web/api/v2.1/agents?limit=1000": {
+    "data": [
+      {
+        "id": "agent-1",
+        "agentVersion": "25.1",
+        "isActive": true,
+        "isDecommissioned": false,
+        "lastActiveDate": "2026-11-25T00:00:00Z",
+        "mitigationMode": "protect",
+        "mitigationModeSuspicious": "protect"
+      }
+    ],
+    "pagination": {
+      "nextCursor": null,
+      "totalItems": 1
+    }
+  },
+  "/web/api/v2.1/threats?limit=1000": {
+    "data": [
+      {
+        "id": "threat-1",
+        "agentRealtimeInfo": {
+          "agentId": "agent-1"
+        },
+        "threatInfo": {
+          "mitigationStatus": "not_mitigated",
+          "incidentStatus": "unresolved",
+          "classification": "Malware"
+        }
+      },
+      {
+        "id": "threat-2",
+        "agentRealtimeInfo": {
+          "agentId": "agent-1"
+        },
+        "threatInfo": {
+          "mitigationStatus": "mitigated",
+          "incidentStatus": "resolved"
+        }
+      }
+    ],
+    "pagination": {
+      "nextCursor": null,
+      "totalItems": 2
+    }
+  }
+}
