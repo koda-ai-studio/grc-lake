@@ -84,6 +84,7 @@ from security_lakehouse.auth.sessions import (
 )
 from security_lakehouse.catalog import load_control_catalog
 from security_lakehouse.ccf_requirement_results import load_requirement_results
+from security_lakehouse.connector_state import build_catalog_view
 from security_lakehouse.data_policy import normalize_sensitivity, redact_payload
 from security_lakehouse.db import agent_runs as agent_runs_db
 from security_lakehouse.db import migrate, remediation, repository
@@ -93,6 +94,7 @@ from security_lakehouse.db.base import (
 )
 from security_lakehouse.db.models import REMEDIATION_PRIORITIES, USER_ROLES, AgentRun, User
 from security_lakehouse.demo_links import build_demo_kit
+from security_lakehouse.evidence_provenance import contains_synthetic_evidence
 from security_lakehouse.execution_mode import run_in_server_mode, server_execution
 from security_lakehouse.graph_admission import GraphBuildSlots, graph_build_settings, graph_tenant_capacity
 from security_lakehouse.ingestion_status import build_ingestion_status
@@ -106,6 +108,7 @@ from security_lakehouse.operation_jobs import (
     JobQueueFull,
     JobWorker,
 )
+from security_lakehouse.poc_source_readiness import source_sync_readiness
 from security_lakehouse.public_url import normalize_public_url
 from security_lakehouse.runtime_environment import runtime_env
 from security_lakehouse.server_routes.payloads import (
@@ -747,7 +750,15 @@ def _build_poc_readiness(
     evidence_count = int(ingestion_summary.get("evidence_count") or 0)
     failed_connectors = int(ingestion_summary.get("failed_connectors") or 0)
     silent_connectors = int(ingestion_summary.get("silent_connectors") or 0)
-    source_ready = enabled_connectors > 0 and evidence_count > 0 and failed_connectors == 0 and silent_connectors == 0
+    source_ready, source_detail = source_sync_readiness(
+        build_catalog_view(lake),
+        evidence_count=evidence_count,
+        now=now,
+        synthetic=contains_synthetic_evidence(lake),
+    )
+    if source_ready and (failed_connectors or silent_connectors):
+        source_ready = False
+        source_detail = "Source health needs attention; review failed or silent collection before sharing."
     local_mode = not bool(app.state.require_auth)
     human_access_ready = not local_mode and sso_configured
     headless_access_ready = len(active_keys) > 0
@@ -789,11 +800,7 @@ def _build_poc_readiness(
             step_id="source_sync",
             label="Source sync",
             ready=source_ready,
-            detail=(
-                f"{evidence_count} evidence row(s) from {enabled_connectors} enabled source(s)"
-                if source_ready
-                else "Connect, test, enable, and sync at least one source."
-            ),
+            detail=source_detail,
             href="/console/connectors",
         ),
         _poc_step(
