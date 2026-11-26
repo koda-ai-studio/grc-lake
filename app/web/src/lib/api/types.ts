@@ -1464,12 +1464,15 @@ export interface GraphNode {
   unassessed_asset_count?: number;
   invalid_binding_count?: number;
   required_evidence_types?: string[];
+  accepted_asset_types?: string[];
 }
 
 export interface GraphEdge {
   review_state?: string;
   /** `invalid_asset_type`: the evidence does not apply to this asset type. */
   binding?: string;
+  binding_reason?: string;
+  recorded_asset_types?: string[];
   id: string;
   source: string;
   target: string;

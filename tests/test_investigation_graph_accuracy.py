@@ -122,6 +122,12 @@ def test_safeguard_evidence_with_an_inapplicable_asset_type_is_marked_invalid(tm
     }
     assert set(edges) == {"valid", "wrong-type", "mixed-a", "mixed-b"}
     assert "binding" not in edges["valid"]
+    safeguard = next(n for n in graph["nodes"] if n["id"] == "safeguard:SG-IDENTITY-001")
+    assert "identity_user" in safeguard["accepted_asset_types"]
+    assert "repository" not in safeguard["accepted_asset_types"]
+    assert edges["wrong-type"]["recorded_asset_types"] == ["repository"]
+    assert edges["mixed-a"]["recorded_asset_types"] == ["host", "identity_user"]
+    assert edges["mixed-b"]["recorded_asset_types"] == ["host", "identity_user"]
     for event_id in ("wrong-type", "mixed-a", "mixed-b"):
         assert edges[event_id]["binding"] == "invalid_asset_type"
         assert edges[event_id]["binding_reason"] == "The asset type does not establish safeguard applicability."

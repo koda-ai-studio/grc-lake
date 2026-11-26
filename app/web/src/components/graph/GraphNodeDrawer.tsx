@@ -559,32 +559,68 @@ export function GraphNodeDrawer({
             </p>
             <PaginatedCollection label="Safeguard bindings" pageSize={3}>
               {safeguardBindings.map(({ edge, target }) => (
-                <button
+                <div
                   key={edge.id}
-                  disabled={!onInspectNode}
-                  className="grid min-w-0 gap-1 rounded-lg border border-line p-2 text-left hover:border-brand disabled:opacity-60"
-                  onClick={() => onInspectNode?.(target)}
+                  className="min-w-0 rounded-lg border border-line p-2"
                 >
-                  <span className="break-words text-sm font-semibold">
-                    {graphRecordLabel(target)}
-                  </span>
-                  <span className="break-all text-xs text-muted">
-                    Source account: {target.source_account_id ?? "Not recorded"}
-                  </span>
-                  <span className="break-all text-xs text-muted">
-                    Record: {target.event_id ?? target.id}
-                  </span>
-                  {edge.binding ? (
-                    <span className="text-xs font-semibold text-warning-fg">
-                      Invalid binding — excluded from assessed coverage
+                  <button
+                    disabled={!onInspectNode}
+                    className="grid w-full min-w-0 gap-1 rounded-md text-left hover:text-brand disabled:opacity-60"
+                    onClick={() => onInspectNode?.(target)}
+                  >
+                    <span className="break-words text-sm font-semibold">
+                      {graphRecordLabel(target)}
                     </span>
-                  ) : (
-                    <span className="text-xs text-muted">
-                      {graphEvidenceState(target).label} · Recorded binding does
-                      not establish a pass
+                    <span className="break-all text-xs text-muted">
+                      Source account:{" "}
+                      {target.source_account_id ?? "Not recorded"}
                     </span>
+                    <span className="break-all text-xs text-muted">
+                      Record: {target.event_id ?? target.id}
+                    </span>
+                    {edge.binding ? (
+                      <span className="text-xs font-semibold text-warning-fg">
+                        Invalid binding — excluded from assessed coverage
+                      </span>
+                    ) : (
+                      <span className="text-xs text-muted">
+                        {graphEvidenceState(target).label} · Recorded binding
+                        does not establish a pass
+                      </span>
+                    )}
+                  </button>
+                  {edge.binding && (
+                    <details className="mt-2 text-xs leading-5 text-muted">
+                      <summary className="cursor-pointer font-semibold text-warning-fg">
+                        Why this binding is excluded
+                      </summary>
+                      <div className="mt-2 grid gap-2 break-words">
+                        <p>
+                          {edge.binding_reason ||
+                            "The exclusion reason was not recorded in this graph."}
+                        </p>
+                        <p>
+                          Recorded asset types:{" "}
+                          {edge.recorded_asset_types?.length
+                            ? edge.recorded_asset_types.join(", ")
+                            : "Not recorded"}
+                        </p>
+                        <p>
+                          Accepted asset types:{" "}
+                          {node.accepted_asset_types?.length
+                            ? node.accepted_asset_types.join(", ")
+                            : "Not recorded"}
+                        </p>
+                        <p>
+                          Review the source classification and choose an
+                          applicable safeguard binding, then recollect and
+                          reevaluate. This view does not change the evidence or
+                          assessment.
+                        </p>
+                      </div>
+                    </details>
                   )}
-                </button>
+                </div>
               ))}
             </PaginatedCollection>
             {safeguardBindings.length === 0 && (

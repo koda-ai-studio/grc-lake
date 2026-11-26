@@ -232,6 +232,7 @@ def _build_model(
             basis="Catalog definition; a mapping does not establish assessment coverage",
             status=evaluated_safeguard.get("status", "not_evaluated"),
             required_evidence_types=list(row.get("required_evidence_types") or []),
+            accepted_asset_types=sorted(eligible_types[row["safeguard_id"]]),
             **{
                 field: evaluated_safeguard[field]
                 for field in (
@@ -391,6 +392,9 @@ def _build_model(
                     "has_evidence",
                     binding="invalid_asset_type",
                     binding_reason=INVALID_ASSET_TYPE_REASON,
+                    recorded_asset_types=sorted(
+                        asset_types[(account, asset)] if storage is None else storage.types(account, asset)
+                    ),
                 )
 
     # A failing control lists its findings (owner, next action) on the control
