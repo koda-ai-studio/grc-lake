@@ -251,26 +251,30 @@ def render_framework_coverage_doc() -> str:
     Generated from the catalog + CCF safeguards; the committed file is gated
     against this so it can never drift. Regenerate with ``make coverage-doc``.
     """
-    body = render_framework_coverage_markdown(build_framework_coverage())
+    body = render_framework_coverage_markdown(build_framework_coverage(), live_freshness=False)
     return (
         "# Framework Coverage Matrix\n\n"
         "Generated from the control catalog + CCF safeguards — never hand-edited.\n"
         "Regenerate with `make coverage-doc`. Mapping coverage measures catalog curation,\n"
         "not operating effectiveness, assessment completion, or certification. API fields\n"
-        "retain `evaluatable` and `attestable` names for compatibility.\n\n" + body + "\n"
+        "retain `evaluatable` and `attestable` names for compatibility.\n"
+        "Source pull timestamps are recorded provenance, not current freshness. Check the live\n"
+        "framework view for freshness relative to today.\n\n" + body + "\n"
     )
 
 
 def render_framework_coverage_markdown(
     rows: list[JsonObject],
     applicability_rows: list[JsonObject] | None = None,
+    *,
+    live_freshness: bool = True,
 ) -> str:
     applicability = applicability_rows if applicability_rows is not None else build_control_asset_applicability()
     summary = framework_coverage_summary(rows, applicability)
     header = (
         "| Framework | Official source | Status | Requirements | Source-cited | Mapped | Reviewed mappings | Reviewed %"
         " | Source-native self-maps | Crosswalk reviewed | Crosswalk reviewed % | No recorded reviewer"
-        " | Reviewed without contract | Source state |"
+        " | Reviewed without contract | " + ("Source state" if live_freshness else "Source pulled at") + " |"
     )
     lines = [
         header,
@@ -298,7 +302,11 @@ def render_framework_coverage_markdown(
                 crosswalk_pct=row.get("crosswalk_reviewed_coverage_pct", 0.0),
                 legacy=row.get("legacy_only_reviewed_requirement_count", 0),
                 without_contract=row.get("reviewed_without_contract_requirement_count", 0),
-                freshness=str(row["freshness_state"]).replace("_", " "),
+                freshness=(
+                    str(row["freshness_state"]).replace("_", " ")
+                    if live_freshness
+                    else _markdown_text(row.get("pulled_at") or "not recorded")
+                ),
             )
         )
     applicability_lines = [

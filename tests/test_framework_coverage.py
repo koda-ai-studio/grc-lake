@@ -158,3 +158,21 @@ def test_coverage_separates_reviews_with_no_recorded_reviewer() -> None:
     markdown = render_framework_coverage_markdown(rows)
     assert "No recorded reviewer |" in markdown
     assert "0 rest only on legacy reviews with no recorded reviewer" in markdown
+
+
+def test_committed_doc_is_stable_when_live_source_freshness_changes(monkeypatch) -> None:
+    import security_lakehouse.framework_coverage as coverage
+
+    original = coverage.build_framework_view
+    state = "fresh"
+
+    def view(*args, **kwargs):
+        return [{**row, "freshness_state": state} for row in original(*args, **kwargs)]
+
+    monkeypatch.setattr(coverage, "build_framework_view", view)
+    fresh_doc = coverage.render_framework_coverage_doc()
+    fresh_live = coverage.render_framework_coverage_markdown(coverage.build_framework_coverage())
+    state = "stale"
+    assert coverage.render_framework_coverage_doc() == fresh_doc
+    assert coverage.render_framework_coverage_markdown(coverage.build_framework_coverage()) != fresh_live
+    assert "Source pulled at" in fresh_doc
