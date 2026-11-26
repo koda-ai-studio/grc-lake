@@ -104,6 +104,9 @@ class DatadogMonitoringClient(ReadClient):
 
 
 class DatadogMonitoringFixtureClient(FixtureReads, DatadogMonitoringClient):
+    def get(self, *args: Any, **kwargs: Any) -> Any:
+        return FixtureReads.get(self, *args, **kwargs)
+
     def __init__(self, fixture_dir: str | Path, *, site: str = "datadoghq.com", max_pages: int = 100) -> None:
         super().__init__(api_key="", application_key="", site=site, max_pages=max_pages)
         self.load(fixture_dir)
