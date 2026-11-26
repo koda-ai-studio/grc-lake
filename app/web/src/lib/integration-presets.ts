@@ -446,6 +446,22 @@ const PRESETS: Record<string, IntegrationPreset> = {
       "Denied, incomplete or empty reads are recorded as collection gaps, never as a pass.",
     ],
   },
+  "bitbucket-repos": {
+    connectorId: "bitbucket-repos",
+    title: "Bitbucket Repositories",
+    authLabel: "Workspace access token",
+    badges: ["Read-only collector", "Preview"],
+    summary:
+      "Repository visibility and default-branch approval, push and deletion restrictions.",
+    providerSetup:
+      "Create a workspace access token with Repository Read and Admin. Bitbucket requires Admin even to read branch restrictions; collection uses GET only.",
+    trustOpsInput: "Workspace slug and access token secret reference.",
+    advancedTitle: "What is assessed",
+    advancedDetails: [
+      "Change approval requires approvals, enforced merge checks, no force pushes/deletion and no direct-push exceptions.",
+      "Overlapping rules, branching-model matchers and denied reads remain not evaluated. Visibility is observed, not a compliance verdict.",
+    ],
+  },
 };
 
 export function getIntegrationPreset(

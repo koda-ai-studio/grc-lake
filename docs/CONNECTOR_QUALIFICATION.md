@@ -21,7 +21,7 @@ provider identities and raw live evidence stay private.
 | Catalog stage | Executable adapters | Linked live receipt | No linked live receipt |
 | --- | --- | --- | --- |
 | Implemented | 18 | 4 | 14 |
-| Preview | 14 | 1 | 13 |
+| Preview | 15 | 1 | 14 |
 
 No linked live receipt does not mean never tested or no demo account exists.
 An existing trial may have a private run record that has not been reconciled into this index.
@@ -43,6 +43,7 @@ and [Databricks #734](https://github.com/koda-ai-studio/grc-lake/issues/734).
 | `azure-posture` | Implemented | [azure_connector](../tests/test_azure_connector.py); [azure_defender_assessments](../tests/test_azure_defender_assessments.py) | [2026-10-26; source basis `2b9c47dd`](../docs/qualification/live/2026-10-26-azure-defender.md#azure-posture): With the Defender for Cloud collection from #1076. One subscription via a local user session: 80 raw records including 54 Defender for Cloud assessments (14 Healthy, 33 Unhealthy, 7 NotApplicable, matching the Azure CLI), 6 of them bound to SG-DATAPROTECTION-001. Not management-group scope, paid Defender plans or service-principal authentication. | maintainer |
 | `bamboohr-personnel` | Implemented | [bamboohr_connector](../tests/test_bamboohr_connector.py); [collection_completeness](../tests/test_collection_completeness.py) | No scoped live record linked | Unassigned |
 | `bigquery-evidence-lake` | Preview | [bigquery_connector](../tests/test_bigquery_connector.py) | No scoped live record linked | Unassigned |
+| `bitbucket-repos` | Preview | [bitbucket_repos_connector](../tests/test_bitbucket_repos_connector.py) | No scoped live record linked | Unassigned |
 | `clickhouse-telemetry-lake` | Implemented | [clickhouse_connector](../tests/test_clickhouse_connector.py); [collection_completeness](../tests/test_collection_completeness.py) | No scoped live record linked | Unassigned |
 | `cloudflare-zones` | Preview | [cloudflare_connector](../tests/test_cloudflare_connector.py) | No scoped live record linked | Unassigned |
 | `crowdstrike-falcon` | Preview | [crowdstrike_connector](../tests/test_crowdstrike_connector.py); [collection_completeness](../tests/test_collection_completeness.py) | No scoped live record linked | Unassigned |
@@ -86,6 +87,7 @@ Qualify the actual principal, account, resource scope and provider version separ
 | `azure-posture` | `scoped_token` | Microsoft.Authorization/roleAssignments/read; Microsoft.Authorization/roleDefinitions/read; Microsoft.Resources/subscriptions/read; Microsoft.Authorization/policyAssignments/read; Microsoft.Resources/subscriptions/resources/read |
 | `bamboohr-personnel` | `scoped_token` | employee dataset read via a dedicated read-only BambooHR user |
 | `bigquery-evidence-lake` | `read_only_role` | roles/bigquery.jobUser on the project that runs the queries; roles/bigquery.dataViewer on the source dataset or tables |
+| `bitbucket-repos` | `scoped_token` | repository |
 | `clickhouse-telemetry-lake` | `read_only_role` | Read metadata for allowed databases; SELECT on discovered evidence tables or views; SELECT-only grants for selected evidence surfaces |
 | `cloudflare-zones` | `scoped_token` | Zone Read; Zone Settings Read; Zone WAF Read; DNS Read |
 | `crowdstrike-falcon` | `scoped_token` | Hosts: Read; Prevention policies: Read; Alerts: Read |

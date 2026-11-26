@@ -5,6 +5,8 @@ Python package, Helm chart, and bundled web console.
 
 ## Unreleased
 
+- Add a Preview Bitbucket Cloud connector for repository visibility and default-branch change-approval evidence, with safe pagination and explicit gaps.
+
 - Add a Preview Kandji device connector with bounded read-only collection, stale-evidence handling, and endpoint encryption bindings.
 
 - Add a Preview PagerDuty incident-response connector with bounded read-only collection, overdue incident observations, response timing and explicit on-call gaps.

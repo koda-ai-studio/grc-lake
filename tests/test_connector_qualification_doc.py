@@ -99,7 +99,7 @@ def test_historical_live_claim_requires_a_bounded_source_record(missing):
 def test_matrix_counts_linked_receipts_by_stage_without_equating_unlinked_with_untested():
     rendered = qualification.render()
     assert "| Implemented | 18 | 4 | 14 |" in rendered
-    assert "| Preview | 14 | 1 | 13 |" in rendered
+    assert "| Preview | 15 | 1 | 14 |" in rendered
     assert "does not mean never tested or no demo account exists" in rendered
     assert "RECONCILING_LIVE_RECEIPTS.md" in rendered
 

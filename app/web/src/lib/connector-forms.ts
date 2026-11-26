@@ -645,6 +645,22 @@ export const CONNECTOR_CREDENTIAL_FIELDS: Record<string, ConnectorFieldDef[]> =
         hint: "Read-only Kandji API token, stored as a secret reference. Do not paste the token.",
       },
     ],
+    "bitbucket-repos": [
+      {
+        name: "workspace",
+        label: "Workspace slug",
+        placeholder: "example",
+        required: true,
+        hint: "The workspace in your Bitbucket repository URL.",
+      },
+      {
+        name: "credential_ref",
+        label: "API token env var",
+        placeholder: "BITBUCKET_ACCESS_TOKEN",
+        required: true,
+        hint: "Workspace access token secret reference. Repository Read and Admin are required to read branch restrictions; do not paste the token.",
+      },
+    ],
   };
 
 export const CONNECTOR_SCOPE_FIELDS: Record<string, ConnectorFieldDef[]> = {

@@ -979,6 +979,26 @@ def _build_kandji_devices(inputs: SyncInputs) -> list[dict[str, Any]]:
     )
 
 
+def _build_bitbucket_repos(inputs: SyncInputs) -> list[dict[str, Any]]:
+    from security_lakehouse import connectors_bitbucket_repos as connector
+
+    kwargs: dict[str, Any] = {
+        "workspace": str(inputs.credentials.get("workspace") or ""),
+        "max_pages": inputs.options.get("max_pages", 100),
+    }
+    if inputs.fixture_dir:
+        client: connector.BitbucketReposClient = connector.BitbucketReposFixtureClient(inputs.fixture_dir, **kwargs)
+    else:
+        ref = str(inputs.credentials.get("credential_ref") or "")
+        if not ref:
+            raise ConnectorConfigError("bitbucket-repos requires an access token credential_ref")
+        token = resolve_secret_ref(ref, runtime_env(inputs.env))
+        if not token:
+            raise ConnectorConfigError("bitbucket-repos access token reference could not be resolved")
+        client = connector.BitbucketReposClient(token=token, **kwargs)
+    return connector.collect_bitbucket_repos_evidence(client)
+
+
 REGISTRY: dict[str, ConnectorBuilder] = {
     "snowflake-evidence-lake": _build_snowflake,
     "clickhouse-telemetry-lake": _build_clickhouse,
@@ -1012,6 +1032,7 @@ REGISTRY: dict[str, ConnectorBuilder] = {
     "iceberg-parquet-lake": _build_iceberg,
     "bigquery-evidence-lake": _build_bigquery,
     "kandji-devices": _build_kandji_devices,
+    "bitbucket-repos": _build_bitbucket_repos,
 }
 
 
