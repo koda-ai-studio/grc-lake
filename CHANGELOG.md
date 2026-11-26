@@ -5,10 +5,10 @@ Python package, Helm chart, and bundled web console.
 
 ## Unreleased
 
-- Add a Preview Bitbucket Cloud connector for repository visibility and default-branch change-approval evidence, with safe pagination and explicit gaps.
 - Explain excluded safeguard bindings in graph inspection with recorded and accepted asset types, including conflicting asset classifications.
 
-- Add Preview read-only Defender for Endpoint and SentinelOne collectors with endpoint/alert CCF bindings and explicit partial-collection gaps.
+- Add a Preview Bitbucket Cloud connector for repository visibility and default-branch change-approval evidence, with safe pagination and explicit gaps.
+- Add Preview Datadog and ServiceNow read-only collectors with monitoring, approval timing, incident evidence and explicit collection gaps.
 
 - Add Preview read-only Defender for Endpoint and SentinelOne collectors with endpoint/alert CCF bindings and explicit partial-collection gaps.
 

@@ -686,6 +686,44 @@ export const CONNECTOR_CREDENTIAL_FIELDS: Record<string, ConnectorFieldDef[]> =
         hint: "Read-only SentinelOne API token, stored as a secret reference. Do not paste the token.",
       },
     ],
+    "datadog-monitoring": [
+      {
+        name: "site",
+        label: "Datadog site",
+        placeholder: "datadoghq.com",
+        hint: "Use the documented region suffix, such as datadoghq.com or datadoghq.eu.",
+      },
+      {
+        name: "application_key_ref",
+        label: "Application key env var",
+        placeholder: "DATADOG_APPLICATION_KEY",
+        required: true,
+        hint: "Secret reference for an application key with the listed read-only scopes.",
+      },
+      {
+        name: "credential_ref",
+        label: "API token env var",
+        placeholder: "DATADOG_MONITORING_API_TOKEN",
+        required: true,
+        hint: "Read-only Datadog API token, stored as a secret reference. Do not paste the token.",
+      },
+    ],
+    "servicenow-operations": [
+      {
+        name: "subdomain",
+        label: "Instance subdomain",
+        placeholder: "example",
+        required: true,
+        hint: "The part before .service-now.com; no URL or path.",
+      },
+      {
+        name: "credential_ref",
+        label: "API token env var",
+        placeholder: "SERVICENOW_OPERATIONS_API_TOKEN",
+        required: true,
+        hint: "Read-only ServiceNow OAuth bearer token, stored as a secret reference. Do not paste the token.",
+      },
+    ],
   };
 
 export const CONNECTOR_SCOPE_FIELDS: Record<string, ConnectorFieldDef[]> = {
