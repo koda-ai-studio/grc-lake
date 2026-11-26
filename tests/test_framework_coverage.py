@@ -4,12 +4,12 @@ import json
 
 from security_lakehouse.catalog import load_control_catalog, load_framework_registry
 from security_lakehouse.cli import main
-from security_lakehouse.framework_coverage import (
-    build_control_asset_applicability,
-    build_framework_coverage,
-    framework_coverage_summary,
-    render_framework_coverage_markdown,
-)
+import security_lakehouse.framework_coverage as _framework_coverage
+
+build_control_asset_applicability = _framework_coverage.build_control_asset_applicability
+build_framework_coverage = _framework_coverage.build_framework_coverage
+framework_coverage_summary = _framework_coverage.framework_coverage_summary
+render_framework_coverage_markdown = _framework_coverage.render_framework_coverage_markdown
 
 
 def test_framework_coverage_ledger_counts_seeded_mappings(capsys) -> None:
@@ -161,7 +161,7 @@ def test_coverage_separates_reviews_with_no_recorded_reviewer() -> None:
 
 
 def test_committed_doc_is_stable_when_live_source_freshness_changes(monkeypatch) -> None:
-    import security_lakehouse.framework_coverage as coverage
+    coverage = _framework_coverage
 
     original = coverage.build_framework_view
     state = "fresh"
