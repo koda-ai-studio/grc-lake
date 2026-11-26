@@ -1,0 +1,36 @@
+{
+  "/api/now/table/change_request": {
+    "result": [
+      {
+        "sys_id": "00000000000000000000000000000001",
+        "approval": "requested",
+        "approval_set": "",
+        "work_start": "2026-11-24 00:00:00",
+        "risk": "2",
+        "state": "-1",
+        "description": "private description"
+      },
+      {
+        "sys_id": "00000000000000000000000000000002",
+        "approval": "approved",
+        "approval_set": "2026-11-23 00:00:00",
+        "work_start": "2026-11-24 00:00:00",
+        "risk": "3",
+        "state": "0"
+      }
+    ]
+  },
+  "/api/now/table/incident": {
+    "result": [
+      {
+        "sys_id": "00000000000000000000000000000003",
+        "priority": "1",
+        "state": "2",
+        "active": "true",
+        "opened_at": "2026-11-20 00:00:00",
+        "resolved_at": "",
+        "due_date": "2026-11-21 00:00:00"
+      }
+    ]
+  }
+}

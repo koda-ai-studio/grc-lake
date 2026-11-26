@@ -60,6 +60,8 @@ REAL_ADAPTERS = {
     "bitbucket-repos",
     "defender-endpoint",
     "sentinelone-endpoint",
+    "datadog-monitoring",
+    "servicenow-operations",
 }
 PREVIEW_CONNECTORS = {
     "entra-identity",
@@ -78,6 +80,8 @@ PREVIEW_CONNECTORS = {
     "bitbucket-repos",
     "defender-endpoint",
     "sentinelone-endpoint",
+    "datadog-monitoring",
+    "servicenow-operations",
 }
 FIXTURES = Path(__file__).parent / "fixtures"
 REPO_ROOT = Path(__file__).resolve().parents[1]
