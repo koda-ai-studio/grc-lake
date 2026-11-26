@@ -6,6 +6,7 @@ Python package, Helm chart, and bundled web console.
 ## Unreleased
 
 - Add a Preview Bitbucket Cloud connector for repository visibility and default-branch change-approval evidence, with safe pagination and explicit gaps.
+- Keep POC source setup incomplete after partial, empty, failed or stale syncs, with actionable next steps and explicit synthetic-evidence disclosure.
 
 - Add Preview read-only Defender for Endpoint and SentinelOne collectors with endpoint/alert CCF bindings and explicit partial-collection gaps.
 
